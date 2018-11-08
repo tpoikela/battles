@@ -1,17 +1,17 @@
 
 import RG from './rg';
-import Random from './random';
-import Menu from './menu';
-import Actor from './actor';
+import {Random} from './random';
+import * as Menu from './menu';
+import * as Actor from './actor';
 
 const RNG = Random.getRNG();
 
 /* This file contains usable actor ability definitions. */
-const Ability: any = {};
+export const Ability: any = {};
 
 type MenuItem = [string, () => void];
 
-class AbilityBase {
+export class AbilityBase {
     public name: string;
     public actor: Actor.Rogue;
 
@@ -43,57 +43,57 @@ Ability.Base = AbilityBase;
 // Abilities usable on actor itself
 //---------------------------------------------------------------------------
 
-Ability.Self = function(name) {
+export const Self = function(name) {
     Ability.Base.call(this, name);
 };
-RG.extend2(Ability.Self, Ability.Base);
+RG.extend2(Self, Ability.Base);
 
-Ability.Self.prototype.getMenuItem = function() {
+Self.prototype.getMenuItem = function() {
     return [
         this.getName(),
         this.activate.bind(this)
     ];
 };
 
-Ability.Camouflage = function() {
+export const Camouflage = function() {
     Ability.Self.call(this, 'Camouflage');
 };
-RG.extend2(Ability.Camouflage, Ability.Self);
+RG.extend2(Camouflage, Ability.Self);
 
-Ability.Camouflage.prototype.activate = function() {
+Camouflage.prototype.activate = function() {
     const actor = this.actor;
     actor.add(new RG.Component.Camouflage());
 };
 
 /* Abilities affecting specific direction, where player must choose
  * a direction for using the ability. */
-Ability.Direction = function() {
+export const Direction = function() {
     Ability.Base.call(this, name);
 };
-RG.extend2(Ability.Direction, Ability.Base);
+RG.extend2(Direction, Ability.Base);
 
 /* Abilities affecting specific area, where the area must be chosen by
  * the player. */
-Ability.Area = function() {
+export const Area = function() {
     Ability.Base.call(this, name);
 
 };
-RG.extend2(Ability.Area, Ability.Base);
+RG.extend2(Area, Ability.Base);
 
 /* Base class for abilities targeting items. Each derived class must provide
  * activate(item) function for the actual ability functionality. */
-Ability.Item = function(name) {
+export const Item = function(name) {
     Ability.Base.call(this, name);
 };
-RG.extend2(Ability.Item, Ability.Base);
+RG.extend2(Item, Ability.Base);
 
-Ability.Item.prototype.activate = function(item) {
+Item.prototype.activate = function(item) {
     const json = JSON.stringify(item);
     RG.err('Ability.Item', 'activate',
         'Not impl. in base class. Called with: ' + json);
 };
 
-Ability.Item.prototype.getMenuItem = function() {
+Item.prototype.getMenuItem = function() {
     const items = this.actor.getInvEq().getInventory().getItems();
     const itemMenuItems = items.map(item => (
         [
@@ -110,10 +110,10 @@ Ability.Item.prototype.getMenuItem = function() {
 };
 
 /* This ability can be used to sharpen weapons. */
-Ability.Sharpener = function() {
+export const Sharpener = function() {
     Ability.Item.call(this, 'Sharpener');
 };
-RG.extend2(Ability.Sharpener, Ability.Item);
+RG.extend2(Sharpener, Ability.Item);
 
 Ability.Sharpener.prototype.activate = function(item) {
     const name = item.getName();
@@ -135,7 +135,7 @@ Ability.Sharpener.prototype.activate = function(item) {
     }
 };
 
-class Abilities {
+export class Abilities {
 
     public abilities: {[key: string]: AbilityBase};
     public actor: Actor.Rogue;
@@ -165,5 +165,3 @@ class Abilities {
 
 }
 Ability.Abilities = Abilities;
-
-export default Ability;

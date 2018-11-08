@@ -124,13 +124,13 @@ RG.getPropClassOrChar = function(styles, propObj) {
                     }
                 }
             }
-            return styles[lookupKey]['default'];
+            return styles[lookupKey].default;
 
         }
         return styles[lookupKey];
     }
     else {
-        return styles['default'];
+        return styles.default;
     }
 };
 
@@ -449,7 +449,7 @@ RG.addStackedItems = function(item1, item2) {
 RG.removeStackedItems = function(itemStack, n) {
     if (n > 0) {
     let rmvItem = null;
-        if (n === 1 && itemStack.getCount() === 1) {
+    if (n === 1 && itemStack.getCount() === 1) {
             return itemStack;
         }
         else if (n < itemStack.getCount()) {
@@ -647,7 +647,7 @@ RG.findEnemyCellForActor = function(actor, seenCells) {
     return res;
 };
 
-import EventPool from './eventpool';
+import {EventPool} from './eventpool';
 const POOL: EventPool = EventPool.getPool();
 
 //--------------------------------------------------------------
@@ -942,7 +942,7 @@ RG.getDmgClassName = function(dmgType) {
     return RG.classNameDMG[dmgType];
 };
 
-RG.isEmpty = (value) => {
+RG.isEmpty =value => {
     if (RG.isNullOrUndef([value])) {
         return true;
     }
@@ -956,7 +956,7 @@ RG.isEmpty = (value) => {
 };
 
 /* Returns name of object, or its parent's if object has no name. */
-RG.getName = (obj) => {
+RG.getName =obj => {
     if (obj.getName) {
         return obj.getName();
     }
@@ -1210,7 +1210,7 @@ RG.getItemStat = (getFuncName, item) => {
 
 };
 
-RG.getExpRequired = (newLevel) => {
+RG.getExpRequired =newLevel => {
     let reqExp = 0;
     for (let i = 1; i <= newLevel; i++) {
         reqExp += (i - 1) * 10;
@@ -1486,7 +1486,7 @@ RG.isOneShotItem = item => {
 RG.destroyItemIfNeeded = item => {
     if (RG.isOneShotItem(item)) {
         if (item.getCount() === 1) {
-            const msg = {item: item};
+            const msg = {item};
             POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
         }
         else {
@@ -1733,9 +1733,9 @@ RG.flattenTo2D = arr => {
         row = flat(row);
         res.push(row);
     }
-	function flat(data) {
-		var r = [];
-        data.forEach(e => {
+       function flat(data) {
+        let r = [];
+  data.forEach(e => {
             if (Array.isArray(e)) {
                 r = r.concat(flat(e));
             }
@@ -1743,9 +1743,9 @@ RG.flattenTo2D = arr => {
                 r.push(e);
             }
         });
-		return r;
-	}
-	return res;
+        return r;
+    }
+       return res;
 };
 
 /* Removes all x,y duplicates from the given array. */

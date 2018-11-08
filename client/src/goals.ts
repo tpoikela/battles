@@ -1,13 +1,14 @@
 
-const debug = require('debug')('bitn:Goal');
+import debug from 'debug';
+const debug = debug('bitn:Goal');
 
-const Path = require('./path');
-const RG = require('./rg');
-const Random = require('./random');
-const Component = require('./component');
+import Path from './path';
+import RG from './rg';
+import Random from './random';
+import Component from './component';
 
 const RNG = Random.getRNG();
-const Goal = {};
+const Goal: any = {};
 Goal.ACTOR_FILTER = '';
 
 Goal.GOAL_ACTIVE = 1;
@@ -1320,4 +1321,4 @@ function statusToString(status) {
     return Goal.Status[status];
 }
 
-module.exports = Goal;
+export default Goal;

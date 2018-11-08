@@ -491,7 +491,7 @@ Brain.Rogue.prototype.exploreLevel = function(seenCells) {
     let index = -1;
     let perms = [];
     for (let j = 0; j < seenCells.length; j++) {perms.push(j);}
-    perms = perms.randomize();
+    perms = RNG.shuffle(perms);
 
     for (let i = 0, ll = perms.length; i < ll; i++) {
         const ci = perms[i];

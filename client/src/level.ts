@@ -1,12 +1,12 @@
 
-import RG = require('./rg');
+import RG from './rg';
 // const GameObject = require('./game-object');
-import Entity = require('./entity');
-import RG.Component = require('./component');
-import Random = require('./random');
-import EventPool = require('./eventpool');
+import Entity from './entity';
+import Component from './component';
+import Random from './random';
+import EventPool from './eventpool';
 
-const POOL = EventPool.getPool();
+const POOL: EventPool = EventPool.getPool();
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
 
 const RNG = Random.getRNG();
@@ -35,6 +35,13 @@ LevelCallback.prototype.toJSON = function() {
 // const Level = function() {
 class Level extends Entity {
 
+    private _map: any;
+    private _parent: any;
+    private _p: {[key: string]: any[]};
+    private _levelNo: number;
+    private _callbacks: {[key: string]: () => void};
+    private _cbState: {[key: string]: boolean};
+
     constructor() {
         super();
         this._map = null;
@@ -44,8 +51,8 @@ class Level extends Entity {
         // slow. This fails if cells are manipulated directly
         this._p = {
             actors: [],
-            items: [],
-            elements: []
+            elements: [],
+            items: []
         };
 
         this._levelNo = 0;
@@ -266,7 +273,7 @@ Level.prototype.removeItem = function(item, x, y) {
 };
 
 Level.prototype.pickupItem = function(actor) {
-    const pickup = new RG.Component.Pickup();
+    const pickup = new Component.Pickup();
     actor.add(pickup);
 };
 
@@ -484,77 +491,77 @@ Level.prototype.setOnEnter = function(cb) {
     this._callbacks.OnEnter = cb;
 };
 Level.prototype.setOnFirstEnter = function(cb) {
-	this._callbacks.OnFirstEnter = cb;
+    this._callbacks.OnFirstEnter = cb;
 };
 Level.prototype.setOnExit = function(cb) {
-	this._callbacks.OnExit = cb;
+    this._callbacks.OnExit = cb;
 };
 Level.prototype.setOnFirstExit = function(cb) {
-	this._callbacks.OnFirstExit = cb;
+    this._callbacks.OnFirstExit = cb;
 };
 
 Level.prototype.onEnter = function() {
-	if (this._callbacks.hasOwnProperty('OnEnter')) {
-		this._callbacks.OnEnter(this);
-	}
+    if (this._callbacks.hasOwnProperty('OnEnter')) {
+        this._callbacks.OnEnter(this);
+    }
 };
 
 Level.prototype.onFirstEnter = function() {
-	if (!this._cbState.onFirstEnterDone) {
-		if (this._callbacks.hasOwnProperty('OnFirstEnter')) {
-			this._callbacks.OnFirstEnter(this);
-		}
-		this._cbState.onFirstEnterDone = true;
-	}
+    if (!this._cbState.onFirstEnterDone) {
+        if (this._callbacks.hasOwnProperty('OnFirstEnter')) {
+            this._callbacks.OnFirstEnter(this);
+        }
+        this._cbState.onFirstEnterDone = true;
+    }
 };
 
 Level.prototype.onExit = function() {
-	if (this._callbacks.hasOwnProperty('OnExit')) {
-		this._callbacks.OnExit(this);
-	}
+    if (this._callbacks.hasOwnProperty('OnExit')) {
+        this._callbacks.OnExit(this);
+    }
 };
 
 Level.prototype.onFirstExit = function() {
-	if (!this._cbState.onFirstExitDone) {
-		if (this._callbacks.hasOwnProperty('OnFirstExit')) {
-			this._callbacks.OnFirstExit(this);
-		}
-		this._cbState.onFirstExitDone = true;
-	}
+    if (!this._cbState.onFirstExitDone) {
+        if (this._callbacks.hasOwnProperty('OnFirstExit')) {
+            this._callbacks.OnFirstExit(this);
+        }
+        this._cbState.onFirstExitDone = true;
+    }
 };
 
 /* Return random free cell on a given level.*/
 Level.prototype.getFreeRandCell = function() {
-	const freeCells = this.getMap().getFree();
-	if (freeCells.length > 0) {
-		const index = RNG.randIndex(freeCells);
-		return freeCells[index];
-	}
-	return null;
+    const freeCells = this.getMap().getFree();
+    if (freeCells.length > 0) {
+        const index = RNG.randIndex(freeCells);
+        return freeCells[index];
+    }
+    return null;
 };
 
 /* Returns random empty cells, or null if cannot find any.*/
 Level.prototype.getEmptyRandCell = function() {
-	const emptyCells = this.getMap().getEmptyCells();
-	if (emptyCells.length > 0) {
-		const index = RNG.randIndex(emptyCells);
-		return emptyCells[index];
-	}
-	return null;
+    const emptyCells = this.getMap().getEmptyCells();
+    if (emptyCells.length > 0) {
+        const index = RNG.randIndex(emptyCells);
+        return emptyCells[index];
+    }
+    return null;
 };
 
 Level.prototype._getFreeCellXY = function() {
-	const freeCells = this._map.getFree();
-	if (freeCells.length > 0) {
-		const xCell = freeCells[0].getX();
-		const yCell = freeCells[0].getY();
-		return [xCell, yCell];
-	}
-	return [null, null];
+    const freeCells = this._map.getFree();
+    if (freeCells.length > 0) {
+        const xCell = freeCells[0].getX();
+        const yCell = freeCells[0].getY();
+        return [xCell, yCell];
+    }
+    return [null, null];
 };
 
 Level.prototype.debugPrintInASCII = function() {
-	this.getMap().debugPrintInASCII();
+    this.getMap().debugPrintInASCII();
 };
 
 /* Removes all elements matching the given function. */
@@ -590,7 +597,7 @@ Level.prototype.toJSON = function() {
         }
     }
 
-    obj.components = RG.Component.compsToJSON(this);
+    obj.components = Component.compsToJSON(this);
     // Must store x, y for each prop as well
     const props = [TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM];
     props.forEach(propType => {

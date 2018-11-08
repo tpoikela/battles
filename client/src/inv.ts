@@ -1,15 +1,15 @@
 
-const RG = require('./rg');
-RG.Item = require('./item');
-const Equipment = require('./equipment').Equipment;
+import RG from './rg';
+import Item from './item';
+import {Equipment} from './equipment';
 
-RG.Inv = {};
+const Inv: any = {};
 
 /* Object models inventory items and equipment on actor. This object handles
  * movement of items between inventory and equipment. */
 const Inventory = function(actor) {
     this._actor = actor;
-    this._inv = new RG.Item.Container(actor);
+    this._inv = new Item.Container(actor);
     this._eq = new Equipment(actor);
 };
 
@@ -218,6 +218,6 @@ Inventory.prototype.restoreEquipped = function(item) {
     }
 };
 
-RG.Inv.Inventory = Inventory;
+Inv.Inventory = Inventory;
 
-module.exports = RG.Inv;
+export default Inv;

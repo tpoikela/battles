@@ -4,12 +4,15 @@
  * Each evaluator should return a desirability of given action, which is a
  * number between 0 and 1.
  */
+import RG from './rg';
+import Goal from './goals';
+import GoalThief from './goal.thief';
+import Actor from './actor';
+import Random from './random';
 
-const RG = require('./rg');
-const Goal = require('./goals');
-Goal.Thief = require('./goal.thief');
+type Coord = [number, number];
 
-const Evaluator = {};
+const Evaluator: any = {};
 Evaluator.hist = {};
 
 // Should be returned if evaluator is not applicable to current situation
@@ -18,10 +21,13 @@ Evaluator.NOT_POSSIBLE = RG.BIAS.NOT_POSSIBLE;
 // Should be returned if the case is always executed
 Evaluator.ALWAYS = RG.BIAS.ALWAYS;
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 /* Base class for all evaluators. Provides only the basic constructor. */
 class EvaluatorBase {
+
+    public actorBias: number;
+    public type: string;
 
     constructor(actorBias) {
         /* if (!Number.isFinite(actorBias)) {
@@ -32,7 +38,7 @@ class EvaluatorBase {
         this.type = 'Base';
     }
 
-    calculateDesirability() {
+    calculateDesirability(actor) {
         throw new Error('Pure virtual function');
     }
 
@@ -65,13 +71,15 @@ class EvaluatorBase {
     }
 
     /* Called by FromJSON. */
-    setArgs() {}
+    setArgs(args) {}
 
 }
 Evaluator.Base = EvaluatorBase;
 
 
 class EvaluatorAttackActor extends EvaluatorBase {
+
+    public enemyActor: Actor.Rogue;
 
     constructor(actorBias) {
         super(actorBias);
@@ -125,6 +133,8 @@ Evaluator.hist.Explore = 0;
 /* Evaluator to check if actor should flee from a fight. */
 class EvaluatorFlee extends EvaluatorBase {
 
+    public enemyActor: Actor.Rogue;
+
     constructor(actorBias) {
         super(actorBias);
         this.type = 'Flee';
@@ -176,6 +186,8 @@ Evaluator.hist.Flee = 0;
 
 /* Evaluator to check if actor should guard between given points. */
 class EvaluatorPatrol extends EvaluatorBase {
+
+    public coords: Coord[];
 
     constructor(actorBias, coord = []) {
         super(actorBias);

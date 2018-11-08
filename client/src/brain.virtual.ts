@@ -2,22 +2,21 @@
 /* This file contains Brain objects for virtual actors such as spawners. */
 
 import Constraints from './constraints';
-
-const RG = require('./rg');
-RG.Brain = require('./brain');
+import RG from './rg';
+import * as Brain from './brain';
 
 const spawnProb = 0.10;
 
 /* Brains for virtual actors such as spawners. */
-RG.Brain.Virtual = function(actor) {
-    RG.Brain.Base.call(this, actor);
+export const BrainVirtual = function(actor) {
+    Brain.Base.call(this, actor);
     this.setType('Virtual');
 };
-RG.extend2(RG.Brain.Virtual, RG.Brain.Base);
+RG.extend2(BrainVirtual, Brain.Base);
 
 /* Brain object used by Spawner virtual actors. */
-RG.Brain.Spawner = function(actor) {
-    RG.Brain.Virtual.call(this, actor);
+export const BrainSpawner = function(actor) {
+    BrainVirtual.call(this, actor);
     this.setType('Spawner');
 
     this.constraint = null;
@@ -56,6 +55,4 @@ RG.Brain.Spawner = function(actor) {
     };
 
 };
-RG.extend2(RG.Brain.Spawner, RG.Brain.Virtual);
-
-module.exports = RG.Brain;
+RG.extend2(BrainSpawner, BrainVirtual);

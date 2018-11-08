@@ -7,9 +7,6 @@
 import RG from './rg';
 import GameObject from './game-object';
 import EventPool from '../src/eventpool';
-import Component from './component.base';
-
-type CompBase = Component.Base;
 
 const POOL = EventPool.getPool();
 
@@ -28,9 +25,17 @@ const spliceOne = function(arr: any[], index: number): void {
  * arbitrary properties by attaching components to it. See the basic
  * methods add(), get(), has() and remove() particularly.
  */
-class Entity extends GameObject {
+export class Entity extends GameObject {
 
     public static num: {[key: string]: number};
+
+    public static createEntityID(): number {
+        return GameObject.createObjectID();
+    }
+
+    public static getIDCount(): number {
+        return GameObject.ID;
+    }
 
     public comps: any;
     public compsByType: any;
@@ -96,7 +101,7 @@ class Entity extends GameObject {
 
     /* Gets component with given name. If entity has multiple of them, returns
      * the first found. */
-    public get(typeName: string): CompBase {
+    public get(typeName: string): any {
         ++Entity.num.get;
         if (this.compsByType[typeName]) {
             return this.compsByType[typeName][0];
@@ -110,7 +115,7 @@ class Entity extends GameObject {
     }
 
     /* SLOW method to get comps of given type. Don't use in internal methods. */
-    public getList(typeName: string): CompBase[] {
+    public getList(typeName: string): any[] {
         ++Entity.num.getList;
         if (this.compsByType[typeName]) {
             return this.compsByType[typeName].slice();
@@ -119,7 +124,7 @@ class Entity extends GameObject {
     }
 
     /* Adds a new component into the entity. */
-    public add(compObj: CompBase): void {
+    public add(compObj: any): void {
         if (typeof compObj === 'string') {
             RG.err('Entity', 'add', 'No string support anymore');
         }
@@ -142,7 +147,7 @@ class Entity extends GameObject {
 
     /* Returns true if entity has given component. Lookup by ID is much faster
      * than with name. */
-    public has (nameOrId): boolean {
+    public has(nameOrId): boolean {
         ++Entity.num.has;
         if (this.compsByType.hasOwnProperty(nameOrId)) {
             return true;
@@ -205,15 +210,6 @@ class Entity extends GameObject {
 
 }
 
-
-
-
-Entity.createEntityID = () => {
-    return GameObject.createObjectID();
-};
-
-Entity.getIDCount = () => GameObject.ID;
-
 /* For histogramming purposes, to see how many calls are done per function. */
 Entity.num = {};
 Entity.num.add = 0;
@@ -224,5 +220,3 @@ Entity.num.hasAny = 0;
 Entity.num.hasAll = 0;
 Entity.num.remove = 0;
 Entity.num.removeAll = 0;
-
-export default Entity;

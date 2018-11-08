@@ -1,30 +1,31 @@
 
-const RG = require('./rg');
-const Objects = require('../data/battles_objects');
-const Actors = require('../data/actors');
-RG.Effects = require('../data/effects');
-RG.Brain = require('./brain');
+import RG from './rg';
+import Objects from '../data/battles_objects';
+import Actors, {adjustActorValues} from '../data/actors';
+import Actor from './actor';
+import Effects from '../data/effects';
+import Brain from './brain';
 
 const RNG = RG.Random.getRNG();
 
-RG.ObjectShell = {};
+const ObjectShell: any = {};
 
-RG.ObjectShell.getParser = function() {
-    if (!RG.ObjectShell.parserInstance) {
-        const parser = new RG.ObjectShell.Parser();
-        parser.parseShellData(RG.Effects);
+ObjectShell.getParser = function() {
+    if (!ObjectShell.parserInstance) {
+        const parser = new ObjectShell.Parser();
+        parser.parseShellData(Effects);
 
         const jsonStr = JSON.stringify(Objects);
         const objectsNew = JSON.parse(jsonStr);
-        Actors.adjustActorValues(objectsNew.actors);
+        adjustActorValues(objectsNew.actors);
 
         parser.parseShellData(objectsNew);
-        RG.ObjectShell.parserInstance = parser;
+        ObjectShell.parserInstance = parser;
     }
-    return RG.ObjectShell.parserInstance;
+    return ObjectShell.parserInstance;
 };
 
-RG.ObjectShell.Creator = function(db, dbNoRandom) {
+ObjectShell.Creator = function(db, dbNoRandom) {
     this._db = db;
     this._dbNoRandom = dbNoRandom;
     /* Maps obj props to function calls. Essentially this maps bunch of setters
@@ -45,7 +46,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
      * 4. "setter"
      *   Call setter obj["setter"](shell.field)
      * */
-    const _propToCall = {
+    const _propToCall: any = {
         actors: {
             type: 'setType',
             attack: {comp: 'Combat', func: 'setAttack'},
@@ -676,20 +677,20 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
 
 };
 
-RG.ObjectShell.Creator.prototype.createBrain = function(actor, brainName) {
-    if (RG.Brain[brainName]) {
-        return new RG.Brain[brainName](actor);
+ObjectShell.Creator.prototype.createBrain = function(actor, brainName) {
+    if (Brain[brainName]) {
+        return new Brain[brainName](actor);
     }
     let msg = `Warning. No brain type |${brainName}| found`;
     msg += 'Using the default Brain.Rogue instead.';
     console.warn(msg);
-    return new RG.Brain.Rogue(actor);
+    return new Brain.Rogue(actor);
 };
 
 
 /* Object handling the procedural generation. It has an object "database" and
  * objects can be pulled randomly from it. */
-RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
+ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
     this._db = db;
     this._dbDanger = dbDanger;
     this._dbByName = dbByName;
@@ -851,7 +852,7 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
 
 /* Object parser for reading game data. Game data is contained within shell
  * objects which are simply object literals without functions etc. */
-RG.ObjectShell.Parser = function() {
+ObjectShell.Parser = function() {
 
     // NOTE: 'SHELL' means vanilla JS object, which has not been
     // created with new:
@@ -886,8 +887,8 @@ RG.ObjectShell.Parser = function() {
         elements: {}
     }; // All entries excluded from random generation
 
-    this._creator = new RG.ObjectShell.Creator(this._db, this._dbNoRandom);
-    this._procgen = new RG.ObjectShell.ProcGen(this._db, this._dbDanger,
+    this._creator = new ObjectShell.Creator(this._db, this._dbNoRandom);
+    this._procgen = new ObjectShell.ProcGen(this._db, this._dbDanger,
         this._dbByName);
 
     this.getCreator = function() {
@@ -1215,7 +1216,7 @@ RG.ObjectShell.Parser = function() {
 };
 
 RG.createItem = function(nameOrShell) {
-    const parser = RG.ObjectShell.getParser();
+    const parser = ObjectShell.getParser();
     const creator = parser.getCreator();
     if (typeof nameOrShell === 'string') {
         return creator.createActualObj(RG.TYPE_ITEM, nameOrShell);
@@ -1226,4 +1227,4 @@ RG.createItem = function(nameOrShell) {
     }
 };
 
-module.exports = RG.ObjectShell;
+export default ObjectShell;

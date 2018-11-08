@@ -3,13 +3,15 @@
  * dungeons, dungeon branches etc.
  */
 
-const RG = require('./rg');
-const GameObject = require('./game-object');
-const debug = require('debug')('bitn:world');
-const Element = require('./element');
-const EventPool = require('../src/eventpool');
+import debug from 'debug';
+const dbg = debug('bitn:world');
 
-const POOL = EventPool.getPool();
+import RG from './rg';
+import GameObject from './game-object';
+import Element from './element';
+import EventPool from './eventpool';
+
+const POOL: EventPool = EventPool.getPool();
 
 const Stairs = Element.Stairs;
 RG.World = {};
@@ -17,14 +19,17 @@ RG.World = {};
 const RNG = RG.Random.getRNG();
 
 const oppositeEdge = {
-    north: 'south', south: 'north', east: 'west', west: 'east'
+    east: 'west',
+    north: 'south',
+    south: 'north',
+    west: 'east'
 };
 
 function removeExistingConnection(level, x, y) {
     const cell = level.getMap().getCell(x, y);
     if (cell.hasConnection()) {
         const conn = cell.getConnection();
-        debug(`world.js Removing conn@${x},${y}`);
+        dbg(`world.js Removing conn@${x},${y}`);
         level.removeElement(conn, x, y);
     }
 }
@@ -134,8 +139,8 @@ function getStairsOther(name, levels) {
 /* Finds a level from a named zone such as city quarter, dungeon branch or
  * mountain face. */
 function findLevel(name, zones, nLevel) {
-    const zone = zones.find(zone => {
-        return zone.getName() === name;
+    const zone = zones.find(z => {
+        return z.getName() === name;
     });
     if (zone) {
         const levels = zone.getLevels();
@@ -153,8 +158,8 @@ function findLevel(name, zones, nLevel) {
 }
 
 function findSubZone(name, subZones) {
-    const subZone = subZones.find(subZone => (
-        subZone.getName() === name
+    const subZone = subZones.find(sz => (
+        sz.getName() === name
     ));
     return subZone;
 }
@@ -378,18 +383,18 @@ function connectTiles(tiles, sizeX, sizeY) {
     }
     for (let x = 0; x < sizeX; x++) {
         for (let y = 0; y < sizeY; y++) {
-            debug(`Trying to connect tile ${x},${y} now`);
+            dbg(`Trying to connect tile ${x},${y} now`);
             if (x < sizeX - 1 && y < sizeY - 1) {
-                debug(`>> Connecting tile ${x},${y} now`);
+                dbg(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(
                     tiles[x + 1][y], tiles[x][y + 1]);
             }
             else if (x < sizeX - 1) {
-                debug(`>> Connecting tile ${x},${y} now`);
+                dbg(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(tiles[x + 1][y], null);
             }
             else if (y < sizeY - 1) {
-                debug(`>> Connecting tile ${x},${y} now`);
+                dbg(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(null, tiles[x][y + 1]);
             }
         }
@@ -442,11 +447,11 @@ RG.World.Base.prototype.setParent = function(parent) {
 };
 
 RG.World.Base.prototype.toJSON = function() {
-    const obj = {
-        name: this.name,
+    const obj: any = {
         hierName: this.hierName,
-        type: this.type,
-        id: this.getID()
+        id: this.getID(),
+        name: this.name,
+        type: this.type
     };
     if (this.parent) {
         obj.parent = this.parent.getID();
@@ -789,9 +794,9 @@ RG.World.Dungeon = function(name) {
     this.toJSON = function() {
         const json = RG.World.ZoneBase.prototype.toJSON.call(this);
         const obj = {
+            branch: this._subZones.map(br => br.toJSON()),
             entranceNames: this._entranceNames,
-            nBranches: this._subZones.length,
-            branch: this._subZones.map(br => br.toJSON())
+            nBranches: this._subZones.length
         };
         return Object.assign(obj, json);
     };
@@ -1826,4 +1831,4 @@ RG.World.isZone = function(feature) {
     return false;
 };
 
-module.exports = RG.World;
+export default RG.World;

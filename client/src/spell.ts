@@ -23,17 +23,17 @@
  *    onCellCallback(cell): Called for each affected cell
  *    NOTE: For damage effects, you can use onHit()
  */
-const RG = require('./rg');
-const Keys = require('./keymap');
-RG.Component = require('./component');
-RG.Random = require('./random');
+import RG from './rg';
+import Keys from './keymap';
+import Component from './component';
+import Random from './random';
 
 const RNG = RG.Random.getRNG();
 const {KeyMap} = Keys;
 
 // const NO_SELECTION_NEEDED = () => {};
 
-const Spell = {};
+const Spell: any = {};
 
 /* Used for sorting the spells by spell power. */
 /* function compareSpells(s1, s2) {
@@ -1724,6 +1724,4 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.Telepathy());
 };
 
-RG.Spell = Spell;
-module.exports = RG.Spell;
-
+export default Spell;

@@ -1,14 +1,14 @@
 
-const ROT = require('../../lib/rot');
-const RG = require('./rg');
-const EventPool = require('../src/eventpool');
+import ROT from '../../lib/rot';
+import RG from './rg';
+import EventPool from '../src/eventpool';
 
 const POOL = EventPool.getPool();
 
-RG.Time = {};
+const Time: any = {};
 
 /* Models an action. Each action has a duration and a callback.  */
-RG.Time.Action = function(dur, cb) {
+Time.Action = function(dur, cb) {
 
     this._duration = dur;
     this._cb = cb; // Action callback
@@ -16,10 +16,10 @@ RG.Time.Action = function(dur, cb) {
 
 };
 
-RG.Time.Action.prototype.setEnergy = function(en) {this._energy = en;};
-RG.Time.Action.prototype.getEnergy = function() {return this._energy;};
-RG.Time.Action.prototype.getDuration = function() {return this._duration;};
-RG.Time.Action.prototype.doAction = function() {
+Time.Action.prototype.setEnergy = function(en) {this._energy = en;};
+Time.Action.prototype.getEnergy = function() {return this._energy;};
+Time.Action.prototype.getDuration = function() {return this._duration;};
+Time.Action.prototype.doAction = function() {
     this._cb();
 };
 
@@ -29,7 +29,7 @@ RG.Time.Action.prototype.doAction = function() {
 
 /* Event is something that is scheduled and takes place but it's not an actor.
  * An example is regeneration or poison effect.*/
-RG.Time.GameEvent = function(dur, cb, repeat, offset) {
+Time.GameEvent = function(dur, cb, repeat, offset) {
 
     // var _cb = cb;
     let _repeat = repeat;
@@ -43,7 +43,7 @@ RG.Time.GameEvent = function(dur, cb, repeat, offset) {
     /* Clunky for events, but must implement for the scheduler.*/
     this.isPlayer = () => false;
 
-    this.nextAction = () => new RG.Time.Action(dur, cb, {});
+    this.nextAction = () => new Time.Action(dur, cb, {});
 
     this.getRepeat = () => _repeat;
     this.setRepeat = repeat => {_repeat = repeat;};
@@ -57,31 +57,31 @@ RG.Time.GameEvent = function(dur, cb, repeat, offset) {
 };
 
 /* Regeneration event. Initialized with an actor. */
-RG.Time.RegenEvent = function(actor, dur) {
+Time.RegenEvent = function(actor, dur) {
     const _dur = dur; // Duration between events
 
     const _regenerate = () => {
         actor.get('Health').addHP(1);
     };
 
-    RG.Time.GameEvent.call(this, _dur, _regenerate, true);
+    Time.GameEvent.call(this, _dur, _regenerate, true);
 };
-RG.extend2(RG.Time.RegenEvent, RG.Time.GameEvent);
+RG.extend2(Time.RegenEvent, Time.GameEvent);
 
 /* Regeneration power points event. Initialized with an actor. */
-RG.Time.RegenPPEvent = function(actor, dur) {
+Time.RegenPPEvent = function(actor, dur) {
     const _dur = dur; // Duration between events
 
     const _regeneratePower = () => {
         actor.get('SpellPower').addPP(1);
     };
 
-    RG.Time.GameEvent.call(this, _dur, _regeneratePower, true);
+    Time.GameEvent.call(this, _dur, _regeneratePower, true);
 };
-RG.extend2(RG.Time.RegenPPEvent, RG.Time.GameEvent);
+RG.extend2(Time.RegenPPEvent, Time.GameEvent);
 
 /* Event that is executed once after an offset.*/
-RG.Time.OneShotEvent = function(cb, offset, msg) {
+Time.OneShotEvent = function(cb, offset, msg) {
 
     // Wraps the callback into function and emits a message
     var _cb = () => {
@@ -91,13 +91,13 @@ RG.Time.OneShotEvent = function(cb, offset, msg) {
         cb();
     };
 
-    RG.Time.GameEvent.call(this, 0, _cb, false, offset);
+    Time.GameEvent.call(this, 0, _cb, false, offset);
 };
-RG.extend2(RG.Time.OneShotEvent, RG.Time.GameEvent);
+RG.extend2(Time.OneShotEvent, Time.GameEvent);
 
 /* Scheduler for the game actions. Time-based scheduler where each actor/event
 * is scheduled based on speed.  */
-RG.Time.Scheduler = function() { // {{{2
+Time.Scheduler = function() { // {{{2
 
     // Internally use ROT scheduler
     this._scheduler = new ROT.Scheduler.Action();
@@ -116,7 +116,7 @@ RG.Time.Scheduler = function() { // {{{2
 }; // }}} Scheduler
 
 /* Adds an actor or event to the scheduler.*/
-RG.Time.Scheduler.prototype.add = function(actOrEvent, repeat, offset) {
+Time.Scheduler.prototype.add = function(actOrEvent, repeat, offset) {
     this._scheduler.add(actOrEvent, repeat, offset);
     if (actOrEvent.hasOwnProperty('isEvent')) {
         this._events.push(actOrEvent);
@@ -127,18 +127,18 @@ RG.Time.Scheduler.prototype.add = function(actOrEvent, repeat, offset) {
 };
 
 // Returns next actor/event or null if no next actor exists.
-RG.Time.Scheduler.prototype.next = function() {
+Time.Scheduler.prototype.next = function() {
     return this._scheduler.next();
 };
 
 /* Must be called after next() to re-schedule next slot for the
  * actor/event.*/
-RG.Time.Scheduler.prototype.setAction = function(action) {
+Time.Scheduler.prototype.setAction = function(action) {
     this._scheduler.setDuration(action.getDuration());
 };
 
 /* Tries to remove an actor/event, Return true if success.*/
-RG.Time.Scheduler.prototype.remove = function(actOrEvent) {
+Time.Scheduler.prototype.remove = function(actOrEvent) {
     if (actOrEvent.hasOwnProperty('isEvent')) {
         return this.removeEvent(actOrEvent);
     }
@@ -152,7 +152,7 @@ RG.Time.Scheduler.prototype.remove = function(actOrEvent) {
 };
 
 /* Removes an event from the scheduler. Returns true on success.*/
-RG.Time.Scheduler.prototype.removeEvent = function(actOrEvent) {
+Time.Scheduler.prototype.removeEvent = function(actOrEvent) {
     let index = -1;
     if (actOrEvent.hasOwnProperty('isEvent')) {
         index = this._events.indexOf(actOrEvent);
@@ -163,11 +163,11 @@ RG.Time.Scheduler.prototype.removeEvent = function(actOrEvent) {
     return this._scheduler.remove(actOrEvent);
 };
 
-RG.Time.Scheduler.prototype.getTime = function() {
+Time.Scheduler.prototype.getTime = function() {
     return this._scheduler.getTime();
 };
 
-RG.Time.Scheduler.prototype.notify = function(evtName, args) {
+Time.Scheduler.prototype.notify = function(evtName, args) {
     if (evtName === RG.EVT_ACTOR_KILLED) {
         if (args.hasOwnProperty('actor')) {
             this.remove(args.actor);
@@ -175,4 +175,4 @@ RG.Time.Scheduler.prototype.notify = function(evtName, args) {
     }
 };
 
-module.exports = RG.Time;
+export default Time;

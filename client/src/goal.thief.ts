@@ -1,8 +1,8 @@
 /* Contains code for thief goal. */
 
-const RG = require('./rg');
-const Goal = require('./goals');
-const Random = require('./random');
+import RG from './rg';
+import Goal from './goals';
+import Random from './random';
 
 const {
     GOAL_ACTIVE,
@@ -283,4 +283,4 @@ function ifItemFoundCreateGoal(actor, seenCells, cache, cacheAcceptFunc) {
     return nextGoal;
 }
 
-module.exports = GoalThief;
+export default GoalThief;

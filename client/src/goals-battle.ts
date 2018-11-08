@@ -1,13 +1,13 @@
 
 /* This file contains Battle-related goals used by NPC actors. */
 
-const RG = require('./rg');
-const Goal = require('./goals');
-const Evaluator = require('./evaluators');
+import RG from './rg';
+import Goal from './goals';
+import Evaluator from './evaluators';
 
 const {GOAL_ACTIVE, GOAL_COMPLETED} = Goal;
 
-const GoalsBattle = {};
+const GoalsBattle: any = {};
 
 const orderWithGoal = (actor, obj) => {
     const {bias} = obj;
@@ -368,4 +368,4 @@ class GoalRetreat extends Goal.Base {
 }
 GoalsBattle.Retreat = GoalRetreat;
 
-module.exports = GoalsBattle;
+export default GoalsBattle;

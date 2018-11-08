@@ -1,9 +1,11 @@
 
-import RG = require('./rg');
-import Component = require('./component');
-import Entity = require('./entity');
-import Mixin = require('./mixin');
-import EventPool = require('../src/eventpool');
+import RG from './rg';
+import * as Comp from './component.base';
+import * as Component from './component';
+import * as Mixin from './mixin';
+import * as Actor from './actor';
+import {Entity} from './entity';
+import EventPool from '../src/eventpool';
 
 const POOL = EventPool.getPool();
 
@@ -11,47 +13,100 @@ const POOL = EventPool.getPool();
 // ITEMS
 //---------------------------------------------------------------------------
 
-RG.Item = {};
+const Item: any = {};
 
 /* Models an item. Each item is ownable by someone. During game, there are no
  * items with null owners. Ownership shouldn't be ever set to null. */
-class ItemBase extends Mixin.Ownable(Entity) {
+export class Base extends Entity {
+
+    public _owner: Actor.SentientActor;
+    public isOwnable: boolean;
+    public useArgs: any;
+    public isUsable: boolean;
+    private _name: string;
 
     constructor(name) {
-        super({owner: null});
+        super();
+        this.isOwnable = true;
+        this._owner = null;
         this._name = name;
+        this.isUsable = false;
         this.add(new Component.Typed(RG.ITEM.BASE, RG.TYPE_ITEM));
         this.add(new Component.Item());
         this.add(new Component.Physical());
     }
 
-    setName(name) {this._name = name;}
-    getName() {return this._name;}
+    public isSamePos(obj) {return this._owner.isSamePos(obj);}
 
-    setWeight(weight) {
+    public setOwner(owner) {
+        if (RG.isNullOrUndef([owner])) {
+            RG.err('Object.Ownable', 'setOwner', 'Owner cannot be null.');
+        }
+        else {
+            this._owner = owner;
+        }
+    }
+
+    /* Returns the top-level owner. Used mainly to recover actor owner of items
+     * inside inventory. */
+    public getTopOwner() {
+        let owner = this._owner;
+        while (owner.getOwner) {
+            owner = owner.getOwner();
+        }
+        return owner;
+    }
+
+    /* Returns the direct owner of this object.*/
+    public getOwner() {return this._owner;}
+
+    public getX() {
+        if (this._owner) {return this._owner.getX();}
+        return null;
+    }
+
+    public getY() {
+        if (this._owner) {return this._owner.getY();}
+        return null;
+    }
+
+    public getXY() {
+        if (this._owner) {return this._owner.getXY();}
+        return null;
+    }
+
+    public getLevel() {
+        if (this._owner) {return this._owner.getLevel();}
+        return null;
+    }
+
+    public setName(name) {this._name = name;}
+    public getName() {return this._name;}
+
+    public setWeight(weight) {
         this.get('Physical').setWeight(weight);
     }
 
-    getWeight() {return this.get('Physical').getWeight();}
+    public getWeight() {return this.get('Physical').getWeight();}
 
-    setValue(value) {this.get('Item').setValue(value);}
-    getValue() {return this.get('Item').getValue();}
+    public setValue(value) {this.get('Item').setValue(value);}
+    public getValue() {return this.get('Item').getValue();}
 
-    incrCount(count) {this.get('Item').incrCount(count);}
-    decrCount(count) {this.get('Item').decrCount(count);}
-    getCount() {return this.get('Item').getCount();}
-    setCount(count) {this.get('Item').setCount(count);}
+    public incrCount(count) {this.get('Item').incrCount(count);}
+    public decrCount(count) {this.get('Item').decrCount(count);}
+    public getCount() {return this.get('Item').getCount();}
+    public setCount(count) {this.get('Item').setCount(count);}
 
-    getType() {return this.get('Typed').getObjType();}
-    setType(type) {return this.get('Typed').setObjType(type);}
-    getPropType() {return this.get('Typed').getPropType();}
-    setPropType(type) {return this.get('Typed').setPropType(type);}
+    public getType() {return this.get('Typed').getObjType();}
+    public setType(type) {return this.get('Typed').setObjType(type);}
+    public getPropType() {return this.get('Typed').getPropType();}
+    public setPropType(type) {return this.get('Typed').setPropType(type);}
 
-    setDamageType(type) {this.get('Item').setDamageType(type);}
-    getDamageType() {return this.get('Item').getDamageType();}
+    public setDamageType(type) {this.get('Item').setDamageType(type);}
+    public getDamageType() {return this.get('Item').getDamageType();}
 
     /* Used when showing the item in inventory lists etc. */
-    toString() {
+    public toString() {
         let txt = this.getName() + ', ' + this.getType() + ', ';
         const totalWeight = this.getWeight() * this.getCount();
         txt += totalWeight.toFixed(2) + 'kg';
@@ -65,7 +120,7 @@ class ItemBase extends Mixin.Ownable(Entity) {
         return txt;
     }
 
-    copy(rhs) {
+    public copy(rhs) {
         this.setName(rhs.getName());
         this.setType(rhs.getType());
         this.setWeight(rhs.getWeight());
@@ -74,23 +129,27 @@ class ItemBase extends Mixin.Ownable(Entity) {
         if (rhs.useArgs) {
             this.useArgs = rhs.useArgs;
         }
-        if (rhs.useItem) {
+        if (rhs.isUsable) {
             this.useItem = rhs.useItem.bind(this);
         }
 
         const comps = Object.values(rhs.getComponents());
-        comps.forEach(comp => {
+        comps.forEach((comp: any) => {
             this.add(comp.clone());
         });
     }
 
-    clone() {
-        const newItem = new RG.Item.Base(this.getName());
+    public useItem(obj): void {
+        RG.err('Item', 'useItem', 'pure virtual function');
+    }
+
+    public clone() {
+        const newItem = new Item.Base(this.getName());
         newItem.copy(this);
         return newItem;
     }
 
-    equals(item) {
+    public equals(item) {
         if (this.getID() === item.getID()) {
             return true;
         }
@@ -101,35 +160,39 @@ class ItemBase extends Mixin.Ownable(Entity) {
         return res;
     }
 
-    toJSON() {
-        const json = {
+    public toJSON() {
+        const json: any = {
             setID: this.getID(),
             setName: this.getName(),
-            setType: this.getType() // Needed for de-ser
+            setType: this.getType(),
+            isUsable: this.isUsable
         };
-        json.components = Component.compsToJSON(this);
+        json.components = Comp.compsToJSON(this);
         return json;
     }
 
 }
-RG.Item.Base = ItemBase;
+Item.Base = Base;
 
 //----------------
 /* RGItemFood */
 //----------------
-class RGItemFood extends ItemBase {
+export class Food extends Base {
+
+    public _energy: number;
 
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.FOOD);
         this._energy = 0; // per 0.1 kg
+        this.isUsable = true;
     }
 
-    setEnergy(energy) {this._energy = energy;}
-    getEnergy() {return this._energy;}
+    public setEnergy(energy) {this._energy = energy;}
+    public getEnergy() {return this._energy;}
 
     /* Uses (eats) the food item.*/
-    useItem(obj) {
+    public useItem(obj: any) {
         if (obj.hasOwnProperty('target')) {
             const cell = obj.target;
             if (cell.hasActors()) {
@@ -156,7 +219,7 @@ class RGItemFood extends ItemBase {
                 }
             }
             else {
-                RG.gameWarn("There's no one to give food to.");
+                RG.gameWarn('There\'s no one to give food to.');
             }
         }
         else {
@@ -164,42 +227,43 @@ class RGItemFood extends ItemBase {
         }
     }
 
-    getConsumedEnergy() {
+    public getConsumedEnergy() {
         return Math.round(this.getWeight() * this._energy / 0.1);
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.setEnergy = this.getEnergy();
         return json;
     }
 
-    clone() {
-        const newFood = new RG.Item.Food(this.getName());
+    public clone() {
+        const newFood = new Item.Food(this.getName());
         newFood.copy(this);
         newFood.setEnergy(this.getEnergy());
         return newFood;
     }
 }
 
-RG.Item.Food = RGItemFood;
-
+Item.Food = Food;
 
 //------------------
-/* RGItemCorpse */
+/* Corpse */
 //------------------
-class RGItemCorpse extends ItemBase {
+export class Corpse extends Base {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.CORPSE);
     }
 }
-RG.Item.Corpse = RGItemCorpse;
+Item.Corpse = Corpse;
 
 //------------------
-/* RGItemWeapon */
+/* Weapon */
 //------------------
-class RGItemWeapon extends Mixin.Damage(ItemBase) {
+export class Weapon extends Mixin.Damage(Base) {
+
+    private _weaponType: string;
 
     constructor(name) {
         super(name);
@@ -207,26 +271,26 @@ class RGItemWeapon extends Mixin.Damage(ItemBase) {
         this._weaponType = '';
     }
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         this._weaponType = rhs.getWeaponType();
     }
 
-    clone() {
-        const weapon = new RGItemWeapon(this.getName());
+    public clone() {
+        const weapon = new Weapon(this.getName());
         weapon.copy(this);
         return weapon;
     }
 
-    setWeaponType(type) {
+    public setWeaponType(type) {
         this._weaponType = type;
     }
 
-    getWeaponType() {
+    public getWeaponType() {
         return this._weaponType;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.setWeaponType = this._weaponType;
         return json;
@@ -234,57 +298,62 @@ class RGItemWeapon extends Mixin.Damage(ItemBase) {
 
 }
 
-RG.Item.Weapon = RGItemWeapon;
+Item.Weapon = Weapon;
 
 //-------------------------
-/* RGItemMissileWeapon */
+/* MissileWeapon */
 //-------------------------
-class RGItemMissileWeapon extends RGItemWeapon {
+export class MissileWeapon extends Weapon {
+
+    private _fireRate: number;
+
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.MISSILE_WEAPON);
         this._fireRate = 1;
     }
 
-    setFireRate(rate) {
+    public setFireRate(rate) {
         this._fireRate = rate;
     }
 
-    getFireRate() {
+    public getFireRate() {
         return this._fireRate;
     }
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         this.setFireRate(rhs.getFireRate());
     }
 
-    clone() {
-        const weapon = new RGItemMissileWeapon(this.getName());
+    public clone() {
+        const weapon = new MissileWeapon(this.getName());
         weapon.copy(this);
         return weapon;
     }
 
-    equals(rhs) {
+    public equals(rhs) {
         if (super.equals(rhs)) {
             return this._fireRate === rhs.getFireRate();
         }
         return false;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.setFireRate = this._fireRate;
         return json;
     }
 
 }
-RG.Item.MissileWeapon = RGItemMissileWeapon;
+Item.MissileWeapon = MissileWeapon;
 
 //---------------------------------------
-/* RGItemAmmo Object for ammunition. */
+/* Ammo Object for ammunition. */
 //---------------------------------------
-class RGItemAmmo extends RGItemWeapon {
+export class Ammo extends Weapon {
+    private _ammoType: string;
+
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.AMMUNITION);
@@ -292,28 +361,28 @@ class RGItemAmmo extends RGItemWeapon {
         this._ammoType = '';
     }
 
-    setAmmoType(type) {this._ammoType = type;}
-    getAmmoType() {return this._ammoType;}
+    public setAmmoType(type) {this._ammoType = type;}
+    public getAmmoType() {return this._ammoType;}
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         this.setAmmoType(rhs.getAmmoType());
     }
 
-    clone() {
-        const ammo = new RGItemAmmo(this.getName());
+    public clone() {
+        const ammo = new Ammo(this.getName());
         ammo.copy(this);
         return ammo;
     }
 
-    equals(rhs) {
+    public equals(rhs) {
         if (super.equals(rhs)) {
             return this._ammoType === rhs.getAmmoType();
         }
         return false;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.setAmmoType = this._ammoType;
         return json;
@@ -321,12 +390,14 @@ class RGItemAmmo extends RGItemWeapon {
 
 }
 
-RG.Item.Ammo = RGItemAmmo;
+Item.Ammo = Ammo;
 
 //-------------------------------------------
-/* RGItemArmour Object for armour items. */
+/* Armour Object for armour items. */
 //-------------------------------------------
-class RGItemArmour extends Mixin.Defense(ItemBase) {
+export class Armour extends Mixin.Defense(Base) {
+
+    private _armourType: string;
 
     constructor(name) {
         super(name);
@@ -337,42 +408,43 @@ class RGItemArmour extends Mixin.Defense(ItemBase) {
         this.getArmourType = () => this._armourType;
     }
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         this.setArmourType(rhs.getArmourType());
     }
 
-    clone() {
-        const armour = new RGItemArmour(this.getName());
+    public clone() {
+        const armour = new Armour(this.getName());
         armour.copy(this);
         return armour;
     }
 
-    equals(rhs) {
+    public equals(rhs) {
         let res = super.equals(rhs);
         res = res && this._armourType === rhs.getArmourType();
         return res;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.setArmourType = this.getArmourType();
         return json;
     }
 }
 
-RG.Item.Armour = RGItemArmour;
+Item.Armour = Armour;
 
 //--------------------------------------
-/* RGItemPotion Object for potions. */
+/* Potion Object for potions. */
 //--------------------------------------
-class RGItemPotion extends ItemBase {
+export class Potion extends Base {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.POTION);
+        this.isUsable = true;
     }
 
-    useItem(obj) {
+    public useItem(obj) {
         if (obj.hasOwnProperty('target')) {
             const cell = obj.target;
             if (cell.hasActors()) {
@@ -400,19 +472,22 @@ class RGItemPotion extends ItemBase {
         return false;
     }
 
-    clone() {
-        const newPotion = new RG.Item.Potion(this.getName());
+    public clone() {
+        const newPotion = new Item.Potion(this.getName());
         newPotion.copy(this);
         return newPotion;
     }
 }
 
-RG.Item.Potion = RGItemPotion;
+Item.Potion = Potion;
 
 //----------------------------------------
-/* RGItemRune Object for rune stones. */
+/* Rune Object for rune stones. */
 //----------------------------------------
-class RGItemRune extends ItemBase {
+export class Rune extends Base {
+
+    private _charges: number;
+
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.RUNE);
@@ -420,21 +495,21 @@ class RGItemRune extends ItemBase {
         this._charges = 1;
     }
 
-    getCharges() {return this._charges;}
-    setCharges(charges) {this._charges = charges;}
+    public getCharges() {return this._charges;}
+    public setCharges(charges) {this._charges = charges;}
 
-    clone() {
-        const rune = new RGItemRune(this.getName());
+    public clone() {
+        const rune = new Rune(this.getName());
         rune.copy(this);
         return rune;
     }
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         this.setCharges(rhs.getCharges());
     }
 
-    equals(rhs) {
+    public equals(rhs) {
         let res = super.equals(rhs);
         if (rhs.getCharges) {
             res = res && this.getCharges() === rhs.getCharges();
@@ -443,43 +518,47 @@ class RGItemRune extends ItemBase {
         return false;
     }
 
-    toString() {
+    public toString() {
         let res = super.toString();
         res += ` charges: ${this.getCharges()}`;
         return res;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.setCharges = this.getCharges();
         return json;
     }
 }
-RG.Item.Rune = RGItemRune;
+Item.Rune = Rune;
 
 //----------------------------------------------
-/* RGItemMissile Object for thrown missile. */
+/* Missile Object for thrown missile. */
 //----------------------------------------------
-class RGItemMissile extends RGItemWeapon {
+export class Missile extends Weapon {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.MISSILE);
     }
 
-    clone() {
-        const weapon = new RGItemMissile(this.getName());
+    public clone() {
+        const weapon = new Missile(this.getName());
         weapon.copy(this);
         return weapon;
     }
 
 }
 
-RG.Item.Missile = RGItemMissile;
+Item.Missile = Missile;
 
 //------------------------------------------------------
-/* RGItemContainer An item which holds other items. */
+/* Container An item which holds other items. */
 //------------------------------------------------------
-class RGItemContainer extends ItemBase {
+export class Container extends Base {
+
+    private _items: Base[];
+    private _iter: number;
+    private _removedItem: null | Base;
 
     constructor(owner) {
         super('container');
@@ -491,7 +570,7 @@ class RGItemContainer extends ItemBase {
     }
 
     /* Adds one item to container. Always succeeds. */
-    _addItem(item) {
+    public _addItem(item) {
         let matchFound = false;
         for (let i = 0; i < this._items.length; i++) {
             if (this._items[i].equals(item)) {
@@ -508,7 +587,7 @@ class RGItemContainer extends ItemBase {
     }
 
     /* Returns the total weight of the container.*/
-    getWeight() {
+    public getWeight() {
         let sum = 0;
         for (let i = 0; i < this._items.length; i++) {
             sum += this._items[i].getWeight() * this._items[i].getCount();
@@ -517,10 +596,10 @@ class RGItemContainer extends ItemBase {
     }
 
     /* Adds an item. Container becomes item's owner.*/
-    addItem(item) {
+    public addItem(item) {
         if (item.getCount() <= 0) {
             const str = JSON.stringify(item);
-            RG.warn('RGItemContainer', 'addItem',
+            RG.warn('Container', 'addItem',
                 `Possible bug. Tried to add item with count 0: ${str}`);
         }
         if (item.getType() === 'container') {
@@ -529,7 +608,7 @@ class RGItemContainer extends ItemBase {
             }
             else {
                 RG.err('Item', 'addItem',
-                    "Added item is container's owner. Impossible.");
+                    'Added item is container\'s owner. Impossible.');
             }
         }
         else {
@@ -537,10 +616,10 @@ class RGItemContainer extends ItemBase {
         }
     }
 
-    getItems() {return this._items.slice();}
+    public getItems() {return this._items.slice();}
 
     /* Check by pure obj ref. Returns true if contains item ref.*/
-    hasItemRef(item) {
+    public hasItemRef(item) {
         const index = this._items.indexOf(item);
         if (index !== -1) {return true;}
         return false;
@@ -548,14 +627,14 @@ class RGItemContainer extends ItemBase {
 
     /* Used for stacking/equip purposes only. Uses item.equals(), much slower
      * than hasItemRef(). */
-    hasItem(item) {
+    public hasItem(item) {
         if (this.hasItemRef(item)) {return true;}
         const index = this._getMatchingItemIndex(item);
         return index >= 0;
     }
 
     /* Tries to remove an item. Returns true on success, false otherwise.*/
-    removeItem(item) {
+    public removeItem(item) {
         if (this.hasItem(item)) {
             return this._removeItem(item);
         }
@@ -563,14 +642,14 @@ class RGItemContainer extends ItemBase {
         return false;
     }
 
-    _getMatchingItemIndex(item) {
+    public _getMatchingItemIndex(item) {
         for (let i = 0; i < this._items.length; i++) {
             if (item.equals(this._items[i])) {return i;}
         }
         return -1;
     }
 
-    _removeItem(item) {
+    public _removeItem(item) {
         const i = this._getMatchingItemIndex(item);
 
         if (i === -1) {
@@ -591,10 +670,10 @@ class RGItemContainer extends ItemBase {
     }
 
     /* Returns last removed item if removeItem returned true.*/
-    getRemovedItem() {return this._removedItem;}
+    public getRemovedItem() {return this._removedItem;}
 
     /* Removes N items from the inventory of given type.*/
-    removeNItems(item, n) {
+    public removeNItems(item, n) {
         let count = 0;
         while ((count < n) && this.removeItem(item)) {
             ++count;
@@ -614,7 +693,7 @@ class RGItemContainer extends ItemBase {
     }
 
     /* Returns first item or null for empty container.*/
-    first() {
+    public first() {
         if (this._items.length > 0) {
             this._iter = 1;
             return this._items[0];
@@ -623,23 +702,23 @@ class RGItemContainer extends ItemBase {
     }
 
     /* Returns next item from container or null if there are no more items.*/
-    next() {
+    public next() {
         if (this._iter < this._items.length) {
             return this._items[this._iter++];
         }
         return null;
     }
 
-    last() {
+    public last() {
         return this._items[this._items.length - 1];
     }
 
         /* Returns true for empty container.*/
-    isEmpty() {
+    public isEmpty() {
         return this._items.length === 0;
     }
 
-    toString() {
+    public toString() {
         let str = 'Container: ' + this.getName() + '\n';
         const items = this.getItems();
         for (let i = 0; i < items.length; i++) {
@@ -648,7 +727,7 @@ class RGItemContainer extends ItemBase {
         return str;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = [];
         const items = this.getItems();
         for (let i = 0; i < items.length; i++) {
@@ -657,27 +736,30 @@ class RGItemContainer extends ItemBase {
         return json;
     }
 }
-RG.Item.Container = RGItemContainer;
+Item.Container = Container;
 
 //----------------
-/* RGItemGold */
+/* Gold */
 //----------------
-class RGItemGold extends ItemBase {
+export class Gold extends Base {
+
+    private _purity: string;
+
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.GOLD);
         this._purity = 1.0;
     }
 
-    getPurity() {
+    public getPurity() {
         return this._purity;
     }
 
-    setPurity(purity) {
+    public setPurity(purity) {
         this._purity = purity;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.setType = this.getType();
         json.setPurity = this._purity;
@@ -685,28 +767,31 @@ class RGItemGold extends ItemBase {
     }
 }
 
-RG.Item.Gold = RGItemGold;
+Item.Gold = Gold;
 
 
 //-------------------------------------------
-/* RGItemGoldCoin because we need money. */
+/* GoldCoin because we need money. */
 //-------------------------------------------
 /* Gold coins have standard weight and are (usually) made of pure gold.*/
-class RGItemGoldCoin extends RGItemGold {
-	constructor(name) {
-		const _name = name || RG.GOLD_COIN_NAME;
-		super(_name);
-		this.setType(RG.ITEM.GOLD_COIN);
-		this._purity = 1.0;
-		this.setWeight(0.03);
-	}
+export class GoldCoin extends Gold {
+    constructor(name) {
+        const _name = name || RG.GOLD_COIN_NAME;
+        super(_name);
+        this.setType(RG.ITEM.GOLD_COIN);
+        this._purity = 1.0;
+        this.setWeight(0.03);
+    }
 }
-RG.Item.GoldCoin = RGItemGoldCoin;
+Item.GoldCoin = GoldCoin;
 
 //-------------------------------------------
-/* RGItemSpiritGem for capturing spirits. */
+/* SpiritGem for capturing spirits. */
 //-------------------------------------------
-class RGItemSpiritGem extends ItemBase {
+export class SpiritGem extends Base {
+
+    private _spirit: Actor.SentientActor;
+    private _hasSpirit: boolean;
 
     constructor(name) {
         super(name);
@@ -729,12 +814,12 @@ class RGItemSpiritGem extends ItemBase {
 
     }
 
-    getArmourType() {return this.getType();}
+    public getArmourType() {return this.getType();}
 
-    hasSpirit() {return this._hasSpirit;}
-    getSpirit() {return this._spirit;}
+    public hasSpirit() {return this._hasSpirit;}
+    public getSpirit() {return this._spirit;}
 
-    setSpirit(spirit) {
+    public setSpirit(spirit) {
         if (!this._hasSpirit) {
             this._hasSpirit = true;
             this._spirit = spirit;
@@ -745,7 +830,7 @@ class RGItemSpiritGem extends ItemBase {
     }
 
     /* Used for capturing the spirits inside the gem.*/
-    useItem(obj) {
+    public useItem(obj) {
         const binder = this.getOwner().getOwner();
         if (binder) {
             const bindComp = new Component.SpiritBind();
@@ -759,24 +844,24 @@ class RGItemSpiritGem extends ItemBase {
         }
     }
 
-    clone() {
-        const gem = new RGItemSpiritGem(this.getName());
+    public clone() {
+        const gem = new SpiritGem(this.getName());
         gem.copy(this);
         return gem;
     }
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         if (rhs.hasSpirit()) {this.setSpirit(rhs.getSpirit());}
     }
 
-    equals(rhs) {
+    public equals(rhs) {
         let res = super.equals(rhs);
         res = res && (this.getSpirit() === rhs.getSpirit());
         return res;
     }
 
-    toString() {
+    public toString() {
         let txt = super.toString();
         if (this.hasSpirit()) {
             const stats = this.getSpirit().get('Stats');
@@ -790,27 +875,34 @@ class RGItemSpiritGem extends ItemBase {
         return txt;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.hasSpirit = this.hasSpirit();
         if (json.hasSpirit) {json.setSpirit = this.getSpirit().toJSON();}
         return json;
     }
 }
-RG.Item.SpiritGem = RGItemSpiritGem;
+Item.SpiritGem = SpiritGem;
 
 //------------------
-/* RGItemMineral */
+/* Mineral */
 //------------------
-class RGItemMineral extends ItemBase {
+export class Mineral extends Base {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.MINERAL);
     }
 }
-RG.Item.Mineral = RGItemMineral;
+Item.Mineral = Mineral;
 
-class RGItemBook extends ItemBase {
+export interface BookData {
+    [key: string]: any[];
+}
+
+export class Book extends Base {
+
+    public text: string[];
+    public metaData: BookData;
 
     constructor(name) {
         super(name);
@@ -819,22 +911,22 @@ class RGItemBook extends ItemBase {
         this.metaData = {}; // Used in quests etc
     }
 
-    addMetaData(key, obj) {
+    public addMetaData(key, obj) {
         if (!this.metaData.hasOwnProperty[key]) {
             this.metaData[key] = [];
         }
         this.metaData[key].push(obj);
     }
 
-    setMetaData(data) {
+    public setMetaData(data) {
         this.metaData = data;
     }
 
-    getMetaData(key) {
+    public getMetaData(key) {
         return this.metaData[key];
     }
 
-    useItem() {
+    public useItem() {
         const owner = this.getTopOwner();
         if (owner) {
             const compRead = new Component.Read();
@@ -843,44 +935,42 @@ class RGItemBook extends ItemBase {
         }
     }
 
-    getText() {
+    public getText() {
         return this.text;
     }
 
-    addText(textLine) {
+    public addText(textLine) {
         this.text.push(textLine);
     }
 
-    setText(text) {
+    public setText(text) {
         this.text = text;
     }
 
-    clone() {
-        const book = new RGItemBook(this.getName());
+    public clone() {
+        const book = new Book(this.getName());
         book.copy(this);
         return book;
     }
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         const text = rhs.getText().slice();
         this.setText(text);
         this.metaData = JSON.parse(JSON.stringify(rhs.metaData));
     }
 
-    equals(rhs) {
+    public equals(rhs) {
         // Never stack any books
         if (this.getID() === rhs.getID()) {return true;}
         return false;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.setText = this.text;
         json.setMetaData = this.metaData;
         return json;
     }
 }
-RG.Item.Book = RGItemBook;
-
-export default RG.Item;
+Item.Book = Book;

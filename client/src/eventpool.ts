@@ -1,12 +1,13 @@
 
 import RG from './rg';
+import 'reflect-metadata';
 
 /* Event pool can be used to emit events and register callbacks for listeners.
  * This decouples the emitter and listener from each other.
  * Each emitted event can contain an object 'args', which is emitted with the
  * event. This object can contain any data.
  */
-class EventPool  { // {{{2
+export class EventPool  { // {{{2
 
     public static poolInstance: EventPool;
 
@@ -117,7 +118,7 @@ class EventPool  { // {{{2
         else {
             RG.err('EventPool', 'listenEvent', 'Event name not well defined.');
         }
-    };
+    }
 
     /* Removes the object from a list of event listeners. Note that if remove is
      * is triggered within notify() function of an object, the removal is made
@@ -158,7 +159,7 @@ class EventPool  { // {{{2
             RG.err('EventPool', 'removeListener',
                 `No prop listener ID from on object ${json}`);
         }
-    };
+    }
 
     /* Returns listeners for the given event. */
     public getListeners(evtName) {
@@ -175,6 +176,4 @@ class EventPool  { // {{{2
         });
     }
 
-};
-
-export default EventPool;
+}

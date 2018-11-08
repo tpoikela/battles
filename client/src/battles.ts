@@ -3,66 +3,113 @@
 
 import RG = require('./rg');
 
-import RG.Verify = require('./verify');
+const RG: any = RG;
 
-import RG.EventPool = require('./eventpool');
+import Verify = require('./verify');
+RG.Verify = Verify;
 
-import // No deps to RG.SubElems
-import RG.Random = require('./random');
-import RG.GameObject = require('./game-object');
-import RG.Mixin = require('./mixin');
-import RG.Geometry = require('./geometry');
-import RG.Time = require('./time');
-import RG.Template = require('./template');
-import RG.Animation = require('./animation');
+import EventPool = require('./eventpool');
+RG.EventPool = EventPool;
 
-import // Minor deps to other exports
-import RG.Component = require('./component');
-import RG.Item = require('./item');
-import RG.Spell = require('./spell');
-import RG.System = require('./system');
-import RG.System.Manager = require('./system/system.manager');
-import RG.BTree = require('./aisequence');
+// No deps to RG.SubElems
+import Random = require('./random');
+RG.Random = Random;
+import GameObject = require('./game-object');
+RG.GameObject = GameObject;
+import Mixin = require('./mixin');
+RG.Mixin = Mixin;
+import Geometry = require('./geometry');
+RG.Geometry = Geometry;
+import Time = require('./time');
+RG.Time = Time;
+import Template = require('./template');
+RG.Template = Template;
+import Animation = require('./animation');
+RG.Animation = Animation;
 
-import RG.Goals = require('./goals');
-import RG.GoalsBattle = require('./goals-battle');
-import RG.GoalsTop = require('./goals-top');
+// Minor deps to other exports
+import Component = require('./component');
+RG.Component = Component;
+import Item = require('./item');
+RG.Item = Item;
+import Spell = require('./spell');
+RG.Spell = Spell;
+import System = require('./system');
+RG.System = System;
+import SystemManager = require('./system/system.manager');
+RG.System.Manager = SystemManager;
+import BTree = require('./aisequence');
+RG.BTree = BTree;
 
-import RG.Brain = require('./brain');
-import RG.Brain.Memory = require('./brain.memory');
-import RG.Inv = require('./inv');
-import RG.Actor = require('./actor');
-import RG.Element = require('./element');
+import Goals = require('./goals');
+RG.Goals = Goals;
+import GoalsBattle = require('./goals-battle');
+RG.GoalsBattle = GoalsBattle;
+import GoalsTop = require('./goals-top');
+RG.GoalsTop = GoalsTop;
 
-import RG.Cell = require('./map.cell');
-import RG.Map = require('./map');
-import RG.Map.Generator = require('./map.generator');
-import RG.Map.Level = require('./level');
-import RG.LevelGenerator = require('./level-generator');
-import RG.MountainGenerator = require('./mountain-generator');
-import RG.DungeonGenerator = require('./dungeon-generator');
-import RG.CaveGenerator = require('./cave-generator');
+import Brain = require('./brain');
+RG.Brain = Brain;
+import Memory = require('./brain.memory');
+RG.Brain.Memory = Memory;
+import Inv = require('./inv');
+RG.Inv = Inv;
+import Actor = require('./actor');
+RG.Actor = Actor;
+import Element = require('./element');
+RG.Element = Element;
 
-import RG.World = require('./world');
+import Cell = require('./map.cell');
+RG.Cell = Cell;
+import Map = require('./map');
+RG.Map = Map;
+import MapGenerator = require('./map.generator');
+RG.MapGenerator = MapGenerator;
+import MapLevel = require('./level');
+RG.MapLevel = MapLevel;
+import LevelGenerator = require('./level-generator');
+RG.LevelGenerator = LevelGenerator;
+import MountainGenerator = require('./mountain-generator');
+RG.MountainGenerator = MountainGenerator;
+import DungeonGenerator = require('./dungeon-generator');
+RG.DungeonGenerator = DungeonGenerator;
+import CaveGenerator = require('./cave-generator');
+RG.CaveGenerator = CaveGenerator;
 
-import RG.Effects = require('../data/effects');
-import RG.ObjectShell = require('./objectshellparser');
+import World = require('./world');
+RG.World = World;
 
-import RG.Game = require('./game');
-import RG.Factory = require('./factory');
-import RG.Factory.World = require('./factory.world');
-import RG.Factory.Zone = require('./factory.zone');
+import Effects = require('../data/effects');
+RG.Effects = Effects;
+import ObjectShell = require('./objectshellparser');
+RG.ObjectShell = ObjectShell;
 
-import RG.Names = require('../data/name-gen');
-import RG.LevelGen = require('../data/level-gen');
+import Game = require('./game');
+RG.Game = Game;
+import Factory = require('./factory');
+RG.Factory = Factory;
+import FactoryWorld = require('./factory.world');
+RG.FactoryWorld = FactoryWorld;
+import FactoryZone = require('./factory.zone');
+RG.FactoryZone = FactoryZone;
 
-import RG.OW = require('./overworld.map');
-import RG.Overworld = require('./overworld');
+import Names = require('../data/name-gen');
+RG.Names = Names;
+import LevelGen = require('../data/level-gen');
+RG.LevelGen = LevelGen;
 
-import RG.Game.FromJSON = require('./game.fromjson');
-import RG.Chunk = require('./chunk-manager');
+import OW = require('./overworld.map');
+RG.OW = OW;
+import Overworld = require('./overworld');
+RG.Overworld = Overworld;
 
-import RG.Factory.Game = require('./factory.game');
+import FromJSON = require('./game.fromjson');
+RG.Game.FromJSON = FromJSON;
+import Chunk = require('./chunk-manager');
+RG.Chunk = Chunk;
+
+import FactoryGame = require('./factory.game');
+RG.FactoryGame = FactoryGame;
 
 export default RG;
 

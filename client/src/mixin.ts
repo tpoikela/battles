@@ -1,25 +1,31 @@
+import RG from './rg';
+import * as Component from './component.base';
 
-const RG = require('./rg');
+export const Mixin: any = {};
 
-const Mixin: any = {};
+type ComponentBase = Component.ComponentBase;
 
 // Dummy Base class to be used with mixins.
-class Base {}
+export class Base {}
 Mixin.Base = Base;
 
-/* A mixin used for typed objects. */
-Mixin.Typed = (superclass) => class extends superclass {
+interface MixinArgs {
+    [key: string]: any;
+}
 
-    constructor(args) {
+/* A mixin used for typed objects. */
+export const Typed = superclass => class extends superclass {
+
+    constructor(args?: MixinArgs) {
         if (superclass) {super(args);}
         this.type = args.type || '';
         this._propType = args.propType || '';
-	}
+    }
 
-    getPropType() {return this._propType;}
-    getType() {return this.type;}
+    public getPropType() {return this._propType;}
+    public getType() {return this.type;}
 
-    setPropType(propType) {
+    public setPropType(propType) {
         const index = RG.PROP_TYPES.indexOf(propType);
         if (index >= 0) {
             this._propType = propType;
@@ -30,110 +36,59 @@ Mixin.Typed = (superclass) => class extends superclass {
         }
     }
 
-    setType(type) {
+    public setType(type) {
         this.type = type;
         RG.nullOrUndefError('Object.Typed: setType', 'arg |type|', type);
     }
 
 };
 
-/* A mixin for ownable objects. */
-Mixin.Ownable = (superclass) => class extends superclass {
-
-    constructor(args) {
-		super(args);
-		this._owner = args.owner || null;
-        this.isOwnable = true;
-	}
-
-    isSamePos(obj) {return this._owner.isSamePos(obj);}
-
-    setOwner(owner) {
-        if (RG.isNullOrUndef([owner])) {
-            RG.err('Object.Ownable', 'setOwner', 'Owner cannot be null.');
-        }
-        else {
-            this._owner = owner;
-        }
-    }
-
-    /* Returns the top-level owner. Used mainly to recover actor owner of items
-     * inside inventory. */
-    getTopOwner() {
-        let owner = this._owner;
-        while (owner.getOwner) {
-            owner = owner.getOwner();
-        }
-        return owner;
-    }
-
-    /* Returns the direct owner of this object.*/
-    getOwner() {return this._owner;}
-
-    getX() {
-        if (this._owner) {return this._owner.getX();}
-        return null;
-    }
-
-    getY() {
-        if (this._owner) {return this._owner.getY();}
-        return null;
-    }
-
-    getXY() {
-        if (this._owner) {return this._owner.getXY();}
-        return null;
-    }
-
-    getLevel() {
-        if (this._owner) {return this._owner.getLevel();}
-        return null;
-    }
-
-};
-
 /* Mixin used in Locatable objects with x,y coordinates. */
-Mixin.Locatable = (superclass) => class extends superclass {
+export const Locatable = superclass => class extends superclass {
 
-    constructor(args) {
+    private _x: number;
+    private _y: number;
+    private _level: any;
+
+    constructor(args?: MixinArgs) {
         super(args);
         this._x = null;
         this._y = null;
         this._level = null;
     }
 
-    setX(x) {this._x = x; }
-    setY(y) {this._y = y; }
-    getX() {return this._x;}
-    getY() {return this._y;}
+    public setX(x) {this._x = x; }
+    public setY(y) {this._y = y; }
+    public getX() {return this._x;}
+    public getY() {return this._y;}
 
-    isAtXY(x, y) {
+    public isAtXY(x, y) {
         return x === this._x && y === this._y;
     }
 
-    getXY() {
+    public getXY() {
         return [this._x, this._y];
     }
 
     /* Simple getters/setters for coordinates.*/
-    setXY(x, y) {
+    public setXY(x, y) {
         this._x = x;
         this._y = y;
     }
 
     /* Accessing the current cell of object. */
-    getCell() {
+    public getCell() {
         return this._level.getMap().getCell(this._x, this._y);
     }
 
     /* Sets the level of this locatable object.*/
-    setLevel(level) {
+    public setLevel(level) {
         this._level = level;
         RG.nullOrUndefError('Mixin.Locatable: setLevel', 'arg |level|', level);
     }
 
     /* Unsets the level to null. Throws error if level already null. */
-    unsetLevel() {
+    public unsetLevel() {
         if (this._level) {
             this._level = null;
         }
@@ -143,18 +98,18 @@ Mixin.Locatable = (superclass) => class extends superclass {
         }
     }
 
-    getLevel() {
+    public getLevel() {
         return this._level;
     }
 
     /* Returns true if object is located at a position on a level.*/
-    isLocated() {
+    public isLocated() {
         return (this._x !== null) && (this._y !== null)
             && (this._level !== null);
     }
 
     /* Returns true if locatables are in same position.*/
-    isSamePos(obj) {
+    public isSamePos(obj) {
         if (this._x !== obj.getX()) {return false;}
         if (this._y !== obj.getY()) {return false;}
         if (this._level !== obj.getLevel()) {return false;}
@@ -164,14 +119,14 @@ Mixin.Locatable = (superclass) => class extends superclass {
 };
 
 /* Mixin for objects requiring a damage roll. */
-Mixin.DamageRoll = (superclass) => class extends superclass {
+export const DamageRoll = (superclass: ComponentBase) => class extends superclass {
 
-    constructor(args) {
+    constructor(args?: MixinArgs) {
         super(args);
-        this.damageDie = RG.FACT.createDie('1d4');
+        this.damageDie = RG.createDie('1d4');
     }
 
-    rollDamage() {
+    public rollDamage() {
         if (this.getEntity().hasOwnProperty('getWeapon')) {
             const weapon = this.getEntity().getWeapon();
             if (weapon !== null) {return weapon.rollDamage();}
@@ -179,25 +134,25 @@ Mixin.DamageRoll = (superclass) => class extends superclass {
         return this.damageDie.roll();
     }
 
-    getDamageDie() {
+    public getDamageDie() {
         return this.damageDie;
     }
 
-    setDamageDie(strOrDie) {
+    public setDamageDie(strOrDie) {
         if (typeof strOrDie === 'string') {
-            this.damageDie = RG.FACT.createDie(strOrDie);
+            this.damageDie = RG.createDie(strOrDie);
         }
         else {
             this.damageDie = strOrDie;
         }
     }
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         this.damageDie = rhs.getDamageDie().clone();
     }
 
-    toJSON() {
+    public toJSON() {
         const obj = super.toJSON();
         obj.setDamageDie = this.damageDie.toString();
         return obj;
@@ -206,35 +161,35 @@ Mixin.DamageRoll = (superclass) => class extends superclass {
 };
 
 /* Adds a duration and accessor functions to given component. */
-Mixin.DurationRoll = (superclass) => class extends superclass {
+export const DurationRoll =superclass => class extends superclass {
 
-    constructor(args) {
+    constructor(args?: MixinArgs) {
         super(args);
     }
 
-    rollDuration() {
+    public rollDuration() {
         return this.duration.roll();
     }
 
-    setDurationDie(strOrDie) {
+    public setDurationDie(strOrDie) {
         if (typeof strOrDie === 'string') {
-            this.duration = RG.FACT.createDie(strOrDie);
+            this.duration = RG.createDie(strOrDie);
         }
         else {
             this.duration = strOrDie;
         }
     }
 
-    getDurationDie() {
+    public getDurationDie() {
         return this.duration;
     }
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         this.duration = rhs.getDurationDie().clone();
     }
 
-    toJSON() {
+    public toJSON() {
         const obj = super.toJSON();
         obj.setDurationDie = this.duration.toString();
         return obj;
@@ -242,44 +197,48 @@ Mixin.DurationRoll = (superclass) => class extends superclass {
 
 };
 
-Mixin.Defense = (superclass) => class extends superclass {
+export const Defense =superclass => class extends superclass {
 
-    constructor(args) {
+    private _attack: number;
+    private _defense: number;
+    private _protection: number;
+
+    constructor(args?: MixinArgs) {
         super(args);
         this._attack = 1;
         this._defense = 1;
         this._protection = 0;
     }
 
-    getAttack() {return this._attack;}
+    public getAttack() {return this._attack;}
 
-    setAttack(attack) {
+    public setAttack(attack) {
         this._attack = attack;
     }
 
     /* Defense related methods.*/
-    getDefense() { return this._defense; }
+    public getDefense() { return this._defense; }
 
-    setDefense(defense) {
+    public setDefense(defense) {
         this._defense = defense;
     }
 
-    getProtection() {
+    public getProtection() {
         return this._protection;
     }
 
-    setProtection(prot) {
+    public setProtection(prot) {
         this._protection = prot;
     }
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         this.setAttack(rhs.getAttack());
         this.setDefense(rhs.getDefense());
         this.setProtection(rhs.getProtection());
     }
 
-    equals(rhs) {
+    public equals(rhs) {
         let res = super.equals(rhs);
         if (res) {
             res = this.getAttack() === rhs.getAttack() &&
@@ -289,14 +248,14 @@ Mixin.Defense = (superclass) => class extends superclass {
         return res;
     }
 
-    toString() {
+    public toString() {
         let msg = super.toString();
         msg += ` A: ${this.getAttack()}, D: ${this.getDefense()}, `;
         msg += ` P: ${this.getProtection()}, `;
         return msg;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.setAttack = this.getAttack();
         json.setDefense = this.getDefense();
@@ -307,7 +266,7 @@ Mixin.Defense = (superclass) => class extends superclass {
 };
 
 /* Mixin for damage objects. */
-Mixin.Damage = (superclass) => class extends Mixin.Defense(superclass) {
+export const Damage =superclass => class extends Defense(superclass) {
 
     constructor(args) {
         super(args);
@@ -315,10 +274,10 @@ Mixin.Damage = (superclass) => class extends Mixin.Defense(superclass) {
         this._range = 1;
     }
 
-    setAttackRange(range) {this._range = range;}
-    getAttackRange() {return this._range;}
+    public setAttackRange(range) {this._range = range;}
+    public getAttackRange() {return this._range;}
 
-    rollDamage() {
+    public rollDamage() {
         if (this.hasOwnProperty('getWeapon')) {
             const weapon = this.getWeapon();
             if (!RG.isNullOrUndef([weapon])) {
@@ -328,25 +287,25 @@ Mixin.Damage = (superclass) => class extends Mixin.Defense(superclass) {
         return this._damageDie.roll();
     }
 
-    getDamageDie() {return this._damageDie;}
+    public getDamageDie() {return this._damageDie;}
 
-    setDamageDie(dStr) {
+    public setDamageDie(dStr) {
         if (typeof dStr === 'string') {
-            this._damageDie = RG.FACT.createDie(dStr);
+            this._damageDie = RG.createDie(dStr);
         }
         else if (typeof dStr === 'object') {
             this._damageDie = dStr;
         }
     }
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         this.setAttackRange(rhs.getAttackRange());
         const die = rhs.getDamageDie().clone();
         this.setDamageDie(die);
     }
 
-    equals(rhs) {
+    public equals(rhs) {
         let res = super.equals(rhs);
         if (res) {
             res = this.getDamageDie().equals(rhs.getDamageDie());
@@ -355,14 +314,14 @@ Mixin.Damage = (superclass) => class extends Mixin.Defense(superclass) {
         return res;
     }
 
-    toString() {
+    public toString() {
         let msg = super.toString();
         msg += 'Dmg: ' + this.getDamageDie().toString();
         msg += ', R:' + this.getAttackRange();
         return msg;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.setAttackRange = this.getAttackRange();
         json.setDamageDie = this.getDamageDie().toString();
@@ -370,5 +329,3 @@ Mixin.Damage = (superclass) => class extends Mixin.Defense(superclass) {
     }
 
 };
-
-export default Mixin;

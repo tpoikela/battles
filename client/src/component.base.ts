@@ -1,13 +1,9 @@
 
 import RG from './rg';
-import EventPool from '../src/eventpool';
-
 import './utils';
 
-const debug = require('debug')('bitn:Component');
-const POOL = EventPool.getPool();
-
-const Component: any  = {};
+// export const Component: any  = {};
+const Component: any = {};
 Component.createdCompDecls = {};
 
 // Used by components which cannot be serialized
@@ -26,17 +22,17 @@ const staticAttr = new Set<string>([
  *   const MyComponent = TagComponent('MyComponent');
  *   const compInst = new MyComponent();
  */
-const TagComponent = function(type: string, compAttrib: any = {}) {
+export const TagComponent = function(type: string, compAttrib: any = {}) {
     errorIfCompDeclExists(type);
     const CompDecl = function() {
-        Component.Base.call(this, type);
+        ComponentBase.call(this, type);
         Object.keys(compAttrib).forEach(key => {
             if (!staticAttr.has(key)) {
                 this[key] = compAttrib[key];
             }
         });
     };
-    RG.extend2(CompDecl, Component.Base);
+    RG.extend2(CompDecl, ComponentBase);
     Component.createdCompDecls[type] = CompDecl;
     handleCompAttrib(CompDecl, compAttrib);
     return CompDecl;
@@ -69,7 +65,7 @@ function handleCompAttrib(CompDecl: any, compAttrib: any) {
  *  - objRefs: {memberName: 'type'}, type must be 'entity'|'level'
  */
 
-const DataComponent = (type: string, members: any, compAttrib: any = {}) => {
+export const DataComponent = (type: string, members: any, compAttrib: any = {}) => {
     errorIfCompDeclExists(type);
     if (typeof type !== 'string') {
         const json = JSON.stringify(type);
@@ -83,7 +79,7 @@ const DataComponent = (type: string, members: any, compAttrib: any = {}) => {
 
     // This is the constructor function to be returned
     const CompDecl = function(...argsList: any) {
-        Component.Base.call(this, type);
+        ComponentBase.call(this, type);
         Object.keys(compAttrib).forEach(key => {
             this[key] = compAttrib[key];
         });
@@ -106,21 +102,21 @@ const DataComponent = (type: string, members: any, compAttrib: any = {}) => {
             this._init(...argsList);
         }
     };
-    RG.extend2(CompDecl, Component.Base);
+    RG.extend2(CompDecl, ComponentBase);
 
     // Create the member functions (getters/setters) for prototype
     Object.keys(members).forEach((propName: string) => {
         // Check that we are not overwriting anything in base class
-        if (Component.Base.prototype.hasOwnProperty(propName)) {
+        if (ComponentBase.prototype.hasOwnProperty(propName)) {
             RG.err('component.js', `DataComponent: ${type}`,
-                `${propName} is reserved in Component.Base`);
+                `${propName} is reserved in Base`);
         }
 
         // Create the setter method unless it exists in Base
         const setter: string = formatSetterName(propName);
-        if (Component.Base.prototype.hasOwnProperty(setter)) {
+        if (ComponentBase.prototype.hasOwnProperty(setter)) {
             RG.err('component.js', `DataComponent: ${type}`,
-                `${setter} is reserved in Component.Base`);
+                `${setter} is reserved in Base`);
         }
         CompDecl.prototype[setter] = function(value: any) {
             this[propName] = value;
@@ -128,9 +124,9 @@ const DataComponent = (type: string, members: any, compAttrib: any = {}) => {
 
         // Create the getter method unless it exists in Base
         const getter: string = formatGetterName(propName);
-        if (Component.Base.prototype.hasOwnProperty(setter)) {
+        if (ComponentBase.prototype.hasOwnProperty(setter)) {
             RG.err('component.js', `DataComponent: ${type}`,
-                `${getter} is reserved in Component.Base`);
+                `${getter} is reserved in Base`);
         }
         CompDecl.prototype[getter] = function() {
             return this[propName];
@@ -158,14 +154,14 @@ function formatSetterName(propName: string) {
 
 /* Same TagComponent, except only one per entity is preserved. Adding another
  * will remove the existing one. */
-const UniqueTagComponent = (type: string, compAttrib: any = {}) => {
+export const UniqueTagComponent = (type: string, compAttrib: any = {}) => {
     return TagComponent(type, Object.assign({_isUnique: true}, compAttrib));
 };
 Component.UniqueTagComponent = UniqueTagComponent;
 
 /* Same DataComponent, except only one per entity is preserved. Adding another
  * will remove the existing one. */
-const UniqueDataComponent = (type: string, members: any, compAttrib: any = {}) => {
+export const UniqueDataComponent = (type: string, members: any, compAttrib: any = {}) => {
     return DataComponent(type, members,
         Object.assign({_isUnique: true}, compAttrib));
 };
@@ -173,24 +169,24 @@ Component.UniqueDataComponent = UniqueDataComponent;
 
 /* Same as TagComponent but removes serialisation. This component is used by
 * systems for transient stuff like Attacks, Move and SpellCasting. */
-const TransientTagComponent = (type: string, compAttrib: any = {}) => {
+export const TransientTagComponent = (type: string, compAttrib: any = {}) => {
     return TagComponent(type,
         Object.assign({toJSON: NO_SERIALISATION}, compAttrib));
 };
 Component.TransientTagComponent = TransientTagComponent;
 
 /* Same as TransientTagComponent, but allows specifying data fields. */
-const TransientDataComponent = (type: string, members: any, compAttrib: any = {}) => {
+export const TransientDataComponent = (type: string, members: any, compAttrib: any = {}) => {
     return DataComponent(type, members,
         Object.assign({toJSON: NO_SERIALISATION}, compAttrib));
 };
 Component.TransientDataComponent = TransientDataComponent;
 
-const UniqueTransientDataComponent = (type: string, members: any, compAttrib = {}) => {
+export const UniqueTransientDataComponent = (type: string, members: any, compAttrib = {}) => {
     return DataComponent(type, members,
         Object.assign({
-            toJSON: NO_SERIALISATION,
-            _isUnique: true
+            _isUnique: true,
+            toJSON: NO_SERIALISATION
         }, compAttrib)
     );
 };
@@ -238,7 +234,7 @@ function errorIfCompDeclExists(type: string) {
  */
 
 /* Given an entity, serializes its components. */
-Component.compsToJSON = ent => {
+export const compsToJSON = ent => {
     const components = {};
     const thisComps = ent.getComponents();
     Object.keys(thisComps).forEach(id => {
@@ -249,12 +245,13 @@ Component.compsToJSON = ent => {
     });
     return components;
 };
+Component.compsToJSON = compsToJSON;
 
 Component.idCount = 0;
 
 /* Base class for all components. Provides callback hooks, copying and cloning.
  * */
-Component.Base = function(type: string) {
+export function ComponentBase(type: string) {
     this._type = type;
     this._entity = null;
     this._id = Component.idCount++;
@@ -262,13 +259,13 @@ Component.Base = function(type: string) {
 
     this._onAddCallbacks = [];
     this._onRemoveCallbacks = [];
-};
+}
 
-Component.Base.prototype.getID = function(): number {return this._id;};
-Component.Base.prototype.setID = function(id: number): void {this._id = id;};
+ComponentBase.prototype.getID = function(): number {return this._id;};
+ComponentBase.prototype.setID = function(id: number): void {this._id = id;};
 
-Component.Base.prototype.getEntity = function() {return this._entity;};
-Component.Base.prototype.setEntity = function(entity) {
+ComponentBase.prototype.getEntity = function() {return this._entity;};
+ComponentBase.prototype.setEntity = function(entity) {
     if (this._entity === null && entity !== null) {
         this._entity = entity;
     }
@@ -276,13 +273,13 @@ Component.Base.prototype.setEntity = function(entity) {
         this._entity = null;
     }
     else {
-        RG.err('Component.Base', 'setEntity', 'Entity already set.');
+        RG.err('Base', 'setEntity', 'Entity already set.');
     }
 };
 
 /* Used when entity (item) with component is cloned. The component is
  * also cloned, but entity ref must be changed. */
-Component.Base.prototype.changeEntity = function(newEntity) {
+ComponentBase.prototype.changeEntity = function(newEntity) {
     // Check done for error detection purposes, so that changeEntity() is not
     // called on new comps withot existing entity
     if (!RG.isNullOrUndef([this._entity])) {
@@ -290,18 +287,18 @@ Component.Base.prototype.changeEntity = function(newEntity) {
         newEntity.add(this);
     }
     else {
-        RG.err('Component.Base', 'changeEntity',
+        RG.err('Base', 'changeEntity',
             'No entity set. Use setEntity() instead of changeEntity()');
     }
 };
 
-Component.Base.prototype.isUnique = function() {return this._isUnique;};
+ComponentBase.prototype.isUnique = function() {return this._isUnique;};
 
-Component.Base.prototype.getType = function() {return this._type;};
-Component.Base.prototype.setType = function(type) {this._type = type;};
+ComponentBase.prototype.getType = function() {return this._type;};
+ComponentBase.prototype.setType = function(type) {this._type = type;};
 
 // Called when a component is added to the entity
-Component.Base.prototype.entityAddCallback = function(entity) {
+ComponentBase.prototype.entityAddCallback = function(entity) {
     this.setEntity(entity);
     for (let i = 0; i < this._onAddCallbacks.length; i++) {
         this._onAddCallbacks[i]();
@@ -309,24 +306,24 @@ Component.Base.prototype.entityAddCallback = function(entity) {
 };
 
 // Called when a component is removed from the entity
-Component.Base.prototype.entityRemoveCallback = function() {
+ComponentBase.prototype.entityRemoveCallback = function() {
     for (let i = 0; i < this._onRemoveCallbacks.length; i++) {
         this._onRemoveCallbacks[i]();
     }
     this.setEntity(null);
 };
 
-Component.Base.prototype.addCallback = function(name, cb) {
+ComponentBase.prototype.addCallback = function(name, cb) {
     if (name === 'onAdd') {this._onAddCallbacks.push(cb);}
     else if (name === 'onRemove') {this._onRemoveCallbacks.push(cb);}
     else {
-        RG.err('Component.Base',
+        RG.err('Base',
             'addCallback', 'CB name ' + name + ' must be onAdd/onRemove');
     }
 };
 
 /* Removes all callbacks of given type. */
-Component.Base.prototype.removeCallbacks = function(name) {
+ComponentBase.prototype.removeCallbacks = function(name) {
     if (name === 'onAdd') {
         this._onAddCallbacks = [];
     }
@@ -341,7 +338,7 @@ Component.Base.prototype.removeCallbacks = function(name) {
 
 /* Works correctly for any component having only simple getters and setters. For
  * more complex components, roll out a separate clone function. */
-Component.Base.prototype.clone = function() {
+ComponentBase.prototype.clone = function() {
     const compType = this.getType();
     if (Component.hasOwnProperty(compType)) {
         const comp = new Component[compType]();
@@ -349,7 +346,7 @@ Component.Base.prototype.clone = function() {
         return comp;
     }
     else {
-        RG.err('Component.Base', 'clone',
+        RG.err('Base', 'clone',
             `No type |${compType}| in Component.`);
     }
     return null;
@@ -357,7 +354,7 @@ Component.Base.prototype.clone = function() {
 
 /* Works for any component implementing getXXX/setXXX functions. Does a shallow
  * copy of properties only though. */
-Component.Base.prototype.copy = function(rhs) {
+ComponentBase.prototype.copy = function(rhs) {
     for (const p in this) {
         if (/^get/.test(p)) {
             const getter = p;
@@ -374,18 +371,18 @@ Component.Base.prototype.copy = function(rhs) {
     }
 };
 
-Component.Base.prototype.equals = function(rhs) {
+ComponentBase.prototype.equals = function(rhs) {
     return this.getType() === rhs.getType();
 };
 
-Component.Base.prototype.toString = function() {
+ComponentBase.prototype.toString = function() {
     return 'Component: ' + this.getType();
 };
 
 /* Creates a simple JSON representation of the component. NOTE: This relies on
  * getters and setters being named similarly, ie getABC/setABC! Don't rely on
  * this function if you need something more sophisticated. */
-Component.Base.prototype.toJSON = function() {
+ComponentBase.prototype.toJSON = function() {
     const obj = {};
     for (const p in this) {
         if (/^get/.test(p)) {
@@ -404,41 +401,10 @@ Component.Base.prototype.toJSON = function() {
     }
     return obj;
 };
-
-/* Action component is added to all schedulable acting entities.*/
-Component.Action = UniqueTransientDataComponent('Action',
-    {energy: 0, active: false});
-
-Component.Action.prototype.addEnergy = function(energy) {
-    this.energy += energy;
-};
-
-Component.Action.prototype.resetEnergy = function() {this.energy = 0;};
-
-Component.Action.prototype.enable = function() {
-    if (this.active === false) {
-        POOL.emitEvent(RG.EVT_ACT_COMP_ENABLED,
-            {actor: this.getEntity()});
-        this.active = true;
-    }
-    else {
-        const name = this.getEntity().getName();
-        const id = this.getEntity().getID();
-        const entInfo = `${name} ${id}`;
-        debug(`Action already active for ${entInfo}`);
-    }
-};
-
-Component.Action.prototype.disable = function() {
-    if (this.active === true) {
-        POOL.emitEvent(RG.EVT_ACT_COMP_DISABLED,
-            {actor: this.getEntity()});
-        this.active = false;
-    }
-};
+Component.Base = ComponentBase;
 
 /* Factory function that should be used instead of new Component[varName]. */
-Component.create = function(compName, ...args) {
+export const create = function(compName, ...args) {
     if (Component[compName]) {
         return new Component[compName](...args);
     }
@@ -446,8 +412,9 @@ Component.create = function(compName, ...args) {
         `Comp type |${compName}| does not exist.`);
     return null;
 };
+Component.create = create;
 
-Component.defineComponent = function(name, args) {
+export const defineComponent = function(name, args) {
     if (!Component.hasOwnProperty(name)) {
         const CompDecl = DataComponent(name, args);
         Component[name] = CompDecl;
@@ -457,9 +424,9 @@ Component.defineComponent = function(name, args) {
         `Component ${name} already defined`);
     return null;
 };
+Component.defineComponent = defineComponent;
 
-Component.undefineComponent = function(name) {
+export const undefineComponent = function(name) {
     delete Component[name];
 };
-
-export default Component;
+Component.undefineComponent = undefineComponent;

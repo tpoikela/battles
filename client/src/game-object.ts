@@ -1,9 +1,53 @@
 
 const NULL_OBJECT = null;
 
+interface ObjRefData {
+    type: string;
+    id: number;
+}
+
+interface ObjRef {
+    $objRef: ObjRefData;
+    value?: GameObject;
+}
+
 class GameObject {
 
     public static ID: number;
+
+    public static deserialize(input, namespace, seenObjs = {}) {
+        const obj = new namespace[input.$proto]();
+        for (const key in input) {
+            if (input.hasOwnProperty(key)) {
+                const value = input[key];
+                if (GameObject.isPrimitive(value)) {
+                    obj[key] = value;
+                }
+                else if (Array.isArray(value)) {
+                    const arr = [];
+                    obj.forEach(val => {
+                        arr.push(GameObject.deserialize(val, namespace, seenObjs));
+                    });
+                    obj[key] = arr;
+                }
+                else if (value.$objID) {
+                    if (!seenObjs.hasOwnProperty(value.$objID)) {
+                        obj[key] = GameObject.deserialize(value, namespace, seenObjs);
+                    }
+                    else {
+                        obj[key] = seenObjs[value.$objID];
+                    }
+                }
+                else {
+                    obj[key] = value; // Just assign simple object
+                }
+            }
+        }
+        delete obj.$proto;
+        /* eslint: enable */
+        return obj;
+    }
+
     public $objID: number;
 
     constructor() {
@@ -13,17 +57,22 @@ class GameObject {
     getID() {return this.$objID;}
     setID(id) {this.$objID = id;}
 
-    getObjRef() {
-        return {$objRef: {type: 'object', id: this.$objID}};
+    getObjRef(): ObjRef {
+        return {
+            $objRef: {
+                type: 'object',
+                id: this.$objID
+            }
+        };
     }
 
-    getRefAndVal() {
-        const refObj = this.getObjRef();
+    getRefAndVal(): ObjRef {
+        const refObj: ObjRef = this.getObjRef();
         refObj.value = this;
         return refObj;
     }
 
-    serialize() {
+    /* serialize() {
         const json = {
             $proto: GameObject.getProtoName(this)
         };
@@ -34,8 +83,9 @@ class GameObject {
         }
         return json;
     }
+    */
 
-    static deref(objRef) {
+    static deref(objRef: ObjRef) {
         if (objRef) {
             return objRef.value;
         }
@@ -82,38 +132,5 @@ class GameObject {
 
 GameObject.ID = 1;
 
-function deserialize(input, namespace, seenObjs = {}) {
-    const obj = new namespace[input.$proto]();
-    for (const key in input) {
-        if (input.hasOwnProperty(key)) {
-            const value = input[key];
-            if (GameObject.isPrimitive(value)) {
-                obj[key] = value;
-            }
-            else if (Array.isArray(value)) {
-                const arr = [];
-                obj.forEach(val => {
-                    arr.push(deserialize(val, namespace, seenObjs));
-                });
-                obj[key] = arr;
-            }
-            else if (value.$objID) {
-                if (!seenObjs.hasOwnProperty(value.$objID)) {
-                    obj[key] = deserialize(value, namespace, seenObjs);
-                }
-                else {
-                    obj[key] = seenObjs[value.$objID];
-                }
-            }
-            else {
-                obj[key] = value; // Just assign simple object
-            }
-        }
-    }
-    delete obj.$proto;
-    /* eslint: enable */
-    return obj;
-}
-GameObject.deserialize = deserialize;
 
 export default GameObject;

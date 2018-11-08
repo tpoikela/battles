@@ -1,8 +1,8 @@
 
-const ROT = require('../../lib/rot');
-const RG = require('./rg');
+import ROT from '../../lib/rot';
+import RG from './rg';
 
-const Path = {};
+const Path: any = {};
 
 const NO_PATH = Object.freeze([]);
 
@@ -297,4 +297,4 @@ function removeSourceAndTarget(coords) {
     }
 }
 
-module.exports = Path;
+export default Path;

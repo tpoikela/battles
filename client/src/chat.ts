@@ -4,9 +4,9 @@
 import RG from './rg';
 import Keys from './keymap';
 import Menu from './menu';
-import Actor from './actor';
+import * as Actor from './actor';
 
-const Chat: any = {};
+export const Chat: any = {};
 const stats = RG.STATS;
 
 const OPTION_GOODBYE = {

@@ -1,22 +1,21 @@
 
-import RG = require('./rg');
-import Entity = require('./entity');
-import Mixin = require('./mixin');
+import RG from './rg';
+import {Entity} from './entity';
+import * as Mixin from './mixin';
 
-import Component = require('./component');
-import Brain = require('./brain.virtual');
-import BrainPlayer = require('./brain.player');
-import Inv = require('./inv');
-import Spell = require('./spell');
-import Time = require('./time');
+import * as Component from './component';
+import * as Brain from './brain.virtual';
+import BrainPlayer from './brain.player';
+import Inv from './inv';
+import Time from './time';
 
-RG.Actor = {};
+export const Actor: any = {};
 
 const ACTOR_NO_ACTION = Object.freeze(() => {});
 const EMPTY_ARGS = Object.freeze({});
 const SPEED_COEFF = RG.BASE_SPEED * RG.ACTION_DUR;
 
-class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
+export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
     constructor(name) { // {{{2
         super({propType: RG.TYPE_ACTOR, type: null});
@@ -27,34 +26,34 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
     }
 
     /* Returns true if actor is a player.*/
-    isPlayer() {
+    public isPlayer() {
         return this.has('Player') || this.has('PlayerControlled');
     }
 
-    isEnemy() {return false;}
-    addEnemy() {/* No implementation here */}
-    addEnemyType() {/* No implementation here */}
+    public isEnemy() {return false;}
+    public addEnemy() {/* No implementation here */}
+    public addEnemyType() {/* No implementation here */}
 
-    setName(name) {this.get('Named').setName(name);}
-    getName() {
+    public setName(name) {this.get('Named').setName(name);}
+    public getName() {
         return this.get('Named').getFullName();
     }
 
-    getBrain() {return this._brain;}
+    public getBrain() {return this._brain;}
 
-    setBrain(brain) {
+    public setBrain(brain) {
         this._brain = brain;
         this._brain.setActor(this);
     }
 
-    getSpeed() {
+    public getSpeed() {
         return RG.BASE_SPEED;
     }
 
-    getEquipProtection() {return 0;}
+    public getEquipProtection() {return 0;}
 
     /* Returns the next action for this actor.*/
-    nextAction(obj) {
+    public nextAction(obj) {
         // Use actor brain to determine the action
         const cb = this._brain.decideNextAction(obj);
         let action = null;
@@ -75,7 +74,7 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
     }
 
     /* Serializes the virtual actor. */
-    toJSON() {
+    public toJSON() {
         let levelID = null;
         if (this.getLevel()) {
             levelID = this.getLevel().getID();
@@ -100,11 +99,11 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
     }
 
 }
-RG.Actor.Base = BaseActor;
+Actor.Base = BaseActor;
 
 /* Virtual actor can be used to spawn more entities or for AI-like effects
  * inside a level. */
-class VirtualActor extends BaseActor {
+export class VirtualActor extends BaseActor {
 
     constructor(name) { // {{{2
         super(name);
@@ -113,10 +112,10 @@ class VirtualActor extends BaseActor {
 
 
 }
-RG.Actor.Virtual = VirtualActor;
+Actor.Virtual = VirtualActor;
 
 /* Object representing a game actor who takes actions.  */
-class RGActorRogue extends BaseActor {
+export class SentientActor extends BaseActor {
     constructor(name) { // {{{2
         super(name);
 
@@ -139,13 +138,13 @@ class RGActorRogue extends BaseActor {
     }
 
 
-    getFOVRange() {
+    public getFOVRange() {
         let range = this.get('Perception').getFOVRange();
         if (this.has('EagleEye')) {range += 2;}
         return range;
     }
 
-    setFOVRange(range) {
+    public setFOVRange(range) {
         this.get('Perception').setFOVRange(range);
     }
 
@@ -153,15 +152,15 @@ class RGActorRogue extends BaseActor {
     // Brain-related methods
     //---------------------------------
 
-    addEnemyType(type) {this._brain.getMemory().addEnemyType(type);}
-    addEnemy(actor) {this._brain.addEnemy(actor);}
-    addFriend(actor) {this._brain.addFriend(actor);}
+    public addEnemyType(type) {this._brain.getMemory().addEnemyType(type);}
+    public addEnemy(actor) {this._brain.addEnemy(actor);}
+    public addFriend(actor) {this._brain.addFriend(actor);}
 
-    isEnemy(actor) {
+    public isEnemy(actor) {
         return this._brain.getMemory().isEnemy(actor);
     }
 
-    isFriend(actor) {
+    public isFriend(actor) {
         return this._brain.getMemory().isFriend(actor);
     }
 
@@ -169,22 +168,22 @@ class RGActorRogue extends BaseActor {
     // Equipment related methods
     //---------------------------------
 
-    getInvEq() { return this._invEq; }
+    public getInvEq() { return this._invEq; }
 
     /* Returns weapon that is wielded by the actor.*/
-    getWeapon() {return this._invEq.getWeapon();}
+    public getWeapon() {return this._invEq.getWeapon();}
 
     /* Returns weapon that is wielded by the actor.*/
-    getMissileWeapon() {
+    public getMissileWeapon() {
         return this._invEq.getMissileWeapon();
     }
 
     /* Returns missile equipped by the player.*/
-    getMissile() {
+    public getMissile() {
         return this._invEq.getEquipment().getItem('missile');
     }
 
-    getEquipAttack() {
+    public getEquipAttack() {
         let att = this._invEq.getEquipment().getAttack();
         if (this.has('Skills')) {
             att += this.get('Skills').getLevel('Melee');
@@ -192,7 +191,7 @@ class RGActorRogue extends BaseActor {
         return att;
     }
 
-    getEquipDefense() {
+    public getEquipDefense() {
         let def = this._invEq.getEquipment().getDefense();
         if (this.has('Skills')) {
             def += this.get('Skills').getLevel('Shields');
@@ -200,11 +199,11 @@ class RGActorRogue extends BaseActor {
         return def;
     }
 
-    getEquipProtection() {
+    public getEquipProtection() {
         return this._invEq.getEquipment().getProtection();
     }
 
-    getShieldDefense() {
+    public getShieldDefense() {
         const shield = this._invEq.getEquipment().getEquipped('shield');
         let bonus = 0;
         if (shield) {
@@ -216,31 +215,31 @@ class RGActorRogue extends BaseActor {
         return bonus;
     }
 
-    setActorClass(classObj) {
+    public setActorClass(classObj) {
         this._actorClass = classObj;
     }
 
-    getActorClass() {
+    public getActorClass() {
         return this._actorClass;
     }
 
-    setBook(book) {
+    public setBook(book) {
         this._spellbook = book;
     }
 
-    getBook() {
+    public getBook() {
         return this._spellbook;
     }
 
     /* Returns carrying capacity of the actor.*/
-    getMaxWeight() {
+    public getMaxWeight() {
         const statStr = this.get('Stats').getStrength();
         const eqStr = this._invEq.getEquipment().getStrength();
         return 2 * statStr + 2 * eqStr + this._maxWeight;
     }
 
     /* Marks actor as player. Cannot unset player.*/
-    setIsPlayer(isPlayer) {
+    public setIsPlayer(isPlayer) {
         if (isPlayer) {
             this._brain = new BrainPlayer(this);
             addPlayerBrainComps(this);
@@ -256,7 +255,7 @@ class RGActorRogue extends BaseActor {
     }
 
     /* Used when controlling other actors with the "real player" actor .*/
-    setPlayerCtrl(isPlayer) {
+    public setPlayerCtrl(isPlayer) {
         if (isPlayer) {
             this.add(new Component.PlayerControlled());
             this._actualBrain = this._brain;
@@ -274,7 +273,7 @@ class RGActorRogue extends BaseActor {
     }
 
     /* Returns the cell where this actor is located at.*/
-    getCell() {
+    public getCell() {
         const x = this.getX();
         const y = this.getY();
         const level = this.getLevel();
@@ -284,14 +283,14 @@ class RGActorRogue extends BaseActor {
         return null;
     }
 
-    isInLevel(level) {
+    public isInLevel(level) {
         if (this.getLevel()) {
             return this.getLevel().getID() === level.getID();
         }
         return false;
     }
 
-    toJSON() {
+    public toJSON() {
         let levelID = null;
         if (this.getLevel()) {
             levelID = this.getLevel().getID();
@@ -334,7 +333,7 @@ class RGActorRogue extends BaseActor {
     // Combat-related methods
     //---------------------------------
 
-    getAttack() {
+    public getAttack() {
         let attack = this.get('Combat').getAttack();
         attack += this.getEquipAttack();
         attack += this._addFromCompList('CombatMods', 'getAttack');
@@ -342,7 +341,7 @@ class RGActorRogue extends BaseActor {
         return attack;
     }
 
-    getDefense() {
+    public getDefense() {
         let defense = this.get('Combat').getDefense();
         defense += this.getEquipDefense();
         defense += this._addFromCompList('CombatMods', 'getDefense');
@@ -350,14 +349,14 @@ class RGActorRogue extends BaseActor {
         return defense;
     }
 
-    getProtection() {
+    public getProtection() {
         let protection = this.get('Combat').getProtection();
         protection += this.getEquipProtection();
         protection += this._addFromCompList('CombatMods', 'getProtection');
         return protection;
     }
 
-    getDamage() {
+    public getDamage() {
         let damage = this.get('Combat').rollDamage();
         const weapon = this.getWeapon();
         if (weapon) {
@@ -370,11 +369,11 @@ class RGActorRogue extends BaseActor {
 
     }
 
-    getCombatBonus(funcName) {
+    public getCombatBonus(funcName) {
         return this._addFromCompList('CombatMods', funcName);
     }
 
-    _addFromCompList(compType, func) {
+    public _addFromCompList(compType, func) {
         const compList = this.getList(compType);
         if (compList.length > 0) {
             return compList.reduce((acc, val) => {
@@ -388,49 +387,49 @@ class RGActorRogue extends BaseActor {
     // Stats-related methods (these take eq and boosts into account
     //-------------------------------------------------------------
 
-    getAccuracy() {
+    public getAccuracy() {
         let acc = this.get('Stats').getAccuracy();
         acc += this.getInvEq().getEquipment().getAccuracy();
         acc += this._addFromCompList('StatsMods', 'getAccuracy');
         return acc;
     }
 
-    getAgility() {
+    public getAgility() {
         let agi = this.get('Stats').getAgility();
         agi += this.getInvEq().getEquipment().getAgility();
         agi += this._addFromCompList('StatsMods', 'getAgility');
         return agi;
     }
 
-    getStrength() {
+    public getStrength() {
         let str = this.get('Stats').getStrength();
         str += this.getInvEq().getEquipment().getStrength();
         str += this._addFromCompList('StatsMods', 'getStrength');
         return str;
     }
 
-    getWillpower() {
+    public getWillpower() {
         let wil = this.get('Stats').getWillpower();
         wil += this.getInvEq().getEquipment().getWillpower();
         wil += this._addFromCompList('StatsMods', 'getWillpower');
         return wil;
     }
 
-    getSpeed() {
+    public getSpeed() {
         let speed = this.get('Stats').getSpeed();
         speed += this.getInvEq().getEquipment().getSpeed();
         speed += this._addFromCompList('StatsMods', 'getSpeed');
         return speed;
     }
 
-    getPerception() {
+    public getPerception() {
         let per = this.get('Stats').getPerception();
         per += this.getInvEq().getEquipment().getPerception();
         per += this._addFromCompList('StatsMods', 'getPerception');
         return per;
     }
 
-    getMagic() {
+    public getMagic() {
         let mag = this.get('Stats').getMagic();
         mag += this.getInvEq().getEquipment().getMagic();
         mag += this._addFromCompList('StatsMods', 'getMagic');
@@ -438,7 +437,7 @@ class RGActorRogue extends BaseActor {
     }
 
     /* Returns bonuses applied to given stat. */
-    getStatBonus(funcName) {
+    public getStatBonus(funcName) {
         return this._addFromCompList('StatsMods', funcName);
     }
 }
@@ -481,8 +480,4 @@ function removePlayerBrainComps(actor) {
         }
     });
 }
-
-
-RG.Actor.Rogue = RGActorRogue;
-
-export default RG.Actor;
+Actor.Sentient = SentientActor;
