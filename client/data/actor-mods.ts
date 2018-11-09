@@ -1,6 +1,6 @@
 /* This file contains modifications that are applied to specific actors. */
 
-const ActorMods = {};
+export const ActorMods: any = {};
 
 ActorMods.bearfolk = {
     description: '',
@@ -88,5 +88,3 @@ ActorMods.wolfclan = {
     player: { // Player only section
     }
 };
-
-module.exports = ActorMods;
