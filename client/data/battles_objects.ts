@@ -4,10 +4,9 @@ import Items from './items';
 import Actors from './actors';
 import Elements from './elements';
 
-const RGObjects = {
+export const Objects = {
     actors: Actors,
     items: Items,
     elements: Elements
 };
 
-export default RGObjects;
