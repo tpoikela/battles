@@ -2,16 +2,18 @@
  * Unit Tests for checking action scheduling and turn taking between actors.
  */
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
+import { expect } from 'chai';
+import RG from '../../../client/src/rg';
+import * as Time from '../../../client/src/time';
+import {SentientActor} from '../../../client/src/actor';
 
-const Actor = RG.Actor.Rogue;
-const Action = RG.Time.Action;
+const Actor = SentientActor;
+const Action = Time.Action;
 
 describe('Time.Scheduler', () => {
 
     it('Repeats the same actor indefinitely', () => {
-        const sch = new RG.Time.Scheduler();
+        const sch = new Time.Scheduler();
         const actor = new Actor('actor');
         let actorID = actor.id;
 
@@ -68,12 +70,12 @@ describe('Time.Scheduler', () => {
     });
 
     it('Removes the event like it never happened', () => {
-        const sch = new RG.Time.Scheduler();
+        const sch = new Time.Scheduler();
         const act = new MockAction(100);
 
-        const testActor = new RG.Actor.Rogue('actor');
+        const testActor = new SentientActor('actor');
         // const notZero = 555;
-        const changeEvent = new RG.Time.OneShotEvent(emptyTestCB, 200,
+        const changeEvent = new Time.OneShotEvent(emptyTestCB, 200,
             'This happened');
         sch.add(testActor, true, 100);
         sch.add(changeEvent, true, 190);

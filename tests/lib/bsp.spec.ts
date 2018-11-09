@@ -1,9 +1,12 @@
 
 import {expect} from 'chai';
 
-const RG = require('../../client/src/battles');
-const BSP = require('../../lib/bsp');
-const DungeonBSP = require('../../lib/dungeon-bsp');
+import RG from '../../client/src/rg';
+import {BSP} from '../../lib/bsp';
+import {DungeonBSP} from '../../lib/dungeon-bsp';
+import {CellMap} from '../../client/src/map';
+import {Level} from '../../client/src/level';
+import * as Element from '../../client/src/element';
 
 describe('BSP', () => {
 
@@ -30,23 +33,23 @@ describe('DungeonBSP', () => {
 
         const opts = {iter: 6};
         const dungeon = new DungeonBSP(cols, rows, opts);
-        const map = new RG.Map.CellList(cols, rows, RG.ELEM.WALL);
+        const map = new CellMap(cols, rows, new Element.ElementWall('wall'));
 
         dungeon.create((x, y, val) => {
             if (val === 0) {
                 if (map.hasXY(x, y)) {
-                    map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+                    map.setBaseElemXY(x, y, new Element.ElementBase('floor'));
                 }
                 else {
                     console.log(`${x},${y} out of bounds`);
                 }
             }
             else if (val === 2) {
-                map.setBaseElemXY(x, y, RG.ELEM.STONE);
+                map.setBaseElemXY(x, y, new Element.ElementWall('stone'));
             }
         });
 
-        const level = new RG.Map.Level();
+        const level = new Level();
         level.setMap(map);
         level.debugPrintInASCII();
     });

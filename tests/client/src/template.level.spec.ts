@@ -1,16 +1,17 @@
 
 /* eslint quote-props: 0 */
-const RG = require('../../../client/src/battles');
-const expect = require('chai').expect;
-const TemplLevel = require('../../../client/src/template.level');
+import { expect } from 'chai';
+import RG from '../../../client/src/rg';
+import {Template} from '../../../client/src/template';
+import {TemplateLevel as TemplLevel} from '../../../client/src/template.level';
+import {Random} from '../../../client/src/random';
 
-const Crypt = require('../../../client/data/tiles.crypt');
-const Castle = require('../../../client/data/tiles.castle');
-const Basic = require('../../../client/data/tiles.basic').Basic;
-const Basic5x5 = require('../../../client/data/tiles.basic').Basic5x5;
-const {Houses5x5} = require('../../../client/data/tiles.houses');
+import {Crypt} from '../../../client/data/tiles.crypt';
+import {Castle} from '../../../client/data/tiles.castle';
+import {Basic, Basic5x5} from '../../../client/data/tiles.basic';
+import {Houses5x5} from '../../../client/data/tiles.houses';
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 const tileDirTest = `
 dir:UDLR

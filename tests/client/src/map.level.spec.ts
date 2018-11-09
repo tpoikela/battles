@@ -1,11 +1,9 @@
 
 /* Contains unit tests for Map.Level. */
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const RGTest = require('../../roguetest.js');
-const FromJSON = require('../../../client/src/game.fromjson');
-
+import RG from '../../../client/src/rg';
+import { expect } from 'chai';
+import {RGTest} from '../../roguetest';
 
 const Actor = RG.Actor.Rogue;
 const Level = RG.Map.Level;
@@ -118,21 +116,4 @@ describe('Map.Level', () => {
         expect(json.levelNumber).to.equal(level1.getLevelNumber());
     });
 
-    it('can be serialized with objects', () => {
-        const level1 = RGTest.createLevel('arena', 20, 20);
-        const level2 = RGTest.createLevel('arena', 20, 20);
-        const stairs = new Stairs('stairsDown', level1, level2);
-        const stairs2 = new Stairs('stairsUp', level2, level1);
-
-        expect(level1.addStairs(stairs, 2, 2)).to.be.true;
-        expect(level2.addStairs(stairs2, 3, 4)).to.be.true;
-        stairs.connect(stairs2);
-
-        const json = level1.toJSON();
-        const fromJSON = new FromJSON();
-        const newLevel = fromJSON.restoreLevel(json);
-
-        expect(newLevel.getID()).to.equal(level1.getID());
-        expect(newLevel.getStairs()).to.have.length(1);
-    });
 });

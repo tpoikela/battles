@@ -4,14 +4,15 @@
  * creating a level and adding a list of actors automatically there.
  */
 
-const RG = require('../client/src/battles');
-const expect = require('chai').expect;
-const Screen = require('../client/gui/screen');
+import RG from '../client/src/battles';
+import { expect } from 'chai';
+import {Screen} from '../client/gui/screen';
+
 const FactoryWorld = require('../client/src/factory.world');
 const {FactoryItem} = require('../client/src/factory.items');
 const Game = require('../client/src/game');
 
-const RGTest = {};
+export const RGTest: any = {};
 
 RGTest.rng = new RG.Random();
 
