@@ -1,12 +1,15 @@
 
-const RG = require('./rg');
-const Menu = require('./menu');
-const Keys = require('./keymap');
-const GoalsBattle = require('./goals-battle');
-const Cmd = require('./cmd-player');
+import RG from './rg';
+import {Menu, SelectionObject} from './menu';
+import {Keys} from './keymap';
+import {Cell} from './map.cell';
+import * as GoalsBattle from './goals-battle';
+import {Cmd} from './cmd-player';
+import {SentientActor} from './actor';
+import {Random} from './random';
 
-const RNG = RG.Random.getRNG();
-RG.KeyMap = Keys.KeyMap;
+const RNG = Random.getRNG();
+const KeyMap = Keys.KeyMap;
 
 const {
     ACTION_ALREADY_DONE,
@@ -17,14 +20,15 @@ const selectTargetMsg =
 const lookCellMsg =
     'Select a target with movement keys, then press "s" to choose it';
 
-
 const chatSelObject = player => {
     const msg = 'Select direction for chatting:';
     RG.gameMsg(msg);
     return {
         select: code => {
-            const args = {};
-            args.dir = RG.KeyMap.getDir(code);
+            const args = {
+                dir: KeyMap.getDir(code),
+                src: null
+            };
             if (args.dir) {
                 args.src = player;
                 return () => {
@@ -40,42 +44,53 @@ const chatSelObject = player => {
 };
 
 /* Memory object for the player .*/
-const MemoryPlayer = function(player) {
-    this._lastAttackedID = null;
+export class MemoryPlayer {
+    
+    private _lastAttackedID: number;
+    private _player: SentientActor;
+
+    constructor(player) {
+        this._lastAttackedID = null;
+        this._player = player;
+    }
 
     /* Sets the last attacked actor. */
-    this.setLastAttacked = actor => {
+    setLastAttacked(actor) {
         if (Number.isInteger(actor)) {
             this._lastAttackedID = actor;
         }
         else if (actor) {
             this._lastAttackedID = actor.getID();
         }
-    };
+    }
 
-    this.getLastAttacked = () => this._lastAttackedID;
+    getLastAttacked() {
+        return this._lastAttackedID;
+    }
 
     /* Returns true if the actor was the last attacked one. */
-    this.wasLastAttacked = actor => this._lastAttackedID === actor.getID();
+    wasLastAttacked(actor: SentientActor): boolean {
+        return this._lastAttackedID === actor.getID();
+    }
 
     /* Returns true if the given actor is enemy of player. */
-    this.isEnemy = actor => {
+    isEnemy(actor): boolean {
         if (actor.isPlayer()) {
             return false; // Needed for MindControl
         }
         if (actor.has('NonSentient')) {return false;}
-        return actor.getBrain().getMemory().isEnemy(player);
-    };
+        return actor.getBrain().getMemory().isEnemy(this._player);
+    }
 
-    this.toJSON = () => {
-        const json = {};
+    toJSON() {
+        const json: any = {};
         if (!RG.isNullOrUndef([this._lastAttackedID])) {
             json.setLastAttacked = this._lastAttackedID;
         }
         return json;
-    };
+    }
 
-};
+}
 
 
 const S_IDLE = 'S_IDLE';
@@ -86,6 +101,12 @@ const FSM_NO_MATCH = 256;
 
 /* A class to manage the targeting/looking state of the player. */
 class TargetingFSM {
+
+    public _brain: BrainPlayer;
+    public _targetList: Cell[];
+    public targetIndex: number;
+    public _state: string;
+    public selectedCells: Cell[] | null;
 
     constructor(brain) {
         this._brain = brain;
@@ -139,7 +160,7 @@ class TargetingFSM {
         this.targetIndex = -1;
     }
 
-    getTargetList() {
+    getTargetList(): Cell[] {
         const mapXY = {};
         const visibleCells = this._brain.getSeenCells();
         const actor = this._brain._actor;
@@ -187,7 +208,7 @@ class TargetingFSM {
         return this.selectedCells;
     }
 
-    getTarget() {
+    getTarget(): Cell | Cell[] {
         if (this.isLooking() || this.isTargeting()) {
             if (this.selectedCells && this.selectedCells.length > 0) {
                 return this.selectedCells[0];
@@ -217,7 +238,7 @@ class TargetingFSM {
         return 0;
     }
 
-    selectCell(code) {
+    selectCell(code?: number) {
         const actor = this._brain._actor;
         const visibleCells = this._brain.getSeenCells();
         if (RG.isNullOrUndef([code])) {
@@ -232,12 +253,12 @@ class TargetingFSM {
             const cell = this.selectedCells[0];
             const map = actor.getLevel().getMap();
             const [x, y] = [cell.getX(), cell.getY()];
-            const [newX, newY] = RG.KeyMap.getDiff(code, x, y);
+            const [newX, newY] = KeyMap.getDiff(code, x, y);
             if (map.hasXY(newX, newY)) {
                 this.setSelectedCells(map.getCell(newX, newY));
             }
             if (this.isLooking()) {
-                const cell = this.getTarget();
+                const cell: Cell = this.getTarget() as Cell;
                 const index = visibleCells.indexOf(cell);
                 let msg = 'You cannot see there.';
                 if (index >= 0) {
@@ -271,7 +292,7 @@ class TargetingFSM {
     }
 
     processKey(code) {
-        if (RG.KeyMap.isTargetMode(code)) {
+        if (KeyMap.isTargetMode(code)) {
             if (this.isTargeting()) {
                 const cell = this.getTarget();
                 this.cancelTargeting();
@@ -288,10 +309,10 @@ class TargetingFSM {
             }
         }
         else if (this.isTargeting()) {
-            if (RG.KeyMap.isNextTarget(code)) {
+            if (KeyMap.isNextTarget(code)) {
                 this.nextTarget();
             }
-            else if (RG.KeyMap.isPrevTarget(code)) {
+            else if (KeyMap.isPrevTarget(code)) {
                 this.prevTarget();
             }
             else {
@@ -304,7 +325,7 @@ class TargetingFSM {
 
     /* Returns true if chosen target is within attack range. */
     isTargetInRange() {
-        const cell = this.getTarget();
+        const cell = this.getTarget() as Cell;
         const actor = this._brain._actor;
         if (cell && cell.getX) {
             const [tx, ty] = [cell.getX(), cell.getY()];
@@ -324,8 +345,19 @@ class TargetingFSM {
     }
 }
 
+interface MarkObject {
+    id: number;
+    x: number;
+    y: number;
+    tag?: string;
+}
+
 /* Used for marking player positions. */
 class MarkList {
+
+    public _brain: BrainPlayer;
+    public _actor: SentientActor;
+    public _marks: {[key: string]: MarkObject[]};
 
     constructor(brain) {
         this._brain = brain;
@@ -335,11 +367,11 @@ class MarkList {
 
     /* Adds a mark to current actor's location, and adds a tag, which
      * can be shown in the mark list. */
-    addMark(tag) {
+    addMark(tag?: string) {
         const [x, y] = this._actor.getXY();
         const level = this._actor.getLevel();
         const id = level.getID();
-        const markObj = {id, x, y};
+        const markObj: MarkObject = {id, x, y};
         if (tag) {markObj.tag = tag;}
         if (!this._marks[id]) {this._marks[id] = [];}
         if (!this.markExists(id, x, y)) {
@@ -451,9 +483,34 @@ const CACHE_INVALID = null;
 
 /* This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
-class BrainPlayer {
+export class BrainPlayer {
 
-    constructor(actor) {
+    public  _actor: SentientActor;
+    public energy: number; // Consumed energy per action
+    private _type: string;
+    private _memory: MemoryPlayer;
+
+    public _guiCallbacks: {[key: string]: (number) => void};
+
+    private _confirmCallback = null;
+    private _wantConfirm: boolean;
+    private _confirmEnergy: number;
+
+    private _wantSelection: boolean;
+    private _selectionObject: SelectionObject | null;
+    private _runModeEnabled: boolean;
+
+    private _fightMode: number;
+
+    private _fsm: TargetingFSM;
+    private _markList: MarkList;
+
+    private _cache: {[key: string]: Cell[] | null};
+
+    // Not used to store anything, used only to map setters to components
+    private _statBoosts: {[key: string]: {[key: string]: number}};
+
+    constructor(actor: SentientActor) {
         this._actor = actor;
         this._guiCallbacks = {}; // For attaching GUI callbacks
         this._type = 'Player';
@@ -465,7 +522,7 @@ class BrainPlayer {
         this._confirmEnergy = 1;
 
         this._wantSelection = false;
-        this._selectionObject = false;
+        this._selectionObject = null;
         this._runModeEnabled = false;
 
         this._fightMode = RG.FMODE_NORMAL;
@@ -491,6 +548,10 @@ class BrainPlayer {
                 setMagic: 0
             }
         };
+    }
+
+    getActor() {
+        return this._actor;
     }
 
     setActor(actor) {
@@ -622,15 +683,15 @@ class BrainPlayer {
     handleCommand(obj) {
         this._restoreBaseSpeed();
         switch (obj.cmd) {
-            case 'attack': return new Cmd.Attack().execute.call(this, obj);
-            case 'missile': return new Cmd.Missile().execute.call(this, obj);
-            case 'use': return new Cmd.UseItem().execute.call(this, obj);
-            case 'drop': return new Cmd.DropItem().execute.call(this, obj);
-            case 'equip': return new Cmd.EquipItem().execute.call(this, obj);
+            case 'attack': return new Cmd.CmdAttack(this).execute(obj);
+            case 'missile': return new Cmd.CmdMissile(this).execute(obj);
+            case 'use': return new Cmd.CmdUseItem(this).execute(obj);
+            case 'drop': return new Cmd.CmdDropItem(this).execute(obj);
+            case 'equip': return new Cmd.CmdEquipItem(this).execute(obj);
             case 'unequip':
-                return new Cmd.UnequipItem().execute.call(this, obj);
+                return new Cmd.CmdUnequipItem(this).execute(obj);
             case 'use-element':
-                return new Cmd.UseElement().execute.call(this, obj);
+                return new Cmd.CmdUseElement(this).execute(obj);
             default: return () => {};
         }
     }
@@ -709,8 +770,11 @@ class BrainPlayer {
 
     getTargetActor() {
         const targetCells = this.getTarget();
-        if (targetCells && targetCells.length > 0) {
-            return targetCells[0].getFirstActor();
+        if (Array.isArray(targetCells)) {
+            const cells = targetCells as Cell[];
+            if (cells.length > 0) {
+                return cells[0].getFirstActor();
+            }
         }
         else if (targetCells.getFirstActor) {
             return targetCells.getFirstActor();
@@ -763,11 +827,11 @@ class BrainPlayer {
       }
 
       // Create a mark or goto a mark
-      if (RG.KeyMap.isMark(code)) {
+      if (KeyMap.isMark(code)) {
           this._markList.addMark();
           return this.noAction();
       }
-      else if (RG.KeyMap.isGoto(code)) {
+      else if (KeyMap.isGoto(code)) {
           this.setSelectionObject(this._markList.getMenu());
           return this.noAction();
       }
@@ -778,38 +842,38 @@ class BrainPlayer {
       }
 
       // Enable/disable run mode
-      if (RG.KeyMap.isRunMode(code)) {
+      if (KeyMap.isRunMode(code)) {
         this.toggleRunMode();
         return this.noAction();
       }
 
       // Enable/disable fight mode
-      if (RG.KeyMap.isFightMode(code)) {
+      if (KeyMap.isFightMode(code)) {
         this.toggleFightMode();
         return this.noAction();
       }
 
-      if (RG.KeyMap.isIssueOrder(code)) {
+      if (KeyMap.isIssueOrder(code)) {
           this.issueOrderCmd();
           return this.noAction();
       }
 
-      if (RG.KeyMap.isLook(code)) {
+      if (KeyMap.isLook(code)) {
           this.lookCmd();
           return this.noAction();
       }
 
-      if (RG.KeyMap.isJump(code)) {
+      if (KeyMap.isJump(code)) {
           this.jumpCmd();
           return this.noAction();
       }
 
-      if (RG.KeyMap.isUseAbility(code)) {
+      if (KeyMap.isUseAbility(code)) {
           this.useAbility();
           return this.noAction();
       }
 
-      if (RG.KeyMap.isGive(code)) {
+      if (KeyMap.isGive(code)) {
           this.giveCmd();
           return this.noAction();
       }
@@ -822,14 +886,14 @@ class BrainPlayer {
       const currCell = currMap.getCell(x, y);
 
       // For digging through item stack on curr cell
-      if (RG.KeyMap.isNextItem(code)) {
+      if (KeyMap.isNextItem(code)) {
         getNextItemOnTop(currCell);
         return this.noAction();
       }
 
       let cmdType = 'NULL';
-      if (RG.KeyMap.inMoveCodeMap(code)) {
-        const diffXY = RG.KeyMap.getDiff(code, x, y);
+      if (KeyMap.inMoveCodeMap(code)) {
+        const diffXY = KeyMap.getDiff(code, x, y);
         x = diffXY[0];
         y = diffXY[1];
         cmdType = 'MOVE';
@@ -841,9 +905,9 @@ class BrainPlayer {
       if (cmdType === 'NULL') { // Not a move command
         this.resetBoosts();
 
-        if (RG.KeyMap.isRest(code)) {cmdType = 'REST';}
+        if (KeyMap.isRest(code)) {cmdType = 'REST';}
 
-        if (RG.KeyMap.isPickup(code)) {
+        if (KeyMap.isPickup(code)) {
           cmdType = 'PICKUP';
           if (currCell.hasProp('items')) {
             if (currCell.hasShop()) {
@@ -874,7 +938,7 @@ class BrainPlayer {
           }
         }
 
-        if (RG.KeyMap.isUseStairs(code)) {
+        if (KeyMap.isUseStairs(code)) {
           cmdType = 'STAIRS';
           if (currCell.hasConnection()) {
             return () => {
@@ -888,11 +952,11 @@ class BrainPlayer {
           }
         }
 
-        if (RG.KeyMap.isToggleDoor(code)) {
+        if (KeyMap.isToggleDoor(code)) {
           return this.tryToToggleDoor();
         }
 
-        if (RG.KeyMap.isUsePower(code)) {
+        if (KeyMap.isUsePower(code)) {
           if (this.hasPowers()) {
               this._wantSelection = true;
               this._selectionObject =
@@ -905,12 +969,12 @@ class BrainPlayer {
           return this.noAction();
         }
 
-        if (RG.KeyMap.isChat(code)) {
+        if (KeyMap.isChat(code)) {
           this._wantSelection = true;
           this._selectionObject = chatSelObject(this._actor);
         }
 
-        if (RG.KeyMap.isRead(code)) {
+        if (KeyMap.isRead(code)) {
             const readComp = new RG.Component.Read();
             this._actor.add(readComp);
             return ACTION_ALREADY_DONE;
@@ -932,19 +996,10 @@ class BrainPlayer {
         return !!this._actor.getBook();
     }
 
-    /* Sets the action to be confirmed using callback. Emits an optional
-     * messages to ask for confirmation. */
-    setWantConfirm(confirmCallback, msg = '') {
-        this._wantConfirm = true;
-        this._confirmCallback = confirmCallback;
-        if (msg !== '') {RG.gameMsg(msg);}
-    }
-
-
     /* Called when Y/N choice required from player. */
     processConfirm(code) {
         this._wantConfirm = false;
-        if (RG.KeyMap.isConfirmYes(code)) {
+        if (KeyMap.isConfirmYes(code)) {
           this.energy = this._confirmEnergy;
           // If confirmed, return action to be done
           return this._confirmCallback;
@@ -962,15 +1017,15 @@ class BrainPlayer {
           const selection = this._selectionObject.select(code);
           // function terminates the selection
           if (Menu.isSelectionDone(selection)) {
-            console.log('Brain.Player processMenuSel got FUNC');
             this.selectionDone();
             return selection;
           } // object returns another selection
           else if (Menu.isMenuItem(selection)) {
-            this._selectionObject = selection;
-            if (selection.funcToCall) {
+            this._selectionObject = selection as SelectionObject;
+            const selObj = selection as SelectionObject;
+            if (selObj.funcToCall) {
               this.selectionDone();
-              return selection.funcToCall();
+              return selObj.funcToCall();
             }
             return this.noAction();
           }
@@ -1149,7 +1204,7 @@ class BrainPlayer {
     }
 
     giveOrder(orderType) {
-        const cells = this.getTarget();
+        const cells = this.getTarget() as Cell[];
         cells.forEach(cell => {
             if (cell.hasActors()) {
                 const target = cell.getActors()[0];
@@ -1330,7 +1385,7 @@ class BrainPlayer {
         }
     }
 
-    selectCell(code) {
+    selectCell(code?: number) {
         this._fsm.selectCell(code);
     }
 
@@ -1370,5 +1425,3 @@ function getNextItemOnTop(cell) {
         RG.gameMsg('There are no items here to look through');
     }
 }
-
-export default BrainPlayer;

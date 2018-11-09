@@ -24,12 +24,16 @@
  *    NOTE: For damage effects, you can use onHit()
  */
 import RG from './rg';
-import Keys from './keymap';
-import Component from './component';
-import Random from './random';
+import {Keys} from './keymap';
+import {create, ComponentBase} from './component.base';
+import * as Component from './component';
+import {Random} from './random';
+import {SentientActor} from './actor';
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 const {KeyMap} = Keys;
+
+type Coord = [number, number];
 
 // const NO_SELECTION_NEEDED = () => {};
 
@@ -58,10 +62,10 @@ const addPoisonEffect = (actor, src) => {
 };
 
 const poisonActor = (actor, src, dur, dmgDie, prob) => {
-    const poisonComp = new RG.Component.Poison();
+    const poisonComp = new Component.Poison();
     poisonComp.setDamageDie(dmgDie);
 
-    const expiration = new RG.Component.Expiration();
+    const expiration = new Component.Expiration();
     expiration.addEffect(poisonComp, dur);
 
     // Need owner to assign exp correctly
@@ -77,12 +81,12 @@ const addFadingActorToCell = (actor, cell, spell) => {
     const level = caster.getLevel();
     level.addActor(actor, cell.getX(), cell.getY());
 
-    const fadingComp = new RG.Component.Fading();
+    const fadingComp = new Component.Fading();
     const duration = spell.getDuration();
     fadingComp.setDuration(duration);
     actor.add(fadingComp);
 
-    const created = new RG.Component.Created();
+    const created = new Component.Created();
     created.setCreator(caster);
     actor.add(created);
 };
@@ -193,7 +197,7 @@ const aiSpellCellSelf = (args, cb) => {
 /* Returns selection object for spell which is cast on self. */
 Spell.getSelectionObjectSelf = (spell, actor) => {
     const func = () => {
-        const spellCast = new RG.Component.SpellCast();
+        const spellCast = new Component.SpellCast();
         spellCast.setSource(actor);
         spellCast.setSpell(spell);
         spellCast.setArgs({src: actor});
@@ -208,12 +212,13 @@ Spell.getSelectionObjectDir = (spell, actor, msg) => {
     return {
         // showMsg: () => RG.gameMsg(msg),
         select: (code) => {
-            const args = {};
-            args.dir = KeyMap.getDir(code);
+            const args: any = {
+                dir: KeyMap.getDir(code)
+            };
             if (args.dir) {
                 args.src = actor;
                 return () => {
-                    const spellCast = new RG.Component.SpellCast();
+                    const spellCast = new Component.SpellCast();
                     spellCast.setSource(actor);
                     spellCast.setSpell(spell);
                     spellCast.setArgs(args);
@@ -226,8 +231,36 @@ Spell.getSelectionObjectDir = (spell, actor, msg) => {
     };
 };
 
+interface SpellAddComp {
+    duration?: number;
+    comp: ComponentBase;
+}
+
+interface SpellRemoveComp {
+}
+
+export interface SpellArgs {
+    addComp?: SpellAddComp;
+    callback?: (any) => void;
+    damage?: number;
+    damageType?: string;
+    destroyItem?: boolean;
+    dir?: Coord;
+    from?: Coord;
+    to?: Coord;
+    postCallback?: () => void;
+    range?: number;
+    removeComp?: SpellRemoveComp;
+    spell: any; // TODO fix this
+    src: SentientActor;
+    target?: SentientActor;
+    targetComp?: string;
+    set?: string;
+    value?: number;
+}
+
 /* Returns args object for directional spell. */
-const getDirSpellArgs = (spell, args) => {
+const getDirSpellArgs = function(spell, args): SpellArgs {
     const src = args.src;
     const obj = {
         from: src.getXY(),
@@ -294,11 +327,12 @@ Spell.SpellBook.prototype.getSelectionObject = function() {
         getMenu: () => {
             RG.gameMsg('Please select a spell to cast:');
             const indices = Keys.menuIndices.slice(0, this._spells.length);
-            const obj = {};
+            const obj = {
+                pre: ['You know the following spells:']
+            };
             powerSorted.forEach((spell, index) => {
                 obj[indices[index]] = spell.toString();
             });
-            obj.pre = ['You know the following spells:'];
             return obj;
         },
         showMenu: () => true
@@ -312,10 +346,10 @@ Spell.SpellBook.prototype.toJSON = function() {
 };
 
 //------------------------------------------------------
-/* @class Spell.Base
+/* @class SpellBase
  * Base object for all spells. */
 //------------------------------------------------------
-Spell.Base = function(name, power) {
+export const SpellBase = function(name, power) {
     this._name = name;
     this._power = power || 5;
     this._caster = null;
@@ -324,15 +358,15 @@ Spell.Base = function(name, power) {
     this.setName(name);
 };
 
-Spell.Base.prototype.setCaster = function(caster) {
+SpellBase.prototype.setCaster = function(caster) {
    this._caster = caster;
 };
 
-Spell.Base.prototype.getCaster = function() {
+SpellBase.prototype.getCaster = function() {
     return this._caster;
 };
 
-Spell.Base.prototype.setName = function(name) {
+SpellBase.prototype.setName = function(name) {
     const nameSplit = name.split(/\s+/);
     const capNames = [];
     nameSplit.forEach(name => {
@@ -341,17 +375,17 @@ Spell.Base.prototype.setName = function(name) {
     this._new = capNames.join('');
 };
 
-Spell.Base.prototype.getName = function() {
+SpellBase.prototype.getName = function() {
     return this._name;
 };
 
-Spell.Base.prototype.getPower = function() {
+SpellBase.prototype.getPower = function() {
     return this._power;
 };
 
 /* Returns power required to cast this spell. The value is affected by
  * caster spell casting affinity. */
-Spell.Base.prototype.getCastingPower = function() {
+SpellBase.prototype.getCastingPower = function() {
     let castPower = this._power;
     const expLevel = this._caster.get('Experience').getExpLevel();
     castPower -= Math.ceil(expLevel / 3);
@@ -367,15 +401,15 @@ Spell.Base.prototype.getCastingPower = function() {
     return castPower;
 };
 
-Spell.Base.prototype.getRange = function() {
+SpellBase.prototype.getRange = function() {
     return this._range;
 };
 
-Spell.Base.prototype.setRange = function(range) {
+SpellBase.prototype.setRange = function(range) {
     this._range = range;
 };
 
-Spell.Base.prototype.getDuration = function(perLevel = 1) {
+SpellBase.prototype.getDuration = function(perLevel = 1) {
     let dur = 0;
     if (this._dice.duration) {
         dur = this._dice.duration.roll();
@@ -387,7 +421,7 @@ Spell.Base.prototype.getDuration = function(perLevel = 1) {
     return dur;
 };
 
-Spell.Base.prototype.getDamage = function(perLevel = 1) {
+SpellBase.prototype.getDamage = function(perLevel = 1) {
     let damage = 0;
     if (this._dice.damage) {
         damage = this._dice.damage.roll();
@@ -397,13 +431,13 @@ Spell.Base.prototype.getDamage = function(perLevel = 1) {
     return damage;
 };
 
-Spell.Base.prototype.setPower = function(power) {this._power = power;};
+SpellBase.prototype.setPower = function(power) {this._power = power;};
 
-Spell.Base.prototype.getCastFunc = function(actor, args) {
+SpellBase.prototype.getCastFunc = function(actor, args) {
     if (args.dir || args.target || args.src) {
         args.src = actor;
         return () => {
-            const spellCast = new RG.Component.SpellCast();
+            const spellCast = new Component.SpellCast();
             spellCast.setSource(actor);
             spellCast.setSpell(this);
             spellCast.setArgs(args);
@@ -413,7 +447,7 @@ Spell.Base.prototype.getCastFunc = function(actor, args) {
     return null;
 };
 
-Spell.Base.prototype.toString = function() {
+SpellBase.prototype.toString = function() {
     const castPower = this.getCastingPower();
     let str = `${this.getName()} - ${castPower}PP`;
     if (this._dice.damage) {
@@ -426,7 +460,7 @@ Spell.Base.prototype.toString = function() {
     return str;
 };
 
-Spell.Base.prototype.equals = function(rhs) {
+SpellBase.prototype.equals = function(rhs) {
     let equals = this.getName() === rhs.getName();
     equals = equals && this.getPower() === rhs.getPower();
     equals = equals && this.getRange() === rhs.getRange();
@@ -441,7 +475,7 @@ Spell.Base.prototype.equals = function(rhs) {
     return equals;
 };
 
-Spell.Base.prototype.setDice = function(name, dice) {
+SpellBase.prototype.setDice = function(name, dice) {
     if (typeof dice === 'string') {
         this._dice[name] = RG.FACT.createDie(dice);
     }
@@ -450,20 +484,20 @@ Spell.Base.prototype.setDice = function(name, dice) {
     }
 };
 
-Spell.Base.prototype.getDice = function(name) {
+SpellBase.prototype.getDice = function(name) {
     return this._dice[name];
 };
 
-Spell.Base.prototype.rollDice = function(name) {
+SpellBase.prototype.rollDice = function(name) {
     if (this._dice[name]) {
         return this._dice[name].roll();
     }
-    RG.err('Spell.Base', 'rollDice',
+    RG.err('SpellBase', 'rollDice',
         `No dice with name ${name} found`);
     return 0;
 };
 
-Spell.Base.prototype.toJSON = function() {
+SpellBase.prototype.toJSON = function() {
     const dice = {};
     Object.keys(this._dice).forEach(key => {
         dice[key] = this._dice[key].toJSON();
@@ -482,12 +516,12 @@ Spell.Base.prototype.toJSON = function() {
  * Base class for spells which add components to entities. */
 //------------------------------------------------------
 Spell.AddComponent = function(name, power) {
-    Spell.Base.call(this, name, power);
+    SpellBase.call(this, name, power);
     this._compName = '';
     this._dice.duration = RG.FACT.createDie('1d6 + 3');
 
 };
-RG.extend2(Spell.AddComponent, Spell.Base);
+RG.extend2(Spell.AddComponent, SpellBase);
 
 Spell.AddComponent.prototype.setDuration = function(die) {
     this._dice.duration = die;
@@ -505,13 +539,13 @@ Spell.AddComponent.prototype.cast = function(args) {
     const obj = getDirSpellArgs(this, args);
     const dur = this.rollDice('duration');
 
-    const compToAdd = RG.Component.create(this._compName);
+    const compToAdd = create(this._compName);
     if (compToAdd.setSource) {
         compToAdd.setSource(args.src);
     }
     obj.addComp = {comp: compToAdd, duration: dur};
 
-    const spellComp = new RG.Component.SpellCell();
+    const spellComp = new Component.SpellCell();
     spellComp.setArgs(obj);
     args.src.add(spellComp);
 };
@@ -571,7 +605,9 @@ Spell.Telepathy.prototype.cast = function(args) {
             const {duration} = addComp;
             const telepCompSrc = telepCompTarget.clone();
 
-            let newArgs = {dir: [0, 0], src: this._caster};
+            let newArgs: SpellArgs = {
+                dir: [0, 0], src: this._caster, spell: null
+            };
             newArgs = getDirSpellArgs(this, newArgs);
             newArgs.addComp = {comp: telepCompSrc, duration};
             spellArgs.postCallback = cell => {
@@ -583,7 +619,7 @@ Spell.Telepathy.prototype.cast = function(args) {
                 telepCompSrc.setTarget(telepCompTarget.getTarget());
             };
 
-            const spellComp = new RG.Component.SpellCell();
+            const spellComp = new Component.SpellCell();
             spellComp.setArgs(newArgs);
             args.src.add(spellComp);
         }
@@ -641,7 +677,7 @@ RG.extend2(Spell.SpiritForm, Spell.AddComponent);
  * Base object for spells removing other components. */
 //------------------------------------------------------
 Spell.RemoveComponent = function(name, power) {
-    Spell.Base.call(this, name, power);
+    SpellBase.call(this, name, power);
     this._compNames = [];
 
     this.setCompNames = comps => {
@@ -658,7 +694,7 @@ Spell.RemoveComponent = function(name, power) {
         const obj = getDirSpellArgs(this, args);
         obj.removeComp = this._compNames;
 
-        const spellComp = new RG.Component.SpellCell();
+        const spellComp = new Component.SpellCell();
         spellComp.setArgs(obj);
         args.src.add(spellComp);
     };
@@ -669,7 +705,7 @@ Spell.RemoveComponent = function(name, power) {
     };
 
 };
-RG.extend2(Spell.RemoveComponent, Spell.Base);
+RG.extend2(Spell.RemoveComponent, SpellBase);
 
 /* Removes all duration components (which removes all attached
  * effects with duration. */
@@ -683,14 +719,14 @@ RG.extend2(Spell.DispelMagic, Spell.RemoveComponent);
 
 /* A spell for melee combat using grasp of winter. */
 Spell.GraspOfWinter = function() {
-    Spell.Base.call(this, 'Grasp of winter');
+    SpellBase.call(this, 'Grasp of winter');
     this._dice.damage = RG.FACT.createDie('4d4 + 4');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
         obj.damageType = RG.DMG.ICE;
         obj.damage = this.getDamage();
-        const spellComp = new RG.Component.SpellCell();
+        const spellComp = new Component.SpellCell();
         spellComp.setArgs(obj);
         args.src.add(spellComp);
     };
@@ -704,18 +740,18 @@ Spell.GraspOfWinter = function() {
         return aiSpellCellEnemy(args, cb);
     };
 };
-RG.extend2(Spell.GraspOfWinter, Spell.Base);
+RG.extend2(Spell.GraspOfWinter, SpellBase);
 
 //------------------------------------------------------
 /* Base class for ranged spells. */
 //------------------------------------------------------
 Spell.Ranged = function(name, power) {
-    Spell.Base.call(this, name, power);
+    SpellBase.call(this, name, power);
     this._dice.damage = RG.FACT.createDie('4d4 + 4');
     this._range = 5;
 
 };
-RG.extend2(Spell.Ranged, Spell.Base);
+RG.extend2(Spell.Ranged, SpellBase);
 
 Spell.BoltBase = function(name, power) {
     Spell.Ranged.call(this, name, power);
@@ -725,7 +761,7 @@ Spell.BoltBase = function(name, power) {
         const obj = getDirSpellArgs(this, args);
         obj.damageType = this.damageType;
         obj.damage = this.rollDice('damage');
-        const rayComp = new RG.Component.SpellRay();
+        const rayComp = new Component.SpellRay();
         rayComp.setArgs(obj);
         args.src.add(rayComp);
     };
@@ -824,7 +860,7 @@ Spell.CrossBolt = function() {
             const obj = getDirSpellArgs(this, newArgs);
             obj.damageType = this.damageType;
             obj.damage = this.rollDice('damage');
-            const rayComp = new RG.Component.SpellRay();
+            const rayComp = new Component.SpellRay();
             rayComp.setArgs(obj);
             args.src.add(rayComp);
         });
@@ -872,7 +908,7 @@ RG.extend2(Spell.WaterBolt, Spell.BoltBase);
 
 /* Ice shield increase the defense of the caster temporarily. */
 Spell.IceShield = function() {
-    Spell.Base.call(this, 'Ice shield', 7);
+    SpellBase.call(this, 'Ice shield', 7);
 
     this._dice.duration = RG.FACT.createDie('5d5 + 5');
     this._dice.defense = RG.FACT.createDie('1d6 + 1');
@@ -880,9 +916,9 @@ Spell.IceShield = function() {
     this.cast = args => {
         const actor = args.src;
         const dur = this.getDuration();
-        const combatMods = new RG.Component.CombatMods();
+        const combatMods = new Component.CombatMods();
         combatMods.setDefense(this.rollDice('defense'));
-        RG.Component.addToExpirationComp(actor, combatMods, dur);
+        Component.addToExpirationComp(actor, combatMods, dur);
         RG.gameMsg({cell: actor.getCell(),
             msg: `${actor.getName()} is surrounded by defensive aura`});
     };
@@ -896,17 +932,17 @@ Spell.IceShield = function() {
     };
 
 };
-RG.extend2(Spell.IceShield, Spell.Base);
+RG.extend2(Spell.IceShield, SpellBase);
 
 Spell.IceShield.prototype.toString = function() {
-    let str = Spell.Base.prototype.toString.call(this);
+    let str = SpellBase.prototype.toString.call(this);
     str += ` Def: ${this._dice.defense.toString()}`;
     return str;
 };
 
 /* Magic armor increases the protection of the caster temporarily. */
 Spell.MagicArmor = function() {
-    Spell.Base.call(this, 'MagicArmor', 5);
+    SpellBase.call(this, 'MagicArmor', 5);
 
     this._dice.duration = RG.FACT.createDie('5d5 + 5');
     this._dice.protection = RG.FACT.createDie('2d6 + 1');
@@ -924,7 +960,7 @@ Spell.MagicArmor = function() {
             startMsg: `${name} is surrounded by a protective aura`,
             endMsg: `Protective aura disappears from ${name}`
         };
-        const effComp = new RG.Component.Effects(effArgs);
+        const effComp = new Component.Effects(effArgs);
         effComp.setEffectType('AddComp');
         actor.add(effComp);
     };
@@ -938,28 +974,28 @@ Spell.MagicArmor = function() {
     };
 
 };
-RG.extend2(Spell.MagicArmor, Spell.Base);
+RG.extend2(Spell.MagicArmor, SpellBase);
 
 Spell.MagicArmor.prototype.toString = function() {
-    let str = Spell.Base.prototype.toString.call(this);
+    let str = SpellBase.prototype.toString.call(this);
     str += ` Pro: ${this._dice.protection.toString()}`;
     return str;
 };
 
 /* IcyPrison spell which paralyses actors for a certain duration. */
 Spell.IcyPrison = function() {
-    Spell.Base.call(this, 'Icy prison', 10);
+    SpellBase.call(this, 'Icy prison', 10);
     this._dice.duration = RG.FACT.createDie('1d8 + 1');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
         const dur = this.getDuration();
 
-        const paralysis = new RG.Component.Paralysis();
+        const paralysis = new Component.Paralysis();
         paralysis.setSource(args.src);
         obj.addComp = {comp: paralysis, duration: dur};
 
-        const spellComp = new RG.Component.SpellCell();
+        const spellComp = new Component.SpellCell();
         spellComp.setArgs(obj);
         args.src.add(spellComp);
     };
@@ -974,13 +1010,13 @@ Spell.IcyPrison = function() {
     };
 
 };
-RG.extend2(Spell.IcyPrison, Spell.Base);
+RG.extend2(Spell.IcyPrison, SpellBase);
 
 /* Base spell for summoning other actors for help. Derived classes can define
  * postSummonCallback(cell, args, summonedActor) if post-processing is needed
  * for the summoned actor. */
 Spell.SummonBase = function(name, power) {
-    Spell.Base.call(this, name, power);
+    SpellBase.call(this, name, power);
     this.summonType = ''; // Type of summoned actor
     this.nActors = 1;
     this.summonFunc = null; // A constraint for summoned actor
@@ -1027,7 +1063,7 @@ Spell.SummonBase = function(name, power) {
             }
         };
 
-        const spellComp = new RG.Component.SpellCell();
+        const spellComp = new Component.SpellCell();
         spellComp.setArgs(obj);
         args.src.add(spellComp);
     };
@@ -1099,7 +1135,7 @@ Spell.SummonBase = function(name, power) {
     };
 
 };
-RG.extend2(Spell.SummonBase, Spell.Base);
+RG.extend2(Spell.SummonBase, SpellBase);
 
 /* A spell to summon an ice minion to fight for the caster. */
 Spell.SummonIceMinion = function() {
@@ -1181,18 +1217,18 @@ Spell.SummonFlyingEyes = function() {
 
     this.postSummonCallback = (cell, args, minion) => {
         // Each minion fades out after a period
-        const fadingComp = new RG.Component.Fading();
+        const fadingComp = new Component.Fading();
         const duration = this.getDuration();
         fadingComp.setDuration(duration);
         minion.add(fadingComp);
 
         // Link caster and minion with telepathy
-        const teleCompTarget = new RG.Component.Telepathy();
+        const teleCompTarget = new Component.Telepathy();
         teleCompTarget.setTarget(minion);
         teleCompTarget.setSource(this._caster);
         const teleCompSrc = teleCompTarget.clone();
-        RG.Component.addToExpirationComp(minion, teleCompTarget, duration);
-        RG.Component.addToExpirationComp(this._caster, teleCompSrc, duration);
+        Component.addToExpirationComp(minion, teleCompTarget, duration);
+        Component.addToExpirationComp(this._caster, teleCompSrc, duration);
     };
 
     /* Cast only when no telepathic connections. */
@@ -1212,14 +1248,14 @@ RG.extend2(Spell.SummonFlyingEyes, Spell.SummonBase);
 /* PowerDrain spell which cancels enemy spell and gives power to the caster of
 * this spell. */
 Spell.PowerDrain = function() {
-    Spell.Base.call(this, 'PowerDrain', 15);
+    SpellBase.call(this, 'PowerDrain', 15);
     this._dice.duration = RG.FACT.createDie('20d5 + 10');
 
     this.cast = args => {
         const actor = args.src;
         const dur = this.getDuration();
-        const drainComp = new RG.Component.PowerDrain();
-        RG.Component.addToExpirationComp(actor, drainComp, dur);
+        const drainComp = new Component.PowerDrain();
+        Component.addToExpirationComp(actor, drainComp, dur);
         RG.gameMsg({cell: actor.getCell(),
           msg: `${actor.getName()} is surrounded by purple aura`});
     };
@@ -1248,7 +1284,7 @@ Spell.PowerDrain = function() {
     };
 
 };
-RG.extend2(Spell.PowerDrain, Spell.Base);
+RG.extend2(Spell.PowerDrain, SpellBase);
 
 /* Base class for Spell missiles. */
 Spell.Missile = function(name, power) {
@@ -1265,7 +1301,7 @@ Spell.Missile.prototype.getAmmoName = function() {
 
 Spell.Missile.prototype.cast = function(args) {
     const [x, y] = [args.src.getX(), args.src.getY()];
-    const obj = {
+    const obj: SpellArgs = {
         from: [x, y],
         target: args.target,
         spell: this,
@@ -1274,7 +1310,7 @@ Spell.Missile.prototype.cast = function(args) {
     };
     obj.damageType = this.damageType;
     obj.damage = this.getDamage();
-    const missComp = new RG.Component.SpellMissile();
+    const missComp = new Component.SpellMissile();
     missComp.setArgs(obj);
     args.src.add(missComp);
 };
@@ -1299,7 +1335,7 @@ Spell.Missile.prototype.getSelectionObject = function(actor) {
                 case Keys.KEY.TARGET: return () => {
                     const target = actor.getBrain().getTarget();
                     if (target) {
-                        const spellCast = new RG.Component.SpellCast();
+                        const spellCast = new Component.SpellCast();
                         spellCast.setSource(actor);
                         spellCast.setSpell(spell);
                         spellCast.setArgs({src: actor, target});
@@ -1404,7 +1440,7 @@ Spell.RockStorm = function() {
         Object.values(RG.DIR).forEach(dXdY => {
             const tX = x + this.getRange() * dXdY[0];
             const tY = y + this.getRange() * dXdY[1];
-            const obj = {
+            const obj: SpellArgs = {
                 from: [x, y],
                 spell: this,
                 src: args.src,
@@ -1413,7 +1449,7 @@ Spell.RockStorm = function() {
             obj.damageType = this.damageType;
             obj.damage = this.getDamage();
             obj.destroyItem = false; // Keep rocks after firing
-            const missComp = new RG.Component.SpellMissile();
+            const missComp = new Component.SpellMissile();
             missComp.setArgs(obj);
             args.src.add(missComp);
         });
@@ -1427,18 +1463,18 @@ RG.extend2(Spell.RockStorm, Spell.Missile);
 
 /* MindControl spell takes over an enemy for a certain number of turns. */
 Spell.MindControl = function() {
-    Spell.Base.call(this, 'MindControl', 25);
+    SpellBase.call(this, 'MindControl', 25);
     this._dice.duration = RG.FACT.createDie('1d6 + 3');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
         const dur = this.getDuration();
 
-        const mindControl = new RG.Component.MindControl();
+        const mindControl = new Component.MindControl();
         mindControl.setSource(args.src);
         obj.addComp = {comp: mindControl, duration: dur};
 
-        const spellComp = new RG.Component.SpellCell();
+        const spellComp = new Component.SpellCell();
         spellComp.setArgs(obj);
         args.src.add(spellComp);
     };
@@ -1453,7 +1489,7 @@ Spell.MindControl = function() {
     };
 
 };
-RG.extend2(Spell.MindControl, Spell.Base);
+RG.extend2(Spell.MindControl, SpellBase);
 
 Spell.AreaBase = function(name, power) {
     Spell.Ranged.call(this, name, power);
@@ -1467,11 +1503,13 @@ Spell.AreaBase = function(name, power) {
     };
 
     this.cast = function(args) {
-        const obj = {src: args.src, range: this.getRange()};
+        const obj: SpellArgs = {
+            src: args.src, range: this.getRange(),
+            spell: this
+        };
         obj.damageType = this.damageType;
         obj.damage = this.getDamage();
-        obj.spell = this;
-        const spellComp = new RG.Component.SpellArea();
+        const spellComp = new Component.SpellArea();
         spellComp.setArgs(obj);
         args.src.add(spellComp);
 
@@ -1493,7 +1531,7 @@ Spell.Blizzard = function() {
 RG.extend2(Spell.Blizzard, Spell.AreaBase);
 
 Spell.Blizzard.prototype.onHit = function(actor /* , src*/) {
-    actor.add(new RG.Component.Coldness());
+    actor.add(new Component.Coldness());
 };
 
 Spell.EnergyStorm = function() {
@@ -1517,7 +1555,7 @@ function aiEnemyWithinDist(args, cb, spell) {
 
 /* Healing spell, duh. */
 Spell.Heal = function() {
-    Spell.Base.call(this, 'Heal', 6);
+    SpellBase.call(this, 'Heal', 6);
     this._dice.healing = RG.FACT.createDie('2d4');
 
     this.cast = function(args) {
@@ -1525,7 +1563,7 @@ Spell.Heal = function() {
         obj.targetComp = 'Health';
         obj.set = 'addHP';
         obj.value = this._dice.healing.roll();
-        const spellComp = new RG.Component.SpellCell();
+        const spellComp = new Component.SpellCell();
         spellComp.setArgs(obj);
         args.src.add(spellComp);
     };
@@ -1540,10 +1578,10 @@ Spell.Heal = function() {
     };
 
 };
-RG.extend2(Spell.Heal, Spell.Base);
+RG.extend2(Spell.Heal, SpellBase);
 
 Spell.RingBase = function(name, power) {
-    Spell.Base.call(this, name, power);
+    SpellBase.call(this, name, power);
     this._dice.duration = RG.FACT.createDie('10d10');
     this._range = 2;
     this._createdActor = 'Fire';
@@ -1552,7 +1590,7 @@ Spell.RingBase = function(name, power) {
         const obj = getDirSpellArgs(this, args);
         obj.callback = this.castCallback.bind(this);
 
-        const spellComp = new RG.Component.SpellSelf();
+        const spellComp = new Component.SpellSelf();
         spellComp.setArgs(obj);
         args.src.add(spellComp);
     };
@@ -1578,7 +1616,7 @@ Spell.RingBase = function(name, power) {
         return aiEnemyWithinDist(args, cb, this);
     };
 };
-RG.extend2(Spell.RingBase, Spell.Base);
+RG.extend2(Spell.RingBase, SpellBase);
 
 
 Spell.RingOfFire = function() {
@@ -1614,14 +1652,14 @@ Spell.PoisonCloud = function() {
 RG.extend2(Spell.PoisonCloud, Spell.RingBase);
 
 Spell.ForceField = function() {
-    Spell.Base.call(this, 'ForceField', 5);
+    SpellBase.call(this, 'ForceField', 5);
     this._dice.duration = RG.FACT.createDie('10d10');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
         obj.callback = this.castCallback.bind(this, args);
 
-        const spellComp = new RG.Component.SpellSelf();
+        const spellComp = new Component.SpellSelf();
         spellComp.setArgs(obj);
         args.src.add(spellComp);
     };
@@ -1644,7 +1682,7 @@ Spell.ForceField = function() {
             if (cell.isPassable() || !cell.hasActors()) {
                 const forcefield = parser.createActor('Forcefield');
                 level.addActor(forcefield, cell.getX(), cell.getY());
-                const fadingComp = new RG.Component.Fading();
+                const fadingComp = new Component.Fading();
                 const duration = this.getDuration();
                 fadingComp.setDuration(duration);
                 forcefield.add(fadingComp);
@@ -1683,7 +1721,7 @@ Spell.ForceField = function() {
         }
     };
 };
-RG.extend2(Spell.ForceField, Spell.Base);
+RG.extend2(Spell.ForceField, SpellBase);
 
 
 /* Used for testing the spells. Adds all spells to given SpellBook. */

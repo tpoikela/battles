@@ -5,10 +5,12 @@ import Actors, {adjustActorValues} from '../data/actors';
 import * as Actor from './actor';
 import {Effects} from '../data/effects';
 import * as Brain from './brain';
+import {Random} from './random';
+import {ElementBase} from './element';
+import * as Component from './component';
 
-const RNG = RG.Random.getRNG();
-const ObjectShell: any = {};
-
+const RNG = Random.getRNG();
+export const ObjectShell: any = {};
 
 export const Creator = function(db, dbNoRandom) {
     this._db = db;
@@ -105,13 +107,13 @@ export const Creator = function(db, dbNoRandom) {
     /* Creates a component of specified type.*/
     this.createComponent = (type, val) => {
         switch (type) {
-            case 'Combat': return new RG.Component.Combat();
-            case 'Experience': return new RG.Component.Experience();
-            case 'Health': return new RG.Component.Health(val);
-            case 'Stats': return new RG.Component.Stats();
+            case 'Combat': return new Component.Combat();
+            case 'Experience': return new Component.Experience();
+            case 'Health': return new Component.Health(val);
+            case 'Stats': return new Component.Stats();
             default:
-                if (RG.Component.hasOwnProperty(type)) {
-                    return new RG.Component[type]();
+                if (Component.hasOwnProperty(type)) {
+                    return new Component[type]();
                 }
                 else {
                     RG.err('Creator', 'createComponent',
@@ -408,7 +410,7 @@ export const Creator = function(db, dbNoRandom) {
                 break; // Unreachable
             case RG.TYPE_ELEM: {
                 const type = obj.type || obj.name;
-                return new RG.Element.Base(obj.name, type);
+                return new ElementBase(obj.name, type);
             }
             default: break;
         }
@@ -502,7 +504,7 @@ export const Creator = function(db, dbNoRandom) {
 
     const _addCompFromString = (compName, entity) => {
         try {
-            const comp = new RG.Component[compName]();
+            const comp = new Component[compName]();
             entity.add(comp);
         }
         catch (e) {
@@ -661,6 +663,7 @@ export const Creator = function(db, dbNoRandom) {
     };
 
 };
+ObjectShell.Creator = Creator;
 
 Creator.prototype.createBrain = function(actor, brainName) {
     if (Brain[brainName]) {
@@ -834,6 +837,7 @@ export const ProcGen = function(db, dbDanger, dbByName) {
         return obj[keys[randIndex]];
     };
 };
+ObjectShell.ProcGen = ProcGen;
 
 /* Object parser for reading game data. Game data is contained within shell
  * objects which are simply object literals without functions etc. */
@@ -1199,6 +1203,7 @@ export const Parser = function() {
 
 
 };
+ObjectShell.Parser = Parser;
 
 export const createItem = function(nameOrShell) {
     const parser = ObjectShell.getParser();
@@ -1226,3 +1231,4 @@ export const getParser = function() {
     }
     return ObjectShell.parserInstance;
 };
+ObjectShell.getParser = getParser;

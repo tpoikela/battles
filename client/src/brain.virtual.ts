@@ -1,18 +1,18 @@
 
 /* This file contains Brain objects for virtual actors such as spawners. */
 
-import Constraints from './constraints';
 import RG from './rg';
-import * as Brain from './brain';
+import {Constraints} from './constraints';
+import {BrainBase} from './brain';
 
 const spawnProb = 0.10;
 
 /* Brains for virtual actors such as spawners. */
 export const BrainVirtual = function(actor) {
-    Brain.Base.call(this, actor);
+    BrainBase.call(this, actor);
     this.setType('Virtual');
 };
-RG.extend2(BrainVirtual, Brain.Base);
+RG.extend2(BrainVirtual, BrainBase);
 
 /* Brain object used by Spawner virtual actors. */
 export const BrainSpawner = function(actor) {

@@ -1,5 +1,5 @@
 
-const RG = require('./rg');
+import RG from './rg';
 
 /* This class creates constraint functions from config objects. A single
  * constrains is defined by the following object:
@@ -10,14 +10,14 @@ const RG = require('./rg');
  * For example: {op: 'eq', prop: 'name', value: 'Giant rat'} checks that
  * name is equal to 'Giant rat'.
  */
-export default class Constraints {
+export class Constraints {
 
     getConstraints(objOrArray) {
         if (Array.isArray(objOrArray)) {
             const funcs = objOrArray.map(constr => (
                 this.getFunc(constr.op, constr.prop, constr.value)
             ));
-            const aggrFunc = function(obj) {
+            const aggrFunc: any = function(obj) {
                 let res = true;
                 funcs.forEach(f => {res = res && f(obj);});
                 return res;
@@ -41,7 +41,7 @@ export default class Constraints {
             const funcs = value.map(val => (
                 this.getFunc(op, prop, val)
             ));
-            const aggrFunc = function(obj) {
+            const aggrFunc: any = function(obj) {
                 let res = false;
                 funcs.forEach(f => {res = res || f(obj);});
                 return res;
@@ -50,7 +50,7 @@ export default class Constraints {
             return aggrFunc;
         }
         else {
-            let func = () => false;
+            let func: any = () => false;
             switch (op) {
                 case '==': // fall
                 case '===': // fall

@@ -496,7 +496,7 @@ export const Geometry: any = {
         }
     },
 
-    mergeMaps: function(m1, m2, startX, startY, mergeCb = () => true) {
+    mergeMaps: function(m1, m2, startX, startY, mergeCb = (c1, c2) => true) {
         const endX = startX + m2.cols - 1;
         const endY = startY + m2.rows - 1;
         for (let x = startX; x <= endX; x++) {

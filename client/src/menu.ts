@@ -36,6 +36,16 @@ Menu.EXIT_MENU = null;
 Menu.NO_ACTION = 'NO_ACTION';
 Menu.NEXT_STATE = 'NEXT_STATE';
 
+type SelectionFunc = () => void;
+
+export interface SelectionObject {
+    showMenu: () => boolean;
+    getMenu?: () => any;
+    select: (code: number) => SelectionObject | SelectionFunc | null
+    showMsg?: () => void;
+    funcToCall?: () => void;
+}
+
 
 type VoidFunc = () => void;
 interface MenuCallObj {

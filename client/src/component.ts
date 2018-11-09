@@ -5,7 +5,9 @@ import * as Ability from './abilities';
 import * as Mixin from './mixin';
 import {ChatTrainer, ChatQuest} from './chat';
 import {ComponentBase, Component} from './component.base';
-import {EventPool} from '../src/eventpool';
+import {EventPool} from './eventpool';
+import {Entity} from './entity';
+import {Dice} from './dice';
 
 const POOL = EventPool.getPool();
 
@@ -218,7 +220,7 @@ export const Combat = UniqueDataComponent('Combat', {
 });
 
 Combat.prototype._init = function() {
-    this.damageDie = RG.FACT.createDie('1d4');
+    this.damageDie = Dice.create('1d4');
 };
 
 Combat.prototype.rollDamage = function() {
@@ -227,7 +229,7 @@ Combat.prototype.rollDamage = function() {
 
 Combat.prototype.setDamageDie = function(strOrDie) {
     if (typeof strOrDie === 'string') {
-        this.damageDie = RG.FACT.createDie(strOrDie);
+        this.damageDie = Dice.create(strOrDie);
     }
     else {
         this.damageDie = strOrDie;
@@ -1200,7 +1202,9 @@ Animation.prototype._init = function(args) {
 };
 
 /* Adds a component into expiration component for given entity. */
-Component.addToExpirationComp = (entity, comp, dur, msg) => {
+export const addToExpirationComp = (
+    entity: Entity, comp: ComponentBase, dur: number, msg?: string
+) => {
     if (entity.has('Expiration')) {
         entity.get('Expiration').addEffect(comp, dur, msg);
     }

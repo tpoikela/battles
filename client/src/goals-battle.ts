@@ -2,14 +2,15 @@
 /* This file contains Battle-related goals used by NPC actors. */
 
 import RG from './rg';
-import Goal from './goals';
-import Evaluator from './evaluators';
+import {Goal, GoalBase} from './goals';
+import {Evaluator} from './evaluators';
+import {SentientActor} from './actor';
 
 const {GOAL_ACTIVE, GOAL_COMPLETED} = Goal;
 
-const GoalsBattle: any = {};
+export const GoalsBattle: any = {};
 
-const orderWithGoal = (actor, obj) => {
+export const orderWithGoal = (actor, obj) => {
     const {bias} = obj;
     const orderEval = new Evaluator.Orders(bias);
     orderEval.setArgs({srcActor: obj.src, goal: obj.goal});
@@ -35,7 +36,7 @@ const orderWithGoal = (actor, obj) => {
 };
 GoalsBattle.orderWithGoal = orderWithGoal;
 
-const injectOrderEval = (target, goal, args) => {
+export const injectOrderEval = (target, goal, args) => {
     const orderEval = new Evaluator.Orders(args.bias);
     orderEval.setArgs({srcActor: args.src, goal});
     const topGoal = target.getBrain().getGoal();
@@ -43,7 +44,7 @@ const injectOrderEval = (target, goal, args) => {
     topGoal.giveOrders(orderEval);
 };
 
-const giveFollowOrder = (target, args) => {
+export const giveFollowOrder = (target, args) => {
     if (target && target.getBrain().getGoal) {
         const goal = new Goal.Follow(target, args.src);
         injectOrderEval(target, goal, args);
@@ -51,7 +52,7 @@ const giveFollowOrder = (target, args) => {
 };
 GoalsBattle.giveFollowOrder = giveFollowOrder;
 
-const giveAttackOrder = (target, args) => {
+export const giveAttackOrder = (target, args) => {
     if (target && target.getBrain().getGoal) {
         const goal = new Goal.AttackActor(target, args.enemy);
         injectOrderEval(target, goal, args);
@@ -59,7 +60,7 @@ const giveAttackOrder = (target, args) => {
 };
 GoalsBattle.giveAttackOrder = giveAttackOrder;
 
-const givePickupOrder = (target, args) => {
+export const givePickupOrder = (target, args) => {
     if (target && target.getBrain().getGoal) {
         const goal = new Goal.GetItem(target, args.item);
         injectOrderEval(target, goal, args);
@@ -68,7 +69,7 @@ const givePickupOrder = (target, args) => {
 GoalsBattle.givePickupOrder = givePickupOrder;
 
 /* Clears the given orders from non-enemy actor. */
-const giveClearOrders = (target, args) => {
+export const giveClearOrders = (target, args) => {
     if (target && target.getBrain().getGoal) {
         const {src} = args;
         if (!target.isEnemy(src)) {
@@ -83,7 +84,7 @@ GoalsBattle.giveClearOrders = giveClearOrders;
 // COMPOSITE GOALS
 //---------------------------------------------------------------------------
 
-class GoalWinBattle extends Goal.Base {
+export class GoalWinBattle extends GoalBase {
 
     constructor(actor) {
         super(actor);
@@ -121,7 +122,7 @@ GoalsBattle.WinBattle = GoalWinBattle;
 //---------------------------------------------------------------------------
 
 /* Commander will use this goal to follow its army. */
-class GoalFollowArmy extends Goal.Base {
+export class GoalFollowArmy extends GoalBase {
 
     constructor(actor) {
         super(actor);
@@ -146,7 +147,15 @@ GoalsBattle.FollowArmy = GoalFollowArmy;
 
 /* Object which maps a level into a macro grid. This can be used to check if
  * actor has visited certain part of the level. */
-class LevelGrid {
+export class LevelGrid {
+    public gridCols: number;
+    public gridRows: number;
+    public xMap: number;
+    public yMap: number;
+    public xMapHalf: number;
+    public yMapHalf: number;
+
+    public grid: any[][];
 
     constructor(level, xMap, yMap) {
         const map = level.getMap();
@@ -235,7 +244,10 @@ class LevelGrid {
 
 /* Goal to find the enemy army. Commander will choose a direction, and the whole
  * army will march into that direction. */
-class GoalFindEnemyArmy extends Goal.Base {
+export class GoalFindEnemyArmy extends GoalBase {
+
+    public gridSeen: LevelGrid;
+    public adjustRate: number;
 
     constructor(actor) {
         super(actor);
@@ -305,7 +317,8 @@ class GoalFindEnemyArmy extends Goal.Base {
 GoalsBattle.FindEnemyArmy = GoalFindEnemyArmy;
 
 /* Tells to own army actors to attack the most suitable enemy. */
-class GoalEngageEnemy extends Goal.Base {
+export class GoalEngageEnemy extends GoalBase {
+    public enemy: SentientActor;
 
     constructor(actor) {
         super(actor);
@@ -347,7 +360,7 @@ GoalsBattle.EngageEnemy = GoalEngageEnemy;
 
 /* Goal to hold army position even though enemy has been encountered, for
  * example to give archers time to shoot. */
-class GoalHoldPosition extends Goal.Base {
+export class GoalHoldPosition extends GoalBase {
 
     constructor(actor) {
         super(actor);
@@ -358,7 +371,7 @@ class GoalHoldPosition extends Goal.Base {
 GoalsBattle.HoldPosition = GoalHoldPosition;
 
 /* Goal issued to retreat from the battle. */
-class GoalRetreat extends Goal.Base {
+export class GoalRetreat extends GoalBase {
 
     constructor(actor) {
         super(actor);

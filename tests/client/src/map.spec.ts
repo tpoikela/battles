@@ -1,21 +1,17 @@
-/**
- * Unit Tests for maps and map cells.
- */
+import { expect } from 'chai';
+import RG from '../../../client/src/rg';
+import {RGUnitTests} from '../../rg.unit-tests';
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const RGTest = require('../../roguetest');
-const Cell = require('../../../client/src/map.cell');
-const System = require('../../../client/src/system');
-const Element = require('../../../client/src/element');
+import {Cell} from '../../../client/src/map.cell';
+import * as Element from '../../../client/src/element';
+import * as Item from '../../../client/src/item';
+import {SentientActor} from '../../../client/src/actor';
+import {Level} from '../../../client/src/level';
 
-const Actor = RG.Actor.Rogue;
-const Level = RG.Map.Level;
-const ElementBase = Element.Base;
-const Item = RG.Item.Base;
-const Container = RG.Item.Container;
-const Factory = RG.FACT;
-const Stairs = Element.Stairs;
+const Actor = SentientActor;
+const ElementBase = Element.ElementBase;
+const Container = Item.Container;
+const Wall = Element.ElementWall;
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
@@ -25,8 +21,8 @@ RG.cellRenderArray = RG.cellRenderVisible;
 
 describe('Map.Cell', () => {
     it('Holds elements and actors', () => {
-        const actor = Factory.createPlayer('Player', 50);
-        const cell = new Cell(0, 0, new Element.Wall('wall'));
+        const actor = new SentientActor('Player');
+        const cell = new Cell(0, 0, new Element.ElementWall('wall'));
         expect(cell.isFree()).to.equal(false);
         expect(cell.hasPropType('wall')).to.equal(true);
         expect(cell.hasPropType('actors')).to.equal(false);
@@ -48,7 +44,7 @@ describe('Map.Cell', () => {
         expect(propNull).to.equal(null);
 
         // A cell with actor(s) is not free
-        const cellWithFloor = Factory.createFloorCell(1, 1);
+        const cellWithFloor = new Cell(0, 0, new ElementBase('floor'));
         expect(cellWithFloor.isFree()).to.equal(true);
         cellWithFloor.setProp('actors', actor);
         expect(cellWithFloor.isFree()).to.equal(false);
@@ -59,7 +55,7 @@ describe('Map.Cell', () => {
 
     it('can have doors', () => {
         const cell = new Cell(0, 0, new ElementBase('floor'));
-        const door = new Element.Door();
+        const door = new Element.ElementDoor(true);
         cell.setProp(RG.TYPE_ELEM, door);
         expect(cell.hasDoor(), 'Cell should have a door').to.be.true;
     });
@@ -67,11 +63,11 @@ describe('Map.Cell', () => {
 
 describe('RG.getStyleClassForCell()', () => {
     it('Returns correct CSS class and char', () => {
-        const cell = new Cell(0, 0, new Element.Wall('wall'));
+        const cell = new Cell(0, 0, new Wall('wall'));
         cell.setExplored();
         expect(RG.getStyleClassForCell(cell)).to.equal('cell-element-wall');
 
-        const wallCell = new Cell(0, 0, new Element.Wall('wall'));
+        const wallCell = new Cell(0, 0, new Wall('wall'));
         wallCell.setExplored();
         expect(wallCell.hasProp('elements')).to.equal(false);
         expect(RG.getStyleClassForCell(wallCell)).to.equal('cell-element-wall');
@@ -81,10 +77,10 @@ describe('RG.getStyleClassForCell()', () => {
         stylesCopy[RG.TYPE_ACTOR]['Player'] = 'cell-actor-player';
 
         const floorCell = new Cell(0, 0, new ElementBase('floor'));
-        const actor = Factory.createPlayer('Player', 50);
+        const actor = new SentientActor('Player');
+        actor.setIsPlayer(true);
         floorCell.setExplored();
-        expect(RG.getStyleClassForCell(floorCell))
-            .to.equal('cell-element-floor');
+        expect(RG.getStyleClassForCell(floorCell)).to.equal('cell-element-floor');
         floorCell.setProp('actors', actor);
 
         const playerCss = RG.getPropClassOrChar(
@@ -101,7 +97,7 @@ describe('Items in map cells', () => {
     it('Is placed in a cell and needs an owner', () => {
         const cell = new Cell(0, 1, new ElementBase('floor'));
         cell.setExplored();
-        const item = new Item('MyFood');
+        const item = new Item.Food('MyFood');
         item.setType('fooditem');
         cell.setProp('items', item);
         expect(cell.hasProp('items')).to.equal(true);
@@ -129,9 +125,9 @@ describe('Items in map cells', () => {
         expect(container.next()).to.equal(null);
 
         // Test adding items.
-        const food = new Item('Corn');
+        const food = new Item.Food('Corn');
         food.setType('food');
-        const weapon = new Item('Spear');
+        const weapon = new Item.Weapon('Spear');
         weapon.setType('weapon');
 
         expect(food.getOwner()).to.equal(null);
@@ -160,17 +156,17 @@ describe('Items in map cells', () => {
     });
 
     it('Can contain open/closed doors', () => {
-        const openDoor = new Element.Door(true);
+        const openDoor = new Element.ElementDoor(true);
         openDoor.openDoor();
-        const doorCell = new Cell(0, 1, new Element.Base('floor'));
+        const doorCell = new Cell(0, 1, new Element.ElementBase('floor'));
         doorCell.setProp('elements', openDoor);
         expect(doorCell.hasDoor()).to.equal(true);
-        RGTest.checkChar(openDoor, '/');
+        RGUnitTests.checkChar(openDoor, '/');
         expect(doorCell.lightPasses()).to.equal(true);
         expect(doorCell.isPassable()).to.equal(true);
         openDoor.closeDoor();
-        RGTest.checkChar(openDoor, '+');
-        RGTest.checkCSSClassName(openDoor, 'cell-element-door');
+        RGUnitTests.checkChar(openDoor, '+');
+        RGUnitTests.checkCSSClassName(openDoor, 'cell-element-door');
         expect(doorCell.lightPasses()).to.equal(false);
         expect(doorCell.isPassable()).to.equal(false);
     });
@@ -182,6 +178,7 @@ describe('Items in map cells', () => {
 // MAP UNIT TESTS
 //---------------------------------------------------------------------------
 
+/*
 describe('Map.CellList', () => {
     const actor = new Actor('Player');
     actor.setIsPlayer(true);
@@ -222,7 +219,7 @@ describe('Map.CellList', () => {
     });
 
     it('contains map cells with different properties', () => {
-        const mapgen = new RG.Map.Generator();
+        const mapgen = new MapGenerator();
         mapgen.setGen('empty', 20, 20);
         const obj = mapgen.getMap();
         const map = obj.map;
@@ -234,113 +231,7 @@ describe('Map.CellList', () => {
         expect(map.isPassableByAir(0, 0)).to.equal(true);
     });
 });
-
-//---------------------------------------------------------------------------
-// LEVEL UNIT TESTS
-//---------------------------------------------------------------------------
-
-describe('Moving actors around in the game', () => {
-    it('Moves but is blocked by walls.', () => {
-        const movSystem = new System.Movement(['Movement']);
-        const actor = new Actor('TestActor');
-        const level = new Level(10, 10);
-        const mapgen = new RG.Map.Generator();
-        mapgen.setGen('arena', 10, 10);
-        const mapObj = mapgen.getMap();
-        level.setMap(mapObj.map);
-        level.addActor(actor, 1, 2);
-        expect(actor.getX()).to.equal(1);
-        expect(actor.getY()).to.equal(2);
-
-        // Actors x,y changes due to move
-        const movComp = new RG.Component.Movement(2, 3, level);
-        actor.add(movComp);
-        movSystem.update();
-        expect(actor.getX()).to.equal(2);
-        expect(actor.getY()).to.equal(3);
-
-        // Create a wall to block the passage
-        const wall = new Element.Wall('wall');
-        level.getMap().setBaseElemXY(4, 4, wall);
-        movSystem.update();
-        expect(actor.getX(), "X didn't change due to wall").to.equal(2);
-        expect(actor.getY()).to.equal(3);
-
-    });
-
-    it('Moves actors between levels using stairs', () => {
-        const movSystem = new System.Movement(['Movement']);
-        const level1 = Factory.createLevel('arena', 20, 20);
-        const level2 = Factory.createLevel('arena', 20, 20);
-        const player = Factory.createPlayer('Player', {});
-
-        const stairs1 = new Stairs('stairsDown', level1, level2);
-        const stairs2 = new Stairs('stairsUp', level2, level1);
-        stairs1.setTargetStairs(stairs2);
-        stairs2.setTargetStairs(stairs1);
-
-        level1.addActor(player, 2, 2);
-        expect(player.getLevel()).to.equal(level1);
-
-        const map1 = level1.getMap();
-        const map2 = level2.getMap();
-        expect(map1.getCell(2, 2).hasPropType('connection')).to.equal(false);
-        expect(map2.getCell(10, 10).hasPropType('connection')).to.equal(false);
-
-        // Now add stairs and check they exist in the cells
-        level1.addStairs(stairs1, 2, 2);
-        level2.addStairs(stairs2, 10, 10);
-
-        const cell22 = map1.getCell(2, 2);
-        expect(cell22.hasStairs()).to.equal(true);
-        expect(cell22.hasConnection()).to.equal(true);
-        expect(cell22.hasPassage()).to.equal(false);
-        expect(cell22.hasPropType('connection')).to.equal(true);
-        expect(map2.getCell(10, 10).hasPropType('connection')).to.equal(true);
-
-        const refStairs1 = level1.getMap().getCell(2, 2).getStairs();
-        expect(refStairs1).to.equal(stairs1);
-
-        const refStairs2 = level2.getMap().getCell(10, 10).getStairs();
-        expect(refStairs2).to.equal(stairs2);
-
-        expect(player.getX()).to.equal(2);
-        expect(player.getY()).to.equal(2);
-        level1.useStairs(player);
-        expect(player.getLevel()).to.equal(level2);
-        expect(player.getX()).to.equal(10);
-        expect(player.getY()).to.equal(10);
-
-        // Return to prev level
-        level2.useStairs(player);
-        expect(player.getLevel()).to.equal(level1);
-        expect(player.getX()).to.equal(2);
-        expect(player.getY()).to.equal(2);
-        level1.useStairs(player);
-
-        // Check level with two stairs to different levels
-        const level3 = Factory.createLevel('arena', 30, 30);
-        const stairsDown23 = new Stairs('stairsDown', level2, level3);
-        const stairsUp32 = new Stairs('stairsUp', level2, level3);
-        level2.addStairs(stairsDown23, 12, 13);
-        level3.addStairs(stairsUp32, 6, 7);
-        stairsDown23.setTargetStairs(stairsUp32);
-        stairsUp32.setTargetStairs(stairsDown23);
-
-        const movComp = new RG.Component.Movement(12, 13, level2);
-        player.add(movComp);
-        movSystem.update();
-        level2.useStairs(player);
-        expect(player.getLevel()).to.equal(level3);
-        expect(player.getX()).to.equal(6);
-        expect(player.getY()).to.equal(7);
-
-        for (let i = 0; i < 10; i++) {
-            level3.useStairs(player);
-            level2.useStairs(player);
-        }
-    });
-});
+*/
 
 //--------------------------------------------------------------------------
 // SHOPS
@@ -350,11 +241,11 @@ describe('ElementBase.Shop', () => {
     it('Has special Shop elements', () => {
         const level = RG.FACT.createLevel('arena', 30, 30);
         const map = level.getMap();
-        const shopkeeper = new RG.Actor.Rogue('Shopkeeper');
+        const shopkeeper = new SentientActor('Shopkeeper');
 
-        const adventurer = new RG.Actor.Rogue('Buyer');
+        const adventurer = new SentientActor('Buyer');
         level.addActor(adventurer, 1, 1);
-        const someGold = new RG.Item.Gold('Gold nuggets');
+        const someGold = new Item.Gold('Gold nuggets');
         someGold.setWeight(2.0);
         adventurer.getInvEq().addItem(someGold);
 
@@ -366,7 +257,7 @@ describe('ElementBase.Shop', () => {
         hundredCoins.count = 300;
         adventurer.getInvEq().addItem(hundredCoins);
 
-        const shopElem = new Element.Shop();
+        const shopElem = new Element.ElementShop();
         const shopCell = map.getCell(1, 1);
         shopElem.setShopkeeper(shopkeeper);
         shopCell.setProp('elements', shopElem);
@@ -384,37 +275,4 @@ describe('ElementBase.Shop', () => {
     });
 });
 
-//---------------------------------------------------------------------------
-// MAP GENERATOR
-//---------------------------------------------------------------------------
-
-describe('Map.Generator', () => {
-    it('can generate forest levels with trees', () => {
-        const mapgen = new RG.Map.Generator();
-        mapgen.setGen('digger', 20, 20);
-        const obj = mapgen.createForest(0.5);
-        const map = obj.map;
-        expect(map).to.not.be.empty;
-    });
-
-    it('can generate mountain levels with zig-zag paths', () => {
-        const mapgen = new RG.Map.Generator();
-        mapgen.setGen('mountain', 50, 200);
-        const conf = {
-            chasmThr: -0.3,
-            stoneThr: 0.4,
-            highRockThr: 0.6,
-            nRoadTurns: 6
-        };
-
-        for (let i = 0; i < 1; i++) {
-            const obj = mapgen.createMountain(50, 200, conf);
-            const map = obj.map;
-            expect(map).to.exist;
-            expect(map.cols).to.equal(50);
-            expect(map.rows).to.equal(200);
-        }
-
-    });
-});
 

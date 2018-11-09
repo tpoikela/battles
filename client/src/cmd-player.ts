@@ -2,19 +2,32 @@
 // Note: All CmdXXX classes are used from Brain.Player. 'this' is bound to the
 // Brain.Player object by using execute.call(this)
 
-const RG = require('./rg');
-const Path = require('./path');
+import RG from './rg';
+import {Path} from './path';
+import {SentientActor} from './actor';
+import {BrainPlayer} from './brain.player';
 
-const Cmd = {};
+export const Cmd: any = {};
 
-const ACTION_ALREADY_DONE = () => {};
-const ACTION_ZERO_ENERGY = null;
+export const ACTION_ALREADY_DONE = () => {};
+export const ACTION_ZERO_ENERGY = null;
 Cmd.ACTION_ALREADY_DONE = ACTION_ALREADY_DONE;
 Cmd.ACTION_ZERO_ENERGY = ACTION_ZERO_ENERGY;
 
+export class CmdBase {
+
+    protected _actor: SentientActor;
+    protected brain: BrainPlayer;
+
+    constructor(brain: BrainPlayer) {
+        this._actor = brain.getActor();
+        this.brain = brain;
+    }
+
+}
 
 /* Executes one attack against target actor/cell. */
-class CmdAttack {
+export class CmdAttack extends CmdBase {
 
     execute(obj) {
       let actor = obj.target;
@@ -34,16 +47,16 @@ class CmdAttack {
             return ACTION_ALREADY_DONE;
         }
         else {
-          return this.cmdNotPossible('Target not within attack range');
+          return this.brain.cmdNotPossible('Target not within attack range');
         }
       }
-      return this.cmdNotPossible('No valid targets for attack');
+      return this.brain.cmdNotPossible('No valid targets for attack');
     }
 
 }
 Cmd.Attack = CmdAttack;
 
-class CmdMissile {
+export class CmdMissile extends CmdBase {
 
     execute(obj) {
         const invEq = this._actor.getInvEq();
@@ -65,7 +78,7 @@ class CmdMissile {
                         .getEquipped('missileweapon');
                     if (missWeapon === null) {
                         const msg = 'No missile weapon equipped.';
-                        return this.cmdNotPossible(msg);
+                        return this.brain.cmdNotPossible(msg);
                     }
                     else { // Check ammo/weapon compatibility
                         const ammoType = missile.getAmmoType();
@@ -75,13 +88,13 @@ class CmdMissile {
                             if (!re.test(ammoType) || !re.test(weaponType)) {
                                 if (ammoType !== weaponType) {
                                     const msg = 'Ammo/weapon not compatible.';
-                                    return this.cmdNotPossible(msg);
+                                    return this.brain.cmdNotPossible(msg);
                                 }
                             }
                         }
                         else if (ammoType !== weaponType) {
                             const msg = 'Ammo/weapon not compatible.';
-                            return this.cmdNotPossible(msg);
+                            return this.brain.cmdNotPossible(msg);
                         }
                     }
                 }
@@ -95,7 +108,7 @@ class CmdMissile {
                     mComp.setAttack(RG.getMissileAttack(this._actor, missile));
                     mComp.setRange(RG.getMissileRange(this._actor, missile));
                     missile.add(mComp);
-                    this.energy = RG.energy.MISSILE;
+                    this.brain.energy = RG.energy.MISSILE;
                 }
                 else {
                     RG.err('Brain.Player', 'handleCommand',
@@ -103,7 +116,7 @@ class CmdMissile {
                 }
             }
             else {
-                return this.cmdNotPossible('No missile equipped.');
+                return this.brain.cmdNotPossible('No missile equipped.');
             }
         }
 
@@ -114,7 +127,7 @@ class CmdMissile {
 Cmd.Missile = CmdMissile;
 
 /* Executed when player uses an item. */
-class CmdUseItem {
+export class CmdUseItem extends CmdBase {
 
     execute(obj) {
         if (obj.hasOwnProperty('item')) {
@@ -122,7 +135,7 @@ class CmdUseItem {
             let result = false;
             let msg = `You failed to use ${item.getName()}.`;
             if (typeof item.useItem === 'function') {
-                this.energy = RG.energy.USE;
+                this.brain.energy = RG.energy.USE;
                 item.useItem({target: obj.target});
                 result = true;
             }
@@ -134,7 +147,7 @@ class CmdUseItem {
                 obj.callback({msg: msg, result});
             }
             else if (!result) {
-                // return this.cmdNotPossible('You cannot use that item.');
+                // return this.brain.cmdNotPossible('You cannot use that item.');
                 const useComp = new RG.Component.UseItem();
                 useComp.setItem(item);
                 useComp.setTarget(obj.target);
@@ -154,7 +167,7 @@ class CmdUseItem {
 Cmd.UseItem = CmdUseItem;
 
 /* Command for using an element. */
-class CmdUseElement {
+export class CmdUseElement extends CmdBase {
 
     execute(obj) {
         const cell = obj.target;
@@ -171,7 +184,7 @@ class CmdUseElement {
 }
 Cmd.UseElement = CmdUseElement;
 
-class CmdDropItem {
+export class CmdDropItem extends CmdBase {
 
   execute(obj) {
       const invEq = this._actor.getInvEq();
@@ -191,8 +204,8 @@ class CmdDropItem {
           const shopElem = actorCell.getPropType('shop')[0];
           const price = shopElem.getItemPriceForSelling(obj.item);
 
-          this._wantConfirm = true;
-          this._confirmCallback = () => {
+          // this.brain._wantConfirm = true;
+          const confirmCb = () => {
               // const sellOk = shopElem.sellItem(obj.item, this._actor);
               const trans = new RG.Component.Transaction();
               trans.setArgs({item: obj.item, seller: this._actor,
@@ -200,8 +213,8 @@ class CmdDropItem {
                   buyer: shopElem.getShopkeeper(), count: dropCount});
               this._actor.add(trans);
           };
-
           msg = `Press y to sell item for ${price} gold coins.`;
+          this.brain.setWantConfirm(this.brain.energy, confirmCb, msg);
           if (obj.hasOwnProperty('callback')) {
               obj.callback({msg: msg, result});
           }
@@ -219,7 +232,7 @@ class CmdDropItem {
 }
 Cmd.DropItem = CmdDropItem;
 
-class CmdEquipItem {
+export class CmdEquipItem extends CmdBase {
 
     execute(obj) {
         const eqComp = new RG.Component.Equip();
@@ -234,7 +247,7 @@ class CmdEquipItem {
 Cmd.EquipItem = CmdEquipItem;
 
 /* Executed when an actor unequips an item. */
-class CmdUnequipItem {
+export class CmdUnequipItem extends CmdBase {
 
     execute(obj) {
         const eqComp = new RG.Component.Equip();
@@ -246,6 +259,3 @@ class CmdUnequipItem {
 
 }
 Cmd.UnequipItem = CmdUnequipItem;
-
-module.exports = Cmd;
-

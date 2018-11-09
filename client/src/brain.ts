@@ -1,12 +1,12 @@
 
 import RG from './rg';
 import {Path} from './path';
-import * as Evaluator from './evaluators';
-const GoalsTop = require('./goals-top');
-const BTree = require('./aisequence');
+import {Evaluator} from './evaluators';
+import {GoalsTop} from './goals-top';
 import {Memory} from './brain.memory';
+import {Random} from './random';
 
-const Models = BTree.Models;
+// const Models = BTree.Models;
 
 // Dummy callback to return, if the actor's action provides a state
 // changing action without callback.
@@ -15,7 +15,7 @@ const NO_ACTION_TAKEN = Object.freeze(() => {});
 
 const NO_MEMORY = null;
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 //---------------------------------------------------------------------------
 // BRAINS
@@ -275,35 +275,12 @@ BrainSentient.prototype.addEnemyType = function(type) {
     this._memory.addEnemyType(type);
 };
 
-/* Callback used for actor's path finding. */
-/*
-BrainSentient.prototype._passableCallback = function(x, y) {
-    const map = this._actor.getLevel().getMap();
-    const hasFlying = this._actor.has('Flying');
-    if (!RG.isNullOrUndef([map])) {
-        let res = false;
-        if (hasFlying) {
-            res = map.isPassableByAir(x, y);
-        }
-        else {
-            res = map.isPassable(x, y);
-        }
-        if (!res) {
-            res = (x === this._actor.getX()) && (y === this._actor.getY());
-        }
-        return res;
-    }
-    else {
-        RG.err('BrainSentient', '_passableCallback', 'map not well defined.');
-    }
-    return false;
-};
-*/
-
 /* Main function for retrieving the actionable callback. */
 BrainSentient.prototype.decideNextAction = function() {
     this._cache.seen = null;
-    return BTree.startBehavTree(Models.Rogue.tree, this._actor)[0];
+    RG.err('BrainSentient', 'decideNextAction', 
+        'Not implemented in this class');
+    // return BTree.startBehavTree(Models.Rogue.tree, this._actor)[0];
 };
 
 // Returns cells seen by this actor
@@ -725,7 +702,8 @@ export const BrainArcher = function(actor) {
 
     this.decideNextAction = function() {
         this._cache.seen = null;
-        return BTree.startBehavTree(Models.Archer.tree, this._actor)[0];
+        // return BTree.startBehavTree(Models.Archer.tree, this._actor)[0];
+        RG.err('BrainArcher', 'decideNextAction', 'Not supported anymore');
     };
 
     /* Checks if the actor can attack given x,y coordinate.*/
@@ -883,7 +861,7 @@ Brain.Commander.prototype.decideNextAction = function() {
 
 /* Simple brain used by the non-moving flame elements. They emit damage
  * components in the cells they are located in. */
-BrainFlame = function(actor) {
+export const BrainFlame = function(actor) {
     BrainSentient.call(this, actor);
     this.setType('Flame');
 };
@@ -906,7 +884,7 @@ BrainFlame.prototype.decideNextAction = function() {
 
 /* Brain for non-sentient clouds. Same as Flame, except moves first
  * randomly and then emits the damage. */
-BrainCloud = function(actor) {
+export const BrainCloud = function(actor) {
     BrainFlame.call(this, actor);
     this.setType('Cloud');
     this.chanceToMove = 0.2;
@@ -929,7 +907,7 @@ BrainCloud.prototype.decideNextAction = function() {
 
 /* This brain switched for player-controlled actors when MindControl
  * is cast on them. It acts as "paralysis" at the moment. */
-BrainMindControl = function(actor) {
+export const BrainMindControl = function(actor) {
     BrainSentient.call(this, actor);
     this.setType('MindControl');
     this.goal = new GoalsTop.ThinkBasic(actor);

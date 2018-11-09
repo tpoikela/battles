@@ -5,8 +5,10 @@ const debug = dbg('bitn:Goal');
 import RG from './rg';
 import {Random} from './random';
 import * as Component from './component';
-import {Path} from './path';
-import * as Actor from './actor';
+import {Path, CoordXY, PathFunc} from './path';
+import {SentientActor} from './actor';
+import {SpellBase, SpellArgs} from './spell';
+import * as Item from './item';
 
 const RNG = Random.getRNG();
 export const Goal: any = {};
@@ -24,11 +26,13 @@ Goal.Status = {
     4: 'GOAL_FAILED'
 };
 
-Goal.Types = {
+export const Types = {
+    Normal: Symbol(),
     Move: Symbol(),
     Kill: Symbol(),
     Find: Symbol()
 };
+Goal.Types = Types;
 
 const NO_SUB_GOALS = null;
 
@@ -41,6 +45,7 @@ const {
 
 let IND = 0;
 
+type Coord = [number, number];
 
 //---------------------------------------------------------------------------
 /* Base class for all actor goals. */
@@ -49,10 +54,10 @@ let IND = 0;
 export class GoalBase {
 
     public subGoals: GoalBase[] | null;
-    public actor: ActorBase;
+    public actor: SentientActor;
     public status: string;
     public type: string;
-    public category: string;
+    public category: Symbol;
     public planBGoal: GoalBase | null;
 
     constructor(actor) {
@@ -60,7 +65,7 @@ export class GoalBase {
         this.actor = actor;
         this.status = GOAL_INACTIVE;
         this.type = '';
-        this.category = '';
+        this.category = Types.Normal;
 
         this.planBGoal = null; // Can be set for a failed goal
     }
@@ -220,7 +225,7 @@ export class GoalBase {
     getSubGoals() {return this.subGoals;}
 
     /* Returns true if this goal has any subgoals in it. */
-    hasSubGoals(type) {
+    hasSubGoals(type?: string) {
         if (Array.isArray(this.subGoals)) {
             if (type) {
                 const index = this.subGoals.findIndex(g => g.type === type);
@@ -283,6 +288,9 @@ Goal.Base = GoalBase;
 /* A goal for an actor to follow path from its current location to x,y */
 //---------------------------------------------------------------------------
 export class GoalFollowPath extends GoalBase {
+
+    public path: CoordXY[];
+    public xy: Coord;
 
     constructor(actor, xy) {
         super(actor);
@@ -369,6 +377,9 @@ function getNextCoord(actor, dir) {
  */
 export class GoalMoveUntilEnemy extends GoalBase {
 
+    public dir: Coord;
+    public timeout: number;
+
     constructor(actor, dir) {
         super(actor);
         this.setType('GoalMoveUntilEnemy');
@@ -427,8 +438,11 @@ Goal.MoveUntilEnemy = GoalMoveUntilEnemy;
  * the path. */
 export class GoalGotoActor extends GoalFollowPath {
 
+    public targetActor: SentientActor;
+    public pathFunc: PathFunc;
+
     constructor(actor, targetActor) {
-        super(actor);
+        super(actor, [0, 0]);
         this.setType('GoalGotoActor');
         this.xy = targetActor.getXY();
         this.targetActor = targetActor;
@@ -497,7 +511,11 @@ Goal.GotoSeenActor = GoalGotoSeenActor;
 /* Goal to patrol/guard a single x,y coordinate. */
 export class GoalGuard extends GoalBase {
 
-    constructor(actor, xy, dist = 1) {
+    public dist: number;
+    public x: number;
+    public y: number;
+
+    constructor(actor, xy: Coord, dist = 1) {
         super(actor);
         this.setType('GoalGuard');
         this.dist = dist;
@@ -543,6 +561,11 @@ Goal.Guard = GoalGuard;
 /* Goal used for patrolling between a list of coordinates. */
 //---------------------------------------------------------------------------
 export class GoalPatrol extends GoalBase {
+
+    public coords: Coord[];
+    public currTarget: Coord;
+    public currIndex: number;
+    public patrolDist: number;
 
     constructor(actor, coords) {
         super(actor);
@@ -617,6 +640,9 @@ Goal.Patrol = GoalPatrol;
 /* Goal to attack the given actor. */
 //---------------------------------------------------------------------------
 export class GoalAttackActor extends GoalBase {
+    public targetActor: SentientActor;
+
+    public print: boolean;
 
     constructor(actor, targetActor) {
         super(actor);
@@ -755,6 +781,7 @@ Goal.AttackActor = GoalAttackActor;
 /* A goal to (melee) hit an actor. */
 //---------------------------------------------------------------------------
 export class GoalHitActor extends GoalBase {
+    public targetActor: SentientActor;
 
     constructor(actor, targetActor) {
         super(actor);
@@ -785,6 +812,7 @@ export class GoalHitActor extends GoalBase {
 /* A goal to shoot an actor. */
 //---------------------------------------------------------------------------
 export class GoalShootActor extends GoalBase {
+    public targetActor: SentientActor;
 
     constructor(actor, targetActor) {
         super(actor);
@@ -823,6 +851,11 @@ export class GoalShootActor extends GoalBase {
 /* An actor goal to explore the given area. */
 //---------------------------------------------------------------------------
 export class GoalExplore extends GoalBase {
+
+    public dur: number;
+    public dX: number;
+    public dY: number;
+    public exploreCb: (x: number, y: number) => void;
 
     constructor(actor, dur = -1) {
         super(actor);
@@ -954,6 +987,7 @@ Goal.Explore = GoalExplore;
 /* Goal for fleeing from a given actor. */
 //---------------------------------------------------------------------------
 export class GoalFleeFromActor extends GoalBase {
+    public targetActor: SentientActor;
 
     constructor(actor, targetActor) {
         super(actor);
@@ -1020,6 +1054,9 @@ Goal.Flee = GoalFleeFromActor;
  * goal taking exactly one turn to process. */
 export class GoalCastSpell extends GoalBase {
 
+    public spell: any;
+    public spellArgs: SpellArgs;
+
     constructor(actor, spell, spellArgs) {
         super(actor);
         this.setType('GoalCastSpell');
@@ -1044,6 +1081,7 @@ Goal.CastSpell = GoalCastSpell;
 /* An actor goal to follow a specific actor */
 //---------------------------------------------------------------------------
 export class GoalFollow extends GoalBase {
+    public targetActor: SentientActor;
 
     constructor(actor, targetActor) {
         super(actor);
@@ -1108,6 +1146,7 @@ Goal.Follow = GoalFollow;
 
 /* Goal for picking up items. */
 export class GoalGetItem extends GoalBase {
+    public targetItem: Item.Base;
 
     constructor(actor, targetItem) {
         super(actor);
@@ -1190,6 +1229,9 @@ Goal.Orders = GoalOrders;
 
 /* Goal for shopkeeper. */
 export class GoalShopkeeper extends GoalBase {
+    public x: number;
+    public y: number;
+    public hasShouted: boolean;
 
     constructor(actor, x, y) {
         super(actor);
@@ -1241,6 +1283,9 @@ Goal.Shopkeeper = GoalShopkeeper;
 
 
 export class GoalGoHome extends GoalBase {
+    public x: number;
+    public y: number;
+    public maxDist: number;
 
     constructor(actor, x, y, dist) {
         super(actor);
@@ -1317,6 +1362,7 @@ Goal.moveActorTo = moveActorTo;
 
 /* Class used for monitoring the Goal transitions etc. */
 export class GoalMonitor {
+    public goal: GoalBase;
 
     constructor(goal) {
         this.goal = goal;
@@ -1328,5 +1374,3 @@ Goal.Monitor = GoalMonitor;
 function statusToString(status) {
     return Goal.Status[status];
 }
-
-export default Goal;

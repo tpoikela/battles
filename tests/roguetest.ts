@@ -4,13 +4,13 @@
  * creating a level and adding a list of actors automatically there.
  */
 
-import RG from '../client/src/battles';
+import RG from '../client/src/rg';
 import { expect } from 'chai';
 import {Screen} from '../client/gui/screen';
 
-const FactoryWorld = require('../client/src/factory.world');
-const {FactoryItem} = require('../client/src/factory.items');
-const Game = require('../client/src/game');
+import {FactoryWorld} from '../client/src/factory.world';
+import {FactoryItem} from '../client/src/factory.items';
+import Game from '../client/src/game';
 
 export const RGTest: any = {};
 
@@ -50,15 +50,6 @@ RGTest.equipItem = function(actor, item) {
     expect(invEq.equipItem(item)).to.equal(true);
 };
 
-/* Wraps an object into a cell for later use. Some functions require a map cell
-* instead of taking the object directly, so this is useful. */
-RGTest.wrapObjWithCell = function(obj) {
-    const cell = RG.FACT.createFloorCell();
-    cell.setExplored(true); // Otherwise returns darkness
-    const propType = obj.getPropType();
-    cell.setProp(propType, obj);
-    return cell;
-};
 
 RGTest.getMeAWizard = function(conf = {}) {
     const wizard = new RG.Actor.Rogue('wizard');
@@ -93,17 +84,6 @@ RGTest.ensureSpellCast = function(actor) {
 RGTest.checkActorXY = function(actor, x, y) {
     expect(actor.getX(), `X must be ${x}`).to.equal(x);
     expect(actor.getY(), `Y must be ${y}`).to.equal(y);
-};
-
-RGTest.checkChar = function(obj, expChar) {
-    const cell = RGTest.wrapObjWithCell(obj);
-    expect(RG.getCellChar(cell)).to.equal(expChar);
-};
-
-RGTest.checkCSSClassName = function(obj, expClass) {
-    const cell = RGTest.wrapObjWithCell(obj);
-    expect(RG.getStyleClassForCell(cell)).to.equal(expClass);
-
 };
 
 RGTest.expectEqualHealth = function(o1, o2) {

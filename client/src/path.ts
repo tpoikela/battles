@@ -6,6 +6,13 @@ export const Path: any = {};
 
 const NO_PATH = Object.freeze([]);
 
+export interface CoordXY {
+    x: number;
+    y: number;
+}
+
+export type PathFunc = (CellMap, x0: number, y0: number, x1: number, y1: number) => CoordXY[];
+
 /* Returns shortest path (array of x,y pairs) between two points. Does not
 * check if any of the cells are passable, unless a callback is given, which
 * is called with (x, y). */

@@ -6,11 +6,11 @@ import * as Mixin from './mixin';
 import * as Component from './component';
 import {compsToJSON} from './component.base';
 
-import {BrainRogue} from './brain';
+import {BrainSentient} from './brain';
 import {BrainVirtual} from './brain.virtual';
 import {BrainPlayer} from './brain.player';
 
-import Inv from './inv';
+import {Inventory} from './inv';
 import * as Time from './time';
 
 export const Actor: any = {};
@@ -34,9 +34,9 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         return this.has('Player') || this.has('PlayerControlled');
     }
 
-    public isEnemy() {return false;}
-    public addEnemy() {/* No implementation here */}
-    public addEnemyType() {/* No implementation here */}
+    public isEnemy(actor) {return false;}
+    public addEnemy(actor) {/* No implementation here */}
+    public addEnemyType(type: string) {/* No implementation here */}
 
     public setName(name) {this.get('Named').setName(name);}
     public getName() {
@@ -123,10 +123,10 @@ export class SentientActor extends BaseActor {
     constructor(name) { // {{{2
         super(name);
 
-        this._brain = new BrainRogue(this);
+        this._brain = new BrainSentient(this);
         this._brain.getMemory().addEnemyType('player');
 
-        this._invEq = new Inv.Inventory(this);
+        this._invEq = new Inventory(this);
         this._maxWeight = 10.0;
 
         // Components for this entity
@@ -156,7 +156,9 @@ export class SentientActor extends BaseActor {
     // Brain-related methods
     //---------------------------------
 
-    public addEnemyType(type) {this._brain.getMemory().addEnemyType(type);}
+    public addEnemyType(type) {
+        this._brain.getMemory().addEnemyType(type);
+    }
     public addEnemy(actor) {this._brain.addEnemy(actor);}
     public addFriend(actor) {this._brain.addFriend(actor);}
 
@@ -299,7 +301,7 @@ export class SentientActor extends BaseActor {
         if (this.getLevel()) {
             levelID = this.getLevel().getID();
         }
-        const obj = {
+        const obj: any = {
             id: this.getID(),
             name: this.getName(),
             type: this.getType(),
@@ -310,10 +312,9 @@ export class SentientActor extends BaseActor {
             inventory: this.getInvEq().getInventory().toJSON(),
             equipment: this.getInvEq().getEquipment().toJSON(),
             brain: this._brain.toJSON(),
-            new: 'Rogue'
+            new: 'Rogue',
+            components: compsToJSON(this)
         };
-
-        obj.components = Component.compsToJSON(this);
 
         if (obj.type === null) {
             RG.err('Actor.Rogue', 'toJSON',

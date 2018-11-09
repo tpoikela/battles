@@ -1,13 +1,13 @@
 
 /* This file contains the top-level goals for actors. */
 
-const RG = require('./rg');
-const Goal = require('./goals');
-RG.Random = require('./random');
+import RG from './rg';
+import {Goal} from './goals';
+import {Random} from './random';
 
 // const GoalsBattle = require('./goals-battle');
-const Evaluator = require('./evaluators');
-const EvaluatorsBattle = require('./evaluators-battle');
+import {Evaluator} from './evaluators';
+import {EvaluatorsBattle} from './evaluators-battle';
 const debug = require('debug')('bitn:goals-top');
 
 const {
@@ -16,9 +16,9 @@ const {
     GOAL_FAILED
 } = Goal;
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
-const GoalsTop = {};
+export const GoalsTop: any = {};
 //---------------------------------------------------------------------------
 // TOP-LEVEL GOALS
 //---------------------------------------------------------------------------

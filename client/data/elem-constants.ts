@@ -1,7 +1,7 @@
 /* This file contains constants for elements. This is a flyweight pattern
  * in which each map element points to these constants only. */
 
-import ObjectShell from '../src/objectshellparser';
+import {ObjectShell} from '../src/objectshellparser';
 import {ElementBase, ElementWall} from '../src/element';
 
 export const ELEM: {[key: string]: ElementBase} = {};

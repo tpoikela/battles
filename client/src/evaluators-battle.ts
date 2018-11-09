@@ -1,8 +1,8 @@
 
 /* Evaluators used in the battle-specific goals. */
 
-const GoalsBattle = require('./goals-battle');
-import * as  Evaluator from './evaluators';
+import {GoalsBattle} from './goals-battle';
+import {Evaluator} from './evaluators';
 
 export const EvaluatorsBattle: any = {};
 
@@ -11,7 +11,7 @@ export const EvaluatorsBattle: any = {};
 //---------------------------------------------------------------------------
 
 /* Evaluator for taking on command goal. */
-class EvaluatorWinBattle extends Evaluator.Base {
+export class EvaluatorWinBattle extends Evaluator.Base {
 
     constructor(actorBias) {
         super(actorBias);
@@ -36,7 +36,7 @@ class EvaluatorWinBattle extends Evaluator.Base {
 EvaluatorsBattle.WinBattle = EvaluatorWinBattle;
 
 /* Evaluator for retreating from battle command. */
-class EvaluatorRetreat extends Evaluator.Base {
+export class EvaluatorRetreat extends Evaluator.Base {
 
     constructor(actorBias) {
         super(actorBias);
@@ -63,5 +63,3 @@ class EvaluatorRetreat extends Evaluator.Base {
     }
 }
 EvaluatorsBattle.Retreat = EvaluatorRetreat;
-
-module.exports = EvaluatorsBattle;

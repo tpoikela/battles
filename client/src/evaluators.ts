@@ -5,10 +5,11 @@
  * number between 0 and 1.
  */
 import RG from './rg';
-import Goal from './goals';
+import * as Goal from './goals';
 import GoalThief from './goal.thief';
 import {SentientActor} from './actor';
 import {Random} from './random';
+import {SpellArgs} from './spell';
 
 type Coord = [number, number];
 
@@ -170,7 +171,7 @@ export class EvaluatorFlee extends EvaluatorBase {
     setActorGoal(actor) {
         if (this.enemyActor) {
             const topGoal = actor.getBrain().getGoal();
-            const goal = new Goal.Flee(actor, this.enemyActor);
+            const goal = new Goal.GoalFleeFromActor(actor, this.enemyActor);
             topGoal.addGoal(goal);
             ++Evaluator.hist[this.type];
         }
@@ -207,7 +208,7 @@ export class EvaluatorPatrol extends EvaluatorBase {
         const topGoal = actor.getBrain().getGoal();
         const coords = this.coords;
         if (coords.length > 0) {
-            const goal = new Goal.Patrol(actor, coords);
+            const goal = new Goal.GoalPatrol(actor, coords);
             topGoal.addGoal(goal);
             ++Evaluator.hist[this.type];
         }
@@ -260,7 +261,7 @@ export class EvaluatorGuard extends EvaluatorBase {
 
     setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
-        const goal = new Goal.Guard(actor, [this.x, this.y]);
+        const goal = new Goal.GoalGuard(actor, [this.x, this.y]);
         topGoal.addGoal(goal);
         ++Evaluator.hist[this.type];
     }
@@ -277,7 +278,9 @@ Evaluator.hist.Guard = 0;
 /* Evaluator to check if actor should flee from a fight. */
 export class EvaluatorOrders extends EvaluatorBase {
 
-    public goal: GoalBase;
+    public goal: Goal.GoalBase;
+    public srcActor: SentientActor;
+    public subEval: EvaluatorBase;
 
     constructor(actorBias) {
         super(actorBias);
@@ -339,6 +342,10 @@ Evaluator.hist.Orders = 0;
 /* Calculates the desirability to cast a certain spell. */
 export class EvaluatorCastSpell extends EvaluatorBase {
 
+    public _castingProb: number;
+    public spell: any; // TODO fix to correct type
+    public spellArgs: SpellArgs;
+
     constructor(actorBias) {
         super(actorBias);
         this.type = 'CastSpell';
@@ -368,7 +375,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
     setActorGoal(actor) {
         if (this.spell) {
             const topGoal = actor.getBrain().getGoal();
-            const goal = new Goal.CastSpell(actor, this.spell, this.spellArgs);
+            const goal = new Goal.GoalCastSpell(actor, this.spell, this.spellArgs);
             topGoal.addGoal(goal);
             ++Evaluator.hist[this.type];
         }
@@ -406,7 +413,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
         const seenCells = brain.getSeenCells();
         const enemyCell = brain.findEnemyCell(seenCells);
         const actorCellsAround = RG.Brain.getActorCellsAround(actor);
-        const args = {actor, actorCellsAround};
+        const args: any = {actor, actorCellsAround};
         if (enemyCell) {
             args.enemy = enemyCell.getActors()[0];
         }
@@ -431,6 +438,9 @@ Evaluator.hist.CastSpell = 0;
  * with shopkeeping duties. */
 export class EvaluatorShopkeeper extends EvaluatorBase {
 
+    public x: number;
+    public y: number;
+
     constructor(actorBias) {
         super(actorBias);
         this.type = 'Shopkeeper';
@@ -448,7 +458,7 @@ export class EvaluatorShopkeeper extends EvaluatorBase {
 
     setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
-        const goal = new Goal.Shopkeeper(actor, this.x, this.y);
+        const goal = new Goal.GoalShopkeeper(actor, this.x, this.y);
         topGoal.addGoal(goal);
         ++Evaluator.hist[this.type];
     }
@@ -460,7 +470,7 @@ export class EvaluatorShopkeeper extends EvaluatorBase {
     }
 
     toJSON() {
-        const json = super.toJSON();
+        const json: any = super.toJSON();
         json.args = {xy: [this.x, this.y]};
         return json;
     }
@@ -472,6 +482,11 @@ Evaluator.hist.Shopkeeper = 0;
 /* Evaluator added to actors having home and wanting to spend time there
  * now and then. */
 export class EvaluatorGoHome extends EvaluatorBase {
+    public timeToHomeSick: number;
+    public timeToStay: number;
+    public maxDistHome: number;
+    public x: number;
+    public y: number;
 
     constructor(actorBias) {
         super(actorBias);
@@ -507,7 +522,7 @@ export class EvaluatorGoHome extends EvaluatorBase {
 
     setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
-        const goal = new Goal.GoHome(actor, this.x, this.y, this.maxDistHome);
+        const goal = new Goal.GoalGoHome(actor, this.x, this.y, this.maxDistHome);
         topGoal.addGoal(goal);
         ++Evaluator.hist[this.type];
     }
@@ -520,7 +535,7 @@ export class EvaluatorGoHome extends EvaluatorBase {
     }
 
     toJSON() {
-        const json = super.toJSON();
+        const json: any = super.toJSON();
         json.args = {
             xy: [this.x, this.y],
             timeToHomeSick: this.timeToHomeSick

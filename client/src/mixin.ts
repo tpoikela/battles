@@ -1,4 +1,5 @@
 import RG from './rg';
+import {Dice} from './dice';
 
 export const Mixin: any = {};
 
@@ -127,7 +128,7 @@ export const DamageRoll = (superclass) => class extends superclass {
 
     constructor(args?: MixinArgs) {
         super(args);
-        this.damageDie = RG.createDie('1d4');
+        this.damageDie = Dice.create('1d4');
     }
 
     public rollDamage() {
@@ -144,7 +145,7 @@ export const DamageRoll = (superclass) => class extends superclass {
 
     public setDamageDie(strOrDie) {
         if (typeof strOrDie === 'string') {
-            this.damageDie = RG.createDie(strOrDie);
+            this.damageDie = Dice.create(strOrDie);
         }
         else {
             this.damageDie = strOrDie;
@@ -177,7 +178,7 @@ export const DurationRoll =superclass => class extends superclass {
 
     public setDurationDie(strOrDie) {
         if (typeof strOrDie === 'string') {
-            this.duration = RG.createDie(strOrDie);
+            this.duration = Dice.create(strOrDie);
         }
         else {
             this.duration = strOrDie;
@@ -274,7 +275,7 @@ export const Damage =superclass => class extends Defense(superclass) {
 
     constructor(args) {
         super(args);
-        this._damageDie = new RG.Die(1, 4, 0);
+        this._damageDie = new Dice(1, 4, 0);
         this._range = 1;
     }
 
@@ -295,7 +296,7 @@ export const Damage =superclass => class extends Defense(superclass) {
 
     public setDamageDie(dStr) {
         if (typeof dStr === 'string') {
-            this._damageDie = RG.createDie(dStr);
+            this._damageDie = Dice.create(dStr);
         }
         else if (typeof dStr === 'object') {
             this._damageDie = dStr;
