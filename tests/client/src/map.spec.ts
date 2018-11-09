@@ -7,6 +7,8 @@ import * as Element from '../../../client/src/element';
 import * as Item from '../../../client/src/item';
 import {SentientActor} from '../../../client/src/actor';
 import {Level} from '../../../client/src/level';
+import {FactoryLevel} from '../../../client/src/factory.level';
+import * as Component from '../../../client/src/component';
 
 const Actor = SentientActor;
 const ElementBase = Element.ElementBase;
@@ -239,7 +241,8 @@ describe('Map.CellList', () => {
 
 describe('ElementBase.Shop', () => {
     it('Has special Shop elements', () => {
-        const level = RG.FACT.createLevel('arena', 30, 30);
+        const levelFact = new FactoryLevel();
+        const level = levelFact.createLevel('arena', 30, 30);
         const map = level.getMap();
         const shopkeeper = new SentientActor('Shopkeeper');
 
@@ -250,11 +253,11 @@ describe('ElementBase.Shop', () => {
         adventurer.getInvEq().addItem(someGold);
 
         for (let i = 0; i < 10; i++) {
-            const goldCoin = new RG.Item.GoldCoin();
+            const goldCoin = new Item.GoldCoin();
             adventurer.getInvEq().addItem(goldCoin);
         }
-        const hundredCoins = new RG.Item.GoldCoin();
-        hundredCoins.count = 300;
+        const hundredCoins = new Item.GoldCoin();
+        hundredCoins.setCount(300);
         adventurer.getInvEq().addItem(hundredCoins);
 
         const shopElem = new Element.ElementShop();
@@ -263,9 +266,9 @@ describe('ElementBase.Shop', () => {
         shopCell.setProp('elements', shopElem);
         expect(shopCell.hasShop()).to.equal(true);
 
-        const soldItem = new RG.Item.Weapon('Fancy Sword');
+        const soldItem = new Item.Weapon('Fancy Sword');
         soldItem.setValue(300);
-        soldItem.add(new RG.Component.Unpaid());
+        soldItem.add(new Component.Unpaid());
         level.addItem(soldItem, 1, 1);
 
         expect(shopCell.hasProp('items')).to.equal(true);
