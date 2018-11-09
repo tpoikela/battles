@@ -1,16 +1,15 @@
 
-const RG = require('./rg');
+import RG from './rg';
+export const Template: any = {};
 
-RG.Template = {};
-
-RG.Template.$DEBUG = 0;
+Template.$DEBUG = 0;
 
 const genRegex = /[A-Z]/;
 const paramSplitRegex = /\s*=\s*/;
 const propSplitRegex = /\s*:\s*/;
 
 const debug = msg => {
-    if (RG.Template.$DEBUG) {
+    if (Template.$DEBUG) {
         console.log('[DEBUG ' + msg);
     }
 };
@@ -22,7 +21,7 @@ const debug = msg => {
 
 /* Creates and return ElemTemplate from a string.
  */
-RG.Template.createTemplate = str => {
+Template.createTemplate = str => {
     const lines = str.split('\n');
     let nLine = 0;
     let currLine = lines[0];
@@ -177,7 +176,7 @@ function getWidthsAndGenPos(currLineArr) {
     };
 }
 
-const ElemTemplate = function(conf) {
+const ElemTemplate = function(conf?) {
     if (conf) {
         this.elemMap = conf.elemMap;
         this.nMaps = Object.keys(this.elemMap).length;
@@ -368,7 +367,7 @@ const ElemTemplate = function(conf) {
         firstCol = str.split('');
         debug('firstCol END: ' + JSON.stringify(firstCol));
 
-        if (RG.Template.$DEBUG) {
+        if (Template.$DEBUG) {
             RG.printMap(arr);
         }
         // Re-apply the substituted column
@@ -431,7 +430,7 @@ const ElemTemplate = function(conf) {
         return newElem;
     };
 };
-RG.Template.ElemTemplate = ElemTemplate;
+Template.ElemTemplate = ElemTemplate;
 
 const ElemGenX = function(str) {
     const len = str.length;
@@ -445,14 +444,13 @@ const ElemGenX = function(str) {
     };
 
 };
-RG.Template.ElemGenX = ElemGenX;
+Template.ElemGenX = ElemGenX;
 
 /* Two transformations are needed to achieve all possible orientations:
  * 1. Rotation 90 degrees to right (clockwise): R90
  * 2. Flipping (mirroring) over vertical (y-axis): flipY
  */
 
-const EXIT_MAPS = {};
 // Transforms don't change the generator locations, but the generator tiles must
 // be swapped of course. To transform:
 //   1. Replace generator vars with their tiles,
@@ -460,12 +458,14 @@ const EXIT_MAPS = {};
 //   3. Add gen vars back to their original place, but change the gen var tiles
 
 const r90ExitMap = {N: 'E', E: 'S', S: 'W', W: 'N'};
-EXIT_MAPS.rotate90 = r90ExitMap;
-EXIT_MAPS.rotate180 = r90ExitMap;
-EXIT_MAPS.rotate270 = r90ExitMap;
+const EXIT_MAPS: any = {
+    rotate90: r90ExitMap,
+    rotate180: r90ExitMap,
+    rotate270: r90ExitMap,
+};
 
 /* Rotates the template 90 degrees to the right.*/
-RG.Template.rotateR90 = function(templ, exitMap = r90ExitMap) {
+Template.rotateR90 = function(templ, exitMap = r90ExitMap) {
     const newTempl = templ.clone();
     remapExits(newTempl, exitMap);
     const genVars = [];
@@ -493,7 +493,7 @@ RG.Template.rotateR90 = function(templ, exitMap = r90ExitMap) {
 
     newTempl.xGenPos = {};
     Object.keys(templ.yGenPos).forEach(yPos => {
-        const newYPos = rotSizeX - 1 - yPos;
+        const newYPos = rotSizeX - 1 - parseInt(yPos, 10);
         newTempl.xGenPos[newYPos] = templ.yGenPos[yPos];
     });
 
@@ -517,21 +517,21 @@ RG.Template.rotateR90 = function(templ, exitMap = r90ExitMap) {
 };
 
 
-RG.Template.rotateR180 = function(templ, exitMap = r90ExitMap) {
-    const newTempl = RG.Template.rotateR90(templ, exitMap);
-    return RG.Template.rotateR90(newTempl, exitMap);
+Template.rotateR180 = function(templ, exitMap = r90ExitMap) {
+    const newTempl = Template.rotateR90(templ, exitMap);
+    return Template.rotateR90(newTempl, exitMap);
 };
 
-RG.Template.rotateR270 = function(templ, exitMap = r90ExitMap) {
-    const newTempl = RG.Template.rotateR180(templ, exitMap);
-    return RG.Template.rotateR90(newTempl, exitMap);
+Template.rotateR270 = function(templ, exitMap = r90ExitMap) {
+    const newTempl = Template.rotateR180(templ, exitMap);
+    return Template.rotateR90(newTempl, exitMap);
 };
 
 const flipVerExitMap = {E: 'W', W: 'E'};
 EXIT_MAPS.flipVer = flipVerExitMap;
 
 /* Flips the template over vertical axis. */
-RG.Template.flipVer = function(templ, exitMap = flipVerExitMap) {
+Template.flipVer = function(templ, exitMap = flipVerExitMap) {
     const newTempl = templ.clone();
 
     // Only need to mirror E -> W or
@@ -564,8 +564,8 @@ RG.Template.flipVer = function(templ, exitMap = flipVerExitMap) {
     // x-gen positions must also be flipped
     newTempl.xGenPos = {};
     Object.keys(templ.xGenPos).forEach(xPos => {
-        if (xPos < (flippedSizeX - 1)) {
-            const newXPos = flippedSizeX - 1 - xPos;
+        if (parseInt(xPos, 10) < (flippedSizeX - 1)) {
+            const newXPos = flippedSizeX - 1 - parseInt(xPos, 10);
             newTempl.xGenPos[newXPos] = templ.xGenPos[xPos];
         }
         else { // Cannot flip on last position, so preserve it
@@ -635,14 +635,14 @@ function transformList(templates, transforms, exitMap) {
 
                 if (templ) {
                     const map = exitMap ? exitMap[func] : EXIT_MAPS[func];
-                    const newTempl = RG.Template[func](templ, map);
+                    const newTempl = Template[func](templ, map);
                     setTransformName(func, newTempl);
                     created.push(newTempl);
                     if (func === 'flipVer') {
                         const rotations = getRotations(transforms, name);
                         rotations.forEach(rot => {
                             const map = exitMap ? exitMap[rot] : EXIT_MAPS[rot];
-                            const rotTempl = RG.Template[rot](newTempl, map);
+                            const rotTempl = Template[rot](newTempl, map);
                             setTransformName(rot, rotTempl);
                             created.push(rotTempl);
                         });
@@ -655,7 +655,7 @@ function transformList(templates, transforms, exitMap) {
     });
     return result;
 }
-RG.Template.transformList = transformList;
+Template.transformList = transformList;
 
 /* Finds which rotations need to be applied to given template by name. This is
  * mainly used when flipping vertical to find which rotations must be done. */
@@ -682,4 +682,3 @@ function setTransformName(func, templ) {
     templ.setProp('name', name);
 }
 
-module.exports = RG.Template;
