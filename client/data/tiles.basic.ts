@@ -1,12 +1,12 @@
 
 /* Contains basic tiles like corridors and small rooms. */
 
-const RG = require('../src/rg');
-RG.Template = require('../src/template');
+import RG from '../src/rg';
+import {Template} from '../src/template';
 
-const transformList = RG.Template.transformList;
+const transformList = Template.transformList;
 
-const Basic = {};
+export const Basic: any = {};
 Basic.tiles = {};
 
 Basic.tiles.corner = [
@@ -119,7 +119,7 @@ Basic.tiles.all = []
 
 // Templates created from tiles strings
 Basic.templates = Basic.tiles.all.map(tile => (
-    RG.Template.createTemplate(tile)
+    Template.createTemplate(tile)
 ));
 
 const transformed = transformList(Basic.templates, transforms);
@@ -139,9 +139,9 @@ Basic.templates.forEach(templ => {
 Basic.templates = Basic.templates.concat(weighted);
 */
 
-const Basic5x5 = {};
+export const Basic5x5: any = {};
 // 5x5 tiles with room matching
-Basic5x5.tiles = {};
+Basic5x5.tiles = {} as any;
 Basic5x5.tiles.corner = [
 `
 dir:NE
@@ -458,7 +458,7 @@ Basic5x5.tiles.all = []
 
 // Templates created from tiles strings
 Basic5x5.templates = Basic5x5.tiles.all.map(tile => (
-    RG.Template.createTemplate(tile)
+    Template.createTemplate(tile)
 ));
 
 Basic5x5.remap = {};
@@ -498,7 +498,7 @@ Basic5x5.templates = Basic5x5.templates.concat(transformed5x5);
 Basic5x5.roomCount = -1;
 
 Basic5x5.startRoomFunc = function() {
-    const tile = RG.Template.createTemplate(Basic5x5.tiles.start);
+    const tile = Template.createTemplate(Basic5x5.tiles.start);
     const x = Math.floor(this.tilesX / 2);
     const y = Math.floor(this.tilesY / 2);
     return {
@@ -509,4 +509,3 @@ Basic5x5.startRoomFunc = function() {
 Basic5x5.Models = {};
 Basic5x5.Models.default = Basic5x5.templates;
 
-module.exports = {Basic, Basic5x5};

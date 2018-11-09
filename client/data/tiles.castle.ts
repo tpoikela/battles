@@ -1,11 +1,12 @@
 
-const RG = require('../src/rg');
-RG.Random = require('../src/random');
-const Vault = require('./tiles.vault');
+import RG from '../src/rg';
+import {Random} from '../src/random';
+import {Template} from '../src/template';
+import {Vault} from './tiles.vault';
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
-const Castle = {};
+export const Castle: any = {};
 
 Castle.corridorDoorThr = 0.2;
 Castle.tiles = {};
@@ -828,17 +829,15 @@ Castle.Models.outerWall = []
 
 Castle.templates = {};
 Castle.templates.all = Castle.Models.full.map(tile => (
-    RG.Template.createTemplate(tile)
+    Template.createTemplate(tile)
 ));
-let transformed = RG.Template.transformList(Castle.templates.all);
+let transformed = Template.transformList(Castle.templates.all);
 Castle.templates.all = Castle.templates.all.concat(transformed);
 
 Castle.templates.livingOnly = Castle.tiles.residential.map(tile => (
-    RG.Template.createTemplate(tile)
+    Template.createTemplate(tile)
 ));
-transformed = RG.Template.transformList(Castle.templates.livingOnly);
+transformed = Template.transformList(Castle.templates.livingOnly);
 Castle.templates.livingOnly = Castle.templates.livingOnly.concat(transformed);
 Castle.templates.residential = Castle.templates.livingOnly.concat(
     Castle.templates.all);
-
-module.exports = Castle;

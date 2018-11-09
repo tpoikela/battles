@@ -1,11 +1,12 @@
 /* Contains ASCII tiles used for the crypt level generation. */
 
-const RG = require('../src/rg');
-RG.Random = require('../src/random');
+import RG from '../src/rg';
+import {Template} from '../src/template';
+import {Random} from '../src/random';
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
-const Crypt = {};
+export const Crypt: any = {};
 Crypt.tiles = {};
 
 Crypt.tiles.filler = `
@@ -560,11 +561,11 @@ Y#...##
 Crypt.templates = {};
 
 Crypt.templates.start = Crypt.tiles.start.map(tile => {
-    return RG.Template.createTemplate(tile);
+    return Template.createTemplate(tile);
 });
 
 /* Returns the starting room for the crypt generation. Note that 'this' should
- * be bound to RG.Template.Level object. */
+ * be bound to Template.Level object. */
 Crypt.startRoomFunc = function() {
     const tile = RNG.arrayGetRand(Crypt.templates.start);
     let x = RNG.getUniformInt(0, this.tilesX - 1);
@@ -622,9 +623,7 @@ Crypt.Models.default = []
     .concat(Crypt.tiles.misc);
 
 Crypt.templates.all = Crypt.Models.default.map(tile => (
-    RG.Template.createTemplate(tile)
+    Template.createTemplate(tile)
 ));
-const transformed = RG.Template.transformList(Crypt.templates.all);
+const transformed = Template.transformList(Crypt.templates.all);
 Crypt.templates.all = Crypt.templates.all.concat(transformed);
-
-module.exports = Crypt;

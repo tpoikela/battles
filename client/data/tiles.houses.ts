@@ -3,12 +3,12 @@
  * is on narrow spaces and houses.
  * */
 
-const RG = require('../src/rg');
-RG.Template = require('../src/template');
+import RG from '../src/rg';
+import {Template} from '../src/template';
+import {Random, RandWeights} from '../src/random';
 
-const Houses5x5 = {tiles: {}, templates: {}, Models: {}};
-const RNG = RG.Random.getRNG();
-
+export const Houses5x5: any = {tiles: {}, templates: {}, Models: {}};
+const RNG = Random.getRNG();
 
 Houses5x5.tiles.start1x1 = [
 `
@@ -485,12 +485,12 @@ Houses5x5.startRoomFunc = function() {
     const midY = Math.floor(this.tilesY / 2);
     const tile = RNG.arrayGetRand(Houses5x5.tiles.start);
 
-    const blocker = RG.Template.createTemplate(Houses5x5.tiles.blocker);
+    const blocker = Template.createTemplate(Houses5x5.tiles.blocker);
     for (let y = midY; y < this.tilesY; y++) {
         this.addRoom(blocker, midX, y);
     }
 
-    const templ = RG.Template.createTemplate(tile);
+    const templ = Template.createTemplate(tile);
     return {
         x: midX, y: midY, room: templ
     };
@@ -505,10 +505,10 @@ Houses5x5.tiles.all = Houses5x5.Models.default;
 const startNames = ['all', 'start1x1', 'start1xN', 'start2xN'];
 startNames.forEach(name => {
     Houses5x5.templates[name] = Houses5x5.tiles[name].map(tile => (
-        RG.Template.createTemplate(tile)
+        Template.createTemplate(tile)
     ));
 
-    const transformed = RG.Template.transformList(Houses5x5.templates[name]);
+    const transformed = Template.transformList(Houses5x5.templates[name]);
     Houses5x5.templates[name] = Houses5x5.templates[name].concat(transformed);
 });
 
@@ -555,6 +555,3 @@ function flipPropsVer(templ) {
         templ.setProp('startX', 'max');
     }
 }
-
-module.exports = {Houses5x5};
-

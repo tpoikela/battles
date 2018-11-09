@@ -4,10 +4,10 @@
  * ordinary room placement.
  * When creating a vault, one tile with exit
  * directions must be connected to the exit of the vault. */
-const RG = require('../src/rg');
-const Template = require('../src/template');
+import RG from '../src/rg';
+import {Template} from '../src/template';
 
-const Vault = {};
+export const Vault: any = {};
 Vault.tiles = {};
 
 Vault.tiles.vault = [
@@ -325,6 +325,3 @@ Vault.templates.all = Vault.Models.default.map(tile => (
 ));
 const transformed = Template.transformList(Vault.templates.all);
 Vault.templates.all = Vault.templates.all.concat(transformed);
-
-module.exports = Vault;
-
