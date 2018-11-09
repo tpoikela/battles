@@ -1,8 +1,8 @@
 
-import Level = require('../../client/src/level');
-import Entity = require('../../client/src/entity');
+import {Level} from '../../client/src/level';
+import {Entity} from '../../client/src/entity';
 
-export default function(chai: any, utils: any) {
+export const chaiBattles = function(chai: any, utils: any) {
     const Assertion = chai.Assertion;
 
     Assertion.addProperty('dead', function() {

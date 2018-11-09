@@ -1,20 +1,21 @@
 
-import chai = require('chai');
-// import RG = require('../../../client/src/battles');
-import ROT = require('../../../lib/rot');
-import Ability = require('../../../client/src/abilities');
-import Component = require('../../../client/src/component');
-import Actor = require('../../../client/src/actor');
-import Item = require('../../../client/src/item');
-import KeyMap = require('../../../client/src/keymap');
-import chaiBattles = require('../../helpers/chai-battles');
+import chai, { expect } from 'chai';
+import RG from '../../../client/src/rg';
+import ROT from '../../../lib/rot';
+import {Ability} from '../../../client/src/abilities';
+import * as Component from '../../../client/src/component';
+import * as Actor from '../../../client/src/actor';
+import * as Item from '../../../client/src/item';
+import {Keys} from '../../../client/src/keymap';
+import {chaiBattles} from '../../helpers/chai-battles';
 
-const expect = chai.expect;
 chai.use(chaiBattles as any);
+
+const {KeyMap} = Keys;
 
 describe('Abilities', () => {
     it('has Camouflage ability', () => {
-        const actor = new Actor.Rogue('able');
+        const actor = new Actor.SentientActor('able');
         const camouflage = new Ability.Camouflage();
         const abilComp = new Component.Abilities();
         actor.add(abilComp);
@@ -24,7 +25,7 @@ describe('Abilities', () => {
     });
 
     it('can generate a menu for selecting skill to use', () => {
-        const actor = new Actor.Rogue('able');
+        const actor = new Actor.SentientActor('able');
         const abilComp = new Component.Abilities();
         actor.add(abilComp);
         actor.setIsPlayer(true);
