@@ -1,7 +1,6 @@
 
-const ROT = require('./rot');
-
-ROT.Map.Forest = require('./map.forest');
+import ROT from './rot';
+import {MapForest} from './map.forest';
 
 const noiseGradients = [
     [ 0, -1],
@@ -14,7 +13,7 @@ const noiseGradients = [
     [-1, -1]
 ];
 
-ROT.Map.Mountain = function(width, height, options) {
+export const MapMountain = function(width, height, options?) {
     ROT.Map.call(this, width, height);
 
     this._options = {
@@ -37,9 +36,9 @@ ROT.Map.Mountain = function(width, height, options) {
 
     this.noise = new ROT.Noise.Simplex();
 };
-ROT.Map.Mountain.extend(ROT.Map);
+MapMountain.extend(ROT.Map);
 
-ROT.Map.Mountain.prototype.create = function(callback) {
+MapMountain.prototype.create = function(callback) {
     const map = this._fillMap(0);
 
     for (let x = 0; x < this._width; x++) {
@@ -58,8 +57,4 @@ ROT.Map.Mountain.prototype.create = function(callback) {
 	}
 
 };
-
-ROT.Map.Mountain.gradients = noiseGradients;
-
-module.exports = ROT.Map.Mountain;
-
+MapMountain.gradients = noiseGradients;

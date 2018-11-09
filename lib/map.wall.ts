@@ -1,11 +1,12 @@
 
-const ROT = require('./rot');
+import ROT from './rot';
+import '../client/src/utils';
 
 /* Can be used to generate "mountain walls". These are thick walls centered or
  * aligned to one of the sides of the level.
  *
  */
-ROT.Map.Wall = function(width, height, options) {
+export const MapWall = function(width, height, options?) {
     ROT.Map.call(this, width, height);
 
     this._options = {
@@ -34,9 +35,9 @@ ROT.Map.Wall = function(width, height, options) {
     }
 
 };
-ROT.Map.Wall.extend(ROT.Map);
+MapWall.extend(ROT.Map);
 
-ROT.Map.Wall.prototype.create = function(callback) {
+MapWall.prototype.create = function(callback) {
     const map = this._fillMap(0);
 
     const canConnectNorth = this._options.north;
@@ -163,7 +164,7 @@ ROT.Map.Wall.prototype.create = function(callback) {
 };
 
 /* Gets the width using moving average algorithm. */
-ROT.Map.Wall.prototype.getWidthMovingAvg = function(
+MapWall.prototype.getWidthMovingAvg = function(
     nElem, mean, stddev, subSize, filterW
 ) {
     const unfiltered = [];
@@ -193,7 +194,7 @@ ROT.Map.Wall.prototype.getWidthMovingAvg = function(
     return filtered;
 };
 
-ROT.Map.Wall.prototype.getWallWidth = function(mean, stddev, subSize) {
+MapWall.prototype.getWallWidth = function(mean, stddev, subSize) {
     const rng = this._options.rng;
     let width = Math.floor(rng.getNormal(mean, stddev));
     // width = Math.floor(width + coeff * width);
@@ -217,5 +218,3 @@ function getFiltered(arr, i, filterW) {
     }
     return Math.floor(sum / num);
 }
-
-module.exports = ROT.Map.Wall;
