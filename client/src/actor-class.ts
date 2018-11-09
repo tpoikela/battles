@@ -1,16 +1,19 @@
 
-const ActorClass = {};
-const RG = require('./rg');
-const Menu = require('./menu');
-RG.Component = require('./component');
-RG.Spell = require('./spell');
-const Random = require('./random');
-const Ability = require('./abilities');
-const EquipSlot = require('./equipment').EquipSlot;
+
+import RG from './rg';
+import {Menu} from './menu';
+import * as Component from './component';
+import * as Spell from './spell';
+import {Random} from './random';
+import {Ability} from './abilities';
+import {EquipSlot} from './equipment';
+import {SentientActor} from './actor';
 
 const {Abilities} = Ability;
 
 const RNG = Random.getRNG();
+
+export const ActorClass: any = {};
 
 /* Factory function for actor classes. */
 ActorClass.create = function(name, entity) {
@@ -139,7 +142,13 @@ ActorClass.getStartingItems = function(name) {
 
 /* Used by different in-game classes for actors. Provides basic getters and
  * progress functions to increase stats etc on level up. */
-class ActorClassBase {
+export class ActorClassBase {
+
+    protected _actor: SentientActor;
+    protected _className: string;
+    protected _messages: {[key: string]: string};
+    protected _lastStateIncr: string;
+    protected _advances: {[key: string]: () => void};
 
     constructor(actor, name) {
         this._actor = actor;
@@ -207,7 +216,7 @@ class ActorClassBase {
 //-------------------------------------------------------------------------
 /* Alpinist actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
-class Alpinist extends ActorClassBase {
+export class Alpinist extends ActorClassBase {
     constructor(actor) {
         super(actor, 'Alpinist');
         const name = actor.getName();
@@ -269,7 +278,7 @@ ActorClass.Alpinist = Alpinist;
 //-------------------------------------------------------------------------
 /* Adventurer actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
-class Adventurer extends ActorClassBase {
+export class Adventurer extends ActorClassBase {
 
     constructor(actor) {
         super(actor, 'Adventurer');
@@ -324,7 +333,7 @@ ActorClass.Adventurer = Adventurer;
 //-------------------------------------------------------------------------
 /* Blademaster actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
-class Blademaster extends ActorClassBase {
+export class Blademaster extends ActorClassBase {
 
     constructor(actor) {
         super(actor, 'Blademaster');
@@ -404,7 +413,7 @@ ActorClass.Blademaster = Blademaster;
 //-------------------------------------------------------------------------
 /* Cryomancer actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
-class Cryomancer extends ActorClassBase {
+export class Cryomancer extends ActorClassBase {
 
     constructor(actor) {
         super(actor, 'Cryomancer');
@@ -482,7 +491,7 @@ ActorClass.Cryomancer = Cryomancer;
 //-------------------------------------------------------------------------
 /* Marksman actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
-class Marksman extends ActorClassBase {
+export class Marksman extends ActorClassBase {
 
     constructor(actor) {
         super(actor, 'Marksman');
@@ -560,7 +569,7 @@ ActorClass.Marksman = Marksman;
 //-------------------------------------------------------------------------
 /* Spellsinger actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
-class Spellsinger extends ActorClassBase {
+export class Spellsinger extends ActorClassBase {
 
     constructor(actor) {
         super(actor, 'Spellsinger');
@@ -636,7 +645,7 @@ ActorClass.Spellsinger = Spellsinger;
 //-------------------------------------------------------------------------
 /* Spiritcrafter actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
-class Spiritcrafter extends ActorClassBase {
+export class Spiritcrafter extends ActorClassBase {
 
     constructor(actor) {
         super(actor, 'Spiritcrafter');
@@ -714,10 +723,13 @@ class Spiritcrafter extends ActorClassBase {
 }
 ActorClass.Spiritcrafter = Spiritcrafter;
 
-RG.ACTOR_CLASSES = ['Cryomancer', 'Blademaster', 'Marksman', 'Spiritcrafter',
-    'Adventurer', 'Alpinist', 'Spellsinger'];
+export const ACTOR_CLASSES = [
+    'Cryomancer', 'Blademaster', 'Marksman', 'Spiritcrafter',
+    'Adventurer', 'Alpinist', 'Spellsinger'
+];
 
-RG.ACTOR_CLASSES_NO_ADV = RG.ACTOR_CLASSES.filter(ac => ac !== 'Adventurer');
+export const ACTOR_CLASSES_NO_ADV = ACTOR_CLASSES.filter(ac => (
+    ac !== 'Adventurer'));
 
 function getRandExcludeAdventurer() {
     return RNG.arrayGetRand(RG.ACTOR_CLASSES_NO_ADV);
@@ -746,5 +758,3 @@ function substituteConstraints(items) {
     });
     return result;
 }
-
-module.exports = ActorClass;

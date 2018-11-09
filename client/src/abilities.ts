@@ -2,6 +2,7 @@
 import RG from './rg';
 import {Random} from './random';
 import * as Menu from './menu';
+import * as Component from './component';
 import {SentientActor} from './actor';
 
 const RNG = Random.getRNG();
@@ -30,7 +31,7 @@ export class AbilityBase {
         ];
     }
 
-    public activate(): void {
+    public activate(obj: any): void {
         const name = this.getName();
         RG.err('Ability.Base', 'activate',
             `${name} should implement activate()`);
@@ -43,28 +44,35 @@ Ability.Base = AbilityBase;
 // Abilities usable on actor itself
 //---------------------------------------------------------------------------
 
-export const Self = function(name) {
-    Ability.Base.call(this, name);
-};
-RG.extend2(Self, Ability.Base);
+export class Self extends AbilityBase {
+
+    constructor(name) {
+        super('Self');
+    }
+
+    getMenuItem(): MenuItem {
+        return [
+            this.getName(),
+            this.activate.bind(this)
+        ];
+    }
+}
 Ability.Self = Self;
 
-Self.prototype.getMenuItem = function() {
-    return [
-        this.getName(),
-        this.activate.bind(this)
-    ];
-};
+export class Camouflage extends AbilityBase {
 
-export const Camouflage = function() {
-    Ability.Self.call(this, 'Camouflage');
-};
-RG.extend2(Camouflage, Ability.Self);
+    constructor(name) {
+        super('Camouflage');
+    }
 
-Camouflage.prototype.activate = function() {
-    const actor = this.actor;
-    actor.add(new RG.Component.Camouflage());
-};
+    activate() {
+        const actor = this.actor;
+        actor.add(new Component.Camouflage());
+    }
+
+}
+
+Ability.Camouflage = Camouflage;
 
 /* Abilities affecting specific direction, where player must choose
  * a direction for using the ability. */
@@ -112,30 +120,35 @@ Item.prototype.getMenuItem = function() {
 };
 
 /* This ability can be used to sharpen weapons. */
-export const Sharpener = function() {
-    Ability.Item.call(this, 'Sharpener');
-};
-RG.extend2(Sharpener, Ability.Item);
+export class Sharpener extends AbilityBase {
 
-Sharpener.prototype.activate = function(item) {
-    const name = item.getName();
-    if (!item.has('Sharpened')) {
-        if (item.getDamageDie) {
-            item.add(new RG.Component.Sharpened());
-            const dmgBonus = RNG.getUniformInt(1, 3);
-            const dmgDie = item.getDamageDie();
-            dmgDie.setMod(dmgDie.getMod() + dmgBonus);
-            item.setValue(item.getValue() + dmgBonus * 10);
-            RG.gameMsg(`You sharpen ${name}`);
+    constructor() {
+        super('Sharpener');
+    }
+
+    activate(item) {
+        const name = item.getName();
+        if (!item.has('Sharpened')) {
+            if (item.getDamageDie) {
+                item.add(new RG.Component.Sharpened());
+                const dmgBonus = RNG.getUniformInt(1, 3);
+                const dmgDie = item.getDamageDie();
+                dmgDie.setMod(dmgDie.getMod() + dmgBonus);
+                item.setValue(item.getValue() + dmgBonus * 10);
+                RG.gameMsg(`You sharpen ${name}`);
+            }
+            else {
+                RG.gameMsg(`It's useless to sharpen ${name}`);
+            }
         }
         else {
-            RG.gameMsg(`It's useless to sharpen ${name}`);
+            RG.gameMsg(`${name} has already been sharpened`);
         }
     }
-    else {
-        RG.gameMsg(`${name} has already been sharpened`);
-    }
-};
+
+}
+Ability.Sharpener = Sharpener;
+
 
 export class Abilities {
 
