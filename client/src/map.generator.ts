@@ -2,17 +2,17 @@
  * elements and some other elements like doors. Items and actors are
  * not generated here. */
 
-const RG = require('./rg');
-const ROT = require('../../lib/rot');
-RG.Map = require('./map');
-const Path = require('./path');
-const BSP = require('../../lib/bsp');
+import RG from './rg';
+import ROT from '../../lib/rot';
+import {CellMap} from './map';
+import {Path} from './path';
+import {BSP} from '../../lib/bsp';
 
-const TemplateLevel = require('./template.level');
-const Crypt = require('../data/tiles.crypt');
-const Castle = require('../data/tiles.castle');
-const {HouseGenerator} = require('./houses');
-const Geometry = require('./geometry');
+import {TemplateLevel} from './template.level';
+import {Crypt} from '../data/tiles.crypt';
+import {Castle} from '../data/tiles.castle';
+import {HouseGenerator} from './houses';
+import {Geometry} from './geometry';
 
 ROT.Map.Forest = require('../../lib/map.forest');
 ROT.Map.Miner = require('../../lib/map.miner');
@@ -58,7 +58,7 @@ const MapGenerator = function() { // {{{2
 };
 
 MapGenerator.prototype.createEmptyMap = function() {
-    const map = new RG.Map.CellList(this.cols, this.rows);
+    const map = new CellMap.CellList(this.cols, this.rows);
     const obj = {map};
     return obj;
 };
@@ -73,7 +73,7 @@ MapGenerator.prototype.getMap = function(conf = {}) {
     else {
         const wallElem = MapGenerator.getWallElem(conf.wallType);
         const floorElem = MapGenerator.getFloorElem(conf.floorType);
-        const map = new RG.Map.CellList(this.cols, this.rows);
+        const map = new CellMap.CellList(this.cols, this.rows);
         this._mapGen.create((x, y, val) => {
             if (val === this._wall) {
                 map.setBaseElemXY(x, y, wallElem);
@@ -229,7 +229,7 @@ MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
 
     RNG.shuffle(leaves); // Introduce some randomness
 
-    const map = new RG.Map.CellList(cols, rows);
+    const map = new CellMap.CellList(cols, rows);
     const freeLeaves = [];
 
     // Now each leaf can be safely used for placing a house in
@@ -425,7 +425,7 @@ MapGenerator.prototype.createHouse = function(
      * 0.5 on average replaces half the walls with tree, and removes rest of
      * the walls. */
 MapGenerator.prototype.createForest = function(conf) {
-    const map = new RG.Map.CellList(this.cols, this.rows);
+    const map = new CellMap.CellList(this.cols, this.rows);
     const ratio = conf.ratio;
     this._mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
     this._mapGen.create((x, y, val) => {
@@ -442,7 +442,7 @@ MapGenerator.prototype.createForest = function(conf) {
 };
 
 MapGenerator.prototype.createLakes = function(conf) {
-    const map = new RG.Map.CellList(this.cols, this.rows);
+    const map = new CellMap.CellList(this.cols, this.rows);
     this._mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
     this._mapGen.create((x, y, val) => {
         map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
@@ -483,7 +483,7 @@ MapGenerator.prototype.addLakes = function(map, conf, bbox = {}) {
 
 
 MapGenerator.prototype.createWall = function(cols, rows, conf) {
-    const map = new RG.Map.CellList(cols, rows);
+    const map = new CellMap.CellList(cols, rows);
     const wallElem = conf.wallElem || RG.ELEM.WALL;
     this._mapGen = new ROT.Map.Wall(cols, rows, conf);
     this._mapGen.create((x, y, val) => {
@@ -495,7 +495,7 @@ MapGenerator.prototype.createWall = function(cols, rows, conf) {
 };
 
 MapGenerator.prototype.createMountain = function(cols, rows, conf) {
-    const map = new RG.Map.CellList(cols, rows);
+    const map = new CellMap.CellList(cols, rows);
     if (!conf) {
         conf = MapGenerator.getOptions('mountain');
     }
@@ -616,7 +616,7 @@ MapGenerator.prototype.createMountainPath = function(map, conf) {
 
     /* Creates a mountain summit. */
 MapGenerator.prototype.createSummit = function(cols, rows, conf) {
-    const map = new RG.Map.CellList(cols, rows, RG.ELEM.SKY);
+    const map = new CellMap.CellList(cols, rows, RG.ELEM.SKY);
 
     const ratio = conf.ratio || 0.3;
     let [cX, cY] = [Math.floor(cols / 2), Math.floor(rows / 2)];
@@ -649,7 +649,7 @@ MapGenerator.prototype.createSummit = function(cols, rows, conf) {
 /* Creates a single cave level. */
 MapGenerator.prototype.createCave = function(cols, rows, conf) {
     this._mapGen = new ROT.Map.Miner(cols, rows, conf);
-    const map = new RG.Map.CellList(cols, rows);
+    const map = new CellMap.CellList(cols, rows);
     const wallElem = conf.wallElem || RG.ELEM.WALL_CAVE;
     const floorElem = conf.floorElem || RG.ELEM.FLOOR_CAVE;
     this._mapGen.create((x, y, val) => {
@@ -866,7 +866,7 @@ MapGenerator.prototype.createTownWithWall = function(cols, rows, conf = {}) {
 MapGenerator.prototype.createArctic = function(cols, rows, conf = {}) {
     const snowRatio = conf.snowRatio || 1.0;
     this.setGen('empty', cols, rows);
-    const map = new RG.Map.CellList(cols, rows);
+    const map = new CellMap.CellList(cols, rows);
     MapGenerator.addRandomSnow(map, snowRatio);
     return {map};
 };
@@ -915,7 +915,7 @@ MapGenerator.prototype.setGen = function(type, cols, rows) {
 MapGenerator.fromAsciiMap = function(asciiMap, asciiToElem) {
     const cols = asciiMap.length;
     const rows = asciiMap[0].length;
-    const map = new RG.Map.CellList(cols, rows);
+    const map = new CellMap.CellList(cols, rows);
     for (let x = 0; x < cols; x++) {
         for (let y = 0; y < rows; y++) {
             const char = asciiMap[x][y];
@@ -967,7 +967,7 @@ MapGenerator.getFloorElem = function(floorType) {
 
 MapGenerator.createSplashes = function(cols, rows, conf) {
     const elem = conf.elem || RG.ELEM.WATER;
-    const map = new RG.Map.CellList(cols, rows);
+    const map = new CellMap.CellList(cols, rows);
     const mapGen = new ROT.Map.Forest(cols, rows, conf);
     mapGen.create((x, y, val) => {
         map.setBaseElemXY(x, y, RG.ELEM.FLOOR);

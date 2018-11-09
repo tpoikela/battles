@@ -6,14 +6,14 @@ const RNG = Random.getRNG();
 
 type Coord = [number, number];
 
-interface BBox {
+export interface BBox {
     ulx: number;
     uly: number;
     lrx: number;
     lry: number;
 }
 
-interface BBoxOld {
+export interface BBoxOld {
     llx: number;
     lly: number;
     urx: number;

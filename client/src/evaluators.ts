@@ -7,12 +7,12 @@
 import RG from './rg';
 import Goal from './goals';
 import GoalThief from './goal.thief';
-import Actor from './actor';
-import Random from './random';
+import {SentientActor} from './actor';
+import {Random} from './random';
 
 type Coord = [number, number];
 
-const Evaluator: any = {};
+export const Evaluator: any = {};
 Evaluator.hist = {};
 
 // Should be returned if evaluator is not applicable to current situation
@@ -24,7 +24,7 @@ Evaluator.ALWAYS = RG.BIAS.ALWAYS;
 const RNG = Random.getRNG();
 
 /* Base class for all evaluators. Provides only the basic constructor. */
-class EvaluatorBase {
+export class EvaluatorBase {
 
     public actorBias: number;
     public type: string;
@@ -77,9 +77,9 @@ class EvaluatorBase {
 Evaluator.Base = EvaluatorBase;
 
 
-class EvaluatorAttackActor extends EvaluatorBase {
+export class EvaluatorAttackActor extends EvaluatorBase {
 
-    public enemyActor: Actor.Rogue;
+    public enemyActor: SentientActor;
 
     constructor(actorBias) {
         super(actorBias);
@@ -111,7 +111,7 @@ Evaluator.AttackActor = EvaluatorAttackActor;
 Evaluator.hist.AttackActor = 0;
 
 /* Evaluator to check if an actor should resort to exploring the area. */
-class EvaluatorExplore extends EvaluatorBase {
+export class EvaluatorExplore extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
@@ -131,9 +131,9 @@ Evaluator.Explore = EvaluatorExplore;
 Evaluator.hist.Explore = 0;
 
 /* Evaluator to check if actor should flee from a fight. */
-class EvaluatorFlee extends EvaluatorBase {
+export class EvaluatorFlee extends EvaluatorBase {
 
-    public enemyActor: Actor.Rogue;
+    public enemyActor: SentientActor;
 
     constructor(actorBias) {
         super(actorBias);
@@ -185,7 +185,7 @@ Evaluator.Flee = EvaluatorFlee;
 Evaluator.hist.Flee = 0;
 
 /* Evaluator to check if actor should guard between given points. */
-class EvaluatorPatrol extends EvaluatorBase {
+export class EvaluatorPatrol extends EvaluatorBase {
 
     public coords: Coord[];
 
@@ -222,7 +222,7 @@ class EvaluatorPatrol extends EvaluatorBase {
     }
 
     toJSON() {
-        const json = super.toJSON();
+        const json: any = super.toJSON();
         json.args = {
             coords: this.coords
         };
@@ -233,7 +233,10 @@ Evaluator.Patrol = EvaluatorPatrol;
 Evaluator.hist.Patrol = 0;
 
 /* Evaluator to check if actor should guard the given point. */
-class EvaluatorGuard extends EvaluatorBase {
+export class EvaluatorGuard extends EvaluatorBase {
+
+    public x: number;
+    public y: number;
 
     constructor(actorBias, xy) {
         super(actorBias);
@@ -263,7 +266,7 @@ class EvaluatorGuard extends EvaluatorBase {
     }
 
     toJSON() {
-        const json = super.toJSON();
+        const json: any = super.toJSON();
         json.args = {xy: [this.x, this.y]};
         return json;
     }
@@ -272,7 +275,9 @@ Evaluator.Guard = EvaluatorGuard;
 Evaluator.hist.Guard = 0;
 
 /* Evaluator to check if actor should flee from a fight. */
-class EvaluatorOrders extends EvaluatorBase {
+export class EvaluatorOrders extends EvaluatorBase {
+
+    public goal: GoalBase;
 
     constructor(actorBias) {
         super(actorBias);
@@ -332,7 +337,7 @@ Evaluator.Orders = EvaluatorOrders;
 Evaluator.hist.Orders = 0;
 
 /* Calculates the desirability to cast a certain spell. */
-class EvaluatorCastSpell extends EvaluatorBase {
+export class EvaluatorCastSpell extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
@@ -424,7 +429,7 @@ Evaluator.hist.CastSpell = 0;
 
 /* Evaluator used by shopkeeper actors to check if they should carry on
  * with shopkeeping duties. */
-class EvaluatorShopkeeper extends EvaluatorBase {
+export class EvaluatorShopkeeper extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
@@ -466,7 +471,7 @@ Evaluator.hist.Shopkeeper = 0;
 
 /* Evaluator added to actors having home and wanting to spend time there
  * now and then. */
-class EvaluatorGoHome extends EvaluatorBase {
+export class EvaluatorGoHome extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
@@ -527,7 +532,7 @@ class EvaluatorGoHome extends EvaluatorBase {
 Evaluator.GoHome = EvaluatorGoHome;
 Evaluator.hist.GoHome = 0;
 
-class EvaluatorThief extends EvaluatorBase {
+export class EvaluatorThief extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
@@ -539,8 +544,5 @@ class EvaluatorThief extends EvaluatorBase {
     }
 
 }
-
 Evaluator.Thief = EvaluatorThief;
 Evaluator.hist.Thief = 0;
-
-module.exports = Evaluator;

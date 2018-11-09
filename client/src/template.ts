@@ -14,14 +14,9 @@ const debug = msg => {
     }
 };
 
-/*
- * Template format:
- *
- */
-
 /* Creates and return ElemTemplate from a string.
  */
-Template.createTemplate = str => {
+Template.createTemplate = function(str: string) {
     const lines = str.split('\n');
     let nLine = 0;
     let currLine = lines[0];
@@ -176,7 +171,7 @@ function getWidthsAndGenPos(currLineArr) {
     };
 }
 
-const ElemTemplate = function(conf?) {
+export const ElemTemplate = function(conf?) {
     if (conf) {
         this.elemMap = conf.elemMap;
         this.nMaps = Object.keys(this.elemMap).length;

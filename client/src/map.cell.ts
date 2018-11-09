@@ -16,12 +16,13 @@ interface CellProps {
  * elements. Cell has x,y for convenient access to coordinates.
  * */
 // const Cell = function(x: number, y: number, elem: Element) { // {{{2
-class Cell {
+export class Cell {
+
+    public _explored: boolean;
 
     private _baseElem: Element.ElementBase;
     private _x: number;
     private _y: number;
-    private _explored: boolean;
     private _p: CellProps;
     private _lightPasses: boolean;
     private _isPassable: boolean;
@@ -81,8 +82,8 @@ class Cell {
         return this.hasProp(TYPE_ELEM);
     }
 
-    getElements() {
-        return this.getProp(TYPE_ELEM);
+    getElements(): Element.ElementBase[] {
+        return this.getProp(TYPE_ELEM) as Element.ElementBase[];
     }
 
     /* Returns true if cell has any actors.*/
@@ -94,8 +95,8 @@ class Cell {
         return (this.getProp(TYPE_ACTOR) as BaseActor[]);
     }
 
-    getFirstActor() {
-        const actors = this.getProp(TYPE_ACTOR);
+    getFirstActor(): BaseActor {
+        const actors = this.getProp(TYPE_ACTOR) as BaseActor[];
         if (actors && actors.length > 0) {
             return actors[0];
         }
@@ -461,4 +462,3 @@ class Cell {
     }
 } // }}} Map.Cell
 
-module.exports = Cell;

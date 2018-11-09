@@ -40,6 +40,11 @@ export const Typed = superclass => class extends superclass {
 
 };
 
+export interface Locatable {
+    getX: () => number;
+    getY: () => number;
+}
+
 /* Mixin used in Locatable objects with x,y coordinates. */
 export const Locatable = superclass => class extends superclass {
 

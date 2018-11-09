@@ -2,7 +2,7 @@
 import ROT from '../../lib/rot';
 import RG from './rg';
 
-const Path: any = {};
+export const Path: any = {};
 
 const NO_PATH = Object.freeze([]);
 
@@ -296,5 +296,3 @@ function removeSourceAndTarget(coords) {
         coords.pop(); // Remove target x,y
     }
 }
-
-export default Path;

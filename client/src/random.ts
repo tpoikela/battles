@@ -5,6 +5,10 @@ import ROT from '../../lib/rot';
 const DIRS = [-1, 0, 1];
 const DIRS_NO_ZERO = [-1, 1];
 
+export interface RandWeights {
+    [key:string]: number;
+}
+
 /* A OO wrapper around ROT.RNG. Adds method for serialisation. */
 export class Random {
 
@@ -100,7 +104,7 @@ export class Random {
         return this.rng.getNormal(mean, stddev);
     }
 
-    public getWeighted(obj) {
+    public getWeighted(obj: RandWeights) {
         return this.rng.getWeightedValue(obj);
     }
 

@@ -1,17 +1,17 @@
 
-const RG = require('./rg');
-// const debug = require('debug')('bitn:Factory.Base');
+import RG from './rg';
+// const debug = require('debug')('bitn:FactoryBase');
 
-const Cell = require('./map.cell');
-const Level = require('./level');
-const MapGenerator = require('./map.generator');
-const Verify = require('./verify');
-const Placer = require('./placer');
+import {Cell} from './map.cell';
+import {Level} from './level';
+import {MapGenerator} from './map.generator';
+import {Verify} from './verify';
+import {Placer} from './placer';
 
-const {FactoryActor} = require('./factory.actors');
-const {FactoryItem} = require('./factory.items');
-const DungeonPopulate = require('./dungeon-populate');
-const EventPool = require('../src/eventpool');
+import {FactoryActor} from './factory.actors';
+import {FactoryItem} from './factory.items';
+import {DungeonPopulate}from './dungeon-populate';
+import {EventPool} from '../src/eventpool';
 
 const POOL = EventPool.getPool();
 
@@ -30,7 +30,7 @@ const ItemConf = function(conf) {
     });
 };
 
-const Factory = {};
+export const Factory: any = {};
 
 /* Returns a basic configuration for a city level. */
 Factory.cityConfBase = conf => {
@@ -56,8 +56,8 @@ Factory.cityConfBase = conf => {
 
 /* Factory object for creating some commonly used objects. Because this is a
 * global object RG.FACT, no state should be used. */
-Factory.Base = function() {
-    this._verif = new Verify.Conf('Factory.Base');
+export const FactoryBase = function() {
+    this._verif = new Verify.Conf('FactoryBase');
     this._actorFact = new FactoryActor();
     this._itemFact = new FactoryItem();
 
@@ -158,7 +158,7 @@ Factory.Base = function() {
         }
         else {
             const msg = JSON.stringify(conf);
-            RG.err('Factory.Base', 'createLevel',
+            RG.err('FactoryBase', 'createLevel',
                 `mapObj is null. type: ${levelType}. ${msg}`);
         }
         this.setLevelExtras(level, mapObj);
@@ -279,7 +279,7 @@ Factory.Base = function() {
                         level, msg: 'DemonSpawn'});
                 }
                 else {
-                    RG.warn('Factory.Base', 'createBeastArmy',
+                    RG.warn('FactoryBase', 'createBeastArmy',
                         `Cannot put beast to ${xAct}, ${yAct}.`);
                 }
             }
@@ -306,7 +306,3 @@ Factory.Base = function() {
     };
 
 };
-
-RG.FACT = new Factory.Base();
-
-module.exports = Factory;

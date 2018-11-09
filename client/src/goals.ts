@@ -1,14 +1,15 @@
 
-import debug from 'debug';
-const debug = debug('bitn:Goal');
+import dbg from 'debug';
+const debug = dbg('bitn:Goal');
 
-import Path from './path';
 import RG from './rg';
-import Random from './random';
-import Component from './component';
+import {Random} from './random';
+import * as Component from './component';
+import {Path} from './path';
+import * as Actor from './actor';
 
 const RNG = Random.getRNG();
-const Goal: any = {};
+export const Goal: any = {};
 Goal.ACTOR_FILTER = '';
 
 Goal.GOAL_ACTIVE = 1;
@@ -45,7 +46,14 @@ let IND = 0;
 /* Base class for all actor goals. */
 //---------------------------------------------------------------------------
 
-class GoalBase {
+export class GoalBase {
+
+    public subGoals: GoalBase[] | null;
+    public actor: ActorBase;
+    public status: string;
+    public type: string;
+    public category: string;
+    public planBGoal: GoalBase | null;
 
     constructor(actor) {
         this.subGoals = NO_SUB_GOALS;
@@ -274,7 +282,7 @@ Goal.Base = GoalBase;
 //---------------------------------------------------------------------------
 /* A goal for an actor to follow path from its current location to x,y */
 //---------------------------------------------------------------------------
-class GoalFollowPath extends GoalBase {
+export class GoalFollowPath extends GoalBase {
 
     constructor(actor, xy) {
         super(actor);
@@ -359,7 +367,7 @@ function getNextCoord(actor, dir) {
  * terminates when enemy is seen or the actor hits a hard obstacle such as wall
  * or water.
  */
-class GoalMoveUntilEnemy extends GoalBase {
+export class GoalMoveUntilEnemy extends GoalBase {
 
     constructor(actor, dir) {
         super(actor);
@@ -417,7 +425,7 @@ Goal.MoveUntilEnemy = GoalMoveUntilEnemy;
 
 /* Variation of follow path where the target (actor) coordinate is excluded from
  * the path. */
-class GoalGotoActor extends GoalFollowPath {
+export class GoalGotoActor extends GoalFollowPath {
 
     constructor(actor, targetActor) {
         super(actor);
@@ -470,7 +478,7 @@ Goal.GotoActor = GoalGotoActor;
 
 /* Variation of GotoActor, in which only seen cells are taken into account to
  * make path finding faster. */
-class GoalGotoSeenActor extends GoalGotoActor {
+export class GoalGotoSeenActor extends GoalGotoActor {
 
     constructor(actor, targetActor) {
         super(actor, targetActor);
@@ -487,7 +495,7 @@ class GoalGotoSeenActor extends GoalGotoActor {
 Goal.GotoSeenActor = GoalGotoSeenActor;
 
 /* Goal to patrol/guard a single x,y coordinate. */
-class GoalGuard extends GoalBase {
+export class GoalGuard extends GoalBase {
 
     constructor(actor, xy, dist = 1) {
         super(actor);
@@ -534,7 +542,7 @@ Goal.Guard = GoalGuard;
 //---------------------------------------------------------------------------
 /* Goal used for patrolling between a list of coordinates. */
 //---------------------------------------------------------------------------
-class GoalPatrol extends GoalBase {
+export class GoalPatrol extends GoalBase {
 
     constructor(actor, coords) {
         super(actor);
@@ -608,7 +616,7 @@ Goal.Patrol = GoalPatrol;
 //---------------------------------------------------------------------------
 /* Goal to attack the given actor. */
 //---------------------------------------------------------------------------
-class GoalAttackActor extends GoalBase {
+export class GoalAttackActor extends GoalBase {
 
     constructor(actor, targetActor) {
         super(actor);
@@ -746,7 +754,7 @@ Goal.AttackActor = GoalAttackActor;
 //---------------------------------------------------------------------------
 /* A goal to (melee) hit an actor. */
 //---------------------------------------------------------------------------
-class GoalHitActor extends GoalBase {
+export class GoalHitActor extends GoalBase {
 
     constructor(actor, targetActor) {
         super(actor);
@@ -776,7 +784,7 @@ class GoalHitActor extends GoalBase {
 //---------------------------------------------------------------------------
 /* A goal to shoot an actor. */
 //---------------------------------------------------------------------------
-class GoalShootActor extends GoalBase {
+export class GoalShootActor extends GoalBase {
 
     constructor(actor, targetActor) {
         super(actor);
@@ -814,7 +822,7 @@ class GoalShootActor extends GoalBase {
 //---------------------------------------------------------------------------
 /* An actor goal to explore the given area. */
 //---------------------------------------------------------------------------
-class GoalExplore extends GoalBase {
+export class GoalExplore extends GoalBase {
 
     constructor(actor, dur = -1) {
         super(actor);
@@ -945,7 +953,7 @@ Goal.Explore = GoalExplore;
 //---------------------------------------------------------------------------
 /* Goal for fleeing from a given actor. */
 //---------------------------------------------------------------------------
-class GoalFleeFromActor extends GoalBase {
+export class GoalFleeFromActor extends GoalBase {
 
     constructor(actor, targetActor) {
         super(actor);
@@ -1010,7 +1018,7 @@ Goal.Flee = GoalFleeFromActor;
 
 /* Goal used when actor is casting a spell. Spell is always an instantaneous
  * goal taking exactly one turn to process. */
-class GoalCastSpell extends GoalBase {
+export class GoalCastSpell extends GoalBase {
 
     constructor(actor, spell, spellArgs) {
         super(actor);
@@ -1035,7 +1043,7 @@ Goal.CastSpell = GoalCastSpell;
 //---------------------------------------------------------------------------
 /* An actor goal to follow a specific actor */
 //---------------------------------------------------------------------------
-class GoalFollow extends GoalBase {
+export class GoalFollow extends GoalBase {
 
     constructor(actor, targetActor) {
         super(actor);
@@ -1099,7 +1107,7 @@ class GoalFollow extends GoalBase {
 Goal.Follow = GoalFollow;
 
 /* Goal for picking up items. */
-class GoalGetItem extends GoalBase {
+export class GoalGetItem extends GoalBase {
 
     constructor(actor, targetItem) {
         super(actor);
@@ -1160,7 +1168,7 @@ Goal.GetItem = GoalGetItem;
 //---------------------------------------------------------------------------
 /* An actor goal to explore the given area. */
 //---------------------------------------------------------------------------
-class GoalOrders extends GoalBase {
+export class GoalOrders extends GoalBase {
 
     constructor(actor) {
         super(actor);
@@ -1181,7 +1189,7 @@ class GoalOrders extends GoalBase {
 Goal.Orders = GoalOrders;
 
 /* Goal for shopkeeper. */
-class GoalShopkeeper extends GoalBase {
+export class GoalShopkeeper extends GoalBase {
 
     constructor(actor, x, y) {
         super(actor);
@@ -1232,7 +1240,7 @@ class GoalShopkeeper extends GoalBase {
 Goal.Shopkeeper = GoalShopkeeper;
 
 
-class GoalGoHome extends GoalBase {
+export class GoalGoHome extends GoalBase {
 
     constructor(actor, x, y, dist) {
         super(actor);
@@ -1308,7 +1316,7 @@ Goal.moveActorTo = moveActorTo;
 
 
 /* Class used for monitoring the Goal transitions etc. */
-class GoalMonitor {
+export class GoalMonitor {
 
     constructor(goal) {
         this.goal = goal;

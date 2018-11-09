@@ -4,10 +4,14 @@ import {Entity} from './entity';
 import * as Mixin from './mixin';
 
 import * as Component from './component';
-import * as Brain from './brain.virtual';
-import BrainPlayer from './brain.player';
+import {compsToJSON} from './component.base';
+
+import {BrainRogue} from './brain';
+import {BrainVirtual} from './brain.virtual';
+import {BrainPlayer} from './brain.player';
+
 import Inv from './inv';
-import Time from './time';
+import * as Time from './time';
 
 export const Actor: any = {};
 
@@ -60,10 +64,10 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
         if (cb !== null) {
             const duration = Math.round(SPEED_COEFF / this.getSpeed());
-            action = new Time.Action(duration, cb, EMPTY_ARGS);
+            action = new Time.Action(duration, cb);
         }
         else {
-            action = new Time.Action(0, ACTOR_NO_ACTION, EMPTY_ARGS);
+            action = new Time.Action(0, ACTOR_NO_ACTION);
         }
 
         if (this._brain.hasOwnProperty('energy')) {
@@ -79,7 +83,7 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         if (this.getLevel()) {
             levelID = this.getLevel().getID();
         }
-        const obj = {
+        const obj: any = {
             id: this.getID(),
             // name: this.getName(),
             type: this.getType(),
@@ -88,7 +92,7 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
             new: 'Base'
         };
 
-        obj.components = Component.compsToJSON(this);
+        obj.components = compsToJSON(this);
 
         if (obj.type === null) {
             RG.err('Actor.Virtual', 'toJSON',
@@ -107,7 +111,7 @@ export class VirtualActor extends BaseActor {
 
     constructor(name) { // {{{2
         super(name);
-        this._brain = new Brain.Virtual(this);
+        this._brain = new BrainVirtual(this);
     }
 
 
@@ -119,7 +123,7 @@ export class SentientActor extends BaseActor {
     constructor(name) { // {{{2
         super(name);
 
-        this._brain = new Brain.Rogue(this);
+        this._brain = new BrainRogue(this);
         this._brain.getMemory().addEnemyType('player');
 
         this._invEq = new Inv.Inventory(this);

@@ -6,6 +6,8 @@
 import RG from './rg';
 import {Entity} from './entity';
 import * as Mixin from './mixin';
+import * as Component from './component';
+import {compsToJSON} from './component.base';
 
 export const Element: any = {};
 
@@ -78,14 +80,14 @@ export class ElementBase extends Mixin.Typed(Entity) {
     /* Should be enough for stateless elements.
      * Does not work for doors or stairs etc. */
     toJSON() {
-        const components = RG.Component.compsToJSON(this);
+        const components = compsToJSON(this);
         const obj = {
             id: this.getID(),
             name: this.getName(),
             type: this.getType(),
             components
         };
-        if (components.length > 0) {
+        if (components) {
             obj.components = components;
         }
         return obj;
@@ -99,8 +101,8 @@ export class ElementWall extends ElementBase {
 
     constructor(name) {
         super(name);
-        this.add(new RG.Component.Opaque());
-        const impassable = new RG.Component.Impassable();
+        this.add(new Component.Opaque());
+        const impassable = new Component.Impassable();
         impassable.setAllImpassable();
         this.add(impassable);
     }
@@ -276,8 +278,8 @@ export class ElementDoor extends Mixin.Locatable(ElementBase) {
         this._closed = (typeof closed === 'undefined')
             ? true : closed;
 
-        this._opaque = new RG.Component.Opaque();
-        const impassable = new RG.Component.Impassable();
+        this._opaque = new Component.Opaque();
+        const impassable = new Component.Impassable();
         impassable.setAllImpassable();
         this._impassable = impassable;
         if (this._closed) {this.closeDoor();}
