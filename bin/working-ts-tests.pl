@@ -30,17 +30,22 @@ tests/client/src/random.spec.ts
 tests/client/src/rg.eventpool.spec.ts
 tests/client/src/rg.spec.ts
 tests/client/src/template.spec.ts
+tests/client/src/template.level.ts
+tests/lib/bsp.spec.ts
 );
 
 my $num_failed = 0;
+my @failed = ();
 
 foreach my $file (@files) {
     my $val = system ("mocha -r ts-node/register $file");
     if ($val != 0) {
         ++$num_failed;
+        push(@failed, $file);
     }
 }
 
 if ($num_failed > 0) {
-    die "There were $num_failed failed tests.\n";
+    my $failed_tests = join("\n", @failed);
+    die "There were $num_failed failed tests. $failed_tests\n";
 }
