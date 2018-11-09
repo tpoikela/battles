@@ -1,23 +1,20 @@
 
 import { expect } from 'chai';
 
-import RG = require('../../../client/src/rg');
-import Component from '../../../client/src/component.base';
-import {CombatMods} from '../../../client/src/component';
-import Entity from '../../../client/src/entity';
-
-const {Base} = Component;
+import RG from '../../../client/src/rg';
+import * as Component from '../../../client/src/component';
+import {Entity} from '../../../client/src/entity';
 
 describe('Entity', () => {
 
     let entity: Entity = null;
-    let testComp: Base = null;
-    let testComp1: Base = null;
+    let testComp: any = null;
+    let testComp1: any = null;
 
     beforeEach(() => {
         entity = new Entity();
-        testComp = new CombatMods();
-        testComp1 = new CombatMods();
+        testComp = new Component.CombatMods();
+        testComp1 = new Component.CombatMods();
         entity.add(testComp);
         entity.add(testComp1);
     });

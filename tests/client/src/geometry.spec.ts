@@ -1,9 +1,9 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-RG.Geometry = require('../../../client/src/geometry');
+import {expect} from 'chai';
+import RG from '../../../client/src/battles';
+import {Geometry} from '../../../client/src/geometry';
 
-describe('RG.Geometry', () => {
+describe('Geometry', () => {
 
     let levels = null;
     let superLevel = null;
@@ -19,7 +19,7 @@ describe('RG.Geometry', () => {
 
     it('can tile several levels into a super level', () => {
         const conf = {x: 2, y: 1, alignLeft: true};
-        RG.Geometry.tileLevels(superLevel, levels, conf);
+        Geometry.tileLevels(superLevel, levels, conf);
 
         const cellType = superLevel.getMap().getBaseElemXY(2, 1).getType();
         expect(cellType).to.equal('wall');
@@ -33,28 +33,28 @@ describe('RG.Geometry', () => {
 
     it('can center the tiled levels.', () => {
         const conf = {x: 1, y: 1, centerX: true};
-        RG.Geometry.tileLevels(superLevel, levels, conf);
+        Geometry.tileLevels(superLevel, levels, conf);
         // superLevel.getMap().debugPrintInASCII();
     });
 
     it('can generate "straight" paths for missiles', () => {
         const [x0, y0] = [0, 0];
         const [x1, y1] = [4, 4];
-        let path = RG.Geometry.getMissilePath(x0, y0, x1, y1);
+        let path = Geometry.getMissilePath(x0, y0, x1, y1);
         expect(path).to.have.length(5);
 
-        path = RG.Geometry.getMissilePath(x0, y0, x1, y1, false);
+        path = Geometry.getMissilePath(x0, y0, x1, y1, false);
         expect(path).to.have.length(3);
 
         const [x, y] = [0, 0];
         const [xEnd, yEnd] = [2, 6];
-        path = RG.Geometry.getMissilePath(x, y, xEnd, yEnd);
+        path = Geometry.getMissilePath(x, y, xEnd, yEnd);
 
         expect(path).to.have.length(7);
 
         const [xx, yy] = [1, 7];
         const [xxEnd, yyEnd] = [8, 3];
-        path = RG.Geometry.getMissilePath(xx, yy, xxEnd, yyEnd);
+        path = Geometry.getMissilePath(xx, yy, xxEnd, yyEnd);
         expect(path).to.have.length(8 - 1 + 1);
     });
 
@@ -73,7 +73,7 @@ describe('RG.Geometry', () => {
 
         const mX = 2;
         const mY = 3;
-        RG.Geometry.mergeLevels(l1, l2, mX, mY);
+        Geometry.mergeLevels(l1, l2, mX, mY);
 
         const wallElem = l1.getMap().getBaseElemXY(mX, mY);
         expect(wallElem.getType()).to.match(/wall/);
@@ -125,7 +125,7 @@ describe('RG.Geometry', () => {
         // Calculate position and tile sub-levels into main level
         const y0 = subLevelPos[0] * 3 * cols;
         const tileConf = {x: 0, y: y0, centerX: true};
-        RG.Geometry.tileLevels(mainLevel, subLevels, tileConf);
+        Geometry.tileLevels(mainLevel, subLevels, tileConf);
 
         const mainMap = mainLevel.getMap();
         const keepers = mainMap.findObj(obj =>
@@ -144,18 +144,18 @@ describe('RG.Geometry', () => {
         let level = RG.FACT.createLevel('empty', 10, 10);
         let map = level.getMap();
         let cell = map.getCell(5, 5);
-        const floorCells = RG.Geometry.floodfill(map, cell, 'floor');
+        const floorCells = Geometry.floodfill(map, cell, 'floor');
         expect(floorCells).to.have.length(10 * 10);
 
         level = RG.FACT.createLevel('arena', 10, 10);
         map = level.getMap();
         cell = map.getCell(0, 0);
-        let cells = RG.Geometry.floodfill(map, cell, 'wall');
+        let cells = Geometry.floodfill(map, cell, 'wall');
         const numWalls = 10 + 8 + 10 + 8;
         expect(cells).to.have.length(numWalls);
 
         cell = map.getCell(1, 1);
-        cells = RG.Geometry.floodfill(map, cell, 'floor');
+        cells = Geometry.floodfill(map, cell, 'floor');
         expect(cells).to.have.length(100 - numWalls);
 
         const dungeon = RG.FACT.createLevel('digger', 100, 50);
@@ -164,7 +164,7 @@ describe('RG.Geometry', () => {
             c => c.getBaseElem().getType() === 'floor');
 
         const startCell = dungFloorCells[0];
-        const floorFill = RG.Geometry.floodfill(dungMap, startCell, 'floor');
+        const floorFill = Geometry.floodfill(dungMap, startCell, 'floor');
         // dungeon.debugPrintInASCII();
 
         expect(floorFill.length).to.equal(dungFloorCells.length);

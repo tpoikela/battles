@@ -2,12 +2,13 @@
 import {expect} from 'chai';
 
 import RG from '../../../client/src/rg';
-import Element, {ELEM} from '../../../client/src/element';
-import Item from '../../../client/src/item';
-import Component from '../../../client/src/component';
+import * as Element from '../../../client/src/element';
+import * as Item from '../../../client/src/item';
+import * as Component from '../../../client/src/component';
+import {ELEM} from '../../../client/data/elem-constants';
 
 // type Component.Unpaid = Component.Unpaid;
-type ElementBase = Element.Base;
+type ElementBase = Element.ElementBase;
 
 describe('Element', () => {
     it('must have a defined type', () => {
@@ -26,7 +27,7 @@ describe('Element.Shop', () => {
         arrow.setValue(100);
         arrow.add(new Component.Unpaid());
 
-        const elemShop = new Element.Shop();
+        const elemShop = new Element.ElementShop();
         elemShop.setCostFactor(1.0, 1.0);
 
         const priceOne = elemShop.getItemPriceForBuying(arrow);
@@ -48,7 +49,7 @@ describe('LeverDoor', () => {
     let door = null;
 
     beforeEach(() => {
-        door = new Element.LeverDoor();
+        door = new Element.ElementLeverDoor();
     });
 
     it('is not passable when closed', () => {
