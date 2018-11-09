@@ -1,7 +1,8 @@
 /* eslint comma-dangle: 0 */
 
 import RG from '../src/rg';
-import Component from '../src/component';
+import {Dice} from '../src/dice';
+import * as Component from '../src/component';
 
 interface TargetObj {
     target: any;
@@ -52,13 +53,13 @@ const createUseItemComp = (item, target, effArgs?: EffArgs) => {
 };
 
 const getDuration = function(durStr: string): number {
-    const arr = RG.parseDieSpec(durStr);
-    const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+    const arr = Dice.parseDieSpec(durStr);
+    const durDie = new Dice(arr[0], arr[1], arr[2]);
     const duration = durDie.roll();
     return duration;
 };
 
-RG.Effects = {
+const Effects = {
 
     // Effects can be used in items freely.
     // Each obj arg will have {target:cell}
@@ -226,8 +227,8 @@ RG.Effects = {
             func: function(obj) {
                 const actor = getTargetActor(obj);
                 if (actor) {
-                    const arr = RG.parseDieSpec(this.useArgs.hp);
-                    const die = new RG.Die(arr[0], arr[1], arr[2]);
+                    const arr = Dice.parseDieSpec(this.useArgs.hp);
+                    const die = new Dice(arr[0], arr[1], arr[2]);
                     const pt = die.roll();
                     if (actor.has('Health')) {
                         actor.get('Health').addHP(pt);
@@ -251,8 +252,8 @@ RG.Effects = {
             name: 'poison',
             requires: ['duration', 'damage', 'prob'],
             func: function(obj) {
-                const arr = RG.parseDieSpec(this.useArgs.damage);
-                const dmgDie = new RG.Die(arr[0], arr[1], arr[2]);
+                const arr = Dice.parseDieSpec(this.useArgs.damage);
+                const dmgDie = new Dice(arr[0], arr[1], arr[2]);
                 const effArgs = {
                     target: obj,
                     targetType: ['actors', 'items'],
@@ -337,4 +338,4 @@ RG.Effects = {
 
 };
 
-export default RG.Effects;
+export {Effects};
