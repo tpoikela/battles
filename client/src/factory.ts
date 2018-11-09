@@ -5,7 +5,7 @@ import RG from './rg';
 import {Cell} from './map.cell';
 import {Level} from './level';
 import {MapGenerator} from './map.generator';
-import {Verify} from './verify';
+import * as Verify from './verify';
 import {Placer} from './placer';
 
 import {FactoryActor} from './factory.actors';

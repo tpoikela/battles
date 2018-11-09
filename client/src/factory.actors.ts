@@ -1,12 +1,13 @@
 /* This file contains factory objects for generating actors. */
 
-const RG = require('./rg');
-const Actor = require('./actor');
-const Brain = require('./brain');
-const ObjectShell = require('./objectshellparser');
-const ActorMods = require('../data/actor-mods');
+import RG from './rg';
+import * as Actor from './actor';
+import * as Brain from './brain';
+import * as ObjectShell from './objectshellparser';
+import {ActorMods} from '../data/actor-mods';
 
-const debug = require('debug')('bitn:FactoryActor');
+import dbg = require('debug');
+const debug = dbg('bitn:FactoryActor');
 
 const initCombatant = (comb, obj) => {
     const {hp, att, def, prot} = obj;
@@ -41,7 +42,7 @@ ActorRandomizer.prototype.adjustActor = function(actor) {
     const type = actor.getType();
     if (ActorMods.hasOwnProperty(type)) {
         const {stats} = ActorMods[type];
-        Object.values(stats).forEach(statName => {
+        Object.keys(stats).forEach(statName => {
             const setter = RG.formatSetterName(statName);
             const getter = RG.formatSetterName(statName);
             const statVal = actor.get('Stats')[getter];
@@ -52,7 +53,7 @@ ActorRandomizer.prototype.adjustActor = function(actor) {
 };
 
 /* Factory object for creating the actors. */
-const FactoryActor = function() {
+export const FactoryActor = function() {
     this._randomizer = new ActorRandomizer();
 
     this.dbg = function(...args) {
@@ -63,7 +64,7 @@ const FactoryActor = function() {
 
     /* Creates a player actor. */
     this.createPlayer = (name, obj) => {
-        const player = new Actor.Rogue(name);
+        const player = new Actor.SentientActor(name);
         player.setIsPlayer(true);
         initCombatant(player, obj);
         this._randomizer.adjustActor(player);
@@ -76,8 +77,8 @@ const FactoryActor = function() {
     };
 
     /* Factory method for non-player actors. */
-    this.createActor = function(name, obj = {}) {
-        const actor = new Actor.Rogue(name);
+    this.createActor = function(name, obj: any = {}) {
+        const actor = new Actor.SentientActor(name);
         actor.setType(name);
 
         const brain = obj.brain;
@@ -98,28 +99,28 @@ const FactoryActor = function() {
     /* Factory method for AI brain creation.*/
     this.createBrain = (actor, brainName) => {
         switch (brainName) {
-            case 'Animal': return new Brain.Animal(actor);
-            case 'Archer': return new Brain.Archer(actor);
-            case 'Demon': return new Brain.Demon(actor);
-            case 'Flame': return new Brain.Flame(actor);
-            case 'GoalOriented': return new Brain.GoalOriented(actor);
-            case 'Human': return new Brain.Human(actor);
-            case 'NonSentient': return new Brain.NonSentient(actor);
-            case 'SpellCaster': return new Brain.SpellCaster(actor);
-            case 'Spirit': return new Brain.Spirit(actor);
-            case 'Summoner': return new Brain.Summoner(actor);
-            case 'Undead': return new Brain.Undead(actor);
-            case 'Zombie': return new Brain.Zombie(actor);
+            case 'Animal': return new Brain.BrainAnimal(actor);
+            case 'Archer': return new Brain.BrainArcher(actor);
+            case 'Demon': return new Brain.BrainDemon(actor);
+            case 'Flame': return new Brain.BrainFlame(actor);
+            case 'GoalOriented': return new Brain.BrainGoalOriented(actor);
+            case 'Human': return new Brain.BrainHuman(actor);
+            case 'NonSentient': return new Brain.BrainNonSentient(actor);
+            case 'SpellCaster': return new Brain.BrainSpellCaster(actor);
+            case 'Spirit': return new Brain.BrainSpirit(actor);
+            case 'Summoner': return new Brain.BrainSummoner(actor);
+            case 'Undead': return new Brain.BrainUndead(actor);
+            case 'Zombie': return new Brain.BrainZombie(actor);
             default: {
                 if (Brain[brainName]) {
                     return new Brain[brainName](actor);
                 }
                 else if (brainName && brainName !== '') {
                     let msg = `Warning. No brain type ${brainName} found`;
-                    msg += 'Using the default Brain.Rogue instead.';
+                    msg += 'Using the default Brain.BrainRogue instead.';
                     console.warn(msg);
                 }
-                return new Brain.Rogue(actor);
+                return new Brain.BrainRogue(actor);
             }
         }
     };

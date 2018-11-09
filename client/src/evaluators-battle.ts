@@ -2,9 +2,9 @@
 /* Evaluators used in the battle-specific goals. */
 
 const GoalsBattle = require('./goals-battle');
-const Evaluator = require('./evaluators');
+import * as  Evaluator from './evaluators';
 
-const EvaluatorsBattle = {};
+export const EvaluatorsBattle: any = {};
 
 //---------------------------------------------------------------------------
 // BATTLE EVALUATORS

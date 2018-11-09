@@ -1,11 +1,10 @@
 
 /* Contains functions to place props into levels. */
-const RG = require('./rg');
-const Random = require('./random');
+import RG from './rg';
+import {Random} from './random';
 
 const RNG = Random.getRNG();
-
-const Placer = {};
+export const Placer: any = {};
 
 Placer.addPropsToFreeCells = function(level, props, type) {
     const freeCells = level.getMap().getFree();
@@ -89,5 +88,3 @@ Placer.addEntityToCellType = function(entity, level, filterFunc) {
     }
     return ok;
 };
-
-module.exports = Placer;

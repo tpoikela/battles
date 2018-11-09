@@ -1,31 +1,16 @@
 
 import RG from './rg';
-import Objects from '../data/battles_objects';
+import {Objects} from '../data/battles_objects';
 import Actors, {adjustActorValues} from '../data/actors';
-import Actor from './actor';
-import Effects from '../data/effects';
-import Brain from './brain';
+import * as Actor from './actor';
+import {Effects} from '../data/effects';
+import * as Brain from './brain';
 
 const RNG = RG.Random.getRNG();
-
 const ObjectShell: any = {};
 
-ObjectShell.getParser = function() {
-    if (!ObjectShell.parserInstance) {
-        const parser = new ObjectShell.Parser();
-        parser.parseShellData(Effects);
 
-        const jsonStr = JSON.stringify(Objects);
-        const objectsNew = JSON.parse(jsonStr);
-        adjustActorValues(objectsNew.actors);
-
-        parser.parseShellData(objectsNew);
-        ObjectShell.parserInstance = parser;
-    }
-    return ObjectShell.parserInstance;
-};
-
-ObjectShell.Creator = function(db, dbNoRandom) {
+export const Creator = function(db, dbNoRandom) {
     this._db = db;
     this._dbNoRandom = dbNoRandom;
     /* Maps obj props to function calls. Essentially this maps bunch of setters
@@ -129,7 +114,7 @@ ObjectShell.Creator = function(db, dbNoRandom) {
                     return new RG.Component[type]();
                 }
                 else {
-                    RG.err('ObjectShell.Creator', 'createComponent',
+                    RG.err('Creator', 'createComponent',
                         'Component |' + type + "| doesn't exist.");
                 }
         }
@@ -143,7 +128,7 @@ ObjectShell.Creator = function(db, dbNoRandom) {
         const shell = this.get(categ, name);
         const propCalls = _propToCall[categ];
         if (!shell) {
-            RG.err('ObjectShell.Creator', 'createActualObj',
+            RG.err('Creator', 'createActualObj',
                 `shell for ${name} is not found.`);
         }
 
@@ -372,7 +357,7 @@ ObjectShell.Creator = function(db, dbNoRandom) {
             }
             else {
                 const msg = `Spell |${spell}| does not exist.`;
-                RG.err('ObjectShell.Creator', 'addSpellbookAndSpells', msg);
+                RG.err('Creator', 'addSpellbookAndSpells', msg);
             }
         });
     };
@@ -510,7 +495,7 @@ ObjectShell.Creator = function(db, dbNoRandom) {
             _addCompFromObj(entity, shell.addComp);
         }
         else {
-            RG.err('ObjectShell.Creator', 'addComponents',
+            RG.err('Creator', 'addComponents',
                 'Giving up. shell.addComp must be string, array or object.');
         }
     };
@@ -523,7 +508,7 @@ ObjectShell.Creator = function(db, dbNoRandom) {
         catch (e) {
             let msg = `shell.addComp |${compName}|`;
             msg += 'Component names are capitalized.';
-            RG.err('ObjectShell.Creator', '_addCompFromString',
+            RG.err('Creator', '_addCompFromString',
                 `${e.message} - ${msg}`);
         }
     };
@@ -544,7 +529,7 @@ ObjectShell.Creator = function(db, dbNoRandom) {
                 actor.getInvEq().addItem(itemObj);
             }
             else {
-                RG.err('ObjectShell.Creator', 'addInventoryItems',
+                RG.err('Creator', 'addInventoryItems',
                     `itemObj for ${name} is null. Actor: ${actor.getName()}`);
             }
         });
@@ -571,17 +556,17 @@ ObjectShell.Creator = function(db, dbNoRandom) {
                 if (count > 1) {
                     if (!actor.getInvEq().equipNItems(itemObj, count)) {
                         const actorName = actor.getName();
-                        RG.err('ObjectShell.Creator', 'addEquippedItems',
+                        RG.err('Creator', 'addEquippedItems',
                             `Cannot equip: ${count} ${item} to ${actorName}`);
                     }
                 }
                 else if (!actor.getInvEq().equipItem(itemObj)) {
-                    RG.err('ObjectShell.Creator', 'addEquippedItems',
+                    RG.err('Creator', 'addEquippedItems',
                         `Cannot equip: ${item} to ${actor.getName()}`);
                 }
             }
             else {
-                RG.err('ObjectShell.Creator', 'addEquippedItems',
+                RG.err('Creator', 'addEquippedItems',
                     `itemObj for ${item} is null. Actor: ${actor.getName()}`);
             }
         });
@@ -669,7 +654,7 @@ ObjectShell.Creator = function(db, dbNoRandom) {
             return this.createActualObj(categ, obj.name);
         }
         else {
-            RG.err('ObjectShell.Creator', 'createFromShell',
+            RG.err('Creator', 'createFromShell',
                 'obj given must be defined.');
         }
         return null;
@@ -677,20 +662,20 @@ ObjectShell.Creator = function(db, dbNoRandom) {
 
 };
 
-ObjectShell.Creator.prototype.createBrain = function(actor, brainName) {
+Creator.prototype.createBrain = function(actor, brainName) {
     if (Brain[brainName]) {
         return new Brain[brainName](actor);
     }
     let msg = `Warning. No brain type |${brainName}| found`;
     msg += 'Using the default Brain.Rogue instead.';
     console.warn(msg);
-    return new Brain.Rogue(actor);
+    return new Brain.BrainSentient(actor);
 };
 
 
 /* Object handling the procedural generation. It has an object "database" and
  * objects can be pulled randomly from it. */
-ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
+export const ProcGen = function(db, dbDanger, dbByName) {
     this._db = db;
     this._dbDanger = dbDanger;
     this._dbByName = dbByName;
@@ -821,7 +806,7 @@ ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
             return RNG.arrayGetRand(res);
         }
         else {
-            RG.err('ObjectShell.ProcGen', 'getRandomItem',
+            RG.err('ProcGen', 'getRandomItem',
                 `No function with func. obj arg: ${JSON.stringify(obj)}`);
         }
         return null;
@@ -852,7 +837,7 @@ ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
 
 /* Object parser for reading game data. Game data is contained within shell
  * objects which are simply object literals without functions etc. */
-ObjectShell.Parser = function() {
+export const Parser = function() {
 
     // NOTE: 'SHELL' means vanilla JS object, which has not been
     // created with new:
@@ -887,8 +872,8 @@ ObjectShell.Parser = function() {
         elements: {}
     }; // All entries excluded from random generation
 
-    this._creator = new ObjectShell.Creator(this._db, this._dbNoRandom);
-    this._procgen = new ObjectShell.ProcGen(this._db, this._dbDanger,
+    this._creator = new Creator(this._db, this._dbNoRandom);
+    this._procgen = new ProcGen(this._db, this._dbDanger,
         this._dbByName);
 
     this.getCreator = function() {
@@ -953,7 +938,7 @@ ObjectShell.Parser = function() {
     /* Checks that the object shell given is correctly formed.*/
     this.validShellGiven = obj => {
         if (!obj.hasOwnProperty('name')) {
-            RG.err('ObjectShell.Parser', 'validShellGiven',
+            RG.err('Parser', 'validShellGiven',
                 `shell doesn't have a name. shell: ${JSON.stringify(obj)}`);
             return false;
         }
@@ -1023,7 +1008,7 @@ ObjectShell.Parser = function() {
         if (obj.hasOwnProperty('color')) {
             if (RG.isNullOrUndef([obj.color])) {
                 const json = JSON.stringify(obj);
-                RG.err('ObjectShell.Parser', 'storeRenderingInfo',
+                RG.err('Parser', 'storeRenderingInfo',
                     `obj.color null/undef! obj: ${json}`);
             }
             let {fg, bg} = obj.color;
@@ -1036,7 +1021,7 @@ ObjectShell.Parser = function() {
             }
             if (!fg || !bg) {
                 const json = JSON.stringify(obj.color);
-                RG.err('ObjectShell.Parser', 'storeRenderingInfo',
+                RG.err('Parser', 'storeRenderingInfo',
                     `fg and bg must be given. ${obj.name} Got: ${json}`);
             }
             if (!obj.className) {obj.className = '';}
@@ -1128,7 +1113,7 @@ ObjectShell.Parser = function() {
      * been parser before). */
     this.createActualObj = function(categ, name) {
         if (!this.dbExists(categ, name)) {
-            RG.err('ObjectShell.Parser', 'createActualObj',
+            RG.err('Parser', 'createActualObj',
                 'Categ: ' + categ + ' Name: ' + name + " doesn't exist.");
             return null;
         }
@@ -1215,7 +1200,7 @@ ObjectShell.Parser = function() {
 
 };
 
-RG.createItem = function(nameOrShell) {
+export const createItem = function(nameOrShell) {
     const parser = ObjectShell.getParser();
     const creator = parser.getCreator();
     if (typeof nameOrShell === 'string') {
@@ -1227,4 +1212,17 @@ RG.createItem = function(nameOrShell) {
     }
 };
 
-export default ObjectShell;
+export const getParser = function() {
+    if (!ObjectShell.parserInstance) {
+        const parser = new Parser();
+        parser.parseShellData(Effects);
+
+        const jsonStr = JSON.stringify(Objects);
+        const objectsNew = JSON.parse(jsonStr);
+        adjustActorValues(objectsNew.actors);
+
+        parser.parseShellData(objectsNew);
+        ObjectShell.parserInstance = parser;
+    }
+    return ObjectShell.parserInstance;
+};
