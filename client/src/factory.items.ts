@@ -1,16 +1,16 @@
 /* This file contains factory objects for creating different types
  * of items. */
 
-const RG = require('./rg');
-const Random = require('./random');
-const Placer = require('./placer');
-const ObjectShell = require('./objectshellparser');
+import RG from './rg';
+import {Random} from './random';
+import {Placer} from './placer';
+import {ObjectShell} from './objectshellparser';
 
 const RNG = Random.getRNG();
 
 /* This object is used to randomize item properties during procedural
  * generation.*/
-const ItemRandomizer = function() {
+export const ItemRandomizer = function() {
 
     /* Only public function. All logic is deferred to private functions.
      * Adjusts the properties of given item, based also on maxValue.*/
@@ -124,7 +124,7 @@ const ItemRandomizer = function() {
 };
 
 /* Factory object for creating items. */
-const FactoryItem = function() {
+export const FactoryItem = function() {
     this._itemRandomizer = new ItemRandomizer();
 
     /* Called for random items. Adjusts some of their attributes randomly.*/
@@ -297,10 +297,4 @@ FactoryItem.equipItemsToActor = function(actor, items) {
         }
     });
     return ok;
-};
-
-
-module.exports = {
-    FactoryItem,
-    ItemRandomizer
 };

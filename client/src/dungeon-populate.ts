@@ -1,504 +1,521 @@
 
-const RG = require('./rg');
-const Random = require('./random');
-const Geometry = require('./geometry');
-const Evaluator = require('./evaluators');
+import RG from './rg';
+import {Random} from './random';
+import {Geometry} from './geometry';
+import {Evaluator} from './evaluators';
 
-const Placer = require('./placer');
-const {FactoryItem} = require('./factory.items');
-const {FactoryActor} = require('./factory.actors');
+import {Placer} from './placer';
+import {FactoryItem} from './factory.items';
+import {FactoryActor} from './factory.actors';
+import * as Component from './component';
 
 const MIN_ACTORS_ROOM = 2;
 const RNG = Random.getRNG();
 
-const DungeonPopulate = function(conf = {}) {
-    this.theme = conf.theme;
-    this.maxDanger = conf.maxDanger || 5;
-    this.maxValue = conf.maxValue || 50;
+export class DungeonPopulate {
 
-    this._itemFact = new FactoryItem();
-    this._actorFact = new FactoryActor();
-};
+    private theme: string;
+    private maxDanger: number;
+    private maxValue: number;
 
-/* Populates the level with actors and items. Some potential features to use
-* here in extras:
-*   1. startPoint: No monsters spawn in vicinity
-*   2. terms: Good items, tough monsters
-*   3. bigRooms: spawn depending on theme
-*   4. Critical path: Gold coins?
-*/
-DungeonPopulate.prototype.populateLevel = function(level) {
-    const extras = level.getExtras();
-    const maxDanger = this.maxDanger;
-    const maxValue = this.maxValue;
+    private _itemFact: FactoryItem;
+    private _actorFact: any;
 
-    let mainLootAdded = false;
-    const roomsDone = {}; // Keep track of finished rooms
+    public actorFunc: (shell) => boolean;
 
-    if (extras.bigRooms) {
-        extras.bigRooms.forEach(bigRoom => {
-            const {room, type} = bigRoom;
-            const bbox = room.getBbox();
-            const areaSize = room.getAreaSize();
-            const actorConf = {
-                maxDanger,
-                func: actor => actor.danger <= maxDanger + 2
-            };
-            if (/cross/.test(type)) {
-                // Cross has lower density as its huge
-                actorConf.nActors = Math.floor(areaSize / 6);
-                this.addActorsToBbox(level, bbox, actorConf);
-            }
-            else {
-                actorConf.nActors = Math.floor(areaSize / 3);
-                this.addActorsToBbox(level, bbox, actorConf);
-            }
+    constructor(conf?) {
+        this.theme = conf.theme;
+        this.maxDanger = conf.maxDanger || 5;
+        this.maxValue = conf.maxValue || 50;
 
-            // Add main loot
-            if (!mainLootAdded) {
-                const center = room.getCenter();
-                mainLootAdded = this.addMainLoot(level, center, maxValue);
-            }
-
-            roomsDone[room.getID()] = true;
-        });
+        this._itemFact = new FactoryItem();
+        this._actorFact = new FactoryActor();
     }
 
-    // Add something nasty into terminal room
-    // Some possible design patterns:
-    //   1. Stairs + guardian
-    //   2. Guardian + strong item
-    //   3. Special feature
-    //   4. Pack or group of actors
-    if (extras.terms) {
-        extras.terms.forEach(room => {
-            // Don't populate stairs Up room
-            if (!room.hasStairsUp()) {
-                const bbox = room.getBbox();
+    /* Populates the level with actors and items. Some potential features to use
+    * here in extras:
+    *   1. startPoint: No monsters spawn in vicinity
+    *   2. terms: Good items, tough monsters
+    *   3. bigRooms: spawn depending on theme
+    *   4. Critical path: Gold coins?
+    */
+    populateLevel(level) {
+        const extras = level.getExtras();
+        const maxDanger = this.maxDanger;
+        const maxValue = this.maxValue;
 
+        let mainLootAdded = false;
+        const roomsDone = {}; // Keep track of finished rooms
+
+        if (extras.bigRooms) {
+            extras.bigRooms.forEach(bigRoom => {
+                const {room, type} = bigRoom;
+                const bbox = room.getBbox();
+                const areaSize = room.getAreaSize();
+                const actorConf = {
+                    maxDanger,
+                    func: actor => actor.danger <= maxDanger + 2,
+                    nActors: 0 // To be set later
+                };
+                if (/cross/.test(type)) {
+                    // Cross has lower density as its huge
+                    actorConf.nActors = Math.floor(areaSize / 6);
+                    this.addActorsToBbox(level, bbox, actorConf);
+                }
+                else {
+                    actorConf.nActors = Math.floor(areaSize / 3);
+                    this.addActorsToBbox(level, bbox, actorConf);
+                }
+
+                // Add main loot
                 if (!mainLootAdded) {
                     const center = room.getCenter();
                     mainLootAdded = this.addMainLoot(level, center, maxValue);
                 }
 
-                // Add optional, less potent loot stuff
+                roomsDone[room.getID()] = true;
+            });
+        }
+
+        // Add something nasty into terminal room
+        // Some possible design patterns:
+        //   1. Stairs + guardian
+        //   2. Guardian + strong item
+        //   3. Special feature
+        //   4. Pack or group of actors
+        if (extras.terms) {
+            extras.terms.forEach(room => {
+                // Don't populate stairs Up room
+                if (!room.hasStairsUp()) {
+                    const bbox = room.getBbox();
+
+                    if (!mainLootAdded) {
+                        const center = room.getCenter();
+                        mainLootAdded = this.addMainLoot(level, center, maxValue);
+                    }
+
+                    // Add optional, less potent loot stuff
+                    const areaSize = room.getAreaSize();
+                    const nItems = Math.ceil(areaSize / 10);
+                    const itemConf = {maxValue, itemsPerLevel: nItems,
+                        func: item => item.value <= maxValue
+                    };
+                    this.addItemsToBbox(level, bbox, itemConf);
+
+                    const coord = Geometry.getCoordBbox(bbox);
+                    coord.forEach(xy => {
+                        const enemy = new RG.Element.Marker('e');
+                        enemy.setTag('enemy');
+                        level.addElement(enemy, xy[0], xy[1]);
+                    });
+                }
+                roomsDone[room.getID()] = true;
+            });
+        }
+
+        // Process rest of the rooms
+        if (extras.rooms) {
+            extras.rooms.forEach(room => {
+                const bbox = room.getBbox();
                 const areaSize = room.getAreaSize();
-                const nItems = Math.ceil(areaSize / 10);
+
+                // Add actors into the room
+                const actorConf = {
+                    maxDanger,
+                    func: actor => actor.danger <= maxDanger,
+                    nActors: Math.floor(areaSize / 6)
+                };
+                if (actorConf.nActors < MIN_ACTORS_ROOM) {
+                    actorConf.nActors = MIN_ACTORS_ROOM;
+                }
+                this.addActorsToBbox(level, bbox, actorConf);
+
+                // Add items into the room
+                const nItems = Math.ceil(areaSize / 20);
                 const itemConf = {maxValue, itemsPerLevel: nItems,
                     func: item => item.value <= maxValue
                 };
                 this.addItemsToBbox(level, bbox, itemConf);
 
-                const coord = Geometry.getCoordBbox(bbox);
-                coord.forEach(xy => {
-                    const enemy = new RG.Element.Marker('e');
-                    enemy.setTag('enemy');
-                    level.addElement(enemy, xy[0], xy[1]);
-                });
-            }
-            roomsDone[room.getID()] = true;
-        });
-    }
-
-    // Process rest of the rooms
-    if (extras.rooms) {
-        extras.rooms.forEach(room => {
-            const bbox = room.getBbox();
-            const areaSize = room.getAreaSize();
-
-            // Add actors into the room
-            const actorConf = {
-                maxDanger,
-                func: actor => actor.danger <= maxDanger
-            };
-            actorConf.nActors = Math.floor(areaSize / 6);
-            if (actorConf.nActors < MIN_ACTORS_ROOM) {
-                actorConf.nActors = MIN_ACTORS_ROOM;
-            }
-            this.addActorsToBbox(level, bbox, actorConf);
-
-            // Add items into the room
-            const nItems = Math.ceil(areaSize / 20);
-            const itemConf = {maxValue, itemsPerLevel: nItems,
-                func: item => item.value <= maxValue
-            };
-            this.addItemsToBbox(level, bbox, itemConf);
-
-            roomsDone[room.getID()] = true;
-        });
-    }
-
-    // Add an endpoint guardian
-    if (extras.endPoint) {
-        this.addPointGuardian(level, extras.endPoint, maxDanger);
-    }
-};
-
-DungeonPopulate.prototype.setActorFunc = function(func) {
-    if (typeof func === 'function') {
-        this.actorFunc = func;
-    }
-    else {
-        RG.err('DungeonPopulate', 'setActorFunc',
-            `Tried to set non-function ${func} as actorFunc`);
-    }
-};
-
-DungeonPopulate.prototype.addPointGuardian = function(level, point, maxDanger) {
-    const eXY = point;
-    if (RG.isNullOrUndef([maxDanger]) || maxDanger < 1) {
-        RG.err('DungeonPopulate', 'addPointGuardian',
-            `maxDanger must be > 0. Got: |${maxDanger}|`);
-    }
-
-    const guardian = this.getEndPointGuardian(maxDanger);
-    if (guardian) {
-        if (guardian.getBrain().getGoal) {
-            const guardEval = new Evaluator.Guard(RG.BIAS.Guard, eXY);
-            guardian.getBrain().getGoal().addEvaluator(guardEval);
+                roomsDone[room.getID()] = true;
+            });
         }
-        level.addActor(guardian, eXY[0], eXY[1]);
-    }
-    else {
-        const msg = `Could not get guardian for endpoint: ${point}`;
-        RG.warn('DungeonPopulate', 'addPointGuardian', msg);
-    }
-};
 
-DungeonPopulate.prototype.getEndPointGuardian = function(maxDanger) {
-    let currDanger = maxDanger;
-    let guardian = null;
-    let actorFunc = actor => actor.danger <= currDanger;
-    if (this.actorFunc) {
-        actorFunc = actor => (
-            this.actorFunc(actor) && actor.danger <= currDanger
+        // Add an endpoint guardian
+        if (extras.endPoint) {
+            this.addPointGuardian(level, extras.endPoint, maxDanger);
+        }
+    }
+
+    setActorFunc(func) {
+        if (typeof func === 'function') {
+            this.actorFunc = func;
+        }
+        else {
+            RG.err('DungeonPopulate', 'setActorFunc',
+                `Tried to set non-function ${func} as actorFunc`);
+        }
+    }
+
+    addPointGuardian(level, point, maxDanger) {
+        const eXY = point;
+        if (RG.isNullOrUndef([maxDanger]) || maxDanger < 1) {
+            RG.err('DungeonPopulate', 'addPointGuardian',
+                `maxDanger must be > 0. Got: |${maxDanger}|`);
+        }
+
+        const guardian = this.getEndPointGuardian(maxDanger);
+        if (guardian) {
+            if (guardian.getBrain().getGoal) {
+                const guardEval = new Evaluator.Guard(RG.BIAS.Guard, eXY);
+                guardian.getBrain().getGoal().addEvaluator(guardEval);
+            }
+            level.addActor(guardian, eXY[0], eXY[1]);
+        }
+        else {
+            const msg = `Could not get guardian for endpoint: ${point}`;
+            RG.warn('DungeonPopulate', 'addPointGuardian', msg);
+        }
+    }
+
+    getEndPointGuardian(maxDanger) {
+        let currDanger = maxDanger;
+        let guardian = null;
+        let actorFunc = actor => actor.danger <= currDanger;
+        if (this.actorFunc) {
+            actorFunc = actor => (
+                this.actorFunc(actor) && actor.danger <= currDanger
+            );
+        }
+        while (!guardian && currDanger > 0) {
+            // TODO add some theming for the guardian
+            guardian = this._actorFact.createRandomActor({func: actorFunc});
+            --currDanger;
+        }
+        return guardian;
+    }
+
+    addMainLoot(level, center, maxValue) {
+        const [cx, cy] = center;
+        // Add main loot
+        // 1. Scale is from 2-4 normal value, this scales the
+        // guardian danger as well
+        const scaleLoot = RNG.getUniformInt(2, 3);
+        const maxPrizeValue = scaleLoot * maxValue;
+        const minPrizeValue = (scaleLoot - 1) * maxValue;
+        const lootPrize = this._itemFact.createItem(
+            {func: item => item.value >= minPrizeValue
+                && item.value <= maxPrizeValue}
         );
+        if (lootPrize) {
+            level.addItem(lootPrize, cx, cy);
+            return true;
+        }
+        return false;
     }
-    while (!guardian && currDanger > 0) {
-        // TODO add some theming for the guardian
-        guardian = this._actorFact.createRandomActor({func: actorFunc});
-        --currDanger;
+
+    /* Given level and x,y coordinate, tries to populate that point with content. */
+    populatePoint(level, point, conf) {
+        const {maxDanger} = conf;
+        const type = RNG.arrayGetRand(popOptions);
+        // const [pX, pY] = point;
+        switch (type) {
+            case 'NOTHING': break;
+            case 'LOOT': this.addLootToPoint(level, point); break;
+            case 'GUARDIAN':
+                this.addPointGuardian(level, point, maxDanger);
+                break;
+            case 'ELEMENT': this.addElementToPoint(level, point, conf); break;
+            case 'CORPSE': this.addCorpseToPoint(level, point, conf); break;
+            case 'GOLD': this.addGoldToPoint(level, point); break;
+            case 'TIP': this.addTipToPoint(level, point, conf); break;
+            default: break;
+        }
     }
-    return guardian;
-};
 
-DungeonPopulate.prototype.addMainLoot = function(level, center, maxValue) {
-    const [cx, cy] = center;
-    // Add main loot
-    // 1. Scale is from 2-4 normal value, this scales the
-    // guardian danger as well
-    const scaleLoot = RNG.getUniformInt(2, 3);
-    const maxPrizeValue = scaleLoot * maxValue;
-    const minPrizeValue = (scaleLoot - 1) * maxValue;
-    const lootPrize = this._itemFact.createItem(
-        {func: item => item.value >= minPrizeValue
-            && item.value <= maxPrizeValue}
-    );
-    if (lootPrize) {
-        level.addItem(lootPrize, cx, cy);
-        return true;
+    /* DungeonPopulate.prototype.addActorGroup = function(level, point, conf) {
+
+    };*/
+
+    /* Adds an element into the given point. */
+    addElementToPoint(level, point, conf) {
+        if (conf.true) {
+            // console.log('DungeonPopulate', level, conf, point); // TODO
+        }
     }
-    return false;
-};
 
-const popOptions = ['NOTHING', 'LOOT', 'GOLD', 'GUARDIAN', 'ELEMENT', 'CORPSE',
-    'TIP'];
-
-/* Given level and x,y coordinate, tries to populate that point with content. */
-DungeonPopulate.prototype.populatePoint = function(level, point, conf) {
-    const {maxDanger} = conf;
-    const type = RNG.arrayGetRand(popOptions);
-    // const [pX, pY] = point;
-    switch (type) {
-        case 'NOTHING': break;
-        case 'LOOT': this.addLootToPoint(level, point); break;
-        case 'GUARDIAN':
-            this.addPointGuardian(level, point, maxDanger);
-            break;
-        case 'ELEMENT': this.addElementToPoint(level, point, conf); break;
-        case 'CORPSE': this.addCorpseToPoint(level, point, conf); break;
-        case 'GOLD': this.addGoldToPoint(level, point, conf); break;
-        case 'TIP': this.addTipToPoint(level, point, conf); break;
-        default: break;
+    /* Creates a corpse to the given point, and adds some related loot there. */
+    addCorpseToPoint(level, point, conf) {
+        if (conf.true) {
+            // console.log('DungeonPopulate', level, conf, point); // TODO
+        }
     }
-};
 
-/* DungeonPopulate.prototype.addActorGroup = function(level, point, conf) {
+    addLootToPoint(level, point) {
+        const maxValue = this.maxValue;
+        const lootTypes = [RG.ITEM_POTION, RG.ITEM_SPIRITGEM, RG.ITEM_AMMUNITION,
+            RG.ITEM_POTION, RG.ITEM_RUNE];
+        const generatedType = RNG.arrayGetRand(lootTypes);
 
-};*/
-
-/* Adds an element into the given point. */
-DungeonPopulate.prototype.addElementToPoint = function(level, point, conf) {
-    if (conf.true) {
-        // console.log('DungeonPopulate', level, conf, point); // TODO
+        const parser = RG.ObjectShell.getParser();
+        const lootPrize = parser.createRandomItem(
+            {func: item => item.type >= generatedType
+                && item.value <= maxValue}
+        );
+        if (lootPrize) {
+            const [cx, cy] = point;
+            level.addItem(lootPrize, cx, cy);
+            return true;
+        }
+        return false;
     }
-};
 
-/* Creates a corpse to the given point, and adds some related loot there. */
-DungeonPopulate.prototype.addCorpseToPoint = function(level, point, conf) {
-    if (conf.true) {
-        // console.log('DungeonPopulate', level, conf, point); // TODO
-    }
-};
-
-DungeonPopulate.prototype.addLootToPoint = function(level, point) {
-    const maxValue = this.maxValue;
-    const lootTypes = [RG.ITEM_POTION, RG.ITEM_SPIRITGEM, RG.ITEM_AMMUNITION,
-        RG.ITEM_POTION, RG.ITEM_RUNE];
-    const generatedType = RNG.arrayGetRand(lootTypes);
-
-    const parser = RG.ObjectShell.getParser();
-    const lootPrize = parser.createRandomItem(
-        {func: item => item.type >= generatedType
-            && item.value <= maxValue}
-    );
-    if (lootPrize) {
+    addGoldToPoint(level, point) {
+        const numCoins = this.maxValue;
+        const gold = new RG.Item.GoldCoin();
+        gold.setCount(numCoins);
         const [cx, cy] = point;
-        level.addItem(lootPrize, cx, cy);
-        return true;
+        level.addItem(gold, cx, cy);
     }
-    return false;
-};
 
-DungeonPopulate.prototype.addGoldToPoint = function(level, point) {
-    const numCoins = this.maxValue;
-    const gold = new RG.Item.GoldCoin();
-    gold.setCount(numCoins);
-    const [cx, cy] = point;
-    level.addItem(gold, cx, cy);
-};
-
-/* Adds a tip/hint to the given point. These hints can reveal information
- * about world map etc. */
-DungeonPopulate.prototype.addTipToPoint = function(level, point, conf) {
-    if (conf.true) {
-        // console.log('DungeonPopulate', level, conf, point); // TODO
+    /* Adds a tip/hint to the given point. These hints can reveal information
+     * about world map etc. */
+    addTipToPoint(level, point, conf) {
+        if (conf.true) {
+            // console.log('DungeonPopulate', level, conf, point); // TODO
+        }
     }
-};
 
-DungeonPopulate.prototype.createShops = function(level, conf) {
-    const extras = level.getExtras();
-    const shopHouses = [];
-    if (extras.hasOwnProperty('houses')) {
-        const houses = extras.houses;
+    createShops(level, conf) {
+        const extras = level.getExtras();
+        const shopHouses = [];
+        if (extras.hasOwnProperty('houses')) {
+            const houses = extras.houses;
 
-        const usedHouses = [];
-        let watchDog = 0;
-        level.shops = [];
-        for (let n = 0; n < conf.nShops; n++) {
-            const shopObj = new RG.World.Shop();
+            const usedHouses = [];
+            let watchDog = 0;
+            level.shops = [];
+            for (let n = 0; n < conf.nShops; n++) {
+                const shopObj = new RG.World.Shop();
 
-            // Find the next (unused) index for a house
-            let index = RNG.randIndex(houses);
-            while (usedHouses.indexOf(index) >= 0) {
-                index = RNG.randIndex(houses);
-                ++watchDog;
-                if (watchDog === (2 * houses.length)) {
+                // Find the next (unused) index for a house
+                let index = RNG.randIndex(houses);
+                while (usedHouses.indexOf(index) >= 0) {
+                    index = RNG.randIndex(houses);
+                    ++watchDog;
+                    if (watchDog === (2 * houses.length)) {
+                        RG.err('DungeonPopulate', 'createShops',
+                            'WatchDog reached max houses');
+                    }
+                }
+                usedHouses.push(index);
+
+                const house = extras.houses[index];
+                shopHouses.push(house);
+                const floor = house.floor;
+                const [doorX, doorY] = house.door;
+                const doorCell = level.getMap().getCell(doorX, doorY);
+                if (!doorCell.hasDoor()) {
+                    const door = new RG.Element.Door(true);
+                    level.addElement(door, doorX, doorY);
+                }
+
+                const keeper = this.createShopkeeper(conf);
+                const shopCoord = [];
+                let keeperAdded = false;
+                for (let i = 0; i < floor.length; i++) {
+                    const xy = floor[i];
+
+                    const shopElem = new RG.Element.Shop();
+                    shopElem.setShopkeeper(keeper);
+                    level.addElement(shopElem, xy[0], xy[1]);
+
+                    if (i === 0) {
+                        keeperAdded = true;
+                        level.addActor(keeper, xy[0], xy[1]);
+                    }
+
+                    const item = this._itemFact.getShopItem(n, conf);
+                    if (!item) {
+                        const msg = 'item null. ' +
+                            `conf: ${JSON.stringify(conf)}`;
+                        RG.err('DungeonPopulate', 'createShop',
+                            `${msg} shopFunc/type${n} not well defined.`);
+                    }
+                    else {
+                        item.add(new Component.Unpaid());
+                        level.addItem(item, xy[0], xy[1]);
+                        shopCoord.push(xy);
+                    }
+                }
+
+                if (!keeperAdded) {
+                    const json = JSON.stringify(house);
                     RG.err('DungeonPopulate', 'createShops',
-                        'WatchDog reached max houses');
-                }
-            }
-            usedHouses.push(index);
-
-            const house = extras.houses[index];
-            shopHouses.push(house);
-            const floor = house.floor;
-            const [doorX, doorY] = house.door;
-            const doorCell = level.getMap().getCell(doorX, doorY);
-            if (!doorCell.hasDoor()) {
-                const door = new RG.Element.Door(true);
-                level.addElement(door, doorX, doorY);
-            }
-
-            const keeper = this.createShopkeeper(conf);
-            const shopCoord = [];
-            let keeperAdded = false;
-            for (let i = 0; i < floor.length; i++) {
-                const xy = floor[i];
-
-                const shopElem = new RG.Element.Shop();
-                shopElem.setShopkeeper(keeper);
-                level.addElement(shopElem, xy[0], xy[1]);
-
-                if (i === 0) {
-                    keeperAdded = true;
-                    level.addActor(keeper, xy[0], xy[1]);
+                        'Could not add keeper to ' + json);
                 }
 
-                const item = this._itemFact.getShopItem(n, conf);
-                if (!item) {
-                    const msg = 'item null. ' +
-                        `conf: ${JSON.stringify(conf)}`;
-                    RG.err('DungeonPopulate', 'createShop',
-                        `${msg} shopFunc/type${n} not well defined.`);
+                if (keeper.has('Shopkeeper')) {
+                    const shopKeep = keeper.get('Shopkeeper');
+                    shopKeep.setCells(shopCoord);
+                    shopKeep.setLevelID(level.getID());
+                    shopKeep.setDoorXY(doorCell.getXY());
+                    const name = keeper.getType() + ' shopkeeper';
+                    keeper.setName(name);
+                    RG.addCellStyle(RG.TYPE_ACTOR, name,
+                        'cell-actor-shopkeeper');
+                    const randXY = RNG.arrayGetRand(shopCoord);
+                    if (keeper.getBrain().getGoal) {
+                        const evalShop = new Evaluator.Shopkeeper(1.5);
+                        evalShop.setArgs({xy: randXY});
+                        keeper.getBrain().getGoal().addEvaluator(evalShop);
+                    }
                 }
-                else {
-                    item.add(new RG.Component.Unpaid());
-                    level.addItem(item, xy[0], xy[1]);
-                    shopCoord.push(xy);
-                }
-            }
 
-            if (!keeperAdded) {
-                const json = JSON.stringify(house);
-                RG.err('DungeonPopulate', 'createShops',
-                    'Could not add keeper to ' + json);
-            }
-
-            if (keeper.has('Shopkeeper')) {
-                const shopKeep = keeper.get('Shopkeeper');
-                shopKeep.setCells(shopCoord);
-                shopKeep.setLevelID(level.getID());
-                shopKeep.setDoorXY(doorCell.getXY());
-                const name = keeper.getType() + ' shopkeeper';
-                keeper.setName(name);
-                RG.addCellStyle(RG.TYPE_ACTOR, name,
-                    'cell-actor-shopkeeper');
-                const randXY = RNG.arrayGetRand(shopCoord);
-                if (keeper.getBrain().getGoal) {
-                    const evalShop = new Evaluator.Shopkeeper(1.5);
-                    evalShop.setArgs({xy: randXY});
-                    keeper.getBrain().getGoal().addEvaluator(evalShop);
-                }
-            }
-
-            shopObj.setShopkeeper(keeper);
-            shopObj.setLevel(level);
-            shopObj.setCoord(shopCoord);
-            level.shops.push(shopObj);
-        }
-    }
-    else {
-        RG.err('DungeonPopulate', 'createShops', 'No houses in extras.');
-    }
-    return shopHouses;
-};
-
-
-/* Creates a shopkeeper actor. */
-DungeonPopulate.prototype.createShopkeeper = function(conf) {
-    let keeper = null;
-    if (conf.parser) {
-        if (conf.actor) {
-            keeper = conf.parser.createRandomActor({
-                func: conf.actor});
-            if (!keeper) {
-                let msg = 'conf.actor given but no actor found';
-                if (typeof conf.actor === 'function') {
-                    msg += ' conf.actor |\n' + conf.actor.toString() + '|';
-                }
-                else {
-                    msg += ' conf.actor must be function';
-                }
-                RG.err('Factory', 'createShopkeeper', msg);
+                shopObj.setShopkeeper(keeper);
+                shopObj.setLevel(level);
+                shopObj.setCoord(shopCoord);
+                level.shops.push(shopObj);
             }
         }
         else {
-            keeper = conf.parser.createActor('shopkeeper');
+            RG.err('DungeonPopulate', 'createShops', 'No houses in extras.');
         }
-    }
-    else {
-        keeper = this._actorFact.createActor('shopkeeper', {brain: 'Human'});
+        return shopHouses;
     }
 
-    keeper.add(new RG.Component.Shopkeeper());
-    const gold = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
-    gold.setCount(RNG.getUniformInt(50, 200));
-    keeper.getInvEq().addItem(gold);
-
-    let keeperLevel = 10;
-    if (conf.maxDanger >= 6) {
-        keeperLevel = 2 * conf.maxDanger;
-    }
-    RG.levelUpActor(keeper, keeperLevel);
-
-    return keeper;
-};
-
-DungeonPopulate.prototype.createTrainers = function(level, conf) {
-    const houses = level.getExtras().houses;
-    if (RG.isSuccess(RG.TRAINER_PROB)) {
-        let trainer = null;
+    /* Creates a shopkeeper actor. */
+    createShopkeeper(conf) {
+        let keeper = null;
         if (conf.parser) {
-            trainer = conf.parser.createActor('trainer');
+            if (conf.actor) {
+                keeper = conf.parser.createRandomActor({
+                    func: conf.actor});
+                if (!keeper) {
+                    let msg = 'conf.actor given but no actor found';
+                    if (typeof conf.actor === 'function') {
+                        msg += ' conf.actor |\n' + conf.actor.toString() + '|';
+                    }
+                    else {
+                        msg += ' conf.actor must be function';
+                    }
+                    RG.err('Factory', 'createShopkeeper', msg);
+                }
+            }
+            else {
+                keeper = conf.parser.createActor('shopkeeper');
+            }
         }
         else {
-            trainer = this.createActor('trainer', {brain: 'Human'});
-            const trainComp = new RG.Component.Trainer();
-            trainer.add(trainComp);
+            keeper = this._actorFact.createActor('shopkeeper', {brain: 'Human'});
         }
-        const cell = level.getFreeRandCell();
-        level.addActor(trainer, cell.getX(), cell.getY());
-        if (houses) {
-            const house = RNG.arrayGetRand(houses);
-            if (trainer.getBrain().getGoal) {
+
+        keeper.add(new Component.Shopkeeper());
+        const gold = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+        gold.setCount(RNG.getUniformInt(50, 200));
+        keeper.getInvEq().addItem(gold);
+
+        let keeperLevel = 10;
+        if (conf.maxDanger >= 6) {
+            keeperLevel = 2 * conf.maxDanger;
+        }
+        RG.levelUpActor(keeper, keeperLevel);
+
+        return keeper;
+    }
+
+    createTrainers(level, conf) {
+        const houses = level.getExtras().houses;
+        if (RG.isSuccess(RG.TRAINER_PROB)) {
+            let trainer = null;
+            if (conf.parser) {
+                trainer = conf.parser.createActor('trainer');
+            }
+            else {
+                const trainerConf = {
+                    maxDanger: 5,
+                    actorFunc: actor => RG.ALL_RACES.findIndex(actor.type) >= 0
+                };
+                trainer = this.createActor(trainerConf);
+            }
+            const trainComp = new Component.Trainer();
+            trainer.add(trainComp);
+            const cell = level.getFreeRandCell();
+            level.addActor(trainer, cell.getX(), cell.getY());
+            if (houses) {
+                const house = RNG.arrayGetRand(houses);
+                if (trainer.getBrain().getGoal) {
+                    const evalHome = new Evaluator.GoHome(1.5);
+                    const xy = house.getCenter();
+                    evalHome.setArgs({xy});
+                    trainer.getBrain().getGoal().addEvaluator(evalHome);
+                    return [house];
+                }
+            }
+        }
+        return [];
+    }
+
+    populateHouse(level, house, conf) {
+        const floorPerActor = 9;
+        const numFloor = house.numFloor;
+        let numActors = Math.round(numFloor / floorPerActor);
+        if (numActors === 0) {numActors = 1;}
+        for (let i = 0; i < numActors; i++) {
+            const actor = this.createActor(conf);
+            if (actor.getBrain().getGoal) {
                 const evalHome = new Evaluator.GoHome(1.5);
                 const xy = house.getCenter();
                 evalHome.setArgs({xy});
-                trainer.getBrain().getGoal().addEvaluator(evalHome);
-                return [house];
+                actor.getBrain().getGoal().addEvaluator(evalHome);
             }
+            const floorXY = RNG.arrayGetRand(house.floor);
+            level.addActor(actor, floorXY[0], floorXY[1]);
         }
     }
-    return [];
-};
 
-DungeonPopulate.prototype.populateHouse = function(level, house, conf) {
-    const floorPerActor = 9;
-    const numFloor = house.numFloor;
-    let numActors = Math.round(numFloor / floorPerActor);
-    if (numActors === 0) {numActors = 1;}
-    for (let i = 0; i < numActors; i++) {
-        const actor = this.createActor(conf);
-        if (actor.getBrain().getGoal) {
-            const evalHome = new Evaluator.GoHome(1.5);
-            const xy = house.getCenter();
-            evalHome.setArgs({xy});
-            actor.getBrain().getGoal().addEvaluator(evalHome);
+    createActor(conf) {
+        const parser = RG.ObjectShell.getParser();
+        const maxDanger = conf.maxDanger || this.maxDanger;
+        let actor = null;
+        if (maxDanger > 0) {
+            let actorFunc = actor => actor.danger <= maxDanger;
+            if (this.actorFunc) {
+                actorFunc = actor => (
+                    this.actorFunc(actor) && actor.danger <= maxDanger
+                );
+            }
+            else if (conf.actorFunc) {
+                actorFunc = actor => (
+                    conf.actorFunc(actor) && actor.danger <= maxDanger
+                );
+            }
+            actor = parser.createRandomActor({func: actorFunc});
         }
-        const floorXY = RNG.arrayGetRand(house.floor);
-        level.addActor(actor, floorXY[0], floorXY[1]);
+        else {
+            RG.err('DungeonPopulate', 'createActor',
+                'maxDanger must be > 0');
+        }
+        return actor;
     }
-};
 
-DungeonPopulate.prototype.createActor = function(conf) {
-    const parser = RG.ObjectShell.getParser();
-    const maxDanger = conf.maxDanger || this.maxDanger;
-    let actor = null;
-    if (maxDanger > 0) {
-        let actorFunc = actor => actor.danger <= maxDanger;
-        if (this.actorFunc) {
-            actorFunc = actor => (
-                this.actorFunc(actor) && actor.danger <= maxDanger
-            );
-        }
-        else if (conf.actorFunc) {
-            actorFunc = actor => (
-                conf.actorFunc(actor) && actor.danger <= maxDanger
-            );
-        }
-        actor = parser.createRandomActor({func: actorFunc});
+    addActorsToBbox(level, bbox, conf) {
+        const nActors = conf.nActors || 4;
+        const {maxDanger, func} = conf;
+        const actors = this._actorFact.generateNActors(nActors, func, maxDanger);
+        Placer.addActorsToBbox(level, bbox, actors);
     }
-    else {
-        RG.err('DungeonPopulate', 'createActor',
-            'maxDanger must be > 0');
-    }
-    return actor;
-};
-
-DungeonPopulate.prototype.addActorsToBbox = function(level, bbox, conf) {
-    const nActors = conf.nActors || 4;
-    const {maxDanger, func} = conf;
-    const actors = this._actorFact.generateNActors(nActors, func, maxDanger);
-    Placer.addActorsToBbox(level, bbox, actors);
-};
 
     /* Adds N items to the given level in bounding box coordinates. */
-DungeonPopulate.prototype.addItemsToBbox = function(level, bbox, conf) {
-    const nItems = conf.nItems || 4;
-    const itemConf = Object.assign({itemsPerLevel: nItems}, conf);
-    const items = this._itemFact.generateItems(itemConf);
-    Placer.addItemsToBbox(level, bbox, items);
-};
+    addItemsToBbox(level, bbox, conf) {
+        const nItems = conf.nItems || 4;
+        const itemConf = Object.assign({itemsPerLevel: nItems}, conf);
+        const items = this._itemFact.generateItems(itemConf);
+        Placer.addItemsToBbox(level, bbox, items);
+    }
+}
+
+const popOptions = ['NOTHING', 'LOOT', 'GOLD', 'GUARDIAN', 'ELEMENT', 'CORPSE',
+    'TIP'];
 
 module.exports = DungeonPopulate;

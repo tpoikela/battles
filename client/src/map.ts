@@ -2,7 +2,10 @@
 import ROT from '../../lib/rot';
 import RG from './rg';
 import {Cell} from './map.cell';
-import {ElementMarker} from './element';
+import {ElementBase, ElementWall, ElementMarker} from './element';
+
+const FLOOR = new ElementBase('floor');
+const WALL = new ElementWall('wall');
 
 /* Map cell list object which contains a number of cells. Map.CellList is used
  * for rendering while the Map.Level contains high-level information about
@@ -14,10 +17,10 @@ export class CellMap {
             for (let y = 0; y < map.rows; y++) {
                 const type = map._map[x][y].getBaseElem().getType();
                 if (type === 'wall') {
-                    map._map[x][y].setBaseElem(RG.ELEM.FLOOR);
+                    map._map[x][y].setBaseElem(FLOOR);
                 }
                 else if (type === 'floor') {
-                    map._map[x][y].setBaseElem(RG.ELEM.WALL);
+                    map._map[x][y].setBaseElem(WALL);
                 }
             }
         }
@@ -31,7 +34,7 @@ export class CellMap {
     private _isRowOptimized: boolean;
     private _rowMap: Cell[][];
 
-    constructor(cols, rows, baseElem = RG.ELEM.FLOOR) {
+    constructor(cols, rows, baseElem = FLOOR) {
         this._map = [];
         this.cols = cols;
         this.rows = rows;

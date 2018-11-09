@@ -1,6 +1,8 @@
 
 import ROT from '../../lib/rot';
 import RG from './rg';
+import {CellMap} from './map';
+import {ELEM} from '../data/elem-constants';
 
 export const Path: any = {};
 
@@ -242,7 +244,7 @@ Path.getWeightPathSegmented = function(map, x0, y0, x1, y1, nSeg, pathFunc) {
     return finalPath;
 };
 
-Path.addPathToMap = function(map, coord) {
+Path.addPathToMap = function(map: CellMap, coord: CoordXY[]) {
     const chosenCoord = [];
     for (let j = 0; j < coord.length; j++) {
         const c = coord[j];
@@ -250,13 +252,13 @@ Path.addPathToMap = function(map, coord) {
             const baseElem = map.getBaseElemXY(c.x, c.y);
             const type = baseElem.getType();
             if (type.match(/(chasm|water)/)) {
-                map.setBaseElemXY(c.x, c.y, RG.ELEM.BRIDGE);
+                map.setBaseElemXY(c.x, c.y, ELEM.BRIDGE);
             }
             else if ((/stone|highrock/).test(type)) {
-                map.setBaseElemXY(c.x, c.y, RG.ELEM.PATH);
+                map.setBaseElemXY(c.x, c.y, ELEM.PATH);
             }
             else {
-                map.setBaseElemXY(c.x, c.y, RG.ELEM.ROAD);
+                map.setBaseElemXY(c.x, c.y, ELEM.ROAD);
             }
             chosenCoord.push(c);
         }

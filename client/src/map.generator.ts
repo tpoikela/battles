@@ -14,13 +14,14 @@ import {Castle} from '../data/tiles.castle';
 import {HouseGenerator} from './houses';
 import {Geometry, BBox} from './geometry';
 import {ELEM} from '../data/elem-constants';
+import {Random} from './random';
 
-ROT.Map.Forest = require('../../lib/map.forest');
-ROT.Map.Miner = require('../../lib/map.miner');
-ROT.Map.Mountain = require('../../lib/map.mountain');
-ROT.Map.Wall = require('../../lib/map.wall');
+import {MapForest} from '../../lib/map.forest';
+import {MapMiner} from '../../lib/map.miner';
+import {MapMountain} from '../../lib/map.mountain';
+import {MapWall} from '../../lib/map.wall';
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 const inRange = function(val, min, max) {
     if (val >= min && val <= max) {
@@ -343,7 +344,7 @@ export class MapGenerator {
                 coord[elemChar].forEach(xy => {
                     const x0 = xy[0] + x;
                     const y0 = xy[1] + y;
-                    map.setBaseElemXY(x0, y0, RG.ELEM.WALL);
+                    map.setBaseElemXY(x0, y0, ELEM.WALL);
                 });
             }
             else if (elemChar === '+') {
@@ -354,7 +355,7 @@ export class MapGenerator {
                 coord[elemChar].forEach(xy => {
                     const x0 = xy[0] + x;
                     const y0 = xy[1] + y;
-                    map.setBaseElemXY(x0, y0, RG.ELEM.FLOOR_HOUSE);
+                    map.setBaseElemXY(x0, y0, ELEM.FLOOR_HOUSE);
                 });
             }
         });
@@ -412,7 +413,7 @@ export class MapGenerator {
 
         const wallElem = MapGenerator.getWallElem(wallType);
         map.setBaseElems(possibleRoom, wallElem);
-        map.setBaseElems(floorCoords, RG.ELEM.FLOOR_HOUSE);
+        map.setBaseElems(floorCoords, ELEM.FLOOR_HOUSE);
 
         // Create the halo, prevents houses being too close to each other
         const haloX0 = x0 - 1;
@@ -445,7 +446,7 @@ export class MapGenerator {
         wallCoords.slice(doorIndex, 1);
 
         // At the moment, "door" is a hole in the wall
-        map.setBaseElemXY(doorX, doorY, RG.ELEM.FLOOR);
+        map.setBaseElemXY(doorX, doorY, ELEM.FLOOR);
         doors[doorX + ',' + doorY] = true;
 
         for (let i = 0; i < wallCoords.length; i++) {
@@ -470,15 +471,15 @@ export class MapGenerator {
     createForest(conf) {
         const map = new CellMap(this.cols, this.rows);
         const ratio = conf.ratio;
-        this._mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
+        this._mapGen = new MapForest(this.cols, this.rows, conf);
         this._mapGen.create((x, y, val) => {
-            map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+            map.setBaseElemXY(x, y, ELEM.FLOOR);
             const createTree = RNG.getUniform() <= ratio;
             if (val === 1 && createTree) {
-                map.setBaseElemXY(x, y, RG.ELEM.TREE);
+                map.setBaseElemXY(x, y, ELEM.TREE);
             }
             else if (val === 1) {
-                map.setBaseElemXY(x, y, RG.ELEM.GRASS);
+                map.setBaseElemXY(x, y, ELEM.GRASS);
             }
         });
         return {map};
@@ -486,11 +487,11 @@ export class MapGenerator {
 
     createLakes(conf) {
         const map = new CellMap(this.cols, this.rows);
-        this._mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
+        this._mapGen = new MapForest(this.cols, this.rows, conf);
         this._mapGen.create((x, y, val) => {
-            map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+            map.setBaseElemXY(x, y, ELEM.FLOOR);
             if (val === 1 /* && createDeep */) {
-                map.setBaseElemXY(x, y, RG.ELEM.WATER);
+                map.setBaseElemXY(x, y, ELEM.WATER);
             }
         });
         return {map};
@@ -526,8 +527,8 @@ export class MapGenerator {
 
     createWall(cols, rows, conf) {
         const map = new CellMap(cols, rows);
-        const wallElem = conf.wallElem || RG.ELEM.WALL;
-        this._mapGen = new ROT.Map.Wall(cols, rows, conf);
+        const wallElem = conf.wallElem || ELEM.WALL;
+        this._mapGen = new MapWall(cols, rows, conf);
         this._mapGen.create((x, y, val) => {
             if (val === 1 /* && createDeep */) {
                 map.setBaseElemXY(x, y, wallElem);
@@ -542,24 +543,24 @@ export class MapGenerator {
             conf = MapGenerator.getOptions('mountain');
         }
 
-        this._mapGen = new ROT.Map.Mountain(this.cols, this.rows, conf);
+        this._mapGen = new MapMountain(this.cols, this.rows, conf);
         this._mapGen.create((x, y, val) => {
             if (val > conf.highRockThr) {
-                map.setBaseElemXY(x, y, RG.ELEM.HIGH_ROCK);
+                map.setBaseElemXY(x, y, ELEM.HIGH_ROCK);
             }
             else if (val > conf.stoneThr) {
-                map.setBaseElemXY(x, y, RG.ELEM.STONE);
+                map.setBaseElemXY(x, y, ELEM.STONE);
             }
             else if (val < conf.chasmThr) {
-                map.setBaseElemXY(x, y, RG.ELEM.CHASM);
+                map.setBaseElemXY(x, y, ELEM.CHASM);
             }
             else {
                 const addSnow = RNG.getUniform();
                 if (addSnow < conf.snowRatio) {
-                    map.setBaseElemXY(x, y, RG.ELEM.SNOW);
+                    map.setBaseElemXY(x, y, ELEM.SNOW);
                 }
                 else {
-                    map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+                    map.setBaseElemXY(x, y, ELEM.FLOOR);
                 }
             }
         });
@@ -658,14 +659,14 @@ export class MapGenerator {
 
     /* Creates a mountain summit. */
     createSummit(cols, rows, conf) {
-        const map = new CellMap(cols, rows, RG.ELEM.SKY);
+        const map = new CellMap(cols, rows, ELEM.SKY);
 
         const ratio = conf.ratio || 0.3;
         let [cX, cY] = [Math.floor(cols / 2), Math.floor(rows / 2)];
         const totalCells = cols * rows;
 
         const placedCoord = [[cX, cY]];
-        map.setBaseElemXY(cX, cY, RG.ELEM.FLOOR);
+        map.setBaseElemXY(cX, cY, ELEM.FLOOR);
         let placedCells = 1;
 
         let watchdog = 10000;
@@ -678,7 +679,7 @@ export class MapGenerator {
                 if (map.getBaseElemXY(cX, cY).getType() === 'sky') {
                     placedCoord.push([cX, cY]);
                     ++placedCells;
-                    map.setBaseElemXY(cX, cY, RG.ELEM.FLOOR);
+                    map.setBaseElemXY(cX, cY, ELEM.FLOOR);
                 }
             }
             --watchdog;
@@ -690,10 +691,10 @@ export class MapGenerator {
 
     /* Creates a single cave level. */
     createCave(cols, rows, conf) {
-        this._mapGen = new ROT.Map.Miner(cols, rows, conf);
+        this._mapGen = new MapMiner(cols, rows, conf);
         const map = new CellMap(cols, rows);
-        const wallElem = conf.wallElem || RG.ELEM.WALL_CAVE;
-        const floorElem = conf.floorElem || RG.ELEM.FLOOR_CAVE;
+        const wallElem = conf.wallElem || ELEM.WALL_CAVE;
+        const floorElem = conf.floorElem || ELEM.FLOOR_CAVE;
         this._mapGen.create((x, y, val) => {
             if (val === 1) {
                 map.setBaseElemXY(x, y, wallElem);
@@ -720,8 +721,8 @@ export class MapGenerator {
         level.create();
 
         const asciiToElem = {
-            '#': RG.ELEM.WALL_CRYPT,
-            '.': RG.ELEM.FLOOR_CRYPT
+            '#': ELEM.WALL_CRYPT,
+            '.': ELEM.FLOOR_CRYPT
         };
         const mapObj: MapObj = MapGenerator.fromAsciiMap(level.map, asciiToElem);
         mapObj.tiles = level.getPlacedData();
@@ -801,8 +802,8 @@ export class MapGenerator {
         level.create();
 
         const asciiToElem = {
-            '#': RG.ELEM.WALL,
-            '.': RG.ELEM.FLOOR
+            '#': ELEM.WALL,
+            '.': ELEM.FLOOR
         };
         const castleMapObj: MapObj = MapGenerator.fromAsciiMap(level.map, asciiToElem);
         castleMapObj.tiles = level.getPlacedData();
@@ -831,7 +832,7 @@ export class MapGenerator {
         };
 
         const createLivingQuarterMarker = (map, x, y) => {
-            map.setBaseElemXY(x, y, RG.ELEM.FLOOR_HOUSE);
+            map.setBaseElemXY(x, y, ELEM.FLOOR_HOUSE);
             if (conf.preserveMarkers) {
                 const marker = new RG.Element.Marker(':');
                 marker.setTag('living_quarter');
@@ -922,7 +923,7 @@ export class MapGenerator {
         switch (type) {
             case 'arctic': this._mapGen = new ROT.Map.Dungeon(cols, rows); break;
             case 'arena': this._mapGen = new ROT.Map.Arena(cols, rows); break;
-            case 'cave': this._mapGen = new ROT.Map.Miner(cols, rows); break;
+            case 'cave': this._mapGen = new MapMiner(cols, rows); break;
             case 'cellular': this._mapGen = this.createCellular(cols, rows); break;
             case 'castle': break;
             case 'crypt': this._mapGen = new ROT.Map.Uniform(cols, rows); break;
@@ -932,12 +933,12 @@ export class MapGenerator {
             case 'dungeon': this._mapGen = new ROT.Map.Rogue(cols, rows); break;
             case 'empty': this._mapGen = new ROT.Map.Dungeon(cols, rows); break;
             case 'eller': this._mapGen = new ROT.Map.EllerMaze(cols, rows); break;
-            case 'forest': this._mapGen = new ROT.Map.Forest(cols, rows); break;
-            case 'lakes': this._mapGen = new ROT.Map.Forest(cols, rows); break;
+            case 'forest': this._mapGen = new MapForest(cols, rows); break;
+            case 'lakes': this._mapGen = new MapForest(cols, rows); break;
             case 'labyrinth':
                 this._mapGen = new ROT.Map.DividedMaze(cols, rows); break;
-            case 'miner': this._mapGen = new ROT.Map.Miner(cols, rows); break;
-            case 'mountain': this._mapGen = new ROT.Map.Mountain(cols, rows); break;
+            case 'miner': this._mapGen = new MapMiner(cols, rows); break;
+            case 'mountain': this._mapGen = new MapMountain(cols, rows); break;
             case 'icey': this._mapGen = new ROT.Map.IceyMaze(cols, rows); break;
             case 'rogue': this._mapGen = new ROT.Map.Rogue(cols, rows); break;
             case 'uniform': this._mapGen = new ROT.Map.Uniform(cols, rows); break;
@@ -946,7 +947,7 @@ export class MapGenerator {
             case 'town': this._mapGen = new ROT.Map.Arena(cols, rows); break;
             case 'townwithwall': break;
             case 'summit': break;
-            case 'wall': this._mapGen = new ROT.Map.Wall(cols, rows); break;
+            case 'wall': this._mapGen = new MapWall(cols, rows); break;
             default: RG.err('MapGen',
                 'setGen', 'this._mapGen type ' + type + ' is unknown');
         }
@@ -986,32 +987,32 @@ export class MapGenerator {
 
     static getWallElem(wallType) {
         switch (wallType) {
-            case 'wallcave': return RG.ELEM.WALL_CAVE;
-            case 'wallcastle': return RG.ELEM.WALL_CASTLE;
-            case 'wallcrypt': return RG.ELEM.WALL_CRYPT;
-            case 'wallice': return RG.ELEM.WALL_ICE;
-            case 'wallwooden': return RG.ELEM.WALL_WOODEN;
-            default: return RG.ELEM.WALL;
+            case 'wallcave': return ELEM.WALL_CAVE;
+            case 'wallcastle': return ELEM.WALL_CASTLE;
+            case 'wallcrypt': return ELEM.WALL_CRYPT;
+            case 'wallice': return ELEM.WALL_ICE;
+            case 'wallwooden': return ELEM.WALL_WOODEN;
+            default: return ELEM.WALL;
         }
     }
 
     static getFloorElem(floorType) {
         switch (floorType) {
-            case 'floorcave': return RG.ELEM.FLOOR_CAVE;
-            case 'floorcastle': return RG.ELEM.FLOOR_CASTLE;
-            case 'floorcrypt': return RG.ELEM.FLOOR_CRYPT;
-            case 'floorice': return RG.ELEM.FLOOR_ICE;
-            case 'floorwooden': return RG.ELEM.FLOOR_WOODEN;
-            default: return RG.ELEM.FLOOR;
+            case 'floorcave': return ELEM.FLOOR_CAVE;
+            case 'floorcastle': return ELEM.FLOOR_CASTLE;
+            case 'floorcrypt': return ELEM.FLOOR_CRYPT;
+            case 'floorice': return ELEM.FLOOR_ICE;
+            case 'floorwooden': return ELEM.FLOOR_WOODEN;
+            default: return ELEM.FLOOR;
         }
     }
 
     static createSplashes(cols, rows, conf) {
-        const elem = conf.elem || RG.ELEM.WATER;
+        const elem = conf.elem || ELEM.WATER;
         const map = new CellMap(cols, rows);
-        const mapGen = new ROT.Map.Forest(cols, rows, conf);
+        const mapGen = new MapForest(cols, rows, conf);
         mapGen.create((x, y, val) => {
-            map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+            map.setBaseElemXY(x, y, ELEM.FLOOR);
             if (val === 1) {
                 map.setBaseElemXY(x, y, elem);
             }
@@ -1032,6 +1033,7 @@ export class MapGenerator {
     }
 }
 
+MapGenerator.options = {};
 MapGenerator.options.mountain = Object.freeze({
     noiseMult: 1,
     noiseDivider: 20,

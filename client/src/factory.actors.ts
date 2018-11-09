@@ -34,7 +34,7 @@ const initCombatant = (comb, obj) => {
 };
 
 /* Object for adjusting actor properties after the generation. */
-const ActorRandomizer = function() {
+export const ActorRandomizer = function() {
 
 };
 
@@ -99,18 +99,18 @@ export const FactoryActor = function() {
     /* Factory method for AI brain creation.*/
     this.createBrain = (actor, brainName) => {
         switch (brainName) {
-            case 'Animal': return new Brain.BrainAnimal(actor);
+            // case 'Animal': return new Brain.BrainAnimal(actor);
             case 'Archer': return new Brain.BrainArcher(actor);
-            case 'Demon': return new Brain.BrainDemon(actor);
+            // case 'Demon': return new Brain.BrainDemon(actor);
             case 'Flame': return new Brain.BrainFlame(actor);
             case 'GoalOriented': return new Brain.BrainGoalOriented(actor);
-            case 'Human': return new Brain.BrainHuman(actor);
+            // case 'Human': return new Brain.BrainHuman(actor);
             case 'NonSentient': return new Brain.BrainNonSentient(actor);
             case 'SpellCaster': return new Brain.BrainSpellCaster(actor);
             case 'Spirit': return new Brain.BrainSpirit(actor);
-            case 'Summoner': return new Brain.BrainSummoner(actor);
-            case 'Undead': return new Brain.BrainUndead(actor);
-            case 'Zombie': return new Brain.BrainZombie(actor);
+            // case 'Summoner': return new Brain.BrainSummoner(actor);
+            // case 'Undead': return new Brain.BrainUndead(actor);
+            // case 'Zombie': return new Brain.BrainZombie(actor);
             default: {
                 if (Brain[brainName]) {
                     return new Brain[brainName](actor);
@@ -120,7 +120,7 @@ export const FactoryActor = function() {
                     msg += 'Using the default Brain.BrainRogue instead.';
                     console.warn(msg);
                 }
-                return new Brain.BrainRogue(actor);
+                return new Brain.BrainSentient(actor);
             }
         }
     };
@@ -194,9 +194,4 @@ FactoryActor.prototype.generateNActors = function(nActors, func, maxDanger) {
 
     }
     return actors;
-};
-
-module.exports = {
-    ActorRandomizer,
-    FactoryActor
 };

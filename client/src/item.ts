@@ -775,7 +775,7 @@ Item.Gold = Gold;
 //-------------------------------------------
 /* Gold coins have standard weight and are (usually) made of pure gold.*/
 export class GoldCoin extends Gold {
-    constructor(name) {
+    constructor(name?: string) {
         const _name = name || RG.GOLD_COIN_NAME;
         super(_name);
         this.setType(RG.ITEM.GOLD_COIN);
