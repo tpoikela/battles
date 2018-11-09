@@ -6,7 +6,7 @@ import ROT from '../../lib/rot';
 
 type Coord = [number, number];
 
-const Keys: any = {};
+export const Keys: any = {};
 
 /* eslint-disable */
 Keys.VK_a = ROT.VK_A + 32;
@@ -316,5 +316,3 @@ Keys.isValidKey = keyCode => {
 Keys.getChar = keyCode => {
     return '`' + String.fromCharCode(keyCode) + '`';
 };
-
-export default Keys;

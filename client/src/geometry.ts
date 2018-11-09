@@ -1,17 +1,36 @@
 
-const RG = require('./rg');
+import RG from './rg';
+import {Random} from './random';
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
+
+type Coord = [number, number];
+
+interface BBox {
+    ulx: number;
+    uly: number;
+    lrx: number;
+    lry: number;
+}
+
+interface BBoxOld {
+    llx: number;
+    lly: number;
+    urx: number;
+    ury: number;
+}
+
+type BBoxType = BBox | BBoxOld;
 
 /* Contains generic 2D geometric functions for square/rectangle/triangle
  * generation and level manipulation. */
-RG.Geometry = {
+export const Geometry: any = {
 
     /* Returns all coord in a box around x0,y0 within distance d. Last arg can
      * be used to include the coordinate itself in the result. */
-    getBoxAround: function(x0, y0, d, incSelf = false) {
+    getBoxAround: function(x0, y0, d, incSelf = false): Coord[] {
         verifyInt([x0, y0]);
-        const res = [];
+        const res: Coord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
                 if (x !== x0 || y !== y0) {
@@ -23,9 +42,9 @@ RG.Geometry = {
         return res;
     },
 
-    getCrossAround: function(x0, y0, d, incSelf = false) {
+    getCrossAround: function(x0, y0, d, incSelf = false): Coord[] {
         verifyInt([x0, y0, d]);
-        const res = [];
+        const res: Coord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
                 if (x === x0 || y === y0) {
@@ -40,9 +59,9 @@ RG.Geometry = {
 
     },
 
-    getDiagCross: function(x0, y0, d, incSelf = false) {
+    getDiagCross: function(x0, y0, d, incSelf = false): Coord[] {
         verifyInt([x0, y0, d]);
-        const res = [];
+        const res: Coord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
                 const dX = x - x0;
@@ -56,9 +75,9 @@ RG.Geometry = {
         return res;
     },
 
-    getCrossCaveConn: function(x0, y0, d, incSelf = false) {
+    getCrossCaveConn: function(x0, y0, d, incSelf = false): Coord[] {
         verifyInt([x0, y0, d]);
-        const res = [];
+        const res: Coord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
                 if (x === x0 || y === y0) {
@@ -74,9 +93,9 @@ RG.Geometry = {
 
     /* Returns a box of coordinates given starting point and end points
      * (inclusive). */
-    getBox: function(x0, y0, maxX, maxY) {
+    getBox: function(x0, y0, maxX, maxY): Coord[] {
         verifyInt([x0, y0, maxX, maxY]);
-        const res = [];
+        const res: Coord[] = [];
         for (let x = x0; x <= maxX; x++) {
             for (let y = y0; y <= maxY; y++) {
                 res.push([x, y]);
@@ -86,52 +105,52 @@ RG.Geometry = {
     },
 
     /* Converts old (SoCE) style bbox to BitN bbox. */
-    convertBbox: function(bbox) {
+    convertBbox: function(bbox: BBoxType): BBox {
         if (bbox.hasOwnProperty('llx')) {
             return {
-                ulx: bbox.llx,
-                uly: bbox.ury,
-                lrx: bbox.urx,
-                lry: bbox.lly
+                ulx: (bbox as BBoxOld).llx,
+                uly: (bbox as BBoxOld).ury,
+                lrx: (bbox as BBoxOld).urx,
+                lry: (bbox as BBoxOld).lly
             };
         }
         else {
-            return bbox;
+            return (bbox as BBox);
         }
     },
 
-    getCoordBbox: function(bbox) {
+    getCoordBbox: function(bbox: BBox): Coord[] {
         const {ulx, uly, lrx, lry} = bbox;
         return this.getBox(ulx, uly, lrx, lry);
     },
 
-    getBorderForBbox: function(bbox) {
+    getBorderForBbox: function(bbox: BBox): Coord[] {
         const {ulx, uly, lrx, lry} = bbox;
         return this.getHollowBox(ulx, uly, lrx, lry);
     },
 
-    getCellsInBbox: function(map2D, bbox) {
+    getCellsInBbox: function(map2D: any[][], bbox: BBox) {
         const coord = this.getCoordBbox(bbox);
         const result = [];
-        coord.forEach(xy => {
+        coord.forEach((xy: Coord) => {
             result.push(map2D[xy[0]][xy[1]]);
         });
         return result;
     },
 
-    isInBbox: function(x, y, bbox) {
+    isInBbox: function(x: number, y: number, bbox: BBox) {
         const {ulx, uly, lrx, lry} = bbox;
         return x >= ulx && x <= lrx && y >= uly && y <= lry;
     },
 
-    isValidBbox: function(bbox) {
+    isValidBbox: function(bbox: any) {
         if (!bbox) {return false;}
         const {ulx, uly, lrx, lry} = bbox;
         return !RG.isNullOrUndef([ulx, uly, lrx, lry]);
     },
 
     /* Converts a direction into bbox based on cols, rows. */
-    dirToBbox: function(cols, rows, dir) {
+    dirToBbox: function(cols: number, rows: number, dir: Coord): BBox {
         const colsDiv = Math.round(cols / 3);
         const rowsDiv = Math.round(rows / 3);
         const cBbox = {ulx: colsDiv, uly: rowsDiv,
@@ -186,12 +205,14 @@ RG.Geometry = {
         const highY = y0 + size;
         const lowY = y0 - size;
 
-        const diamond = {};
-        const coord = [[x0, y0]];
-        diamond.N = [midX, highY];
-        diamond.S = [midX, lowY];
-        diamond.E = [RightX, y0];
-        diamond.W = [x0, y0];
+        const coord: Coord[] = [[x0, y0]];
+        const diamond = {
+            N: [midX, highY],
+            S: [midX, lowY],
+            E: [RightX, y0],
+            W: [x0, y0],
+            coord: []
+        };
         // Left side of the diamond
         for (let x = x0 + 1; x <= midX; x++) {
             // Upper left coordinates
@@ -446,7 +467,7 @@ RG.Geometry = {
 
         const numActorsNew1 = l1.getActors().length;
         if (numActorsNew1 !== numExpActors) {
-            RG.err('RG.Geometry', 'mergeLevels',
+            RG.err('Geometry', 'mergeLevels',
                 `Num actors new: ${numActorsNew1}, exp: ${numExpActors}`);
         }
     },
@@ -812,7 +833,7 @@ Flood-fill (node, target-color, replacement-color):
 
 /* Given a starting cell and type, floodfills the map from that position and
  * returns all cells included in the floodfill. */
-RG.Geometry.floodfill = function(map, cell, type, diag = false) {
+Geometry.floodfill = function(map, cell, type, diag = false) {
     let filterFunc = type;
     if (typeof type === 'string') {
         filterFunc = c => c.getBaseElem().getType() === type;
@@ -875,7 +896,7 @@ RG.Geometry.floodfill = function(map, cell, type, diag = false) {
  * Optionally, creates a lookup table for fast lookup, and can fill diagonally,
  * if the last arg is true.
  */
-RG.Geometry.floodfill2D = function(map, xy, value, lut = false, diag = false) {
+Geometry.floodfill2D = function(map, xy, value, lut = false, diag = false) {
     const [x, y] = xy;
     if (map[x][y] !== value) {return [];}
 
@@ -933,7 +954,7 @@ RG.Geometry.floodfill2D = function(map, xy, value, lut = false, diag = false) {
 };
 
 
-RG.Geometry.getMassCenter = function(arr) {
+Geometry.getMassCenter = function(arr) {
     let x = 0;
     let y = 0;
     for (let i = 0; i < arr.length; i++) {
@@ -947,11 +968,11 @@ RG.Geometry.getMassCenter = function(arr) {
 };
 
 /* Square fill finds the largest square shaped region of a given cell type. */
-RG.Geometry.squareFill = function(map, cell, type, dXdY) {
+Geometry.squareFill = function(map, cell, type, dXdY) {
     const [endX, endY] = cell.getXY();
     const [dX, dY] = dXdY;
     if (dX === 0 || dY === 0) {
-        RG.err('RG.Geometry', 'squareFill',
+        RG.err('Geometry', 'squareFill',
             `dx,dy must be -1 or 1. Got ${dXdY}`);
     }
     let failed = false;
@@ -1010,7 +1031,7 @@ RG.Geometry.squareFill = function(map, cell, type, dXdY) {
     return result;
 };
 
-RG.Geometry.histArrayVals = function(array) {
+Geometry.histArrayVals = function(array) {
     const hist = {};
     array.forEach(value => {
         if (hist[value]) {hist[value] += 1;}
@@ -1029,5 +1050,3 @@ function verifyInt(arr) {
         }
     });
 }
-
-module.exports = RG.Geometry;

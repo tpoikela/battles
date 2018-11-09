@@ -27,16 +27,27 @@
  */
 
 import RG from './rg';
-import Keys from './keymap';
+import {Keys} from './keymap';
 
 const {KeyMap} = Keys;
 
-const Menu: any = {};
+export const Menu: any = {};
 Menu.EXIT_MENU = null;
 Menu.NO_ACTION = 'NO_ACTION';
 Menu.NEXT_STATE = 'NEXT_STATE';
 
-const createMenuTable = args => {
+
+type VoidFunc = () => void;
+interface MenuCallObj {
+    funcToCall: VoidFunc;
+}
+type MenuItem = MenuBase | VoidFunc | [string, any] | MenuCallObj;
+
+interface MenuTable {
+    [key: string]: MenuItem;
+}
+
+const createMenuTable = function(args): MenuTable {
     const table = {};
     args.forEach((item, i) => {
         const index = Keys.menuIndices[i];
@@ -75,237 +86,263 @@ Menu.isMenuItem = function(selection) {
 //------------------------------
 /* Base class for all menus. */
 //------------------------------
-const MenuBase = function(args = []) {
-    this.table = createMenuTable(args);
-    this.msg = '';
-    this.pre = [];
-    this.post = [];
+export class MenuBase {
 
-    this.parent = null; // Parent menu for this object
+    public msg: string;
+    public pre: string[];
+    public post: string[];
+    public parent: MenuBase | null;
+    public table: MenuTable;
+    protected _showMenu: boolean;
+    public callback: (any) => void;
 
-    this.setMsg = msg => {
+    constructor(args = []) {
+        this.table = createMenuTable(args);
+        this.msg = '';
+        this.pre = [];
+        this.post = [];
+        this._showMenu = true;
+
+        this.parent = null; // Parent menu for this object
+
+
+    }
+
+    setMsg(msg: string) {
         this.msg = msg;
-    };
+    }
 
-    this.showMsg = () => {
+    showMsg() {
         if (this.msg.length > 0) {
             RG.gameMsg(this.msg);
         }
-    };
+    }
 
-    this.showMenu = () => true;
 
-    this.setParent = parent => {
+    setParent(parent: MenuBase | null) {
         this.parent = parent;
-    };
+    }
 
-    this.getParent = () => this.parent;
+    getParent() {
+        return this.parent;
+    }
 
 
-    this.addItem = (code, item) => {
+    addItem(code, item) {
         const index = Keys.codeToIndex(code);
         this.table[index] = item;
-    };
+    }
 
-};
+    showMenu() {return this._showMenu;}
+
+    setCallback(cb) {
+        this.callback = cb;
+    }
+
+    getMenu() {
+        const obj = {pre: [], post: []};
+        Object.keys(this.table).forEach(index => {
+            const char = Keys.menuIndices[index];
+            obj[char] = this.table[index][0];
+        });
+        obj.pre = this.pre;
+        obj.post = this.post;
+        return obj;
+    }
+
+    addPost(item) {
+        if (Array.isArray(item)) {
+            this.post = this.post.concat(item);
+        }
+        else {
+            this.post.push(item);
+        }
+    }
+
+    addPre(item) {
+        if (Array.isArray(item)) {
+            this.pre = this.pre.concat(item);
+        }
+        else {
+            this.pre.push(item);
+        }
+    }
+}
+
 Menu.Base = MenuBase;
-
-MenuBase.prototype.getMenu = function() {
-    const obj = {pre: [], post: []};
-    Object.keys(this.table).forEach(index => {
-        const char = Keys.menuIndices[index];
-        obj[char] = this.table[index][0];
-    });
-    obj.pre = this.pre;
-    obj.post = this.post;
-    return obj;
-};
-
-MenuBase.prototype.addPost = function(item) {
-    if (Array.isArray(item)) {
-        this.post = this.post.concat(item);
-    }
-    else {
-        this.post.push(item);
-    }
-};
-
-MenuBase.prototype.addPre = function(item) {
-    if (Array.isArray(item)) {
-        this.pre = this.pre.concat(item);
-    }
-    else {
-        this.pre.push(item);
-    }
-};
 
 /* InfoOnly menu does not contain actual selection, but is intended to show
  * player crucial info they should not miss. Menu can be exited only by pressing
  * a specific key. */
-const MenuInfoOnly = function() {
-    MenuBase.call(this);
+export class MenuInfoOnly extends MenuBase {
+    constructor() {
+        super();
+    }
 
-
-    this.select = code => {
+    select(code) {
         const selection = Keys.codeToIndex(code);
         if (selection === 0) {
             return Menu.EXIT_MENU;
         }
         return this;
-    };
-};
+    }
+
+    getMenu() {
+        const obj = {
+            0: 'Back to game.',
+            pre: this.pre,
+            post: this.post
+        };
+        return obj;
+    }
+}
+
 RG.extend2(MenuInfoOnly, MenuBase);
 Menu.InfoOnly = MenuInfoOnly;
 
-MenuInfoOnly.prototype.getMenu = function() {
-    const obj = {
-        0: 'Back to game.',
-        pre: this.pre,
-        post: this.post
-    };
-    return obj;
-};
-
 /* This menu can be used when quit option is required. You can add a callback by
  * setting onQuit to a desired function. */
-const MenuWithQuit = function(args) {
-    MenuBase.call(this, args);
-    const quitIndex = Keys.codeToIndex(Keys.KEY.QUIT_MENU);
-    this.table[quitIndex] = ['Quit menu', Menu.EXIT_MENU];
+export class MenuWithQuit extends MenuBase {
+    public onQuit: VoidFunc | boolean;
 
-    this.select = code => {
+    constructor(args) {
+        super(args);
+        const quitIndex = Keys.codeToIndex(Keys.KEY.QUIT_MENU);
+        this.table[quitIndex] = ['Quit menu', Menu.EXIT_MENU];
+    }
+
+    select(code) {
         const selection = Keys.codeToIndex(code);
         if (this.table.hasOwnProperty(selection)) {
             const value = this.table[selection][1];
             if (value === Menu.EXIT_MENU && this.onQuit) {
-                this.onQuit();
+                (this.onQuit as VoidFunc)();
             }
             return value;
         }
         return this;
-    };
-
-};
-RG.extend2(MenuWithQuit, MenuBase);
+    }
+}
 Menu.WithQuit = MenuWithQuit;
 
 /* This menu can be used for functionality requiring always a selection. */
-const MenuSelectRequired = function(args) {
-    MenuBase.call(this, args);
+export class MenuSelectRequired extends MenuBase {
+    constructor(args) {
+        super(args);
+    }
 
-    this.select = code => {
+    select(code) {
         const selection = Keys.codeToIndex(code);
         if (this.table.hasOwnProperty(selection)) {
             return this.table[selection][1];
         }
         return this;
-    };
-};
-RG.extend2(MenuSelectRequired, MenuBase);
+    }
+}
+
 Menu.SelectRequired = MenuSelectRequired;
 
 /* This menu can be used when a cell needs to be selected. It does not shown a
  * menu. You should communicate with RG.gameMsg() what player needs to do with
  * this menu. */
-const MenuSelectCell = function(args) {
-    MenuBase.call(this, args);
-    this._enableSelectAll = false;
-    if (args.enableSelectAll) {
-        this.enableSelectAll = args.enableSelectAll;
+export class MenuSelectCell extends MenuBase {
+    private _enableSelectAll: boolean;
+
+    constructor(args) {
+        super(args);
+        this._enableSelectAll = false;
+        if (args.enableSelectAll) {
+            this._enableSelectAll = args.enableSelectAll;
+        }
+        this._showMenu = false;
+
+
+
     }
 
-    this.setCallback = cb => {
-        this.callback = cb;
-    };
-
-    this.showMenu = () => false;
-
-    this.enableSelectAll = () => {
+    enableSelectAll() {
         this._enableSelectAll = true;
     };
 
-
-};
-RG.extend2(MenuSelectCell, MenuBase);
-Menu.SelectCell = MenuSelectCell;
-
-MenuSelectCell.prototype.select = function(code) {
-    if (KeyMap.inMoveCodeMap(code)) {
-        this.callback(code);
-        return this;
-    }
-    else if (KeyMap.isSelect(code)) {
-        const keyIndex = Keys.codeToIndex(code);
-        const retVal = this.table[keyIndex];
-        if (retVal.funcToCall) {
-            return retVal.funcToCall;
+    select(code) {
+        if (KeyMap.inMoveCodeMap(code)) {
+            this.callback(code);
+            return this;
         }
-        return retVal;
-    }
-    else if (this._enableSelectAll && KeyMap.isSelectAll(code)) {
-        this.callback(code);
-        return this;
-    }
-    return Menu.EXIT_MENU;
-};
-
-//---------------------------------------------------------------------------
-
-const MenuSelectTarget = function(args) {
-    MenuSelectCell.call(this, args);
-    this.targetCallback = null;
-
-};
-RG.extend2(MenuSelectTarget, MenuSelectCell);
-
-MenuSelectTarget.prototype.select = function(code) {
-    const val = MenuSelectCell.prototype.select.call(this, code);
-    if (val === Menu.EXIT_MENU) {
-        if (KeyMap.isNextTarget(code)) {
-            if (this.targetCallback) {
-                this.targetCallback(code);
-            }
-            return this; // Keep menu open
-        }
-        else if (KeyMap.isPrevTarget(code)) {
-            if (this.targetCallback) {
-                this.targetCallback(code);
-            }
-            return this; // Keep menu open
-        }
-        else if (code === KeyMap.KEY.TARGET) {
+        else if (KeyMap.isSelect(code)) {
             const keyIndex = Keys.codeToIndex(code);
             const retVal = this.table[keyIndex];
-            if (retVal.funcToCall) {
-                return retVal.funcToCall;
+            if ((retVal as MenuCallObj).funcToCall) {
+                return (retVal as MenuCallObj).funcToCall;
             }
             return retVal;
         }
+        else if (this._enableSelectAll && KeyMap.isSelectAll(code)) {
+            this.callback(code);
+            return this;
+        }
         return Menu.EXIT_MENU;
     }
-    return val;
-};
+}
+
+RG.extend2(MenuSelectCell, MenuBase);
+Menu.SelectCell = MenuSelectCell;
+
+//---------------------------------------------------------------------------
+
+export class MenuSelectTarget extends MenuSelectCell {
+
+    public targetCallback: (any) => void;
+
+    constructor(args) {
+        super(args);
+        this.targetCallback = null;
+    }
+
+    select(code) {
+        const val = MenuSelectCell.prototype.select.call(this, code);
+        if (val === Menu.EXIT_MENU) {
+            if (KeyMap.isNextTarget(code)) {
+                if (this.targetCallback) {
+                    this.targetCallback(code);
+                }
+                return this; // Keep menu open
+            }
+            else if (KeyMap.isPrevTarget(code)) {
+                if (this.targetCallback) {
+                    this.targetCallback(code);
+                }
+                return this; // Keep menu open
+            }
+            else if (code === KeyMap.KEY.TARGET) {
+                const keyIndex = Keys.codeToIndex(code);
+                const retVal = this.table[keyIndex];
+                if ((retVal as MenuCallObj).funcToCall) {
+                    return (retVal as MenuCallObj).funcToCall;
+                }
+                return retVal;
+            }
+            return Menu.EXIT_MENU;
+        }
+        return val;
+    }
+}
 
 /* This menu can be used when direction selection is required. */
-const MenuSelectDir = function(args) {
-    MenuBase.call(this, args);
+export class MenuSelectDir extends MenuBase {
+    constructor(args) {
+        super(args);
+        this._showMenu = false;
+    }
 
-    this.showMenu = () => false;
-
-    /* Called once a valid direction is selected. Callback will receive
-     * the direction as [dx, dy]. */
-    this.setCallback = cb => {
-        this.callback = cb;
-    };
-
-    this.select = code => {
+    select(code) {
         if (KeyMap.inMoveCodeMap(code)) {
             const dXdY = Keys.KeyMap.getDir(code);
             return this.callback.bind(null, dXdY);
         }
         return Menu.EXIT_MENU;
-    };
-};
+    }
+}
 Menu.SelectDir = MenuSelectDir;
 
 //---------------------------------------------------------------------------
@@ -314,25 +351,35 @@ Menu.SelectDir = MenuSelectDir;
  * user hits C-D, it goes to a deletion state. In this case, selection callback
  * is replaced by deletion callback. */
 //---------------------------------------------------------------------------
-const MenuWithState = function(args) {
-    MenuWithQuit.call(this, args);
+export class MenuWithState extends MenuWithQuit {
 
-    // Maps key presses to transitions into new state
-    this.keyToState = {};
+    public menuState: string;
+    public keyToState: {[key: string]: string};
+    public stateToTable: {[key: string]: MenuTable};
 
-    // Maps state to a table of options/functions
-    this.stateToTable = {};
+    public stateToPost: {[key: string]: string};
+    public stateToPre: {[key: string]: string};
 
-    // State-specific pre/post texts
-    this.stateToPost = {};
-    this.stateToPre = {};
+    constructor(args) {
+        super(args);
+        this._showMenu = true;
 
-    this.showMenu = () => true;
+        // Maps key presses to transitions into new state
+        this.keyToState = {};
 
-    // Current menu state
-    this.menuState = '';
+        // Maps state to a table of options/functions
+        this.stateToTable = {};
 
-    this.select = code => {
+        // State-specific pre/post texts
+        this.stateToPost = {};
+        this.stateToPre = {};
+
+        // Current menu state
+        this.menuState = '';
+
+    }
+
+    select(code) {
         if (this.keyToState.hasOwnProperty(code)) {
             this.menuState = this.keyToState[code];
             return this;
@@ -342,7 +389,7 @@ const MenuWithState = function(args) {
             if (this.table.hasOwnProperty(selection)) {
                 const value = this.table[selection][1];
                 if (value === Menu.EXIT_MENU && this.onQuit) {
-                    this.onQuit();
+                    (this.onQuit as VoidFunc)();
                 }
                 return value;
             }
@@ -353,55 +400,53 @@ const MenuWithState = function(args) {
             }
             return this;
         }
-    };
+    }
 
-    this.addState = (state, menuArgs) => {
+    addState(state, menuArgs) {
         this.stateToTable[state] = createMenuTable(menuArgs);
-    };
+    }
 
-    this.addTransition = (state, code) => {
+    addTransition(state, code) {
         this.keyToState[code] = state;
-    };
-};
-RG.extend2(MenuWithState, MenuWithQuit);
+    }
+
+    /* Returns the menu which should be shown. */
+    getMenu() {
+        const quitObj = MenuWithQuit.prototype.getMenu.call(this);
+        const state = this.menuState;
+        const table = this.stateToTable[state];
+        let obj = {pre: this.pre, post: this.post};
+        Object.keys(table).forEach(index => {
+            const char = Keys.menuIndices[index];
+            obj[char] = table[index][0];
+        });
+        obj = Object.assign(obj, quitObj);
+        if (this.stateToPre[state]) {
+            obj.pre.push(this.stateToPre[state]);
+        }
+        if (this.stateToPost[state]) {
+            obj.post.push(this.stateToPost[state]);
+        }
+        return obj;
+    }
+
+    addPreState(item, state) {
+        if (state) {
+            this.stateToPre[state] = item;
+        }
+        else {
+            MenuWithQuit.prototype.addPre.call(this, item);
+        }
+    }
+
+    addPostState(item, state) {
+        if (state) {
+            this.stateToPost[state] = item;
+        }
+        else {
+            MenuWithQuit.prototype.addPost.call(this, item);
+        }
+    }
+}
+
 Menu.WithState = MenuWithState;
-
-/* Returns the menu which should be shown. */
-MenuWithState.prototype.getMenu = function() {
-    const quitObj = MenuWithQuit.prototype.getMenu.call(this);
-    const state = this.menuState;
-    const table = this.stateToTable[state];
-    let obj = {pre: this.pre, post: this.post};
-    Object.keys(table).forEach(index => {
-        const char = Keys.menuIndices[index];
-        obj[char] = table[index][0];
-    });
-    obj = Object.assign(obj, quitObj);
-    if (this.stateToPre[state]) {
-        obj.pre.push(this.stateToPre[state]);
-    }
-    if (this.stateToPost[state]) {
-        obj.post.push(this.stateToPost[state]);
-    }
-    return obj;
-};
-
-MenuWithState.prototype.addPre = function(item, state) {
-    if (state) {
-        this.stateToPre[state] = item;
-    }
-    else {
-        MenuWithQuit.prototype.addPre.call(this, item);
-    }
-};
-
-MenuWithState.prototype.addPost = function(item, state) {
-    if (state) {
-        this.stateToPost[state] = item;
-    }
-    else {
-        MenuWithQuit.prototype.addPost.call(this, item);
-    }
-};
-
-export default Menu;

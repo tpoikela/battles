@@ -6,7 +6,7 @@
 
 import RG from './rg';
 import GameObject from './game-object';
-import EventPool from '../src/eventpool';
+import {EventPool} from '../src/eventpool';
 
 const POOL = EventPool.getPool();
 

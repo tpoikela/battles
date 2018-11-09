@@ -2,7 +2,7 @@
 import RG from './rg';
 import {Random} from './random';
 import * as Menu from './menu';
-import * as Actor from './actor';
+import {SentientActor} from './actor';
 
 const RNG = Random.getRNG();
 
@@ -13,7 +13,7 @@ type MenuItem = [string, () => void];
 
 export class AbilityBase {
     public name: string;
-    public actor: Actor.Rogue;
+    public actor: SentientActor;
 
     constructor(name: string) {
         this.name = name;
@@ -47,6 +47,7 @@ export const Self = function(name) {
     Ability.Base.call(this, name);
 };
 RG.extend2(Self, Ability.Base);
+Ability.Self = Self;
 
 Self.prototype.getMenuItem = function() {
     return [
@@ -86,6 +87,7 @@ export const Item = function(name) {
     Ability.Base.call(this, name);
 };
 RG.extend2(Item, Ability.Base);
+Ability.Item = Item;
 
 Item.prototype.activate = function(item) {
     const json = JSON.stringify(item);
@@ -101,7 +103,7 @@ Item.prototype.getMenuItem = function() {
             this.activate.bind(this, item)
         ]
     ));
-    const itemMenu = new Menu.WithQuit(itemMenuItems);
+    const itemMenu = new Menu.MenuWithQuit(itemMenuItems);
     itemMenu.addPre('Select an item to sharpen:');
     return [
         this.getName(),
@@ -115,7 +117,7 @@ export const Sharpener = function() {
 };
 RG.extend2(Sharpener, Ability.Item);
 
-Ability.Sharpener.prototype.activate = function(item) {
+Sharpener.prototype.activate = function(item) {
     const name = item.getName();
     if (!item.has('Sharpened')) {
         if (item.getDamageDie) {
@@ -138,7 +140,7 @@ Ability.Sharpener.prototype.activate = function(item) {
 export class Abilities {
 
     public abilities: {[key: string]: AbilityBase};
-    public actor: Actor.Rogue;
+    public actor: SentientActor;
 
     constructor(actor) {
         this.actor = actor;
@@ -149,7 +151,7 @@ export class Abilities {
         const menuArgs = Object.values(this.abilities).map(abil => (
             abil.getMenuItem()
         ));
-        const menu = new Menu.WithQuit(menuArgs);
+        const menu = new Menu.MenuWithQuit(menuArgs);
         menu.addPre('Select an ability to use:');
         return menu;
     }

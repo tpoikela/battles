@@ -4,16 +4,15 @@
  */
 
 import RG from './rg';
-import Entity from './entity';
-import Mixin from './mixin';
-import ObjectShell from './objectshellparser';
+import {Entity} from './entity';
+import * as Mixin from './mixin';
 
-RG.Element = {};
+export const Element: any = {};
 
 const wallRegexp = /wall/;
 const obstacleRegexp = /(?:highrock|water|chasm|wall)/;
 
-RG.Element.canJumpOver = type => {
+Element.canJumpOver = type => {
     return !(wallRegexp.test(type) || (/highrock/).test(type));
 };
 
@@ -24,7 +23,7 @@ interface NameArgs {
 
 /* Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
-class RGElementBase extends Mixin.Typed(Entity) {
+export class ElementBase extends Mixin.Typed(Entity) {
     constructor(elemName: string | NameArgs, elemType?: string) {
         let name = null;
         let type = null;
@@ -93,10 +92,10 @@ class RGElementBase extends Mixin.Typed(Entity) {
 
     }
 }
-RG.Element.Base = RGElementBase;
+Element.Base = ElementBase;
 RG.elementsCreated = 0;
 
-class RGElementWall extends RGElementBase {
+export class ElementWall extends ElementBase {
 
     constructor(name) {
         super(name);
@@ -107,11 +106,11 @@ class RGElementWall extends RGElementBase {
     }
 
 }
-RG.Element.Wall = RGElementWall;
+Element.Wall = ElementWall;
 
 /* Object models stairs connecting two levels. Stairs are one-way, thus
  * connecting 2 levels requires two stair objects. */
-class RGElementStairs extends Mixin.Locatable(RGElementBase) {
+export class ElementStairs extends Mixin.Locatable(ElementBase) {
 
     constructor(name, srcLevel, targetLevel) {
         super({name, type: 'connection'});
@@ -268,10 +267,10 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
 
 }
 
-RG.Element.Stairs = RGElementStairs;
+Element.Stairs = ElementStairs;
 
 /* Name says it all, be it open or closed.*/
-class RGElementDoor extends Mixin.Locatable(RGElementBase) {
+export class ElementDoor extends Mixin.Locatable(ElementBase) {
     constructor(closed) {
         super('door');
         this._closed = (typeof closed === 'undefined')
@@ -315,10 +314,10 @@ class RGElementDoor extends Mixin.Locatable(RGElementBase) {
         };
     }
 }
-RG.Element.Door = RGElementDoor;
+Element.Door = ElementDoor;
 
 /* A door which can be opened using a lever only. */
-class RGElementLeverDoor extends RGElementDoor {
+export class ElementLeverDoor extends ElementDoor {
 
     constructor() {
         super(true);
@@ -338,12 +337,12 @@ class RGElementLeverDoor extends RGElementDoor {
         return json;
     }
 }
-RG.Element.LeverDoor = RGElementLeverDoor;
+Element.LeverDoor = ElementLeverDoor;
 
 /* Lever element can be used to trigger any target entities having onUse(actor)
  * function. Targets should be added using addTarget().
  */
-class RGElementLever extends Mixin.Locatable(RGElementBase) {
+export class ElementLever extends Mixin.Locatable(ElementBase) {
 
     constructor() {
         super('lever');
@@ -374,10 +373,10 @@ class RGElementLever extends Mixin.Locatable(RGElementBase) {
         };
     }
 }
-RG.Element.Lever = RGElementLever;
+Element.Lever = ElementLever;
 
 /* A shop element is added to each cell inside a shop.*/
-class RGElementShop extends Mixin.Locatable(RGElementBase) {
+export class ElementShop extends Mixin.Locatable(ElementBase) {
     constructor() {
         super('shop');
         this._shopkeeper = null;
@@ -487,10 +486,10 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
     }
 }
 
-RG.Element.Shop = RGElementShop;
+Element.Shop = ElementShop;
 
 /* An experience element which is found in the dungeons. */
-class RGElementExploration extends Mixin.Locatable(RGElementBase) {
+export class ElementExploration extends Mixin.Locatable(ElementBase) {
     constructor() {
         super('exploration');
         this.exp = 0;
@@ -517,7 +516,7 @@ class RGElementExploration extends Mixin.Locatable(RGElementBase) {
             this.exp = exp;
         }
         else {
-            RG.err('RGElementExploration', 'setExp',
+            RG.err('ElementExploration', 'setExp',
                 `exp is not an integer: ${exp}`);
         }
     }
@@ -547,20 +546,20 @@ class RGElementExploration extends Mixin.Locatable(RGElementBase) {
     }
 
 }
-RG.Element.Exploration = RGElementExploration;
+Element.Exploration = ElementExploration;
 
 /* Used in proc gen to denote places for actors, items and other elements. For
 * example, different places for stairs can be set, and then one chosen. */
-class RGElementPlaceholder extends Mixin.Locatable(RGElementBase) {
+export class ElementPlaceholder extends Mixin.Locatable(ElementBase) {
     constructor() {
         super('placeholder');
     }
 }
-RG.Element.PlaceHolder = RGElementPlaceholder;
+Element.PlaceHolder = ElementPlaceholder;
 
 /* Used in the debugging of levels only. Can be used to add arbitrary characters
  * into level maps when debugging. */
-class RGElementMarker extends Mixin.Locatable(RGElementBase) {
+export class ElementMarker extends Mixin.Locatable(ElementBase) {
     constructor(char) {
         super('marker');
         this.char = char;
@@ -584,60 +583,5 @@ class RGElementMarker extends Mixin.Locatable(RGElementBase) {
         return json;
     }
 }
-RG.Element.Marker = RGElementMarker;
+Element.Marker = ElementMarker;
 
-export const ELEM: {[key: string]: RGElementBase} = {};
-RG.ELEM = ELEM;
-
-const parser = ObjectShell.getParser();
-// Constant elements which can be used by all levels. freeze()
-// used to prevent any mutations. Note that elements with any state
-// in them should not be shared (unless state is common for all)
-RG.ELEM.BRIDGE = Object.freeze(parser.createElement('bridge'));
-RG.ELEM.CHASM = Object.freeze(parser.createElement('chasm'));
-
-RG.ELEM.FLOOR = Object.freeze(parser.createElement('floor'));
-RG.ELEM.FLOOR_CASTLE = Object.freeze(parser.createElement('floorcastle'));
-RG.ELEM.FLOOR_CAVE = Object.freeze(parser.createElement('floorcave'));
-RG.ELEM.FLOOR_CRYPT = Object.freeze(parser.createElement('floorcrypt'));
-RG.ELEM.FLOOR_HOUSE = Object.freeze(parser.createElement('floorhouse'));
-RG.ELEM.FLOOR_WOODEN = Object.freeze(parser.createElement('floorwooden'));
-
-RG.ELEM.GRASS = Object.freeze(parser.createElement('grass'));
-RG.ELEM.HIGH_ROCK = Object.freeze(parser.createElement('highrock'));
-RG.ELEM.LAVA = Object.freeze(parser.createElement('lava'));
-RG.ELEM.PATH = Object.freeze(parser.createElement('path'));
-RG.ELEM.ROAD = Object.freeze(parser.createElement('road'));
-RG.ELEM.SKY = Object.freeze(parser.createElement('sky'));
-RG.ELEM.SNOW = Object.freeze(parser.createElement('snow'));
-RG.ELEM.STONE = Object.freeze(parser.createElement('stone'));
-RG.ELEM.TREE = Object.freeze(parser.createElement('tree'));
-
-RG.ELEM.WALL = Object.freeze(new RGElementWall('wall'));
-RG.ELEM.WALL_CASTLE = Object.freeze(new RGElementWall('wallcastle'));
-RG.ELEM.WALL_CAVE = Object.freeze(new RGElementWall('wallcave'));
-RG.ELEM.WALL_CRYPT = Object.freeze(new RGElementWall('wallcrypt'));
-RG.ELEM.WALL_ICE = Object.freeze(new RGElementWall('wallice'));
-RG.ELEM.WALL_WOODEN = Object.freeze(new RGElementWall('wallwooden'));
-RG.ELEM.WALL_MOUNT = Object.freeze(new RGElementWall('wallmount'));
-
-// RG.ELEM.WATER = Object.freeze(new RG.Element.Water());
-RG.ELEM.WATER = Object.freeze(parser.createElement('water'));
-RG.ELEM.FORT = Object.freeze(parser.createElement('fort'));
-
-RG.elemTypeToObj = {};
-RG.elemTypeToIndex = {};
-RG.elemIndexToType = {};
-RG.elemIndexToElemObj = {};
-let elemIndex = 1;
-Object.keys(RG.ELEM).forEach(key => {
-    const type = RG.ELEM[key].getType();
-    RG.elemTypeToObj[type] = RG.ELEM[key];
-    RG.elemTypeToIndex[type] = elemIndex;
-    RG.elemIndexToType[elemIndex] = type;
-    RG.elemIndexToElemObj[elemIndex] = RG.ELEM[key];
-    ++elemIndex;
-});
-
-
-export default RG.Element;

@@ -5,7 +5,7 @@ import * as Component from './component';
 import * as Mixin from './mixin';
 import * as Actor from './actor';
 import {Entity} from './entity';
-import EventPool from '../src/eventpool';
+import {EventPool} from '../src/eventpool';
 
 const POOL = EventPool.getPool();
 
@@ -743,7 +743,7 @@ Item.Container = Container;
 //----------------
 export class Gold extends Base {
 
-    private _purity: string;
+    protected _purity: number;
 
     constructor(name) {
         super(name);

@@ -2,16 +2,18 @@
 /* This file contains objecsts for chat interactions between player and NPCs. */
 
 import RG from './rg';
-import Keys from './keymap';
-import Menu from './menu';
-import * as Actor from './actor';
+import {Keys} from './keymap';
+import * as Menu from './menu';
+import {SentientActor} from './actor';
 
 export const Chat: any = {};
 const stats = RG.STATS;
 
+const EXIT_MENU = Menu.Menu.EXIT_MENU;
+
 const OPTION_GOODBYE = {
     name: 'Say goodbye',
-    option: Menu.EXIT_MENU
+    option: EXIT_MENU
 };
 
 interface SelObject {
@@ -24,9 +26,9 @@ interface SelObject {
 
 /* Chat object added to actors which have any interesting things to chat about.
  */
-class ChatBase {
+export class ChatBase {
 
-    public chatter: Actor.Rogue;
+    public chatter: SentientActor;
     public options: any[];
     public parent: any | null;
     public pre: string[];
@@ -79,14 +81,14 @@ class ChatBase {
                 const selection = Keys.codeToIndex(code);
                 if (selection < this.options.length) {
                     const value = this.options[selection].option;
-                    if (value !== Menu.EXIT_MENU) {
+                    if (value !== EXIT_MENU) {
                         if (value.getSelectionObject) {
                             return value.getSelectionObject();
                         }
                     }
                     return value;
                 }
-                return Menu.EXIT_MENU;
+                return EXIT_MENU;
             }
         };
         return selObj;
@@ -96,9 +98,9 @@ class ChatBase {
 Chat.ChatBase = ChatBase;
 
 /* Object used in actors which can give quests. */
-class ChatQuest extends ChatBase {
+export class ChatQuest extends ChatBase {
 
-    public questGiver: Actor.Rogue;
+    public questGiver: SentientActor;
 
     constructor() {
         super();
@@ -108,7 +110,7 @@ class ChatQuest extends ChatBase {
         };
         const refuseOpt = {
             name: 'Refuse the quest',
-            option: Menu.EXIT_MENU
+            option: EXIT_MENU
         };
         this.add(acceptOpt);
         this.add(refuseOpt);
@@ -166,9 +168,9 @@ class ChatQuest extends ChatBase {
 Chat.Quest = ChatQuest;
 
 /* Chat Object for trainers in the game. */
-class ChatTrainer extends ChatBase {
+export class ChatTrainer extends ChatBase {
 
-    public trainer: Actor.Rogue;
+    public trainer: SentientActor;
     public costs: any;
 
     constructor() {
@@ -260,9 +262,9 @@ class ChatTrainer extends ChatBase {
 Chat.Trainer = ChatTrainer;
 
 /* Object attached to wizards selling magical services. */
-class ChatWizard extends ChatBase {
+export class ChatWizard extends ChatBase {
 
-    public wizard: Actor.Rogue;
+    public wizard: SentientActor;
     public costs: {[key: string]: number};
 
     constructor() {
@@ -340,5 +342,3 @@ class ChatWizard extends ChatBase {
 
 }
 Chat.Wizard = ChatWizard;
-
-export default Chat;

@@ -3,16 +3,15 @@ import RG from './rg';
 import * as Ability from './abilities';
 
 import * as Mixin from './mixin';
-import * as Chat from './chat';
+import {ChatTrainer, ChatQuest} from './chat';
 import {ComponentBase, Component} from './component.base';
-import EventPool from '../src/eventpool';
-
-const Abilities = Ability.Abilities;
+import {EventPool} from '../src/eventpool';
 
 const POOL = EventPool.getPool();
 
 const DataComponent = Component.DataComponent;
 const UniqueDataComponent = Component.UniqueDataComponent;
+const UniqueTransientDataComponent = Component.UniqueDataComponent;
 const TransientDataComponent = Component.TransientDataComponent;
 const TransientTagComponent = Component.TransientTagComponent;
 const TagComponent = Component.TagComponent;
@@ -43,7 +42,6 @@ Action.prototype.enable = function() {
         const name = this.getEntity().getName();
         const id = this.getEntity().getID();
         const entInfo = `${name} ${id}`;
-        debug(`Action already active for ${entInfo}`);
     }
 };
 
@@ -347,7 +345,7 @@ export const Trainer = UniqueDataComponent('Trainer', {
 delete Trainer.prototype.setChatObj;
 
 Trainer.prototype._init = function() {
-    this.chatObj = new Chat.Trainer();
+    this.chatObj = new ChatTrainer();
 
     const _addCb = () => {
       this.chatObj.setTrainer(this.getEntity());
@@ -623,18 +621,20 @@ export const MindControl = function() {
     this.addCallback('onRemove', _removeCb);
 
 };
-RG.extend2(Component.MindControl, ComponentBase);
+RG.extend2(MindControl, ComponentBase);
 
 MindControl.prototype.toJSON = function() {
     const obj = ComponentBase.prototype.toJSON.call(this);
-    if (RG.isActorActive(_src)) {
-        obj.setSource = RG.getObjRef('entity', _src);
+    if (RG.isActorActive(this.getSource())) {
+        obj.setSource = RG.getObjRef('entity', this.getSource());
     }
     return obj;
 };
 
 /* Poison component which damages the entity.*/
 export class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(ComponentBase)) {
+
+    public static description: string;
 
     constructor() {
         super('Poison');
@@ -1285,7 +1285,7 @@ export const Abilities = UniqueDataComponent('Abilities', {});
 
 Abilities.prototype._init = function() {
     const _addCb = () => {
-        const abilities = new Abilities(this.getEntity());
+        const abilities = new Ability.Abilities(this.getEntity());
         // This is mainly used if component is restored
         if (Array.isArray(this.abilities)) {
             this.abilities.forEach(name => {
@@ -1515,7 +1515,7 @@ export const QuestGiver = UniqueDataComponent('QuestGiver', {
 });
 
 QuestGiver.prototype._init = function(descr) {
-    this.chatObj = new Chat.Quest();
+    this.chatObj = new ChatQuest();
     this.descr = descr;
     this.questID = this.getID();
     this.questTargets = [];

@@ -613,18 +613,6 @@ RG.agilityToDefense = function(agi) {
     return Math.floor(agi / 2);
 };
 
-RG.getDieValue = function(strOrNumOrDie) {
-    if (Number.isFinite(strOrNumOrDie)) {
-        return strOrNumOrDie;
-    }
-    else if (typeof strOrNumOrDie === 'string') {
-        const arr = RG.parseDieSpec(strOrNumOrDie);
-        return new RG.Die(...arr).roll();
-    }
-    else {
-        return strOrNumOrDie.roll();
-    }
-};
 
 /* Given actor and cells it sees, returns first enemy cell found.*/
 RG.findEnemyCellForActor = function(actor, seenCells) {
@@ -1436,42 +1424,6 @@ RG.getUnequipCmd = function(name, slotNumber, count) {
     return {cmd: 'unequip', slot: name, slotNumber, count};
 };
 
-// Regexp for parsing dice expressions '2d4' or '1d6 + 1' etc.
-RG.DIE_RE = /\s*(\d+)d(\d+)\s*(\+|-)?\s*(\d+)?/;
-RG.DIE_NUMBER = /^\s*(-?\d+)\s*$/;
-
-/* Parses die expression like '2d4' or '3d5 + 4' and returns it as an array [2,
- * 4, 0] or [3, 5, 4]. Returns empty array for invalid expressions.*/
-RG.parseDieSpec = strOrArray => {
-    if (typeof strOrArray === 'object') {
-        if (strOrArray.length >= 3) {
-            return [strOrArray[0], strOrArray[1], strOrArray[2]];
-        }
-    }
-    else {
-        const match = RG.DIE_RE.exec(strOrArray);
-        if (match !== null) {
-            const num = match[1];
-            const dType = match[2];
-            let mod = null;
-            if (!RG.isNullOrUndef([match[3], match[4]])) {
-                if (match[3] === '+') {mod = match[4];}
-                else {mod = '-' + match[4];}
-            }
-            else {
-                mod = '0';
-            }
-            return [num, dType, mod];
-        }
-        else if (RG.DIE_NUMBER.test(strOrArray)) {
-            return [0, 0, parseInt(strOrArray, 10)];
-        }
-        else {
-            RG.err('RG', 'parseDieSpec', 'Cannot parse: ' + strOrArray);
-        }
-    }
-    return [];
-};
 
 RG.ONE_SHOT_ITEMS = ['potion'];
 
@@ -1733,9 +1685,9 @@ RG.flattenTo2D = arr => {
         row = flat(row);
         res.push(row);
     }
-       function flat(data) {
+    function flat(data) {
         let r = [];
-  data.forEach(e => {
+        data.forEach(e => {
             if (Array.isArray(e)) {
                 r = r.concat(flat(e));
             }
@@ -1745,10 +1697,9 @@ RG.flattenTo2D = arr => {
         });
         return r;
     }
-       return res;
+    return res;
 };
 
-/* Removes all x,y duplicates from the given array. */
 RG.uniquifyCoord = arr => {
     const seen = {};
     const res = [];
@@ -1803,72 +1754,6 @@ RG.formatLocationName = level => {
         }
         default: return feat.getName();
     }
-};
-
-import {Random} from './random';
-
-// RNG used for dynamic "micro" stuff like damage rolls etc level ups
-RG.DIE_RNG = new Random(new Date().getTime());
-
-/* Each die has number of throws, type of dice (d6, d20, d200...) and modifier
- * which is +/- X. */
-RG.Die = function(num, dice, mod) {
-    this._num = parseInt(num, 10);
-    this._dice = parseInt(dice, 10);
-    this._mod = parseInt(mod, 10);
-};
-
-RG.Die.prototype.getNum = function() {return this._num;};
-RG.Die.prototype.setNum = function(num) {this._num = num;};
-RG.Die.prototype.getDice = function() {return this._dice;};
-RG.Die.prototype.setDice = function(dice) {this._dice = dice;};
-RG.Die.prototype.getMod = function() {return this._mod;};
-RG.Die.prototype.setMod = function(mod) {this._mod = mod;};
-
-RG.Die.prototype.roll = function() {
-    let res = 0;
-    for (let i = 0; i < this._num; i++) {
-        res += RG.DIE_RNG.getUniformInt(1, this._dice);
-    }
-    return res + this._mod;
-};
-
-RG.Die.prototype.toString = function() {
-    let modStr = '+ ' + this._mod;
-    if (this._mod < 0) {modStr = '- ' + this._mod;}
-    else if (this._mod === 0) {modStr = '';}
-    return this._num + 'd' + this._dice + ' ' + modStr;
-};
-
-RG.Die.prototype.copy = function(rhs) {
-    this._num = rhs.getNum();
-    this._dice = rhs.getDice();
-    this._mod = rhs.getMod();
-};
-
-RG.Die.prototype.clone = function() {
-    return new RG.Die(this._num, this._dice, this._mod);
-};
-
-/* Returns true if dice are equal.*/
-RG.Die.prototype.equals = function(rhs) {
-    let res = this._num === rhs.getNum();
-    res = res && (this._dice === rhs.getDice());
-    res = res && (this._mod === rhs.getMod());
-    return res;
-};
-
-RG.Die.prototype.toJSON = function() {
-    return [this._num, this._dice, this._mod];
-};
-
-/* Creates a new die object from array or die expression '2d4 + 3' etc.*/
-RG.createDie = strOrArray => {
-    const numDiceMod = RG.parseDieSpec(strOrArray);
-    if (numDiceMod.length === 3) {
-        return new RG.Die(numDiceMod[0], numDiceMod[1], numDiceMod[2]);
-    }
-    return null;
 };
 
 /* Function to check if given action succeeds given it's probability. */
