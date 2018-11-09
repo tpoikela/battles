@@ -6,6 +6,7 @@
  */
 
 import ROT from './rot';
+import '../client/src/utils';
 
 export const MapForest = function(width, height, options) {
     ROT.Map.call(this, width, height);
