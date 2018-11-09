@@ -1,6 +1,6 @@
 
 import RG from './rg';
-import Path from './path';
+import {Path} from './path';
 import * as Evaluator from './evaluators';
 const GoalsTop = require('./goals-top');
 const BTree = require('./aisequence');
@@ -189,7 +189,7 @@ Brain.getTelepathyCells = function(actor) {
 //-----------------
 
 /* Base class for actor brains. */
-const BrainBase = function(actor) {
+export const BrainBase = function(actor) {
     this._actor = actor;
     this._type = null;
 
@@ -215,19 +215,19 @@ BrainBase.prototype.toJSON = function() {
     };
 };
 
-Brain.NonSentient = function(actor) {
+export const BrainNonSentient = function(actor) {
     BrainBase.call(this, actor);
     this.setType('NonSentient');
 };
-RG.extend2(Brain.NonSentient, BrainBase);
+RG.extend2(BrainNonSentient, BrainBase);
 
-Brain.NonSentient.prototype.decideNextAction = function() {
+BrainNonSentient.prototype.decideNextAction = function() {
     return NO_ACTION_TAKEN;
 };
 
 /* Brain is used by the AI to perform and decide on actions. Brain returns
  * actionable callbacks but doesn't know Action objects.  */
-const BrainSentient = function(actor) {
+export const BrainSentient = function(actor) {
     if (RG.isNullOrUndef([actor])) {
         RG.err('BrainSentient', 'constructor',
             'Actor must not be null.');
@@ -719,7 +719,7 @@ Brain.Human.prototype.decideNextAction = function() {
 /*
 
 /* Brain object used by archers. */
-const BrainArcher = function(actor) {
+export const BrainArcher = function(actor) {
     BrainSentient.call(this, actor);
     this.setType('Archer');
 
@@ -768,7 +768,7 @@ RG.extend2(BrainArcher, BrainSentient);
 
 /* Brain object for spellcasting actors. This model focuses on aggressive
  * spellcasting intended to harm opponents. */
-const BrainSpellCaster = function(actor) {
+export const BrainSpellCaster = function(actor) {
     BrainSentient.call(this, actor);
     this.setType('SpellCaster');
     this.goal = new GoalsTop.ThinkSpellcaster(actor);
@@ -789,7 +789,7 @@ BrainSpellCaster.prototype.decideNextAction = function() {
 };
 
 /* Brain object for testing goal-based actors. */
-const BrainGoalOriented = function(actor) {
+export const BrainGoalOriented = function(actor) {
     BrainSentient.call(this, actor);
     this.setType('GoalOriented');
     this.goal = new GoalsTop.ThinkBasic(actor);
@@ -814,7 +814,7 @@ BrainGoalOriented.prototype.toJSON = function() {
     return json;
 };
 
-const BrainExplorer = function(actor) {
+export const BrainExplorer = function(actor) {
     BrainGoalOriented.call(this, actor);
     this.setType('Explorer');
     this.goal.removeEvaluators();
@@ -822,7 +822,7 @@ const BrainExplorer = function(actor) {
 };
 RG.extend2(BrainExplorer, BrainGoalOriented);
 
-const BrainSpirit = function(actor) {
+export const BrainSpirit = function(actor) {
     BrainGoalOriented.call(this, actor);
     this.setType('Spirit');
     this.goal.removeEvaluators();
@@ -830,7 +830,7 @@ const BrainSpirit = function(actor) {
 };
 RG.extend2(BrainSpirit, BrainGoalOriented);
 
-const BrainThief = function(actor) {
+export const BrainThief = function(actor) {
     BrainGoalOriented.call(this, actor);
     this.setType('Thief');
     this.goal.addEvaluator(new Evaluator.Thief(1.2));
