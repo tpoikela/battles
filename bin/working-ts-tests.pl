@@ -26,6 +26,8 @@ my @files = qw(
 tests/client/src/dice.spec.ts
 tests/client/src/entity.spec.ts
 tests/client/src/game-object.spec.ts
+tests/client/src/map.generator.spec.ts
+tests/client/src/map.spec.ts
 tests/client/src/random.spec.ts
 tests/client/src/rg.eventpool.spec.ts
 tests/client/src/rg.spec.ts
