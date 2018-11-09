@@ -148,24 +148,6 @@ RGTest.expectConnected = function(b1, b2, nConns) {
         .to.equal(nConns);
 };
 
-/* Adds each entity into the level into a random location. */
-RGTest.wrapIntoLevel = function(arr, cols = 20, rows = 20) {
-    const level = RG.FACT.createLevel('empty', cols, rows);
-    arr.forEach(ent => {
-        const x = RGTest.rng.getUniformInt(0, cols - 1);
-        const y = RGTest.rng.getUniformInt(0, rows - 1);
-        if (ent.getPropType() === RG.TYPE_ACTOR) {
-            expect(level.addActor(ent, x, y)).to.equal(true);
-        }
-        else if (ent.getPropType() === RG.TYPE_ITEM) {
-            level.addItem(ent, x, y);
-        }
-        else if (ent.getPropType() === RG.TYPE_ELEM) {
-            level.addElement(ent, x, y);
-        }
-    });
-    return level;
-};
 
 /* Moves entity from its current position to x,y. */
 RGTest.moveEntityTo = function(ent, x, y) {

@@ -1,18 +1,18 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
+import RG from '../../../client/src/rg';
+import { expect } from 'chai';
+import {SentientActor} from '../../../client/src/actor';
 
-const ActorClass = require('../../../client/src/actor-class');
-
-const RGTest = require('../../roguetest');
+import {ActorClass} from '../../../client/src/actor-class';
+import {RGUnitTests} from '../../rg.unit-tests';
 
 describe('ActorClass.Blademaster', () => {
     it('can be added as class to an actor', () => {
-        const rogue = new RG.Actor.Rogue('rogue');
+        const rogue = new SentientActor('rogue');
         const bm = new ActorClass.Blademaster(rogue);
         expect(rogue.getActorClass()).to.exist;
 
-        RGTest.wrapIntoLevel([rogue]);
+        RGUnitTests.wrapIntoLevel([rogue]);
 
         bm.advanceLevel();
         expect(rogue.has('Defender')).to.be.false;
@@ -29,10 +29,10 @@ describe('ActorClass.Blademaster', () => {
 
 describe('ActorClass.Marksman', () => {
     it('adds comps to the actor when advancing levels', () => {
-        const rogue = new RG.Actor.Rogue('archer');
+        const rogue = new SentientActor('archer');
         const marksmanClass = new ActorClass.Marksman(rogue);
 
-        RGTest.wrapIntoLevel([rogue]);
+        RGUnitTests.wrapIntoLevel([rogue]);
         marksmanClass.advanceLevel();
         expect(rogue.has('EagleEye')).to.be.false;
         const fovBefore = rogue.getFOVRange();
@@ -55,7 +55,7 @@ describe('Advancing actor class', () => {
         const classes = ['Adventurer', 'Blademaster', 'Marksman',
             'Spiritcrafter', 'Spellsinger', 'Cryomancer', 'Alpinist'];
         classes.forEach(actorClass => {
-            const advancer = new RG.Actor.Rogue('advancer');
+            const advancer = new SentientActor('advancer');
             const classObj = new ActorClass[actorClass](advancer);
             for (let i = 1; i <= 32; i++) {
                 advancer.get('Experience').setExpLevel(i);

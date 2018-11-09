@@ -11,7 +11,7 @@ import {chaiBattles} from '../../helpers/chai-battles';
 
 chai.use(chaiBattles as any);
 
-const {KeyMap} = Keys;
+const KeyMap = Keys;
 
 describe('Abilities', () => {
     it('has Camouflage ability', () => {

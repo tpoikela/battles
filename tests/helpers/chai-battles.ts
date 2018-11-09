@@ -2,6 +2,14 @@
 import {Level} from '../../client/src/level';
 import {Entity} from '../../client/src/entity';
 
+declare global {
+    export namespace Chai {
+        interface Assertion {
+            component(expectedText: string): Promise<void>;
+        }
+    }
+}
+
 export const chaiBattles = function(chai: any, utils: any) {
     const Assertion = chai.Assertion;
 
