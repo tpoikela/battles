@@ -7,17 +7,26 @@ import {chaiBattles} from '../../helpers/chai-battles';
 import ROT from '../../../lib/rot';
 import {RGTest} from '../../roguetest';
 import {Keys} from '../../../client/src/keymap';
+import {Path} from '../../../client/src/path';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {SentientActor} from '../../../client/src/actor';
+import * as Brain from '../../../client/src/brain';
+import * as Item from '../../../client/src/item';
+import {BrainPlayer} from '../../../client/src/brain.player';
+import {SystemMovement} from '../../../client/src/system/system.movement';
+import {SystemBaseAction} from '../../../client/src/system/system.base-action';
+import {Cell} from '../../../client/src/map.cell';
+import * as Element from '../../../client/src/element';
 
 const {KEY} = Keys;
 
 const expect = chai.expect;
 chai.use(chaiBattles);
 
-const Brain = RG.Brain;
+const BrainSentient = Brain.BrainSentient;
+const ElementBase = Element.ElementBase;
 
-describe('Brain.Player', () => {
+describe('BrainPlayer', () => {
     let level = null;
     let player = null;
     let demon = null;
@@ -42,7 +51,7 @@ describe('Brain.Player', () => {
     });
 
     it('Accepts key commands', () => {
-        const brain = new Brain.Player(player);
+        const brain = new BrainPlayer(player);
 
         brain.decideNextAction({code: Keys.VK_r});
         expect(player.getSpeed()).to.equal(120);
@@ -65,7 +74,7 @@ describe('Brain.Player', () => {
     });
 
     it('Has cmds for more complex things', () => {
-        const brain = new Brain.Player(player);
+        const brain = new BrainPlayer(player);
         brain.decideNextAction({code: Keys.VK_s});
         expect(brain.energy).to.equal(RG.energy.REST);
 
@@ -74,16 +83,16 @@ describe('Brain.Player', () => {
         expect(brain.energy).to.equal(0);
 
         // Equip a missile
-        const cell = RG.FACT.createFloorCell();
-        RGTest.equipItem(player, new RG.Item.Missile('Arrow'));
+        const cell = new Cell(0, 0, new Element.ElementBase('floor'));
+        RGTest.equipItem(player, new Item.Missile('Arrow'));
         brain.decideNextAction({cmd: 'missile', target: cell});
         expect(brain.energy).to.equal(RG.energy.MISSILE);
 
-        const sword = new RG.Item.Weapon('sword');
+        const sword = new Item.Weapon('sword');
         brain.decideNextAction({cmd: 'use', item: sword});
         expect(brain.energy).to.equal(1);
 
-        const potion = new RG.Item.Potion('healing potion');
+        const potion = new Item.Potion('healing potion');
         player.get('Health').decrHP(5);
         const hpOld = player.get('Health').getHP();
         player.getInvEq().addItem(potion);
@@ -94,15 +103,15 @@ describe('Brain.Player', () => {
     });
 
     it('has commands for dropping, equipping and unequipping items', () => {
-        const brain = new Brain.Player(player);
-        const sword = new RG.Item.Weapon('sword');
+        const brain = new BrainPlayer(player);
+        const sword = new Item.Weapon('sword');
         player.getInvEq().addItem(sword);
         const dropCmd = {cmd: 'drop', item: sword, count: 1};
         expect(level.getItems()).to.have.length(0);
         brain.decideNextAction(dropCmd);
         expect(level.getItems()).to.have.length(1);
 
-        const dagger = new RG.Item.Weapon('dagger');
+        const dagger = new Item.Weapon('dagger');
         const equipCmd = { cmd: 'equip', item: dagger };
         player.getInvEq().addItem(dagger);
         brain.decideNextAction(equipCmd);
@@ -117,7 +126,7 @@ describe('Brain.Player', () => {
     });
 
     it('Has different fighting modes', () => {
-        const brain = new Brain.Player(player);
+        const brain = new BrainPlayer(player);
         brain.toggleFightMode();
 
         // var attack = player.getAttack();
@@ -138,7 +147,7 @@ describe('Brain.Player', () => {
 
     it('Needs confirm before attacking friends', () => {
         level.addActor(human, 2, 2);
-        const brain = new Brain.Player(player);
+        const brain = new BrainPlayer(player);
 
         brain.decideNextAction({code: KEY.MOVE_SE});
         expect(brain.energy).to.equal(0);
@@ -151,7 +160,7 @@ describe('Brain.Player', () => {
     });
 
     it('can toggle between fighting modes', () => {
-        const brain = new Brain.Player(player);
+        const brain = new BrainPlayer(player);
         let fightMode = brain.getFightMode();
         expect(fightMode).to.equal(RG.FMODE_NORMAL);
         brain.decideNextAction({code: KEY.FIGHT});
@@ -167,10 +176,10 @@ describe('Brain.Player', () => {
     });
 
     it('handles picking up of items', () => {
-        const baseSys = new RG.System.BaseAction(['Pickup']);
-        const brain = new Brain.Player(player);
-        const food = new RG.Item.Food('food');
-        const weapon = new RG.Item.Weapon('weapon');
+        const baseSys = new SystemBaseAction(['Pickup']);
+        const brain = new BrainPlayer(player);
+        const food = new Item.Food('food');
+        const weapon = new Item.Weapon('weapon');
         level.addItem(food, 1, 1);
         level.addItem(weapon, 1, 1);
 
@@ -192,7 +201,7 @@ describe('Brain.Player', () => {
             called = true;
             return code;
         };
-        const brain = new Brain.Player(player);
+        const brain = new BrainPlayer(player);
         brain.addGUICallback(cbCode, callback);
 
         expect(called).to.be.false;
@@ -201,7 +210,7 @@ describe('Brain.Player', () => {
     });
 
     it('has commands for using spellpowers', () => {
-        const brain = new Brain.Player(player);
+        const brain = new BrainPlayer(player);
         player.setBook(new RG.Spell.SpellBook(player));
         let func = brain.decideNextAction({code: KEY.POWER});
         expect(func).to.be.null;
@@ -210,7 +219,7 @@ describe('Brain.Player', () => {
         expect(func).to.be.null;
         expect(brain.isMenuShown()).to.equal(false);
         func = brain.decideNextAction({code: Keys.VK_a});
-        expect(func).to.be.function;
+        expect(typeof func).to.equal('function');
     });
 
     it('has commands for shooting and targeting', () => {
@@ -252,14 +261,16 @@ describe('Brain.Player', () => {
     });
 });
 
-describe('RG.Brain.Rogue', () => {
+describe('BrainSentient', () => {
     let level = null;
     let player = null;
     let demon = null;
     let human = null;
+    let factLevel = null;
 
     beforeEach( () => {
-        level = RG.FACT.createLevel('arena', 10, 10);
+        factLevel = new FactoryLevel();
+        level = factLevel.createLevel('arena', 10, 10);
         player = new SentientActor('Player');
         demon = new SentientActor('Demon');
         human = new SentientActor('Human friend');
@@ -277,17 +288,17 @@ describe('RG.Brain.Rogue', () => {
     });
 
     it('Has 1st priority for enemies', () => {
-        let cells = RG.Brain.getCellsAroundActor(demon);
+        let cells = Brain.Brain.getCellsAroundActor(demon);
         expect(cells).to.have.length(8);
 
         level.addActor(human, 0, 0);
-        cells = RG.Brain.getCellsAroundActor(human);
+        cells = Brain.Brain.getCellsAroundActor(human);
         expect(cells).to.have.length(3);
     });
 
     it('explores randomly when no enemies', () => {
-        const movSys = new RG.System.Movement(['Movement']);
-        const arena = RG.FACT.createLevel('arena', 10, 10);
+        const movSys = new SystemMovement(['Movement']);
+        const arena = factLevel.createLevel('arena', 10, 10);
         const rogue = new SentientActor('rogue');
         arena.addActor(rogue, 1, 1);
         const action = rogue.nextAction();
@@ -299,8 +310,8 @@ describe('RG.Brain.Rogue', () => {
     });
 
     it('flees when low on health', () => {
-        const movSys = new RG.System.Movement(['Movement']);
-        const arena = RG.FACT.createLevel('arena', 30, 30);
+        const movSys = new SystemMovement(['Movement']);
+        const arena = factLevel.createLevel('arena', 30, 30);
         const rogue = new SentientActor('rogue');
         rogue.setFOVRange(20);
         const player = new SentientActor('player');
@@ -320,7 +331,7 @@ describe('RG.Brain.Rogue', () => {
         arena.addActor(player, 1, 1);
         player.setIsPlayer(true);
 
-        let currDist = RG.Path.shortestDist(rogueX, rogueY, 1, 1);
+        let currDist = Path.shortestDist(rogueX, rogueY, 1, 1);
         let prevDist = currDist;
         for (let i = 3; i < 9; i++) {
             const action = rogue.nextAction();
@@ -328,7 +339,7 @@ describe('RG.Brain.Rogue', () => {
             movSys.update();
             const rogueX = rogue.getX();
             const rogueY = rogue.getY();
-            currDist = RG.Path.shortestDist(rogueX, rogueY, 1, 1);
+            currDist = Path.shortestDist(rogueX, rogueY, 1, 1);
             expect(currDist).to.be.above(prevDist);
             prevDist = currDist;
         }
@@ -393,10 +404,10 @@ describe('Brain.Archer', () => {
         player.setIsPlayer(true);
 
         const archer = new SentientActor('archer');
-        const arrow = new RG.Item.Ammo('arrow');
+        const arrow = new Item.Ammo('arrow');
         arrow.add(new RG.Component.Indestructible());
         arrow.count = 10;
-        const bow = new RG.Item.MissileWeapon('bow');
+        const bow = new Item.MissileWeapon('bow');
         RGTest.equipItems(archer, [arrow, bow]);
 
         const brain = new RG.Brain.Archer(archer);
