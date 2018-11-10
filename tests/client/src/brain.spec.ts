@@ -1,11 +1,14 @@
 
-const chai = require('chai');
-const chaiBattles = require('../../helpers/chai-battles.js');
+import chai from 'chai';
 
-const RG = require('../../../client/src/battles');
-const ROT = require('../../../lib/rot');
-const RGTest = require('../../roguetest.js');
-const Keys = require('../../../client/src/keymap');
+import RG from '../../../client/src/rg';
+import {chaiBattles} from '../../helpers/chai-battles';
+
+import ROT from '../../../lib/rot';
+import {RGTest} from '../../roguetest';
+import {Keys} from '../../../client/src/keymap';
+import {FactoryLevel} from '../../../client/src/factory.level';
+import {SentientActor} from '../../../client/src/actor';
 
 const {KEY} = Keys;
 
@@ -21,10 +24,11 @@ describe('Brain.Player', () => {
     let human = null;
 
     beforeEach( () => {
-        level = RG.FACT.createLevel('arena', 10, 10);
-        player = new RG.Actor.Rogue('Player');
-        demon = new RG.Actor.Rogue('Demon');
-        human = new RG.Actor.Rogue('Human friend');
+        const factLevel = new FactoryLevel();
+        level = factLevel.createLevel('arena', 10, 10);
+        player = new SentientActor('Player');
+        demon = new SentientActor('Demon');
+        human = new SentientActor('Human friend');
 
         demon.setType('demon');
         demon.setBrain(new RG.Brain.Demon(demon));
@@ -210,10 +214,10 @@ describe('Brain.Player', () => {
     });
 
     it('has commands for shooting and targeting', () => {
-        const player = new RG.Actor.Rogue('player');
+        const player = new SentientActor('player');
         player.setIsPlayer(true);
-        const orc = new RG.Actor.Rogue('orc');
-        const goblin = new RG.Actor.Rogue('goblin');
+        const orc = new SentientActor('orc');
+        const goblin = new SentientActor('goblin');
         orc.addEnemy(player);
         goblin.addEnemy(player);
 
@@ -256,9 +260,9 @@ describe('RG.Brain.Rogue', () => {
 
     beforeEach( () => {
         level = RG.FACT.createLevel('arena', 10, 10);
-        player = new RG.Actor.Rogue('Player');
-        demon = new RG.Actor.Rogue('Demon');
-        human = new RG.Actor.Rogue('Human friend');
+        player = new SentientActor('Player');
+        demon = new SentientActor('Demon');
+        human = new SentientActor('Human friend');
 
         demon.setType('demon');
         demon.setBrain(new RG.Brain.Demon(demon));
@@ -284,7 +288,7 @@ describe('RG.Brain.Rogue', () => {
     it('explores randomly when no enemies', () => {
         const movSys = new RG.System.Movement(['Movement']);
         const arena = RG.FACT.createLevel('arena', 10, 10);
-        const rogue = new RG.Actor.Rogue('rogue');
+        const rogue = new SentientActor('rogue');
         arena.addActor(rogue, 1, 1);
         const action = rogue.nextAction();
         action.doAction();
@@ -297,9 +301,9 @@ describe('RG.Brain.Rogue', () => {
     it('flees when low on health', () => {
         const movSys = new RG.System.Movement(['Movement']);
         const arena = RG.FACT.createLevel('arena', 30, 30);
-        const rogue = new RG.Actor.Rogue('rogue');
+        const rogue = new SentientActor('rogue');
         rogue.setFOVRange(20);
-        const player = new RG.Actor.Rogue('player');
+        const player = new SentientActor('player');
 
         // Check that flee action not triggered when not player seen
         rogue.get('Health').setHP(1);
@@ -334,12 +338,12 @@ describe('RG.Brain.Rogue', () => {
 
 describe('Brain.Summoner', () => {
     it('can summon help when seeing enemies', () => {
-        const summoner = new RG.Actor.Rogue('summoner');
+        const summoner = new SentientActor('summoner');
         const brain = new RG.Brain.Summoner(summoner);
         summoner.setBrain(brain);
 
         const level = RG.FACT.createLevel('arena', 10, 10);
-        const player = new RG.Actor.Rogue('Player');
+        const player = new SentientActor('Player');
         player.setIsPlayer(true);
         level.addActor(summoner, 1, 1);
         level.addActor(player, 3, 3);
@@ -357,16 +361,16 @@ describe('Brain.Human', () => {
         const commSystem = new RG.System.Communication(
             ['Communication']
         );
-        const human = new RG.Actor.Rogue('human');
+        const human = new SentientActor('human');
         const brain = new RG.Brain.Human(human);
         brain.commProbability = 1.01;
         human.setBrain(brain);
 
-        const human2 = new RG.Actor.Rogue('human2');
+        const human2 = new SentientActor('human2');
         const brain2 = new RG.Brain.Human(human2);
         human2.setBrain(brain2);
 
-        const demon = new RG.Actor.Rogue('demon');
+        const demon = new SentientActor('demon');
         demon.setType('demon');
 
         const level = RG.FACT.createLevel('arena', 10, 10);
@@ -385,10 +389,10 @@ describe('Brain.Human', () => {
 describe('Brain.Archer', () => {
     it('can do ranged attacks on enemies', () => {
         const missSystem = new RG.System.Missile(['Missile']);
-        const player = new RG.Actor.Rogue('player');
+        const player = new SentientActor('player');
         player.setIsPlayer(true);
 
-        const archer = new RG.Actor.Rogue('archer');
+        const archer = new SentientActor('archer');
         const arrow = new RG.Item.Ammo('arrow');
         arrow.add(new RG.Component.Indestructible());
         arrow.count = 10;
@@ -427,7 +431,7 @@ describe('Brain.SpellCaster', () => {
         const wizard = RGTest.getMeAWizard();
         wizard.getBrain().addEnemyType('goblin');
 
-        const goblin = new RG.Actor.Rogue('goblin');
+        const goblin = new SentientActor('goblin');
         goblin.setType('goblin');
         RGTest.wrapIntoLevel([wizard, goblin]);
         RGTest.moveEntityTo(wizard, 2, 2);

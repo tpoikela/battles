@@ -1,11 +1,14 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const Memory = require('../../../client/src/brain.memory');
+import RG from '../../../client/src/rg';
+import { expect } from 'chai';
+import {Memory} from '../../../client/src/brain.memory';
+import * as Brain from '../../../client/src/brain';
+import * as Component from '../../../client/src/component';
+import {FactoryActor} from '../../../client/src/factory.actors';
+import {FactoryLevel} from '../../../client/src/factory.level';
+import {SystemCommunication} from '../../../client/src/system/system.communication';
 
-const Brain = RG.Brain.Rogue;
-
-RG.Game = require('../../../client/src/game');
+const BrainSentient = Brain.BrainSentient;
 
 /* Updates given systems in given order.*/
 const updateSystems = systems => {
@@ -15,15 +18,16 @@ const updateSystems = systems => {
 };
 
 describe('How AI brain memory performs basic functions', () => {
-    const hunter = RG.FACT.createActor('hunter');
-    const brain = new Brain(hunter);
+    const factActor = new FactoryActor();
+    const hunter = factActor.createActor('hunter');
+    const brain = new BrainSentient(hunter);
     hunter.setBrain(brain);
 
-    const animal = RG.FACT.createActor('animal');
-    const beast = RG.FACT.createActor('beast');
+    const animal = factActor.createActor('animal');
+    const beast = factActor.createActor('beast');
 
     it('Keeps track of enemies', () => {
-        const memory = new Memory(brain);
+        const memory = new Memory();
 
         expect(memory.isEnemy(animal)).to.equal(false);
         memory.addEnemy(animal);
@@ -36,7 +40,7 @@ describe('How AI brain memory performs basic functions', () => {
     });
 
     it('Keeps track of communications', () => {
-        const memory = new Memory(brain);
+        const memory = new Memory();
 
         expect(memory.hasCommunicatedWith(animal)).to.equal(false);
         memory.addCommunicationWith(animal);
@@ -48,27 +52,29 @@ describe('How AI brain memory performs basic functions', () => {
 describe('How actors communicate with each other', () => {
 
     it('Passes info between actors via comm components', () => {
-        const level = RG.FACT.createLevel('arena', 10, 10);
-        const comSys = new RG.System.Communication(['Communication']);
+        const factLevel = new FactoryLevel();
+        const factActor = new FactoryActor();
+        const level = factLevel.createLevel('arena', 10, 10);
+        const comSys = new SystemCommunication(['Communication']);
         const systems = [comSys];
 
-        const hunter1 = RG.FACT.createActor('hunter1');
+        const hunter1 = factActor.createActor('hunter1');
         level.addActor(hunter1, 1, 1);
-        const hunter2 = RG.FACT.createActor('hunter2');
+        const hunter2 = factActor.createActor('hunter2');
         level.addActor(hunter2, 2, 2);
 
-        const brain1 = new Brain(hunter1);
+        const brain1 = new BrainSentient(hunter1);
         hunter1.setBrain(brain1);
 
-        const brain2 = new Brain(hunter2);
+        const brain2 = new BrainSentient(hunter2);
         hunter2.setBrain(brain2);
 
-        const animal = RG.FACT.createActor('animal');
+        const animal = factActor.createActor('animal');
 
         hunter1.addEnemy(animal);
         const mem1 = brain1.getMemory();
 
-        const comComp = new RG.Component.Communication();
+        const comComp = new Component.Communication();
         comComp.addMsg({src: hunter1, type: 'Enemies',
             enemies: mem1.getEnemies()});
         expect(comSys.entities.hasOwnProperty(hunter2.getID())).to.equal(false);
