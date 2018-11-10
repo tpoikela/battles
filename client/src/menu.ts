@@ -98,6 +98,7 @@ Menu.isMenuItem = function(selection) {
 //------------------------------
 export class MenuBase {
 
+    public name: string;
     public msg: string;
     public pre: string[];
     public post: string[];
@@ -116,6 +117,10 @@ export class MenuBase {
         this.parent = null; // Parent menu for this object
 
 
+    }
+
+    setName(name: string) {
+        this.name = name;
     }
 
     setMsg(msg: string) {
@@ -176,6 +181,10 @@ export class MenuBase {
         else {
             this.pre.push(item);
         }
+    }
+
+    dbg(...args) {
+        console.log(`MENU ${this.name}`, ...args);
     }
 }
 
