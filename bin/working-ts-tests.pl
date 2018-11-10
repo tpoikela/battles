@@ -12,7 +12,7 @@
 #         BUGS: ---
 #        NOTES: ---
 #       AUTHOR: Tuomas Poikela (tpoikela), tuomas.sakari.poikela@gmail.com
-# ORGANIZATION: CERN
+# ORGANIZATION: ---
 #      VERSION: 1.0
 #      CREATED: 11/09/2018 12:23:59 PM
 #     REVISION: ---
@@ -26,6 +26,8 @@ my @files = qw(
 tests/client/src/abilities.spec.ts
 tests/client/src/actor.spec.ts
 tests/client/src/actor.spirit.spec.ts
+tests/client/src/brain.communication.spec.ts
+tests/client/src/brain.memory.spec.ts
 tests/client/src/dice.spec.ts
 tests/client/src/entity.spec.ts
 tests/client/src/game-object.spec.ts
@@ -47,6 +49,7 @@ foreach my $file (@files) {
     if ($val != 0) {
         ++$num_failed;
         push(@failed, $file);
+        die("Tests in file $file failed");
     }
 }
 
