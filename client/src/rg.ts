@@ -384,55 +384,6 @@ RG.isNullOrUndef = function(list) {
     return false;
 };
 
-// -------------------------------------------------
-// Functions for emitting in-game messages to player
-// -------------------------------------------------
-
-// Accepts 2 different arguments:
-// 1. A simple string messages
-// 2. {msg: "Your message", cell: Origin cell of messaage}
-// Using 2. messages can be easily filtered by position.
-RG.gameMsg = function(msg) {
-    this.emitMsgEvent('prim', msg);
-};
-
-RG.gameInfo = function(msg) {
-    this.emitMsgEvent('info', msg);
-};
-
-RG.gameDescr = function(msg) {
-    this.emitMsgEvent('descr', msg);
-};
-
-RG.gameSuccess = function(msg) {
-    this.emitMsgEvent('success', msg);
-};
-
-RG.gameWarn = function(msg) {
-    this.emitMsgEvent('warn', msg);
-};
-
-RG.gameDanger = function(msg) {
-    this.emitMsgEvent('danger', msg);
-};
-
-/* Emits message event with cell origin, style and message. */
-RG.emitMsgEvent = function(style, msg) {
-    let newMsg = '';
-    if (typeof msg === 'object') {
-        const cell = msg.cell;
-        newMsg = msg.msg;
-        newMsg = newMsg[0].toUpperCase() + newMsg.substring(1);
-
-        const msgObject = {cell, msg: newMsg, style};
-        this.POOL.emitEvent(this.EVT_MSG, msgObject);
-    }
-    else {
-        newMsg = msg[0].toUpperCase() + msg.substring(1);
-        this.POOL.emitEvent(this.EVT_MSG, {msg: newMsg, style});
-    }
-
-};
 
 /* Tries to add item2 to item1 stack. Returns true on success.*/
 RG.addStackedItems = function(item1, item2) {
@@ -634,9 +585,6 @@ RG.findEnemyCellForActor = function(actor, seenCells) {
     });
     return res;
 };
-
-import {EventPool} from './eventpool';
-const POOL: EventPool = EventPool.getPool();
 
 //--------------------------------------------------------------
 // CONSTANTS
@@ -1434,18 +1382,6 @@ RG.isOneShotItem = item => {
     return index >= 0;
 };
 
-/* Destroys item (typically after use). */
-RG.destroyItemIfNeeded = item => {
-    if (RG.isOneShotItem(item)) {
-        if (item.getCount() === 1) {
-            const msg = {item};
-            POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
-        }
-        else {
-            item.decrCount(1);
-        }
-    }
-};
 
 RG.isActor = obj => {
     if (obj && obj.getPropType) {
@@ -1772,57 +1708,6 @@ interface Message {
     cell?: any;
 }
 
-/* Handles the game message listening and storing of the messages. */
-RG.MessageHandler = function() { // {{{2
-
-    let _lastMsg: Message = null;
-
-    let _messages: Message[] = [];
-    let _prevMessages: Message[] = [];
-    let _hasNew: boolean = false;
-
-    this.hasNotify = true;
-    this.notify = (evtName, msg) => {
-        if (evtName === RG.EVT_MSG) {
-            if (msg.hasOwnProperty('msg')) {
-                const msgObj: Message = {msg: msg.msg, style: 'prim', count: 1};
-
-                if (msg.hasOwnProperty('cell')) {
-                    msgObj.cell = msg.cell;
-                }
-
-                if (msg.hasOwnProperty('style')) {
-                    msgObj.style = msg.style;
-                }
-
-                if (_lastMsg && _lastMsg.msg === msgObj.msg) {
-                    _lastMsg.count += 1;
-                }
-                else {
-                    _lastMsg = msgObj;
-                    _messages.push(msgObj);
-                }
-                _hasNew = true;
-            }
-        }
-    };
-    POOL.listenEvent(RG.EVT_MSG, this);
-
-    this.hasNew = () => _hasNew;
-
-    this.getMessages = () => {
-        _hasNew = false;
-        if (_messages.length > 0) {return _messages;}
-        else if (_prevMessages.length > 0) {return _prevMessages;}
-        else {return [];}
-    };
-
-    this.clear = () => {
-        if (_messages.length > 0) {_prevMessages = _messages.slice();}
-        _messages = [];
-    };
-
-}; // }}} Messages
 
 /* A debug function which prints info about given entity. */
 RG.ent = function(whatever) {
@@ -1883,6 +1768,124 @@ RG.while = function(testFunc, loopBody, timeout = -1) {
     }
     return true;
 };
+
+// -------------------------------------------------
+// Functions for emitting in-game messages to player
+// -------------------------------------------------
+
+import {EventPool} from './eventpool';
+const POOL: EventPool = EventPool.getPool();
+
+// Accepts 2 different arguments:
+// 1. A simple string messages
+// 2. {msg: "Your message", cell: Origin cell of messaage}
+// Using 2. messages can be easily filtered by position.
+RG.gameMsg = function(msg) {
+    this.emitMsgEvent('prim', msg);
+};
+
+RG.gameInfo = function(msg) {
+    this.emitMsgEvent('info', msg);
+};
+
+RG.gameDescr = function(msg) {
+    this.emitMsgEvent('descr', msg);
+};
+
+RG.gameSuccess = function(msg) {
+    this.emitMsgEvent('success', msg);
+};
+
+RG.gameWarn = function(msg) {
+    this.emitMsgEvent('warn', msg);
+};
+
+RG.gameDanger = function(msg) {
+    this.emitMsgEvent('danger', msg);
+};
+
+/* Emits message event with cell origin, style and message. */
+RG.emitMsgEvent = function(style, msg) {
+    let newMsg = '';
+    if (typeof msg === 'object') {
+        const cell = msg.cell;
+        newMsg = msg.msg;
+        newMsg = newMsg[0].toUpperCase() + newMsg.substring(1);
+
+        const msgObject = {cell, msg: newMsg, style};
+        POOL.emitEvent(this.EVT_MSG, msgObject);
+    }
+    else {
+        newMsg = msg[0].toUpperCase() + msg.substring(1);
+        POOL.emitEvent(this.EVT_MSG, {msg: newMsg, style});
+    }
+
+};
+
+/* Destroys item (typically after use). */
+RG.destroyItemIfNeeded = item => {
+    if (RG.isOneShotItem(item)) {
+        if (item.getCount() === 1) {
+            const msg = {item};
+            POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+        }
+        else {
+            item.decrCount(1);
+        }
+    }
+};
+
+/* Handles the game message listening and storing of the messages. */
+RG.MessageHandler = function() { // {{{2
+
+    let _lastMsg: Message = null;
+
+    let _messages: Message[] = [];
+    let _prevMessages: Message[] = [];
+    let _hasNew: boolean = false;
+
+    this.hasNotify = true;
+    this.notify = (evtName, msg) => {
+        if (evtName === RG.EVT_MSG) {
+            if (msg.hasOwnProperty('msg')) {
+                const msgObj: Message = {msg: msg.msg, style: 'prim', count: 1};
+
+                if (msg.hasOwnProperty('cell')) {
+                    msgObj.cell = msg.cell;
+                }
+
+                if (msg.hasOwnProperty('style')) {
+                    msgObj.style = msg.style;
+                }
+
+                if (_lastMsg && _lastMsg.msg === msgObj.msg) {
+                    _lastMsg.count += 1;
+                }
+                else {
+                    _lastMsg = msgObj;
+                    _messages.push(msgObj);
+                }
+                _hasNew = true;
+            }
+        }
+    };
+    POOL.listenEvent(RG.EVT_MSG, this);
+
+    this.hasNew = () => _hasNew;
+
+    this.getMessages = () => {
+        _hasNew = false;
+        if (_messages.length > 0) {return _messages;}
+        else if (_prevMessages.length > 0) {return _prevMessages;}
+        else {return [];}
+    };
+
+    this.clear = () => {
+        if (_messages.length > 0) {_prevMessages = _messages.slice();}
+        _messages = [];
+    };
+
+}; // }}} Messages
 
 /* eslint no-unused-vars: 0 */
 export default RG;
