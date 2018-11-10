@@ -1,16 +1,20 @@
 
-const RG = require('./rg');
-const debug = require('debug')('bitn:Factory.Zone');
-const Factory = require('./factory');
-const {FactoryItem} = require('./factory.items');
-const MountainGenerator = require('./mountain-generator');
-const CityGenerator = require('./city-generator');
-const CastleGenerator = require('./castle-generator');
+import RG from './rg';
 
-const RNG = RG.Random.getRNG();
+import dbg = require('debug');
+const debug = dbg('bitn:FactoryZone');
+
+import {Factory} from './factory';
+import {FactoryItem} from './factory.items';
+import {MountainGenerator} from './mountain-generator';
+import {CityGenerator} from './city-generator';
+import {CastleGenerator} from './castle-generator';
+import {Random} from './random';
+
+const RNG = Random.getRNG();
 
 
-const FactoryZone = function() {
+export const FactoryZone = function() {
     Factory.Base.call(this);
     this._verif = new RG.Verify.Conf('Factory.Zone');
     this._parser = RG.ObjectShell.getParser();

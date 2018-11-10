@@ -7,6 +7,7 @@ import * as GoalsBattle from './goals-battle';
 import {Cmd} from './cmd-player';
 import {BaseActor, SentientActor} from './actor';
 import {Random} from './random';
+import * as Item from './item';
 
 const RNG = Random.getRNG();
 const KeyMap = Keys.KeyMap;
@@ -46,6 +47,9 @@ const chatSelObject = player => {
 interface PlayerCmdInput {
     code?: number;
     cmd?: string;
+    target?: Cell;
+    item?: any; // TODO add correct type
+    count?: number;
 }
 
 /* Memory object for the player .*/

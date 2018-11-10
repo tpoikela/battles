@@ -2,9 +2,9 @@
 
 // Thanks to www.fantasynamegenerators.com for some tips
 
-const Names = {};
-const RG = require('../src/rg');
-const Random = require('../src/random');
+export const Names: any = {};
+import RG from '../src/rg';
+import {Random} from '../src/random';
 
 const RNG = Random.getRNG();
 
@@ -178,6 +178,4 @@ Names.getBookName = () => {
     }
     return fullName;
 };
-
-module.exports = Names;
 

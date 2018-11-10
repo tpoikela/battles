@@ -1,53 +1,54 @@
 
 /* Contains the code for base class of level generator. */
-const RG = require('./rg');
+import RG from './rg';
 
-const LevelGenerator = function() {
-    this.shouldRemoveMarkers = true;
-};
+export class LevelGenerator {
+    public shouldRemoveMarkers: boolean;
 
-LevelGenerator.prototype.addStartAndEndPoint = function(level, start, end) {
-    if (start) {
-        const [sX, sY] = start;
-        const startPointElem = new RG.Element.Marker('<');
-        startPointElem.setTag('start_point');
-        level.addElement(startPointElem, sX, sY);
+    constructor() {
+        this.shouldRemoveMarkers = true;
     }
 
-    if (end) {
-        const [eX, eY] = end;
-        const goalPoint = new RG.Element.Marker('>');
-        goalPoint.setTag('end_point');
-        level.addElement(goalPoint, eX, eY);
-    }
-};
+    addStartAndEndPoint(level, start, end) {
+        if (start) {
+            const [sX, sY] = start;
+            const startPointElem = new RG.Element.Marker('<');
+            startPointElem.setTag('start_point');
+            level.addElement(startPointElem, sX, sY);
+        }
 
-LevelGenerator.prototype.removeMarkers = function(level, conf) {
-    let markersPreserved = ['start_point', 'end_point', 'critical_path'];
-    if (conf.markersPreserved) {
-        markersPreserved = markersPreserved.concat(conf.markersPreserved);
-    }
-    else if (conf.markersPreserved === false) {
-        markersPreserved = [];
-    }
-
-    if (!RG.isNullOrUndef([conf.shouldRemoveMarkers])) {
-        this.shouldRemoveMarkers = conf.shouldRemoveMarkers;
+        if (end) {
+            const [eX, eY] = end;
+            const goalPoint = new RG.Element.Marker('>');
+            goalPoint.setTag('end_point');
+            level.addElement(goalPoint, eX, eY);
+        }
     }
 
-    if (this.shouldRemoveMarkers) {
-        level.removeElements(e => {
-            if (e.getTag) {
-                const tag = e.getTag();
-                if (markersPreserved.indexOf(tag) < 0) {
-                    return true;
+    removeMarkers(level, conf) {
+        let markersPreserved = ['start_point', 'end_point', 'critical_path'];
+        if (conf.markersPreserved) {
+            markersPreserved = markersPreserved.concat(conf.markersPreserved);
+        }
+        else if (conf.markersPreserved === false) {
+            markersPreserved = [];
+        }
+
+        if (!RG.isNullOrUndef([conf.shouldRemoveMarkers])) {
+            this.shouldRemoveMarkers = conf.shouldRemoveMarkers;
+        }
+
+        if (this.shouldRemoveMarkers) {
+            level.removeElements(e => {
+                if (e.getTag) {
+                    const tag = e.getTag();
+                    if (markersPreserved.indexOf(tag) < 0) {
+                        return true;
+                    }
                 }
-            }
-            return false;
-        });
+                return false;
+            });
+        }
+
     }
-
-};
-
-
-module.exports = LevelGenerator;
+}

@@ -1,22 +1,70 @@
 
+import RG from '../rg';
+import {Entity} from  '../entity';
+import {SystemBase} from './system.base';
+import {EventPool} from '../eventpool';
+import {SentientActor} from '../actor';
+import {Cell} from '../map.cell';
 
-const RG = require('../rg');
 const debug = require('debug')('bitn:System.Movement');
 
-const System = {};
-System.Base = require('./system.base');
+const {addSkillsExp} = SystemBase;
 
-const {addSkillsExp} = System.Base;
+interface MoveBonuses {
+    [key: string]: any;
+}
 
 /* This system handles all entity movement.*/
-System.Movement = function(compTypes) {
-    System.Base.call(this, RG.SYS.MOVEMENT, compTypes);
+export class SystemMovement extends SystemBase {
 
-    this.somethingSpecial = ['QuestTarget', 'Named'];
-    this.climbRe = /highrock/;
+    public climbRe: RegExp;
+    public somethingSpecial: string[];
+    private _bonuses: MoveBonuses;
+
+    constructor(compTypes, pool?) {
+        super(RG.SYS.MOVEMENT, compTypes, pool);
+        this.somethingSpecial = ['QuestTarget', 'Named'];
+        this.climbRe = /highrock/;
+
+        /* These are applied when an actor enters a cell with given type of base
+         * element.
+         * If the value is float, it is used to scale from base value in
+         * Stats/Combat, if it's integer it's added directly. */
+        this._bonuses = {
+            water: {
+                dontApplyTo: ['Flying', 'Amphibious'],
+                mods: [
+                    this.speedPenalty(0.5),
+                    this.defensePenalty(0.5),
+                    {
+                        value: -5, srcComp: 'Combat', srcFunc: 'getAttack',
+                        targetComp: 'CombatMods', targetFunc: 'setAttack'
+                    }
+                ]
+            },
+            grass: {
+                mods: [
+                    this.speedPenalty(0.10)
+                ]
+            },
+            bridge: {mods: [
+                this.defensePenalty(0.5)
+            ]},
+            stone: {mods: [
+                this.speedPenalty(0.25)
+            ]},
+            snow: {
+                dontApplyTo: ['Flying', 'SnowWalk'],
+                mods: [
+                    this.speedPenalty(0.25)
+                ]
+            }
+        }
+    }
+
 
     /* Checks movements like climbing. */
-    this._checkSpecialMovement = function(ent, cell) {
+    private _checkSpecialMovement(ent: SentientActor, cell: Cell) {
         const elemType = cell.getBaseElem().getType();
         if (this.climbRe.test(elemType) && ent.has('Climber')) {
             const msg = `${ent.getName()} climbs the rocky terrain`;
@@ -28,7 +76,7 @@ System.Movement = function(compTypes) {
 
     /* When player enters exploration element cell, function processes this. At
     *  the moment, this gives only exp to player. */
-    this._processExploreElem = (ent, cell) => {
+    private _processExploreElem(ent: SentientActor, cell: Cell) {
         const level = ent.getLevel();
         const [x, y] = [cell.getX(), cell.getY()];
         const expElem = cell.getPropType('exploration')[0];
@@ -60,23 +108,23 @@ System.Movement = function(compTypes) {
         }
     };
 
-    this.speedPenalty = function(scale) {
+    speedPenalty(scale) {
         return {
             value: -scale, srcComp: 'Stats', srcFunc: 'getSpeed',
             targetComp: 'StatsMods', targetFunc: 'setSpeed'
         };
-    };
+    }
 
-    this.defensePenalty = function(scale) {
+    defensePenalty(scale) {
         return {
             value: -scale, srcComp: 'Combat', srcFunc: 'getDefense',
             targetComp: 'CombatMods', targetFunc: 'setDefense'
-        };
-    };
+        }
+    }
 
     /* If player moved to the square, checks if any messages must
      * be emitted. */
-    this.checkMessageEmits = (prevCell, newCell) => {
+    checkMessageEmits(prevCell: Cell, newCell: Cell) {
         if (newCell.hasProp(RG.TYPE_ELEM)) {
             if (newCell.hasStairs()) {
                 const stairs = newCell.getStairs();
@@ -183,7 +231,7 @@ System.Movement = function(compTypes) {
     };
 
     /* Reports an error if an entity could not be removed. */
-    this._moveError = function(ent) {
+    private _moveError(ent) {
         const [xOld, yOld] = ent.getXY();
         const level = ent.getLevel();
         const map = level.getMap();
@@ -194,11 +242,11 @@ System.Movement = function(compTypes) {
         this._diagnoseRemovePropError(xOld, yOld, map, ent);
         RG.err('MovementSystem', 'moveActorTo',
             "Couldn't remove ent |" + ent.getName() + '| @ ' + coord);
-    };
+    }
 
 
     /* If removal of moved entity fails, tries to diagnose the error. */
-    this._diagnoseRemovePropError = function(xTry, yTry, map, ent) {
+    private _diagnoseRemovePropError(xTry, yTry, map, ent) {
         const propType = ent.getPropType();
         let xFound = -1;
         let yFound = -1;
@@ -238,159 +286,123 @@ System.Movement = function(compTypes) {
         });
         RG.diag(objects);
 
-    };
-
-    /* These are applied when an actor enters a cell with given type of base
-     * element.
-     * If the value is float, it is used to scale from base value in
-     * Stats/Combat, if it's integer it's added directly. */
-    this._bonuses = {
-        water: {
-            dontApplyTo: ['Flying', 'Amphibious'],
-            mods: [
-                this.speedPenalty(0.5),
-                this.defensePenalty(0.5),
-                {
-                    value: -5, srcComp: 'Combat', srcFunc: 'getAttack',
-                    targetComp: 'CombatMods', targetFunc: 'setAttack'
-                }
-            ]
-        },
-        grass: {
-            mods: [
-                this.speedPenalty(0.10)
-            ]
-        },
-        bridge: {mods: [
-            this.defensePenalty(0.5)
-        ]},
-        stone: {mods: [
-            this.speedPenalty(0.25)
-        ]},
-        snow: {
-            dontApplyTo: ['Flying', 'SnowWalk'],
-            mods: [
-                this.speedPenalty(0.25)
-            ]
-        }
-    };
-
-};
-RG.extend2(System.Movement, System.Base);
-
-System.Movement.prototype.updateEntity = function(ent) {
-    const movComp = ent.get('Movement');
-    const [x, y] = movComp.getXY();
-
-    const map = movComp.getLevel().getMap();
-
-    if (!map.hasXY(x, y)) {
-        let msg = `Tried to move to ${x},${y}.`;
-        msg += ' Entity: ' + ent.getName();
-        RG.warn('System.Movement', 'updateEntity', msg);
     }
 
-    const cell = map.getCell(x, y);
-    const prevCell = ent.getCell();
-    let canMoveThere = cell.isFree(ent.has('Flying'));
-    if (!canMoveThere) {
-        canMoveThere = this._checkSpecialMovement(ent, cell);
-    }
 
-    if (canMoveThere) {
-        const xyOld = ent.getXY();
-        if (debug.enabled) {
-            RG.debug(this, `Trying to move ent from ${xyOld}`);
+    updateEntity(ent) {
+        const movComp = ent.get('Movement');
+        const [x, y] = movComp.getXY();
+
+        const map = movComp.getLevel().getMap();
+
+        if (!map.hasXY(x, y)) {
+            let msg = `Tried to move to ${x},${y}.`;
+            msg += ' Entity: ' + ent.getName();
+            RG.warn('System.Movement', 'updateEntity', msg);
         }
 
-        const propType = ent.getPropType();
-        if (map.moveProp(xyOld, [x, y], propType, ent)) {
-            ent.setXY(x, y);
+        const cell = map.getCell(x, y);
+        const prevCell = ent.getCell();
+        let canMoveThere = cell.isFree(ent.has('Flying'));
+        if (!canMoveThere) {
+            canMoveThere = this._checkSpecialMovement(ent, cell);
+        }
 
-            this.checkForStatsMods(ent, prevCell, cell);
-            if (ent.isPlayer && ent.isPlayer()) {
-                if (cell.hasPropType('exploration')) {
-                    this._processExploreElem(ent, cell);
+        if (canMoveThere) {
+            const xyOld = ent.getXY();
+            if (debug.enabled) {
+                RG.debug(this, `Trying to move ent from ${xyOld}`);
+            }
+
+            const propType = ent.getPropType();
+            if (map.moveProp(xyOld, [x, y], propType, ent)) {
+                ent.setXY(x, y);
+
+                this.checkForStatsMods(ent, prevCell, cell);
+                if (ent.isPlayer && ent.isPlayer()) {
+                    if (cell.hasPropType('exploration')) {
+                        this._processExploreElem((ent as SentientActor), cell);
+                    }
+                    this.checkMessageEmits(prevCell, cell);
                 }
-                this.checkMessageEmits(prevCell, cell);
+            }
+            else {
+                this._moveError(ent);
             }
         }
         else {
-            this._moveError(ent);
+            RG.debug(this, "Cell wasn't free at " + x + ', ' + y);
         }
+        ent.remove(movComp);
     }
-    else {
-        RG.debug(this, "Cell wasn't free at " + x + ', ' + y);
-    }
-    ent.remove(movComp);
-};
+    /* Checks if cell type has changed, and if some penalties/bonuses must be
+     * applied to the moved entity. */
+    checkForStatsMods(ent, prevCell, newCell) {
+        const [prevType, newType] = [prevCell.getBaseElem().getType(),
+            newCell.getBaseElem().getType()
+        ];
 
-/* Checks if cell type has changed, and if some penalties/bonuses must be
- * applied to the moved entity. */
-System.Movement.prototype.checkForStatsMods = function(
-    ent, prevCell, newCell
-) {
-    const [prevType, newType] = [prevCell.getBaseElem().getType(),
-        newCell.getBaseElem().getType()
-    ];
+        // No cell type change, no need to check the modifiers
+        if (prevType === newType) {return;}
 
-    // No cell type change, no need to check the modifiers
-    if (prevType === newType) {return;}
+        // Add bonus/penalty upon entering a new cell type
+        if (this._bonuses.hasOwnProperty(newType)) {
+            const bonuses = this._bonuses[newType];
 
-    // Add bonus/penalty upon entering a new cell type
-    if (this._bonuses.hasOwnProperty(newType)) {
-        const bonuses = this._bonuses[newType];
+            // Check here if we can ignore the bonus/penalty for this entity
+            let applyBonus = true;
+            if (bonuses.dontApplyTo) {
+                bonuses.dontApplyTo.forEach(dontApplyComp => {
+                    if (ent.has(dontApplyComp)) {
+                        applyBonus = false;
+                    }
+                });
+            }
 
-        // Check here if we can ignore the bonus/penalty for this entity
-        let applyBonus = true;
-        if (bonuses.dontApplyTo) {
-            bonuses.dontApplyTo.forEach(dontApplyComp => {
-                if (ent.has(dontApplyComp)) {
-                    applyBonus = false;
-                }
-            });
-        }
-
-        if (applyBonus) {
-            bonuses.mods.forEach(mod => {
-                if (Number.isInteger(mod.value)) {
-                    const targetComp = RG.Component.create(mod.targetComp);
-                    targetComp[mod.targetFunc](mod.value);
-                    targetComp.setTag(newType);
-                    ent.add(targetComp);
-                }
-                else {
-                    const srcComp = ent.get(mod.srcComp);
-                    if (srcComp) {
-                        let bonus = srcComp[mod.srcFunc]();
-                        bonus = Math.round(mod.value * bonus);
+            if (applyBonus) {
+                bonuses.mods.forEach(mod => {
+                    if (Number.isInteger(mod.value)) {
                         const targetComp = RG.Component.create(mod.targetComp);
-                        targetComp[mod.targetFunc](bonus);
+                        targetComp[mod.targetFunc](mod.value);
                         targetComp.setTag(newType);
                         ent.add(targetComp);
                     }
-                }
+                    else {
+                        const srcComp = ent.get(mod.srcComp);
+                        if (srcComp) {
+                            let bonus = srcComp[mod.srcFunc]();
+                            bonus = Math.round(mod.value * bonus);
+                            const targetComp = RG.Component.create(mod.targetComp);
+                            targetComp[mod.targetFunc](bonus);
+                            targetComp.setTag(newType);
+                            ent.add(targetComp);
+                        }
+                    }
 
+                });
+            }
+        }
+
+        // Remove the bonus/penalty here because cell type was left
+        if (this._bonuses.hasOwnProperty(prevType)) {
+            const statsList = ent.getList('StatsMods');
+            const combatList = ent.getList('CombatMods');
+            // TODO add a list of comps to check to this._bonuses
+            statsList.forEach(mod => {
+                if (mod.getTag() === prevType) {
+                    ent.remove(mod);
+                }
+            });
+            combatList.forEach(mod => {
+                if (mod.getTag() === prevType) {
+                    ent.remove(mod);
+                }
             });
         }
-    }
+    };
 
-    // Remove the bonus/penalty here because cell type was left
-    if (this._bonuses.hasOwnProperty(prevType)) {
-        const statsList = ent.getList('StatsMods');
-        const combatList = ent.getList('CombatMods');
-        // TODO add a list of comps to check to this._bonuses
-        statsList.forEach(mod => {
-            if (mod.getTag() === prevType) {
-                ent.remove(mod);
-            }
-        });
-        combatList.forEach(mod => {
-            if (mod.getTag() === prevType) {
-                ent.remove(mod);
-            }
-        });
-    }
 };
+
+
 
 module.exports = System.Movement;

@@ -1,26 +1,55 @@
 
-import LevelFactory from '../data/level-factory';
-import Constraints from './constraints';
+import RG from './rg';
+import {LevelFactory} from '../data/level-factory';
+import {Constraints} from './constraints';
 
-const debug = require('debug')('bitn:Factory.World');
+const dbg = require('debug')
+const debug = dbg('bitn:Factory.World');
 
-const RG = require('./rg');
-const ConfStack = require('./conf-stack');
-const World = require('./world');
-const Factory = require('./factory');
-const FactoryZone = require('./factory.zone');
+import {ConfStack} from './conf-stack';
+import {World} from './world';
+import {Factory} from './factory';
+import {FactoryZone} from './factory.zone';
 
-const DungeonGenerator = require('./dungeon-generator');
-const {CaveGenerator} = require('./cave-generator');
-const CastleGenerator = require('./castle-generator');
-const QuestPopulate = require('./quest-gen').QuestPopulate;
+import {DungeonGenerator} from './dungeon-generator';
+import {CaveGenerator} from './cave-generator';
+import {CastleGenerator} from './castle-generator';
+import {QuestPopulate} from './quest-gen';
 
-const Element = require('./element');
-const Random = require('./random');
+import * as Element from './element';
+import {Random} from './random';
 
 const RNG = Random.getRNG();
-const Stairs = Element.Stairs;
+const Stairs = Element.ElementStairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
+
+interface GlobalConf {
+    levelSize: string;
+    dungeonX: number;
+    dungeonY: number;
+    sqrPerActor: number;
+    sqrPerItem: number;
+    set: boolean;
+}
+
+interface LevelConf {
+    x?: number;
+    y?: number;
+    actor?: (actor) => boolean;
+    actorsPerLevel?: number;
+    dungeonType?: string;
+    food?: () => boolean;
+    func?: (shell) => boolean;
+    gold?: () => boolean;
+    item?: (shell) => boolean;
+    itemsPerLevel?: number;
+    maxDanger: number;
+    maxValue: number
+    sqrPerActor?: number;
+    sqrPerItem?: number;
+    nLevel?: number;
+    markersPreserved?: boolean;
+}
 
 /* Determines the x-y sizes for different types of levels. */
 const levelSizes = {
@@ -217,16 +246,17 @@ const FactoryWorld = function() {
     };
 
     /* Initializes the global configuration such as level size. */
-    this.setGlobalConf = function(conf = {}) {
+    this.setGlobalConf = function(conf: any = {}) {
         const levelSize = conf.levelSize || 'Medium';
         const sqrPerActor = conf.sqrPerActor || RG.ACTOR_MEDIUM_SQR;
-        const globalConf = {};
-        globalConf.levelSize = levelSize;
-        globalConf.dungeonX = levelSizes.dungeon[levelSize].x;
-        globalConf.dungeonY = levelSizes.dungeon[levelSize].y;
-        globalConf.sqrPerActor = sqrPerActor;
-        globalConf.sqrPerItem = conf.sqrPerItem || RG.LOOT_MEDIUM_SQR;
-        globalConf.set = true;
+        const globalConf: GlobalConf = {
+            levelSize: levelSize,
+            dungeonX: levelSizes.dungeon[levelSize].x,
+            dungeonY: levelSizes.dungeon[levelSize].y,
+            sqrPerActor: sqrPerActor,
+            sqrPerItem: conf.sqrPerItem || RG.LOOT_MEDIUM_SQR,
+            set: true
+        };
         this._conf.setGlobalConf(globalConf);
         this.debug('globalConf set to ' + JSON.stringify(globalConf));
     };
@@ -371,7 +401,7 @@ const FactoryWorld = function() {
         const maxValue = RG.getMaxValue(xDiff, yDiff);
         const maxDanger = RG.getMaxDanger(xDiff, yDiff);
 
-        const levelConf = {
+        const levelConf: LevelConf = {
             itemsPerLevel,
             item: item => (
                 item.value <= maxValue
@@ -567,7 +597,7 @@ const FactoryWorld = function() {
             const maxDanger = this.getConf('maxDanger');
             const maxValue = this.getConf('maxValue');
 
-            const levelConf = {
+            const levelConf: LevelConf = {
                 x: this.getConf('dungeonX'),
                 y: this.getConf('dungeonY'),
                 sqrPerActor: this.getConf('sqrPerActor'),
@@ -804,7 +834,7 @@ const FactoryWorld = function() {
         const presetLevels = this.getConf('presetLevels');
         if (presetLevels) {
             const names = Object.keys(presetLevels);
-            foundKey = names.find(item => {
+            const foundKey = names.find(item => {
                 return new RegExp(item + '$').test(hierName);
             });
             if (foundKey) {

@@ -114,7 +114,7 @@ Element.Wall = ElementWall;
  * connecting 2 levels requires two stair objects. */
 export class ElementStairs extends Mixin.Locatable(ElementBase) {
 
-    constructor(name, srcLevel, targetLevel) {
+    constructor(name, srcLevel, targetLevel?) {
         super({name, type: 'connection'});
         this._srcLevel = srcLevel;
         this._targetLevel = targetLevel;

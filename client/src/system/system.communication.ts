@@ -32,7 +32,7 @@ export class SystemCommunication extends SystemBase {
         ent.remove('Communication');
     };
 
-    processMessage(ent, msg) {
+    processMessage(ent, msg): void {
         if (this._msgFunc.hasOwnProperty(msg.type)) {
             this._msgFunc[msg.type](ent, msg);
         }
@@ -42,7 +42,7 @@ export class SystemCommunication extends SystemBase {
         }
     }
 
-    processEnemies(ent, msg) {
+    processEnemies(ent, msg): void {
         const enemies = msg.enemies;
         const srcName = msg.src.getName();
         for (let i = 0; i < enemies.length; i++) {
@@ -54,7 +54,7 @@ export class SystemCommunication extends SystemBase {
         RG.gameInfo(msgObj);
     }
 
-    processShout(ent, msg) {
+    processShout(ent, msg): void {
         const shoutMsg = msg.shout;
         const srcName = msg.src.getName();
         const msgObj = {cell: msg.src.getCell(),

@@ -1,9 +1,11 @@
 
-const RG = require('./rg');
-const debug = require('debug')('bitn:ConfStack');
+import RG from './rg';
+
+import dbg = require('debug');
+const debug = dbg('bitn:ConfStack');
 
 /* An Object for managing configuration/scope stacks when creating a world. */
-const ConfStack = function() {
+export const ConfStack = function() {
 
     this.globalConf = {};
     this.scope = [];
@@ -70,5 +72,3 @@ const ConfStack = function() {
     };
 
 };
-
-module.exports = ConfStack;

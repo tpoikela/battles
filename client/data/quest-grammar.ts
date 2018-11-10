@@ -7,10 +7,10 @@
 */
 
 /* Usage: require in another file. parse with BNF parser such as prettybnf. */
-const Random = require('../src/random');
+import {Random} from '../src/random';
 
 const RNG = Random.getRNG();
-const QuestGrammar = {};
+export const QuestGrammar: any = {};
 
 const topRule =
 `<QUEST> ::= <Knowledge> | <Comfort> |
@@ -221,4 +221,3 @@ QuestGrammar.getRandMotive = function() {
 QuestGrammar.grammar = grammar;
 QuestGrammar.actorMotivations = actorMotivations;
 
-module.exports = QuestGrammar;

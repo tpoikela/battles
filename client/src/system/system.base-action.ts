@@ -1,36 +1,54 @@
 
-const RG = require('../rg');
-const Menu = require('../menu');
+import RG from '../rg';
+import * as Menu from '../menu';
+import {SystemBase} from './system.base';
+import {EventPool} from '../eventpool';
 
-const System = {};
-System.Base = require('./system.base');
-const {getTargetFromObj} = require('./system.effects');
-const {addQuestEvent} = require('./system.quest');
-const EventPool = require('../eventpool');
+import {SystemEffects} from './system.effects';
+import {SystemQuest} from './system.quest';
 
 const POOL = EventPool.getPool();
 
+const handledComps = [
+    'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
+    'Jump', 'Read', 'Give'
+];
+
+type HandleFunc = (ent) => void;
+
 /* Processes entities with attack-related components.*/
-System.BaseAction = function(compTypes) {
-    System.Base.call(this, RG.SYS.BASE_ACTION, compTypes);
-    this.compTypesAny = true;
+export class SystemBaseAction extends SystemBase {
 
-    const handledComps = [
-        'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
-        'Jump', 'Read', 'Give'
-    ];
+    public _dtable: {[key: string]: HandleFunc};
 
-    this.updateEntity = function(ent) {
+    constructor(compTypes, pool?: EventPool) {
+        super(RG.SYS.BASE_ACTION, compTypes, pool);
+        this.compTypesAny = true;
+
+        // Initialisation of dispatch table for handler functions
+        this._dtable = {
+            Give: this._handleGive,
+            Jump: this._handleJump,
+            OpenDoor: this._handleOpenDoor,
+            Pickup: this._handlePickup,
+            Read: this._handleRead,
+            UseElement: this._handleUseElement,
+            UseItem: this._handleUseItem,
+            UseStairs: this._handleUseStairs
+        };
+    }
+
+    updateEntity(ent): void {
         handledComps.forEach(compType => {
             if (ent.has(compType)) {
                 this._dtable[compType](ent);
                 ent.remove(compType);
             }
         });
-    };
+    }
 
     /* Handles give command. */
-    this._handleGive = ent => {
+    private _handleGive(ent): void {
         const giveComp = ent.get('Give');
         const giveTarget = giveComp.getGiveTarget();
         const giveItem = giveComp.getItem();
@@ -44,7 +62,7 @@ System.BaseAction = function(compTypes) {
                 if (isQuestItem && giveTarget.has('QuestTarget')) {
                     const giveArgs = {actor: giveTarget, item: removedItem};
                     const qTarget = removedItem.get('QuestTarget');
-                    addQuestEvent(ent, qTarget, 'give', giveArgs);
+                    SystemQuest.addQuestEvent(ent, qTarget, 'give', giveArgs);
                 }
                 let msg = `${ent.getName()} gives `;
                 msg += `${giveItem.getName()} to ${giveTarget.getName()}`;
@@ -56,10 +74,10 @@ System.BaseAction = function(compTypes) {
             msg += `${giveItem.getName()} from ${ent.getName()}`;
             RG.gameMsg({cell: ent.getCell(), msg});
         }
-    };
+    }
 
     /* Handles pickup command. */
-    this._handlePickup = ent => {
+    private _handlePickup(ent): void {
         const [x, y] = [ent.getX(), ent.getY()];
         const level = ent.getLevel();
         const cell = level.getMap().getCell(x, y);
@@ -105,10 +123,10 @@ System.BaseAction = function(compTypes) {
             type: RG.EVT_ITEM_PICKED_UP
         };
         this._createEventComp(ent, evtArgs);
-    };
+    }
 
     /* Handles command when actor uses stairs. */
-    this._handleUseStairs = ent => {
+    private _handleUseStairs(ent): void {
         const level = ent.getLevel();
         const cell = ent.getCell();
         // Check if any actors should follow the player
@@ -157,10 +175,10 @@ System.BaseAction = function(compTypes) {
             };
             this._createEventComp(ent, evtArgs);
         }
-    };
+    }
 
     /* Handles command to open door and execute possible triggers like traps. */
-    this._handleOpenDoor = ent => {
+    private _handleOpenDoor(ent): void {
         const door = ent.get('OpenDoor').getDoor();
         const [x, y] = door.getXY();
         const level = ent.getLevel();
@@ -193,9 +211,9 @@ System.BaseAction = function(compTypes) {
         if (msg !== '') {
             RG.gameMsg({cell, msg});
         }
-    };
+    }
 
-    this._handleUseItem = ent => {
+    private _handleUseItem(ent): void {
         const useItemComp = ent.get('UseItem');
         const item = useItemComp.getItem();
 
@@ -224,9 +242,9 @@ System.BaseAction = function(compTypes) {
             const effComp = new RG.Component.Effects(effArgs);
             ent.add(effComp);
         }
-    };
+    }
 
-    this._handleUseElement = ent => {
+    private _handleUseElement(ent): void {
         const useComp = ent.get('UseElement');
         const elem = useComp.getElement();
         if (!elem.has('Broken')) {
@@ -236,9 +254,9 @@ System.BaseAction = function(compTypes) {
             }
         }
         this._checkUseElementMsgEmit(ent, useComp);
-    };
+    }
 
-    this._handleJump = ent => {
+    private _handleJump(ent): void {
         const jump = ent.get('Jump');
         const [dx, dy] = [jump.getX(), jump.getY()];
         let jumpRange = 2;
@@ -269,9 +287,9 @@ System.BaseAction = function(compTypes) {
             const movComp = new RG.Component.Movement(x1, y1, ent.getLevel());
             ent.add(movComp);
         }
-    };
+    }
 
-    this._handleRead = ent => {
+    private _handleRead(ent) {
         const read = ent.get('Read');
         let readTarget = read.getReadTarget();
         if (!readTarget) {
@@ -286,7 +304,7 @@ System.BaseAction = function(compTypes) {
         }
         if (readTarget) {
             const text = readTarget.getText();
-            const bookMenu = new Menu.InfoOnly();
+            const bookMenu = new Menu.MenuInfoOnly();
             bookMenu.addPre(text);
             const bookName = readTarget.getName();
             RG.gameInfo(`The book "${bookName}" reads:`);
@@ -305,28 +323,17 @@ System.BaseAction = function(compTypes) {
             qEvent.setTargetComp(readTarget.get('QuestTarget'));
             ent.add(qEvent);
         }
-    };
+    }
 
-    // Initialisation of dispatch table for handler functions
-    this._dtable = {
-        Give: this._handleGive,
-        Jump: this._handleJump,
-        OpenDoor: this._handleOpenDoor,
-        Pickup: this._handlePickup,
-        Read: this._handleRead,
-        UseElement: this._handleUseElement,
-        UseItem: this._handleUseItem,
-        UseStairs: this._handleUseStairs
-    };
 
     /* Used to create events in response to specific actions. */
-    this._createEventComp = (ent, args) => {
+    private _createEventComp(ent, args): void {
         const evtComp = new RG.Component.Event();
         evtComp.setArgs(args);
         ent.add(evtComp);
-    };
+    }
 
-    this._checkUseItemMsgEmit = (ent, comp) => {
+    private _checkUseItemMsgEmit(ent, comp): void {
         if (comp.getUseType() === RG.USE.DRINK) {
             const item = comp.getItem();
             const targetObj = comp.getTarget();
@@ -337,9 +344,9 @@ System.BaseAction = function(compTypes) {
                 + item.getName();
             RG.gameMsg({cell, msg});
         }
-    };
+    }
 
-    this._checkUseElementMsgEmit = (ent, comp) => {
+    private _checkUseElementMsgEmit(ent, comp): void {
         const elem = comp.getElement();
         const elemName = elem.getName();
         const cell = ent.getCell();
@@ -355,13 +362,12 @@ System.BaseAction = function(compTypes) {
         if (msg) {
             RG.gameMsg({cell, msg});
         }
-    };
-};
-RG.extend2(System.BaseAction, System.Base);
+    }
+}
 
 function getUseTarget(targetObj, targetType) {
     if (targetObj.target) {
-        return getTargetFromObj(targetObj, targetType);
+        return SystemEffects.getTargetFromObj(targetObj, targetType);
     }
     else if (targetObj.getCell) {
         return targetObj;
@@ -369,4 +375,3 @@ function getUseTarget(targetObj, targetType) {
     return null;
 }
 
-module.exports = System.BaseAction;

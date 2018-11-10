@@ -1,13 +1,17 @@
 
-import AbandonedFort from './abandoned-fort';
-import BlackTower from './black-tower';
-import Capital from './capital';
-import DwarvenCity from './dwarven-city';
+import {AbandonedFort} from './abandoned-fort';
+import {BlackTower} from './black-tower';
+import {Capital} from './capital';
+import {DwarvenCity} from './dwarven-city';
+import {Level} from '../src/level';
 
-const RG = require('../src/rg');
+import RG from '../src/rg';
 
 /* Factory for creating levels by specifying their name. */
-export default class LevelFactory {
+export class LevelFactory {
+
+    public fact: any;
+    public createFunc: {[key: string]: (...args) => Level | Level[]};
 
     constructor(fact) {
         this.fact = fact;
@@ -18,7 +22,7 @@ export default class LevelFactory {
         this.createFunc[name] = createFunc;
     }
 
-    create(name, args) {
+    create(name, args): Level | Level[] {
         switch (name) {
             case 'Capital': return new Capital(...args).getLevel();
             case 'DwarvenCity': return new DwarvenCity(...args).getLevel();

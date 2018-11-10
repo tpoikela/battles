@@ -57,7 +57,7 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
     public getEquipProtection() {return 0;}
 
     /* Returns the next action for this actor.*/
-    public nextAction(obj) {
+    public nextAction(obj?) {
         // Use actor brain to determine the action
         const cb = this._brain.decideNextAction(obj);
         let action = null;

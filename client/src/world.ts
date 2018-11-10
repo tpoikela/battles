@@ -3,18 +3,18 @@
  * dungeons, dungeon branches etc.
  */
 
-import debug from 'debug';
+import debug = require('debug');
 const dbg = debug('bitn:world');
 
 import RG from './rg';
 import GameObject from './game-object';
-import Element from './element';
-import EventPool from './eventpool';
+import * as Element from './element';
+import {EventPool} from './eventpool';
 
 const POOL: EventPool = EventPool.getPool();
 
-const Stairs = Element.Stairs;
-RG.World = {};
+const Stairs = Element.ElementStairs;
+export const World: any = {};
 
 const RNG = RG.Random.getRNG();
 
@@ -229,7 +229,7 @@ function connectLevelsLinear(levels) {
         }
     }
 }
-RG.World.connectLevelsLinear = connectLevelsLinear;
+World.connectLevelsLinear = connectLevelsLinear;
 
 /* Can be used to connect two levels and constraining the placement of the
  * connections with the level. */
@@ -304,13 +304,13 @@ function getSubZoneArgs(subZones, sz1Arg, sz2Arg) {
 /* Connects 2 sub-zones like dungeon branch or city quarter together.*/
 function connectSubZones(subZones, sz1Arg, sz2Arg, l1, l2) {
     if (RG.isNullOrUndef([l1, l2])) {
-        RG.err('RG.World', 'connectSubZones',
+        RG.err('World', 'connectSubZones',
             `l1 (${l1}) and l2 (${l2}) must be non-null and integers.`);
     }
     const [sz1, sz2] = getSubZoneArgs(subZones, sz1Arg, sz2Arg);
 
     if (RG.isNullOrUndef([sz1, sz2])) {
-        RG.err('RG.World', 'connectSubZones',
+        RG.err('World', 'connectSubZones',
             'Cannot connect null subZones. Check the names/refs.');
     }
 
@@ -326,7 +326,7 @@ function connectSubZones(subZones, sz1Arg, sz2Arg, l1, l2) {
         sz1.connectLevelToStairs(l1, b2Stairs);
     }
     else {
-        RG.err('RG.World', 'connectSubZones',
+        RG.err('World', 'connectSubZones',
             'Level ' + l2 + " doesn't exist in sub-zone " + sz2.getName());
     }
 
@@ -402,51 +402,51 @@ function connectTiles(tiles, sizeX, sizeY) {
 }
 
 
-RG.World.addExitsToEdge = addExitsToEdge;
-RG.World.edgeHasConnections = edgeHasConnections;
+World.addExitsToEdge = addExitsToEdge;
+World.edgeHasConnections = edgeHasConnections;
 
 //----------------
-// RG.World.Base
+// World.Base
 //----------------
 
 /* Base class for world places. Each place has name and type + full hierarchical
 * name to trace where the place is in hierarchy. */
-RG.World.Base = function(name) {
+World.Base = function(name) {
     GameObject.call(this);
     this.name = name;
     this.type = 'base';
     this.parent = null;
 };
 
-RG.World.Base.prototype.getName = function() {
+World.Base.prototype.getName = function() {
     return this.name;
 };
 
-RG.World.Base.prototype.getHierName = function() {
+World.Base.prototype.getHierName = function() {
     return this.hierName;
 };
 
-RG.World.Base.prototype.setHierName = function(hierName) {
+World.Base.prototype.setHierName = function(hierName) {
     this.hierName = hierName;
 };
 
-RG.World.Base.prototype.getType = function() {
+World.Base.prototype.getType = function() {
     return this.type;
 };
 
-RG.World.Base.prototype.setType = function(type) {
+World.Base.prototype.setType = function(type) {
     this.type = type;
 };
 
-RG.World.Base.prototype.getParent = function() {
+World.Base.prototype.getParent = function() {
     return this.parent;
 };
 
-RG.World.Base.prototype.setParent = function(parent) {
+World.Base.prototype.setParent = function(parent) {
     this.parent = parent;
 };
 
-RG.World.Base.prototype.toJSON = function() {
+World.Base.prototype.toJSON = function() {
     const obj: any = {
         hierName: this.hierName,
         id: this.getID(),
@@ -458,32 +458,32 @@ RG.World.Base.prototype.toJSON = function() {
     }
     return obj;
 };
-RG.extend2(RG.World.Base, GameObject);
+RG.extend2(World.Base, GameObject);
 
 //---------------------
-// RG.World.ZoneBase
+// World.ZoneBase
 //---------------------
 
-RG.World.ZoneBase = function(name) {
-    RG.World.Base.call(this, name);
+World.ZoneBase = function(name) {
+    World.Base.call(this, name);
     this._subZones = [];
 };
-RG.extend2(RG.World.ZoneBase, RG.World.Base);
+RG.extend2(World.ZoneBase, World.Base);
 
-RG.World.ZoneBase.prototype.getSubZoneArgs = function(s1Arg, s2Arg) {
+World.ZoneBase.prototype.getSubZoneArgs = function(s1Arg, s2Arg) {
     return getSubZoneArgs(this._subZones, s1Arg, s2Arg);
 };
 
-RG.World.ZoneBase.prototype.setTileXY = function(x, y) {
+World.ZoneBase.prototype.setTileXY = function(x, y) {
     this.tileX = x;
     this.tileY = y;
 };
 
-RG.World.ZoneBase.prototype.getTileXY = function() {
+World.ZoneBase.prototype.getTileXY = function() {
     return [this.tileX, this.tileY];
 };
 
-RG.World.ZoneBase.prototype.addSubZone = function(subZone) {
+World.ZoneBase.prototype.addSubZone = function(subZone) {
     if (subZone.getID() === this.getID()) {
         RG.err('ZoneBase', 'addSubZone',
             'Tried to add itself as sub zone: ' + this.getName());
@@ -496,12 +496,12 @@ RG.World.ZoneBase.prototype.addSubZone = function(subZone) {
     return false;
 };
 
-RG.World.ZoneBase.prototype.hasSubZone = function(subZone) {
+World.ZoneBase.prototype.hasSubZone = function(subZone) {
     const index = this._subZones.indexOf(subZone);
     return index >= 0;
 };
 
-RG.World.ZoneBase.prototype.getLevels = function() {
+World.ZoneBase.prototype.getLevels = function() {
     let res = [];
     this._subZones.forEach(subFeat => {
         res = res.concat(subFeat.getLevels());
@@ -509,23 +509,23 @@ RG.World.ZoneBase.prototype.getLevels = function() {
     return res;
 };
 
-RG.World.ZoneBase.prototype.connectSubZones = function(
+World.ZoneBase.prototype.connectSubZones = function(
     s1Arg, s2Arg, l1, l2) {
     connectSubZones(this._subZones, s1Arg, s2Arg, l1, l2);
 };
 
-RG.World.ZoneBase.prototype.findLevel = function(name, nLevel) {
+World.ZoneBase.prototype.findLevel = function(name, nLevel) {
     const level = findLevel(name, this._subZones, nLevel);
     return level;
 };
 
-RG.World.ZoneBase.prototype.findSubZone = function(name) {
+World.ZoneBase.prototype.findSubZone = function(name) {
     const subZone = findSubZone(name, this._subZones);
     return subZone;
 };
 
 /* Returns each entrance in each subzone. */
-RG.World.ZoneBase.prototype.getEntrances = function() {
+World.ZoneBase.prototype.getEntrances = function() {
     const entrances = [];
     this._subZones.forEach(sz => {
         const szEntr = sz.getEntrance();
@@ -536,20 +536,20 @@ RG.World.ZoneBase.prototype.getEntrances = function() {
     return entrances;
 };
 
-RG.World.ZoneBase.prototype.removeListeners = function() {
+World.ZoneBase.prototype.removeListeners = function() {
     this._subZones.forEach(sz => {
         sz.removeListeners();
     });
 };
 
-RG.World.ZoneBase.prototype.toJSON = function() {
-    const json = RG.World.Base.prototype.toJSON.call(this);
+World.ZoneBase.prototype.toJSON = function() {
+    const json = World.Base.prototype.toJSON.call(this);
     json.x = this.tileX;
     json.y = this.tileY;
     return json;
 };
 
-RG.World.ZoneBase.prototype.getID2Place = function() {
+World.ZoneBase.prototype.getID2Place = function() {
     const res = {[this.getID()]: this};
     this._subZones.forEach(sz => {
         res[sz.getID()] = sz;
@@ -558,21 +558,21 @@ RG.World.ZoneBase.prototype.getID2Place = function() {
 };
 
 //--------------------------
-// RG.World.SubZoneBase
+// World.SubZoneBase
 //--------------------------
 /* Base class for sub-zones like branches, quarters and mountain faces.
  * Mostly has logic to
  * manipulate level features like shops, armorers etc.
  */
-RG.World.SubZoneBase = function(name) {
-    RG.World.Base.call(this, name);
+World.SubZoneBase = function(name) {
+    World.Base.call(this, name);
     this._levelFeatures = new Map();
     this._levels = [];
     this._levelCount = 0;
 };
-RG.extend2(RG.World.SubZoneBase, RG.World.Base);
+RG.extend2(World.SubZoneBase, World.Base);
 
-RG.World.SubZoneBase.prototype.getLevels = function(nLevel) {
+World.SubZoneBase.prototype.getLevels = function(nLevel) {
     if (RG.isNullOrUndef([nLevel])) {
         return this._levels;
     }
@@ -587,18 +587,18 @@ RG.World.SubZoneBase.prototype.getLevels = function(nLevel) {
     return null;
 };
 
-RG.World.SubZoneBase.prototype.hasLevel = function(level) {
+World.SubZoneBase.prototype.hasLevel = function(level) {
     const index = this._levels.indexOf(level);
     return index >= 0;
 };
 
 /* Returns stairs leading to other sub-zones. Used only for testing
 * purposes. */
-RG.World.SubZoneBase.prototype.getStairsOther = function() {
+World.SubZoneBase.prototype.getStairsOther = function() {
     return getStairsOther(this.getName(), this._levels);
 };
 
-RG.World.SubZoneBase.prototype.addLevelFeature = function(feat) {
+World.SubZoneBase.prototype.addLevelFeature = function(feat) {
     const type = feat.getType();
     if (!this._levelFeatures.has(type)) {
         this._levelFeatures[type] = [];
@@ -606,12 +606,12 @@ RG.World.SubZoneBase.prototype.addLevelFeature = function(feat) {
     this._levelFeatures[type].push(feat);
 };
 
-RG.World.SubZoneBase.prototype.removeListeners = function() {
+World.SubZoneBase.prototype.removeListeners = function() {
     // Should be implemented in the derived class
     // Does nothing if there are no listeners to remove
 };
 
-RG.World.SubZoneBase.prototype.getLevel = function(nLevel) {
+World.SubZoneBase.prototype.getLevel = function(nLevel) {
     if (nLevel < this._levels.length) {
         return this._levels[nLevel];
     }
@@ -626,7 +626,7 @@ RG.World.SubZoneBase.prototype.getLevel = function(nLevel) {
 
 /* Adds one level into the sub-zone. Checks for various possible errors like
  * duplicate levels. */
-RG.World.SubZoneBase.prototype.addLevel = function(level) {
+World.SubZoneBase.prototype.addLevel = function(level) {
     if (!RG.isNullOrUndef([level])) {
         if (!this.hasLevel(level)) {
             level.setLevelNumber(this._levelCount++);
@@ -645,22 +645,22 @@ RG.World.SubZoneBase.prototype.addLevel = function(level) {
     }
 };
 
-RG.World.SubZoneBase.prototype.toJSON = function() {
-    const json = RG.World.Base.prototype.toJSON.call(this);
+World.SubZoneBase.prototype.toJSON = function() {
+    const json = World.Base.prototype.toJSON.call(this);
     json.nLevels = this._levels.length;
     json.levels = this._levels.map(level => level.getID());
     return json;
 };
 
 //------------------
-// RG.World.Branch
+// World.Branch
 //------------------
 /* World.Branch is a branch of dungeon. A branch is linear
  * progression of connected levels (usually with increasing difficulty).
  * A branch can have
  * entry points to other branches (or out of the dungeon). */
-RG.World.Branch = function(name) {
-    RG.World.SubZoneBase.call(this, name);
+World.Branch = function(name) {
+    World.SubZoneBase.call(this, name);
     this.setType('branch');
     this._entrance = null;
 
@@ -720,7 +720,7 @@ RG.World.Branch = function(name) {
     };
 
     this.toJSON = function() {
-        const json = RG.World.SubZoneBase.prototype.toJSON.call(this);
+        const json = World.SubZoneBase.prototype.toJSON.call(this);
         const obj = {};
         if (this._entrance) {
             obj.entrance = this._entrance;
@@ -729,14 +729,14 @@ RG.World.Branch = function(name) {
     };
 
 };
-RG.extend2(RG.World.Branch, RG.World.SubZoneBase);
+RG.extend2(World.Branch, World.SubZoneBase);
 
 //------------------
-// RG.World.Dungeon
+// World.Dungeon
 //------------------
 /* Dungeons is a collection of branches.*/
-RG.World.Dungeon = function(name) {
-    RG.World.ZoneBase.call(this, name);
+World.Dungeon = function(name) {
+    World.ZoneBase.call(this, name);
     this.setType('dungeon');
     this._entranceNames = [];
 
@@ -792,7 +792,7 @@ RG.World.Dungeon = function(name) {
     };
 
     this.toJSON = function() {
-        const json = RG.World.ZoneBase.prototype.toJSON.call(this);
+        const json = World.ZoneBase.prototype.toJSON.call(this);
         const obj = {
             branch: this._subZones.map(br => br.toJSON()),
             entranceNames: this._entranceNames,
@@ -802,14 +802,14 @@ RG.World.Dungeon = function(name) {
     };
 
 };
-RG.extend2(RG.World.Dungeon, RG.World.ZoneBase);
+RG.extend2(World.Dungeon, World.ZoneBase);
 
 //------------------
-// RG.World.AreaTile
+// World.AreaTile
 //------------------
 /* Area-tile is a level which has entry/exit points on a number of edges.
  * It is also used as container for zones such as cities and dungeons. */
-RG.World.AreaTile = function(x, y, area) {
+World.AreaTile = function(x, y, area) {
     this._tileX = x;
     this._tileY = y;
     this._area = area;
@@ -839,7 +839,7 @@ RG.World.AreaTile = function(x, y, area) {
 };
 
 /* Returns true for edge tiles.*/
-RG.World.AreaTile.prototype.isEdge = function() {
+World.AreaTile.prototype.isEdge = function() {
     if (this.isNorthEdge()) {return true;}
     if (this.isSouthEdge()) {return true;}
     if (this.isWestEdge()) {return true;}
@@ -848,14 +848,14 @@ RG.World.AreaTile.prototype.isEdge = function() {
 };
 
 /* Sets the level for this tile.*/
-RG.World.AreaTile.prototype.setLevel = function(level) {
+World.AreaTile.prototype.setLevel = function(level) {
     this._level = level;
     this.cols = this._level.getMap().cols;
     this.rows = this._level.getMap().rows;
 };
 
 /* Connect this tile to east and south tiles */
-RG.World.AreaTile.prototype.connect = function(eastTile, southTile) {
+World.AreaTile.prototype.connect = function(eastTile, southTile) {
     const lastX = this.cols - 1;
     const lastY = this.rows - 1;
 
@@ -908,7 +908,7 @@ RG.World.AreaTile.prototype.connect = function(eastTile, southTile) {
     }
 };
 
-RG.World.AreaTile.prototype.addZone = function(type, zone) {
+World.AreaTile.prototype.addZone = function(type, zone) {
     if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
         RG.err('World.AreaTile', 'addZone',
             'No tileX/tileY given!');
@@ -919,7 +919,7 @@ RG.World.AreaTile.prototype.addZone = function(type, zone) {
     this.zones[type].push(zone);
 };
 
-RG.World.AreaTile.prototype.getZones = function(type) {
+World.AreaTile.prototype.getZones = function(type) {
     if (type) {
         return this.zones[type];
     }
@@ -930,7 +930,7 @@ RG.World.AreaTile.prototype.getZones = function(type) {
     return zones;
 };
 
-RG.World.AreaTile.prototype.getLevels = function() {
+World.AreaTile.prototype.getLevels = function() {
     let res = [this._level];
     Object.keys(this.zones).forEach(type => {
         this.zones[type].forEach(z => {res = res.concat(z.getLevels());});
@@ -948,13 +948,13 @@ RG.World.AreaTile.prototype.getLevels = function() {
     return res;
 };
 
-RG.World.AreaTile.prototype.toString = function() {
+World.AreaTile.prototype.toString = function() {
     let msg = `${this._tileX},${this._tileY}, ID: ${this._level.getID()}`;
     msg += ` nZones: ${this.getZones().length}`;
     return msg;
 };
 
-RG.World.AreaTile.prototype.toJSON = function() {
+World.AreaTile.prototype.toJSON = function() {
     return {
         x: this._tileX,
         y: this._tileY,
@@ -972,7 +972,7 @@ RG.World.AreaTile.prototype.toJSON = function() {
     };
 };
 
-RG.World.AreaTile.prototype.removeListeners = function() {
+World.AreaTile.prototype.removeListeners = function() {
     Object.values(this.zones).forEach(zoneList => {
         zoneList.forEach(zone => {
             zone.removeListeners();
@@ -981,14 +981,14 @@ RG.World.AreaTile.prototype.removeListeners = function() {
 };
 
 //------------------
-// RG.World.Area
+// World.Area
 //------------------
 /* Area is N x M area of tiles, with no linear progression like in dungeons.
  * Moving between tiles of areas happens by travelling to the edges of a tile.
  * Each tile is a level with special edge tiles.
  * */
-RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
-    RG.World.Base.call(this, name);
+World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
+    World.Base.call(this, name);
     this.setType('area');
     this._sizeX = parseInt(sizeX, 10);
     this._sizeY = parseInt(sizeY, 10);
@@ -1026,28 +1026,28 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     this._init(levels);
 
 };
-RG.extend2(RG.World.Area, RG.World.Base);
+RG.extend2(World.Area, World.Base);
 
-RG.World.Area.prototype.getTiles = function() {
+World.Area.prototype.getTiles = function() {
     return this._tiles;
 };
 
-RG.World.Area.prototype.setConf = function(conf) {
+World.Area.prototype.setConf = function(conf) {
     this._conf = conf;
 };
 
-RG.World.Area.prototype.getConf = function() {
+World.Area.prototype.getConf = function() {
     return this._conf;
 };
 
-RG.World.Area.prototype._init = function(levels) {
+World.Area.prototype._init = function(levels) {
     // Create the tiles
     for (let x = 0; x < this._sizeX; x++) {
         const tileColumn = [];
         this.tilesLoaded.push([]);
         for (let y = 0; y < this._sizeY; y++) {
             this.zonesCreated[x + ',' + y] = false;
-            const newTile = new RG.World.AreaTile(x, y, this);
+            const newTile = new World.AreaTile(x, y, this);
 
             // Scale the forest gen based on tile size
             const forestConf = RG.getForestConf(this._cols, this._rows);
@@ -1082,11 +1082,11 @@ RG.World.Area.prototype._init = function(levels) {
 };
 
 /* Connects all tiles together from the sides. */
-RG.World.Area.prototype.connectTiles = function() {
+World.Area.prototype.connectTiles = function() {
     connectTiles(this._tiles, this._sizeX, this._sizeY);
 };
 
-RG.World.Area.prototype.getLevels = function() {
+World.Area.prototype.getLevels = function() {
     let res = [];
     for (let x = 0; x < this._tiles.length; x++) {
         for (let y = 0; y < this._tiles[x].length; y++) {
@@ -1100,7 +1100,7 @@ RG.World.Area.prototype.getLevels = function() {
 };
 
 /* Returns tile X,Y which has the level with given ID. */
-RG.World.Area.prototype.findTileXYById = function(id) {
+World.Area.prototype.findTileXYById = function(id) {
     for (let x = 0; x < this._tiles.length; x++) {
         for (let y = 0; y < this._tiles[x].length; y++) {
             if (this.tilesLoaded[x][y]) {
@@ -1114,7 +1114,7 @@ RG.World.Area.prototype.findTileXYById = function(id) {
 };
 
 /* Returns true if the area has given level as a tile level. */
-RG.World.Area.prototype.hasTileWithId = function(id) {
+World.Area.prototype.hasTileWithId = function(id) {
     for (let x = 0; x < this._tiles.length; x++) {
         for (let y = 0; y < this._tiles[x].length; y++) {
             if (this.tilesLoaded[x][y]) {
@@ -1131,7 +1131,7 @@ RG.World.Area.prototype.hasTileWithId = function(id) {
 };
 
 /* Returns true if the area has tiles with given levels or level IDs. */
-RG.World.Area.prototype.hasTiles = function(arr) {
+World.Area.prototype.hasTiles = function(arr) {
     let result = arr.length > 0;
     arr.forEach(level => {
         if (typeof level.getID === 'function') {
@@ -1149,7 +1149,7 @@ RG.World.Area.prototype.hasTiles = function(arr) {
     return result;
 };
 
-RG.World.Area.prototype.getTileXY = function(x, y) {
+World.Area.prototype.getTileXY = function(x, y) {
     if (x >= 0 && x < this.getSizeX() && y >= 0 && y < this.getSizeY()) {
         return this._tiles[x][y];
     }
@@ -1162,7 +1162,7 @@ RG.World.Area.prototype.getTileXY = function(x, y) {
     return null;
 };
 
-RG.World.Area.prototype.addZone = function(type, zone) {
+World.Area.prototype.addZone = function(type, zone) {
     if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
         RG.err('World.Area', 'addZone',
             'No tileX/tileY given!');
@@ -1171,7 +1171,7 @@ RG.World.Area.prototype.addZone = function(type, zone) {
     zone.setParent(this);
 };
 
-RG.World.Area.prototype.getZones = function(type) {
+World.Area.prototype.getZones = function(type) {
     let res = [];
     for (let x = 0; x < this._tiles.length; x++) {
         for (let y = 0; y < this._tiles[x].length; y++) {
@@ -1183,7 +1183,7 @@ RG.World.Area.prototype.getZones = function(type) {
     return res;
 };
 
-RG.World.Area.prototype.createAreaConfig = function() {
+World.Area.prototype.createAreaConfig = function() {
     return {
         name: this.getName(),
         maxX: this._sizeX,
@@ -1192,8 +1192,8 @@ RG.World.Area.prototype.createAreaConfig = function() {
 };
 
 /* Serializes the Area into JSON. */
-RG.World.Area.prototype.toJSON = function() {
-    const json = RG.World.Base.prototype.toJSON.call(this);
+World.Area.prototype.toJSON = function() {
+    const json = World.Base.prototype.toJSON.call(this);
     const tilesJSON = [];
     this._tiles.forEach((tileCol, x) => {
         const tileColJSON = tileCol.map((tile, y) => {
@@ -1218,7 +1218,7 @@ RG.World.Area.prototype.toJSON = function() {
     return Object.assign(obj, json);
 };
 
-RG.World.Area.prototype.forEachTile = function(cb) {
+World.Area.prototype.forEachTile = function(cb) {
     for (let x = 0; x < this._tiles.length; x++) {
         for (let y = 0; y < this._tiles[x].length; y++) {
             if (this.tilesLoaded[x][y]) {
@@ -1229,13 +1229,13 @@ RG.World.Area.prototype.forEachTile = function(cb) {
 };
 
 //------------------
-// RG.World.Mountain
+// World.Mountain
 //------------------
 /* Mountains are places consisting of tiles and dungeons. Mountain has few
  * special tiles representing the summit.
  */
-RG.World.Mountain = function(name) {
-    RG.World.ZoneBase.call(this, name);
+World.Mountain = function(name) {
+    World.ZoneBase.call(this, name);
     this.setType('mountain');
 
 /* MountainFace, 5 stages:
@@ -1316,16 +1316,16 @@ Not implemented yet.
             }
         }
         // face-face and summit-summit connections done here
-        RG.World.ZoneBase.prototype.connectSubZones.call(
+        World.ZoneBase.prototype.connectSubZones.call(
             this, s1Arg, s2Arg, l1, l2);
     };
 
 };
-RG.extend2(RG.World.Mountain, RG.World.ZoneBase);
+RG.extend2(World.Mountain, World.ZoneBase);
 
 /* Serializes the World.Mountain object. */
-RG.World.Mountain.prototype.toJSON = function() {
-    const json = RG.World.ZoneBase.prototype.toJSON.call(this);
+World.Mountain.prototype.toJSON = function() {
+    const json = World.ZoneBase.prototype.toJSON.call(this);
     const obj = {
         nFaces: this.getFaces().length,
         face: this.getFaces().map(face => face.toJSON()),
@@ -1336,13 +1336,13 @@ RG.World.Mountain.prototype.toJSON = function() {
 };
 
 //----------------------
-// RG.World.MountainFace
+// World.MountainFace
 //----------------------
 /* One side (face) of the mountain. Each side consists of stages, of X by 1
  * Areas. This is also re-used as a mountain summit because internally it's the
  * same. */
-RG.World.MountainFace = function(name) {
-    RG.World.SubZoneBase.call(this, name);
+World.MountainFace = function(name) {
+    World.SubZoneBase.call(this, name);
     this.setType('face');
     this._entrance = null;
 
@@ -1403,7 +1403,7 @@ RG.World.MountainFace = function(name) {
     };
 
     this.toJSON = function() {
-        const json = RG.World.SubZoneBase.prototype.toJSON.call(this);
+        const json = World.SubZoneBase.prototype.toJSON.call(this);
         const obj = {};
         if (this._entrance) {
             obj.entrance = this._entrance;
@@ -1412,14 +1412,14 @@ RG.World.MountainFace = function(name) {
     };
 
 };
-RG.extend2(RG.World.MountainFace, RG.World.SubZoneBase);
+RG.extend2(World.MountainFace, World.SubZoneBase);
 
 //-------------------------
-// RG.World.MountainSummit
+// World.MountainSummit
 //-------------------------
 /* A summit of the mountain consisting of at least one Map.Level. */
-RG.World.MountainSummit = function(name) {
-    RG.World.SubZoneBase.call(this, name);
+World.MountainSummit = function(name) {
+    World.SubZoneBase.call(this, name);
     this.setType('summit');
 
     this.getEntrance = () => null;
@@ -1432,19 +1432,19 @@ RG.World.MountainSummit = function(name) {
     };
 
     this.toJSON = function() {
-        return RG.World.SubZoneBase.prototype.toJSON.call(this);
+        return World.SubZoneBase.prototype.toJSON.call(this);
     };
 
 };
-RG.extend2(RG.World.MountainSummit, RG.World.SubZoneBase);
+RG.extend2(World.MountainSummit, World.SubZoneBase);
 
 //-------------------------
-// RG.World.City
+// World.City
 //-------------------------
 /* A city in the world. A special features of the city can be queried through
 * this object. */
-RG.World.City = function(name) {
-    RG.World.ZoneBase.call(this, name);
+World.City = function(name) {
+    World.ZoneBase.call(this, name);
     this.setType('city');
 
     this.getQuarters = function() {
@@ -1468,7 +1468,7 @@ RG.World.City = function(name) {
     };
 
     this.toJSON = function() {
-        const json = RG.World.ZoneBase.prototype.toJSON.call(this);
+        const json = World.ZoneBase.prototype.toJSON.call(this);
         const obj = {
             nQuarters: this._subZones.length,
             quarter: this._subZones.map(q => q.toJSON())
@@ -1477,15 +1477,15 @@ RG.World.City = function(name) {
     };
 
 };
-RG.extend2(RG.World.City, RG.World.ZoneBase);
+RG.extend2(World.City, World.ZoneBase);
 
 //-----------------------------
-// RG.World.CityQuarter
+// World.CityQuarter
 //-----------------------------
 /* City quarter is a subset of the City. It contains the actual level and
  * special features for that level. */
-RG.World.CityQuarter = function(name) {
-    RG.World.SubZoneBase.call(this, name);
+World.CityQuarter = function(name) {
+    World.SubZoneBase.call(this, name);
     this.setType('quarter');
     this._entrance = null;
 
@@ -1534,7 +1534,7 @@ RG.World.CityQuarter = function(name) {
     };
 
     this.toJSON = function() {
-        const json = RG.World.SubZoneBase.prototype.toJSON.call(this);
+        const json = World.SubZoneBase.prototype.toJSON.call(this);
         const obj = {
             shops: this._shops.map(shop => shop.toJSON())
         };
@@ -1544,9 +1544,9 @@ RG.World.CityQuarter = function(name) {
         return Object.assign(obj, json);
     };
 };
-RG.extend2(RG.World.CityQuarter, RG.World.SubZoneBase);
+RG.extend2(World.CityQuarter, World.SubZoneBase);
 
-RG.World.CityQuarter.prototype.removeListeners = function() {
+World.CityQuarter.prototype.removeListeners = function() {
     this._shops.forEach(shop => {
         if (!shop.isAbandoned()) {
             // Must clean up these to avoid memory leaks
@@ -1556,11 +1556,11 @@ RG.World.CityQuarter.prototype.removeListeners = function() {
 };
 
 //-------------------------
-// RG.World.BattleZone
+// World.BattleZone
 //-------------------------
 /* A battle zone encapsulates battle construct, armies and the battle level. */
-RG.World.BattleZone = function(name) {
-    RG.World.ZoneBase.call(this, name);
+World.BattleZone = function(name) {
+    World.ZoneBase.call(this, name);
     this.setType('battlezone');
 
     this._levels = [];
@@ -1569,7 +1569,7 @@ RG.World.BattleZone = function(name) {
     this.getLevels = () => this._levels;
 
     this.toJSON = function() {
-        const json = RG.World.ZoneBase.prototype.toJSON.call(this);
+        const json = World.ZoneBase.prototype.toJSON.call(this);
         const nLevels = this._levels.length;
         const obj = {
           nLevels,
@@ -1583,15 +1583,15 @@ RG.World.BattleZone = function(name) {
     };
 
 };
-RG.extend2(RG.World.BattleZone, RG.World.ZoneBase);
+RG.extend2(World.BattleZone, World.ZoneBase);
 
 //-----------------------------
-// RG.World.Top
+// World.Top
 //-----------------------------
 /* Largest place at the top of hierarchy. Contains a number of areas,
  * mountains, dungeons and cities. */
-RG.World.Top = function(name) {
-    RG.World.Base.call(this, name);
+World.Top = function(name) {
+    World.Base.call(this, name);
     this.setType('world');
 
     this._areas = [];
@@ -1643,7 +1643,7 @@ RG.World.Top = function(name) {
     };
 
     this.toJSON = function() {
-        const json = RG.World.Base.prototype.toJSON.call(this);
+        const json = World.Base.prototype.toJSON.call(this);
         const area = this._areas.map(area => area.toJSON());
         let createAllZones = true;
         if (this.getConf().hasOwnProperty('createAllZones')) {
@@ -1662,10 +1662,10 @@ RG.World.Top = function(name) {
     };
 
 };
-RG.extend2(RG.World.Top, RG.World.Base);
+RG.extend2(World.Top, World.Base);
 
 /* Creates config for each area. This is mainly required for testing. */
-RG.World.Top.prototype.createAreaConfig = function() {
+World.Top.prototype.createAreaConfig = function() {
     const areaConf = [];
     this._areas.forEach(function(area) {
         areaConf.push(area.createAreaConfig());
@@ -1673,7 +1673,7 @@ RG.World.Top.prototype.createAreaConfig = function() {
     return areaConf;
 };
 
-RG.World.Top.prototype.getID2Place = function() {
+World.Top.prototype.getID2Place = function() {
     let res = {[this.getID()]: this};
     this._areas.forEach(area => {
         res[area.getID()] = area;
@@ -1691,7 +1691,7 @@ RG.World.Top.prototype.getID2Place = function() {
 // LEVEL FEATURES
 //---------------------------------------------------------------------------
 
-RG.World.Shop = function() {
+World.Shop = function() {
     this._shopkeeper = null;
     this._level = null;
     this._coord = [];
@@ -1709,12 +1709,12 @@ RG.World.Shop = function() {
     this.hasNotify = true;
 };
 
-RG.World.Shop.prototype.isAbandoned = function() {
+World.Shop.prototype.isAbandoned = function() {
     return this._isAbandoned;
 };
 
 /* Listens to shopkeeper killed event. */
-RG.World.Shop.prototype.notify = function(evtName, args) {
+World.Shop.prototype.notify = function(evtName, args) {
     if (this._shopkeeper) {
         if (args.actor.getID() === this._shopkeeper.getID()) {
             this.setShopAbandoned();
@@ -1723,15 +1723,15 @@ RG.World.Shop.prototype.notify = function(evtName, args) {
     }
 };
 
-RG.World.Shop.prototype.getLevel = function() {
+World.Shop.prototype.getLevel = function() {
     return this._level;
 };
 
-RG.World.Shop.prototype.getShopkeeper = function() {
+World.Shop.prototype.getShopkeeper = function() {
     return this._shopkeeper;
 };
 
-RG.World.Shop.prototype.setShopkeeper = function(keeper) {
+World.Shop.prototype.setShopkeeper = function(keeper) {
     if (keeper) {
         this._shopkeeper = keeper;
         POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
@@ -1742,7 +1742,7 @@ RG.World.Shop.prototype.setShopkeeper = function(keeper) {
     }
 };
 
-RG.World.Shop.prototype.setShopAbandoned = function() {
+World.Shop.prototype.setShopAbandoned = function() {
     this._isAbandoned = true;
     this._shopkeeper = null;
     this._coord.forEach(xy => {
@@ -1760,11 +1760,11 @@ RG.World.Shop.prototype.setShopAbandoned = function() {
     });
 };
 
-RG.World.Shop.prototype.getCell = function(xy) {
+World.Shop.prototype.getCell = function(xy) {
     return this._level.getMap().getCell(xy[0], xy[1]);
 };
 
-RG.World.Shop.prototype.reclaimShop = function(actor) {
+World.Shop.prototype.reclaimShop = function(actor) {
     if (this._isAbandoned) {
         this._isAbandoned = false;
         this.setShopkeeper(actor);
@@ -1785,7 +1785,7 @@ RG.World.Shop.prototype.reclaimShop = function(actor) {
 };
 
 /* Get empty cells of the shop (no items in cells). */
-RG.World.Shop.prototype.emptyCells = function() {
+World.Shop.prototype.emptyCells = function() {
     const result = [];
     this._coord.forEach(xy => {
         const cell = this._level.getMap().getCell(xy[0], xy[1]);
@@ -1797,7 +1797,7 @@ RG.World.Shop.prototype.emptyCells = function() {
 };
 
 /* Adds new items to the empty cells of the shop. */
-RG.World.Shop.prototype.refreshShopItems = function(newItems) {
+World.Shop.prototype.refreshShopItems = function(newItems) {
     let nItem = 0;
     this._coord.forEach(xy => {
         const cell = this._level.getMap().getCell(xy[0], xy[1]);
@@ -1811,7 +1811,7 @@ RG.World.Shop.prototype.refreshShopItems = function(newItems) {
     });
 };
 
-RG.World.Shop.prototype.toJSON = function() {
+World.Shop.prototype.toJSON = function() {
     const obj = {
         isAbandoned: this._isAbandoned,
         level: this._level.getID(),
@@ -1823,12 +1823,10 @@ RG.World.Shop.prototype.toJSON = function() {
     return obj;
 };
 
-RG.World.isZone = function(feature) {
+World.isZone = function(feature) {
     if (feature.getType) {
         const type = feature.getType();
         return (/(city|battlezone|mountain|dungeon)/).test(type);
     }
     return false;
 };
-
-export default RG.World;
