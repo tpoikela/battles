@@ -1,20 +1,20 @@
 
-const RG = require('./rg');
-const Entity = require('./entity');
-const {ChunkManager} = require('./chunk-manager');
-const EventPool = require('./eventpool');
-const Engine = require('./engine');
-const GameMaster = require('./game.master');
-const GameObject = require('./game-object');
-const FactoryWorld = require('./factory.world');
-const World = require('./world');
+import RG from './rg';
+import {Entity} from './entity';
+import ChunkManager from './chunk-manager';
+import {EventPool} from './eventpool';
+import {Engine} from './engine';
+import {GameMaster} from './game.master';
+import GameObject from './game-object';
+import {FactoryWorld} from './factory.world';
+import {World} from './world';
 
 const POOL = EventPool.getPool();
 
-RG.Game = {};
+export const Game: any = {};
 
 /* Top-level main object for the game.  */
-RG.Game.Main = function() {
+export const GameMain = function() {
     this._players = []; // List of players
     this._places = {}; // List of all places
     this._shownLevel = null; // One per game only
@@ -220,12 +220,12 @@ RG.Game.Main = function() {
                 }
             }
             else {
-                RG.err('Game.Main', '_addPlayerToPlace',
+                RG.err('GameMain', '_addPlayerToPlace',
                     'No place |' + place + '| found.');
             }
         }
         else {
-            RG.err('Game.Main', '_addPlayerToPlace', 'obj.place must exist.');
+            RG.err('GameMain', '_addPlayerToPlace', 'obj.place must exist.');
         }
         return false;
     };
@@ -267,7 +267,7 @@ RG.Game.Main = function() {
                     }
                 }
                 else {
-                    RG.warn('Game.Main', 'checkIfExploredZoneLeft',
+                    RG.warn('GameMain', 'checkIfExploredZoneLeft',
                         'No getID: ' + JSON.stringify(srcParent));
                 }
             }
@@ -327,7 +327,7 @@ RG.Game.Main = function() {
                     }
                 }
                 else {
-                    RG.err('Game.Main', 'addPlace',
+                    RG.err('GameMain', 'addPlace',
                         `Place ${name} has no levels!`);
                 }
                 this._places[name] = place;
@@ -340,12 +340,12 @@ RG.Game.Main = function() {
                 }
             }
             else {
-                RG.err('Game.Main', 'addPlace',
+                RG.err('GameMain', 'addPlace',
                     'A place |' + name + '| exists.');
             }
         }
         else {
-            RG.err('Game.Main', 'addPlace',
+            RG.err('GameMain', 'addPlace',
                 'Added place must have getLevels()');
         }
     };
@@ -555,7 +555,7 @@ RG.Game.Main = function() {
             this._engine.animationCallback = cb;
         }
         else {
-            RG.warn('Game.Main', 'setAnimationCallback',
+            RG.warn('GameMain', 'setAnimationCallback',
                 'Callback must be a function.');
         }
     };
@@ -668,18 +668,18 @@ RG.Game.Main = function() {
         msg += 'Duplicate level ID ' + level.getID();
         msg += ' JSON: ' + JSON.stringify(json, null, 1);
 
-        RG.err('Game.Main', funcName, msg);
+        RG.err('GameMain', funcName, msg);
     };
 
     this.entityPrint = () => {
         RG.diag(Entity.num);
     };
 
-}; // }}} Game.Main
+}; // }}} GameMain
 
 /* An object for saving the game in specified storage (local/etc..) or restoring
 * the game from saved format. GUI should use this object. */
-RG.Game.Save = function() {
+Game.Save = function() {
     let _storageRef = null;
     let _dungeonLevel = null;
 
@@ -758,7 +758,7 @@ RG.Game.Save = function() {
         if (playersObj.hasOwnProperty(name)) {
             const dbString = _storageRef.getItem('_battles_player_' + name);
             const dbObj = JSON.parse(dbString);
-            const fromJSON = new RG.Game.FromJSON();
+            const fromJSON = new Game.FromJSON();
             const game = fromJSON.createGame(dbObj.game);
             _dungeonLevel = fromJSON.getDungeonLevel();
             return game;
@@ -801,7 +801,7 @@ RG.Game.Save = function() {
 
 /* Describes a condition when the player has won the game. 1st version pretty
  * much checks if given actor is killed. */
-RG.Game.WinCondition = function(name) {
+Game.WinCondition = function(name) {
     const _name = name;
     this.description = ''; // Shown when condition filled
 
@@ -867,5 +867,5 @@ RG.Game.WinCondition = function(name) {
 
 };
 
-module.exports = RG.Game;
+module.exports = Game;
 

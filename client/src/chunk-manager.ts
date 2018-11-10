@@ -1,7 +1,10 @@
 
-const RG = require('./rg');
-const FromJSON = require('./game.fromjson');
-const debug = require('debug')('bitn:ChunkManager');
+import RG from './rg';
+import {FromJSON} from './game.fromjson';
+// import * as World from './world';
+
+import dbg = require('debug');
+const debug = dbg('bitn:ChunkManager');
 
 const LOAD = Object.freeze(
     {EMPTY: 'EMPTY', LOADED: 'LOADED', JSON: 'JSON', ON_DISK: 'ON_DISK',
@@ -30,10 +33,23 @@ function printTileConnections(msg, tileToConnect, id = -1) {
     }
 }
 
+interface ChunkState {
+    loadState: string;
+}
+
 /* Chunk manager handles loading/saving of world chunks (World.AreaTiles)
  * from/to memory/disk. It also keeps track of the state of each chunk.
  * */
-class ChunkManager {
+export class ChunkManager {
+    public sizeX: number;
+    public sizeY: number;
+    public loadDistX: number;
+    public loadDistY: number;
+    public onDiskDistX: number;
+    public onDiskDistY: number;
+    public area: any;
+    public game: any;
+    public state: ChunkState[][];
 
     constructor(game, area) {
         const [sizeX, sizeY] = [area.getSizeX(), area.getSizeY()];
@@ -428,10 +444,8 @@ class ChunkManager {
     }
 }
 
-const Chunk = {};
+export const Chunk: any = {};
 Chunk.printTileConnections = printTileConnections;
 Chunk.LOAD = LOAD;
 Chunk.CREATE = CREATE;
 Chunk.ChunkManager = ChunkManager;
-
-module.exports = Chunk;

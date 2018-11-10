@@ -1,7 +1,7 @@
 
-const RG = require('./rg');
+import RG from './rg';
 
-const OW = {};
+export const OW: any = {};
 
 //---------------------------
 // CONSTANT DEFINITIONS
@@ -232,5 +232,3 @@ OW.CAN_CONNECT = {
         W: []
     }
 };
-
-module.exports = OW;

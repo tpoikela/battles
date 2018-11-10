@@ -3,13 +3,14 @@
  * world event simulations.
  */
 
-const RG = require('../src/rg');
-const Territory = require('../src/territory');
-const OW = require('../src/ow-constants');
+import RG from '../src/rg';
+import {Territory} from '../src/territory';
+import {OW} from '../src/ow-constants';
+import {Random} from '../src/random';
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
-const TerritoryMap = function() {
+export const TerritoryMap = function() {
 
 };
 
@@ -77,7 +78,7 @@ TerritoryMap.create = function(ow, playerRace, playerXY) {
     coordMap.yMap = 10;
     const bbox = coordMap.getOWTileBboxFromAreaTileXY(playerX, playerY);
 
-    const pData = terrMap.getData(playerRace);
+    const pData = terrMap.getRivalData(playerRace);
     pData.numPos += 1;
 
     const playerOwX = RNG.getUniformInt(bbox.ulx, bbox.lrx);
@@ -88,5 +89,3 @@ TerritoryMap.create = function(ow, playerRace, playerXY) {
     terrMap.generate();
     return terrMap;
 };
-
-module.exports = TerritoryMap;

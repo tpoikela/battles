@@ -1,14 +1,16 @@
 /* Contains code related to in-game battles. */
 
-const RG = require('./rg');
-const debug = require('debug')('bitn:game.battle');
-const EventPool = require('../src/eventpool');
+import RG from './rg';
+import {EventPool} from '../src/eventpool';
+
+import dbg = require('debug');
+const debug = dbg('bitn:game.battle');
 
 const POOL = EventPool.getPool();
 
 /* Army is a collection of actors associated with a battle. This is useful for
  *  battle commanders to have access to their full army. */
-const Army = function(name) {
+export const Army = function(name) {
     this._name = name;
     this._actors = []; // All actors inside this army
 
@@ -117,7 +119,7 @@ const Army = function(name) {
 };
 
 /* Battle is "mini-game" which uses its own scheduling and engine.*/
-const Battle = function(name) {
+export const Battle = function(name) {
     this._name = name;
     this._armies = [];
     this._level = null;
@@ -151,7 +153,7 @@ const Battle = function(name) {
     this.setStats = stats => {this._stats = stats;};
 
     /* Adds an army to given x,y location.*/
-    this.addArmy = (army, x, y, conf = {}) => {
+    this.addArmy = (army, x, y, conf: any = {}) => {
         const horizontal = conf.horizontal ? true : false;
         const numRows = conf.numRows > 0 ? conf.numRows : 1;
 
@@ -266,8 +268,4 @@ Battle.prototype.removeListeners = function() {
         POOL.removeListener(army);
     });
     POOL.removeListener(this);
-};
-
-module.exports = {
-    Army, Battle
 };

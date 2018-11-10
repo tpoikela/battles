@@ -2,11 +2,50 @@
 /* NOTE: This file is unused at the moment. It has been replaced by overworld
 *  generation, which is less random. */
 
-const RG = require('./rg');
-RG.Random = require('./random');
+import RG from './rg';
+import {Random} from './random';
+import {Names} from '../data/name-gen';
 
-const RNG = RG.Random.getRNG();
-const Names = require('../data/name-gen');
+const RNG = Random.getRNG();
+
+interface BranchConf {
+    [key: string]: any;
+}
+
+interface DungeonConf {
+    name: string;
+    x: number;
+    y: number;
+    nBranches: number;
+    branch: BranchConf[];
+    connectLevels?: any[];
+};
+
+interface QuarterConf {
+    [key: string]: any;
+}
+
+interface CityConf {
+    name: string;
+    x: number;
+    y: number;
+    nQuarters: number;
+    quarter: QuarterConf[];
+    connectLevels?: any[];
+};
+
+interface FaceConf {
+    [key: string]: any;
+}
+
+interface MountainConf {
+    name: string;
+    x: number;
+    y: number;
+    nFaces: number;
+    face: FaceConf[];
+    connectLevels?: any[];
+};
 
 // Default configuration for creation
 const defaultConf = {
@@ -71,7 +110,7 @@ const areaSizeToXY = {
     Freezing: -0.2
 };*/
 
-const WorldConf = {};
+export const WorldConf: any = {};
 
 WorldConf.featCoeff = 0.3;
 
@@ -304,7 +343,7 @@ WorldConf.createSingleDungeonConf = (areaConf, conf) => {
     const branches = WorldConf.createBranchesConf(dungeonConf, conf);
     const connect = WorldConf.createBranchConnections('branch', branches);
 
-    const obj = {
+    const obj: DungeonConf = {
         name: Names.getGenericPlaceName('dungeon'),
         x: xy.x,
         y: xy.y,
@@ -485,7 +524,7 @@ WorldConf.Creator = function() {
         const quarters = this.createQuartersConf(cityConf, conf);
         const connect = WorldConf.createQuarterConnections(quarters);
 
-        const obj = {
+        const obj: CityConf = {
             name: '',
             x: xy.x,
             y: xy.y,
@@ -536,7 +575,7 @@ WorldConf.Creator = function() {
         const faces = this.createFacesConf(mountConf, conf);
         const connect = WorldConf.createFaceConnections('mountain', faces);
 
-        const obj = {
+        const obj: MountainConf = {
             name: '',
             x: xy.x,
             y: xy.y,
@@ -577,5 +616,3 @@ WorldConf.Creator = function() {
     };
 
 };
-
-module.exports = WorldConf;

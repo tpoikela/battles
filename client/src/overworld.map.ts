@@ -4,376 +4,382 @@
  * This tile map has one feature (town/mountain/dungeon) per tile, to keep the
  * overworld map useful for navigation and seeing details.
  */
-
-const RG = require('./rg');
-RG.Random = require('./random');
-RG.Map = require('./map');
-const TerritoryMap = require('../data/territory-map');
 const debug = require('debug')('bitn:OW');
-const OW = require('./ow-constants');
-const Geometry = require('./geometry');
 
-const getRNG = RG.Random.getRNG;
+import RG from './rg';
+import {Random} from './random';
+import {CellMap} from './map';
+import {Level} from './level';
+import {TerritoryMap} from '../data/territory-map';
+import {OW} from './ow-constants';
+import {Geometry} from './geometry';
+import {Territory} from './territory';
 
-/* Creates the overworld map and returns the created map. */
-OW.createOverWorld = (conf = {}) => {
-    const yFirst = typeof conf.yFirst !== 'undefined' ? conf.yFirst : true;
+const getRNG = Random.getRNG;
 
-    const topToBottom = typeof conf.topToBottom !== 'undefined'
-        ? conf.topToBottom : true;
+// export const OW: any = {};
 
-    const printResult = typeof conf.printResult !== 'undefined'
-        ? conf.printResult : false;
+type Coord = [number, number];
 
-    // Size of the high-level feature map
-    const owTilesX = conf.owTilesX || 40;
-    const owTilesY = conf.owTilesY || 20;
-    const overworld = new OW.Map();
+export interface OWMapConf {
+    yFirst?: boolean;
+    topToBottom?: boolean;
+    printResult?: boolean;
+    owTilesX?: number;
+    owTilesY?: number;
+}
 
-    const owMap = createEmptyMap(owTilesX, owTilesY);
-    randomizeBorders(owMap);
-    addWallsIfAny(overworld, owMap, conf);
-
-    addRandomInnerWalls(overworld, owMap, conf);
-
-    if (topToBottom) {
-        connectUnconnectedTopBottom(owMap, yFirst);
-    }
-    else {
-        connectUnconnectedBottomTop(owMap, yFirst);
-    }
-
-    if (conf.printResult) {
-        RG.printMap(owMap); // For debugging, keep
-    }
-    overworld.setMap(owMap);
-
-    addOverWorldFeatures(overworld, conf);
-
-    // High-level overworld generation ends here
-
-    if (printResult) {
-        RG.log('\n', overworld.mapToString().join('\n')); // Print result
-    }
-    return overworld;
-};
 
 //---------------------------------------------
-/* OW.Map: Data struct for overworld. */
+/* OWMap: Data struct for overworld. */
 //---------------------------------------------
 
-OW.Map = function() {
-    this._baseMap = [];
-    this._explored = {};
-    this._subLevels = [];
+interface FeatData {
+    type: string;
+}
 
-    this._hWalls = [];
-    this._vWalls = [];
+interface OWWall {
+    x: number | number[];
+    y: number | number[];
+}
 
-    this._features = {};
-    this._featureData = {};
-    this._featuresByXY = {};
+export class OWMap {
 
-    this._biomeMap = {};
+    public static createOverWorld: (conf) => OWMap;
+    public static fromJSON: (json) => OWMap;
 
-    this._terrMap = null;
-};
+    public _baseMap: string[][];
+    public _explored: {[key: string]: boolean};
+    public _subLevels: Level[][];
 
-OW.Map.prototype.getSizeXY = function() {
-    return [this.getSizeX(), this.getSizeY()];
-};
+    public _hWalls: OWWall[];
+    public _vWalls: OWWall[];
 
+    public _features: {[key: string]: Coord[]};
+    public _featureData: {[key: string]: FeatData[]};
+    public _featuresByXY: {[key: string]: string[]};
 
-OW.Map.prototype.getCenterX = function() {
-    return Math.round(this.getSizeX() / 2);
-};
+    public _biomeMap: {[key: string]: string};
 
-OW.Map.prototype.getCenterY = function() {
-    return Math.round(this.getSizeY() / 2);
-};
+    public _terrMap: any;
 
-OW.Map.prototype.isWallTile = function(x, y) {
-    const tile = this._baseMap[x][y];
-    return OW.ALL_WALLS_LUT.hasOwnProperty(tile);
-};
+    public coordMap: any;
 
-OW.Map.prototype.numTiles = function(tile) {
-    let numFound = 0;
-    const [sizeX, sizeY] = this.getSizeXY();
-    for (let x = 0; x < sizeX; x++) {
-        for (let y = 0; y < sizeY; y++) {
-            if (this._baseMap[x][y] === tile) {
-                ++numFound;
+    constructor() {
+        this._baseMap = [];
+        this._explored = {};
+        this._subLevels = [];
+
+        this._hWalls = [];
+        this._vWalls = [];
+
+        this._features = {};
+        this._featureData = {};
+        this._featuresByXY = {};
+
+        this._biomeMap = {};
+
+        this._terrMap = null;
+    }
+
+    getSizeXY() {
+        return [this.getSizeX(), this.getSizeY()];
+    }
+
+    getCenterX() {
+        return Math.round(this.getSizeX() / 2);
+    }
+
+    getCenterY() {
+        return Math.round(this.getSizeY() / 2);
+    }
+
+    isWallTile(x, y) {
+        const tile = this._baseMap[x][y];
+        return OW.ALL_WALLS_LUT.hasOwnProperty(tile);
+    }
+
+    numTiles(tile) {
+        let numFound = 0;
+        const [sizeX, sizeY] = this.getSizeXY();
+        for (let x = 0; x < sizeX; x++) {
+            for (let y = 0; y < sizeY; y++) {
+                if (this._baseMap[x][y] === tile) {
+                    ++numFound;
+                }
             }
         }
+        return numFound;
     }
-    return numFound;
-};
 
-OW.Map.prototype.numWallTiles = function() {
-    let numWalls = 0;
-    const [sizeX, sizeY] = this.getSizeXY();
-    for (let x = 0; x < sizeX; x++) {
-        for (let y = 0; y < sizeY; y++) {
-            if (this.isWallTile(x, y)) {
-                ++numWalls;
+    numWallTiles() {
+        let numWalls = 0;
+        const [sizeX, sizeY] = this.getSizeXY();
+        for (let x = 0; x < sizeX; x++) {
+            for (let y = 0; y < sizeY; y++) {
+                if (this.isWallTile(x, y)) {
+                    ++numWalls;
+                }
             }
         }
+        return numWalls;
     }
-    return numWalls;
-};
 
-OW.Map.prototype.getBiome = function(x, y) {
-    const key = x + ',' + y;
-    if (this._biomeMap.hasOwnProperty(key)) {
-        return this._biomeMap[x + ',' + y];
+    getBiome(x, y) {
+        const key = x + ',' + y;
+        if (this._biomeMap.hasOwnProperty(key)) {
+            return this._biomeMap[x + ',' + y];
+        }
+        else {
+            RG.err('OWMap', 'getBiome',
+                `No biome set for x,y ${x},${y}`);
+        }
+        return '';
     }
-    else {
-        RG.err('OW.Map', 'getBiome',
-            `No biome set for x,y ${x},${y}`);
+
+    getMap() {
+        return this._baseMap;
     }
-    return '';
-};
 
-OW.Map.prototype.getMap = function() {
-    return this._baseMap;
-};
-
-OW.Map.prototype.getCell = function(xy) {
-    return this._baseMap[xy[0]][xy[1]];
-};
-
-OW.Map.prototype.numHWalls = function() {
-    return this._hWalls.length;
-};
-OW.Map.prototype.numVWalls = function() {
-    return this._vWalls.length;
-};
-OW.Map.prototype.getHWalls = function() {
-    return this._hWalls;
-};
-OW.Map.prototype.getVWalls = function() {
-    return this._vWalls;
-};
-
-OW.Map.prototype.setMap = function(map) {
-    const sizeX = map.length;
-    this._baseMap = map;
-    for (let x = 0; x < sizeX; x++) {
-        this._subLevels[x] = [];
+    getCell(xy) {
+        return this._baseMap[xy[0]][xy[1]];
     }
-};
 
-OW.Map.prototype.setTerrMap = function(terrMap) {
-    this._terrMap = terrMap;
-};
-
-OW.Map.prototype.getTerrMap = function() {
-    return this._terrMap;
-};
-
-OW.Map.prototype.addBiome = function(x, y, biomeType) {
-    const key = x + ',' + y;
-    this._biomeMap[key] = biomeType;
-};
-
-OW.Map.prototype.addVWall = function(wall) {
-    wall.type = 'vertical';
-    this._vWalls.push(wall);
-};
-
-OW.Map.prototype.addHWall = function(wall) {
-    wall.type = 'horizontal';
-    this._hWalls.push(wall);
-};
-
-OW.Map.prototype.addFeature = function(xy, type) {
-    const keyXY = xy[0] + ',' + xy[1];
-    if (!this._features.hasOwnProperty(type)) {
-        this._features[type] = [];
+    numHWalls() {
+        return this._hWalls.length;
     }
-    if (!this._featuresByXY.hasOwnProperty(keyXY)) {
-        this._featuresByXY[keyXY] = [];
+
+    numVWalls() {
+        return this._vWalls.length;
     }
-    this._features[type].push(xy);
-    this._featuresByXY[keyXY].push(type);
-};
 
-OW.Map.prototype.addFeatureData = function(xy, data) {
-    const keyXY = xy[0] + ',' + xy[1];
-    if (!this._featureData.hasOwnProperty(keyXY)) {
-        this._featureData[keyXY] = [];
+    getHWalls() {
+        return this._hWalls;
     }
-    this._featureData[keyXY].push(data);
-};
 
-OW.Map.prototype.getFeaturesByType = function(type) {
-    if (!this._features.hasOwnProperty(type)) {
-        return [];
+    getVWalls() {
+        return this._vWalls;
     }
-    return this._features[type];
-};
 
-OW.Map.prototype.getFeaturesByXY = function(xy) {
-    const keyXY = xy[0] + ',' + xy[1];
-    return this._featuresByXY[keyXY];
-};
-
-OW.Map.prototype.addSubLevel = function(xy, level) {
-    this._subLevels[xy[0]][xy[1]] = level;
-};
-
-OW.Map.prototype.getSubLevel = function(xy) {
-    return this._subLevels[xy[0]][xy[1]];
-};
-
-OW.Map.prototype.clearSubLevels = function() {
-    this._subLevels = [];
-};
-
-OW.Map.prototype.getSubLevelsWithFeature = function(type) {
-    const featXY = this.getFeaturesByType(type);
-    return featXY.map(xy => this.getSubLevel(xy));
-};
-
-OW.Map.prototype.getAreaXY = function() {
-    return this.getSizeX() * this.getSizeY();
-};
-
-OW.Map.prototype.getSizeX = function() {
-    return this._baseMap.length;
-};
-
-OW.Map.prototype.getSizeY = function() {
-    if (this._baseMap[0].length > 0) {
-        return this._baseMap[0].length;
+    setMap(map) {
+        const sizeX = map.length;
+        this._baseMap = map;
+        for (let x = 0; x < sizeX; x++) {
+            this._subLevels[x] = [];
+        }
     }
-    else {
-        RG.warn('OW.Map', 'getSizeY',
-            'Y-size requested but returning zero value');
-        return 0;
+
+    setTerrMap(terrMap) {
+        this._terrMap = terrMap;
     }
-};
 
-OW.Map.prototype.setExplored = function(xy) {
-    this._explored[xy[0] + ',' + xy[1]] = true;
-};
-
-OW.Map.prototype.isExplored = function(xy) {
-    return this._explored[xy[0] + ',' + xy[1]];
-};
-
-OW.Map.prototype.toJSON = function() {
-    const json = {
-        baseMap: this._baseMap,
-        biomeMap: this._biomeMap,
-        features: this._features,
-        featuresByXY: this._featuresByXY,
-        vWalls: this._vWalls,
-        hWalls: this._hWalls,
-        explored: this._explored
-    };
-    if (this.coordMap) {
-        json.coordMap = this.coordMap.toJSON();
+    getTerrMap() {
+        return this._terrMap;
     }
-    if (this.terrMap) {
-        json.terrMap = this.terrMap.toJSON();
+
+    addBiome(x: number, y: number, biomeType: string) {
+        const key = x + ',' + y;
+        this._biomeMap[key] = biomeType;
     }
-    return json;
-};
 
-OW.Map.prototype.getOWMap = function(useExplored = false) {
-    const map = JSON.parse(JSON.stringify(this._baseMap));
-    const sizeY = map[0].length;
-    const sizeX = map.length;
+    addVWall(wall) {
+        wall.type = 'vertical';
+        this._vWalls.push(wall);
+    }
 
-    // Add features on top of the base map, for overlapping features,
-    // this shows only the first one added
-    Object.keys(this._features).forEach(type => {
-        this._features[type].forEach(xy => {
-            map[xy[0]][xy[1]] = type;
+    addHWall(wall) {
+        wall.type = 'horizontal';
+        this._hWalls.push(wall);
+    }
+
+    addFeature(xy, type) {
+        const keyXY = xy[0] + ',' + xy[1];
+        if (!this._features.hasOwnProperty(type)) {
+            this._features[type] = [];
+        }
+        if (!this._featuresByXY.hasOwnProperty(keyXY)) {
+            this._featuresByXY[keyXY] = [];
+        }
+        this._features[type].push(xy);
+        this._featuresByXY[keyXY].push(type);
+    }
+
+    addFeatureData(xy, data: FeatData) {
+        const keyXY = xy[0] + ',' + xy[1];
+        if (!this._featureData.hasOwnProperty(keyXY)) {
+            this._featureData[keyXY] = [];
+        }
+        this._featureData[keyXY].push(data);
+    }
+
+    getFeaturesByType(type) {
+        if (!this._features.hasOwnProperty(type)) {
+            return [];
+        }
+        return this._features[type];
+    }
+
+    getFeaturesByXY(xy) {
+        const keyXY = xy[0] + ',' + xy[1];
+        return this._featuresByXY[keyXY];
+    }
+
+    addSubLevel(xy, level) {
+        this._subLevels[xy[0]][xy[1]] = level;
+    }
+
+    getSubLevel(xy) {
+        return this._subLevels[xy[0]][xy[1]];
+    }
+
+    clearSubLevels() {
+        this._subLevels = [];
+    }
+
+    getSubLevelsWithFeature(type) {
+        const featXY = this.getFeaturesByType(type);
+        return featXY.map(xy => this.getSubLevel(xy));
+    }
+
+    getAreaXY() {
+        return this.getSizeX() * this.getSizeY();
+    }
+
+    getSizeX() {
+        return this._baseMap.length;
+    }
+
+    getSizeY() {
+        if (this._baseMap[0].length > 0) {
+            return this._baseMap[0].length;
+        }
+        else {
+            RG.warn('OWMap', 'getSizeY',
+                'Y-size requested but returning zero value');
+            return 0;
+        }
+    }
+
+    setExplored(xy) {
+        this._explored[xy[0] + ',' + xy[1]] = true;
+    }
+
+    isExplored(xy) {
+        return this._explored[xy[0] + ',' + xy[1]];
+    }
+
+    toJSON() {
+        const json: any = {
+            baseMap: this._baseMap,
+            biomeMap: this._biomeMap,
+            features: this._features,
+            featuresByXY: this._featuresByXY,
+            vWalls: this._vWalls,
+            hWalls: this._hWalls,
+            explored: this._explored
+        };
+        if (this.coordMap) {
+            json.coordMap = this.coordMap.toJSON();
+        }
+        if (this._terrMap) {
+            json.terrMap = this._terrMap.toJSON();
+        }
+        return json;
+    }
+
+    getOWMap(useExplored = false) {
+        const map = JSON.parse(JSON.stringify(this._baseMap));
+        const sizeY = map[0].length;
+        const sizeX = map.length;
+
+        // Add features on top of the base map, for overlapping features,
+        // this shows only the first one added
+        Object.keys(this._features).forEach(type => {
+            this._features[type].forEach(xy => {
+                map[xy[0]][xy[1]] = type;
+            });
         });
-    });
 
-    if (useExplored) {
-      for (let x = 0; x < sizeX; x++) {
-        for (let y = 0; y < sizeY; y++) {
-          if (!this._explored[x + ',' + y]) {
-            map[x][y] = '?';
+        if (useExplored) {
+          for (let x = 0; x < sizeX; x++) {
+            for (let y = 0; y < sizeY; y++) {
+              if (!this._explored[x + ',' + y]) {
+                map[x][y] = '?';
+              }
+            }
           }
         }
-      }
+        return map;
     }
-    return map;
-};
 
-/* Returns the OW Map represented as Map.CellList. Marker elements are used to
- * show the visible cells. */
-OW.Map.prototype.getCellList = function() {
-    const map = this.getOWMap();
-    const sizeY = map[0].length;
-    const sizeX = map.length;
+    /* Returns the OWMap represented as Map.CellList. Marker elements are used to
+     * show the visible cells. */
+    getCellList() {
+        const map = this.getOWMap();
+        const sizeY = map[0].length;
+        const sizeX = map.length;
 
-    const cellList = new RG.Map.CellList(sizeX, sizeY);
-    for (let x = 0; x < sizeX; x++) {
+        const cellList = new CellMap(sizeX, sizeY);
+        for (let x = 0; x < sizeX; x++) {
+            for (let y = 0; y < sizeY; y++) {
+                const marker = new RG.Element.Marker(map[x][y]);
+                if (OW.classNames[map[x][y]]) {
+                    marker.setClassName(OW.classNames[map[x][y]]);
+                }
+                else {
+                    marker.setClassName(OW.classNames.default);
+                }
+                cellList.setProp(x, y, RG.TYPE_ELEM, marker);
+            }
+        }
+
+        return cellList;
+    }
+
+    /* Converts the OWMap into string. */
+    mapToString(useExplored = false) {
+        const map = this.getOWMap(useExplored);
+        const sizeY = map[0].length;
+        const sizeX = map.length;
+
+        const lines = [];
         for (let y = 0; y < sizeY; y++) {
-            const marker = new RG.Element.Marker(map[x][y]);
-            if (OW.classNames[map[x][y]]) {
-                marker.setClassName(OW.classNames[map[x][y]]);
+            const line = [];
+            for (let x = 0; x < sizeX; x++) {
+                line.push(map[x][y]);
             }
-            else {
-                marker.setClassName(OW.classNames.default);
+            lines.push(line);
+        }
+        return lines.map(line => line.join(''));
+    }
+
+    /* Prints the map of biomes and a legend explaining the numbers. */
+    biomeMapToString() {
+        const sizeX = this.getSizeX() - 1;
+        const sizeY = this.getSizeY() - 1;
+
+        // Build a legend ie: 0 - arctic, 1 - alpine, 2 - forest etc
+        const keys = Object.keys(OW.biomeTypeMap);
+        const name2Num = {};
+        const legend = keys.map((key, index) => {
+            name2Num[key] = '' + index;
+            return `${index} - ${key}`;
+        });
+
+        let result = '';
+        for (let y = 0; y < sizeY; y++) {
+            let rowStr = '';
+            for (let x = 0; x < sizeX; x++) {
+                const key = x + ',' + y;
+                rowStr += ',' + name2Num[this._biomeMap[key]];
             }
-            cellList.setProp(x, y, RG.TYPE_ELEM, marker);
+            rowStr += '\n';
+            result += rowStr;
         }
+        result += '\n' + legend.join('\n');
+        return result;
     }
-
-    return cellList;
-};
-
-/* Converts the OW.Map into string. */
-OW.Map.prototype.mapToString = function(useExplored = false) {
-    const map = this.getOWMap(useExplored);
-    const sizeY = map[0].length;
-    const sizeX = map.length;
-
-    const lines = [];
-    for (let y = 0; y < sizeY; y++) {
-        const line = [];
-        for (let x = 0; x < sizeX; x++) {
-            line.push(map[x][y]);
-        }
-        lines.push(line);
-    }
-    return lines.map(line => line.join(''));
-};
-
-/* Prints the map of biomes and a legend explaining the numbers. */
-OW.Map.prototype.biomeMapToString = function() {
-    const sizeX = this.getSizeX() - 1;
-    const sizeY = this.getSizeY() - 1;
-
-    // Build a legend ie: 0 - arctic, 1 - alpine, 2 - forest etc
-    const keys = Object.keys(OW.biomeTypeMap);
-    const name2Num = {};
-    const legend = keys.map((key, index) => {
-        name2Num[key] = '' + index;
-        return `${index} - ${key}`;
-    });
-
-    let result = '';
-    for (let y = 0; y < sizeY; y++) {
-        let rowStr = '';
-        for (let x = 0; x < sizeX; x++) {
-            const key = x + ',' + y;
-            rowStr += ',' + name2Num[this._biomeMap[key]];
-        }
-        rowStr += '\n';
-        result += rowStr;
-    }
-    result += '\n' + legend.join('\n');
-    return result;
-};
+}
 
 //---------------------------------------------------------------------------
 // HELPERS
@@ -789,7 +795,7 @@ function addFeatureToWall(ow, wall, type) {
 
 /* Adds a biome zone to the overworld map. These zones can be used to generate
  * terrain props + different actors based on the zone type. */
-function addBiomeToOverWorld(ow, cmd, biomeType) {
+function addBiomeToOverWorld(ow, cmd, biomeType: string) {
     const bbox = getBoundingBox(ow, cmd);
     // Apply given type on the found range
     for (let x = bbox.ulx; x <= bbox.lrx; x++) {
@@ -1055,6 +1061,63 @@ function getBoundingBox(ow, cmd) {
         uly: yStart, lry: yEnd
     };
 
+
 }
 
-module.exports = OW;
+/* Creates the overworld map and returns the created map. */
+OWMap.createOverWorld = function(conf: OWMapConf = {}): OWMap {
+    const yFirst = typeof conf.yFirst !== 'undefined' ? conf.yFirst : true;
+
+    const topToBottom = typeof conf.topToBottom !== 'undefined'
+        ? conf.topToBottom : true;
+
+    const printResult = typeof conf.printResult !== 'undefined'
+        ? conf.printResult : false;
+
+    // Size of the high-level feature map
+    const owTilesX = conf.owTilesX || 40;
+    const owTilesY = conf.owTilesY || 20;
+    const overworld = new OWMap();
+
+    const owMap = createEmptyMap(owTilesX, owTilesY);
+    randomizeBorders(owMap);
+    addWallsIfAny(overworld, owMap, conf);
+
+    addRandomInnerWalls(overworld, owMap, conf);
+
+    if (topToBottom) {
+        connectUnconnectedTopBottom(owMap, yFirst);
+    }
+    else {
+        connectUnconnectedBottomTop(owMap, yFirst);
+    }
+
+    if (conf.printResult) {
+        RG.printMap(owMap); // For debugging, keep
+    }
+    overworld.setMap(owMap);
+
+    addOverWorldFeatures(overworld, conf);
+
+    // High-level overworld generation ends here
+
+    if (printResult) {
+        RG.log('\n', overworld.mapToString().join('\n')); // Print result
+    }
+    return overworld;
+};
+
+OWMap.fromJSON = function(json): OWMap {
+    const ow = new OWMap();
+    ow.setMap(json.baseMap);
+    ow._features = json.features;
+    ow._featuresByXY = json.featuresByXY;
+    ow._vWalls = json.vWalls;
+    ow._hWalls = json.hWalls;
+    ow._biomeMap = json.biomeMap;
+    ow._explored = json.explored;
+    if (json.terrMap) {
+        ow._terrMap = Territory.fromJSON(json.terrMap);
+    }
+    return ow;
+}

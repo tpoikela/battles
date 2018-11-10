@@ -1,21 +1,21 @@
 
 
-const debug = require('debug')('bitn:Game.FromJSON');
+import dbg = require('debug');
+const debug = dbg('bitn:Game.FromJSON');
 
-const RG = require('./rg');
-const OW = require('./overworld.map');
-const Battle = require('./game.battle').Battle;
-const Army = require('./game.battle').Army;
-const GoalsTop = require('./goals-top');
-const Evaluator = require('./evaluators');
-const EvaluatorsBattle = require('./evaluators-battle');
-const Territory = require('./territory');
-const GameObject = require('./game-object');
-const {QuestData} = require('./quest-gen');
-const WorldFromJSON = require('./world.fromjson');
-const Level = require('./level');
-const ActorClass = require('./actor-class');
-const EventPool = require('../src/eventpool');
+import RG from './rg';
+import {OWMap} from './overworld.map';
+import {Battle, Army} from './game.battle';
+import {GoalsTop} from './goals-top';
+import {Evaluator} from './evaluators';
+import {EvaluatorsBattle} from './evaluators-battle';
+import {Territory} from './territory';
+import GameObject from './game-object';
+import {QuestData} from './quest-gen';
+import {WorldFromJSON} from './world.fromjson';
+import {Level} from './level';
+import {ActorClass} from './actor-class';
+import {EventPool} from '../src/eventpool';
 
 const POOL = EventPool.getPool();
 
@@ -1044,14 +1044,7 @@ FromJSON.prototype.restorePlace = function(place) {
 };
 
 FromJSON.prototype.restoreOverWorld = function(json) {
-    const ow = new OW.Map();
-    ow.setMap(json.baseMap);
-    ow._features = json.features;
-    ow._featuresByXY = json.featuresByXY;
-    ow._vWalls = json.vWalls;
-    ow._hWalls = json.hWalls;
-    ow._biomeMap = json.biomeMap;
-    ow._explored = json.explored;
+    const ow = OWMap.fromJSON(json);
     const coordMap = new RG.OverWorld.CoordMap();
     for (const p in json.coordMap) {
         if (json.coordMap.hasOwnProperty(p)) {
@@ -1059,9 +1052,6 @@ FromJSON.prototype.restoreOverWorld = function(json) {
         }
     }
     ow.coordMap = coordMap;
-    if (json.terrMap) {
-        ow._terrMap = Territory.fromJSON(json.terrMap);
-    }
     return ow;
 };
 

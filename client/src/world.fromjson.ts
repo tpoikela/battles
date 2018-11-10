@@ -1,9 +1,13 @@
 
-const RG = require('./rg');
-const debug = require('debug')('bitn:WorldFromJSON');
-const ConfStack = require('./conf-stack');
+import RG from './rg';
+import {ConfStack} from './conf-stack';
+import {Factory} from './factory';
+import {FactoryWorld} from './factory.world';
+import {Entity} from './entity';
+import {Level} from './level';
 
-RG.Factory = require('./factory');
+import dbg = require('debug');
+const debug = dbg('bitn:WorldFromJSON');
 
 /* This class converts a serialized world back to World.Top object. It supports
  * unloaded AreaTiles, and does not create them as objects when
@@ -14,7 +18,16 @@ RG.Factory = require('./factory');
  * restoring an existing game, which have been added. Do NOT try to refactor
  * these into single class!
  */
-class WorldFromJSON {
+export class WorldFromJSON {
+
+    public id2level: {[key: string]: Level};
+    public id2entity: {[key: string]: Entity};
+    private _conf: any; // TODO ConfStack;
+    public _verif: any; // TODO VerifyConf;
+    public worldElemByID: {[key: string]: any}; // TODO fix typings
+    public createAllZones: boolean;
+    private _IND: 0;
+    private fact: any; // TODO FactoryWorld;
 
     constructor(id2level, id2entity) {
         this.id2level = id2level;
@@ -51,7 +64,7 @@ class WorldFromJSON {
             RG.err('WorldFromJSON', 'Should not be called at all.', 'ERROR');
             // TODO branch will be removed completely after verification
             this.dbg('Creating world using Factory.World fully');
-            const fact = new RG.Factory.World();
+            const fact = new FactoryWorld();
             fact.setId2Level(this.id2level);
             world = fact.createWorld(placeJSON);
         }
@@ -88,19 +101,19 @@ class WorldFromJSON {
     pushScope(json) {
         this._conf.pushScope(json);
         this.fact.pushScope(json);
-        ++this.IND;
+        ++this._IND;
     }
 
     popScope(json) {
         this._conf.popScope(json);
         this.fact.popScope(json);
-        --this.IND;
+        --this._IND;
     }
 
     getHierName() {return this._conf.getScope().join('.');}
 
     createWorldFromJSON(worldJSON) {
-        const fact = new RG.Factory.World();
+        const fact = new FactoryWorld();
         fact.setId2Level(this.id2level);
         fact.id2entity = this.id2entity;
         this.fact = fact;
@@ -268,5 +281,3 @@ class WorldFromJSON {
     }
 
 }
-
-module.exports = WorldFromJSON;

@@ -3,11 +3,11 @@
  * levels. Used in the overworld generation in overworld.js after the overworld
  * Map.Level has been created. */
 
-const RG = require('../src/rg');
-RG.Names = require('./name-gen');
-const WorldConf = require('../src/world.creator');
+import RG from '../src/rg';
+import {Names} from './name-gen';
+import {WorldConf} from '../src/world.creator';
 
-const LevelGen = {};
+export const LevelGen: any = {};
 
 const getNumLevels = function(name) {
     switch (name) {

@@ -1692,9 +1692,12 @@ RG.formatLocationName = level => {
     }
 };
 
+import {Random} from './random';
+
 /* Function to check if given action succeeds given it's probability. */
 RG.isSuccess = function(prob) {
-    return RG.DIE_RNG.getUniform() <= prob;
+    const rng = Random.getRNG();
+    return rng.getUniform() <= prob;
 };
 
 //---------------------------------------------------------------------------

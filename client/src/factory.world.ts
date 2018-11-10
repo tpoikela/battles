@@ -81,7 +81,7 @@ const levelSizes = {
 
 /* Used to add details like bosses and distinct room features into dungeon
  * levels. */
-const DungeonFeatures = function(zoneType) {
+export const DungeonFeatures = function(zoneType) {
     this._verif = new RG.Verify.Conf('DungeonFeatures');
     this._zoneType = zoneType;
 
@@ -192,7 +192,7 @@ const DungeonFeatures = function(zoneType) {
  * generated procedurally, and the factory will then use the configuration for
  * building the world. Separation of concerns, you know.
  */
-const FactoryWorld = function() {
+export const FactoryWorld = function() {
     this._verif = new RG.Verify.Conf('Factory.World');
     this.factZone = new FactoryZone();
 
