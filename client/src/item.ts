@@ -800,18 +800,6 @@ export class SpiritGem extends Base {
         this._spirit = null;
         this._hasSpirit = false;
 
-        const createGetFunc = i => {
-            const funcName = RG.GET_STATS[i];
-            return () => {
-                if (!this._hasSpirit) {return 0;}
-                return this._spirit.get('Stats')[funcName]();
-            };
-        };
-
-        for (let i = 0; i < RG.GET_STATS.length; i++) {
-            this[RG.GET_STATS[i]] = createGetFunc(i);
-        }
-
     }
 
     public getArmourType() {return this.getType();}
@@ -883,6 +871,26 @@ export class SpiritGem extends Base {
     }
 }
 Item.SpiritGem = SpiritGem;
+
+export interface SpiritGem {
+    getAccuracy(): number;
+    getAgility(): number;
+    getMagic(): number;
+    getPerception(): number;
+    getStrength(): number;
+    getWillpower(): number;
+}
+
+for (let i = 0; i < RG.GET_STATS.length; i++) {
+    SpiritGem.prototype[RG.GET_STATS[i]] = function(): number {
+        return (
+            () => {
+            const funcName: string = RG.GET_STATS[i];
+            if (!this._hasSpirit) {return 0;}
+            return this._spirit.get('Stats')[funcName]();
+        })(); // Immediately call the function
+    }
+}
 
 //------------------
 /* Mineral */
