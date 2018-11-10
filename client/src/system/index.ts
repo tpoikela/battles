@@ -1,10 +1,11 @@
 
-const RG = require('../rg');
-RG.Path = require('../path');
-RG.Geometry = require('../geometry');
+import RG from '../rg';
+import {Path} from '../path';
+import {Geometry} from '../geometry';
 
-const System = {};
-System.Base = require('./system.base');
+export const System: any = {};
+import {SystemBase} from './system.base';
+System.Base = SystemBase;
 
 System.Animation = require('./system.animation');
 System.AreaEffects = require('./system.area-effects');
@@ -12,7 +13,8 @@ System.Attack = require('./system.attack');
 System.BaseAction = require('./system.base-action');
 System.Battle = require('./system.battle');
 System.Chat = require('./system.chat');
-System.Communication = require('./system.communication');
+import {SystemCommunication} from './system.communication';
+System.Communication = System.Communication;
 System.Damage = require('./system.damage');
 System.Disability = require('./system.disability');
 System.Effects = require('./system.effects');
