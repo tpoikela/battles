@@ -1,9 +1,12 @@
 
 import { expect } from 'chai';
 
-const RG = require('../../../client/src/battles');
-const Territory = require('../../../client/src/territory');
-const OW = require('../../../client/src/overworld.map');
+import RG from '../../../client/src/rg';
+import {Territory} from '../../../client/src/territory';
+import {OWMap} from '../../../client/src/overworld.map';
+import {Overworld} from '../../../client/src/overworld';
+import {OW} from '../../../client/src/ow-constants';
+import {Random} from '../../../client/src/random';
 
 describe('Territory', () => {
     it('creates 2d map of different regions', () => {
@@ -27,10 +30,10 @@ describe('Territory', () => {
         terrMap.addRival({name: 'catfolk', char: 'c'});
         terrMap.generate(2);
 
-        const catData = terrMap.getData('catfolk');
+        const catData = terrMap.getRivalData('catfolk');
         expect(catData.numOccupied).to.equal(1);
 
-        const wolfData = terrMap.getData('wolfclan');
+        const wolfData = terrMap.getRivalData('wolfclan');
         expect(wolfData.numOccupied).to.be.above(2);
 
         // console.log(terrMap.mapToString());
@@ -43,16 +46,16 @@ describe('Territory', () => {
         terrMap.addRival({name: 'catfolk', char: 'c'});
         terrMap.generate();
 
-        const catData = terrMap.getData('catfolk');
+        const catData = terrMap.getRivalData('catfolk');
         expect(catData.numOccupied).to.be.below(50);
 
-        const wolfData = terrMap.getData('wolfclan');
+        const wolfData = terrMap.getRivalData('wolfclan');
         expect(wolfData.numOccupied).to.be.below(50);
 
     });
 
     it('it accepts a pre-occupied map', () => {
-        const ow = OW.createOverWorld();
+        const ow = OWMap.createOverWorld({});
         const owMap = ow.getOWMap();
         const terrMap = new Territory(ow.getSizeX(), ow.getSizeY());
 
@@ -89,11 +92,11 @@ describe('Territory', () => {
     });
 
     it('works for large maps as well', () => {
-        const rng = new RG.Random();
+        const rng = new Random();
         rng.setSeed(new Date().getTime());
         const owTilesX = 160;
         const owTilesY = 80;
-        const ow = OW.createOverWorld({owTilesX, owTilesY});
+        const ow = OWMap.createOverWorld({owTilesX, owTilesY});
 
         const capXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
         const dwarves = ow.getFeaturesByType(OW.WTOWER)[0];
@@ -139,7 +142,7 @@ describe('Territory', () => {
         terrMap.addRival({name: 'winterbeings', char: 'W',
             startX: btower[0], startY: btower[1], numPos: 1});
 
-        const coordMap = new RG.Overworld.CoordMap();
+        const coordMap = new Overworld.CoordMap();
         coordMap.xMap = 10;
         coordMap.yMap = 10;
 
@@ -148,7 +151,7 @@ describe('Territory', () => {
 
         const bbox = coordMap.getOWTileBboxFromAreaTileXY(playerX, playerY);
 
-        const pData = terrMap.getData('human');
+        const pData = terrMap.getRivalData('human');
         pData.maxNumPos += 1;
         pData.startX.push(rng.getUniformInt(bbox.ulx, bbox.lrx));
         pData.startY.push(rng.getUniformInt(bbox.uly, bbox.lry));
@@ -157,7 +160,7 @@ describe('Territory', () => {
         // console.log(ow.mapToString());
         // console.log(terrMap.mapToString());
 
-        const undeadData = terrMap.getData('undead');
+        const undeadData = terrMap.getRivalData('undead');
         expect(undeadData.startX).to.have.length(3);
         expect(undeadData.startY).to.have.length(3);
     });
