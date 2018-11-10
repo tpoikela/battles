@@ -10,7 +10,7 @@ const RNG = Random.getRNG();
 /* This file contains usable actor ability definitions. */
 export const Ability: any = {};
 
-type MenuItem = [string, () => void];
+type MenuItem = [string, (any?) => void] | [string, Menu.MenuBase];
 
 export class AbilityBase {
     public name: string;
@@ -91,36 +91,42 @@ RG.extend2(Area, Ability.Base);
 
 /* Base class for abilities targeting items. Each derived class must provide
  * activate(item) function for the actual ability functionality. */
-export const Item = function(name) {
-    Ability.Base.call(this, name);
-};
-RG.extend2(Item, Ability.Base);
+export class Item extends AbilityBase {
+
+    constructor(name) {
+        super(name);
+    }
+
+    activate(item) {
+        const json = JSON.stringify(item);
+        RG.err('Ability.Item', 'activate',
+            'Not impl. in base class. Called with: ' + json);
+    };
+
+    /* Constructs a table of items to select from. */
+    getMenuItem(): MenuItem {
+        const items = this.actor.getInvEq().getInventory().getItems();
+        const itemMenuItems = items.map(item => (
+            [
+                item.toString(),
+                this.activate.bind(this, item)
+            ]
+        ));
+        const itemMenu = new Menu.MenuWithQuit(itemMenuItems);
+        itemMenu.addPre('Select an item to sharpen:');
+        return [
+            this.getName(),
+            itemMenu
+        ];
+    }
+
+}
 Ability.Item = Item;
 
-Item.prototype.activate = function(item) {
-    const json = JSON.stringify(item);
-    RG.err('Ability.Item', 'activate',
-        'Not impl. in base class. Called with: ' + json);
-};
 
-Item.prototype.getMenuItem = function() {
-    const items = this.actor.getInvEq().getInventory().getItems();
-    const itemMenuItems = items.map(item => (
-        [
-            item.toString(),
-            this.activate.bind(this, item)
-        ]
-    ));
-    const itemMenu = new Menu.MenuWithQuit(itemMenuItems);
-    itemMenu.addPre('Select an item to sharpen:');
-    return [
-        this.getName(),
-        itemMenu
-    ];
-};
 
 /* This ability can be used to sharpen weapons. */
-export class Sharpener extends AbilityBase {
+export class Sharpener extends Ability.Item {
 
     constructor() {
         super('Sharpener');
@@ -130,7 +136,7 @@ export class Sharpener extends AbilityBase {
         const name = item.getName();
         if (!item.has('Sharpened')) {
             if (item.getDamageDie) {
-                item.add(new RG.Component.Sharpened());
+                item.add(new Component.Sharpened());
                 const dmgBonus = RNG.getUniformInt(1, 3);
                 const dmgDie = item.getDamageDie();
                 dmgDie.setMod(dmgDie.getMod() + dmgBonus);
@@ -165,6 +171,7 @@ export class Abilities {
             abil.getMenuItem()
         ));
         const menu = new Menu.MenuWithQuit(menuArgs);
+        menu.setName('MenuAbilities');
         menu.addPre('Select an ability to use:');
         return menu;
     }
