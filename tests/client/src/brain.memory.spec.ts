@@ -4,6 +4,8 @@ import { expect } from 'chai';
 import RG from '../../../client/src/rg';
 import {Memory} from '../../../client/src/brain.memory';
 import {SentientActor} from '../../../client/src/actor';
+import {Level} from '../../../client/src/level';
+import {FactoryLevel} from '../../../client/src/factory.level';
 // import {RGTest} from '../../roguetest';
 
 describe('Brain.Memory', () => {
@@ -50,14 +52,14 @@ describe('Brain.Memory', () => {
         expect(mem.isEnemy(enemy0)).to.equal(false);
     });
 
-    /*
     it('stores seen enemy positions', () => {
+        const factLevel = new FactoryLevel();
         const mem = new Memory();
         const enemy = new SentientActor('enemy');
-        RGTest.wrapIntoLevel([enemy]);
+        const level = factLevel.createLevel('arena', 10, 10);
+        level.addActor(enemy, 1, 1);
         mem.addEnemySeenCell(enemy);
         expect(mem.hasSeen(enemy)).to.equal(true);
 
     });
-    */
 });
