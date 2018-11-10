@@ -23,6 +23,9 @@ use warnings;
 use utf8;
 
 my @files = qw(
+tests/client/src/abilities.spec.ts
+tests/client/src/actor.spec.ts
+tests/client/src/actor.spirit.spec.ts
 tests/client/src/dice.spec.ts
 tests/client/src/entity.spec.ts
 tests/client/src/game-object.spec.ts
