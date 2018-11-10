@@ -5,7 +5,7 @@ import {Keys} from './keymap';
 import {Cell} from './map.cell';
 import * as GoalsBattle from './goals-battle';
 import {Cmd} from './cmd-player';
-import {SentientActor} from './actor';
+import {BaseActor, SentientActor} from './actor';
 import {Random} from './random';
 
 const RNG = Random.getRNG();
@@ -43,6 +43,11 @@ const chatSelObject = player => {
     };
 };
 
+interface PlayerCmdInput {
+    code?: number;
+    cmd?: string;
+}
+
 /* Memory object for the player .*/
 export class MemoryPlayer {
     
@@ -55,7 +60,7 @@ export class MemoryPlayer {
     }
 
     /* Sets the last attacked actor. */
-    setLastAttacked(actor) {
+    setLastAttacked(actor): void {
         if (Number.isInteger(actor)) {
             this._lastAttackedID = actor;
         }
@@ -64,7 +69,7 @@ export class MemoryPlayer {
         }
     }
 
-    getLastAttacked() {
+    getLastAttacked(): number {
         return this._lastAttackedID;
     }
 
@@ -115,19 +120,19 @@ class TargetingFSM {
         this._state = S_IDLE;
     }
 
-    getActor() {
+    getActor(): SentientActor {
         return this._brain._actor;
     }
 
-    isTargeting() {
+    isTargeting(): boolean {
         return this._state === S_TARGETING;
     }
 
-    isLooking() {
+    isLooking(): boolean {
         return this._state === S_LOOKING;
     }
 
-    nextTarget() {
+    nextTarget(): void {
         if (this.hasTargets()) {
             ++this.targetIndex;
             if (this.targetIndex >= this._targetList.length) {
@@ -137,23 +142,23 @@ class TargetingFSM {
         }
     }
 
-    startLooking() {
+    startLooking(): void {
         this._state = S_LOOKING;
     }
 
-    stopLooking() {
+    stopLooking(): void {
         this._state = S_IDLE;
         this.selectedCells = null;
     }
 
-    startTargeting() {
+    startTargeting(): void {
         this._state = S_TARGETING;
         this._targetList = this.getTargetList();
         this.targetIndex = this.getCellIndexToTarget(this._targetList);
         this.setSelectedCells(this._targetList[this.targetIndex]);
     }
 
-    cancelTargeting() {
+    cancelTargeting(): void {
         this._targetList = [];
         this._state = S_IDLE;
         this.selectedCells = null;
@@ -172,7 +177,7 @@ class TargetingFSM {
         return Object.values(mapXY);
     }
 
-    prevTarget() {
+    prevTarget(): void {
         if (this.hasTargets()) {
             --this.targetIndex;
             if (this.targetIndex < 0) {
@@ -182,7 +187,7 @@ class TargetingFSM {
         }
     }
 
-    setSelectedCells(cells) {
+    setSelectedCells(cells): void {
         if (cells) {
             if (!Array.isArray(cells)) {
                 const cell = cells;
@@ -204,7 +209,7 @@ class TargetingFSM {
         }
     }
 
-    getSelectedCells() {
+    getSelectedCells(): Cell[] {
         return this.selectedCells;
     }
 
@@ -217,14 +222,14 @@ class TargetingFSM {
         return this.selectedCells;
     }
 
-    getTargetCell() {
+    getTargetCell(): Cell | null {
         if (this.selectedCells.length > 0) {
             return this.selectedCells[0];
         }
         return null;
     }
 
-    getCellIndexToTarget(cells) {
+    getCellIndexToTarget(cells): number {
         const memory = this._brain.getMemory();
         const lastID = memory.getLastAttacked();
         for (let i = 0; i < cells.length; i++) {
@@ -238,7 +243,7 @@ class TargetingFSM {
         return 0;
     }
 
-    selectCell(code?: number) {
+    selectCell(code?: number): void {
         const actor = this._brain._actor;
         const visibleCells = this._brain.getSeenCells();
         if (RG.isNullOrUndef([code])) {
@@ -277,7 +282,7 @@ class TargetingFSM {
     }
 
     /* Returns true if a player has target selected. */
-    hasTargetSelected() {
+    hasTargetSelected(): boolean {
         if (this.selectedCells) {
             return true;
         }
@@ -291,7 +296,7 @@ class TargetingFSM {
         return this._targetList.length > 0;
     }
 
-    processKey(code) {
+    processKey(code: number) {
         if (KeyMap.isTargetMode(code)) {
             if (this.isTargeting()) {
                 const cell = this.getTarget();
@@ -324,7 +329,7 @@ class TargetingFSM {
     }
 
     /* Returns true if chosen target is within attack range. */
-    isTargetInRange() {
+    isTargetInRange(): boolean {
         const cell = this.getTarget() as Cell;
         const actor = this._brain._actor;
         if (cell && cell.getX) {
@@ -585,7 +590,7 @@ export class BrainPlayer {
     }
 
     /* Returns true if a menu should be shown by the GUI. */
-    isMenuShown() {
+    isMenuShown(): boolean {
         if (this._selectionObject) {
             return this._selectionObject.showMenu();
         }
@@ -609,10 +614,10 @@ export class BrainPlayer {
     }
 
     /* Returns current fighting mode.*/
-    getFightMode() {return this._fightMode;}
+    getFightMode(): number {return this._fightMode;}
 
     /* Toggle between walking/running modes.*/
-    toggleRunMode() {
+    toggleRunMode(): void {
         if (this._runModeEnabled) {
             this._restoreBaseSpeed();
         }
@@ -625,7 +630,7 @@ export class BrainPlayer {
     }
 
     /* Toggles between different fighting modes.*/
-    toggleFightMode() {
+    toggleFightMode(): void {
         this._fightMode += 1;
         if (this._fightMode >= RG.FMODES.length) {
           this._fightMode = RG.FMODE_NORMAL;
@@ -634,7 +639,7 @@ export class BrainPlayer {
 
     /* Creates the callback for buying an item, and sets up the confirmation
      * request from player.*/
-    _createBuyConfirmCallback(currCell) {
+    _createBuyConfirmCallback(currCell): void {
         const topItem = currCell.getProp('items')[0];
         const shopElem = currCell.getPropType('shop')[0];
         const nCoins = shopElem.getItemPriceForBuying(topItem);
@@ -654,7 +659,7 @@ export class BrainPlayer {
     }
 
     /* Sets the stats for attack for special modes.*/
-    _setAttackStats() {
+    _setAttackStats(): void {
         const stats = this._actor.get('Stats');
         const combat = this._actor.get('Combat');
         let speedBoost = 0;
@@ -697,7 +702,7 @@ export class BrainPlayer {
     }
 
     /* Returns all stats to their nominal values.*/
-    resetBoosts() {
+    resetBoosts(): void {
         this.energy = 1;
         for (const compName in this._statBoosts) {
             if (compName) {
@@ -768,7 +773,7 @@ export class BrainPlayer {
     }
 
 
-    getTargetActor() {
+    getTargetActor(): BaseActor | null {
         const targetCells = this.getTarget();
         if (Array.isArray(targetCells)) {
             const cells = targetCells as Cell[];
@@ -796,7 +801,7 @@ export class BrainPlayer {
 
     /* Main function which returns next action as function. TODO: Refactor into
      * something bearable. It's 150 lines now! */
-    decideNextAction(obj) {
+    decideNextAction(obj: PlayerCmdInput) {
       this._cache.seen = CACHE_INVALID;
 
       // Workaround at the moment, because some commands are GUI-driven
