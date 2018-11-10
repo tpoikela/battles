@@ -1,13 +1,17 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const Actor = require('../../../client/src/actor');
-const ActorClass = require('../../../client/src/actor-class');
+import RG from '../../../client/src/rg';
+import { expect } from 'chai';
+import * as Actor from '../../../client/src/actor';
+import * as Item from '../../../client/src/item';
+import * as Component from '../../../client/src/component';
+import {ActorClass} from '../../../client/src/actor-class';
+
+const SentientActor = Actor.SentientActor;
 
 describe('Rogue.Actor', () => {
 
     it('has name, stats and inventory', () => {
-        const actor = new Actor.Rogue('testRogue');
+        const actor = new SentientActor('testRogue');
         expect(actor.getName()).to.equal('testRogue');
 
         const named = actor.get('Named');
@@ -22,7 +26,7 @@ describe('Rogue.Actor', () => {
     });
 
     it('Acts like Locatable', () => {
-        const actor = new Actor.Rogue(true);
+        const actor = new SentientActor(true);
         actor.setXY(2, 10);
         expect(actor.getX()).to.equal(2);
         expect(actor.getY()).to.equal(10);
@@ -34,7 +38,7 @@ describe('Rogue.Actor', () => {
     });
 
     it('can be a player actor', () => {
-        const actor = new Actor.Rogue('player hero');
+        const actor = new SentientActor('player hero');
         actor.setIsPlayer(true);
         expect(actor.isPlayer()).to.equal(true);
 
@@ -49,10 +53,10 @@ describe('Rogue.Actor', () => {
     });
 
     it('can be serialized to JSON', () => {
-        const actor = new Actor.Rogue('player hero');
+        const actor = new SentientActor('player hero');
         actor.setIsPlayer(true);
 
-        const hunger = new RG.Component.Hunger();
+        const hunger = new Component.Hunger();
         actor.add(hunger);
 
         const actorJSON = actor.toJSON();
@@ -61,14 +65,14 @@ describe('Rogue.Actor', () => {
         expect(actorJSON).to.have.property('components');
 
         const hungerJSON = Object.values(actorJSON.components).find(
-            c => c.setType === 'Hunger'
+            (c: any) => c.setType === 'Hunger'
         );
         expect(hungerJSON).to.exist;
 
     });
 
     it('has different stats', () => {
-        const actor = new Actor.Rogue('player hero');
+        const actor = new SentientActor('player hero');
 
         const prot = actor.getProtection();
         expect(prot).to.equal(0);
@@ -82,15 +86,15 @@ describe('Rogue.Actor', () => {
     });
 
     it('has methods for getting combat damage', () => {
-        const actor = new Actor.Rogue('fighter');
-        const sword = new RG.Item.Weapon('sword');
+        const actor = new SentientActor('fighter');
+        const sword = new Item.Weapon('sword');
         sword.setDamageDie('10d1 + 3');
         actor.getInvEq().addItem(sword);
         actor.getInvEq().equipItem(sword);
         const dmg = actor.getDamage();
         expect(dmg).to.be.at.least(13);
 
-        const meat = new RG.Item.Food('meat');
+        const meat = new Item.Food('meat');
         actor.getInvEq().addItem(meat);
         expect(actor.getInvEq().unequipItem('hand', 1)).to.be.true;
         expect(actor.getInvEq().equipItem(meat)).to.be.true;
@@ -100,8 +104,8 @@ describe('Rogue.Actor', () => {
     });
 
     it('can have CombatMods added', () => {
-        const mob = new Actor.Rogue('mob');
-        const combatMods = new RG.Component.CombatMods();
+        const mob = new SentientActor('mob');
+        const combatMods = new Component.CombatMods();
 
         const attack = mob.getAttack();
         combatMods.setAttack(5);
@@ -120,8 +124,8 @@ describe('Rogue.Actor', () => {
     });
 
     it('can have StatsMods added', () => {
-        const mob = new Actor.Rogue('mob');
-        const statMods = new RG.Component.StatsMods();
+        const mob = new SentientActor('mob');
+        const statMods = new Component.StatsMods();
         mob.add(statMods);
 
         const oldWp = mob.getWillpower();
@@ -146,8 +150,8 @@ describe('Rogue.Actor', () => {
     });
 
     it('can have an actor class', () => {
-        const archer = new RG.Actor.Rogue('archer');
-        const actorClassComp = new RG.Component.ActorClass();
+        const archer = new SentientActor('archer');
+        const actorClassComp = new Component.ActorClass();
         const actorClass = ActorClass.create('Marksman', archer);
         actorClassComp.setClassName('Marksman');
         actorClassComp.setActorClass(actorClass);

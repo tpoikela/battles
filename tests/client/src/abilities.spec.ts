@@ -52,8 +52,10 @@ describe('Abilities', () => {
         expect(actor).to.have.component('Camouflage');
         expect(brain.isMenuShown()).to.equal(false);
 
+        // Bring up ability menu
         brain.decideNextAction({code: KeyMap.KEY.ABILITY});
         expect(brain.isMenuShown()).to.equal(true);
+        // Select ability at index 1
         brain.decideNextAction({code: ROT.VK_1});
         expect(brain.isMenuShown()).to.equal(true);
 

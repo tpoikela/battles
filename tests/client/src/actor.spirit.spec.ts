@@ -1,16 +1,20 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
+import RG from '../../../client/src/rg';
+import { expect } from 'chai';
+import * as Actor from '../../../client/src/actor';
+import * as Item from '../../../client/src/item';
+import * as Component from '../../../client/src/component';
+import {FactoryLevel} from '../../../client/src/factory.level';
 
-const Spirit = RG.Actor.Rogue;
-const Actor = RG.Actor.Rogue;
+const Spirit = Actor.SentientActor;
 
 describe('RG.Actor.Spirit', () => {
     it('Is an ethereal being, doesnt block passage', () => {
-        const level = RG.FACT.createLevel('arena', 10, 10);
+        const levelFact = new FactoryLevel();
+        const level = levelFact.createLevel('arena', 10, 10);
         const spirit = new Spirit('Wolf spirit');
-        spirit.add(new RG.Component.Ethereal());
-        const actor = new Actor('Being');
+        spirit.add(new Component.Ethereal());
+        const actor = new Actor.SentientActor('Being');
 
         const spiritX = 2;
         const spiritY = 3;
@@ -23,11 +27,11 @@ describe('RG.Actor.Spirit', () => {
 
         expect(map.isPassable(spiritX, spiritY)).to.equal(true);
 
-        const anotherBeing = new Actor('Being2');
+        const anotherBeing = new Actor.SentientActor('Being2');
         level.addActor(anotherBeing, spiritX, spiritY);
         expect(map.isPassable(spiritX, spiritY)).to.equal(false);
 
-        const spiritGem = new RG.Item.SpiritGem('Lesser gem');
+        const spiritGem = new Item.SpiritGem('Lesser gem');
         const spiritCell = map.getCell(spiritX, spiritY);
         expect(spiritCell.getProp('actors').length).to.equal(2);
 
