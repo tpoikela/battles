@@ -1612,16 +1612,25 @@ World.CityQuarter = CityQuarter;
 // World.BattleZone
 //-------------------------
 /* A battle zone encapsulates battle construct, armies and the battle level. */
-World.BattleZone = function(name) {
-    ZoneBase.call(this, name);
-    this.setType('battlezone');
+class BattleZone extends ZoneBase {
 
-    this._levels = [];
+    constructor(name) {
+        super(name);
+        this.setType('battlezone');
 
-    this.addLevel = level => {this._levels.push(level);};
-    this.getLevels = () => this._levels;
+        this._levels = [];
 
-    this.toJSON = function() {
+    }
+
+    addLevel(level) {
+        return this._levels.push(level);
+    }
+
+    getLevels() {
+        return this._levels;
+    }
+
+    toJSON() {
         const json = ZoneBase.prototype.toJSON.call(this);
         const nLevels = this._levels.length;
         const obj = {
@@ -1633,11 +1642,9 @@ World.BattleZone = function(name) {
                 `Bz ${this.getName()} called without levels`);
         }
         return Object.assign(obj, json);
-    };
-
-};
-RG.extend2(World.BattleZone, ZoneBase);
-
+    }
+}
+World.BattleZone = BattleZone;
 
 //-----------------------------
 // World.Top
