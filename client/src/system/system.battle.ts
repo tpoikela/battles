@@ -1,19 +1,18 @@
 
-const RG = require('../rg');
-
-const System = {};
-System.Base = require('./system.base');
-
-const {addSkillsExp} = System.Base;
-const {addQuestEvent} = require('./system.quest');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import {SystemQuest} from './system.quest';
 
 /* Battle system handles battle-related components such as badges from battle
  * survivors etc. */
-System.Battle = function(compTypes) {
-    System.Base.call(this, RG.SYS.BATTLE, compTypes);
-    this.compTypesAny = true; // Triggered on at least one component
+class SystemBattle extends SystemBase {
 
-    this.updateEntity = function(ent) {
+    constructor(compTypes, pool?) {
+        super(RG.SYS.BATTLE, compTypes, pool);
+        this.compTypesAny = true; // Triggered on at least one component
+    }
+
+    updateEntity(ent) {
         if (ent.has('BattleOver')) {
             const overComp = ent.get('BattleOver');
             if (ent.has('BattleExp')) {
@@ -21,12 +20,12 @@ System.Battle = function(compTypes) {
                 const bName = data.name;
                 const badge = this._getBadgeForBattle(bName, ent);
                 if (data.kill > 0) {
-                    addSkillsExp(ent, 'Battle', data.kill);
+                    SystemBase.addSkillsExp(ent, 'Battle', data.kill);
                     if (badge) {
                         badge.updateData({kill: data.kill});
                     }
                     else {
-                        const msg = `No badge found for battle ${msg}`;
+                        const msg = `No badge found for battle`;
                         RG.err('System.Battle', 'updateEntity', msg);
                     }
 
@@ -52,7 +51,7 @@ System.Battle = function(compTypes) {
                 if (ent.has('Quest') && level.has('QuestTarget')) {
                     const qTarget = ent.get('QuestTarget');
                     const args = {isWon: badge.isWon()};
-                    addQuestEvent(ent, qTarget, 'battle', args);
+                    SystemQuest.addQuestEvent(ent, qTarget, 'battle', args);
                 }
             }
 
@@ -65,19 +64,16 @@ System.Battle = function(compTypes) {
         }
     };
 
-    this._getBadgeForBattle = (bName, ent) => {
+    _getBadgeForBattle(bName, ent) {
         const badges = ent.getList('BattleBadge');
         const badge = badges.find(b => b.getData().name === bName);
         return badge;
-    };
+    }
 
-    this._emitMsg = (ent, comp) => {
+    _emitMsg(ent, comp) {
         const srcName = comp.getArgs().srcActor.getName();
         const cell = ent.getCell();
         const msg = `${srcName} shouts a command into your direction.`;
         RG.gameMsg({msg, cell});
-    };
-};
-RG.extend2(System.Battle, System.Base);
-
-module.exports = System.Battle;
+    }
+}
