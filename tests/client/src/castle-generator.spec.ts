@@ -1,8 +1,7 @@
 
 import { expect } from 'chai';
-
-const RG = require('../../../client/src/battles');
-const CastleGenerator = require('../../../client/src/castle-generator');
+import RG from '../../../client/src/rg';
+import {CastleGenerator} from '../../../client/src/castle-generator';
 
 describe('CastleGenerator', () => {
 

@@ -1,9 +1,10 @@
 
 import { expect } from 'chai';
 
-const RG = require('../../../client/src/battles');
-const Chat = require('../../../client/src/chat');
-const ROT = require('../../../lib/rot');
+import RG from '../../../client/src/rg';
+import ROT from '../../../lib/rot';
+import {Chat} from '../../../client/src/chat';
+import {SentientActor} from '../../../client/src/actor';
 
 describe('ChatBase', () => {
 
@@ -20,7 +21,7 @@ describe('ChatBase', () => {
     it('can contain nested chat objects inside with menus', () => {
         const chat = new Chat.ChatBase();
         const chatTrainer = new Chat.Trainer();
-        const trained = new RG.Actor.Rogue('trainer');
+        const trained = new SentientActor('trainer');
         chatTrainer.setTarget(trained);
         chat.add({name: 'Can I train with you?', option: chatTrainer});
 

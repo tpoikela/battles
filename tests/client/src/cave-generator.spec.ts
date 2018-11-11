@@ -1,8 +1,6 @@
 
 import { expect } from 'chai';
-
-//  const RG = require('../../../client/src/battles');
-const {CaveGenerator} = require('../../../client/src/cave-generator');
+import {CaveGenerator} from '../../../client/src/cave-generator';
 
 describe('CaveGenerator', () => {
     it('can create Cave-like levels', () => {

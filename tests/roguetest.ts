@@ -11,10 +11,11 @@ import {Screen} from '../client/gui/screen';
 import {FactoryWorld} from '../client/src/factory.world';
 import {FactoryItem} from '../client/src/factory.items';
 import {GameMain} from '../client/src/game';
+import {Random} from '../client/src/random';
 
 export const RGTest: any = {};
 
-RGTest.rng = new RG.Random();
+RGTest.rng = new Random();
 
 /* Creates a mock-level for unit tests. */
 RGTest.createMockLevel = function(cols, rows) {

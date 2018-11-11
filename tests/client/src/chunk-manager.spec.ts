@@ -1,10 +1,13 @@
 
-const chai = require('chai');
-const RG = require('../../../client/src/battles');
-RG.World = require('../../../client/src/world');
-const RGTest = require('../../roguetest');
-const Chunk = require('../../../client/src/chunk-manager');
-const chaiBattles = require('../../helpers/chai-battles.js');
+import chai = require('chai');
+
+import RG from '../../../client/src/rg';
+import * as World from '../../../client/src/world';
+import {RGTest} from '../../roguetest';
+import {Chunk} from '../../../client/src/chunk-manager';
+import {GameMain} from '../../../client/src/game';
+import {chaiBattles} from '../../helpers/chai-battles.js';
+import {SentientActor} from '../../../client/src/actor';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -26,10 +29,10 @@ describe('ChunkManager', function() {
     beforeEach(() => {
         RGTest.enablePrint = false;
         RGTest.printMemUsage('BEFORE_EACH');
-        game = new RG.Game.Main();
-        area = new RG.World.Area('north', sizeX, sizeY, cols, rows);
-        world = new RG.World.Top('World');
-        player = new RG.Actor.Rogue('player');
+        game = new GameMain();
+        area = new World.Area('north', sizeX, sizeY, cols, rows);
+        world = new World.WorldTop('World');
+        player = new SentientActor('player');
         player.setIsPlayer(true);
         world.addArea(area);
         game.addPlace(world);
