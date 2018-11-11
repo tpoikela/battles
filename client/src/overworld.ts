@@ -28,6 +28,10 @@ import {LevelGen} from '../data/level-gen';
 import {Path} from './path';
 import {MapGenerator} from './map.generator';
 import {OWMap} from './overworld.map';
+import {OW} from './ow-constants';
+import {ELEM} from '../data/elem-constants';
+import {Random} from './random';
+import * as IF from './interfaces';
 
 import dbg = require('debug');
 const debug = dbg('bitn:overworld');
@@ -41,7 +45,7 @@ export const OverWorld: any = {};
 const cityTypesRe = /(capital|city|abandoned fort|fort|village)/;
 const twoEntranceCityRe = /(dwarven city|abandoned fort|capital)/;
 
-const MOUNTAIN_TYPE = RG.ELEM.WALL_MOUNT.getType();
+const MOUNTAIN_TYPE = ELEM.WALL_MOUNT.getType();
 
 // Used in while loops to prevent infinite looping
 const WATCHDOG_MAX = 111;
@@ -55,7 +59,7 @@ const debugBlackTower = true;
 // very slow on large maps.
 let addMainRoads = false;
 
-const getRNG = RG.Random.getRNG;
+const getRNG = Random.getRNG;
 
 OverWorld.TILE_SIZE_X = 100;
 OverWorld.TILE_SIZE_Y = 100;
@@ -501,7 +505,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
             const tile = [];
             if (width === 1) {width = MEAN_WX;}
             for (let x = midX - (width - 1); x <= midX + (width - 1); x++) {
-                map.setBaseElemXY(x, y, RG.ELEM.WALL_MOUNT);
+                map.setBaseElemXY(x, y, ELEM.WALL_MOUNT);
                 tile.push([x, y]);
             }
             wall.addWallCoord(tile);
@@ -532,7 +536,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
             const tile = [];
             if (width === 1) {width = MEAN_WY;}
             for (let y = midY - (width - 1); y <= midY + (width - 1); y++) {
-                map.setBaseElemXY(x, y, RG.ELEM.WALL_MOUNT);
+                map.setBaseElemXY(x, y, ELEM.WALL_MOUNT);
                 tile.push([x, y]);
             }
             wall.addWallCoord(tile);
@@ -664,7 +668,7 @@ function addMountainFortToSubLevel(feat, owSubLevel, subLevel) {
     }
 
     // Tile is a list of x,y coordinates
-    subLevel.getMap().setBaseElems(coord, RG.ELEM.FORT);
+    subLevel.getMap().setBaseElems(coord, ELEM.FORT);
     const fort = new OverWorld.SubFeature(type, coord);
     fort.alignment = getAlignment(feat);
     owSubLevel.addFeature(fort);
@@ -696,7 +700,7 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
     if (placed) {
         debug('addTowerToSubLevel feat placed with ' +
             JSON.stringify(coord));
-        subLevel.getMap().setBaseElems(coord, RG.ELEM.FORT);
+        subLevel.getMap().setBaseElems(coord, ELEM.FORT);
         const tower = new OverWorld.SubFeature(type, coord);
         tower.alignment = getAlignment(feat);
         owSubLevel.addFeature(tower);
@@ -796,7 +800,7 @@ function getAccessibleMountainCoord(subLevel, edges = true) {
                     if (elem.getType() === MOUNTAIN_TYPE) {
                         coord = [xyBox];
                         placed = true;
-                        map.setBaseElemXY(xyBox[0], xyBox[1], RG.ELEM.FLOOR);
+                        map.setBaseElemXY(xyBox[0], xyBox[1], ELEM.FLOOR);
                     }
                 }
             }
@@ -848,7 +852,7 @@ function addVertTunnelToSubLevel(owSubLevel, subLevel) {
     const cols = map.cols;
     const tunnelX = getRNG().getUniformInt(0, cols - 1);
     for (let y = 0; y < map.rows; y++) {
-        map.setBaseElemXY(tunnelX, y, RG.ELEM.FLOOR);
+        map.setBaseElemXY(tunnelX, y, ELEM.FLOOR);
     }
     // map.debugPrintInASCII();
 }
@@ -1075,7 +1079,7 @@ function mapY(y, slY, subSizeY) {
 
 function addCapitalConfToArea(feat, coordObj, areaConf) {
     const capitalLevel = {stub: true, new: 'Capital', args: [200, 500, {}]};
-    const cityConf = {
+    const cityConf: IF.CityConf = {
         name: 'Blashyrkh',
         nQuarters: 1,
         quarter: [{name: 'Capital cave', nLevels: 1}],
@@ -1106,7 +1110,7 @@ function addDwarvenCityConfToArea(feat, coordObj, areaConf) {
     const fortConf = {};
     const dwarvenCity = {stub: true, new: 'DwarvenCity',
         args: [300, 250, fortConf]};
-    const cityConf = {
+    const cityConf: IF.CityConf = {
         name: 'Dwarven City',
         nQuarters: 1,
         quarter: [{name: 'Fort main level', nLevels: 1}],
@@ -1136,7 +1140,7 @@ function addAbandonedFortToArea(feat, coordObj, areaConf) {
     const fortConf = {};
     const fortLevel = {stub: true, new: 'AbandonedFort',
         args: [500, 200, fortConf]};
-    const cityConf = {
+    const cityConf: IF.CityConf = {
         name: 'Abandoned fort',
         nQuarters: 1,
         quarter: [{name: 'Fort ground level', nLevels: 1}],
