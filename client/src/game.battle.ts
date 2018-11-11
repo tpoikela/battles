@@ -1,7 +1,7 @@
 /* Contains code related to in-game battles. */
 
 import RG from './rg';
-import {EventPool} from '../src/eventpool';
+import {EventPool} from './eventpool';
 
 import dbg = require('debug');
 const debug = dbg('bitn:game.battle');
