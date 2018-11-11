@@ -1,11 +1,11 @@
 
-const RG = require('./rg');
-const Time = require('./time');
-const SystemManager = require('./system/system.manager');
+import RG from './rg';
+import {Time} from './time';
+import {SystemManager} from './system/system.manager';
 
 /* Game engine which handles turn scheduling, systems updates and in-game
  * messaging between objects. */
-const Engine = function(eventPool) {
+export const Engine = function(eventPool) {
 
     // Ignore GUI commands by default
     this.isGUICommand = () => false;
@@ -465,5 +465,3 @@ Engine.prototype.doAction = function(action) {
         }
     }
 };
-
-module.exports = Engine;

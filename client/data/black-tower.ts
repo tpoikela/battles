@@ -1,17 +1,24 @@
 
 /* Contains the code for final Black tower. */
 
-const RG = require('../src/rg');
-const Vault = require('./tiles.vault');
-const CastleGenerator = require('../src/castle-generator');
-const FactoryZone = require('../src/factory.zone');
-const Geometry = require('../src/geometry');
+import RG from '../src/rg';
+import {Vault} from './tiles.vault';
+import {CastleGenerator} from '../src/castle-generator';
+import {FactoryZone} from '../src/factory.zone';
+import {Geometry} from '../src/geometry';
 
 const tileSize = 9;
 
-export default class BlackTower {
+export class BlackTower {
 
-    constructor(cols, rows, conf = {}) {
+    public nLevels: number;
+    public cols: number;
+    public rows: number;
+    public tilesX: number;
+    public tilesY: number;
+    public conf: {[key: string]: any};
+
+    constructor(cols, rows, conf: any = {}) {
         this.nLevels = conf.nLevels || 5;
         this.cols = cols || 100;
         this.rows = rows || 50;
@@ -24,7 +31,7 @@ export default class BlackTower {
 
     getLevels() {
         const castleGen = new CastleGenerator();
-        const castleConf = {
+        const castleConf: any = { // TODO fix typings
             wallType: 'wallice',
             // floorType: 'floorice',
             genParams: [2, 2, 2, 2],

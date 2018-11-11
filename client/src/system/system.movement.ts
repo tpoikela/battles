@@ -403,6 +403,3 @@ export class SystemMovement extends SystemBase {
 
 };
 
-
-
-module.exports = System.Movement;

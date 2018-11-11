@@ -4,7 +4,9 @@ import {Path} from '../path';
 import {Geometry} from '../geometry';
 
 export const System: any = {};
+
 import {SystemBase} from './system.base';
+export {SystemBase} from './system.base';
 System.Base = SystemBase;
 
 System.Animation = require('./system.animation');
@@ -21,7 +23,11 @@ System.Effects = require('./system.effects');
 System.Equip = require('./system.equip');
 System.Events = require('./system.events');
 System.ExpPoints = require('./system.exp-points');
-System.Hunger = require('./system.hunger');
+
+import {SystemHunger} from './system.hunger';
+export {SystemHunger} from './system.hunger';
+System.Hunger = SystemHunger;
+
 System.Missile = require('./system.missile');
 System.Movement = require('./system.movement');
 System.Quest = require('./system.quest');
@@ -30,7 +36,10 @@ System.Skills = require('./system.skills');
 System.SpellCast = require('./system.spell-cast');
 System.SpellEffect = require('./system.spell-effect');
 System.SpiritBind = require('./system.spirit-bind');
-System.TimeEffects = require('./system.time-effects');
+
+import {SystemTimeEffects} from './system.time-effects';
+export {SystemTimeEffects} from './system.time-effects';
+System.TimeEffects = SystemTimeEffects;
 
 /* Defines a new system declaration. Can be used in plugins to define new
  * systems easily without boilerplate code. */

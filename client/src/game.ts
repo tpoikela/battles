@@ -1,7 +1,7 @@
 
 import RG from './rg';
 import {Entity} from './entity';
-import ChunkManager from './chunk-manager';
+import {ChunkManager} from './chunk-manager';
 import {EventPool} from './eventpool';
 import {Engine} from './engine';
 import {GameMaster} from './game.master';

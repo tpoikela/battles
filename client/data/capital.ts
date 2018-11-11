@@ -1,25 +1,28 @@
 /* Contains the code to generate the capital city. */
 
-const RG = require('../src/rg');
-const Placer = require('../src/placer');
-const Path = require('../src/path');
+import RG from '../src/rg';
+import {Placer} from '../src/placer';
+import {Path} from '../src/path';
 
-const ObjectShell = require('../src/objectshellparser');
-const Element = require('../src/element');
+import {ObjectShell} from '../src/objectshellparser';
+import * as Element from '../src/element';
+import {Level} from '../src/level';
 
-const {Stairs} = Element;
+type Stairs = Element.ElementStairs;
 
 /* Class to create the capital city of the game. */
-export default class Capital {
+export class Capital {
 
-  constructor(cols, rows, conf = {}) {
+  public level: Level;
+
+  constructor(cols, rows, conf: any = {}) { // TODO add typings
     if (RG.isNullOrUndef([cols, rows])) {
         RG.err('Capital', 'constructor',
             'Use new Capital(cols, rows, conf?)');
     }
 
     // Generate the main level with mountain wall
-    const wallOpts = {
+    const wallOpts: any = { // TODO fix typings
       meanWy: Math.floor(0.9 * rows / 2),
       stdDev: 10,
       filterW: 7
@@ -39,7 +42,7 @@ export default class Capital {
     const widths = [0.5, 0.80, 0.6];
 
     const parser = ObjectShell.getParser();
-    const levelConf = [
+    const levelConf: any = [ // TODO fix typings
       {nShops: 2, parser, nGates: 2},
       {nShops: 5, parser, nGates: 2},
       {nShops: 2, parser, nGates: 2}
@@ -72,7 +75,7 @@ export default class Capital {
 
     // Calculate position and tile sub-levels into main level
     const y0 = Math.floor(subLevelPos[0] * cols);
-    const tileConf = {x: 0, y: y0, centerX: true};
+    const tileConf: any = {x: 0, y: y0, centerX: true}; // TODO fix typings
     if (conf.transpose) {
       tileConf.centerY = true;
       tileConf.centerX = false;

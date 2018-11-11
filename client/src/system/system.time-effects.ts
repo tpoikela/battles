@@ -1,72 +1,86 @@
 
-const RG = require('../rg');
-
-const System = {};
-System.Base = require('./system.base');
-const EventPool = require('../eventpool');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import {EventPool} from '../eventpool';
+import {Entity} from  '../entity';
 
 const POOL = EventPool.getPool();
+
+type CompEntry = [number, Entity];
 
 /* System which handles time-based effects like poisoning etc. It also handles
  * expiration of effects. This is a special system because its updates are
  * scheduled by the scheduler to guarantee a specific execution interval. */
-System.TimeEffects = function(compTypes) {
-    System.Base.call(this, RG.SYS.TIME_EFFECTS, compTypes);
-    this.compTypesAny = true;
+export class SystemTimeEffects extends SystemBase {
+
+    private _dtable: {[key: string]: (ent) => void};
+    private _expiredEffects: CompEntry[];
+
+    constructor(compTypes, pool?) {
+        super(RG.SYS.TIME_EFFECTS, compTypes, pool);
+        this.compTypesAny = true;
+        this._dtable = {};
+        this._expiredEffects = [];
+
+        this._dtable.Poison = this._applyPoison.bind(this);
+        this._dtable.Fading = this._applyFading.bind(this);
+        this._dtable.Heat = this._applyHeat.bind(this);
+        this._dtable.Coldness = this._applyColdness.bind(this);
+        this._dtable.DirectDamage = this._applyDirectDamage.bind(this);
+        this._dtable.RegenEffect = this._applyRegenEffect.bind(this);
+    }
 
     // Dispatch table used to call a handler function for each component
-    const _dtable = {};
-    let _expiredEffects = [];
 
-    this.update = function() {
+    update(): void {
         for (const e in this.entities) {
             if (!e) {continue;}
             const ent = this.entities[e];
 
             // Process timed effects like poison etc.
-            for (let i = 0; i < compTypes.length; i++) {
-                if (compTypes[i] !== 'Expiration') {
-                    if (ent.has(compTypes[i])) {
+            for (let i = 0; i < this.compTypes.length; i++) {
+                if (this.compTypes[i] !== 'Expiration') {
+                    if (ent.has(this.compTypes[i])) {
                         // Call dispatch table function
-                        _dtable[compTypes[i]](ent);
+                        this._dtable[this.compTypes[i]](ent);
                     }
                 }
             }
             // Process expiration effects/duration of Expiration itself
-            if (ent.has('Expiration')) {_decreaseDuration(ent);}
+            if (ent.has('Expiration')) {this._decreaseDuration(ent);}
         }
 
         // Remove expired effects (mutates this.entities, so done outside for)
         // Removes Expiration, as well as comps like Poison/Stun/Disease etc.
-        for (let j = 0; j < _expiredEffects.length; j++) {
-            const compID = _expiredEffects[j][0];
-            const entRem = _expiredEffects[j][1];
+        for (let j = 0; j < this._expiredEffects.length; j++) {
+            const compID = this._expiredEffects[j][0];
+            const entRem = this._expiredEffects[j][1];
             entRem.remove(compID);
         }
-        _expiredEffects = [];
+        this._expiredEffects = [];
     };
 
     /* Decreases the remaining duration in the component by one.*/
-    const _decreaseDuration = ent => {
+    _decreaseDuration(ent: Entity) {
         const expirComps = ent.getList('Expiration');
         expirComps.forEach(tEff => {
             tEff.decrDuration();
 
             // Remove Expiration only if other components are removed
             if (!tEff.hasEffects()) {
-                _expiredEffects.push([tEff.getID(), ent]);
+                this._expiredEffects.push([tEff.getID(), ent]);
             }
         });
     };
 
 
     /* Applies the poison effect to the entity.*/
-    const _applyPoison = ent => {
+    _applyPoison(ent: Entity): void {
         const poisonList = ent.getList('Poison');
         poisonList.forEach(poison => {
 
             if (ent.get('Health').isDead()) {
-                _expiredEffects.push([poison.getID(), ent]);
+                this._expiredEffects.push([poison.getID(), ent]);
                 if (ent.has('Expiration')) {
                     const te = ent.get('Expiration');
                     if (te.hasEffect(poison)) {
@@ -85,12 +99,12 @@ System.TimeEffects = function(compTypes) {
     };
 
     /* Applies direct damage effect to given entity. */
-    const _applyDirectDamage = ent => {
+    _applyDirectDamage(ent: Entity): void {
         const ddList = ent.getList('DirectDamage');
         ddList.forEach(ddComp => {
 
             if (ent.get('Health').isDead()) {
-                _expiredEffects.push([ddComp.getID(), ent]);
+                this._expiredEffects.push([ddComp.getID(), ent]);
                 if (ent.has('Expiration')) {
                     const te = ent.get('Expiration');
                     if (te.hasEffect(ddComp)) {
@@ -111,7 +125,7 @@ System.TimeEffects = function(compTypes) {
 
     /* Decreases duration in Fading comp, then remove the entity if duration is
      * 0. */
-    const _applyFading = ent => {
+    _applyFading(ent): void {
         const fadingComp = ent.get('Fading');
         fadingComp.decrDuration();
         if (fadingComp.getDuration() <= 0) {
@@ -137,7 +151,7 @@ System.TimeEffects = function(compTypes) {
         }
     };
 
-    const _applyHeat = ent => {
+    _applyHeat(ent): void {
         if (ent.has('Coldness')) {
             const cell = ent.getCell();
             ent.removeAll('Coldness');
@@ -148,7 +162,7 @@ System.TimeEffects = function(compTypes) {
     };
 
     // TODO
-    const _applyColdness = ent => {
+    _applyColdness(ent: Entity): void {
         if (ent.has('BodyTemp')) {
             const tempComp = ent.get('BodyTemp');
             tempComp.decr();
@@ -159,7 +173,7 @@ System.TimeEffects = function(compTypes) {
         }
     };
 
-    const _applyRegenEffect = ent => {
+    _applyRegenEffect(ent: Entity): void {
         const regenEffects = ent.getList('RegenEffect');
         regenEffects.forEach(effComp => {
             let shouldRemove = true;
@@ -199,17 +213,11 @@ System.TimeEffects = function(compTypes) {
                 ent.remove(effComp);
             }
         });
-    };
+    }
 
-    _dtable.Poison = _applyPoison;
-    _dtable.Fading = _applyFading;
-    _dtable.Heat = _applyHeat;
-    _dtable.Coldness = _applyColdness;
-    _dtable.DirectDamage = _applyDirectDamage;
-    _dtable.RegenEffect = _applyRegenEffect;
 
     /* Used for debug printing.*/
-    this.printMatchedType = function(ent) {
+    printMatchedType(ent: Entity): void {
         for (let i = 0; i < this.compTypes.length; i++) {
             if (ent.has(this.compTypes[i])) {
                 RG.debug(this.compTypes[i], 'Has component');
@@ -217,7 +225,4 @@ System.TimeEffects = function(compTypes) {
         }
     };
 
-};
-RG.extend2(System.TimeEffects, System.Base);
-
-module.exports = System.TimeEffects;
+}

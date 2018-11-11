@@ -1,15 +1,16 @@
 /* Contains code to generate the abandoned fort. */
 
-const RG = require('../src/rg');
-const {FactoryItem} = require('../src/factory.items');
-const ObjectShell = require('../src/objectshellparser');
-const Path = require('../src/path');
-const Element = require('../src/element');
-const Castle = require('../data/tiles.castle');
+import RG from '../src/rg';
+import {FactoryItem} from '../src/factory.items';
+import {ObjectShell} from '../src/objectshellparser';
+import {Path} from '../src/path';
+import {Level} from '../src/level';
+import * as Element from '../src/element';
+import {Castle} from '../data/tiles.castle';
 
 const TILE_SIZE = 7;
 
-const abandonedFortConf = {
+export const abandonedFortConf = {
     outerColsRatio: 0.4,
     outerRowsRatio: 0.4,
     outerStartXRatio: 0.4,
@@ -17,9 +18,10 @@ const abandonedFortConf = {
     castleRowsRatio: 0.6,
     castleColsRatio: 0.6
 };
-export {abandonedFortConf};
 
-export default class AbandonedFort {
+export class AbandonedFort {
+
+  public level: Level;
 
   constructor(cols, rows, conf) {
     if (!conf) {
@@ -72,7 +74,7 @@ export default class AbandonedFort {
 
     // Add stairs for entrance and exit
     const midY = Math.floor(rows / 2);
-    const stairsWest = new Element.Stairs('stairsUp', mainLevel);
+    const stairsWest = new Element.ElementStairs('stairsUp', mainLevel);
     mainLevel.addStairs(stairsWest, 0, midY);
 
     // Exit stairs are added to right-most coordinates
@@ -87,7 +89,7 @@ export default class AbandonedFort {
 
     const eastCell = mainMap.getFirstFreeFromRight(y0, y1);
     const [sX, sY] = [eastCell.getX(), eastCell.getY()];
-    const stairsEast = new Element.Stairs('stairsDown', mainLevel);
+    const stairsEast = new Element.ElementStairs('stairsDown', mainLevel);
     mainLevel.addStairs(stairsEast, sX, sY);
 
     const castleBbox = {ulx: castleX, uly: castleY,

@@ -1,7 +1,8 @@
 
-const RG = require('../src/rg');
-const Castle = require('../data/tiles.castle');
-const Placer = require('../src/placer');
+import RG from '../src/rg';
+import {Castle} from '../data/tiles.castle';
+import {Placer} from '../src/placer';
+import {Level} from '../src/level';
 
 const dwarvenCityConf = {
   outerColsRatio: 0.45,
@@ -16,7 +17,9 @@ const TILE_SIZE = 7;
 /* Creates the level for the dwarven city. Uses mainly Castle tiles and mountain
  * walls to create the level.
  */
-export default class DwarvenCity {
+export class DwarvenCity {
+
+    public level: Level;
 
     constructor(cols, rows, conf = dwarvenCityConf) {
       const wallOpts = {
