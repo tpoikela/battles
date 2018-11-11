@@ -1093,7 +1093,7 @@ export class Area extends WorldBase {
     // Keeps track which tiles contains real AreaTile objects
     public tilesLoaded: boolean[][];
 
-    constructor(name, sizeX, sizeY, cols, rows, levels) {
+    constructor(name, sizeX, sizeY, cols, rows, levels?: Level[]) {
         super(name);
         this.setType('area');
         this._sizeX = parseInt(sizeX, 10);
@@ -1156,7 +1156,7 @@ export class Area extends WorldBase {
         return this._conf;
     }
 
-    _init(levels) {
+    _init(levels?) {
         // Create the tiles
         for (let x = 0; x < this._sizeX; x++) {
             const tileColumn = [];
