@@ -1,26 +1,26 @@
 
-const RG = require('../rg');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import {Random} from '../random';
 
-const System = {};
-System.Base = require('./system.base');
-
-const {addSkillsExp} = System.Base;
-const {addCompToEntAfterHit} = System.Base;
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 /* Processes entities with attack-related components.*/
-System.Attack = function(compTypes) {
-    System.Base.call(this, RG.SYS.ATTACK, compTypes);
+export class SystemAttack extends SystemBase {
 
-    this.updateEntity = function(ent) {
+    constructor(compTypes, pool?) {
+        super(RG.SYS.ATTACK, compTypes, pool);
+    }
+
+    updateEntity(ent) {
         const compList = ent.getList('Attack');
         compList.forEach(attComp => {
             this.processAttackComp(ent, attComp);
             ent.remove(attComp);
         });
-    };
+    }
 
-    this.processAttackComp = function(ent, attComp) {
+    processAttackComp(ent, attComp) {
         const att = ent;
         const def = attComp.getTarget();
         const aName = att.getName();
@@ -64,17 +64,17 @@ System.Attack = function(compTypes) {
         }
     };
 
-    this.addAttackerBonus = att => {
+    addAttackerBonus(att) {
         const cells = RG.Brain.getEnemyCellsAround(att);
         return cells.length;
-    };
+    }
 
-    this.addDefenderBonus = def => {
+    addDefenderBonus(def) {
         const cells = RG.Brain.getEnemyCellsAround(def);
         return cells.length;
-    };
+    }
 
-    this.performAttack = function(att, def, aName, dName) {
+    performAttack(att, def, aName, dName) {
         let totalAtt = RG.getMeleeAttack(att);
         if (att.has('Attacker')) {
             totalAtt += this.addAttackerBonus(att);
@@ -90,7 +90,7 @@ System.Attack = function(compTypes) {
             if (totalDamage > 0) {
                 this.doDamage(att, def, totalDamage);
                 if (def.has('Experience')) {
-                    addSkillsExp(att, 'Melee', 1);
+                    SystemBase.addSkillsExp(att, 'Melee', 1);
                 }
             }
             else {
@@ -114,10 +114,10 @@ System.Attack = function(compTypes) {
                 cause: att});
             def.add(evtComp);
         }
-    };
+    }
 
     /* Returns the defense value for given entity. */
-    this.getEntityDefense = def => {
+    getEntityDefense(def) {
         if (def.has('Paralysis')) {
             return 0;
         }
@@ -132,17 +132,16 @@ System.Attack = function(compTypes) {
         return totalDef;
     };
 
-    this.doDamage = (att, def, dmg) => {
+    doDamage(att, def, dmg) {
         const dmgComp = new RG.Component.Damage(dmg, RG.DMG.MELEE);
         dmgComp.setSource(att);
         def.add(dmgComp);
         RG.gameWarn({cell: att.getCell(),
             msg: att.getName() + ' hits ' + def.getName()});
-    };
-
+    }
 
     /* Gets an enemy target for bi-directional strike, if any. */
-    this.getBiDirTarget = (att, def) => {
+    getBiDirTarget(att, def) {
         // 1st, find opposite x,y for the 1st attack
         const [attX, attY] = [att.getX(), att.getY()];
         const [defX, defY] = [def.getX(), def.getY()];
@@ -165,28 +164,28 @@ System.Attack = function(compTypes) {
             }
         }
         return null;
-    };
+    }
 
     /* Checks if Shields skill should be increased. */
-    this.checkForShieldSkill = (thr, totalAtt, totalDef, def) => {
+    checkForShieldSkill(thr, totalAtt, totalDef, def) {
         if (def.has('Skills')) {
             const shieldBonus = def.getShieldDefense();
             const defNoShield = totalDef - shieldBonus;
             const hitChange = totalAtt / (totalAtt + defNoShield);
             if (hitChange > thr) { // Would've hit without shield
-                addSkillsExp(def, 'Shields', 1);
+                SystemBase.addSkillsExp(def, 'Shields', 1);
             }
         }
-    };
+    }
 
-    this._applyAddOnHitComp = (att, def) => {
+    _applyAddOnHitComp(att, def) {
         const weapon = att.getWeapon();
         if (weapon && weapon.has) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
                 const addOnHit = weapon.get('AddOnHit');
                 if (addOnHit.getOnAttackHit()) {
                     const comp = addOnHit.getComp();
-                    addCompToEntAfterHit(comp, def, att);
+                    SystemBase.addCompToEntAfterHit(comp, def, att);
                 }
             }
         }
@@ -200,14 +199,10 @@ System.Attack = function(compTypes) {
                 const addOnHit = src.get('AddOnHit');
                 if (addOnHit.getOnAttackHit()) {
                     const comp = addOnHit.getComp();
-                    addCompToEntAfterHit(comp, def, src);
+                    SystemBase.addCompToEntAfterHit(comp, def, src);
                 }
             }
         }
 
-    };
-
-};
-RG.extend2(System.Attack, System.Base);
-
-module.exports = System.Attack;
+    }
+}
