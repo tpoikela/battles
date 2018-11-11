@@ -1,16 +1,15 @@
 
-const RG = require('../rg');
-
-const System = {};
-System.Base = require('./system.base');
-
-const ActorClass = require('../actor-class');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import {ActorClass} from '../actor-class';
 
 /* Called for entities which gained experience points recently.*/
-System.ExpPoints = function(compTypes) {
-    System.Base.call(this, RG.SYS.EXP_POINTS, compTypes);
+export class SystemExpPoints extends SystemBase {
+    constructor(compTypes, pool?) {
+        super(RG.SYS.EXP_POINTS, compTypes, pool);
+    }
 
-    this.updateEntity = ent => {
+    updateEntity(ent) {
         const expList = ent.getList('ExpPoints');
         expList.forEach(expPoints => {
 
@@ -47,9 +46,5 @@ System.ExpPoints = function(compTypes) {
             }
             ent.remove(expPoints);
         });
-    };
-
-};
-RG.extend2(System.ExpPoints, System.Base);
-
-module.exports = System.ExpPoints;
+    }
+}

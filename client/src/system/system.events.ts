@@ -41,8 +41,8 @@ export class SystemEvents extends SystemBase {
     }
 
 
-        /* Returns the radius which is used to calculate the event propagation
-         * distance. */
+    /* Returns the radius which is used to calculate the event propagation
+     * distance. */
     _getEventRadius(ent) {
         const id = ent.getLevel().getID();
         if (this.eventRadiusPerID.hasOwnProperty(id)) {
@@ -50,7 +50,7 @@ export class SystemEvents extends SystemBase {
         }
         // No level specific radius given, resort to global radius
         return this.eventRadius;
-    };
+    }
 
     _handleActorKilled(ent, evt, actor) {
         // React to friend/non-hostile being killed
@@ -63,7 +63,7 @@ export class SystemEvents extends SystemBase {
                 RG.gameMsg({cell: ent.getCell, msg});
             }
         }
-    };
+    }
 
     _handleItemPickedUp(ent, evt, actor) {
         if (actor.getID() !== ent.getID()) {
@@ -75,7 +75,7 @@ export class SystemEvents extends SystemBase {
                 RG.gameMsg({msg, cell});
             }
         }
-    };
+    }
 
     _handleActorDamaged(ent, evt, actor) {
         if (ent.getID() !== actor.getID()) {
@@ -83,7 +83,7 @@ export class SystemEvents extends SystemBase {
             const {cause} = args;
             this._addActorAsEnemy(cause, ent, actor);
         }
-    };
+    }
 
     _handleActorAttacked(ent, evt, actor) {
         if (ent.getID() !== actor.getID()) {
@@ -91,11 +91,11 @@ export class SystemEvents extends SystemBase {
             const {cause} = args;
             this._addActorAsEnemy(cause, ent, actor);
         }
-    };
+    }
 
     _handleActorUsedStairs(ent, evt, actor) {
         RG.gameMsg(`${actor.getName()} saw ${ent.getName()} using stairs.`);
-    };
+    }
 
 
     /* Decides if attacker must be added as enemy of the perceiving actor. */
@@ -119,7 +119,7 @@ export class SystemEvents extends SystemBase {
                 perceiver);
             perceiver.addEnemy(aggressor);
         }
-    };
+    }
 
     _emitMsg(msg, aggr, victim, perc) {
         const aggrName = aggr.getName();
@@ -127,7 +127,7 @@ export class SystemEvents extends SystemBase {
         let fullMsg = `${perc.getName()} ${msg} of ${aggrName} `;
         fullMsg += ` towards ${victim.getName()}`;
         RG.gameMsg({cell, msg: fullMsg});
-    };
+    }
 
     updateEntity(ent) {
         const evtList = ent.getList('Event');
@@ -170,4 +170,5 @@ export class SystemEvents extends SystemBase {
             ent.remove(evt);
         });
     }
+
 }
