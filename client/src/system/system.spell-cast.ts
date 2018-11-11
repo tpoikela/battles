@@ -1,19 +1,24 @@
 
-const RG = require('../rg');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import * as Component from '../component';
+import {Path} from '../path';
 
-const System = {};
-System.Base = require('./system.base');
-
-const {addSkillsExp} = System.Base;
+const {addSkillsExp} = SystemBase;
 
 /* System which processes the spell casting components. This system checks if
  * the spell casting succeeds and then handles PP reduction, but it does not
  * execute the effects of the spell.*/
-System.SpellCast = function(compTypes) {
-    System.Base.call(this, RG.SYS.SPELL_CAST, compTypes);
-    this.compTypesAny = true;
+export class SystemSpellCast extends SystemBase {
 
-    this.updateEntity = function(ent) {
+    private _drainerName: string;
+
+    constructor(compTypes, pool?) {
+        super(RG.SYS.SPELL_CAST, compTypes, pool);
+        this.compTypesAny = true;
+    }
+
+    updateEntity(ent) {
         const name = ent.getName();
         const cell = ent.getCell();
 
@@ -53,10 +58,10 @@ System.SpellCast = function(compTypes) {
             }
             ent.remove('SpellCast');
         }
-    };
+    }
 
     /* Checks if any power drainer managers to cancel the spell. */
-    this._checkPowerDrain = (spell, args, drainers) => {
+    _checkPowerDrain(spell, args, drainers) {
         let isDrained = false;
         const srcX = args.src.getX();
         const srcY = args.src.getY();
@@ -65,7 +70,7 @@ System.SpellCast = function(compTypes) {
             if (ent.getLevel().getID() === args.src.getLevel().getID()) {
                 const drainX = ent.getX();
                 const drainY = ent.getY();
-                const dist = RG.Path.shortestDist(srcX, srcY, drainX, drainY);
+                const dist = Path.shortestDist(srcX, srcY, drainX, drainY);
                 if (ent.getID() !== args.src.getID()) {
                     if (dist <= ent.get('PowerDrain').drainDist) {
                         ent.remove('PowerDrain');
@@ -82,9 +87,5 @@ System.SpellCast = function(compTypes) {
             }
         });
         return isDrained;
-    };
-
-};
-RG.extend2(System.SpellCast, System.Base);
-
-module.exports = System.SpellCast;
+    }
+}

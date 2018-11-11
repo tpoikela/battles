@@ -1,14 +1,15 @@
 
-const RG = require('../rg');
-
-const System = {};
-System.Base = require('./system.base');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import * as Component from '../component';
 
 /* System which handles the skill advancement. */
-System.Skills = function(compTypes) {
-    System.Base.call(this, RG.SYS.SKILLS, compTypes);
+export class SystemSkills extends SystemBase {
+    constructor(compTypes, pool?) {
+        super(RG.SYS.SKILLS, compTypes, pool);
+    }
 
-    this.updateEntity = function(ent) {
+    updateEntity(ent) {
         const comps = ent.getList('SkillsExp');
         const entSkills = ent.get('Skills');
         const cell = ent.getCell();
@@ -35,7 +36,7 @@ System.Skills = function(compTypes) {
                 RG.gameSuccess({cell,
                     msg: `${name} advances a skill ${skillName}`});
 
-                const expPts = new RG.Component.ExpPoints(10 * currLevel);
+                const expPts = new Component.ExpPoints(10 * currLevel);
                 ent.add(expPts);
                 RG.gameSuccess({cell,
                     msg: `${name} gains experience from skill ${skillName}`});
@@ -43,9 +44,5 @@ System.Skills = function(compTypes) {
 
             ent.remove(comp);
         });
-    };
-
-};
-RG.extend2(System.Skills, System.Base);
-
-module.exports = System.Skills;
+    }
+}
