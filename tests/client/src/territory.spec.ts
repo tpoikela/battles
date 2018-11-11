@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import RG from '../../../client/src/rg';
 import {Territory} from '../../../client/src/territory';
 import {OWMap} from '../../../client/src/overworld.map';
-import {Overworld} from '../../../client/src/overworld';
+import {OverWorld} from '../../../client/src/overworld';
 import {OW} from '../../../client/src/ow-constants';
 import {Random} from '../../../client/src/random';
 
@@ -142,7 +142,7 @@ describe('Territory', () => {
         terrMap.addRival({name: 'winterbeings', char: 'W',
             startX: btower[0], startY: btower[1], numPos: 1});
 
-        const coordMap = new Overworld.CoordMap();
+        const coordMap = new OverWorld.CoordMap();
         coordMap.xMap = 10;
         coordMap.yMap = 10;
 
