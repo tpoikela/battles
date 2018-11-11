@@ -1371,18 +1371,55 @@ class Mountain extends ZoneBase {
 World.Mountain = Mountain;
 
 //----------------------
-// World.MountainFace
+// MountainFace
 //----------------------
 /* One side (face) of the mountain. Each side consists of stages, of X by 1
  * Areas. This is also re-used as a mountain summit because internally it's the
  * same. */
-World.MountainFace = function(name) {
-    SubZoneBase.call(this, name);
-    this.setType('face');
-    this._entrance = null;
+class MountainFace extends SubZoneBase {
+
+    constructor(name) {
+        super(name);
+        this.setType('face');
+        this._entrance = null;
+    }
+
+    setEntrance(stairs) {
+        this._entrance = stairs;
+    }
+
+    setEntranceLocation(entrance) {
+        if (!RG.isNullOrUndef([entrance])) {
+            this._entrance = entrance;
+        }
+        else {
+            RG.err('MountainFace', 'setEntranceLocation',
+                'Arg entrance is not defined.');
+        }
+    }
+
+    getEntrance() {
+        return getEntrance(this._levels, this._entrance);
+    }
+
+    connectLevelToStairs(nLevel, stairs) {
+        if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
+            RG.err('MountainFace', 'connectLevelToStairs',
+                'Stairs must be first connected to other level.');
+        }
+    }
+
+    toJSON() {
+        const json = SubZoneBase.prototype.toJSON.call(this);
+        const obj = {};
+        if (this._entrance) {
+            obj.entrance = this._entrance;
+        }
+        return Object.assign(obj, json);
+    }
 
     /* Entrance is created at the bottom by default. */
-    this.addEntrance = levelNumber => {
+    addEntrance(levelNumber) {
         if (this._entrance === null) {
             const level = this._levels[levelNumber];
             const stairs = new Stairs('stairsDown', level);
@@ -1409,45 +1446,12 @@ World.MountainFace = function(name) {
             this._entrance = {levelNumber, x, y};
         }
         else {
-            RG.err('World.MountainFace', 'addEntrance',
+            RG.err('MountainFace', 'addEntrance',
                 'Entrance already added.');
         }
-    };
-
-    this.setEntrance = stairs => {
-        this._entrance = stairs;
-    };
-
-    this.setEntranceLocation = entrance => {
-        if (!RG.isNullOrUndef([entrance])) {
-            this._entrance = entrance;
-        }
-        else {
-            RG.err('World.MountainFace', 'setEntranceLocation',
-                'Arg entrance is not defined.');
-        }
-    };
-
-    this.getEntrance = () => getEntrance(this._levels, this._entrance);
-
-    this.connectLevelToStairs = (nLevel, stairs) => {
-        if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
-            RG.err('World.MountainFace', 'connectLevelToStairs',
-                'Stairs must be first connected to other level.');
-        }
-    };
-
-    this.toJSON = function() {
-        const json = SubZoneBase.prototype.toJSON.call(this);
-        const obj = {};
-        if (this._entrance) {
-            obj.entrance = this._entrance;
-        }
-        return Object.assign(obj, json);
-    };
-
-};
-RG.extend2(World.MountainFace, SubZoneBase);
+    }
+}
+World.MountainFace = MountainFace;
 
 //-------------------------
 // World.MountainSummit
