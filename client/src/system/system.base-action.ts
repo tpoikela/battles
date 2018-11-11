@@ -109,7 +109,7 @@ export class SystemBaseAction extends SystemBase {
 
                 if (item.has('QuestTarget')) {
                     const qTarget = item.get('QuestTarget');
-                    addQuestEvent(ent, qTarget, 'get');
+                    SystemQuest.addQuestEvent(ent, qTarget, 'get');
                 }
             }
             else {
