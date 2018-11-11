@@ -5,6 +5,8 @@ import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import {SentientActor} from '../actor';
 import {Cell} from '../map.cell';
+import {create} from '../component.base';
+import * as Component from '../component';
 
 const debug = require('debug')('bitn:System.Movement');
 
@@ -82,7 +84,7 @@ export class SystemMovement extends SystemBase {
         const expElem = cell.getPropType('exploration')[0];
         if (level.removeElement(expElem, x, y)) {
             const givenExp = expElem.getExp();
-            const expPoints = new RG.Component.ExpPoints(givenExp);
+            const expPoints = new Component.ExpPoints(givenExp);
             ent.add(expPoints);
             addSkillsExp(ent, 'Exploration', 1);
 
@@ -362,7 +364,7 @@ export class SystemMovement extends SystemBase {
             if (applyBonus) {
                 bonuses.mods.forEach(mod => {
                     if (Number.isInteger(mod.value)) {
-                        const targetComp = RG.Component.create(mod.targetComp);
+                        const targetComp = create(mod.targetComp);
                         targetComp[mod.targetFunc](mod.value);
                         targetComp.setTag(newType);
                         ent.add(targetComp);
@@ -372,7 +374,7 @@ export class SystemMovement extends SystemBase {
                         if (srcComp) {
                             let bonus = srcComp[mod.srcFunc]();
                             bonus = Math.round(mod.value * bonus);
-                            const targetComp = RG.Component.create(mod.targetComp);
+                            const targetComp = create(mod.targetComp);
                             targetComp[mod.targetFunc](bonus);
                             targetComp.setTag(newType);
                             ent.add(targetComp);

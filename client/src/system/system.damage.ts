@@ -1,30 +1,22 @@
 
-const RG = require('../rg');
-
-const System = {};
-System.Base = require('./system.base');
-const EventPool = require('../eventpool');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import {EventPool} from '../eventpool';
+import {Random} from '../random';
 
 const POOL = EventPool.getPool();
 
 const NO_DAMAGE_SRC = RG.NO_DAMAGE_SRC;
-const RNG = RG.Random.getRNG();
-
-const {addCompToEntAfterHit} = System.Base;
+const RNG = Random.getRNG();
 
 /* Processes entities with damage component.*/
-System.Damage = function(compTypes) {
-    System.Base.call(this, RG.SYS.DAMAGE, compTypes);
+class SystemDamage extends SystemBase {
 
-    this.updateEntity = ent => {
-        const dmgComps = ent.getList('Damage');
-        dmgComps.forEach(dmgComp => {
-            this.processDamageComp(ent, dmgComp);
-            ent.remove(dmgComp); // After dealing damage, remove comp
-        });
-    };
+    constructor(compTypes, pool?) {
+        super(RG.SYS.DAMAGE, compTypes, pool);
+    }
 
-    this.processDamageComp = function(ent, dmgComp) {
+    processDamageComp(ent, dmgComp) {
         const health = ent.get('Health');
         if (health) {
             let totalDmg = this._getDamageModified(ent, dmgComp);
@@ -37,7 +29,7 @@ System.Damage = function(compTypes) {
                 RG.gameMsg({msg, cell: ent.getCell()});
             }
             else {
-                _applyAddOnHitComp(ent, dmgComp);
+                this._applyAddOnHitComp(ent, dmgComp);
                 health.decrHP(totalDmg);
                 if (this.debugEnabled) {
                     const hpMax = health.getMaxHP();
@@ -60,7 +52,7 @@ System.Damage = function(compTypes) {
                     const entCell = ent.getCell();
                     ent.get('Loot').dropLoot(entCell);
                 }
-                _dropInvAndEq(ent);
+                this._dropInvAndEq(ent);
 
                 this._killActor(damageSrc, ent, dmgComp);
             }
@@ -82,7 +74,7 @@ System.Damage = function(compTypes) {
 
     };
 
-    this._getUltimateDmgSource = function(dmgComp) {
+    _getUltimateDmgSource(dmgComp) {
         let damageSrc = dmgComp.getSourceActor();
         if (!damageSrc) {
             damageSrc = dmgComp.getSource();
@@ -91,17 +83,17 @@ System.Damage = function(compTypes) {
             damageSrc = damageSrc.get('Created').getCreator();
         }
         return damageSrc;
-    };
+    }
 
     /* Checks if protection checks can be applied to the damage caused. For
      * damage like hunger and poison, no protection helps.*/
-    this._getDamageModified = (ent, dmgComp) => {
+    _getDamageModified(ent, dmgComp) {
         const dmgType = dmgComp.getDamageType();
         let src = dmgComp.getSourceActor();
         if (!src) {
             src = dmgComp.getSource();
         }
-        const dmg = _getDmgAfterWeaknessAndResistance(ent, dmgComp);
+        const dmg = this._getDmgAfterWeaknessAndResistance(ent, dmgComp);
 
         // Deal with "internal" damage bypassing protection here
         const cell = ent.getCell();
@@ -147,7 +139,7 @@ System.Damage = function(compTypes) {
         return totalDmg;
     };
 
-    const _getDmgAfterWeaknessAndResistance = (ent, dmgComp) => {
+    _getDmgAfterWeaknessAndResistance(ent, dmgComp) {
         const entName = ent.getName();
         let dmg = dmgComp.getDamage();
         if (ent.has('Weakness')) {
@@ -217,29 +209,29 @@ System.Damage = function(compTypes) {
         return dmg;
     };
 
-    this.effectMatches = (dmgComp, effComp) => {
+    effectMatches(dmgComp, effComp) {
         const effect = effComp.getEffect();
         const dmgType = dmgComp.getDamageType();
         const dmgCateg = dmgComp.getDamageCateg();
         return effect === dmgType || effect === dmgCateg;
-    };
+    }
 
     /* Returns true if the hit bypasses defender's protection completely. */
-    this.bypassProtection = (ent, src) => {
+    bypassProtection(ent, src) {
         const bypassChance = RNG.getUniform();
         if (src && src.has('BypassProtection')) {
             return bypassChance <= src.get('BypassProtection').getChance();
         }
         return bypassChance <= RG.PROT_BYPASS_CHANCE;
-    };
+    }
 
     /* Applies add-on hit effects such as poison, frost or others. */
-    const _applyAddOnHitComp = (ent, dmgComp) => {
+    _applyAddOnHitComp(ent, dmgComp) {
         const weapon = dmgComp.getWeapon();
         if (weapon && weapon.has) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
                 const comp = weapon.get('AddOnHit').getComp();
-                addCompToEntAfterHit(comp, ent, dmgComp.getSource());
+                SystemBase.addCompToEntAfterHit(comp, ent, dmgComp.getSource());
             }
         }
         else if (weapon && weapon.onHit) {
@@ -252,12 +244,12 @@ System.Damage = function(compTypes) {
             const src = dmgComp.getSource();
             if (src && src.has('AddOnHit')) {
                 const comp = src.get('AddOnHit').getComp();
-                addCompToEntAfterHit(comp, ent, src);
+                SystemBase.addCompToEntAfterHit(comp, ent, src);
             }
         }
-    };
+    }
 
-    const _dropInvAndEq = actor => {
+    _dropInvAndEq(actor) {
         const [x, y] = actor.getXY();
         if (!actor.getInvEq) {
             return;
@@ -277,10 +269,10 @@ System.Damage = function(compTypes) {
         eqItems.forEach(item => {
             actorLevel.addItem(item, x, y);
         });
-    };
+    }
 
     /* Removes actor from current level and emits Actor killed event.*/
-    this._killActor = (src, actor, dmgComp) => {
+    _killActor(src, actor, dmgComp) {
         const level = actor.getLevel();
         const cell = actor.getCell();
         const [x, y] = actor.getXY();
@@ -291,7 +283,7 @@ System.Damage = function(compTypes) {
             const nameKilled = actor.getName();
 
             if (actor.has('Experience')) {
-                _giveExpToSource(src, actor);
+                this._giveExpToSource(src, actor);
             }
             const dmgType = dmgComp.getDamageType();
             if (dmgType === 'poison') {
@@ -329,7 +321,7 @@ System.Damage = function(compTypes) {
                     src.add(qEvent);
                 }
             }
-            _cleanUpComponents(actor);
+            this._cleanUpComponents(actor);
         }
         else {
             RG.err('System.Damage', 'killActor', "Couldn't remove actor");
@@ -337,7 +329,7 @@ System.Damage = function(compTypes) {
     };
 
     /* When an actor is killed, gives experience to damage's source.*/
-    const _giveExpToSource = (att, def) => {
+    _giveExpToSource(att, def) {
         if (att !== NO_DAMAGE_SRC && !att.has('Dead')) {
             const defLevel = def.get('Experience').getExpLevel();
             const defDanger = def.get('Experience').getDanger();
@@ -346,13 +338,13 @@ System.Damage = function(compTypes) {
 
             // Give additional battle experience
             if (att.has('InBattle')) {
-                _giveBattleExpToSource(att, def);
+                this._giveBattleExpToSource(att);
             }
         }
     };
 
     /* Adds additional battle experience given if actor is in a battle. */
-    const _giveBattleExpToSource = (att) => {
+    _giveBattleExpToSource(att) {
         if (!att.has('BattleExp')) {
             const inBattleComp = att.get('InBattle');
             const data = inBattleComp.getData();
@@ -369,9 +361,9 @@ System.Damage = function(compTypes) {
             }
         }
         att.get('BattleExp').getData().kill += 1;
-    };
+    }
 
-    const _cleanUpComponents = actor => {
+    _cleanUpComponents(actor) {
         const compTypes = ['Coldness', 'Expiration', 'Fading'];
         compTypes.forEach(compType => {
             const compList = actor.getList(compType);
@@ -382,10 +374,14 @@ System.Damage = function(compTypes) {
                 actor.remove(comp);
             });
         });
-    };
+    }
 
-};
-RG.extend2(System.Damage, System.Base);
+    updateEntity(ent) {
+        const dmgComps = ent.getList('Damage');
+        dmgComps.forEach(dmgComp => {
+            this.processDamageComp(ent, dmgComp);
+            ent.remove(dmgComp); // After dealing damage, remove comp
+        });
+    }
+}
 
-
-module.exports = System.Damage;

@@ -1,6 +1,7 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
+import * as Component from '../component';
 
 export class SystemAreaEffects extends SystemBase {
     public radRange: number;
@@ -24,7 +25,7 @@ export class SystemAreaEffects extends SystemBase {
                         // Name check prevents slow down when lots of fire
                         // actors are present
                         if (actor.getName() !== srcName) {
-                            actor.add(new RG.Component[compName]());
+                            actor.add(new Component[compName]());
                         }
                     });
                 }
@@ -39,7 +40,7 @@ export class SystemAreaEffects extends SystemBase {
         if (ent.has('Health')) {
             flameComps.forEach(flameComp => {
                 const dmgType = flameComp.getDamageType();
-                const dmgComp = new RG.Component.Damage(flameComp.getDamage(),
+                const dmgComp = new Component.Damage(flameComp.getDamage(),
                     dmgType);
 
                 const flameSrc = flameComp.getSource();

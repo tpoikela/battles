@@ -2,6 +2,7 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import {Random} from '../random';
+import * as Component from '../component';
 
 const RNG = Random.getRNG();
 
@@ -109,7 +110,7 @@ export class SystemAttack extends SystemBase {
 
         // Emitted only for player for efficiency reasons
         if (att.isPlayer() || def.isPlayer()) {
-            const evtComp = new RG.Component.Event();
+            const evtComp = new Component.Event();
             evtComp.setArgs({type: RG.EVT_ACTOR_ATTACKED,
                 cause: att});
             def.add(evtComp);
@@ -133,7 +134,7 @@ export class SystemAttack extends SystemBase {
     };
 
     doDamage(att, def, dmg) {
-        const dmgComp = new RG.Component.Damage(dmg, RG.DMG.MELEE);
+        const dmgComp = new Component.Damage(dmg, RG.DMG.MELEE);
         dmgComp.setSource(att);
         def.add(dmgComp);
         RG.gameWarn({cell: att.getCell(),

@@ -2,10 +2,11 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import {SystemQuest} from './system.quest';
+import * as Component from '../component';
 
 /* Battle system handles battle-related components such as badges from battle
  * survivors etc. */
-class SystemBattle extends SystemBase {
+export class SystemBattle extends SystemBase {
 
     constructor(compTypes, pool?) {
         super(RG.SYS.BATTLE, compTypes, pool);
@@ -35,7 +36,7 @@ class SystemBattle extends SystemBase {
                 if (badge.isWon()) {
                     let rep = null;
                     if (!ent.has('Reputation')) {
-                        rep = new RG.Component.Reputation();
+                        rep = new Component.Reputation();
                         ent.add(rep);
                     }
                     else {

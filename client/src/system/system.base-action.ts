@@ -6,6 +6,7 @@ import {EventPool} from '../eventpool';
 
 import {SystemEffects} from './system.effects';
 import {SystemQuest} from './system.quest';
+import * as Component from '../component';
 
 const POOL = EventPool.getPool();
 
@@ -137,7 +138,7 @@ export class SystemBaseAction extends SystemBase {
 
             const newLevel = ent.getLevel();
             if (newLevel.has('QuestTarget')) {
-                const qEvent = new RG.Component.QuestTargetEvent();
+                const qEvent = new Component.QuestTargetEvent();
                 qEvent.setEventType('goto');
                 qEvent.setTargetComp(newLevel.get('QuestTarget'));
                 ent.add(qEvent);
@@ -239,7 +240,7 @@ export class SystemBaseAction extends SystemBase {
 
         const effArgs = useItemComp.getEffect();
         if (effArgs) {
-            const effComp = new RG.Component.Effects(effArgs);
+            const effComp = new Component.Effects(effArgs);
             ent.add(effComp);
         }
     }
@@ -284,7 +285,7 @@ export class SystemBaseAction extends SystemBase {
             jumpPathCb);
         // TODO Verify that path is direct path
         if (path.length === jumpRange) {
-            const movComp = new RG.Component.Movement(x1, y1, ent.getLevel());
+            const movComp = new Component.Movement(x1, y1, ent.getLevel());
             ent.add(movComp);
         }
     }
@@ -318,7 +319,7 @@ export class SystemBaseAction extends SystemBase {
         }
 
         if (readTarget.has('QuestTarget')) {
-            const qEvent = new RG.Component.QuestTargetEvent();
+            const qEvent = new Component.QuestTargetEvent();
             qEvent.setEventType('read');
             qEvent.setTargetComp(readTarget.get('QuestTarget'));
             ent.add(qEvent);
@@ -328,7 +329,7 @@ export class SystemBaseAction extends SystemBase {
 
     /* Used to create events in response to specific actions. */
     private _createEventComp(ent, args): void {
-        const evtComp = new RG.Component.Event();
+        const evtComp = new Component.Event();
         evtComp.setArgs(args);
         ent.add(evtComp);
     }
