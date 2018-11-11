@@ -1,15 +1,14 @@
 /* System for handling of equipped items. */
 
-const RG = require('../rg');
+import RG from '../rg';
+import {SystemBase} from './system.base';
 
-const System = {};
-System.Base = require('./system.base');
+export class SystemEquip extends SystemBase {
+    constructor(compTypes, pool?) {
+        super(RG.SYS.EQUIP, compTypes, pool);
+    }
 
-
-System.Equip = function(compTypes) {
-    System.Base.call(this, RG.SYS.EQUIP, compTypes);
-
-    this.updateEntity = ent => {
+    updateEntity(ent) {
         const eqComp = ent.get('Equip');
         if (eqComp.getIsRemove()) {
             this.unequipItem(ent, eqComp.getArgs());
@@ -20,8 +19,7 @@ System.Equip = function(compTypes) {
         ent.remove(eqComp);
     };
 
-
-    this.unequipItem = (ent, obj) => {
+    unequipItem(ent, obj) {
         const slotName = obj.slot;
         const slotNumber = obj.slotNumber;
         const invEq = ent.getInvEq();
@@ -57,9 +55,9 @@ System.Equip = function(compTypes) {
                 this.handleAddOnEquip(ent, addComp, isEquip);
             });
         }
-    };
+    }
 
-    this.equipItem = (ent, obj) => {
+    equipItem(ent, obj) {
         const invEq = ent.getInvEq();
         const item = obj.item;
         let result = false;
@@ -88,9 +86,9 @@ System.Equip = function(compTypes) {
                 this.handleAddOnEquip(ent, addComp);
             });
         }
-    };
+    }
 
-    this.handleAddOnEquip = (ent, addComp, equip = true) => {
+    handleAddOnEquip(ent, addComp, equip = true) {
         if (equip) {
             const comp = addComp.getComp();
             ent.add(comp);
@@ -109,9 +107,5 @@ System.Equip = function(compTypes) {
                     'Expected comp ID number. Got: ' + compID);
             }
         }
-    };
-
-};
-RG.extend2(System.Equip, System.Base);
-
-module.exports = System.Equip;
+    }
+}

@@ -2,7 +2,6 @@
 import RG from '../rg';
 import {Entity} from  '../entity';
 import {SystemBase} from './system.base';
-import {EventPool} from '../eventpool';
 import {SentientActor} from '../actor';
 import {Cell} from '../map.cell';
 import {create} from '../component.base';
