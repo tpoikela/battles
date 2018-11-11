@@ -1,24 +1,25 @@
 
-const RG = require('../rg');
-
-const System = {};
-System.Base = require('./system.base');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import * as Component from '../component';
 
 /* System for spirit binding actions. Note: SpiritBind component is added to the
  * gem always. The action performer (binder) and target entity (item/actor) are
  * added to the component. */
-System.SpiritBind = function(compTypes) {
-    System.Base.call(this, RG.SYS.SPIRIT, compTypes);
-    this.compTypesAny = true;
+export class SystemSpiritBind extends SystemBase {
+    constructor(compTypes, pool?) {
+        super(RG.SYS.SPIRIT, compTypes, pool);
+        this.compTypesAny = true;
+    }
 
-    this.updateEntity = ent => {
+    updateEntity(ent) {
         if (ent.has('SpiritBind')) {
             this._doSpiritBind(ent);
         }
-    };
+    }
 
     /* Called when spirit bind is attempted by a binder. */
-    this._doSpiritBind = ent => {
+    _doSpiritBind(ent) {
         const bindComp = ent.get('SpiritBind');
         const binder = bindComp.getBinder();
         const bName = binder.getName();
@@ -48,7 +49,7 @@ System.SpiritBind = function(compTypes) {
                 const topItem = targetCell.getItems()[0];
                 const iName = topItem.getName();
                 if (!topItem.has('GemBound')) {
-                    const gemBindComp = new RG.Component.GemBound();
+                    const gemBindComp = new Component.GemBound();
                     const boundGem = binder.getInvEq().removeAndGetItem(ent);
                     gemBindComp.setGem(boundGem);
                     topItem.add(gemBindComp);
@@ -70,8 +71,5 @@ System.SpiritBind = function(compTypes) {
 
         ent.remove('SpiritBind');
 
-    };
-};
-RG.extend2(System.SpiritBind, System.Base);
-
-module.exports = System.SpiritBind;
+    }
+}
