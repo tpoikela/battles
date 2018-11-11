@@ -1,16 +1,18 @@
 
-const RG = require('../rg');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import * as Item from '../item';
+import * as Component from '../component';
 
-const System = {};
-System.Base = require('./system.base');
-
-const {addSkillsExp} = System.Base;
+const {addSkillsExp} = SystemBase;
 
 /* Processes entities with transaction-related components.*/
-System.Shop = function(compTypes) {
-    System.Base.call(this, RG.SYS.SHOP, compTypes);
+export class SystemShop extends SystemBase {
+    constructor(compTypes, pool?) {
+        super(RG.SYS.SHOP, compTypes, pool);
+    }
 
-    this.updateEntity = function(ent) {
+    updateEntity(ent) {
         const trans = ent.get('Transaction');
         const args = trans.getArgs();
         const {buyer} = args;
@@ -22,9 +24,9 @@ System.Shop = function(compTypes) {
             this.sellItem(args);
         }
         ent.remove(trans);
-    };
+    }
 
-    this._checkArgsOK = function(ent, args) {
+    _checkArgsOK(ent, args) {
         const {item, buyer, shop, seller} = args;
         let msg = '';
         if (!item) {
@@ -43,10 +45,10 @@ System.Shop = function(compTypes) {
             msg += 'Entity: ' + ent.getName();
             RG.err('System.Shop', '_checkArgsOK', msg);
         }
-    };
+    }
 
 
-    this.buyItem = function(args) {
+    buyItem(args) {
         const {item, buyer, shop, seller} = args;
         if (!buyer.getInvEq().canCarryItem(item)) {
             RG.gameMsg(buyer.getName() + ' cannot carry more weight');
@@ -58,7 +60,7 @@ System.Shop = function(compTypes) {
         const nCoins = RG.getGoldInCoins(goldWeight);
 
         if (RG.hasEnoughGold(buyer, goldWeight)) {
-            const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+            const coins = new Item.GoldCoin(RG.GOLD_COIN_NAME);
             const nCoinsRemoved = RG.removeNCoins(buyer, nCoins);
             coins.setCount(nCoinsRemoved);
 
@@ -75,9 +77,9 @@ System.Shop = function(compTypes) {
                 " doesn't have enough money to buy " + item.getName() + ' for '
                 + nCoins + ' coins.'});
         }
-    };
+    }
 
-    this.sellItem = function(args) {
+    sellItem(args) {
         const {item, buyer, seller, shop} = args;
         if (!seller) {
             RG.err('System.Shop', 'sellItem',
@@ -92,13 +94,13 @@ System.Shop = function(compTypes) {
 
         if (RG.hasEnoughGold(buyer, goldWeight)) {
             if (seller.getInvEq().dropNItems(item, count)) {
-                const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+                const coins = new Item.GoldCoin(RG.GOLD_COIN_NAME);
                 const nCoinsRemoved = RG.removeNCoins(buyer, nCoins);
                 coins.setCount(nCoinsRemoved);
                 seller.getInvEq().addItem(coins);
 
                 const topItem = seller.getCell().getItems()[0];
-                topItem.add(new RG.Component.Unpaid());
+                topItem.add(new Component.Unpaid());
                 const itemName = topItem.getName();
 
                 RG.gameMsg({cell: sellerCell, msg: seller.getName() +
@@ -122,10 +124,5 @@ System.Shop = function(compTypes) {
         }
 
         return false;
-    };
-
-};
-RG.extend2(System.Shop, System.Base);
-
-
-module.exports = System.Shop;
+    }
+}
