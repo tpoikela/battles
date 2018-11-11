@@ -87,9 +87,9 @@ export class Capital {
     // Add entrance stairs and create path through the level
     if (conf.transpose) {
       const midY = Math.floor(rows / 2);
-      const stairsWest = new Stairs('stairsUp', mainLevel);
+      const stairsWest = new Element.ElementStairs('stairsUp', mainLevel);
       mainLevel.addStairs(stairsWest, 0, midY);
-      const stairsEast = new Stairs('stairsUp', mainLevel);
+      const stairsEast = new Element.ElementStairs('stairsUp', mainLevel);
       mainLevel.addStairs(stairsEast, cols - 1, midY);
 
       const path = Path.getMinWeightPath(mainMap, 0, midY, cols - 1, midY);
@@ -97,9 +97,9 @@ export class Capital {
     }
     else {
       const midX = Math.floor(cols / 2);
-      const stairsNorth = new Stairs('stairsUp', mainLevel);
+      const stairsNorth = new Element.ElementStairs('stairsUp', mainLevel);
       mainLevel.addStairs(stairsNorth, midX, 0);
-      const stairsSouth = new Stairs('stairsUp', mainLevel);
+      const stairsSouth = new Element.ElementStairs('stairsUp', mainLevel);
       mainLevel.addStairs(stairsSouth, midX, rows - 1);
 
       const path = Path.getMinWeightPath(mainMap, midX, 0, midX, rows - 1,
