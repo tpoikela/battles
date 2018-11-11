@@ -10,7 +10,7 @@ import {Screen} from '../client/gui/screen';
 
 import {FactoryWorld} from '../client/src/factory.world';
 import {FactoryItem} from '../client/src/factory.items';
-import Game from '../client/src/game';
+import {GameMain} from '../client/src/game';
 
 export const RGTest: any = {};
 
@@ -51,7 +51,7 @@ RGTest.equipItem = function(actor, item) {
 };
 
 
-RGTest.getMeAWizard = function(conf = {}) {
+RGTest.getMeAWizard = function(conf: any = {}) {
     const wizard = new RG.Actor.Rogue('wizard');
     wizard.setType(conf.type || 'human');
     const brain = new RG.Brain.SpellCaster(wizard);
@@ -389,7 +389,7 @@ RGTest.createPlayer = function(items = [], equip = []) {
 
 /* Can be used to create new game with some args. */
 RGTest.createGame = function(args) {
-    const game = new Game.Main();
+    const game = new GameMain();
     if (args.place) {
         game.addPlace(args.place);
     }
@@ -427,5 +427,3 @@ RGTest.WorldConf = {
     nAreas: 1,
     area: [RGTest.AreaConf]
 };
-
-module.exports = RGTest;
