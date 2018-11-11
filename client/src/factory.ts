@@ -1,6 +1,5 @@
 
 import RG from './rg';
-// const debug = require('debug')('bitn:FactoryBase');
 
 import {Cell} from './map.cell';
 import {Level} from './level';
@@ -13,10 +12,11 @@ import {FactoryItem} from './factory.items';
 import {FactoryLevel} from './factory.level';
 import {DungeonPopulate}from './dungeon-populate';
 import {EventPool} from '../src/eventpool';
+import {Random} from './random';
 
 const POOL = EventPool.getPool();
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 const ItemConf = function(conf) {
     const req = ['itemsPerLevel', 'maxValue', 'func'];
@@ -187,7 +187,6 @@ export const FactoryBase = function() {
                 }
             }
         }
-        RG.debug(this, 'Blizzard beasts should now appear.');
     };
 
     this.addActorsToBbox = (level, bbox, conf) => {
