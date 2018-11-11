@@ -1647,47 +1647,54 @@ class BattleZone extends ZoneBase {
 World.BattleZone = BattleZone;
 
 //-----------------------------
-// World.Top
+// WorldTop
 //-----------------------------
 /* Largest place at the top of hierarchy. Contains a number of areas,
  * mountains, dungeons and cities. */
-World.Top = function(name) {
-    WorldBase.call(this, name);
-    this.setType('world');
+class WorldTop extends WorldBase {
+    constructor(name) {
+        super(name);
+        this.setType('world');
 
-    this._areas = [];
+        this._areas = [];
 
-    this.currAreaIndex = 0; // Points to current area
-    this._conf = {};
-    this.getConf = () => this._conf;
-    this.setConf = conf => {this._conf = conf;};
+        this.currAreaIndex = 0; // Points to current area
+        this._conf = {};
+    }
+
+    getConf() {
+        return this._conf;
+    }
+
+    setConf(conf) {this._conf = conf;};
 
     /* Adds an area into the world. */
-    this.addArea = function(area) {
+    addArea(area) {
         area.setParent(this);
         this._areas.push(area);
-    };
+    }
 
-    this.getLevels = () => {
+    getLevels() {
         let levels = [];
         this._areas.map(area => {
             levels = levels.concat(area.getLevels());
         });
         return levels;
-    };
-    this.getAreas = () => (this._areas);
+    }
+
+    getAreas() {return this._areas;}
 
     /* Returns all zones of given type. */
-    this.getZones = type => {
+    getZones(type) {
         let zones = [];
         this._areas.forEach(a => {
             zones = zones.concat(a.getZones(type));
         });
         return zones;
-    };
+    }
 
     /* Returns all stairs in the world. */
-    this.getStairs = () => {
+    getStairs() {
         const res = [];
         this.getZones().forEach(zone =>
             zone.getLevels().forEach(l =>
@@ -1697,13 +1704,13 @@ World.Top = function(name) {
             )
         );
         return res;
-    };
+    }
 
-    this.getCurrentArea = () => {
+    getCurrentArea() {
         return this._areas[this.currAreaIndex];
-    };
+    }
 
-    this.toJSON = function() {
+    toJSON() {
         const json = WorldBase.prototype.toJSON.call(this);
         const area = this._areas.map(area => area.toJSON());
         let createAllZones = true;
@@ -1720,33 +1727,32 @@ World.Top = function(name) {
             obj.conf.area = this.createAreaConfig();
         }
         return Object.assign(obj, json);
-    };
+    }
 
-};
-RG.extend2(World.Top, WorldBase);
+    /* Creates config for each area. This is mainly required for testing. */
+    createAreaConfig() {
+        const areaConf = [];
+        this._areas.forEach(function(area) {
+            areaConf.push(area.createAreaConfig());
+        });
+        return areaConf;
+    }
 
-/* Creates config for each area. This is mainly required for testing. */
-World.Top.prototype.createAreaConfig = function() {
-    const areaConf = [];
-    this._areas.forEach(function(area) {
-        areaConf.push(area.createAreaConfig());
-    });
-    return areaConf;
-};
-
-World.Top.prototype.getID2Place = function() {
-    let res = {[this.getID()]: this};
-    this._areas.forEach(area => {
-        res[area.getID()] = area;
-    });
-    const zones = this.getZones();
-    zones.forEach(zone => {
-        res[zone.getID()] = zone;
-        const id2Place = zone.getID2Place();
-        res = Object.assign(res, id2Place);
-    });
-    return res;
-};
+    getID2Place() {
+        let res = {[this.getID()]: this};
+        this._areas.forEach(area => {
+            res[area.getID()] = area;
+        });
+        const zones = this.getZones();
+        zones.forEach(zone => {
+            res[zone.getID()] = zone;
+            const id2Place = zone.getID2Place();
+            res = Object.assign(res, id2Place);
+        });
+        return res;
+    }
+}
+World.WorldTop = WorldTop;
 
 //---------------------------------------------------------------------------
 // LEVEL FEATURES
