@@ -1486,41 +1486,42 @@ World.MountainSummit = MountainSummit;
 //-------------------------
 /* A city in the world. A special features of the city can be queried through
 * this object. */
-World.City = function(name) {
-    ZoneBase.call(this, name);
-    this.setType('city');
+class City extends ZoneBase {
+    constructor(name) {
+        super(name);
+        this.setType('city');
+    }
 
-    this.getQuarters = function() {
+    getQuarters() {
         return this._subZones;
-    };
+    }
 
-    this.addQuarter = function(quarter) {
+    addQuarter(quarter) {
         if (!this.addSubZone(quarter)) {
             RG.err('World.City', 'addQuarter',
                 `City ${this.getName()} quarter not defined.`);
         }
-    };
+    }
 
-    this.abutQuarters = function(q1, q2, l1, l2) {
+    abutQuarters(q1, q2, l1, l2) {
         const res = connectSubZoneEdges(this._subZones, q1, q2, l1, l2);
         return res;
-    };
+    }
 
-    this.hasQuarter = function(q) {
+    hasQuarter(q) {
         return this.hasSubZone(q);
-    };
+    }
 
-    this.toJSON = function() {
-        const json = ZoneBase.prototype.toJSON.call(this);
+    toJSON() {
+        const json = super.toJSON();
         const obj = {
             nQuarters: this._subZones.length,
             quarter: this._subZones.map(q => q.toJSON())
         };
         return Object.assign(obj, json);
-    };
-
-};
-RG.extend2(World.City, ZoneBase);
+    }
+}
+World.City = City;
 
 //-----------------------------
 // World.CityQuarter
