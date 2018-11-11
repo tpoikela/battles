@@ -1,54 +1,28 @@
 
-const RG = require('../rg');
-
-const System = {};
-System.Base = require('./system.base');
-const Geometry = require('../geometry');
-const EventPool = require('../eventpool');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import {Geometry} from '../geometry';
+import {EventPool} from '../eventpool';
+import {Animation, Frame} from '../animation';
 
 const POOL = EventPool.getPool();
 
 /* System which constructs the animations to play. */
-System.Animation = function(compTypes) {
-    System.Base.call(this, RG.SYS.ANIMATION, compTypes);
+export class SystemAnimation extends SystemBase {
+    private _enabled: boolean;
+    public currAnim: Animation;
 
-    this._enabled = true;
-    this.enableAnimations = () => {this._enabled = true;};
-    this.disableAnimations = () => {this._enabled = false;};
+    constructor(compTypes, pool?) {
+        super(RG.SYS.ANIMATION, compTypes, pool);
+        this._enabled = true;
+        this.currAnim = null;
+    }
 
-    this.currAnim = null;
-
-    this.updateEntity = function(ent) {
-        if (this._enabled) {
-            const allAnimComps = ent.getList('Animation');
-            allAnimComps.forEach(animComp => {
-                const args = animComp.getArgs();
-                if (args.dir) {
-                    this.lineAnimation(ent, args);
-                }
-                else if (args.missile) {
-                    this.missileAnimation(ent, args);
-                }
-                else if (args.cell) {
-                    this.cellAnimation(ent, args);
-                }
-                else if (!RG.isNullOrUndef([args.range, args.cX, args.cY])) {
-                    this.areaAnimation(ent, args);
-                }
-            });
-        }
-        ent.removeAll('Animation');
-
-        // After processing all animation for all entitities, emit an event
-        // to notify the Game Engine about animation
-        if (!this.hasEntities()) {
-            POOL.emitEvent(RG.EVT_ANIMATION, {animation: this.currAnim});
-            this.currAnim = null;
-        }
-    };
+    enableAnimations() {this._enabled = true;}
+    disableAnimations() {this._enabled = false;}
 
     /* Construct a missile animation from Missile component. */
-    this.missileAnimation = (ent, args) => {
+    missileAnimation(ent, args) {
         const mComp = args.missile;
         const xEnd = args.to[0];
         const yEnd = args.to[1];
@@ -79,10 +53,10 @@ System.Animation = function(compTypes) {
             }
         }
         this._setCurrAnim(animation);
-    };
+    }
 
     /* Constructs line animation (a bolt etc continuous thing). */
-    this.lineAnimation = (ent, args) => {
+    lineAnimation(ent, args) {
         let x = args.from[0];
         let y = args.from[1];
         const dX = args.dir[0];
@@ -105,15 +79,16 @@ System.Animation = function(compTypes) {
                     className: args.className || 'cell-ray'
                 };
 
-                const frameCopy = Object.assign({}, frame);
+                let frameCopy: Frame = {};
+                frameCopy = Object.assign(frameCopy, frame);
                 animation.addFrame(frameCopy);
                 --rangeLeft;
             }
         }
         this._setCurrAnim(animation);
-    };
+    }
 
-    this.cellAnimation = (ent, args) => {
+    cellAnimation(ent, args) {
         const animation = this._createAnimation(args);
         const frame = {};
         animation.slowDown = 10;
@@ -128,7 +103,7 @@ System.Animation = function(compTypes) {
         this._setCurrAnim(animation);
     };
 
-    this.areaAnimation = (ent, args) => {
+    areaAnimation(ent, args) {
         const animation = this._createAnimation(args);
         const maxRange = args.range;
         const [cX, cY] = [args.cX, args.cY];
@@ -145,19 +120,45 @@ System.Animation = function(compTypes) {
             animation.addFrame(frame);
         }
         this._setCurrAnim(animation);
-    };
+    }
 
-    this._setCurrAnim = function(animation) {
+    private _setCurrAnim (animation) {
         if (!this.currAnim) {this.currAnim = animation;}
         else {this.currAnim.combine(animation);}
-    };
+    }
 
-    this._createAnimation = args => {
-        const animation = new RG.Animation.Animation();
+    _createAnimation(args): Animation {
+        const animation = new Animation();
         animation.setLevel(args.level);
         return animation;
-    };
-};
-RG.extend2(System.Animation, System.Base);
+    }
 
-module.exports = System.Animation;
+    updateEntity(ent) {
+        if (this._enabled) {
+            const allAnimComps = ent.getList('Animation');
+            allAnimComps.forEach(animComp => {
+                const args = animComp.getArgs();
+                if (args.dir) {
+                    this.lineAnimation(ent, args);
+                }
+                else if (args.missile) {
+                    this.missileAnimation(ent, args);
+                }
+                else if (args.cell) {
+                    this.cellAnimation(ent, args);
+                }
+                else if (!RG.isNullOrUndef([args.range, args.cX, args.cY])) {
+                    this.areaAnimation(ent, args);
+                }
+            });
+        }
+        ent.removeAll('Animation');
+
+        // After processing all animation for all entitities, emit an event
+        // to notify the Game Engine about animation
+        if (!this.hasEntities()) {
+            POOL.emitEvent(RG.EVT_ANIMATION, {animation: this.currAnim});
+            this.currAnim = null;
+        }
+    }
+}
