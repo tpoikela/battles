@@ -6,6 +6,7 @@
 import RG from '../src/rg';
 import {Names} from './name-gen';
 import {WorldConf} from '../src/world.creator';
+import * as IF from '../src/interfaces';
 
 export const LevelGen: any = {};
 
@@ -42,7 +43,7 @@ const getDungeonSizeXY = function(name) {
 };
 
 /* Returns generation constraints based on the level name. */
-const getConstraint = function(name) {
+const getConstraint = function(name): IF.ConstraintMap {
     switch (name) {
         case 'Cave': return {
             actor: {
@@ -79,14 +80,14 @@ const getMountainSizeXY = function(name) {
 // DUNGEON GENERATION
 //---------------------------------------------------------------------------
 
-LevelGen.getDungeonConf = dungeonName => {
+LevelGen.getDungeonConf = (dungeonName): IF.DungeonConf =>  {
     let dungeonType = getDungeonType(dungeonName);
     const nLevels = getNumLevels(dungeonType);
     const constraint = getConstraint(dungeonType);
     const [dungeonX, dungeonY] = getDungeonSizeXY(dungeonName);
 
     dungeonType = dungeonType.toLowerCase();
-    const obj = {
+    const obj: IF.DungeonConf = {
         name: dungeonName,
         dungeonX, dungeonY, dungeonType,
         nBranches: 1, // TODO multi-branch dungeons
@@ -177,8 +178,8 @@ const addShopConstraints = (qConf, conf) => {
 const getQuarterConf = (nQuarters, conf) => {
     const quarters = [];
     for (let i = 0; i < nQuarters; i++) {
-        const qName = RG.Names.getGenericPlaceName('quarter');
-        const qConf = {
+        const qName = Names.getGenericPlaceName('quarter');
+        const qConf: IF.QuarterConf = {
             name: qName,
             nLevels: 1,
             constraint: {}
@@ -195,7 +196,7 @@ const getQuarterConf = (nQuarters, conf) => {
 };
 
 LevelGen.getCityConf = (cityName, conf) => {
-    let cityType = RG.Names.getGenericPlaceName('city');
+    let cityType = Names.getGenericPlaceName('city');
     if (conf.type === 'fort') {
         cityType = 'Fort';
     }
@@ -206,12 +207,12 @@ LevelGen.getCityConf = (cityName, conf) => {
         cityType = 'Stronghold';
     }
     else if (conf.type === 'village') {
-        cityType = RG.Names.getVillageType();
+        cityType = Names.getVillageType();
     }
     const nQuarters = getNumQuarters(cityType);
     const quarters = getQuarterConf(nQuarters, conf);
     const connect = WorldConf.createQuarterConnections(quarters);
-    const obj = {
+    const obj: IF.CityConf = {
         name: cityName,
         nQuarters,
         quarter: quarters
