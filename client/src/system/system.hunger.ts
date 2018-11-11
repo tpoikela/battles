@@ -5,7 +5,7 @@ import {SystemBase} from './system.base';
 /* Processes entities with hunger component.*/
 export class SystemHunger extends SystemBase {
     constructor(compTypes, pool?) {
-        super(RG.SYS.MOVEMENT, compTypes, pool);
+        super(RG.SYS.HUNGER, compTypes, pool);
     }
 
     updateEntity(ent): void {

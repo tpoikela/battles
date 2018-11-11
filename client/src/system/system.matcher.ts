@@ -1,7 +1,7 @@
 /* Contains matcher code for checking that entity contains the
  * required components. */
 
-const RG = require('../rg');
+import RG from '../rg';
 
 const evalExpr = (ent, obj) => {
     if (obj.not) {
@@ -57,12 +57,10 @@ const or = (ent, list) => {
     return false;
 };
 
-const Matcher = function(matchExpr) {
+export const Matcher = function(matchExpr) {
     this.matchExpr = matchExpr;
 };
 
 Matcher.prototype.match = function(entity) {
     return evalExpr(entity, this.matchExpr);
 };
-
-module.exports = Matcher;

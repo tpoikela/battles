@@ -1,23 +1,25 @@
 
-const RG = require('../rg');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import {Random} from '../random';
+import * as Component from '../component';
 
-const System = {};
-System.Base = require('./system.base');
-
-const {addSkillsExp} = System.Base;
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 // Missile has
 // srcX/Y, targetX/X, path, currX/Y, shooter + all damage components, item ref
 // SourceComponent, TargetComponent, LocationComponent, OwnerComponent
 
 /* Processes all missiles launched by actors/traps/etc.*/
-System.Missile = function(compTypes) {
-    System.Base.call(this, RG.SYS.MISSILE, compTypes);
+export class SystemMissile extends SystemBase {
+    public criticalShot: number;
 
-    this.criticalShot = RG.MISSILE_CRITICAL_SHOT;
+    constructor(compTypes, pool?) {
+        super(RG.SYS.MISSILE, compTypes, pool);
+        this.criticalShot = RG.MISSILE_CRITICAL_SHOT;
+    }
 
-    this.updateEntity = function(ent) {
+    updateEntity(ent) {
         const mComp = ent.get('Missile');
         const attacker = mComp.getSource();
         const level = mComp.getLevel();
@@ -82,10 +84,10 @@ System.Missile = function(compTypes) {
 
                     if (actor.has('Experience')) {
                         if (ent.getType() === 'missile') {
-                            addSkillsExp(attacker, 'Throwing', 1);
+                            SystemBase.addSkillsExp(attacker, 'Throwing', 1);
                         }
                         else if (ent.getType() === 'ammo') {
-                            addSkillsExp(attacker, 'Archery', 1);
+                            SystemBase.addSkillsExp(attacker, 'Archery', 1);
                         }
                     }
                     RG.gameWarn({cell: currCell, msg: shownMsg});
@@ -125,14 +127,14 @@ System.Missile = function(compTypes) {
             }
         }
 
-    };
+    }
 
     /* Adds damage to hit actor, and returns the verb for the message
      * corresponding to the hit (ie critical or not). */
-    this._addDamageToActor = (ent, mComp) => {
+    _addDamageToActor(ent, mComp) {
         let hitVerb = 'hits';
         const dmg = mComp.getDamage();
-        const damageComp = new RG.Component.Damage(dmg,
+        const damageComp = new Component.Damage(dmg,
             RG.DMG.MISSILE);
         const dmgSrc = mComp.getSource();
         damageComp.setSource(dmgSrc);
@@ -148,9 +150,9 @@ System.Missile = function(compTypes) {
         damageComp.setDamage(nDamage);
         ent.add(damageComp);
         return hitVerb;
-    };
+    }
 
-    this.finishMissileFlight = (ent, mComp, currCell) => {
+    finishMissileFlight(ent, mComp, currCell) {
         mComp.stopMissile(); // Target reached, stop missile
         ent.remove(mComp);
 
@@ -191,12 +193,12 @@ System.Missile = function(compTypes) {
             to: [currCell.getX(), currCell.getY()],
             level
         };
-        const animComp = new RG.Component.Animation(args);
+        const animComp = new Component.Animation(args);
         ent.add(animComp);
-    };
+    }
 
     /* Returns true if the ammo/missile is destroyed. */
-    this._isItemDestroyed = ent => {
+    _isItemDestroyed(ent) {
         const name = ent.getName();
         const prob = RNG.getUniform();
         if (ent.has('Ammo')) {
@@ -219,16 +221,16 @@ System.Missile = function(compTypes) {
         else {
             return prob > 0.95;
         }
-    };
+    }
 
-    this._formatFiredMsg = (ent, att) => {
+    _formatFiredMsg(ent, att) {
         let verb = 'thrown';
         if (ent.has('Ammo')) {verb = 'shot';}
         return `${ent.getName()} ${verb} by ${att.getName()}`;
-    };
+    }
 
     /* Returns true if the target was hit.*/
-    this.targetHit = (ent, target, mComp) => {
+    targetHit(ent, target, mComp) {
         if (target.has('Ethereal')) {
             return false;
         }
@@ -261,12 +263,8 @@ System.Missile = function(compTypes) {
             return true;
         }
         else {
-            addSkillsExp(target, 'Dodge', 1);
+            SystemBase.addSkillsExp(target, 'Dodge', 1);
         }
         return false;
-    };
-
-};
-RG.extend2(System.Missile, System.Base);
-
-module.exports = System.Missile;
+    }
+}
