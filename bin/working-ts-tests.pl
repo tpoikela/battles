@@ -24,6 +24,7 @@ use utf8;
 
 my @files = qw(
 tests/client/src/abilities.spec.ts
+tests/client/src/animation.spec.ts
 tests/client/src/actor.spec.ts
 tests/client/src/actor.spirit.spec.ts
 tests/client/src/brain.communication.spec.ts
@@ -38,6 +39,7 @@ tests/client/src/rg.eventpool.spec.ts
 tests/client/src/rg.spec.ts
 tests/client/src/template.spec.ts
 tests/client/src/template.level.ts
+tests/client/src/territory.spec.ts
 tests/lib/bsp.spec.ts
 );
 
