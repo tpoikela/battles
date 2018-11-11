@@ -3,22 +3,38 @@
  * dungeons, dungeon branches etc.
  */
 
-// import debug = require('debug');
-// const dbg = debug('bitn:world');
+import debug = require('debug');
+const dbg = debug('bitn:world');
 
 import RG from './rg';
 import GameObject from './game-object';
 import * as Element from './element';
 import {EventPool} from './eventpool';
 import {Random} from './random';
+import {Level} from './level';
+import {SentientActor} from './actor';
 
-// const POOL: EventPool = EventPool.getPool();
+type Coord = [number, number];
 
-// type Stairs = Element.ElementStairs;
+const POOL: EventPool = EventPool.getPool();
+
+type Stairs = Element.ElementStairs;
 const ElementStairs = Element.ElementStairs;
 
-// export const World: any = {};
-export const World = {};
+export const World: any = {};
+
+interface Entrance {
+    levelNumber: number;
+    x: number;
+    y: number;
+}
+
+export interface AreaTileJSON {
+    level: number;
+    [key: string]: any;
+}
+
+type AreaTileObj = AreaTile | AreaTileJSON;
 
 const RNG = Random.getRNG();
 
@@ -416,7 +432,12 @@ World.edgeHasConnections = edgeHasConnections;
 
 /* Base class for world places. Each place has name and type + full hierarchical
 * name to trace where the place is in hierarchy. */
-class WorldBase extends GameObject {
+export class WorldBase extends GameObject {
+
+    public name: string;
+    public hierName: string;
+    public type: string;
+    public parent: WorldBase | null;
 
     constructor(name) {
         super();
@@ -454,7 +475,7 @@ class WorldBase extends GameObject {
     }
 
     toJSON() {
-        const obj = {
+        const obj: any = { // TODO fix typings
             hierName: this.hierName,
             id: this.getID(),
             name: this.name,
@@ -473,8 +494,10 @@ World.Base = WorldBase;
 // ZoneBase
 //---------------------
 
-class ZoneBase extends WorldBase {
-    // private _subZones: SubZoneBase[];
+export class ZoneBase extends WorldBase {
+    protected _subZones: SubZoneBase[];
+    public tileX: number;
+    public tileY: number;
 
     constructor(name) {
         super(name);
@@ -560,7 +583,7 @@ class ZoneBase extends WorldBase {
     }
 
     getID2Place() {
-        const res = {[this.getID()]: this};
+        const res: {[key: number]: WorldBase} = {[this.getID()]: this};
         this._subZones.forEach(sz => {
             res[sz.getID()] = sz;
         });
@@ -577,7 +600,12 @@ World.ZoneBase = ZoneBase;
  * Mostly has logic to
  * manipulate level features like shops, armorers etc.
  */
-class SubZoneBase extends WorldBase {
+export class SubZoneBase extends WorldBase {
+
+    protected _levels: Level[];
+    protected _entrance: Entrance | null;
+    protected _levelFeatures: Map<string, any[]>;
+    protected _levelCount: number;
 
     constructor(name) {
         super(name);
@@ -586,7 +614,12 @@ class SubZoneBase extends WorldBase {
         this._levelCount = 0;
     }
 
-    getLevels(nLevel) {
+    /* Returns entrance/exit for the branch.*/
+    getEntrance() {
+        return getEntrance(this._levels, this._entrance);
+    }
+
+    getLevels(nLevel?: number): Level | Level[] | null {
         if (RG.isNullOrUndef([nLevel])) {
             return this._levels;
         }
@@ -675,7 +708,7 @@ World.SubZoneBase = SubZoneBase;
  * progression of connected levels (usually with increasing difficulty).
  * A branch can have
  * entry points to other branches (or out of the dungeon). */
-class Branch extends SubZoneBase {
+export class Branch extends SubZoneBase {
 
     constructor(name) {
         super(name);
@@ -741,8 +774,8 @@ class Branch extends SubZoneBase {
     }
 
     toJSON() {
-        const json = SubZoneBase.prototype.toJSON.call(this);
-        const obj = {};
+        const json = super.toJSON();
+        const obj: any = {};
         if (this._entrance) {
             obj.entrance = this._entrance;
         }
@@ -756,7 +789,9 @@ World.Branch = Branch;
 // World.Dungeon
 //------------------
 /* Dungeons is a collection of branches.*/
-class Dungeon extends ZoneBase {
+export class Dungeon extends ZoneBase {
+
+    private _entranceNames: string[];
 
     constructor(name) {
         super(name);
@@ -834,7 +869,17 @@ World.Dungeon = Dungeon;
 //------------------
 /* Area-tile is a level which has entry/exit points on a number of edges.
  * It is also used as container for zones such as cities and dungeons. */
-class AreaTile {
+export class AreaTile {
+
+    private _tileX: number;
+    private _tileY: number;
+    private _area: Area;
+
+    public cols: number;
+    public rows: number;
+
+    private _level: Level;
+    public zones: {[key: string]: ZoneBase[]};
 
     constructor(x, y, area) {
         this._tileX = x;
@@ -846,14 +891,6 @@ class AreaTile {
 
         this._level = null;
 
-        this.getLevel = () => this._level;
-        this.getTileX = () => this._tileX;
-        this.getTileY = () => this._tileY;
-
-        this.isNorthEdge = () => this._tileY === 0;
-        this.isSouthEdge = () => this._tileY === (this._area.getSizeY() - 1);
-        this.isWestEdge = () => this._tileX === 0;
-        this.isEastEdge = () => this._tileX === (this._area.getSizeX() - 1);
 
         // All zones inside this tile
         this.zones = {
@@ -863,6 +900,29 @@ class AreaTile {
             BattleZone: []
         };
 
+    }
+
+    getLevel() {
+        return this._level;
+    }
+    getTileX() {
+        return this._tileX;
+    }
+    getTileY() {
+        return this._tileY;
+    }
+
+    isNorthEdge() {
+        return this._tileY === 0;
+    }
+    isSouthEdge() {
+        return this._tileY === (this._area.getSizeY() - 1);
+    }
+    isWestEdge() {
+        return this._tileX === 0;
+    }
+    isEastEdge() {
+        return this._tileX === (this._area.getSizeX() - 1);
     }
 
     /* Returns true for edge tiles.*/
@@ -946,7 +1006,7 @@ class AreaTile {
         this.zones[type].push(zone);
     }
 
-    getZones(type) {
+    getZones(type?: string): ZoneBase[] {
         if (type) {
             return this.zones[type];
         }
@@ -1016,9 +1076,25 @@ World.AreaTile = AreaTile;
  * Moving between tiles of areas happens by travelling to the edges of a tile.
  * Each tile is a level with special edge tiles.
  * */
-class Area {
+export class Area extends WorldBase {
+
+    private _sizeX: number;
+    private _sizeY: number;
+    private _cols: number;
+    private _rows: number;
+
+    private _tiles: AreaTileObj[][];
+
+    private _conf: {[key: string]: any};
+
+    // Control which tile has its zones created
+    private zonesCreated: {[key: string]: boolean};
+
+    // Keeps track which tiles contains real AreaTile objects
+    public tilesLoaded: boolean[][];
 
     constructor(name, sizeX, sizeY, cols, rows, levels) {
+        super(name);
         this.setType('area');
         this._sizeX = parseInt(sizeX, 10);
         this._sizeY = parseInt(sizeY, 10);
@@ -1026,8 +1102,6 @@ class Area {
         this._cols = cols || 30;
         this._rows = rows || 30;
 
-        this.getSizeX = () => this._sizeX;
-        this.getSizeY = () => this._sizeY;
         this._tiles = [];
 
         this._conf = {};
@@ -1039,23 +1113,35 @@ class Area {
         this.tilesLoaded = [];
 
         // TODO move to class methods
-        this.isLoaded = (x, y) => this.tilesLoaded[x][y];
-        this.setLoaded = (x, y) => {this.tilesLoaded[x][y] = true;};
-        this.setUnloaded = (x, y) => {this.tilesLoaded[x][y] = false;};
-
-        this.markAllZonesCreated = () => {
-            Object.keys(this.zonesCreated).forEach(key => {
-                this.zonesCreated[key] = true;
-            });
-        };
-
-        this.markTileZonesCreated = (x, y) => {
-            this.zonesCreated[x + ',' + y] = true;
-        };
-        this.tileHasZonesCreated = (x, y) => this.zonesCreated[x + ',' + y];
 
         this._init(levels);
 
+    }
+
+    getSizeX() {
+        return this._sizeX;
+    }
+    getSizeY() {
+        return this._sizeY;
+    }
+
+    isLoaded(x, y) {
+        return this.tilesLoaded[x][y];
+    }
+    setLoaded(x, y) {this.tilesLoaded[x][y] = true;};
+    setUnloaded(x, y) {this.tilesLoaded[x][y] = false;};
+    markAllZonesCreated() {
+        Object.keys(this.zonesCreated).forEach(key => {
+            this.zonesCreated[key] = true;
+        });
+    }
+
+    markTileZonesCreated(x, y) {
+        this.zonesCreated[x + ',' + y] = true;
+    }
+
+    tileHasZonesCreated(x, y) {
+        return this.zonesCreated[x + ',' + y];
     }
 
     getTiles() {
@@ -1152,7 +1238,7 @@ class Area {
                         return true;
                     }
                 }
-                else if (this._tiles[x][y].level === id) {
+                else if ((this._tiles[x][y] as AreaTileJSON).level === id) {
                     return true;
                 }
             }
@@ -1267,7 +1353,7 @@ World.Area = Area;
 /* Mountains are places consisting of tiles and dungeons. Mountain has few
  * special tiles representing the summit.
  */
-class Mountain extends ZoneBase {
+export class Mountain extends ZoneBase {
 
     constructor(name) {
         super(name);
@@ -1376,7 +1462,7 @@ World.Mountain = Mountain;
 /* One side (face) of the mountain. Each side consists of stages, of X by 1
  * Areas. This is also re-used as a mountain summit because internally it's the
  * same. */
-class MountainFace extends SubZoneBase {
+export class MountainFace extends SubZoneBase {
 
     constructor(name) {
         super(name);
@@ -1411,7 +1497,7 @@ class MountainFace extends SubZoneBase {
 
     toJSON() {
         const json = SubZoneBase.prototype.toJSON.call(this);
-        const obj = {};
+        const obj: any = {};
         if (this._entrance) {
             obj.entrance = this._entrance;
         }
@@ -1457,7 +1543,7 @@ World.MountainFace = MountainFace;
 // World.MountainSummit
 //-------------------------
 /* A summit of the mountain consisting of at least one Map.Level. */
-class MountainSummit extends SubZoneBase {
+export class MountainSummit extends SubZoneBase {
     constructor(name) {
         super(name);
         this.setType('summit');
@@ -1486,7 +1572,7 @@ World.MountainSummit = MountainSummit;
 //-------------------------
 /* A city in the world. A special features of the city can be queried through
 * this object. */
-class City extends ZoneBase {
+export class City extends ZoneBase {
     constructor(name) {
         super(name);
         this.setType('city');
@@ -1528,7 +1614,10 @@ World.City = City;
 //-----------------------------
 /* City quarter is a subset of the City. It contains the actual level and
  * special features for that level. */
-class CityQuarter extends SubZoneBase {
+export class CityQuarter extends SubZoneBase {
+
+    private _shops: WorldShop[];
+
     constructor(name) {
         super(name);
         this.setType('quarter');
@@ -1597,7 +1686,7 @@ class CityQuarter extends SubZoneBase {
 
     toJSON() {
         const json = SubZoneBase.prototype.toJSON.call(this);
-        const obj = {
+        const obj: any = {
             shops: this._shops.map(shop => shop.toJSON())
         };
         if (this._entrance) {
@@ -1612,14 +1701,13 @@ World.CityQuarter = CityQuarter;
 // World.BattleZone
 //-------------------------
 /* A battle zone encapsulates battle construct, armies and the battle level. */
-class BattleZone extends ZoneBase {
+export class BattleZone extends ZoneBase {
+    private _levels: Level[];
 
     constructor(name) {
         super(name);
         this.setType('battlezone');
-
         this._levels = [];
-
     }
 
     addLevel(level) {
@@ -1651,7 +1739,12 @@ World.BattleZone = BattleZone;
 //-----------------------------
 /* Largest place at the top of hierarchy. Contains a number of areas,
  * mountains, dungeons and cities. */
-class WorldTop extends WorldBase {
+export class WorldTop extends WorldBase {
+
+    private _areas: Area[];
+    public currAreaIndex: number;
+    private _conf: {[key: string]: any};
+
     constructor(name) {
         super(name);
         this.setType('world');
@@ -1685,7 +1778,7 @@ class WorldTop extends WorldBase {
     getAreas() {return this._areas;}
 
     /* Returns all zones of given type. */
-    getZones(type) {
+    getZones(type?: string): ZoneBase[] {
         let zones = [];
         this._areas.forEach(a => {
             zones = zones.concat(a.getZones(type));
@@ -1739,7 +1832,7 @@ class WorldTop extends WorldBase {
     }
 
     getID2Place() {
-        let res = {[this.getID()]: this};
+        let res: {[key: string]: WorldBase} = {[this.getID()]: this};
         this._areas.forEach(area => {
             res[area.getID()] = area;
         });
@@ -1758,7 +1851,14 @@ World.WorldTop = WorldTop;
 // LEVEL FEATURES
 //---------------------------------------------------------------------------
 
-class WorldShop {
+export class WorldShop {
+
+    private _shopkeeper: SentientActor;
+    private _level: Level;
+    private _coord: Coord[];
+    private _isAbandoned: boolean;
+    public hasNotify: boolean;
+
     constructor() {
         this._shopkeeper = null;
         this._level = null;
@@ -1880,7 +1980,7 @@ class WorldShop {
     }
 
     toJSON() {
-        const obj = {
+        const obj: any = {
             isAbandoned: this._isAbandoned,
             level: this._level.getID(),
             coord: this._coord
