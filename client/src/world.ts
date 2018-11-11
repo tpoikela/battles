@@ -826,7 +826,7 @@ class Dungeon extends ZoneBase {
         return Object.assign(obj, json);
     }
 
-};
+}
 World.Dungeon = Dungeon;
 
 //------------------
@@ -1010,252 +1010,257 @@ class AreaTile {
 World.AreaTile = AreaTile;
 
 //------------------
-// World.Area
+// Area
 //------------------
 /* Area is N x M area of tiles, with no linear progression like in dungeons.
  * Moving between tiles of areas happens by travelling to the edges of a tile.
  * Each tile is a level with special edge tiles.
  * */
-World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
-    WorldBase.call(this, name);
-    this.setType('area');
-    this._sizeX = parseInt(sizeX, 10);
-    this._sizeY = parseInt(sizeY, 10);
+class Area {
 
-    this._cols = cols || 30;
-    this._rows = rows || 30;
+    constructor(name, sizeX, sizeY, cols, rows, levels) {
+        super(name);
+        this.setType('area');
+        this._sizeX = parseInt(sizeX, 10);
+        this._sizeY = parseInt(sizeY, 10);
 
-    this.getSizeX = () => this._sizeX;
-    this.getSizeY = () => this._sizeY;
-    this._tiles = [];
+        this._cols = cols || 30;
+        this._rows = rows || 30;
 
-    this._conf = {};
+        this.getSizeX = () => this._sizeX;
+        this.getSizeY = () => this._sizeY;
+        this._tiles = [];
 
-    // Control which tile has its zones created
-    this.zonesCreated = {};
+        this._conf = {};
 
-    // Keeps track which tiles contains real AreaTile objects
-    this.tilesLoaded = [];
+        // Control which tile has its zones created
+        this.zonesCreated = {};
 
-    this.isLoaded = (x, y) => this.tilesLoaded[x][y];
-    this.setLoaded = (x, y) => {this.tilesLoaded[x][y] = true;};
-    this.setUnloaded = (x, y) => {this.tilesLoaded[x][y] = false;};
+        // Keeps track which tiles contains real AreaTile objects
+        this.tilesLoaded = [];
 
-    this.markAllZonesCreated = () => {
-        Object.keys(this.zonesCreated).forEach(key => {
-            this.zonesCreated[key] = true;
-        });
-    };
+        // TODO move to class methods
+        this.isLoaded = (x, y) => this.tilesLoaded[x][y];
+        this.setLoaded = (x, y) => {this.tilesLoaded[x][y] = true;};
+        this.setUnloaded = (x, y) => {this.tilesLoaded[x][y] = false;};
 
-    this.markTileZonesCreated = (x, y) => {
-        this.zonesCreated[x + ',' + y] = true;
-    };
-    this.tileHasZonesCreated = (x, y) => this.zonesCreated[x + ',' + y];
+        this.markAllZonesCreated = () => {
+            Object.keys(this.zonesCreated).forEach(key => {
+                this.zonesCreated[key] = true;
+            });
+        };
 
-    this._init(levels);
+        this.markTileZonesCreated = (x, y) => {
+            this.zonesCreated[x + ',' + y] = true;
+        };
+        this.tileHasZonesCreated = (x, y) => this.zonesCreated[x + ',' + y];
 
-};
-RG.extend2(World.Area, WorldBase);
+        this._init(levels);
 
-World.Area.prototype.getTiles = function() {
-    return this._tiles;
-};
+    }
 
-World.Area.prototype.setConf = function(conf) {
-    this._conf = conf;
-};
+    getTiles() {
+        return this._tiles;
+    }
 
-World.Area.prototype.getConf = function() {
-    return this._conf;
-};
+    setConf(conf) {
+        this._conf = conf;
+    }
 
-World.Area.prototype._init = function(levels) {
-    // Create the tiles
-    for (let x = 0; x < this._sizeX; x++) {
-        const tileColumn = [];
-        this.tilesLoaded.push([]);
-        for (let y = 0; y < this._sizeY; y++) {
-            this.zonesCreated[x + ',' + y] = false;
-            const newTile = new AreaTile(x, y, this);
+    getConf() {
+        return this._conf;
+    }
 
-            // Scale the forest gen based on tile size
-            const forestConf = RG.getForestConf(this._cols, this._rows);
-            let level = null;
-            if (levels) {
-                level = levels[x][y];
+    _init(levels) {
+        // Create the tiles
+        for (let x = 0; x < this._sizeX; x++) {
+            const tileColumn = [];
+            this.tilesLoaded.push([]);
+            for (let y = 0; y < this._sizeY; y++) {
+                this.zonesCreated[x + ',' + y] = false;
+                const newTile = new AreaTile(x, y, this);
+
+                // Scale the forest gen based on tile size
+                const forestConf = RG.getForestConf(this._cols, this._rows);
+                let level = null;
+                if (levels) {
+                    level = levels[x][y];
+                }
+                else {
+                    level = RG.FACT.createLevel('forest',
+                        this._cols, this._rows, forestConf);
+                }
+
+                if (level !== RG.LEVEL_NOT_LOADED) {
+                    this.tilesLoaded[x][y] = true;
+                    level.setParent(this);
+                    newTile.setLevel(level);
+                    tileColumn.push(newTile);
+                }
+                else {
+                    this.tilesLoaded[x][y] = false;
+                    tileColumn.push(RG.TILE_NOT_LOADED);
+                }
             }
-            else {
-                level = RG.FACT.createLevel('forest',
-                    this._cols, this._rows, forestConf);
-            }
-
-            if (level !== RG.LEVEL_NOT_LOADED) {
-                this.tilesLoaded[x][y] = true;
-                level.setParent(this);
-                newTile.setLevel(level);
-                tileColumn.push(newTile);
-            }
-            else {
-                this.tilesLoaded[x][y] = false;
-                tileColumn.push(RG.TILE_NOT_LOADED);
-            }
+            this._tiles.push(tileColumn);
         }
-        this._tiles.push(tileColumn);
-    }
 
-    // Connect the tiles, unless levels already given (and connected)
-    // If levels are not connect, need to call connectTiles() manually
-    if (!levels) {
-        this.connectTiles();
-    }
-};
-
-/* Connects all tiles together from the sides. */
-World.Area.prototype.connectTiles = function() {
-    connectTiles(this._tiles, this._sizeX, this._sizeY);
-};
-
-World.Area.prototype.getLevels = function() {
-    let res = [];
-    for (let x = 0; x < this._tiles.length; x++) {
-        for (let y = 0; y < this._tiles[x].length; y++) {
-            // If tile is in-memory/not serialized, query levels
-            if (this.tilesLoaded[x][y]) {
-                res = res.concat(this._tiles[x][y].getLevels());
-            }
+        // Connect the tiles, unless levels already given (and connected)
+        // If levels are not connect, need to call connectTiles() manually
+        if (!levels) {
+            this.connectTiles();
         }
     }
-    return res;
-};
 
-/* Returns tile X,Y which has the level with given ID. */
-World.Area.prototype.findTileXYById = function(id) {
-    for (let x = 0; x < this._tiles.length; x++) {
-        for (let y = 0; y < this._tiles[x].length; y++) {
-            if (this.tilesLoaded[x][y]) {
-                if (this._tiles[x][y].getLevel().getID() === id) {
-                    return [x, y];
+    /* Connects all tiles together from the sides. */
+    connectTiles() {
+        connectTiles(this._tiles, this._sizeX, this._sizeY);
+    }
+
+    getLevels() {
+        let res = [];
+        for (let x = 0; x < this._tiles.length; x++) {
+            for (let y = 0; y < this._tiles[x].length; y++) {
+                // If tile is in-memory/not serialized, query levels
+                if (this.tilesLoaded[x][y]) {
+                    res = res.concat(this._tiles[x][y].getLevels());
                 }
             }
         }
+        return res;
     }
-    return null;
-};
 
-/* Returns true if the area has given level as a tile level. */
-World.Area.prototype.hasTileWithId = function(id) {
-    for (let x = 0; x < this._tiles.length; x++) {
-        for (let y = 0; y < this._tiles[x].length; y++) {
-            if (this.tilesLoaded[x][y]) {
-                if (this._tiles[x][y].getLevel().getID() === id) {
+    /* Returns tile X,Y which has the level with given ID. */
+    findTileXYById(id) {
+        for (let x = 0; x < this._tiles.length; x++) {
+            for (let y = 0; y < this._tiles[x].length; y++) {
+                if (this.tilesLoaded[x][y]) {
+                    if (this._tiles[x][y].getLevel().getID() === id) {
+                        return [x, y];
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /* Returns true if the area has given level as a tile level. */
+    hasTileWithId(id) {
+        for (let x = 0; x < this._tiles.length; x++) {
+            for (let y = 0; y < this._tiles[x].length; y++) {
+                if (this.tilesLoaded[x][y]) {
+                    if (this._tiles[x][y].getLevel().getID() === id) {
+                        return true;
+                    }
+                }
+                else if (this._tiles[x][y].level === id) {
                     return true;
                 }
             }
-            else if (this._tiles[x][y].level === id) {
-                return true;
+        }
+        return false;
+    }
+
+    /* Returns true if the area has tiles with given levels or level IDs. */
+    hasTiles(arr) {
+        let result = arr.length > 0;
+        arr.forEach(level => {
+            if (typeof level.getID === 'function') {
+                result = result && this.hasTileWithId(level.getID());
             }
-        }
-    }
-    return false;
-};
-
-/* Returns true if the area has tiles with given levels or level IDs. */
-World.Area.prototype.hasTiles = function(arr) {
-    let result = arr.length > 0;
-    arr.forEach(level => {
-        if (typeof level.getID === 'function') {
-            result = result && this.hasTileWithId(level.getID());
-        }
-        else if (Number.isInteger(level)) {
-            result = result && this.hasTileWithId(level);
-        }
-        else {
-            const str = JSON.stringify(level);
-            RG.err('World.Area', 'hasTiles',
-                `Invalid level given ${str}. Must be Map.Level/ID`);
-        }
-    });
-    return result;
-};
-
-World.Area.prototype.getTileXY = function(x, y) {
-    if (x >= 0 && x < this.getSizeX() && y >= 0 && y < this.getSizeY()) {
-        return this._tiles[x][y];
-    }
-    else {
-        const sizeX = this.getSizeX();
-        const sizeY = this.getSizeY();
-        RG.err('World.Area', 'getTileXY',
-            `Tile x,y (${x}, ${y}) is out of bounds (${sizeX}, ${sizeY}).`);
-    }
-    return null;
-};
-
-World.Area.prototype.addZone = function(type, zone) {
-    if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
-        RG.err('World.Area', 'addZone',
-            'No tileX/tileY given!');
-    }
-    this._tiles[zone.tileX][zone.tileY].addZone(type, zone);
-    zone.setParent(this);
-};
-
-World.Area.prototype.getZones = function(type) {
-    let res = [];
-    for (let x = 0; x < this._tiles.length; x++) {
-        for (let y = 0; y < this._tiles[x].length; y++) {
-            if (this.tilesLoaded[x][y]) {
-                res = res.concat(this._tiles[x][y].getZones(type));
-            }
-        }
-    }
-    return res;
-};
-
-World.Area.prototype.createAreaConfig = function() {
-    return {
-        name: this.getName(),
-        maxX: this._sizeX,
-        maxY: this._sizeY
-    };
-};
-
-/* Serializes the Area into JSON. */
-World.Area.prototype.toJSON = function() {
-    const json = WorldBase.prototype.toJSON.call(this);
-    const tilesJSON = [];
-    this._tiles.forEach((tileCol, x) => {
-        const tileColJSON = tileCol.map((tile, y) => {
-            if (this.tilesLoaded[x][y]) {
-                return tile.toJSON();
+            else if (Number.isInteger(level)) {
+                result = result && this.hasTileWithId(level);
             }
             else {
-                return tile;
+                const str = JSON.stringify(level);
+                RG.err('Area', 'hasTiles',
+                    `Invalid level given ${str}. Must be Map.Level/ID`);
             }
         });
-        tilesJSON.push(tileColJSON);
-    });
+        return result;
+    }
 
-    const obj = {
-        conf: this.getConf(),
-        maxX: this._sizeX, maxY: this._sizeY,
-        cols: this._cols, rows: this._rows,
-        tiles: tilesJSON,
-        tilesLoaded: this.tilesLoaded,
-        zonesCreated: this.zonesCreated
-    };
-    return Object.assign(obj, json);
-};
+    getTileXY(x, y) {
+        if (x >= 0 && x < this.getSizeX() && y >= 0 && y < this.getSizeY()) {
+            return this._tiles[x][y];
+        }
+        else {
+            const sizeX = this.getSizeX();
+            const sizeY = this.getSizeY();
+            RG.err('Area', 'getTileXY',
+                `Tile x,y (${x}, ${y}) is out of bounds (${sizeX}, ${sizeY}).`);
+        }
+        return null;
+    }
 
-World.Area.prototype.forEachTile = function(cb) {
-    for (let x = 0; x < this._tiles.length; x++) {
-        for (let y = 0; y < this._tiles[x].length; y++) {
-            if (this.tilesLoaded[x][y]) {
-                cb(x, y, this._tiles[x][y]);
+    addZone(type, zone) {
+        if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
+            RG.err('Area', 'addZone',
+                'No tileX/tileY given!');
+        }
+        this._tiles[zone.tileX][zone.tileY].addZone(type, zone);
+        zone.setParent(this);
+    }
+
+    getZones(type) {
+        let res = [];
+        for (let x = 0; x < this._tiles.length; x++) {
+            for (let y = 0; y < this._tiles[x].length; y++) {
+                if (this.tilesLoaded[x][y]) {
+                    res = res.concat(this._tiles[x][y].getZones(type));
+                }
+            }
+        }
+        return res;
+    }
+
+    createAreaConfig() {
+        return {
+            name: this.getName(),
+            maxX: this._sizeX,
+            maxY: this._sizeY
+        };
+    }
+
+    /* Serializes the Area into JSON. */
+    toJSON() {
+        const json = WorldBase.prototype.toJSON.call(this);
+        const tilesJSON = [];
+        this._tiles.forEach((tileCol, x) => {
+            const tileColJSON = tileCol.map((tile, y) => {
+                if (this.tilesLoaded[x][y]) {
+                    return tile.toJSON();
+                }
+                else {
+                    return tile;
+                }
+            });
+            tilesJSON.push(tileColJSON);
+        });
+
+        const obj = {
+            conf: this.getConf(),
+            maxX: this._sizeX, maxY: this._sizeY,
+            cols: this._cols, rows: this._rows,
+            tiles: tilesJSON,
+            tilesLoaded: this.tilesLoaded,
+            zonesCreated: this.zonesCreated
+        };
+        return Object.assign(obj, json);
+    }
+
+    /* Execute function cb for each tile. */
+    forEachTile(cb) {
+        for (let x = 0; x < this._tiles.length; x++) {
+            for (let y = 0; y < this._tiles[x].length; y++) {
+                if (this.tilesLoaded[x][y]) {
+                    cb(x, y, this._tiles[x][y]);
+                }
             }
         }
     }
-};
+}
+World.Area = Area;
 
 //------------------
 // World.Mountain
