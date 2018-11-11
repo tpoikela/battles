@@ -1,6 +1,6 @@
 
 import RG from './rg';
-import {Time} from './time';
+import * as Time from './time';
 import {SystemManager} from './system/system.manager';
 
 /* Game engine which handles turn scheduling, systems updates and in-game

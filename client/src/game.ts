@@ -9,7 +9,7 @@ import GameObject from './game-object';
 import {FactoryWorld} from './factory.world';
 import {World} from './world';
 
-const POOL = EventPool.getPool();
+let POOL = EventPool.getPool();
 
 export const Game: any = {};
 
@@ -486,7 +486,7 @@ export const GameMain = function() {
 
     /* Serializes the game object into JSON. */
     this.toJSON = () => {
-        const obj = {
+        const obj: any = { // TODO fix typings
             engine: {},
             gameMaster: this._master.toJSON(),
             gameObjectID: GameObject.ID,
@@ -775,8 +775,8 @@ Game.Save = function() {
         let dbString = _storageRef.getItem(_playerList);
         let dbObj = JSON.parse(dbString);
         if (dbObj === null) {dbObj = {};}
-        const expComp = Object.values(obj.components).find(
-            c => c.setType === 'Experience');
+        const expComp: any = Object.values(obj.components).find(
+            (c: any) => c.setType === 'Experience');
         dbObj[name] = {
             name,
             expLevel: expComp.setExpLevel,

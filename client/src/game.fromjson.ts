@@ -1,5 +1,4 @@
 
-
 import dbg = require('debug');
 const debug = dbg('bitn:Game.FromJSON');
 
@@ -25,7 +24,7 @@ const OBJ_REF_NOT_FOUND = null;
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
  * times, all data from 1st is preserved. Call reset() to clear data. */
-const FromJSON = function() {
+export const FromJSON = function() {
 
     this._dungeonLevel = 1;
     this._parser = RG.ObjectShell.getParser();
@@ -389,7 +388,7 @@ FromJSON.prototype.getCompValue = function(
     if (!RG.isNullOrUndef([valueToSet])) {
         if (Array.isArray(valueToSet)) {
             // For array, call this function recursively
-            if (valueToSet.$objRefArray) {
+            if (valueToSet['$objRefArray']) {
                 this.compsWithMissingRefs[compJSON.setID] = comp;
                 return valueToSet;
             }
@@ -472,7 +471,7 @@ FromJSON.prototype.createQuestData = function(json) {
             const msg = `Missing objRef: ${JSON.stringify(pathData.target)}`;
             RG.err('FromJSON', 'createQuest', msg);
         }
-        questData.push(pathData.type, target);
+        questData.addTarget(pathData.type, target);
     });
     return questData;
 };
@@ -1084,7 +1083,7 @@ FromJSON.prototype.restoreComponent = function(json, comp) {
     Object.keys(json).forEach(setFunc => {
         const valueToSet = json[setFunc];
         if (Array.isArray(valueToSet)) {
-            if (valueToSet.$objRefArray) {
+            if (valueToSet['$objRefArray']) {
                 const arr = [];
                 valueToSet.forEach(objRef => {
                     if (objRef.$objRef) {
@@ -1234,11 +1233,7 @@ FromJSON.prototype.restoreSerializedBattles = function(game, tile) {
 
 /* Adds the array of levels into the internal storage. */
 FromJSON.prototype.addLevels = function(levels, msg = '', jsonArr = []) {
-    levels.forEach((level, i) => {
-        if (!level instanceof Level) {
-            RG.err('FromJSON', 'addLevels',
-                'level must be an instance of Level');
-        }
+    levels.forEach((level: Level, i) => {
         const id = level.getID();
         if (!this.id2level.hasOwnProperty(id)) {
             let levelJSON = null;
@@ -1330,5 +1325,3 @@ FromJSON.prototype.getLevelOrFatal = function(id, funcName) {
     RG.err('Game.FromJSON', funcName, msg);
     return null;
 };
-
-module.exports = FromJSON;

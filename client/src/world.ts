@@ -212,7 +212,7 @@ function connectLevelsLinear(levels) {
         if (nl < nLevels - 1) {
             const targetDown = levels[nl + 1];
 
-            const stairsDown = new Stairs('stairsDown', src, targetDown);
+            const stairsDown = new ElementStairs('stairsDown', src, targetDown);
             const stairCell = getFreeCellWithoutConnection(src);
             let [sX, sY] = [stairCell.getX(), stairCell.getY()];
             if (extrasSrc) {
@@ -228,7 +228,7 @@ function connectLevelsLinear(levels) {
         // Create stairs up
         if (nl > 0) {
             const targetUp = levels[nl - 1];
-            const stairsUp = new Stairs('stairsUp', src, targetUp);
+            const stairsUp = new ElementStairs('stairsUp', src, targetUp);
 
             const stairCell = getFreeCellWithoutConnection(src);
             let [sX, sY] = [stairCell.getX(), stairCell.getY()];
@@ -276,8 +276,8 @@ function connectLevelsConstrained(conf1, conf2) {
     const cell2 = getFreeCellWithoutConnection(level2);
     const [x2, y2] = [cell2.getX(), cell2.getY()];
 
-    const l1Stairs = new Stairs('stairsUp', level1, level2);
-    const l2Stairs = new Stairs('stairsDown', level2, level1);
+    const l1Stairs = new ElementStairs('stairsUp', level1, level2);
+    const l2Stairs = new ElementStairs('stairsDown', level2, level1);
     l1Stairs.connect(l2Stairs);
     level1.addStairs(l1Stairs, x1, y1);
     level2.addStairs(l2Stairs, x2, y2);
@@ -293,7 +293,7 @@ function connectLevelToStairs(levels, nLevel, stairs) {
         if (!RG.isNullOrUndef([otherQuartLevel])) {
             const down = !stairs.isDown();
             const name = down ? 'stairsDown' : 'stairsUp';
-            const newStairs = new Stairs(name,
+            const newStairs = new ElementStairs(name,
                 level, otherQuartLevel);
 
             const cell = getFreeCellWithoutConnection(level);
@@ -338,7 +338,7 @@ function connectSubZones(subZones, sz1Arg, sz2Arg, l1, l2) {
     let s2IsDown = true;
     if (l1 > l2) {s2IsDown = false;}
     const name = s2IsDown ? 'stairsDown' : 'stairsUp';
-    const b2Stairs = new Stairs(name);
+    const b2Stairs = new ElementStairs(name);
     const sz2Levels = sz2.getLevels();
     if (l2 < sz2Levels.length) {
         const cell = getFreeCellWithoutConnection(sz2Levels[l2]);
@@ -717,7 +717,7 @@ export class Branch extends SubZoneBase {
     }
 
     addEntrance(levelNumber) {
-        const entrStairs = new Stairs('stairsUp');
+        const entrStairs = new ElementStairs('stairsUp');
         this.setEntrance(entrStairs, levelNumber);
     }
 
@@ -957,9 +957,9 @@ export class AreaTile {
                 const cellEast = mapEast.getCell(0, y);
 
                 if (cell.isFree() && cellEast.isFree()) {
-                    const stairs = new Stairs('passage',
+                    const stairs = new ElementStairs('passage',
                         this._level, levelEast);
-                    const stairsEast = new Stairs('passage',
+                    const stairsEast = new ElementStairs('passage',
                         levelEast, this._level);
                     stairs.setTargetStairs(stairsEast);
                     stairsEast.setTargetStairs(stairs);
@@ -981,9 +981,9 @@ export class AreaTile {
                 const cellSouth = mapSouth.getCell(x, 0);
 
                 if (cell.isFree() && cellSouth.isFree()) {
-                    const stairs = new Stairs('passage',
+                    const stairs = new ElementStairs('passage',
                         this._level, levelSouth);
-                    const connSouth = new Stairs('passage',
+                    const connSouth = new ElementStairs('passage',
                         levelSouth, this._level);
                     stairs.setTargetStairs(connSouth);
                     connSouth.setTargetStairs(stairs);
@@ -1508,7 +1508,7 @@ export class MountainFace extends SubZoneBase {
     addEntrance(levelNumber) {
         if (this._entrance === null) {
             const level = this._levels[levelNumber];
-            const stairs = new Stairs('stairsDown', level);
+            const stairs = new ElementStairs('stairsDown', level);
             const map = level.getMap();
             const midX = Math.floor(map.cols / 2);
             const maxY = map.rows - 1;
@@ -1660,7 +1660,7 @@ export class CityQuarter extends SubZoneBase {
     addEntrance(levelNumber) {
         if (this._entrance === null) {
             const level = this._levels[levelNumber];
-            const stairs = new Stairs('stairsDown', level);
+            const stairs = new ElementStairs('stairsDown', level);
             level.addStairs(stairs, 1, 1);
             this._entrance = {levelNumber, x: 1, y: 1};
         }

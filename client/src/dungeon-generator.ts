@@ -10,10 +10,11 @@ import {MapGenerator} from './map.generator';
 import {Path} from './path';
 import {DungeonPopulate} from './dungeon-populate';
 import {Random} from './random';
+import {ELEM} from '../data/elem-constants';
 
 const WALL = 1;
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 const shortestPath = Path.getShortestPath;
 // Number of cells allowed to be unreachable
@@ -21,16 +22,16 @@ const maxUnreachable = 10;
 
 const SPLASH_THEMES = {
     chasm: {
-        elem: RG.ELEM.CHASM
+        elem: ELEM.CHASM
     },
     water: {
-        elem: RG.ELEM.WATER
+        elem: ELEM.WATER
     },
     forest: {
-        elem: RG.ELEM.TREE
+        elem: ELEM.TREE
     },
     fire: {
-        elem: RG.ELEM.LAVA
+        elem: ELEM.LAVA
     }
 };
 
@@ -139,7 +140,7 @@ export class DungeonGenerator extends LevelGenerator {
         let map = null;
         const createCb = (x, y, val) => {
             if (val === WALL) {
-                map.setBaseElemXY(x, y, RG.ELEM.WALL);
+                map.setBaseElemXY(x, y, ELEM.WALL);
             }
         };
 
@@ -645,7 +646,7 @@ export class DungeonGenerator extends LevelGenerator {
                 criticalPath.forEach(xy => {
                     const {x, y} = xy;
                     if (!map.isPassable(x, y)) {
-                        map.setBaseElemXY(x, y, RG.ELEM.BRIDGE);
+                        map.setBaseElemXY(x, y, ELEM.BRIDGE);
                     }
                 });
             }
@@ -714,7 +715,7 @@ export class DungeonGenerator extends LevelGenerator {
         );
         markers.forEach(marker => {
             const [x, y] = marker.getXY();
-            level.getMap().setBaseElemXY(x, y, RG.ELEM.WALL);
+            level.getMap().setBaseElemXY(x, y, ELEM.WALL);
         });
     }
 
