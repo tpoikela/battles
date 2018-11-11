@@ -1524,33 +1524,51 @@ class City extends ZoneBase {
 World.City = City;
 
 //-----------------------------
-// World.CityQuarter
+// CityQuarter
 //-----------------------------
 /* City quarter is a subset of the City. It contains the actual level and
  * special features for that level. */
-World.CityQuarter = function(name) {
-    SubZoneBase.call(this, name);
-    this.setType('quarter');
-    this._entrance = null;
+class CityQuarter extends SubZoneBase {
+    constructor(name) {
+        super(name);
+        this.setType('quarter');
+        this._entrance = null;
+        this._shops = [];
+    }
 
-    this._shops = [];
-    this.addShop = shop => this._shops.push(shop);
-    this.getShops = () => this._shops;
+    removeListeners() {
+        this._shops.forEach(shop => {
+            if (!shop.isAbandoned()) {
+                // Must clean up these to avoid memory leaks
+                POOL.removeListener(shop);
+            }
+        });
+    }
 
-    this.setEntranceLocation = entrance => {
+    addShop(shop) {
+        this._shops.push(shop);
+    }
+
+    getShops() {
+        return this._shops;
+    }
+
+    setEntranceLocation(entrance) {
         if (!RG.isNullOrUndef([entrance])) {
             this._entrance = entrance;
         }
         else {
-            RG.err('World.CityQuarter', 'setEntranceLocation',
+            RG.err('CityQuarter', 'setEntranceLocation',
                 'Arg entrance is not defined.');
         }
-    };
+    }
 
     /* Returns entrance/exit for the quarter.*/
-    this.getEntrance = () => getEntrance(this._levels, this._entrance);
+    getEntrance() {
+        return getEntrance(this._levels, this._entrance);
+    }
 
-    this.addEntrance = levelNumber => {
+    addEntrance(levelNumber) {
         if (this._entrance === null) {
             const level = this._levels[levelNumber];
             const stairs = new Stairs('stairsDown', level);
@@ -1558,26 +1576,26 @@ World.CityQuarter = function(name) {
             this._entrance = {levelNumber, x: 1, y: 1};
         }
         else {
-            RG.err('World.CityQuarter', 'addEntrance',
+            RG.err('CityQuarter', 'addEntrance',
                 'Entrance already added.');
         }
-    };
+    }
 
     /* Connects specified level to the given stairs (Usually external to this
      * quarter) .*/
-    this.connectLevelToStairs = (nLevel, stairs) => {
+    connectLevelToStairs(nLevel, stairs) {
         if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
-            RG.err('World.CityQuarter', 'connectLevelToStairs',
+            RG.err('CityQuarter', 'connectLevelToStairs',
                 'Stairs must be first connected to other level.');
         }
-    };
+    }
 
     /* Connects levels in linear fashion 0->1->2->...->N. */
-    this.connectLevels = () => {
+    connectLevels() {
         connectLevelsLinear(this._levels);
-    };
+    }
 
-    this.toJSON = function() {
+    toJSON() {
         const json = SubZoneBase.prototype.toJSON.call(this);
         const obj = {
             shops: this._shops.map(shop => shop.toJSON())
@@ -1586,18 +1604,9 @@ World.CityQuarter = function(name) {
             obj.entrance = this._entrance;
         }
         return Object.assign(obj, json);
-    };
-};
-RG.extend2(World.CityQuarter, SubZoneBase);
-
-World.CityQuarter.prototype.removeListeners = function() {
-    this._shops.forEach(shop => {
-        if (!shop.isAbandoned()) {
-            // Must clean up these to avoid memory leaks
-            POOL.removeListener(shop);
-        }
-    });
-};
+    }
+}
+World.CityQuarter = CityQuarter;
 
 //-------------------------
 // World.BattleZone
