@@ -1457,25 +1457,29 @@ World.MountainFace = MountainFace;
 // World.MountainSummit
 //-------------------------
 /* A summit of the mountain consisting of at least one Map.Level. */
-World.MountainSummit = function(name) {
-    SubZoneBase.call(this, name);
-    this.setType('summit');
+class MountainSummit extends SubZoneBase {
+    constructor(name) {
+        super(name);
+        this.setType('summit');
+    }
 
-    this.getEntrance = () => null;
+    getEntrance() {
+        return null;
+    }
 
-    this.connectLevelToStairs = (nLevel, stairs) => {
+    connectLevelToStairs(nLevel, stairs) {
         if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
             RG.err('World.MountainSummit', 'connectLevelToStairs',
                 'Stairs must be first connected to other level.');
         }
-    };
+    }
 
-    this.toJSON = function() {
+    toJSON() {
         return SubZoneBase.prototype.toJSON.call(this);
-    };
+    }
+}
 
-};
-RG.extend2(World.MountainSummit, SubZoneBase);
+World.MountainSummit = MountainSummit;
 
 //-------------------------
 // World.City
