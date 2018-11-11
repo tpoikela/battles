@@ -756,32 +756,36 @@ World.Branch = Branch;
 // World.Dungeon
 //------------------
 /* Dungeons is a collection of branches.*/
-World.Dungeon = function(name) {
-    ZoneBase.call(this, name);
-    this.setType('dungeon');
-    this._entranceNames = [];
+class Dungeon extends ZoneBase {
+
+    constructor(name) {
+        super(name);
+        this.setType('dungeon');
+        this._entranceNames = [];
+    }
+
 
     /* Returns true if the dungeon has given branch.*/
-    this.hasBranch = function(branch) {
+    hasBranch(branch) {
         return this.hasSubZone(branch);
-    };
+    }
 
-    this.getBranches = function() {
+    getBranches() {
         return this._subZones;
-    };
+    }
 
     /* Sets the entry branch(es) for the dungeon. */
-    this.setEntrance = branchName => {
+    setEntrance(branchName) {
         if (typeof branchName === 'string') {
             this._entranceNames = [branchName];
         }
         else {
             this._entranceNames = branchName;
         }
-    };
+    }
 
     /* Adds one branch to the dungeon. Returns true if OK. */
-    this.addBranch = function(branch) {
+    addBranch(branch) {
         if (!this.hasBranch(branch)) {
             this._subZones.push(branch);
             // branch.setDungeon(this);
@@ -794,10 +798,10 @@ World.Dungeon = function(name) {
             return true;
         }
         return false;
-    };
+    }
 
     /* Returns all entrances/exits for the dungeon.*/
-    this.getEntrances = function() {
+    getEntrances() {
         const res = [];
         const nSubFeats = this._subZones.length;
         for (let i = 0; i < nSubFeats; i++) {
@@ -810,9 +814,9 @@ World.Dungeon = function(name) {
             }
         }
         return res;
-    };
+    }
 
-    this.toJSON = function() {
+    toJSON() {
         const json = ZoneBase.prototype.toJSON.call(this);
         const obj = {
             branch: this._subZones.map(br => br.toJSON()),
@@ -820,10 +824,10 @@ World.Dungeon = function(name) {
             nBranches: this._subZones.length
         };
         return Object.assign(obj, json);
-    };
+    }
 
 };
-RG.extend2(World.Dungeon, ZoneBase);
+World.Dungeon = Dungeon;
 
 //------------------
 // AreaTile
