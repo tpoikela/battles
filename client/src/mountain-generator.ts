@@ -101,6 +101,7 @@ export class MountainGenerator {
         }};*/
         const pathConf = {
             // exclude: bbox,
+            startX: 0,
             startY: 0, maxY: wallStartY,
             yPerTurn: Math.round(wallStartY / 4),
             endX: xTop
