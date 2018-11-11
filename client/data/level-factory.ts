@@ -7,11 +7,18 @@ import {Level} from '../src/level';
 
 import RG from '../src/rg';
 
+type LevelArgs = [number, number, any];
+
+interface LevelObj {
+    nLevel: number;
+    level: Level;
+}
+
 /* Factory for creating levels by specifying their name. */
 export class LevelFactory {
 
     public fact: any;
-    public createFunc: {[key: string]: (...args) => Level | Level[]};
+    public createFunc: {[key: string]: (...args) => Level | LevelObj[]};
 
     constructor(fact) {
         this.fact = fact;
@@ -22,7 +29,7 @@ export class LevelFactory {
         this.createFunc[name] = createFunc;
     }
 
-    create(name, args): Level | Level[] {
+    create(name, args: LevelArgs): Level | LevelObj[] {
         switch (name) {
             case 'Capital': return new Capital(...args).getLevel();
             case 'DwarvenCity': return new DwarvenCity(...args).getLevel();
