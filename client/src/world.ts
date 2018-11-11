@@ -675,18 +675,21 @@ World.SubZoneBase = SubZoneBase;
  * progression of connected levels (usually with increasing difficulty).
  * A branch can have
  * entry points to other branches (or out of the dungeon). */
-World.Branch = function(name) {
-    SubZoneBase.call(this, name);
-    this.setType('branch');
-    this._entrance = null;
+class Branch extends SubZoneBase {
 
-    this.addEntrance = function(levelNumber) {
+    constructor(name) {
+        super(name);
+        this.setType('branch');
+        this._entrance = null;
+    }
+
+    addEntrance(levelNumber) {
         const entrStairs = new Stairs('stairsUp');
         this.setEntrance(entrStairs, levelNumber);
-    };
+    }
 
     /* Adds entrance stairs for this branch. */
-    this.setEntrance = (stairs, levelNumber) => {
+    setEntrance(stairs, levelNumber) {
         if (levelNumber < this._levels.length) {
             const level = this._levels[levelNumber];
 
@@ -706,9 +709,9 @@ World.Branch = function(name) {
             RG.err('World.Branch', 'setEntrance',
                 `Invalid level number. Must be < ${this._levels.length}`);
         }
-    };
+    }
 
-    this.setEntranceLocation = entrance => {
+    setEntranceLocation(entrance) {
         if (!RG.isNullOrUndef([entrance])) {
             this._entrance = entrance;
         }
@@ -716,36 +719,38 @@ World.Branch = function(name) {
             RG.err('World.Branch', 'setEntranceLocation',
                 'Arg entrance is not defined.');
         }
-    };
+    }
 
     /* Returns entrance/exit for the branch.*/
-    this.getEntrance = () => getEntrance(this._levels, this._entrance);
+    getEntrance() {
+        return getEntrance(this._levels, this._entrance);
+    }
 
     /* Connects specified level to the given stairs (Usually external to this
      * branch) .*/
-    this.connectLevelToStairs = (nLevel, stairs) => {
+    connectLevelToStairs(nLevel, stairs) {
         if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
             RG.err('World.Branch', 'connectLevelToStairs',
                 'Stairs must be first connected to other level.');
         }
-    };
+    }
 
     /* Connects the added levels together.*/
-    this.connectLevels = () => {
+    connectLevels() {
         connectLevelsLinear(this._levels);
-    };
+    }
 
-    this.toJSON = function() {
+    toJSON() {
         const json = SubZoneBase.prototype.toJSON.call(this);
         const obj = {};
         if (this._entrance) {
             obj.entrance = this._entrance;
         }
         return Object.assign(obj, json);
-    };
+    }
 
-};
-RG.extend2(World.Branch, SubZoneBase);
+}
+World.Branch = Branch;
 
 //------------------
 // World.Dungeon
