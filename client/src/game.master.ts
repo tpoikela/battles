@@ -1,11 +1,13 @@
 
 import RG from './rg';
 
-import {FactoryBattle} from './factory.battle';
+import {FactoryBattle, BattleConf} from './factory.battle';
 import {OWMap} from './overworld.map';
 import {OW} from './ow-constants';
 import {Menu} from './menu';
 import {Random} from './random';
+import {Battle, Army} from './game.battle';
+import {Level} from './level';
 
 import {EventPool} from '../src/eventpool';
 
@@ -25,7 +27,7 @@ const RNG = Random.getRNG();
 export const GameMaster = function(game, pool = POOL) {
     this.player = null;
     this.game = game;
-    this.fact = new FactoryBattle(game);
+    this.fact = new FactoryBattle();
     this.pool = pool;
 
     // Lookup table for battles by level ID
@@ -442,9 +444,10 @@ GameMaster.prototype.biomeToLevelType = function(biome) {
     }
 };
 
-GameMaster.prototype.getBattleLevels = function() {
+GameMaster.prototype.getBattleLevels = function(): Level[]  {
     const levels = [];
-    Object.values(this.battles).forEach(battle => {
+    // TODO fix typings
+    Object.values(this.battles).forEach((battle: any) => {
         levels.push(battle.getLevel());
     });
     return levels;
@@ -457,7 +460,7 @@ GameMaster.prototype.createBattleIntoAreaTileLevel = function(parentLevel) {
     const ow = this.game.getOverWorld();
     let maxDanger = 4;
     let armySize = 20;
-    const battleConf = {};
+    const battleConf: BattleConf = {};
     let levelType = 'forest';
 
     let bbox = parentLevel.getBbox();
