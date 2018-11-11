@@ -5,47 +5,10 @@
 import RG from './rg';
 import {Random} from './random';
 import {Names} from '../data/name-gen';
+import * as IF from './interfaces';
 
 const RNG = Random.getRNG();
 
-interface BranchConf {
-    [key: string]: any;
-}
-
-interface DungeonConf {
-    name: string;
-    x: number;
-    y: number;
-    nBranches: number;
-    branch: BranchConf[];
-    connectLevels?: any[];
-};
-
-interface QuarterConf {
-    [key: string]: any;
-}
-
-interface CityConf {
-    name: string;
-    x: number;
-    y: number;
-    nQuarters: number;
-    quarter: QuarterConf[];
-    connectLevels?: any[];
-};
-
-interface FaceConf {
-    [key: string]: any;
-}
-
-interface MountainConf {
-    name: string;
-    x: number;
-    y: number;
-    nFaces: number;
-    face: FaceConf[];
-    connectLevels?: any[];
-};
 
 // Default configuration for creation
 const defaultConf = {
@@ -343,7 +306,7 @@ WorldConf.createSingleDungeonConf = (areaConf, conf) => {
     const branches = WorldConf.createBranchesConf(dungeonConf, conf);
     const connect = WorldConf.createBranchConnections('branch', branches);
 
-    const obj: DungeonConf = {
+    const obj: IF.DungeonConf = {
         name: Names.getGenericPlaceName('dungeon'),
         x: xy.x,
         y: xy.y,
@@ -524,7 +487,7 @@ WorldConf.Creator = function() {
         const quarters = this.createQuartersConf(cityConf, conf);
         const connect = WorldConf.createQuarterConnections(quarters);
 
-        const obj: CityConf = {
+        const obj: IF.CityConf = {
             name: '',
             x: xy.x,
             y: xy.y,
@@ -575,7 +538,7 @@ WorldConf.Creator = function() {
         const faces = this.createFacesConf(mountConf, conf);
         const connect = WorldConf.createFaceConnections('mountain', faces);
 
-        const obj: MountainConf = {
+        const obj: IF.MountainConf = {
             name: '',
             x: xy.x,
             y: xy.y,
