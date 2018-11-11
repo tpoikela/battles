@@ -1019,7 +1019,6 @@ World.AreaTile = AreaTile;
 class Area {
 
     constructor(name, sizeX, sizeY, cols, rows, levels) {
-        super(name);
         this.setType('area');
         this._sizeX = parseInt(sizeX, 10);
         this._sizeY = parseInt(sizeY, 10);
@@ -1268,31 +1267,35 @@ World.Area = Area;
 /* Mountains are places consisting of tiles and dungeons. Mountain has few
  * special tiles representing the summit.
  */
-World.Mountain = function(name) {
-    ZoneBase.call(this, name);
-    this.setType('mountain');
+class Mountain extends ZoneBase {
 
-/* MountainFace, 5 stages:
-        |       <- Summit
-       /|\
-      /|||\
-     /|||||\
-    /|||||||\
-   /|||||||||\
+    constructor(name) {
+        super(name);
+        this.setType('mountain');
 
-4 tiletypes:
-    1. Summit (connect to all faces)
-    2. Left side tile (connect to face)
-    3. Right side tile (connect to face)
-    4. Central tiles (connect on all sides)
+    /* MountainFace, 5 stages:
+            |       <- Summit
+           /|\
+          /|||\
+         /|||||\
+        /|||||||\
+       /|||||||||\
 
-Summit is top-down view, while face is more of climbing,
-from-the-angle view. Bit weird but should be fine.
+    4 tiletypes:
+        1. Summit (connect to all faces)
+        2. Left side tile (connect to face)
+        3. Right side tile (connect to face)
+        4. Central tiles (connect on all sides)
 
-Not implemented yet.
-*/
+    Summit is top-down view, while face is more of climbing,
+    from-the-angle view. Bit weird but should be fine.
 
-    this.findLevel = (name, nLevel) => {
+    Not implemented yet.
+    */
+
+    }
+
+    findLevel(name, nLevel) {
         const faces = this.getFaces();
         const summits = this.getSummits();
         let level = findLevel(name, faces, nLevel);
@@ -1300,25 +1303,25 @@ Not implemented yet.
             level = findLevel(name, summits, nLevel);
         }
         return level;
-    };
+    }
 
-    this.addSummit = summit => {
+    addSummit(summit) {
         this.addSubZone(summit);
-    };
+    }
 
-    this.addFace = face => {
+    addFace(face) {
         this.addSubZone(face);
-    };
+    }
 
-    this.getFaces = () => (
-        this._subZones.filter(sz => sz.getType() === 'face')
-    );
+    getFaces() {
+        return this._subZones.filter(sz => sz.getType() === 'face');
+    }
 
-    this.getSummits = () => (
-        this._subZones.filter(sz => sz.getType() === 'summit')
-    );
+    getSummits() {
+        return this._subZones.filter(sz => sz.getType() === 'summit');
+    }
 
-    this.connectFaceAndSummit = function(face, summit, l1, l2) {
+    connectFaceAndSummit(face, summit, l1, l2) {
         const [sz1, sz2] = this.getSubZoneArgs(face, summit);
         if (sz2.getType() !== 'summit') {
             const type = sz2.getType();
@@ -1330,9 +1333,9 @@ Not implemented yet.
         const connFace = {y: () => 0, level: level1};
         const connSummit = {level: level2};
         connectLevelsConstrained(connFace, connSummit);
-    };
+    }
 
-    this.connectSubZones = function(s1Arg, s2Arg, l1, l2) {
+    connectSubZones(s1Arg, s2Arg, l1, l2) {
         const [sz1, sz2] = this.getSubZoneArgs(s1Arg, s2Arg);
         // const sz1 = this.findSubZone(s1Arg);
         // const sz2 = this.findSubZone(s2Arg);
@@ -1350,24 +1353,22 @@ Not implemented yet.
             }
         }
         // face-face and summit-summit connections done here
-        ZoneBase.prototype.connectSubZones.call(
-            this, s1Arg, s2Arg, l1, l2);
-    };
+        super.connectSubZones(s1Arg, s2Arg, l1, l2);
+    }
 
-};
-RG.extend2(World.Mountain, ZoneBase);
-
-/* Serializes the World.Mountain object. */
-World.Mountain.prototype.toJSON = function() {
-    const json = ZoneBase.prototype.toJSON.call(this);
-    const obj = {
-        nFaces: this.getFaces().length,
-        face: this.getFaces().map(face => face.toJSON()),
-        nSummits: this.getSummits().length,
-        summit: this.getSummits().map(summit => summit.toJSON())
-    };
-    return Object.assign(obj, json);
-};
+    /* Serializes the World.Mountain object. */
+    toJSON() {
+        const json = ZoneBase.prototype.toJSON.call(this);
+        const obj = {
+            nFaces: this.getFaces().length,
+            face: this.getFaces().map(face => face.toJSON()),
+            nSummits: this.getSummits().length,
+            summit: this.getSummits().map(summit => summit.toJSON())
+        };
+        return Object.assign(obj, json);
+    }
+}
+World.Mountain = Mountain;
 
 //----------------------
 // World.MountainFace
