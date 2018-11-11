@@ -10,7 +10,7 @@ const NO_DAMAGE_SRC = RG.NO_DAMAGE_SRC;
 const RNG = Random.getRNG();
 
 /* Processes entities with damage component.*/
-class SystemDamage extends SystemBase {
+export class SystemDamage extends SystemBase {
 
     constructor(compTypes, pool?) {
         super(RG.SYS.DAMAGE, compTypes, pool);

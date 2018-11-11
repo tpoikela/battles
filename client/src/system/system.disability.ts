@@ -1,106 +1,113 @@
 
-const RG = require('../rg');
+import RG from '../rg';
+import {SystemBase} from './system.base';
+import {Random} from '../random';
+import {EventPool} from '../eventpool';
 
-const System = {};
-System.Base = require('./system.base');
+const RNG = Random.getRNG();
 
-const RNG = RG.Random.getRNG();
+// Messages emitted for each disability
+const _msg = {
+    Paralysis: {
+        Attack: 'cannot attack under paralysis',
+        Movement: 'cannot move under paralysis',
+        SpellCast: 'cannot cast spells under paralysis'
+    },
+    Stun: {
+        Attack: 'is too stunned to attack',
+        Movement: 'is stunned, and stumbles',
+        SpellCast: 'is too stunned to cast spells'
+    }
+};
+
+interface FuncTable {
+    [key: string]: (ent) => void;
+}
 
 /* Stun system removes Movement/Attack components from actors to prevent. */
-System.Disability = function(compTypes) {
-    System.Base.call(this, RG.SYS.DISABILITY, compTypes);
-    this.compTypesAny = true; // Triggered on at least one component
+export class SystemDisability extends SystemBase {
 
-    // Messages emitted for each disability
-    const _msg = {
-        Paralysis: {
-            Attack: 'cannot attack under paralysis',
-            Movement: 'cannot move under paralysis',
-            SpellCast: 'cannot cast spells under paralysis'
-        },
-        Stun: {
-            Attack: 'is too stunned to attack',
-            Movement: 'is stunned, and stumbles',
-            SpellCast: 'is too stunned to cast spells'
-        }
-    };
+    private _compOrder: string[];
+    private _actComp: string[];
+    private _dispatchTable: {[key: string]: FuncTable};
 
-    // Callbacks to execute for each disability
-    const _dispatchTable = {
-        Paralysis: {
-            Attack: ent => {
-                ent.remove('Attack');
-                _emitMsg('Paralysis', 'Attack', ent);
-            },
-            Movement: ent => {
-                ent.remove('Movement');
-                _emitMsg('Paralysis', 'Movement', ent);
-            },
-            SpellCast: ent => {
-                ent.remove('SpellCast');
-                _emitMsg('Paralysis', 'SpellCast', ent);
-            },
-            UseStairs: ent => {
-                ent.remove('UseStairs');
-                _emitMsg('Paralysis', 'Movement', ent);
-            }
-        },
-        Stun: {
-            Attack: ent => {
-                ent.remove('Attack');
-                _emitMsg('Stun', 'Attack', ent);
-            },
-            // Stun moves actor to random direction if they try to attack
-            Movement: ent => {
-                const dir = RNG.getRandDir();
-                const [x, y] = RG.newXYFromDir(dir, ent);
-                ent.remove('Movement');
-                const map = ent.getLevel().getMap();
-                if (map.hasXY(x, y)) {
-                    const movComp = new RG.Component.Movement(x, y,
-                        ent.getLevel());
-                    ent.add(movComp);
-                }
-                _emitMsg('Stun', 'Movement', ent);
-            },
-            SpellCast: ent => {
-                ent.remove('SpellCast');
-                _emitMsg('Stun', 'SpellCast', ent);
-            },
-            UseStairs: ent => {
-                if (RG.isSuccess(0.5)) {
+    constructor(compTypes, pool?) {
+        super(RG.SYS.DISABILITY, compTypes, pool);
+        this.compTypesAny = true; // Triggered on at least one component
+
+        // Callbacks to execute for each disability
+        this._dispatchTable = {
+            Paralysis: {
+                Attack: ent => {
+                    ent.remove('Attack');
+                    this._emitMsg('Paralysis', 'Attack', ent);
+                },
+                Movement: ent => {
+                    ent.remove('Movement');
+                    this._emitMsg('Paralysis', 'Movement', ent);
+                },
+                SpellCast: ent => {
+                    ent.remove('SpellCast');
+                    this._emitMsg('Paralysis', 'SpellCast', ent);
+                },
+                UseStairs: ent => {
                     ent.remove('UseStairs');
-                    _emitMsg('Stun', 'Movement', ent);
+                    this._emitMsg('Paralysis', 'Movement', ent);
+                }
+            },
+            Stun: {
+                Attack: ent => {
+                    ent.remove('Attack');
+                    this._emitMsg('Stun', 'Attack', ent);
+                },
+                // Stun moves actor to random direction if they try to attack
+                Movement: ent => {
+                    const dir = RNG.getRandDir();
+                    const [x, y] = RG.newXYFromDir(dir, ent);
+                    ent.remove('Movement');
+                    const map = ent.getLevel().getMap();
+                    if (map.hasXY(x, y)) {
+                        const movComp = new RG.Component.Movement(x, y,
+                            ent.getLevel());
+                        ent.add(movComp);
+                    }
+                    this._emitMsg('Stun', 'Movement', ent);
+                },
+                SpellCast: ent => {
+                    ent.remove('SpellCast');
+                    this._emitMsg('Stun', 'SpellCast', ent);
+                },
+                UseStairs: ent => {
+                    if (RG.isSuccess(0.5)) {
+                        ent.remove('UseStairs');
+                        this._emitMsg('Stun', 'Movement', ent);
 
+                    }
                 }
             }
-        }
-    };
+        };
 
-    // Processing order of the components
-    const _compOrder = ['Paralysis', 'Stun'];
-    const _actComp = ['Attack', 'Movement', 'SpellCast'];
+        // Processing order of the components
+        this._compOrder = ['Paralysis', 'Stun'];
+        this._actComp = ['Attack', 'Movement', 'SpellCast'];
+    }
 
-    this.updateEntity = ent => {
-        _compOrder.forEach(compName => {
+    updateEntity(ent) {
+        this._compOrder.forEach(compName => {
             if (ent.has(compName)) {
-                _actComp.forEach(actCompName => {
+                this._actComp.forEach(actCompName => {
                     if (ent.has(actCompName)) {
-                        _dispatchTable[compName][actCompName](ent);
+                        this._dispatchTable[compName][actCompName](ent);
                     }
                 });
             }
         });
-    };
+    }
 
-    const _emitMsg = (comp, actionComp, ent) => {
+    _emitMsg(comp, actionComp, ent) {
         const cell = ent.getCell();
         const entName = ent.getName();
         const msg = `${entName} ${_msg[comp][actionComp]}`;
         RG.gameMsg({cell, msg});
-    };
-
-};
-RG.extend2(System.Disability, System.Base);
-
-module.exports = System.Disability;
+    }
+}
