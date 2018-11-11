@@ -4,20 +4,34 @@ import RG from './rg';
 import dbg = require('debug');
 const debug = dbg('bitn:FactoryZone');
 
-import {Factory} from './factory';
+import {Factory, FactoryBase} from './factory';
 import {FactoryItem} from './factory.items';
 import {MountainGenerator} from './mountain-generator';
 import {CityGenerator} from './city-generator';
 import {CastleGenerator} from './castle-generator';
 import {Random} from './random';
+import {ObjectShell} from './objectshellparser';
 
 const RNG = Random.getRNG();
 
+export interface ActorConf {
+    actorsPerLevel: number;
+    maxDanger: number;
+    func?: (actor) => boolean;
+}
+
+export interface ItemConf { // TODO cleanup
+    itemsPerLevel?: number;
+    nItems?: number;
+    maxValue: number;
+    func?: (actor) => boolean;
+}
+
 
 export const FactoryZone = function() {
-    Factory.Base.call(this);
-    this._verif = new RG.Verify.Conf('Factory.Zone');
-    this._parser = RG.ObjectShell.getParser();
+    FactoryBase.call(this);
+    this._verif = new RG.Verify.Conf('FactoryZone');
+    this._parser = ObjectShell.getParser();
 
     this.getRandLevelType = () => {
         const type = ['uniform', 'rooms', 'rogue', 'digger'];
@@ -67,7 +81,7 @@ export const FactoryZone = function() {
         }
         this.addNRandItems(level, this._parser, itemConf);
 
-        const actorConf = {
+        const actorConf: ActorConf = {
             actorsPerLevel: conf.actorsPerLevel || actorsPerLevel,
             maxDanger: conf.maxDanger || conf.nLevel + 1
         };
@@ -76,7 +90,7 @@ export const FactoryZone = function() {
                 actorConf.func = conf.actor;
             }
             else {
-                RG.err('Factory.Zone', 'addItemsAndActors',
+                RG.err('FactoryZone', 'addItemsAndActors',
                     'conf.actor must be a function');
             }
         }
@@ -292,8 +306,8 @@ export const FactoryZone = function() {
             cell.getBaseElem().getType() === 'floorhouse'
         ));
         const factItem = new FactoryItem();
-        const parser = RG.ObjectShell.getParser();
-        const itemConf = {
+        const parser = ObjectShell.getParser();
+        const itemConf: ItemConf = {
             func: item => item.value <= (levelConf.maxDanger * 10),
             maxValue: levelConf.maxDanger * 50
         };
@@ -318,7 +332,7 @@ export const FactoryZone = function() {
             if (parent) {
                 msg += '\nLevel parent: ' + parent.getName();
             }
-            RG.err('Factory.Zone', 'populateWithActors', msg);
+            RG.err('FactoryZone', 'populateWithActors', msg);
         }
     };
 
@@ -389,6 +403,6 @@ export const FactoryZone = function() {
 
 
 };
-RG.extend2(FactoryZone, Factory.Base);
+RG.extend2(FactoryZone, FactoryBase);
 
 module.exports = FactoryZone;
