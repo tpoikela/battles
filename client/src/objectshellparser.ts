@@ -3,8 +3,9 @@ import RG from './rg';
 import {Objects} from '../data/battles_objects';
 import Actors, {adjustActorValues} from '../data/actors';
 import * as Actor from './actor';
+import * as Item from './item';
 import {Effects} from '../data/effects';
-import * as Brain from './brain';
+import {Brain} from './brain';
 import {Random} from './random';
 import {ElementBase} from './element';
 import * as Component from './component';
@@ -256,14 +257,14 @@ export const Creator = function(db, dbNoRandom) {
     /* Adds Poison as addOnHit property. */
     this.addPoison = (shell, obj) => {
         const poison = shell.poison;
-        const poisonComp = new RG.Component.Poison();
+        const poisonComp = new Component.Poison();
         poisonComp.setProb(poison.prob);
         poisonComp.setSource(obj);
         poisonComp.setDamageDie(RG.createDie(poison.damage));
 
         const dieDuration = RG.createDie(poison.duration);
         poisonComp.setDurationDie(dieDuration);
-        const addOnHit = new RG.Component.AddOnHit();
+        const addOnHit = new Component.AddOnHit();
         addOnHit.setComp(poisonComp);
         obj.add(addOnHit);
     };
@@ -320,16 +321,16 @@ export const Creator = function(db, dbNoRandom) {
 
             let addOnHit = null;
             if (isEquip) {
-                addOnHit = new RG.Component.AddOnEquip();
+                addOnHit = new Component.AddOnEquip();
             }
             else {
-                addOnHit = new RG.Component.AddOnHit();
+                addOnHit = new Component.AddOnHit();
             }
 
             if (onHit.duration) {
                 const arr = RG.parseDieSpec(onHit.duration);
                 const durDie = new RG.Die(arr[0], arr[1], arr[2]);
-                const durComponent = new RG.Component.Duration();
+                const durComponent = new Component.Duration();
                 durComponent.setDurationDie(durDie);
                 durComponent.setComp(addedComp);
                 addOnHit.setComp(durComponent);
@@ -373,31 +374,31 @@ export const Creator = function(db, dbNoRandom) {
                     default: {
                         switch (obj.actorType) {
                             case 'BaseActor':
-                                return new RG.Actor.Base(obj.name);
-                            default: return new RG.Actor.Rogue(obj.name);
+                                return new Actor.BaseActor(obj.name);
+                            default: return new Actor.SentientActor(obj.name);
                         }
                     }
                 }
             case RG.TYPE_ITEM:
                 const subtype = obj.type;
                 switch (subtype) {
-                    case 'armour': return new RG.Item.Armour(obj.name);
-                    case 'book': return new RG.Item.Book(obj.name);
-                    case 'food': return new RG.Item.Food(obj.name);
-                    case 'gold': return new RG.Item.Gold(obj.name);
-                    case 'goldcoin' : return new RG.Item.GoldCoin(obj.name);
-                    case 'mineral': return new RG.Item.Mineral(obj.name);
-                    case 'missile': return new RG.Item.Missile(obj.name);
+                    case 'armour': return new Item.Armour(obj.name);
+                    case 'book': return new Item.Book(obj.name);
+                    case 'food': return new Item.Food(obj.name);
+                    case 'gold': return new Item.Gold(obj.name);
+                    case 'goldcoin' : return new Item.GoldCoin(obj.name);
+                    case 'mineral': return new Item.Mineral(obj.name);
+                    case 'missile': return new Item.Missile(obj.name);
                     case 'missileweapon':
-                        return new RG.Item.MissileWeapon(obj.name);
-                    case 'ammo': return new RG.Item.Ammo(obj.name);
-                    case 'potion': return new RG.Item.Potion(obj.name);
-                    case 'rune': return new RG.Item.Rune(obj.name);
-                    case 'spiritgem': return new RG.Item.SpiritGem(obj.name);
-                    case 'weapon': return new RG.Item.Weapon(obj.name);
+                        return new Item.MissileWeapon(obj.name);
+                    case 'ammo': return new Item.Ammo(obj.name);
+                    case 'potion': return new Item.Potion(obj.name);
+                    case 'rune': return new Item.Rune(obj.name);
+                    case 'spiritgem': return new Item.SpiritGem(obj.name);
+                    case 'weapon': return new Item.Weapon(obj.name);
                     default: {
                         if (subtype) {
-                            const item = new RG.Item.Base(obj.name);
+                            const item = new Item.Base(obj.name);
                             item.setType(obj.type);
                             return item;
                         }
@@ -541,7 +542,7 @@ export const Creator = function(db, dbNoRandom) {
     this.addLootComponents = function(shell, actor) {
         const loot = shell.loot;
         const lootItem = this.createActualObj(RG.TYPE_ITEM, loot);
-        const lootComp = new RG.Component.Loot(lootItem);
+        const lootComp = new Component.Loot(lootItem);
         actor.add(lootComp);
     };
 
