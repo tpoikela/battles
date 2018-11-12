@@ -8,9 +8,22 @@ import {Placer} from './placer';
 import {FactoryItem} from './factory.items';
 import {FactoryActor} from './factory.actors';
 import * as Component from './component';
+import {WorldShop} from './world';
+import * as Item from './item';
+import * as Element from './element';
 
 const MIN_ACTORS_ROOM = 2;
 const RNG = Random.getRNG();
+
+const popOptions = ['NOTHING', 'LOOT', 'GOLD', 'GUARDIAN', 'ELEMENT', 'CORPSE',
+
+    'TIP'];
+
+interface PopulConf {
+    theme?: string;
+    maxDanger?: number;
+    maxValue?: number;
+}
 
 export class DungeonPopulate {
 
@@ -23,8 +36,8 @@ export class DungeonPopulate {
 
     public actorFunc: (shell) => boolean;
 
-    constructor(conf?) {
-        this.theme = conf.theme;
+    constructor(conf: PopulConf = {}) {
+        this.theme = conf.theme ||  '';
         this.maxDanger = conf.maxDanger || 5;
         this.maxValue = conf.maxValue || 50;
 
@@ -104,7 +117,7 @@ export class DungeonPopulate {
 
                     const coord = Geometry.getCoordBbox(bbox);
                     coord.forEach(xy => {
-                        const enemy = new RG.Element.Marker('e');
+                        const enemy = new Element.ElementMarker('e');
                         enemy.setTag('enemy');
                         level.addElement(enemy, xy[0], xy[1]);
                     });
@@ -272,7 +285,7 @@ export class DungeonPopulate {
 
     addGoldToPoint(level, point) {
         const numCoins = this.maxValue;
-        const gold = new RG.Item.GoldCoin();
+        const gold = new Item.GoldCoin();
         gold.setCount(numCoins);
         const [cx, cy] = point;
         level.addItem(gold, cx, cy);
@@ -296,7 +309,7 @@ export class DungeonPopulate {
             let watchDog = 0;
             level.shops = [];
             for (let n = 0; n < conf.nShops; n++) {
-                const shopObj = new RG.World.Shop();
+                const shopObj = new WorldShop();
 
                 // Find the next (unused) index for a house
                 let index = RNG.randIndex(houses);
@@ -316,7 +329,7 @@ export class DungeonPopulate {
                 const [doorX, doorY] = house.door;
                 const doorCell = level.getMap().getCell(doorX, doorY);
                 if (!doorCell.hasDoor()) {
-                    const door = new RG.Element.Door(true);
+                    const door = new Element.ElementDoor(true);
                     level.addElement(door, doorX, doorY);
                 }
 
@@ -326,7 +339,7 @@ export class DungeonPopulate {
                 for (let i = 0; i < floor.length; i++) {
                     const xy = floor[i];
 
-                    const shopElem = new RG.Element.Shop();
+                    const shopElem = new Element.ElementShop();
                     shopElem.setShopkeeper(keeper);
                     level.addElement(shopElem, xy[0], xy[1]);
 
@@ -411,7 +424,7 @@ export class DungeonPopulate {
         }
 
         keeper.add(new Component.Shopkeeper());
-        const gold = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+        const gold = new Item.GoldCoin(RG.GOLD_COIN_NAME);
         gold.setCount(RNG.getUniformInt(50, 200));
         keeper.getInvEq().addItem(gold);
 
@@ -515,7 +528,3 @@ export class DungeonPopulate {
     }
 }
 
-const popOptions = ['NOTHING', 'LOOT', 'GOLD', 'GUARDIAN', 'ELEMENT', 'CORPSE',
-    'TIP'];
-
-module.exports = DungeonPopulate;
