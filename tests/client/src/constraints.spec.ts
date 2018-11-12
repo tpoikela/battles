@@ -1,6 +1,6 @@
 
 import { expect } from 'chai';
-import Constraints from '../../../client/src/constraints';
+import {Constraints} from '../../../client/src/constraints';
 
 // const RG = require('../../../client/src/battles');
 // const RGTest = require('../../roguetest.js');
