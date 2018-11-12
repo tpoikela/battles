@@ -215,11 +215,14 @@ BrainBase.prototype.toJSON = function() {
     };
 };
 
+Brain.Base = BrainBase;
+
 export const BrainNonSentient = function(actor) {
     BrainBase.call(this, actor);
     this.setType('NonSentient');
 };
 RG.extend2(BrainNonSentient, BrainBase);
+Brain.NonSentient = BrainNonSentient;
 
 BrainNonSentient.prototype.decideNextAction = function() {
     return NO_ACTION_TAKEN;
@@ -244,6 +247,7 @@ export const BrainSentient = function(actor) {
 
     // this._passableCallback = this._passableCallback.bind(this);
 };
+Brain.Sentient = BrainSentient;
 
 BrainSentient.prototype.getType = function() {
     return this._type;
@@ -743,6 +747,7 @@ export const BrainArcher = function(actor) {
     };
 };
 RG.extend2(BrainArcher, BrainSentient);
+Brain.Archer = BrainArcher;
 
 /* Brain object for spellcasting actors. This model focuses on aggressive
  * spellcasting intended to harm opponents. */
@@ -758,6 +763,7 @@ export const BrainSpellCaster = function(actor) {
 
 };
 RG.extend2(BrainSpellCaster, BrainSentient);
+Brain.SpellCaster = BrainSpellCaster;
 
 BrainSpellCaster.prototype.decideNextAction = function() {
     this._cache.seen = null;
@@ -777,6 +783,7 @@ export const BrainGoalOriented = function(actor) {
 
 };
 RG.extend2(BrainGoalOriented, BrainSentient);
+Brain.GoalOriented = BrainGoalOriented;
 
 /* Must return function. */
 BrainGoalOriented.prototype.decideNextAction = function() {
@@ -799,6 +806,7 @@ export const BrainExplorer = function(actor) {
     this.goal.addEvaluator(new Evaluator.Explore());
 };
 RG.extend2(BrainExplorer, BrainGoalOriented);
+Brain.Explorer = BrainExplorer;
 
 export const BrainSpirit = function(actor) {
     BrainGoalOriented.call(this, actor);
@@ -807,6 +815,7 @@ export const BrainSpirit = function(actor) {
     this.goal.addEvaluator(new Evaluator.Explore());
 };
 RG.extend2(BrainSpirit, BrainGoalOriented);
+Brain.Spirit = BrainSpirit;
 
 export const BrainThief = function(actor) {
     BrainGoalOriented.call(this, actor);
@@ -815,6 +824,7 @@ export const BrainThief = function(actor) {
     this.goal.setBias({Thief: 1.2, AttackActor: 0.7});
 };
 RG.extend2(BrainThief, BrainGoalOriented);
+Brain.Thief = BrainThief;
 
 /* Brain-object for animals. */
 Brain.Animal = function(actor) {
@@ -866,6 +876,7 @@ export const BrainFlame = function(actor) {
     this.setType('Flame');
 };
 RG.extend2(BrainFlame, BrainSentient);
+Brain.Flame = BrainFlame;
 
 BrainFlame.prototype.decideNextAction = function() {
     const cell = this._actor.getCell();
@@ -890,6 +901,7 @@ export const BrainCloud = function(actor) {
     this.chanceToMove = 0.2;
 };
 RG.extend2(BrainCloud, BrainFlame);
+Brain.Cloud = BrainCloud;
 
 BrainCloud.prototype.decideNextAction = function() {
     if (RNG.getUniform() <= this.chanceToMove) {
@@ -917,10 +929,10 @@ export const BrainMindControl = function(actor) {
 
 };
 RG.extend2(BrainMindControl, BrainSentient);
+Brain.MindControl = BrainMindControl;
 
 BrainMindControl.prototype.decideNextAction = function() {
     // At the moment does nothing, it could attack the
     // enemies of the source of MindControl
     return ACTION_ALREADY_DONE;
 };
-
