@@ -2,51 +2,89 @@
 
 import RG from './rg';
 import {EventPool} from './eventpool';
+import {SentientActor} from './actor';
+import {Level} from './level';
 
 import dbg = require('debug');
 const debug = dbg('bitn:game.battle');
 
 const POOL = EventPool.getPool();
 
+
+export interface ArmyJSON {
+    name: string;
+    actors: number[];
+    defeatThreshold: number;
+}
+
+export interface BattleJSON {
+    isJSON: boolean;
+    name: string;
+    level: number;
+    armies: ArmyJSON[];
+    stats: {[key: string]: number};
+    finished: boolean;
+}
+
 /* Army is a collection of actors associated with a battle. This is useful for
  *  battle commanders to have access to their full army. */
-export const Army = function(name) {
-    this._name = name;
-    this._actors = []; // All actors inside this army
+export class Army {
+    private _name: string;
+    private _actors: SentientActor[]; // All actors inside this army
+    private _battle: Battle;
+    private _casualties: number;
+    private _defeatThreshold: number;
+    public hasNotify: boolean;
 
-    this._battle = null;
-    this._casualties = 0;
-    this._defeatThreshold = 0;
+    constructor(name) {
+        this._name = name;
+        this._actors = []; // All actors inside this army
 
-    this.getName = () => this._name;
+        this._battle = null;
+        this._casualties = 0;
+        this._defeatThreshold = 0;
+        this.hasNotify = true;
+        POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
+    }
 
-    this.setDefeatThreshold = numActors => {
+    getName() {
+        return this._name;
+    }
+
+    setDefeatThreshold(numActors) {
         this._defeatThreshold = numActors;
-    };
+    }
 
-    /* Default defeat is when all actors have been eliminated.*/
-    this.isDefeated = () => {
+        /* Default defeat is when all actors have been eliminated.*/
+    isDefeated() {
         if (this._actors.length <= this._defeatThreshold) {
             return true;
         }
         return false;
-    };
+    }
 
-    this.setBattle = battle => {this._battle = battle;};
-    this.getBattle = () => this._battle;
+    setBattle(battle) {this._battle = battle;};
 
-    this.getCasualties = () => this._casualties;
+    getBattle() {
+        return this._battle;
+    }
 
-    this.getActors = () => this._actors.slice();
+    getCasualties() {
+        return this._casualties;
+    }
 
-    this.hasActor = actor => {
+    getActors() {
+        return this._actors.slice();
+    }
+
+    hasActor(actor) {
         const id = actor.getID();
         const index = this._actors.findIndex(actor => actor.getID() === id);
         return index >= 0;
-    };
+    }
 
-    /* Tries to add an actor and returns true if success.*/
-    this.addActor = function(actor) {
+        /* Tries to add an actor and returns true if success.*/
+    addActor(actor) {
         if (!this.hasActor(actor)) {
             this._actors.push(actor);
             return true;
@@ -56,10 +94,10 @@ export const Army = function(name) {
                 'Actor already in army ' + this.getName());
         }
         return false;
-    };
+    }
 
-    /* Removes an actor from the army.*/
-    this.removeActor = actor => {
+        /* Removes an actor from the army.*/
+    removeActor(actor) {
         const index = this._actors.findIndex(
             a => a.getID() === actor.getID()
         );
@@ -72,11 +110,10 @@ export const Army = function(name) {
         }
     };
 
-    this.removeAllActors = () => {this._actors = [];};
+    removeAllActors() {this._actors = [];};
 
-    /* Monitor killed actors and remove them from the army.*/
-    this.hasNotify = true;
-    this.notify = function(evtName, msg) {
+        /* Monitor killed actors and remove them from the army.*/
+    notify(evtName, msg) {
         if (evtName === RG.EVT_ACTOR_KILLED) {
             debug(`${this._name} got EVT_ACTOR_KILLED`);
             const actor = msg.actor;
@@ -107,53 +144,80 @@ export const Army = function(name) {
             }
         }
     };
-    POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
-    this.toJSON = function() {
+
+    toJSON(): ArmyJSON {
         return {
             name: this._name,
             actors: this._actors.map(actor => actor.getID()),
             defeatThreshold: this._defeatThreshold
         };
-    };
-};
+    }
+}
 
-/* Battle is "mini-game" which uses its own scheduling and engine.*/
-export const Battle = function(name) {
-    this._name = name;
-    this._armies = [];
-    this._level = null;
-    this.finished = false;
+/* Battle is contains all information in one battle between two or more armies.
+ */
+export class Battle {
 
-    this.getType = () => 'battle';
+    private _name: string;
+    private _armies: Army[]; // All actors inside this army
+    private _level: Level;
+    public hasNotify: boolean;
+    public finished: boolean;
+    private _stats: {[key: string]: number};
 
-    // Keeps track of battles statistics
-    this._stats = {
-        duration: 0,
-        casualties: 0,
-        survivors: 0
-    };
-    this.getArmies = () => this._armies.slice();
-    this.setArmies = armies => {
+    constructor(name) {
+        this._name = name;
+        this._armies = [];
+        this._level = null;
+        this.finished = false;
+
+
+        // Keeps track of battles statistics
+        this._stats = {
+            duration: 0,
+            casualties: 0,
+            survivors: 0
+        };
+        this.hasNotify = true;
+        POOL.listenEvent(RG.EVT_ARMY_EVENT, this);
+    }
+
+    getType() {
+        return 'battle';
+    }
+
+    getArmies() {
+        return this._armies.slice();
+    }
+
+    setArmies(armies) {
         this._armies = armies;
         this._armies.forEach(army => {
             army.setBattle(this);
         });
-    };
+    }
 
-    this.getName = () => this._name;
+    getName() {
+        return this._name;
+    }
 
-    this.setLevel = level => {
+    setLevel(level) {
         this._level = level;
         this._level.setParent(this);
     };
-    this.getLevel = () => this._level;
+    getLevel() {
+        return this._level;
+    }
 
-    this.getStats = () => this._stats;
-    this.setStats = stats => {this._stats = stats;};
+    getStats() {
+        return this._stats;
+    }
+
+    setStats(stats) {this._stats = stats;};
 
     /* Adds an army to given x,y location.*/
-    this.addArmy = (army, x, y, conf: any = {}) => {
+    addArmy(army, x, y, conf) {
         const horizontal = conf.horizontal ? true : false;
         const numRows = conf.numRows > 0 ? conf.numRows : 1;
 
@@ -188,11 +252,11 @@ export const Battle = function(name) {
                 'Level must exist before adding army.');
         }
         army.setBattle(this);
-    };
+    }
 
     /* Adds actor to the battle level. Changes underlying base element if actor
      * would get stuck otherwise. */
-    this.addActor = (actor, x, y) => {
+    addActor(actor, x, y) {
         const cell = this._level.getMap().getCell(x, y);
         // TODO workaround for mountain level
         if (!cell.isPassable()) {
@@ -202,15 +266,15 @@ export const Battle = function(name) {
             RG.err('Game.Battle', 'addActor',
                 `Cannot add ${actor} to ${x},${y}`);
         }
-    };
+    }
 
-    this.armyInThisBattle = army => {
+    armyInThisBattle(army) {
         const index = this._armies.indexOf(army);
         return index >= 0;
-    };
+    }
 
     /* Returns true if the battle is over.*/
-    this.isOver = () => {
+    isOver() {
         if (this._armies.length > 1) {
             let numArmies = 0;
             this._armies.forEach(army => {
@@ -226,10 +290,9 @@ export const Battle = function(name) {
             RG.err('Game.Battle', 'isOver', 'Battle should have >= 2 armies.');
         }
         return false;
-    };
+    }
 
-    this.hasNotify = true;
-    this.notify = function(evtName, msg) {
+    notify(evtName, msg) {
         if (evtName === RG.EVT_ARMY_EVENT) {
             const bName = this.getName();
             debug(`${bName} got EVT_ARMY_EVENT`);
@@ -246,11 +309,10 @@ export const Battle = function(name) {
                 }
             }
         }
-    };
-    POOL.listenEvent(RG.EVT_ARMY_EVENT, this);
+    }
 
     /* Serialies the object into JSON. */
-    this.toJSON = function() {
+    toJSON(): BattleJSON {
         return {
             isJSON: true,
             name: this._name,
@@ -259,13 +321,12 @@ export const Battle = function(name) {
             stats: this._stats,
             finished: this.finished
         };
-    };
+    }
 
-};
-
-Battle.prototype.removeListeners = function() {
-    this._armies.forEach(army => {
-        POOL.removeListener(army);
-    });
-    POOL.removeListener(this);
-};
+    removeListeners() {
+        this._armies.forEach(army => {
+            POOL.removeListener(army);
+        });
+        POOL.removeListener(this);
+    }
+}
