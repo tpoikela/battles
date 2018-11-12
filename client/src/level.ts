@@ -6,6 +6,7 @@ import {compsToJSON} from './component.base';
 import {Random} from './random';
 import {EventPool} from './eventpool';
 import * as Mixin from './mixin';
+import {ELEM} from '../data/elem-constants';
 
 const POOL = EventPool.getPool();
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
@@ -203,7 +204,7 @@ export class Level extends Entity {
             if (this._map.hasXY(x, y)) {
               stairs.setSrcLevel(this);
               // Prevents stairs on impassable squares
-              this._map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+              this._map.setBaseElemXY(x, y, ELEM.FLOOR);
               return this._addPropToLevelXY(RG.TYPE_ELEM, stairs, x, y);
             }
             else {
