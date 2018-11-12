@@ -19,8 +19,8 @@ describe('CaveGenerator', () => {
 
             const extras = level.getExtras();
             const {startPoint, endPoint} = extras;
-            expect(startPoint).to.be.an.array;
-            expect(endPoint).to.be.an.array;
+            expect(startPoint).to.be.an('array');
+            expect(endPoint).to.be.an('array');
             expect(startPoint).not.to.deep.equal(endPoint);
         }
     });

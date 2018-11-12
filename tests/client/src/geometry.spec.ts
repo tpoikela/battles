@@ -1,20 +1,27 @@
 
 import {expect} from 'chai';
-import RG from '../../../client/src/battles';
+import RG from '../../../client/src/rg';
 import {Geometry} from '../../../client/src/geometry';
+import {FactoryLevel} from '../../../client/src/factory.level';
+import * as Element from '../../../client/src/element';
+import * as Item from '../../../client/src/item';
+import {SentientActor} from '../../../client/src/actor';
+import {ObjectShell} from '../../../client/src/objectshellparser';
 
 describe('Geometry', () => {
 
     let levels = null;
     let superLevel = null;
+    let factLevel = null;
 
     beforeEach(() => {
+        factLevel = new FactoryLevel();
         levels = [];
         for (let i = 0; i < 3; i++) {
-            const level = RG.FACT.createLevel('arena', 10 + i, 10 + i);
+            const level = factLevel.createLevel('arena', 10 + i, 10 + i);
             levels.push(level);
         }
-        superLevel = RG.FACT.createLevel('empty', 40, 40);
+        superLevel = factLevel.createLevel('empty', 40, 40);
     });
 
     it('can tile several levels into a super level', () => {
@@ -59,16 +66,17 @@ describe('Geometry', () => {
     });
 
     it('can do a full merge for two levels', () => {
-        const l1 = RG.FACT.createLevel('empty', 40, 50);
-        const l2 = RG.FACT.createLevel('arena', 20, 20);
+        const factLevel = new FactoryLevel();
+        const l1 = factLevel.createLevel('empty', 40, 50);
+        const l2 = factLevel.createLevel('arena', 20, 20);
 
-        const actor2 = new RG.Actor.Rogue('rat');
+        const actor2 = new SentientActor('rat');
         l2.addActor(actor2, 1, 2);
 
-        const item2 = new RG.Item.Weapon('sword');
+        const item2 = new Item.Weapon('sword');
         l2.addItem(item2, 4, 5);
 
-        const stairs2 = new RG.Element.Stairs('stairsDown', l2);
+        const stairs2 = new Element.ElementStairs('stairsDown', l2);
         l2.addStairs(stairs2, 7, 8);
 
         const mX = 2;
@@ -110,17 +118,17 @@ describe('Geometry', () => {
 
         let nKeepers = 0;
 
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         for (let i = 0; i < 2; i++) {
             const levelConf = {nShops: i + 1, nGates: 2, nHouses: 20, parser};
-            const town = RG.FACT.createLevel('townwithwall', cols, rows,
+            const town = factLevel.createLevel('townwithwall', cols, rows,
                 levelConf);
             subLevels.push(town);
             nKeepers += i + 1;
         }
 
         const subLevelPos = [0.03, 0.07];
-        const mainLevel = RG.FACT.createLevel('empty', mainCols, mainRows, {});
+        const mainLevel = factLevel.createLevel('empty', mainCols, mainRows, {});
 
         // Calculate position and tile sub-levels into main level
         const y0 = subLevelPos[0] * 3 * cols;
@@ -141,13 +149,13 @@ describe('Geometry', () => {
     });
 
     it('can floodfill a level map', () => {
-        let level = RG.FACT.createLevel('empty', 10, 10);
+        let level = factLevel.createLevel('empty', 10, 10);
         let map = level.getMap();
         let cell = map.getCell(5, 5);
         const floorCells = Geometry.floodfill(map, cell, 'floor');
         expect(floorCells).to.have.length(10 * 10);
 
-        level = RG.FACT.createLevel('arena', 10, 10);
+        level = factLevel.createLevel('arena', 10, 10);
         map = level.getMap();
         cell = map.getCell(0, 0);
         let cells = Geometry.floodfill(map, cell, 'wall');
@@ -158,7 +166,7 @@ describe('Geometry', () => {
         cells = Geometry.floodfill(map, cell, 'floor');
         expect(cells).to.have.length(100 - numWalls);
 
-        const dungeon = RG.FACT.createLevel('digger', 100, 50);
+        const dungeon = factLevel.createLevel('digger', 100, 50);
         const dungMap = dungeon.getMap();
         const dungFloorCells = dungMap.getCells(
             c => c.getBaseElem().getType() === 'floor');

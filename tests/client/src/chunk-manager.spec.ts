@@ -6,7 +6,8 @@ import * as World from '../../../client/src/world';
 import {RGTest} from '../../roguetest';
 import {Chunk} from '../../../client/src/chunk-manager';
 import {GameMain} from '../../../client/src/game';
-import {chaiBattles} from '../../helpers/chai-battles.js';
+import {Battle} from '../../../client/src/game.battle';
+import {chaiBattles} from '../../helpers/chai-battles';
 import {SentientActor} from '../../../client/src/actor';
 
 const expect = chai.expect;
@@ -199,7 +200,7 @@ describe('ChunkManager', function() {
 
         const newGameMaster = newGame.getGameMaster();
         let battle = Object.values(newGameMaster.battles)[0];
-        expect(battle.getLevel).not.to.exist;
+        expect(battle).not.to.have.property('getLevel');
 
         game.movePlayer(2, 1);
         game.movePlayer(1, 1);
@@ -208,8 +209,8 @@ describe('ChunkManager', function() {
 
         const masterBattles = newGameMaster.battles;
         const battleArrays = Object.values(masterBattles);
-        battle = battleArrays[0][0];
-        const battleLevel = battle.getLevel();
+        const battleObj: Battle = battleArrays[0][0];
+        const battleLevel = battleObj.getLevel();
         expect(battleLevel).to.exist;
 
         fromJSON = new RG.Game.FromJSON();

@@ -1,13 +1,10 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles.js');
-const Entity = require('../../../client/src/entity');
-
-RG.Component = require('../../../client/src/component');
-
-const {TagComponent, DataComponent} = RG.Component;
-
-const {NO_SERIALISATION} = RG.Component;
+import { expect } from 'chai';
+import RG from '../../../client/src/rg';
+import {Entity}  from '../../../client/src/entity';
+import * as Component from '../../../client/src/component';
+import {TagComponent, DataComponent, NO_SERIALISATION
+} from '../../../client/src/component.base';
 
 describe('Component.Base', () => {
 
@@ -52,7 +49,7 @@ describe('Component.Base', () => {
 
         const comp = new FieryComp();
         expect(comp.getLevel()).to.equal(0);
-        expect(FieryComp.description).to.equal(descr);
+        expect((FieryComp as any).description).to.equal(descr);
     });
 
     it('has onAdd/Remove callback mechanism', () => {
@@ -96,7 +93,7 @@ describe('RG.TagComponent', () => {
         const conf = {_privateField: true, falseField: false,
             description: 'Test'};
         const UndeadNew = TagComponent('UndeadNew', conf);
-        expect(UndeadNew.description).to.equal('Test');
+        expect((UndeadNew as any).description).to.equal('Test');
         const undeadComp = new UndeadNew();
         expect(undeadComp.getType()).to.equal('UndeadNew');
         expect(undeadComp._privateField).to.exist;

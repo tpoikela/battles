@@ -15,7 +15,7 @@ describe('ChatBase', () => {
         expect(selObject).to.not.be.empty;
 
         const optFunc = selObject.select(ROT.VK_0);
-        expect(optFunc).to.be.a.function;
+        expect(optFunc).to.be.a('function');
     });
 
     it('can contain nested chat objects inside with menus', () => {
@@ -34,7 +34,7 @@ describe('ChatBase', () => {
         expect(keys).to.have.length(6);
 
         const cbFunc = trainObj.select(ROT.VK_1);
-        expect(cbFunc).to.be.a.function;
+        expect(cbFunc).to.be.a('function');
 
     });
 
