@@ -91,7 +91,7 @@ export class FactoryLevel {
             }
         });
         level.setExtras(extras);
-    };
+    }
 
     createHouseElements(level, mapObj) {
         if (!mapObj.hasOwnProperty('houses')) {return;}
@@ -101,7 +101,7 @@ export class FactoryLevel {
             const door = new ElementDoor(true);
             level.addElement(door, doorXY[0], doorXY[1]);
         }
-    };
+    }
 
     /* Creates a shop and a shopkeeper into a random house in the given level.
      * Level should already contain empty houses where the shop is created at
