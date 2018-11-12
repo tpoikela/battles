@@ -1258,7 +1258,8 @@ RG.levelUpActor = (actor, newLevel) => {
 };
 
 RG.levelUpStats = function(actor, nextLevel) {
-    const randStat = RG.DIE_RNG.arrayGetRand(RG.STATS_LC);
+    const rng = Random.getRNG();
+    const randStat = rng.arrayGetRand(RG.STATS_LC);
     const stats = actor.get('Stats');
     stats.incrStat(randStat, 1);
 };
