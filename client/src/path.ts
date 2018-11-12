@@ -229,8 +229,8 @@ Path.getMinWeightOrShortest = function(map, x0, y0, x1, y1, passableFuncs) {
 Path.getWeightPathSegmented = function(map, x0, y0, x1, y1, nSeg, pathFunc) {
     const dX = x1 - x0;
     const dY = y1 - y0;
-    const segX = RG.Path.getPathSeg(dX, nSeg);
-    const segY = RG.Path.getPathSeg(dY, nSeg);
+    const segX = Path.getPathSeg(dX, nSeg);
+    const segY = Path.getPathSeg(dY, nSeg);
     let finalPath = [];
 
     let [startX, startY] = [x0, y0];
