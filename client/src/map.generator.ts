@@ -20,6 +20,7 @@ import {MapForest} from '../../lib/map.forest';
 import {MapMiner} from '../../lib/map.miner';
 import {MapMountain} from '../../lib/map.mountain';
 import {MapWall} from '../../lib/map.wall';
+import * as Element from './element';
 
 const RNG = Random.getRNG();
 
@@ -963,7 +964,7 @@ export class MapGenerator {
             for (let y = 0; y < rows; y++) {
                 const char = asciiMap[x][y];
                 if (char === '+') {
-                    const marker = new RG.Element.Marker('+');
+                    const marker = new Element.ElementMarker('+');
                     marker.setTag('door');
                     // door.setXY(x, y);
                     map.setBaseElemXY(x, y, asciiToElem['.']);
