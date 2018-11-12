@@ -5,6 +5,7 @@ import RG from './rg';
 import {Random} from './random';
 import {Placer} from './placer';
 import {ObjectShell} from './objectshellparser';
+import * as Component from './component';
 
 const RNG = Random.getRNG();
 
@@ -83,7 +84,7 @@ export const ItemRandomizer = function() {
                 stats = weapon.get('Stats');
             }
             else {
-                stats = new RG.Component.Stats();
+                stats = new Component.Stats();
                 stats.clearValues();
                 weapon.add(stats);
             }
