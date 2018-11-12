@@ -26,7 +26,7 @@ export const GoalsTop: any = {};
 /* Base class for all top-level goals. Includes evaluator logic and goal
  * arbitration.
  */
-class GoalTop extends Goal.Base {
+export class GoalTop extends Goal.Base {
 
     constructor(actor) {
         super(actor);
@@ -125,7 +125,7 @@ GoalsTop.Top = GoalTop;
 /* Top-level goal for actors. Arbitrates each turn with a number of lower level
  * goals. */
 //---------------------------------------------------------------------------
-class GoalThinkBasic extends GoalTop {
+export class GoalThinkBasic extends GoalTop {
 
     constructor(actor) {
         super(actor);
@@ -188,7 +188,7 @@ class GoalThinkBasic extends GoalTop {
 GoalsTop.ThinkBasic = GoalThinkBasic;
 
 /* Top-level goal for spell casters. */
-class GoalThinkSpellcaster extends GoalThinkBasic {
+export class GoalThinkSpellcaster extends GoalThinkBasic {
 
     constructor(actor) {
         super(actor);
@@ -202,7 +202,7 @@ class GoalThinkSpellcaster extends GoalThinkBasic {
 GoalsTop.ThinkSpellcaster = GoalThinkSpellcaster;
 
 /* Top goal used by commanders in battles. */
-class GoalThinkCommander extends GoalThinkBasic {
+export class GoalThinkCommander extends GoalThinkBasic {
 
     constructor(actor) {
         super(actor);
@@ -227,4 +227,3 @@ class GoalThinkCommander extends GoalThinkBasic {
 }
 GoalsTop.ThinkCommander = GoalThinkCommander;
 
-module.exports = GoalsTop;
