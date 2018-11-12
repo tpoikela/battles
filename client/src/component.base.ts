@@ -8,7 +8,7 @@ Component.createdCompDecls = {};
 // Used by components which cannot be serialized
 // In your component, add the following:
 //   this.toJSON = NO_SERIALISATION;
-const NO_SERIALISATION = (): any => null;
+export const NO_SERIALISATION = (): any => null;
 Component.NO_SERIALISATION = NO_SERIALISATION as any;
 
 // These attributes are never assigned to component instances
