@@ -6,8 +6,11 @@ import {OWMap} from './overworld.map';
 import {OW} from './ow-constants';
 import {Menu} from './menu';
 import {Random} from './random';
-import {Battle, Army} from './game.battle';
+import {Battle, BattleJSON, Army} from './game.battle';
 import {Level} from './level';
+import {SentientActor} from './actor';
+import {GameMain} from './game';
+import {WorldTop} from './world';
 
 import {EventPool} from '../src/eventpool';
 
@@ -17,6 +20,9 @@ const debug = dbg('bitn:GameMaster');
 const POOL = EventPool.getPool();
 
 const RNG = Random.getRNG();
+
+type BattleObj = Battle | BattleJSON;
+
 /* GameMaster objects reacts to various events caused by player and other
  * actors, and shapes the game world based on them. For example,
  * GameMaster can:
@@ -24,31 +30,47 @@ const RNG = Random.getRNG();
  *   - spawn special events and actors
  *   - spawn special items etc.
  */
-export const GameMaster = function(game, pool = POOL) {
-    this.player = null;
-    this.game = game;
-    this.fact = new FactoryBattle();
-    this.pool = pool;
+export class GameMaster {
+    public player: SentientActor;
+    public game: any ; // GameMain; TODO fix typings
+    public fact: FactoryBattle;
+    public pool: EventPool;
+    public battles: {[key: number]: BattleObj[]};
+    public battlesDone: {[key: number]: boolean};
+    public hasNotify: boolean;
+    public world: WorldTop;
 
-    // Lookup table for battles by level ID
-    this.battles = {};
-    this.battlesDone = {};
+    constructor(game, pool = POOL) {
+        this.player = null;
+        this.game = game;
+        this.fact = new FactoryBattle();
+        this.pool = pool;
 
-    this.setBattles = battles => {
+        // Lookup table for battles by level ID
+        this.battles = {};
+        this.battlesDone = {};
+        this.hasNotify = true;
+
+        this.pool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+        this.pool.listenEvent(RG.EVT_TILE_CHANGED, this);
+        this.pool.listenEvent(RG.EVT_BATTLE_OVER, this);
+        this.pool.listenEvent(RG.EVT_CREATE_BATTLE, this);
+    }
+
+    setBattles(battles) {
         this.battles = battles;
     };
 
-    this.setPool = pool => {this.pool = pool;};
-    this.setGame = game => {this.game = game;};
+    setPool(pool) {this.pool = pool;};
+    setGame(game) {this.game = game;};
 
-    this.setPlayer = player => {
+    setPlayer(player) {
         this.player = player;
     };
-    this.setWorld = world => {this.world = world;};
 
-    this.hasNotify = true;
+    setWorld(world) {this.world = world;};
 
-    this.notify = (evtName, args) => {
+    notify(evtName, args) {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             debug('EVT_LEVEL_CHANGED');
             const {actor} = args;
@@ -113,14 +135,10 @@ export const GameMaster = function(game, pool = POOL) {
             // TODO delete the battle (but keep the level)
         }
     };
-    this.pool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
-    this.pool.listenEvent(RG.EVT_TILE_CHANGED, this);
-    this.pool.listenEvent(RG.EVT_BATTLE_OVER, this);
-    this.pool.listenEvent(RG.EVT_CREATE_BATTLE, this);
 
-    /* Returns the bbox for the battle. This is coordinates for the battle
-     * inside the tile level. It corresponds to player's current owPos. */
-    this.getLevelBbox = function(ow, area, tileXY, owPos, level) {
+        /* Returns the bbox for the battle. This is coordinates for the battle
+         * inside the tile level. It corresponds to player's current owPos. */
+    getLevelBbox(ow, area, tileXY, owPos, level) {
         // Info needed:
         // local ow pos
         // one ow pos in level cells
@@ -144,28 +162,29 @@ export const GameMaster = function(game, pool = POOL) {
         };
     };
 
-    /* Adds player to the battle level. */
-    this.tryToAddPlayerToBattle = function(args) {
+        /* Adds player to the battle level. */
+    tryToAddPlayerToBattle(args) {
         const {actor, target, src} = args;
         const srcID = src.getID();
         if (this.battles.hasOwnProperty(srcID)) {
             const battle = this.getBattle(srcID);
-            if (battle.isJSON) {
+            if ((battle as BattleJSON).isJSON) {
                 return; // Cannot join serialized battle anyway
             }
-            const battleLevel = battle.getLevel();
+            const battleObj = battle as Battle;
+            const battleLevel = battleObj.getLevel();
 
             if (battleLevel.getID() === target.getID()) {
-                if (this.actorCanEnter(actor, battle)) {
+                if (this.actorCanEnter(actor, battleObj)) {
                     // Entered a battle
                     const comp = new RG.Component.InBattle();
-                    comp.setData({name: battle.getName()});
+                    comp.setData({name: battleObj.getName()});
                     actor.add(comp);
                     // Get army selection object
-                    const obj = this.getSelArmyObject(actor, battle);
+                    const obj = this.getSelArmyObject(actor, battleObj);
                     actor.getBrain().setSelectionObject(obj);
                 }
-                else if (battle.isOver()) {
+                else if (battleObj.isOver()) {
                     RG.gameMsg('Looks like the battle is already fought..');
                 }
                 else {
@@ -176,33 +195,33 @@ export const GameMaster = function(game, pool = POOL) {
 
     };
 
-    this.addBattle = function(parentId, battle) {
+    addBattle(parentId, battle) {
         this.battles[parentId].push(battle);
     };
 
-    this.getBattle = function(parentId) {
+    getBattle(parentId) {
         const battle = this.battles[parentId][0];
         return battle;
     };
 
-    this.getBattles = function(parentId) {
+    getBattles(parentId) {
         return this.battles[parentId];
     };
 
     /* Returns true if the actor can still enter the battle as an army member.
      * */
-    this.actorCanEnter = (actor, battle) => {
+    actorCanEnter(actor, battle) {
         if (battle.isOver()) {return false;}
         if (this.actorDesertedBattle(actor, battle)) {return false;}
         return true;
-    };
+    }
 
     /* Removes the player from a battle. */
-    this.removePlayerFromBattle = function(args) {
+    removePlayerFromBattle(args) {
         const {actor, target, src} = args;
         const areaID = target.getID();
         const srcID = src.getID();
-        const battle = this.getBattle(areaID);
+        const battle = this.getBattle(areaID) as Battle;
         const battleLevID = battle.getLevel().getID();
 
         const inBattleComp = actor.get('InBattle');
@@ -225,10 +244,10 @@ export const GameMaster = function(game, pool = POOL) {
         else if (!battle.isOver() && !battleData.army) {
             actor.remove('InBattle');
         }
-    };
+    }
 
     /* Adds BattleBadges after a battle is over. */
-    this.addBadgesForActors = battle => {
+    addBadgesForActors(battle) {
         const armies = battle.getArmies();
         armies.forEach(army => {
             const actors = army.getActors();
@@ -253,253 +272,255 @@ export const GameMaster = function(game, pool = POOL) {
         });
     };
 
-    this.actorDesertedBattle = (actor, battle) => {
+    actorDesertedBattle(actor, battle) {
         const badgeList = actor.getList('BattleBadge');
         const badge = badgeList.find(b => (
             b.getData().name === battle.getName()
         ));
         if (badge) {return true;}
         return false;
-    };
-
-
-
-};
-
-/* Moves actors out of the battle level into the parent level of the battle
- * (at the moment this is always Area.Tile level. */
-GameMaster.prototype.moveActorsOutOfBattle = function(battle) {
-    const level = battle.getLevel();
-    const conns = level.getConnections();
-
-    if (!conns || conns.length === 0) {
-        RG.err('Game.Master', 'moveActorsOutOfBattle',
-            'No exit connnection in level');
     }
 
-    const exit = conns[0];
-    const targetLevel = exit.getTargetLevel();
+    /* Moves actors out of the battle level into the parent level of the battle
+     * (at the moment this is always Area.Tile level. */
+    moveActorsOutOfBattle(battle) {
+        const level = battle.getLevel();
+        const conns = level.getConnections();
 
-    const armies = battle.getArmies();
-    armies.forEach(army => {
-        const actors = army.getActors();
-        actors.forEach(actor => {
-            if (actor.isInLevel(level)) {
+        if (!conns || conns.length === 0) {
+            RG.err('Game.Master', 'moveActorsOutOfBattle',
+                'No exit connnection in level');
+        }
 
-                if (!actor.isPlayer()) {
-                    if (level.removeActor(actor)) {
-                        targetLevel.addActorToFreeCell(actor);
+        const exit = conns[0];
+        const targetLevel = exit.getTargetLevel();
+
+        const armies = battle.getArmies();
+        armies.forEach(army => {
+            const actors = army.getActors();
+            actors.forEach(actor => {
+                if (actor.isInLevel(level)) {
+
+                    if (!actor.isPlayer()) {
+                        if (level.removeActor(actor)) {
+                            targetLevel.addActorToFreeCell(actor);
+                        }
+                        else {
+                            const json = JSON.stringify(actor.toJSON());
+                            RG.err('Game.Master', 'moveActorsOutOfBattle',
+                                `level.removeActor failed for actor ${json}`);
+                        }
+
                     }
                     else {
-                        const json = JSON.stringify(actor.toJSON());
-                        RG.err('Game.Master', 'moveActorsOutOfBattle',
-                            `level.removeActor failed for actor ${json}`);
+                        const selObj = this.getSelLeaveBattle(actor, level);
+                        actor.getBrain().setSelectionObject(selObj);
                     }
-
                 }
-                else {
-                    const selObj = this.getSelLeaveBattle(actor, level);
-                    actor.getBrain().setSelectionObject(selObj);
-                }
-            }
+            });
         });
-    });
 
-};
+    }
 
     /* Returns the selection object for player to select an army. */
-GameMaster.prototype.getSelArmyObject = function(player, battle) {
-    const armies = battle.getArmies();
-    const selArmyFunc = selection => {
-        const army = armies[selection];
-        const battleLevel = battle.getLevel();
-        let armyActors = army.getActors();
-        const nActors = armyActors.length;
+    getSelArmyObject(player, battle: Battle) {
+        const armies = battle.getArmies();
+        const selArmyFunc = selection => {
+            const army = armies[selection];
+            const battleLevel = battle.getLevel();
+            let armyActors = army.getActors();
+            const nActors = armyActors.length;
 
-        const pIndex = RNG.getUniformInt(0, nActors - 1);
-        const replacedActor = armyActors[pIndex];
-        const [pX, pY] = replacedActor.getXY();
+            const pIndex = RNG.getUniformInt(0, nActors - 1);
+            const replacedActor = armyActors[pIndex];
+            const [pX, pY] = replacedActor.getXY();
 
-        // Remove substituted actor from army/level
-        replacedActor.get('Action').disable();
-        army.removeActor(replacedActor);
-        battleLevel.removeActor(replacedActor);
+            // Remove substituted actor from army/level
+            replacedActor.get('Action').disable();
+            army.removeActor(replacedActor);
+            battleLevel.removeActor(replacedActor);
 
-        armyActors = army.getActors();
-        army.addActor(player);
+            armyActors = army.getActors();
+            army.addActor(player);
 
-        player.get('InBattle').updateData({army: army.getName});
-        armyActors.forEach(actor => {
-            actor.addFriend(player);
-        });
+            player.get('InBattle').updateData({army: army.getName});
+            armyActors.forEach(actor => {
+                actor.addFriend(player);
+            });
 
-        armies.forEach(enemyArmy => {
-            if (enemyArmy !== army) {
-                const enemies = enemyArmy.getActors();
-                enemies.forEach(enemy => {
-                    enemy.addEnemy(player);
-                });
-            }
-        });
-
-        if (!battleLevel.moveActorTo(player, pX, pY)) {
-            RG.err('GameMaster', 'getSelArmyObject',
-                `Could not move player to ${pX},${pY}`);
-        }
-    };
-
-    const choices = armies.map((army, i) => {
-        return [' Army ' + army.getName(), selArmyFunc.bind(this, i)];
-    });
-    choices.push(['Take no side', Menu.EXIT_MENU]);
-    const menu = new Menu.SelectRequired(choices);
-    menu.addPre('Please select an army to join:');
-    return menu;
-};
-
-GameMaster.prototype.getSelLeaveBattle = function(player, level) {
-    const leaveFunc = () => {
-      const exit = level.getConnections()[0];
-      if (!exit.useStairs(player)) {
-        RG.err('GameMaster', 'moveActorsOutOfBattle',
-          'Cannot move player via useStairs');
-      }
-      else {
-        const name = player.getName();
-        RG.gameMsg(`${name} leaves the battlefield`);
-      }
-    };
-    const choices = [
-      ['Leave immediately', leaveFunc],
-      ['Stay behind to scavenge the bodies of the dead.', Menu.EXIT_MENU]
-    ];
-    const menu = new Menu.SelectRequired(choices);
-    menu.addPre('Battle is over! Do you want to leave battle?');
-    return menu;
-};
-
-/* Serializes the object into JSON. */
-GameMaster.prototype.toJSON = function() {
-    const keys = Object.keys(this.battles);
-    const battles = {};
-    keys.forEach(id => {
-        const battlesTile = this.getBattles(id);
-        battlesTile.forEach(battle => {
-            if (battles.hasOwnProperty(id)) {
-                RG.warn('Game.Master', 'toJSON',
-                    `Battle for ID ${id} exists already`);
-            }
-            else {
-                battles[id] = [];
-            }
-
-            if (typeof battle.toJSON === 'function') {
-                battles[id].push(battle.toJSON());
-            }
-            else if (battle.name) {
-                battles[id].push(battle);
-            }
-            else {
-                RG.err('GameMaster', 'toJSON',
-                    'Does not look like proper battle object.');
-            }
-        });
-    });
-    return {
-        battles,
-        battlesDone: this.battlesDone
-    };
-};
-
-/* Used by the ChunkManager to serialize the battle when player move far
- * enough from the tile. */
-GameMaster.prototype.unloadBattles = function(tileLevel) {
-    const id = tileLevel.getID();
-    if (this.battles.hasOwnProperty(id)) {
-        const battles = this.getBattles(id);
-        this.battles[id] = [];
-        battles.forEach(battle => {
-            if (typeof battle.toJSON === 'function') {
-                if (!battle.isOver()) {
-                    // Important, otherwise cannot be GC'd
-                    battle.removeListeners();
+            armies.forEach(enemyArmy => {
+                if (enemyArmy !== army) {
+                    const enemies = enemyArmy.getActors();
+                    enemies.forEach(enemy => {
+                        enemy.addEnemy(player);
+                    });
                 }
-                this.battles[id].push(battle.toJSON());
+            });
+
+            if (!battleLevel.moveActorTo(player, pX, pY)) {
+                RG.err('GameMaster', 'getSelArmyObject',
+                    `Could not move player to ${pX},${pY}`);
             }
-            else {
-                RG.err('GameMaster', 'unloadBattle',
-                    `Unload for level ${id} failed`);
-            }
+        };
+
+        const choices = armies.map((army, i) => {
+            return [' Army ' + army.getName(), selArmyFunc.bind(this, i)];
         });
+        choices.push(['Take no side', Menu.EXIT_MENU]);
+        const menu = new Menu.SelectRequired(choices);
+        menu.addPre('Please select an army to join:');
+        return menu;
     }
-};
 
-GameMaster.prototype.biomeToLevelType = function(biome) {
-    switch (biome) {
-        case OW.BIOME.ARCTIC: return 'arctic';
-        case OW.BIOME.TUNDRA: return 'arctic';
-        case OW.BIOME.ALPINE: return 'mountain';
-        case OW.BIOME.TAIGA: return 'forest';
-        default: return 'forest';
+    getSelLeaveBattle(player, level) {
+        const leaveFunc = () => {
+          const exit = level.getConnections()[0];
+          if (!exit.useStairs(player)) {
+            RG.err('GameMaster', 'moveActorsOutOfBattle',
+              'Cannot move player via useStairs');
+          }
+          else {
+            const name = player.getName();
+            RG.gameMsg(`${name} leaves the battlefield`);
+          }
+        };
+        const choices = [
+          ['Leave immediately', leaveFunc],
+          ['Stay behind to scavenge the bodies of the dead.', Menu.EXIT_MENU]
+        ];
+        const menu = new Menu.SelectRequired(choices);
+        menu.addPre('Battle is over! Do you want to leave battle?');
+        return menu;
     }
-};
 
-GameMaster.prototype.getBattleLevels = function(): Level[]  {
-    const levels = [];
-    // TODO fix typings
-    Object.values(this.battles).forEach((battle: any) => {
-        levels.push(battle.getLevel());
-    });
-    return levels;
+    /* Serializes the object into JSON. */
+    toJSON() {
+        const keys = Object.keys(this.battles);
+        const battles = {};
+        keys.forEach(id => {
+            const battlesTile = this.getBattles(id);
+            battlesTile.forEach(battle => {
+                if (battles.hasOwnProperty(id)) {
+                    RG.warn('Game.Master', 'toJSON',
+                        `Battle for ID ${id} exists already`);
+                }
+                else {
+                    battles[id] = [];
+                }
 
-};
+                if (typeof (battle as Battle).toJSON === 'function') {
+                    battles[id].push((battle as Battle).toJSON());
+                }
+                else if ((battle as BattleJSON).name) {
+                    battles[id].push(battle);
+                }
+                else {
+                    RG.err('GameMaster', 'toJSON',
+                        'Does not look like proper battle object.');
+                }
+            });
+        });
+        return {
+            battles,
+            battlesDone: this.battlesDone
+        };
+    }
 
-GameMaster.prototype.createBattleIntoAreaTileLevel = function(parentLevel) {
-    const parentId = parentLevel.getID();
-
-    const ow = this.game.getOverWorld();
-    let maxDanger = 4;
-    let armySize = 20;
-    const battleConf: BattleConf = {};
-    let levelType = 'forest';
-
-    let bbox = parentLevel.getBbox();
-
-    if (ow) {
-        const world = this.game.getCurrentWorld();
-        const area = world.getAreas()[0];
-        const xy = area.findTileXYById(parentId);
-
-        // TODO use actual starting position
-        const startX = 2;
-        const startY = area.getSizeY() - 1;
-        const dX = Math.abs(startX - xy[0]);
-        const dY = Math.abs(startY - xy[1]);
-        maxDanger += dX + dY;
-        armySize += 20 * dY + 10 * dX;
-
-        const msg = `dx,dy: ${dX},${dY} armySize ${armySize}`;
-        debug(`${msg} , danger: ${maxDanger}`);
-
-        const owPos = this.game.getPlayerOwPos();
-        if (owPos && owPos.length > 1) {
-            const biome = ow.getBiome(owPos[0], owPos[1]);
-            levelType = this.biomeToLevelType(biome);
-            debug('Creating battle on tile ' + xy);
-            bbox = this.getLevelBbox(ow, area, xy, owPos, parentLevel);
+    /* Used by the ChunkManager to serialize the battle when player move far
+     * enough from the tile. */
+    unloadBattles(tileLevel) {
+        const id = tileLevel.getID();
+        if (this.battles.hasOwnProperty(id)) {
+            const battles = this.getBattles(id);
+            this.battles[id] = [];
+            battles.forEach(battle => {
+                if (typeof (battle as Battle).toJSON === 'function') {
+                    const battleObj = battle as Battle;
+                    if (!battleObj.isOver()) {
+                        // Important, otherwise cannot be GC'd
+                        battleObj.removeListeners();
+                    }
+                    this.battles[id].push(battleObj.toJSON());
+                }
+                else {
+                    RG.err('GameMaster', 'unloadBattle',
+                        `Unload for level ${id} failed`);
+                }
+            });
         }
     }
-    battleConf.maxDanger = maxDanger;
-    battleConf.armySize = armySize;
-    battleConf.levelType = levelType;
-    battleConf.bbox = bbox;
 
-    if (!this.battles.hasOwnProperty(parentId)) {
-        this.battles[parentId] = [];
-        const battle = this.fact.createBattle(parentLevel, battleConf);
-        this.addBattle(parentId, battle);
-        this.game.addBattle(this.getBattle(parentId), parentId);
-        return battle;
+    biomeToLevelType(biome) {
+        switch (biome) {
+            case OW.BIOME.ARCTIC: return 'arctic';
+            case OW.BIOME.TUNDRA: return 'arctic';
+            case OW.BIOME.ALPINE: return 'mountain';
+            case OW.BIOME.TAIGA: return 'forest';
+            default: return 'forest';
+        }
     }
-    return null;
-};
+
+    getBattleLevels(): Level[] {
+        const levels = [];
+        // TODO fix typings
+        Object.values(this.battles).forEach((battlesPerID) => {
+            battlesPerID.forEach(battle => {
+                if (!(battle as BattleJSON).isJSON) {
+                    levels.push((battle as Battle).getLevel());
+                }
+            });
+        });
+        return levels;
+
+    }
+
+    createBattleIntoAreaTileLevel(parentLevel) {
+        const parentId = parentLevel.getID();
+
+        const ow = this.game.getOverWorld();
+        let maxDanger = 4;
+        let armySize = 20;
+        const battleConf: BattleConf = {};
+        let levelType = 'forest';
+
+        let bbox = parentLevel.getBbox();
+
+        if (ow) {
+            const world = this.game.getCurrentWorld();
+            const area = world.getAreas()[0];
+            const xy = area.findTileXYById(parentId);
+
+            // TODO use actual starting position
+            const startX = 2;
+            const startY = area.getSizeY() - 1;
+            const dX = Math.abs(startX - xy[0]);
+            const dY = Math.abs(startY - xy[1]);
+            maxDanger += dX + dY;
+            armySize += 20 * dY + 10 * dX;
+
+            const msg = `dx,dy: ${dX},${dY} armySize ${armySize}`;
+            debug(`${msg} , danger: ${maxDanger}`);
+
+            const owPos = this.game.getPlayerOwPos();
+            if (owPos && owPos.length > 1) {
+                const biome = ow.getBiome(owPos[0], owPos[1]);
+                levelType = this.biomeToLevelType(biome);
+                debug('Creating battle on tile ' + xy);
+                bbox = this.getLevelBbox(ow, area, xy, owPos, parentLevel);
+            }
+        }
+        battleConf.maxDanger = maxDanger;
+        battleConf.armySize = armySize;
+        battleConf.levelType = levelType;
+        battleConf.bbox = bbox;
+
+        if (!this.battles.hasOwnProperty(parentId)) {
+            this.battles[parentId] = [];
+            const battle = this.fact.createBattle(parentLevel, battleConf);
+            this.addBattle(parentId, battle);
+            this.game.addBattle(this.getBattle(parentId), parentId);
+            return battle;
+        }
+        return null;
+    }
+}
