@@ -1,28 +1,32 @@
 
-const RG = require('./rg');
-const Entity = require('./entity');
-const Factory = require('./factory');
-const Game = require('./game');
-const FromJSON = require('./game.fromjson');
-const Verify = require('./verify');
-const ObjectShell = require('./objectshellparser');
-const FactoryWorld = require('./factory.world');
-const {FactoryItem} = require('./factory.items');
-const Random = require('./random');
-const Disposition = require('./disposition');
+import RG from './rg';
 
-const OW = require('./overworld.map');
-RG.getOverWorld = require('./overworld');
-
-const Actors = require('../data/actors');
-const Creator = require('./world.creator');
-const ActorClass = require('./actor-class');
-const DebugGame = require('../data/debug-game');
-const TerritoryMap = require('../data/territory-map');
-const EventPool = require('../src/eventpool');
+import * as Component from './component';
+import * as Time from './time';
+import * as Verify from './verify';
+import * as World from './world';
+import {ActorClass} from './actor-class';
+import {Actors} from '../data/actors';
+import {DebugGame} from '../data/debug-game';
+import {Disposition} from './disposition';
+import {Entity} from './entity';
+import {EventPool} from '../src/eventpool';
+import {FactoryBase} from './factory';
+import {FactoryItem} from './factory.items';
+import {FactoryWorld} from './factory.world';
+import {Factory} from './factory';
+import {FromJSON} from './game.fromjson';
+import {GameMain} from './game';
+import {Geometry} from './geometry';
+import {OWMap, OWMapConf} from './overworld.map';
+import {ObjectShell} from './objectshellparser';
+import {OverWorld} from './overworld';
+import {Random} from './random';
+import {TerritoryMap} from '../data/territory-map';
+import {Territory} from './territory';
+import {WorldConf} from './world.creator';
 
 const POOL = EventPool.getPool();
-
 const RNG = Random.getRNG();
 
 /* Player stats based on user selection.*/
@@ -36,19 +40,19 @@ const confPlayerStats = {
 /* Object for creating the top-level game object. GUI should only use this
  * factory when creating a new game. For restoring a game, see RG.Game.Save.
  */
-const FactoryGame = function() {
-    Factory.Base.call(this);
+export const FactoryGame = function() {
+    FactoryBase.call(this);
     this._verif = new Verify.Conf('Factory.Game');
     this._parser = ObjectShell.getParser();
     this.presetLevels = {};
     this.callbacks = {};
 };
-RG.extend2(FactoryGame, Factory.Base);
+RG.extend2(FactoryGame, FactoryBase);
 
 /* Restores a game from JSON representation. */
 FactoryGame.prototype.restoreGame = function(json) {
     const fromJSON = new FromJSON();
-    const game = new Game.Main();
+    const game = new GameMain();
     return fromJSON.createGame(game, json);
 };
 
@@ -58,9 +62,9 @@ FactoryGame.prototype.createNewGame = function(conf) {
     this._verif.verifyConf('createNewGame', conf,
         ['sqrPerItem', 'sqrPerActor', 'playMode']);
 
-    const game = new Game.Main();
+    const game = new GameMain();
     if (Number.isInteger(conf.seed)) {
-        const rng = new RG.Random(conf.seed);
+        const rng = new Random(conf.seed);
         game.setRNG(rng);
     }
     const player = this.createPlayerUnlessLoaded(conf);
@@ -124,16 +128,16 @@ FactoryGame.prototype.createPlayerUnlessLoaded = function(obj) {
         });
 
         player.setType(obj.playerRace);
-        player.add(new RG.Component.Health(pConf.hp));
+        player.add(new Component.Health(pConf.hp));
         this.addActorClass(obj, player);
-        player.add(new RG.Component.Skills());
-        player.add(new RG.Component.GameInfo());
-        player.add(new RG.Component.BodyTemp());
-        player.add(new RG.Component.Abilities());
+        player.add(new Component.Skills());
+        player.add(new Component.GameInfo());
+        player.add(new Component.BodyTemp());
+        player.add(new Component.Abilities());
     }
 
     if (!player.has('Hunger')) {
-        const hunger = new RG.Component.Hunger(20000);
+        const hunger = new Component.Hunger(20000);
         player.add(hunger);
     }
     else {
@@ -158,13 +162,13 @@ FactoryGame.prototype.createPlayerUnlessLoaded = function(obj) {
  * scheduler of the game engine. */
 FactoryGame.prototype.createPlayerRegenEvents = function(game, player) {
     // Add HP regeneration
-    const regenPlayer = new RG.Time.RegenEvent(player,
+    const regenPlayer = new Time.RegenEvent(player,
         RG.PLAYER_HP_REGEN_PERIOD * RG.ACTION_DUR);
     game.addEvent(regenPlayer);
 
     // Add PP regeneration (if needed)
     if (player.has('SpellPower')) {
-        const regenPlayerPP = new RG.Time.RegenPPEvent(player,
+        const regenPlayerPP = new Time.RegenPPEvent(player,
             RG.PLAYER_PP_REGEN_PERIOD * RG.ACTION_DUR);
         game.addEvent(regenPlayerPP);
     }
@@ -174,7 +178,7 @@ FactoryGame.prototype.createPlayerRegenEvents = function(game, player) {
 FactoryGame.prototype.addActorClass = function(obj, player) {
     if (!obj.playerClass) {return;}
     if (ActorClass.hasOwnProperty(obj.playerClass)) {
-        const actorClassComp = new RG.Component.ActorClass();
+        const actorClassComp = new Component.ActorClass();
         const actorClass = ActorClass.create(obj.playerClass, player);
         actorClassComp.setClassName(obj.playerClass);
         actorClassComp.setActorClass(actorClass);
@@ -202,7 +206,7 @@ FactoryGame.prototype.setCallback = function(name, cb) {
 };
 
 FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
-    const owConf = FactoryGame.getOwConf(1, obj);
+    const owConf: OWMapConf = FactoryGame.getOwConf(1, obj);
     const midX = Math.floor(owConf.nLevelsX / 2);
     const playerX = midX;
     const playerY = owConf.nLevelsY - 1;
@@ -214,34 +218,35 @@ FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
     const startTime = new Date().getTime();
 
     this.progress('Creating Overworld Tile Map...');
-    const overworld = OW.createOverWorld(owConf);
+    const overworld = OWMap.createOverWorld(owConf);
     this.progress('DONE');
 
-    if (!overworld.terrMap) {
+    if (!overworld._terrMap) {
         this.progress('Generating territory for clans/races...');
-        overworld.terrMap = this.createTerritoryMap(overworld, obj.playerRace,
+        const terrMap = this.createTerritoryMap(overworld, obj.playerRace,
             playerX, playerY);
+        overworld.setTerrMap(terrMap);
     }
     this.progress('DONE');
 
     this.progress('Creating Overworld Level Map...');
-    const worldAndConf = RG.OverWorld.createOverWorldLevel(
+    const worldAndConf = OverWorld.createOverWorldLevel(
       overworld, owConf);
     const [worldLevel, worldConf] = worldAndConf;
     this.progress('DONE');
 
     this.progress('Mapping settlements into territory areas..');
-    this.mapZonesToTerritoryMap(overworld.terrMap, worldConf);
+    this.mapZonesToTerritoryMap(overworld.getTerrMap(), worldConf);
     this.progress('DONE');
 
     this.progress('Splitting Overworld Level Map into AreaTiles...');
     RG.Map.Level.idCount = 0;
-    const splitLevels = RG.Geometry.splitLevel(worldLevel, owConf);
+    const splitLevels = Geometry.splitLevel(worldLevel, owConf);
     this.progress('DONE');
 
     this.progress('Creating and connectting World.Area tiles...');
     RG.Map.Level.idCount = 1000;
-    const worldArea = new RG.World.Area('Ravendark', owConf.nLevelsX,
+    const worldArea = new World.Area('Ravendark', owConf.nLevelsX,
         owConf.nLevelsY, 100, 100, splitLevels);
     worldArea.connectTiles();
     this.progress('DONE');
@@ -256,7 +261,7 @@ FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
     this.progress('Creating places and local zones...');
     const playerLevel = splitLevels[playerX][playerY];
     this.createPlayerHome(worldConf, player, playerLevel, playerX, playerY);
-    this.createAreaLevelConstraints(worldConf, overworld.terrMap);
+    this.createAreaLevelConstraints(worldConf, overworld.getTerrMap());
     const world = factWorld.createWorld(worldConf);
     game.addPlace(world);
     overworld.clearSubLevels();
@@ -315,7 +320,7 @@ FactoryGame.prototype.placePlayer = function(player, level) {
     while (!found) {
         cell = RNG.arrayGetRand(freeCells);
         const [x, y] = cell.getXY();
-        const box = RG.Geometry.getBoxAround(x, y, bSize);
+        const box = Geometry.getBoxAround(x, y, bSize);
         if (box.length === minFreeCells) {
             found = true;
         }
@@ -448,7 +453,7 @@ FactoryGame.prototype.getDisposition = function() {
 };
 
 FactoryGame.prototype.getAreaXYFromOWTileXY = function(owX, owY) {
-    const coordMap = new RG.OverWorld.CoordMap({xMap: 10, yMap: 10});
+    const coordMap = new OverWorld.CoordMap({xMap: 10, yMap: 10});
     return coordMap.getAreaXYFromOWTileXY(owX, owY);
 };
 
@@ -490,7 +495,7 @@ FactoryGame.prototype.createPlayerHome = function(
 };
 
 FactoryGame.prototype.createAreaLevelConstraints = function(
-    worldConf, terrMap
+    worldConf, terrMap: Territory
 ) {
     const areaConf = worldConf.area[0];
     const constraints = {};
@@ -534,13 +539,13 @@ FactoryGame.prototype.getConstrWeightsForAreaXY = function(aX, aY, terrMap) {
 };
 
 FactoryGame.prototype.createWorldWithCreator = function(obj, game, player) {
-    const creator = new Creator();
+    const creator = new WorldConf();
 
     const conf = {name: 'World', worldSize: 'Small',
         areaSize: 'Small'
     };
 
-    obj.world = creator.createWorldConf(conf);
+    obj.world = WorldConf.createWorldConf(conf);
     return this.createFullWorld(obj, game, player);
 };
 
@@ -641,7 +646,7 @@ FactoryGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
 };
 
 
-FactoryGame.getOwConf = function(mult = 1, obj = {}) {
+FactoryGame.getOwConf = function(mult = 1, obj: any = {}): OWMapConf {
     const xMult = obj.xMult || 1;
     const yMult = obj.yMult || 1;
     const owConf = {
@@ -662,5 +667,3 @@ FactoryGame.getOwConf = function(mult = 1, obj = {}) {
     };
     return owConf;
 };
-
-module.exports = FactoryGame;
