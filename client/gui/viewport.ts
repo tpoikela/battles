@@ -1,5 +1,6 @@
 
 import {Cell} from '../src/map.cell';
+import {CellMap} from '../src/map';
 
 /* Viewport object which manages the shown part of a level or a map. */
 export class Viewport {
@@ -14,11 +15,9 @@ export class Viewport {
     public rows: number;
 
     constructor(viewportX, viewportY) {
-
         // Size of the viewport
         this.viewportX = viewportX;
         this.viewportY = viewportY;
-
     }
 
     /* Sets the viewport dimensions. */
@@ -30,7 +29,7 @@ export class Viewport {
     /* Sets the cells in the current viewport. x,y is the position of the
      * player, the map Map.CellList of current level.
      */
-    getCellsInViewPort(x, y, map) {
+    getCellsInViewPort(x: number, y: number, map: CellMap): void {
         let startX = x - this.viewportX;
         let endX = x + this.viewportX;
         let startY = y - this.viewportY;
@@ -78,7 +77,7 @@ export class Viewport {
 
         this.coord = {};
         for (let yy = startY; yy <= endY; yy++) {
-            this.coord[yy] = [];
+            this.coord[yy] = [] as Cell[];
             for (let xx = startX; xx <= endX; xx++) {
                 this.coord[yy].push(map.getCell(xx, yy));
             }
@@ -92,9 +91,9 @@ export class Viewport {
     }
 
     /* Returns the specified cell row in the viewport. */
-    getCellRow(y) {return this.coord[y];}
+    getCellRow(y): Cell[] {return this.coord[y];}
 
-    debugPrint() {
+    debugPrint(): void {
         const [startY, endY] = [this.startY, this.endY];
         for (let yy = startY; yy <= endY; yy++) {
             const row = this.coord[yy];
