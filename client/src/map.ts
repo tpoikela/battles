@@ -1,11 +1,21 @@
 
 import ROT from '../../lib/rot';
 import RG from './rg';
-import {Cell} from './map.cell';
+import {Cell, CellJSON} from './map.cell';
 import {ElementBase, ElementWall, ElementMarker} from './element';
 
 const FLOOR = new ElementBase('floor');
 const WALL = new ElementWall('wall');
+
+type Coord = [number, number];
+
+export interface CellMapJSON {
+    cols: number;
+    rows: number;
+    cells: CellJSON[];
+    explored: Coord[];
+    elements: any[];
+}
 
 /* Map cell list object which contains a number of cells. Map.CellList is used
  * for rendering while the Map.Level contains high-level information about
@@ -62,20 +72,20 @@ export class CellMap {
     }
 
     /* Returns true if x,y are in the this._map.*/
-    hasXY(x, y) {
+    hasXY(x, y): boolean {
         return (x >= 0) && (x < this.cols) && (y >= 0) && (y < this.rows);
     }
 
     /* Sets a property for the underlying cell.*/
-    setProp(x, y, prop, obj) {
+    setProp(x, y, prop, obj): void {
         this._map[x][y].setProp(prop, obj);
     }
 
-    removeProp(x, y, prop, obj) {
+    removeProp(x, y, prop, obj): boolean {
         return this._map[x][y].removeProp(prop, obj);
     }
 
-    moveProp(fromXY, toXY, prop, obj) {
+    moveProp(fromXY, toXY, prop, obj): boolean {
         if (this.removeProp(fromXY[0], fromXY[1], prop, obj)) {
             this.setProp(toXY[0], toXY[1], prop, obj);
             return true;
@@ -83,27 +93,27 @@ export class CellMap {
         return false;
     }
 
-    setElemXY(x, y, obj) {
+    setElemXY(x, y, obj): void {
         this.setProp(x, y, RG.TYPE_ELEM, obj);
     }
 
-    setBaseElemXY(x, y, elem) {
+    setBaseElemXY(x, y, elem: ElementBase) {
         this._map[x][y].setBaseElem(elem);
     }
 
-    getBaseElemXY(x, y) {
+    getBaseElemXY(x, y): ElementBase {
         return this._map[x][y].getBaseElem();
     }
 
-    getCell(x, y) {
+    getCell(x, y): Cell {
         return this._map[x][y];
     }
 
-    isExplored(x, y) {
+    isExplored(x, y): boolean {
         return this._map[x][y].isExplored();
     }
 
-    getBaseElemRow(y) {
+    getBaseElemRow(y): ElementBase[] {
         const row = [];
         for (let i = 0; i < this.cols; ++i) {
             row.push(this._map[i][y].getBaseElem());
@@ -111,7 +121,7 @@ export class CellMap {
         return row;
     }
 
-    getCellRow(y) {
+    getCellRow(y): Cell[] {
         const row = [];
         for (let i = 0; i < this.cols; ++i) {
             row.push(this._map[i][y]);
@@ -121,8 +131,8 @@ export class CellMap {
 
     /* Returns all free cells in the this._map. 'free' means that cell can be
     * traversed and is passable. */
-    getFree() {
-        const freeCells = [];
+    getFree(): Cell[] {
+        const freeCells = [] as Cell[];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
                 if (this._map[x][y].isFree()) {
@@ -134,8 +144,8 @@ export class CellMap {
     }
 
     getFreeNotOnEdge() {
-        const freeCells = this.getFree();
-        return freeCells.filter(c => (
+        const freeCells: Cell[] = this.getFree();
+        return freeCells.filter((c: Cell) => (
             c._x > 0 && c._x < (this.cols - 1) &&
             c._y > 0 && c._y < (this.rows - 1)
         ));
@@ -145,7 +155,7 @@ export class CellMap {
     * Range of y-coord can be given, if not, searches all y-coordinates starting
     * from 0.
     */
-    getFirstFreeFromRight(y0 = 0, y1 = this.rows - 1) {
+    getFirstFreeFromRight(y0 = 0, y1 = this.rows - 1): Cell | null {
         for (let x = this.cols - 1; x >= 0; x--) {
             for (let y = y0; y <= y1; y++) {
                 if (this._map[x][y].isFree()) {
@@ -157,7 +167,7 @@ export class CellMap {
     }
 
     /* Returns all free cells in the given bounding box. */
-    getFreeInBbox(bbox) {
+    getFreeInBbox(bbox): Cell[] {
         const freeCells = [];
         for (let x = bbox.ulx; x <= bbox.lrx; x++) {
             for (let y = bbox.uly; y < bbox.lry; y++) {
@@ -171,8 +181,8 @@ export class CellMap {
 
     /* Returns all empty cells. Cell is empty, if it has only the base
      * element, but no props. */
-    getEmptyCells() {
-        const emptyCells = [];
+    getEmptyCells(): Cell[] {
+        const emptyCells: Cell[] = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
                 if (!this._map[x][y].hasProps()) {
@@ -184,28 +194,28 @@ export class CellMap {
     }
 
     /* Returns true if light passes through this cell.*/
-    lightPasses(x, y) {
+    lightPasses(x, y): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].lightPasses(); // delegate to cell
         }
         return false;
     }
 
-    hasObstacle(x, y) {
+    hasObstacle(x, y): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].hasObstacle();
         }
         return false;
     }
 
-    isPassable(x, y) {
+    isPassable(x, y): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].isPassable();
         }
         return false;
     }
 
-    isPassableByAir(x, y) {
+    isPassableByAir(x, y): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].isPassableByAir();
         }
@@ -213,7 +223,7 @@ export class CellMap {
     }
 
     /* Returns visible cells for given actor.*/
-    getVisibleCells(actor) {
+    getVisibleCells(actor): Cell[] {
         const cells = [];
         const [xA, yA] = actor.getXY();
         const range = actor.getFOVRange();
@@ -234,7 +244,7 @@ export class CellMap {
     }
 
     /* Returns all cells explored by the player.*/
-    getExploredCells() {
+    getExploredCells(): Cell[] {
         const cells = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
@@ -246,7 +256,7 @@ export class CellMap {
         return cells;
     }
 
-    exploreAll(isExplored = true) {
+    exploreAll(isExplored = true): void {
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
                 this._map[x][y]._explored = isExplored;
@@ -255,7 +265,7 @@ export class CellMap {
     }
 
     /* Returns true if x,y is located at this._map border cells.*/
-    isBorderXY(x, y) {
+    isBorderXY(x, y): boolean {
         if (x === 0) {return true;}
         if (y === 0) {return true;}
         if (x === this.cols - 1) {return true;}
@@ -264,7 +274,7 @@ export class CellMap {
     }
 
     /* Prints the this._map in ASCII. */
-    debugPrintInASCII() {
+    debugPrintInASCII(): void {
         let mapInASCII = '';
         for (let y = 0; y < this.rows; y++) {
             let row = '';
@@ -317,14 +327,14 @@ export class CellMap {
 
     /* Queries a row of cells. _optimizeForRowAccess must be called before this
      * function is used. */
-    getCellRowFast(y) {
+    getCellRowFast(y): Cell[] {
         if (!this._isRowOptimized) {this._optimizeForRowAccess();}
         return this._rowMap[y];
     }
 
     /* Slow find for debugging. Tries to find all objects matching the
      * filterFunc. */
-    findObj(filterFunc) {
+    findObj(filterFunc): any {
         let result = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
@@ -339,7 +349,7 @@ export class CellMap {
      * OR
      *   cell => cell.getBaseElem().getType() === 'floor'
      */
-    getCells(filter = (cell: Cell) => true) {
+    getCells(filter = (cell: Cell) => true): Cell[] {
         const result = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
@@ -351,7 +361,7 @@ export class CellMap {
         return result;
     }
 
-    getCellsWithCoord(coord) {
+    getCellsWithCoord(coord): Cell[] {
         const result = [];
         coord.forEach(xy => {
             if (this.hasXY(xy[0], xy[1])) {
@@ -361,7 +371,7 @@ export class CellMap {
         return result;
     }
 
-    setBaseElems(coord, elem) {
+    setBaseElems(coord: Coord[], elem: ElementBase): void {
         coord.forEach(xy => {
             this._map[xy[0]][xy[1]].setBaseElem(elem);
         });
