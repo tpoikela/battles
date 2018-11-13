@@ -1,37 +1,44 @@
 
-import Capital from '../../../client/data/capital';
+import {Capital} from '../../../client/data/capital';
+import chai from 'chai';
 
-const chai = require('chai');
+import RG from '../../../client/src/rg';
+import {Placer} from '../../../client/src/placer';
+import {GameMain} from '../../../client/src/game';
+import {QuestData} from '../../../client/src/quest-gen';
+import {RGTest} from '../../roguetest';
+import {FromJSON} from '../../../client/src/game.fromjson';
 
-const RG = require('../../../client/src/battles');
-const Placer = require('../../../client/src/placer');
-const Game = require('../../../client/src/game');
-const {QuestData} = require('../../../client/src/quest-gen');
-const RGTest = require('../../roguetest');
-
-const FromJSON = Game.FromJSON;
-
-const chaiBattles = require('../../helpers/chai-battles.js');
-RG.Factory = require('../../../client/src/factory');
-RG.Factory.Battle = require('../../../client/src/factory.battle');
+import {chaiBattles} from '../../helpers/chai-battles';
+import {Factory} from '../../../client/src/factory';
+import {FactoryLevel} from '../../../client/src/factory.level';
+import {FactoryBattle} from '../../../client/src/factory.battle';
+import * as Item from '../../../client/src/item';
+import * as Component from '../../../client/src/component';
+import * as Element from '../../../client/src/element';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
 
-describe('RG.Game.FromJSON', function() {
+const Stairs = Element.ElementStairs;
+
+describe('Game.FromJSON', function() {
     this.timeout(4000);
     let fromJSON = null;
+    let factLevel = null;
 
     beforeEach(() => {
         fromJSON = new FromJSON();
+        factLevel = new FactoryLevel();
     });
 
     afterEach(() => {
         fromJSON = null;
+        factLevel = null;
     });
 
-    it('Converts item JSON back to RG.Items', () => {
-        const item1 = new RG.Item.Weapon('knife');
+    it('Converts item JSON back to Items', () => {
+        const item1 = new Item.Weapon('knife');
         item1.setValue(100);
         const json = item1.toJSON();
         const newItem = fromJSON.createItem(json);
@@ -42,7 +49,7 @@ describe('RG.Game.FromJSON', function() {
     });
 
     it('Converts Ammo to JSON and back', () => {
-        const arrow = new RG.Item.Ammo('Steel arrow');
+        const arrow = new Item.Ammo('Steel arrow');
         const json = arrow.toJSON();
         const newArrow = fromJSON.createItem(json);
         expect(arrow.equals(newArrow)).to.equal(true);
@@ -104,14 +111,14 @@ describe('RG.Game.FromJSON', function() {
         actor.setFOVRange(21);
 
         const goblinEntID = actor.getID();
-        const item = new RG.Item.Weapon('sword');
+        const item = new Item.Weapon('sword');
         const swordID = item.getID();
         level.addActor(actor, 2, 2);
         level.addItem(item, 3, 3);
 
-        const shopElem = new RG.Element.Shop();
-        const shopItem = new RG.Item.Weapon('Sword for sale');
-        shopItem.add(new RG.Component.Unpaid());
+        const shopElem = new Element.ElementShop();
+        const shopItem = new Item.Weapon('Sword for sale');
+        shopItem.add(new Component.Unpaid());
         level.addElement(shopElem, 4, 4);
         level.addItem(shopItem, 4, 4);
 
@@ -139,11 +146,11 @@ describe('RG.Game.FromJSON', function() {
     });
 
     it('connects levels after restoring game from JSON', () => {
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         const level1 = RGTest.createLevel('arena', 10, 10);
         const level2 = RGTest.createLevel('arena', 10, 10);
-        const s1 = new RG.Element.Stairs('stairsDown', level1, level2);
-        const s2 = new RG.Element.Stairs('stairsUp', level2, level1);
+        const s1 = new Element.ElementStairs('stairsDown', level1, level2);
+        const s2 = new Element.ElementStairs('stairsUp', level2, level1);
         s1.connect(s2);
         level1.addStairs(s1, 1, 1);
         level2.addStairs(s2, 2, 2);
@@ -152,7 +159,7 @@ describe('RG.Game.FromJSON', function() {
 
         const json = game.toJSON();
 
-        let newGame = new Game.Main();
+        let newGame = new GameMain();
         newGame = fromJSON.createGame(newGame, json);
         const newLevels = newGame.getLevels();
         expect(newLevels).to.have.length(2);
@@ -171,7 +178,7 @@ describe('RG.Game.FromJSON', function() {
     });
 
     it('converts full game into JSON and back to object', () => {
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         const level = RGTest.createLevel('arena', 10, 10);
         const player = new RG.Actor.Rogue('MyPlayer');
         player.setType('player');
@@ -179,7 +186,7 @@ describe('RG.Game.FromJSON', function() {
         game.addLevel(level);
         game.addPlayer(player);
         const json = game.toJSON();
-        let newGame = new Game.Main();
+        let newGame = new GameMain();
         newGame = fromJSON.createGame(newGame, json);
         const newPlayer = newGame.getPlayer();
         expect(newPlayer.getName()).to.equal('MyPlayer');
@@ -194,10 +201,10 @@ describe('RG.Game.FromJSON', function() {
         goblin.get('Stats').setAgility(17);
         goblin.setType('goblin');
 
-        const l1 = RG.FACT.createLevel('mountain', 50, 100);
+        const l1 = factLevel.createLevel('mountain', 50, 100);
         l1.addActor(goblin, 1, 3);
         f1.addLevel(l1);
-        const l2 = RG.FACT.createLevel('mountain', 50, 100);
+        const l2 = factLevel.createLevel('mountain', 50, 100);
         f2.addLevel(l2);
         mountain.addFace(f1);
         mountain.addFace(f2);
@@ -274,7 +281,7 @@ describe('RG.Game.FromJSON', function() {
         const nActorsAfter = newLevel.getActors().length;
         expect(nActorsAfter).to.equal(nActorsBefore);
 
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         game.addActiveLevel(newLevel);
         for (let i = 0; i < 50; i++) {
             game.simulateGame();
@@ -282,16 +289,16 @@ describe('RG.Game.FromJSON', function() {
     });
 
     it('can serialize/de-serialize a level with comps attached', () => {
-        const game = new RG.Game.Main();
-        const level = RG.FACT.createLevel('arena', 80, 40);
-        const qTarget = new RG.Component.QuestTarget();
+        const game = new GameMain();
+        const level = factLevel.createLevel('arena', 80, 40);
+        const qTarget = new Component.QuestTarget();
         qTarget.setTargetType('location');
         qTarget.setTarget(level);
         level.add(qTarget);
         game.addLevel(level);
 
         const json = game.toJSON();
-        let newGame = new RG.Game.Main();
+        let newGame = new GameMain();
         newGame = fromJSON.createGame(newGame, json);
 
         const newLevel = newGame.getLevels()[0];
@@ -299,8 +306,8 @@ describe('RG.Game.FromJSON', function() {
     });
 
     it('can serialize/de-serialize game after fighting', () => {
-        const game = new RG.Game.Main();
-        const level = RG.FACT.createLevel('arena', 80, 40);
+        const game = new GameMain();
+        const level = factLevel.createLevel('arena', 80, 40);
         const parser = RG.ObjectShell.getParser();
 
         const actors = [];
@@ -332,7 +339,7 @@ describe('RG.Game.FromJSON', function() {
         }
 
         const json = game.toJSON();
-        let newGame = new Game.Main();
+        let newGame = new GameMain();
         newGame = fromJSON.createGame(newGame, json);
 
         for (let i = 0; i < 500; i++) {
@@ -350,7 +357,7 @@ describe('RG.Game.FromJSON', function() {
 
     it('serializes/de-serializes player with complex stats/objects', () => {
         const factGame = new RG.Factory.Game();
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         const level = RGTest.createLevel('arena', 10, 10);
         const player = new RG.Actor.Rogue('MyPlayer');
         player.setType('player');
@@ -372,7 +379,7 @@ describe('RG.Game.FromJSON', function() {
         expect(player.getBook()).to.not.be.empty;
 
         const json = game.toJSON();
-        let newGame = new Game.Main();
+        let newGame = new GameMain();
         newGame = fromJSON.createGame(newGame, json);
         const newPlayer = newGame.getPlayer();
         expect(newPlayer.getName()).to.equal('MyPlayer');
@@ -407,7 +414,7 @@ describe('RG.Game.FromJSON', function() {
 
     it('can serialize/de-serialize actor with skills', () => {
         const actor = new RG.Actor.Rogue('skilled one');
-        const skills = new RG.Component.Skills();
+        const skills = new Component.Skills();
         actor.add(skills);
         expect(actor.has('Skills'), 'Has skills').to.equal(true);
         skills.addSkill('Melee');
@@ -425,10 +432,10 @@ describe('RG.Game.FromJSON', function() {
     });
 
     it('can serialize/de-serialize battles', () => {
-        const parentLevel = RG.FACT.createLevel('arena', 80, 30);
+        const parentLevel = factLevel.createLevel('arena', 80, 30);
         const battle = new RG.Factory.Battle().createBattle(parentLevel);
         const armies = battle.getArmies();
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         game.addBattle(battle);
 
         let actors = [];
@@ -461,9 +468,9 @@ describe('RG.Game.FromJSON', function() {
     });
 
     it('can serialize/de-serialize items with complex components', () => {
-        const magicSword = new RG.Item.Weapon('Magic sword');
-        const addOnHit = new RG.Component.AddOnHit();
-        const poisonComp = new RG.Component.Poison();
+        const magicSword = new Item.Weapon('Magic sword');
+        const addOnHit = new Component.AddOnHit();
+        const poisonComp = new Component.Poison();
         poisonComp.setDurationDie('1d6');
         poisonComp.setDamageDie('1d8 + 4');
         addOnHit.setComp(poisonComp);
@@ -479,11 +486,11 @@ describe('RG.Game.FromJSON', function() {
     });
 
     it('can restore elements with entity refs', () => {
-        const level = RG.FACT.createLevel('arena', 10, 10);
-        const lever = new RG.Element.Lever();
+        const level = factLevel.createLevel('arena', 10, 10);
+        const lever = new Element.ElementLever();
         level.addElement(lever, 2, 1);
         for (let i = 0; i < 3; i++) {
-            const leverDoor = new RG.Element.LeverDoor();
+            const leverDoor = new Element.ElementLeverDoor();
             lever.addTarget(leverDoor);
             level.addElement(leverDoor, 3 + i, 1);
         }
@@ -514,26 +521,26 @@ describe('RG.Game.FromJSON', function() {
         questData.addTarget('kill', killTarget);
         expect(questData.getPathTypes()).to.deep.equal(['location', 'kill']);
 
-        const targetComp = new RG.Component.QuestTarget();
+        const targetComp = new Component.QuestTarget();
         targetComp.setTarget(killTarget);
         targetComp.setTargetType('kill');
         killTarget.add(targetComp);
 
-        const giverComp = new RG.Component.QuestGiver(questData);
+        const giverComp = new Component.QuestGiver(questData);
         giver.add(giverComp);
         giverComp.addTarget('kill', killTarget);
 
         const questTargets = giverComp.getQuestTargets();
-        const questComp = new RG.Component.Quest();
+        const questComp = new Component.Quest();
         questComp.setGiver(giver);
         questComp.addTarget(questTargets[0]);
         quester.add(questComp);
 
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         game.addLevel(level);
         const json = game.toJSON();
 
-        let newGame = new Game.Main();
+        let newGame = new GameMain();
         newGame = fromJSON.createGame(newGame, json);
 
         const restLevel = newGame.getLevels()[0];
