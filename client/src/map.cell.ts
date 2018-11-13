@@ -9,6 +9,7 @@ const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 type PropsType = Element.ElementBase | Item.Base | BaseActor;
 type Door = Element.ElementDoor;
 type LeverDoor = Element.ElementLeverDoor;
+type Stairs = Element.ElementStairs;
 
 interface CellProps {
     [key: string]: PropsType[];
@@ -141,7 +142,7 @@ export class Cell {
     }
 
     /* Returns true if cell has stairs.*/
-    hasStairs() {
+    hasStairs(): boolean {
         const propType = this.getConnection();
         if (propType) {
             const name = propType.getName();
@@ -151,33 +152,34 @@ export class Cell {
     }
 
     /* Returns true if cell has passage to another tile. */
-    hasPassage() {
+    hasPassage(): boolean {
         const propType = this.getConnection();
         if (propType) {return propType.getName() === 'passage';}
         return false;
     }
 
-    hasShop() {
+    hasShop(): boolean {
         return this.hasPropType('shop');
     }
 
-    getShop() {
-        return this.getPropType('shop')[0];
+    getShop(): Element.ElementShop {
+        const shopU = this.getPropType('shop')[0] as unknown;
+        return shopU as Element.ElementShop;
     }
 
-    hasDoor() {
+    hasDoor(): boolean {
         return this.hasPropType('door');
     }
 
-    hasConnection() {
+    hasConnection(): boolean {
         return this.hasPropType('connection');
     }
 
-    hasHouse() {
+    hasHouse(): boolean {
         return this._baseElem.getType() === 'floorhouse';
     }
 
-    hasConnectionType(type) {
+    hasConnectionType(type): boolean {
         if (this.hasConnection()) {
             const connection = this.getConnection();
             return connection.getName() === type;
@@ -185,35 +187,36 @@ export class Cell {
         return false;
     }
 
-    hasTown() {
+    hasTown(): boolean {
         return this.hasConnectionType('town');
     }
 
-    hasBattle() {
+    hasBattle(): boolean {
         return this.hasConnectionType('battle');
     }
 
-    hasMountain() {
+    hasMountain(): boolean {
         return this.hasConnectionType('mountain');
     }
 
     /* Return stairs in this cell, or null if there are none.*/
-    getStairs() {
+    getStairs(): Stairs {
         if (this.hasStairs()) {
             return this.getConnection();
         }
         return null;
     }
 
-    getConnection() {
+    getConnection(): Stairs {
         if (this.hasPropType('connection')) {
-            return this.getPropType('connection')[0];
+            const connU = this.getPropType('connection')[0] as unknown;
+            return connU as Stairs;
         }
         return null;
     }
 
     /* Returns passage in this cell, or null if not found. */
-    getPassage() {
+    getPassage(): Stairs {
         if (this.hasPassage()) {
             return this.getConnection();
         }
@@ -221,7 +224,7 @@ export class Cell {
     }
 
     /* Returns true if light passes through this map cell.*/
-    lightPasses() {
+    lightPasses(): boolean {
         // if (!this._baseElem.lightPasses()) {return false;}
         if (!this._lightPasses) {return false;}
         // if (this.hasProp(TYPE_ELEM)) {
