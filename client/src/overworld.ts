@@ -31,6 +31,8 @@ import {OWMap} from './overworld.map';
 import {OW} from './ow-constants';
 import {ELEM} from '../data/elem-constants';
 import {Random} from './random';
+import {FactoryLevel} from './factory.level';
+import {Geometry} from './geometry';
 import * as IF from './interfaces';
 
 import dbg = require('debug');
@@ -362,7 +364,8 @@ function buildMapLevel(ow, coordMap) {
 
     const sizeX = ow.getSizeX();
     const sizeY = ow.getSizeY();
-    const owLevel = RG.FACT.createLevel(RG.LEVEL_EMPTY, worldCols, worldRows);
+    const factLevel = new FactoryLevel();
+    const owLevel = factLevel.createLevel(RG.LEVEL_EMPTY, worldCols, worldRows);
 
     // Build the overworld level in smaller pieces, and then insert the
     // small levels into the large level.
@@ -372,7 +375,7 @@ function buildMapLevel(ow, coordMap) {
             const subLevel = createSubLevel(ow, x, y, xMap, yMap);
             const x0 = x * xMap;
             const y0 = y * yMap;
-            RG.Geometry.mergeLevels(owLevel, subLevel, x0, y0);
+            Geometry.mergeLevels(owLevel, subLevel, x0, y0);
         }
     }
 
@@ -394,7 +397,8 @@ function createSubLevel(ow, owX, owY, xMap, yMap) {
 
     const subX = xMap;
     const subY = yMap;
-    const subLevel = RG.FACT.createLevel(RG.LEVEL_EMPTY, subX, subY);
+    const factLevel = new FactoryLevel();
+    const subLevel = factLevel.createLevel(RG.LEVEL_EMPTY, subX, subY);
 
     addBiomeFeaturesSubLevel(biomeType, subLevel);
 
@@ -413,6 +417,7 @@ function createSubLevel(ow, owX, owY, xMap, yMap) {
 function addBiomeFeaturesSubLevel(biomeType, subLevel) {
     const cols = subLevel.getMap().cols;
     const rows = subLevel.getMap().rows;
+    const factLevel = new FactoryLevel();
 
     if (biomeType === 'arctic') {
         MapGenerator.addRandomSnow(subLevel.getMap(), 1.0);
@@ -428,7 +433,7 @@ function addBiomeFeaturesSubLevel(biomeType, subLevel) {
         const forestConf = {
             ratio: 0.6
         };
-        const forest = RG.FACT.createLevel('forest', cols, rows, forestConf);
+        const forest = factLevel.createLevel('forest', cols, rows, forestConf);
         const forestMap = forest.getMap();
         freeCells.forEach(cell => {
             cell.setBaseElem(forestMap.getBaseElemXY(cell.getX(), cell.getY()));
@@ -438,7 +443,7 @@ function addBiomeFeaturesSubLevel(biomeType, subLevel) {
         const addLakes = getRNG().getUniform();
         if (addLakes < 0.3) {
             const lakeConf = {ratio: 0.4};
-            const lakes = RG.FACT.createLevel('lakes', cols, rows, lakeConf);
+            const lakes = factLevel.createLevel('lakes', cols, rows, lakeConf);
             const lakesMap = lakes.getMap();
             freeCells.forEach(cell => {
                 cell.setBaseElem(
@@ -451,7 +456,7 @@ function addBiomeFeaturesSubLevel(biomeType, subLevel) {
         const conf = {
             ratio: 0.1
         };
-        const grassland = RG.FACT.createLevel('forest', cols, rows, conf);
+        const grassland = factLevel.createLevel('forest', cols, rows, conf);
         const grassMap = grassland.getMap();
         freeCells.forEach(cell => {
             cell.setBaseElem(grassMap.getBaseElemXY(cell.getX(), cell.getY()));
@@ -682,7 +687,7 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
 
     let watchdog = WATCHDOG_MAX;
     while (coord.length !== 9) {
-        if (RG.Geometry.getFreeArea(freeXY, 3, 3, coord)) {
+        if (Geometry.getFreeArea(freeXY, 3, 3, coord)) {
             placed = true;
         }
         if (coord.length < 9) {
@@ -735,7 +740,7 @@ function addFortToSubLevel(owSubLevel, subLevel) {
     const coord = getAccessibleMountainCoord(subLevel, false);
     if (coord && coord.length > 0) {
         const [x, y] = coord[0];
-        const coordAround = RG.Geometry.getBoxAround(x, y, 1);
+        const coordAround = Geometry.getBoxAround(x, y, 1);
         const map = subLevel.getMap();
         const cellsAround = map.getCellsWithCoord(coordAround);
 
@@ -776,7 +781,7 @@ function getAccessibleMountainCoord(subLevel, edges = true) {
         const xyRand = getRNG().arrayGetRand(freeXY);
         let box = [];
         try {
-            box = RG.Geometry.getBoxAround(xyRand[0], xyRand[1], 1);
+            box = Geometry.getBoxAround(xyRand[0], xyRand[1], 1);
         }
         catch (e) {
             RG.diag(e);
@@ -986,7 +991,7 @@ OverWorld.createWorldConf = function(
                         let featX = mapX(coord[0][0], slX, subX);
                         let featY = mapY(coord[0][1], slY, subY);
                         [featX, featY] = legalizeXY([featX, featY]);
-                        const dName = RG.Names.getGenericPlaceName('dungeon');
+                        const dName = Names.getGenericPlaceName('dungeon');
 
                         const dungeonConf = LevelGen.getDungeonConf(dName);
                         Object.assign(dungeonConf,
@@ -1001,7 +1006,7 @@ OverWorld.createWorldConf = function(
 
                         const featX = mapX(coord[0][0], slX, subX);
                         const featY = mapY(coord[0][1], slY, subY);
-                        const mName = RG.Names.getUniqueName('mountain');
+                        const mName = Names.getUniqueName('mountain');
 
                         const mountConf = LevelGen.getMountainConf(mName);
                         Object.assign(mountConf,
@@ -1173,7 +1178,7 @@ function addCityConfToArea(feat, coordObj, areaConf) {
     const nLevels = coord.length;
     feat.nLevels = nLevels;
 
-    const cName = RG.Names.getUniqueName('city');
+    const cName = Names.getUniqueName('city');
     const cityConf = LevelGen.getCityConf(cName, feat);
     cityConf.owX = coordObj.x;
     cityConf.owY = coordObj.y;
@@ -1366,17 +1371,17 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
     const nPathSeg = 5;
     if (addMainRoads) {
         // Connect with road
-        /* const path = RG.Path.getMinWeightPath(owLevel.getMap(),
+        /* const path = Path.getMinWeightPath(owLevel.getMap(),
             playerStartX, playerStartY, capX, capY);*/
 
-        const path = RG.Path.getWeightPathSegmented(owLevel.getMap(),
+        const path = Path.getWeightPathSegmented(owLevel.getMap(),
             playerStartX, playerStartY, capX, capY, nPathSeg);
 
         if (path.length === 0) {
             RG.err('overworld.js', 'addGlobalFeatures',
                 'No path from player to capital.');
         }
-        RG.Path.addPathToMap(owLevel.getMap(), path);
+        Path.addPathToMap(owLevel.getMap(), path);
     }
 
     // Create road from capital north to wtower south
@@ -1390,13 +1395,13 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
         wTowerSubLevelXY);
 
     if (addMainRoads) {
-        /* const pathCapWTower = RG.Path.getMinWeightPath(owLevel.getMap(),
+        /* const pathCapWTower = Path.getMinWeightPath(owLevel.getMap(),
             owLevelCapExitXY[0], owLevelCapExitXY[1],
             wTowerLevelXY[0], wTowerLevelXY[1]);*/
-        const pathCapWTower = RG.Path.getWeightPathSegmented(owLevel.getMap(),
+        const pathCapWTower = Path.getWeightPathSegmented(owLevel.getMap(),
             owLevelCapExitXY[0], owLevelCapExitXY[1],
             wTowerLevelXY[0], wTowerLevelXY[1], nPathSeg);
-        RG.Path.addPathToMap(owLevel.getMap(), pathCapWTower);
+        Path.addPathToMap(owLevel.getMap(), pathCapWTower);
     }
 }
 
