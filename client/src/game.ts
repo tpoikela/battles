@@ -866,6 +866,3 @@ Game.WinCondition = function(name) {
     };
 
 };
-
-module.exports = Game;
-
