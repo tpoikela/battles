@@ -1,6 +1,3 @@
 
-const GUI = {};
-GUI.Screen = require('./screen');
-GUI.Viewport = require('./viewport');
-
-module.exports = GUI;
+export * from './screen';
+export  * from './viewport';
