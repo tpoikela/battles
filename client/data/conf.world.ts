@@ -1,7 +1,7 @@
 /* eslint comma-dangle: 0 */
 /* eslint max-len: 0 */
 
-const RG = require('../src/rg');
+import RG from '../src/rg';
 
 // Note:
 // An object with key 'constraint' can be passed at any level. This contains
@@ -57,7 +57,7 @@ const dungeons = {
 
 /* Configuration settings for creating the game world. There's not much to
 * document. Follow the convention to construct your own world. */
-RG.WorldConf = {
+export const WorldConf = {
     name: 'The North',
 
     presetLevels: {
@@ -148,6 +148,3 @@ RG.WorldConf = {
         },
     ],
 };
-
-module.exports = RG.WorldConf;
-
