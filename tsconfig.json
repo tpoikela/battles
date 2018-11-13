@@ -6,6 +6,7 @@
     "jsx": "react",
     "module": "commonjs",
     "noImplicitAny": false,
+    "strictNullChecks": false,
     "outDir": "build",
     "sourceMap": true,
     "target": "ES6",
