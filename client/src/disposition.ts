@@ -1,11 +1,10 @@
 /* Used to generate/store disposition of different clans/races. */
 
-const RG = require('./rg');
-const Random = require('./random');
-
+import RG from './rg';
+import {Random} from './random';
 const RNG = Random.getRNG();
 
-const Disposition = function(rivals, conf) {
+export const Disposition = function(rivals, conf?) {
     this.rivals = rivals;
     this.conf = Object.assign({
     }, conf);
@@ -80,5 +79,3 @@ Disposition.prototype.pairDone = function(r1, r2) {
 /* Convert into human-readable format. */
 Disposition.prototype.toString = function() {
 };
-
-module.exports = Disposition;
