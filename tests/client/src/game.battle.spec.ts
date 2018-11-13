@@ -1,18 +1,20 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles.js');
-const Game = require('../../..//client/src/game.js');
+import { expect } from 'chai';
+import RG from '../../../client/src/rg';
+import {SentientActor} from '../../../client/src/actor';
+import {GameMain} from '../../../client/src/game';
+import {FactoryLevel} from '../../../client/src/factory.level';
+import {Army, Battle} from '../../../client/src/game.battle';
+import {FactoryBattle} from '../../../client/src/factory.battle';
+import {EventPool} from '../../../client/src/eventpool';
 
-const BattleFact = require('../../../client/src/factory.battle');
-// const RGTest = require('../../roguetest');
-
-const {Army} = require('../../../client/src/game.battle');
+const POOL = EventPool.getPool();
 
 describe('Game.Army', () => {
     it('it has actors', () => {
-        const army = new Army();
-        const a1 = new RG.Actor.Rogue('soldier');
-        const a2 = new RG.Actor.Rogue('pacifist');
+        const army = new Army('Puny army');
+        const a1 = new SentientActor('soldier');
+        const a2 = new SentientActor('pacifist');
         army.addActor(a1);
         expect(army.hasActor(a1)).to.equal(true);
         expect(army.hasActor(a2)).to.equal(false);
@@ -20,24 +22,25 @@ describe('Game.Army', () => {
 
     it('responds to ACTOR_KILLED events', () => {
         const MockBattle = {getName: () => 'MockBattle'};
-        const army = new Army();
-        const a1 = new RG.Actor.Rogue('soldier');
-        const a2 = new RG.Actor.Rogue('pacifist');
+        const army = new Army('Great army');
+        const a1 = new SentientActor('soldier');
+        const a2 = new SentientActor('pacifist');
         army.addActor(a1);
         army.setBattle(MockBattle);
 
-        RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: a2});
+        POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: a2});
         expect(army.isDefeated()).to.equal(false);
 
-        RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: a1});
+        POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: a1});
         expect(army.isDefeated()).to.equal(true);
     });
 });
 
 describe('Game.Battle', function() {
     it('It is fought until end condition', () => {
-        const areaLevel = RG.FACT.createLevel('arena', 40, 40);
-        const game = new Game.Main();
+        const levelFact = new FactoryLevel();
+        const areaLevel = levelFact.createLevel('arena', 40, 40);
+        const game = new GameMain();
         game.addLevel(areaLevel);
 
         const conf = {
@@ -45,7 +48,7 @@ describe('Game.Battle', function() {
             armySize: 10, centerX: true, centerY: true,
             factions: ['undead', 'dwarf']
         };
-        const battle = new BattleFact().createBattle(areaLevel, conf);
+        const battle = new FactoryBattle().createBattle(areaLevel, conf);
         battle.getLevel().setParent(areaLevel);
         game.addBattle(battle, -1, true);
 
