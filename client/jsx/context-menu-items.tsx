@@ -1,8 +1,7 @@
 
 import * as React from 'react';
 import {ContextMenu, MenuItem} from 'react-contextmenu';
-
-const Cell = require('../src/map.cell');
+import {Cell} from '../src/map.cell';
 
 interface IContextMenuItemsProps {
   handleRightClick: any;
