@@ -46,6 +46,8 @@ const eventToPosition = (e, elem, props: IGameBoardProps, elemID: string) => {
 /** Component which renders the game rows. {{{2 */
 export default class GameBoard extends React.Component {
 
+    public board: any;
+
     constructor(props: IGameBoardProps) {
         super(props);
         this.onCellClick = this.onCellClick.bind(this);
@@ -85,7 +87,7 @@ export default class GameBoard extends React.Component {
       }
     }
 
-    onCellClick(evt) {
+    public onCellClick(evt) {
         const xy = eventToPosition(evt, this.board, this.props,
             'game-board-row');
         if (xy) {
@@ -93,7 +95,7 @@ export default class GameBoard extends React.Component {
         }
     }
 
-    onMouseOver(evt) {
+    public onMouseOver(evt) {
       if (this.props.onMouseOver) {
         evt.preventDefault();
         const xy = eventToPosition(evt, this.board, this.props,
@@ -102,7 +104,7 @@ export default class GameBoard extends React.Component {
       }
     }
 
-    onMouseUp(evt) {
+    public onMouseUp(evt) {
       if (this.props.onMouseUp) {
         evt.preventDefault();
         const xy = eventToPosition(evt, this.board, this.props,
@@ -111,7 +113,7 @@ export default class GameBoard extends React.Component {
       }
     }
 
-    onMouseDown(evt) {
+    public onMouseDown(evt) {
       if (this.props.onMouseDown) {
         evt.preventDefault();
         const xy = eventToPosition(evt, this.board, this.props,
@@ -120,7 +122,7 @@ export default class GameBoard extends React.Component {
       }
     }
 
-    getCellXY(evt) {
+    public getCellXY(evt): [number, number] {
       return eventToPosition(evt, this.board, this.boards, 'game-board-row');
     }
 
@@ -170,5 +172,3 @@ export default class GameBoard extends React.Component {
     }
 
 }
-
-
