@@ -2,112 +2,71 @@
 /* Contains all source code modules assigned to RG. */
 
 import RG from './rg';
+export {RG};
+export * from './verify';
 
-export const RG: any = {};
-
-import Verify from './verify';
-RG.Verify = Verify;
-
-import EventPool from './eventpool';
-RG.EventPool = EventPool;
+export * from './eventpool';
 
 // No deps to RG.SubElems
-import Random from './random';
-RG.Random = Random;
-import GameObject from './game-object';
-RG.GameObject = GameObject;
-import Mixin from './mixin';
-RG.Mixin = Mixin;
-import Geometry from './geometry';
-RG.Geometry = Geometry;
-import Time from './time';
-RG.Time = Time;
-import Template from './template';
-RG.Template = Template;
-import Animation from './animation';
-RG.Animation = Animation;
+export * from './random';
+export * from './game-object';
+
+import * as Mixin from './mixin';
+export {Mixin};
+export * from './geometry';
+export * from './time';
+export * from './template';
+
+import * as Anim from './animation';
+export {Anim};
 
 // Minor deps to other exports
-import Component from './component';
-RG.Component = Component;
-import Item from './item';
-RG.Item = Item;
-import Spell from './spell';
-RG.Spell = Spell;
-import System from './system';
-RG.System = System;
-import SystemManager from './system/system.manager';
-RG.System.Manager = SystemManager;
-import BTree from './aisequence';
-RG.BTree = BTree;
+import * as Component from './component';
+export {Component};
 
-import Goals from './goals';
-RG.Goals = Goals;
-import GoalsBattle from './goals-battle';
-RG.GoalsBattle = GoalsBattle;
-import GoalsTop from './goals-top';
-RG.GoalsTop = GoalsTop;
+export * from './item';
+export * from './spell';
+export * from './system';
+export * from './system/system.manager';
+export * from './aisequence';
 
-import Brain from './brain';
-RG.Brain = Brain;
-import Memory from './brain.memory';
-RG.Brain.Memory = Memory;
-import Inv from './inv';
-RG.Inv = Inv;
-import * as Actor from './actor';
-RG.Actor = Actor;
-import Element from './element';
-RG.Element = Element;
+export * from './goals';
+export * from './goals-battle';
+export * from './goals-top';
 
-import Cell from './map.cell';
-RG.Cell = Cell;
-import Map from './map';
-RG.Map = Map;
-import MapGenerator from './map.generator';
-RG.MapGenerator = MapGenerator;
-import MapLevel from './level';
-RG.MapLevel = MapLevel;
-import LevelGenerator from './level-generator';
-RG.LevelGenerator = LevelGenerator;
-import MountainGenerator from './mountain-generator';
-RG.MountainGenerator = MountainGenerator;
-import DungeonGenerator from './dungeon-generator';
-RG.DungeonGenerator = DungeonGenerator;
-import CaveGenerator from './cave-generator';
-RG.CaveGenerator = CaveGenerator;
+export * from './brain';
+export * from './brain.memory';
+export * from './inv';
+export * from './actor';
+export * from './element';
 
-import World from './world';
-RG.World = World;
+export * from './map.cell';
+export * from './map';
+export * from './map.generator';
+export * from './level';
+export * from './level-generator';
+export * from './mountain-generator';
+export * from './dungeon-generator';
+export * from './cave-generator';
 
-import Effects from '../data/effects';
-RG.Effects = Effects;
-import ObjectShell from './objectshellparser';
-RG.ObjectShell = ObjectShell;
+export * from './world';
 
-import Game from './game';
-RG.Game = Game;
-import Factory from './factory';
-RG.Factory = Factory;
-import FactoryWorld from './factory.world';
-RG.FactoryWorld = FactoryWorld;
-import FactoryZone from './factory.zone';
-RG.FactoryZone = FactoryZone;
+export * from '../data/effects';
+export * from './objectshellparser';
 
-import Names from '../data/name-gen';
-RG.Names = Names;
-import LevelGen from '../data/level-gen';
-RG.LevelGen = LevelGen;
+export * from './game';
+export * from './factory';
+export * from './factory.world';
+export * from './factory.zone';
 
-import OW from './overworld.map';
-RG.OW = OW;
-import Overworld from './overworld';
-RG.Overworld = Overworld;
+export * from '../data/name-gen';
+export * from '../data/level-gen';
 
-import FromJSON from './game.fromjson';
-RG.Game.FromJSON = FromJSON;
-import Chunk from './chunk-manager';
-RG.Chunk = Chunk;
+export * from './overworld.map';
+export * from './overworld';
 
-import FactoryGame from './factory.game';
-RG.FactoryGame = FactoryGame;
+export * from './game.fromjson';
+export * from './chunk-manager';
+
+export * from './factory.game';
 
