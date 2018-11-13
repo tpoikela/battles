@@ -1,6 +1,6 @@
 /* Contains the grammar to generate some texts for in-game chats. */
 
-const Grammars = {};
+export const Grammars: any = {};
 
 const questChatGrammar = `
 <Deliver_item_for_study> ::= "Could you deliver an item to someone?";
@@ -14,11 +14,11 @@ delivered";
 <Obtain_luxuries> ::= "Could you get some luxuries for me?";
 <Kill_pests> ::= "There are some pests which would have to be removed.";
 
-<Obtain_rare_items> ::= 
+<Obtain_rare_items> ::=
 "Some rare items would have to be obtained and delivered";
 <Kill_enemies> ::=
 "Someone should be silenced for good.";
-<Visit_a_dangerous_place> ::= 
+<Visit_a_dangerous_place> ::=
 "Could you take a look at a place for me?";
 
 <Revenge_Justice> ::=
@@ -68,5 +68,3 @@ delivered";
 <Survive_a_battle> ::= <goto> "finishbattle";
 `;
 Grammars.questChat = questChatGrammar;
-
-module.exports = Grammars;
