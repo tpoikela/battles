@@ -3,11 +3,11 @@
 /* This file contains the manual for Battles in the North. The manual is written
 * as markdown and translated (dynamically) using marked. */
 
-const Keys = require('../src/keymap');
-const marked = require('marked');
+import {Keys} from '../src/keymap';
+import marked = require('marked');
 
 const {GUI, KEY, getChar} = Keys;
-const Manual = {};
+const Manual: any = {};
 
 const moveTable = `
 <p>To move around, use:</p>
@@ -175,7 +175,7 @@ with the keyboard or using the mouse.
 Using marks for movement
 ------------------------
 
-To reduce the amount of backtracking in large levels, the game will automatically mark the 
+To reduce the amount of backtracking in large levels, the game will automatically mark the
 enter/exit locations for each level. To place a mark to any other location, you can press
 ${getChar(KEY.MARK)}. This mark will be added to the mark list of the current level.
 
