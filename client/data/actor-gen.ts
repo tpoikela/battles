@@ -1,7 +1,7 @@
 /* Contains an actor generator. Generates 'object shells' which are then used
  * for the procedural generation. */
 
-const ActorGen = {};
+const ActorGen: any = {};
 
 // Mods that can be applied to actors
 const mods = {
@@ -34,7 +34,7 @@ const weights = {
 
 /* Given a base shell, generates an array of actor object shells. */
 ActorGen.genActors = function(base) {
-
+    // TODO
 };
 
 module.exports = ActorGen;
