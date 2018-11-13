@@ -1,5 +1,5 @@
 
-const Texts = {};
+export const Texts: any = {};
 
 Texts.intro = {};
 Texts.intro.chapter1 = `
@@ -41,4 +41,3 @@ Texts.battle.beastsSlain =
 
 Texts.battle.enemiesDead =
     'All enemies are dead! You emerge victorious. Congratulations!';
-module.exports = Texts;
