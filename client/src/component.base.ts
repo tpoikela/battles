@@ -233,7 +233,7 @@ function errorIfCompDeclExists(type: string) {
  */
 
 /* Given an entity, serializes its components. */
-export const compsToJSON = ent => {
+export const compsToJSON = (ent): {[key: string]: any} => {
     const components = {};
     const thisComps = ent.getComponents();
     Object.keys(thisComps).forEach(id => {
