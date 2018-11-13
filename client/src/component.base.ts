@@ -248,6 +248,14 @@ Component.compsToJSON = compsToJSON;
 
 Component.idCount = 0;
 
+export function getIDCount() {
+    return Component.idCount;
+}
+
+export function setIDCount(idCount) {
+    return Component.idCount = idCount;
+}
+
 /* Base class for all components. Provides callback hooks, copying and cloning.
  * */
 export const ComponentBase = function(type: string) {
