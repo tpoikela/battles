@@ -7,9 +7,17 @@ import * as Item from './item';
 const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 
 type PropsType = Element.ElementBase | Item.Base | BaseActor;
+type Door = Element.ElementDoor;
+type LeverDoor = Element.ElementLeverDoor;
 
 interface CellProps {
     [key: string]: PropsType[];
+}
+
+export interface CellJSON {
+    t: string; // Type of this cell
+    ex?: number; // Explored by player?
+    elements?: Element.ElementJSON[];
 }
 
 /* Object representing one game cell. It can hold actors, items, traps or
@@ -18,11 +26,12 @@ interface CellProps {
 // const Cell = function(x: number, y: number, elem: Element) { // {{{2
 export class Cell {
 
+    // Used in Map.Cell for faster access
     public _explored: boolean;
+    public _x: number;
+    public _y: number;
 
     private _baseElem: Element.ElementBase;
-    private _x: number;
-    private _y: number;
     private _p: CellProps;
     private _lightPasses: boolean;
     private _isPassable: boolean;
@@ -232,13 +241,13 @@ export class Cell {
         return true;
     }
 
-    isPassable() {return this.isFree();}
+    isPassable(): boolean {return this.isFree();}
 
-    isPassableByAir() {
+    isPassableByAir(): boolean {
         return this._baseElem.isPassableByAir();
     }
 
-    isDangerous() {
+    isDangerous(): boolean {
         if (this._p[TYPE_ACTOR]) {
             const actors = this.getProp(TYPE_ACTOR);
             if (actors) {
@@ -248,19 +257,19 @@ export class Cell {
         return false;
     }
 
-    hasObstacle() {
-        this._baseElem.isObstacle();
+    hasObstacle(): boolean {
+        return this._baseElem.isObstacle();
     }
 
-    isSpellPassable() {
+    isSpellPassable(): boolean {
         return this._baseElem.isSpellPassable();
     }
 
     setExplored() {this._explored = true;}
-    isExplored() {return this._explored;}
+    isExplored(): boolean {return this._explored;}
 
     /* Returns true if it's possible to move to this cell.*/
-    isFree(isFlying = false) {
+    isFree(isFlying = false): boolean {
         // if (!isFlying && !this._baseElem.isPassable()) {return false;}
         if (!isFlying && !this._isPassable) {return false;}
 
@@ -272,10 +281,12 @@ export class Cell {
         }
         else if (this.hasProp(TYPE_ELEM)) {
             if (this.hasPropType('door')) {
-                return this.getPropType('door')[0].isOpen();
+                const door = this.getDoor();
+                return door.isOpen();
             }
             else if (this.hasPropType('leverdoor')) {
-                return this.getPropType('leverdoor')[0].isOpen();
+                const leverDoor = this.getLeverDoor();
+                return leverDoor.isOpen();
             }
         }
         // Handle flying/non-flying here
@@ -291,6 +302,22 @@ export class Cell {
         else {
             return true;
         }
+    }
+
+    getDoor(): Door {
+        if (this.hasPropType('door')) {
+            const door = this.getPropType('door')[0] as unknown;
+            return (door as Door);
+        }
+        return null;
+    }
+
+    getLeverDoor(): LeverDoor {
+        if (this.hasPropType('leverdoor')) {
+            const door = this.getPropType('leverdoor')[0] as unknown;
+            return (door as LeverDoor);
+        }
+        return null;
     }
 
     /* Add given obj with specified property type.*/
@@ -375,8 +402,8 @@ export class Cell {
         return false;
     }
 
-    toJSON() {
-        const json: any = {
+    toJSON(): CellJSON {
+        const json: CellJSON = {
             t: RG.elemTypeToIndex[this._baseElem.getType()]
         };
 
@@ -433,7 +460,7 @@ export class Cell {
     }
 
     /* Returns all props with given type in the cell.*/
-    getPropType(propType) {
+    getPropType(propType): PropsType[] {
         const props = [];
         if (this._baseElem.getType() === propType) {return [this._baseElem];}
         Object.keys(this._p).forEach(prop => {
