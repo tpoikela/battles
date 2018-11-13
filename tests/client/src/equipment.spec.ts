@@ -1,7 +1,7 @@
 
 import {expect} from 'chai';
 import RG from '../../../client/src/rg';
-import Item from '../../../client/src/item';
+import * as Item from '../../../client/src/item';
 
 import {
     EquipSlot,
@@ -26,7 +26,6 @@ describe('EquipSlot', () => {
 
     });
 });
-
 
 describe('Equipment', () => {
     let player = null;

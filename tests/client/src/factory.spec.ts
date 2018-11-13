@@ -1,11 +1,15 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const ItemRand = require('../../../client/src/factory.items').ItemRandomizer;
+import { expect } from 'chai';
+import RG from '../../../client/src/rg';
+import {ItemRandomizer as ItemRand} from '../../../client/src/factory.items';
+import {FactoryBase} from '../../../client/src/factory';
+import {FactoryGame} from '../../../client/src/factory.game';
+import {FactoryLevel} from '../../../client/src/factory.level';
+import {FactoryWorld} from '../../../client/src/factory.world';
+import * as Item from '../../../client/src/item';
+import {SentientActor} from '../../../client/src/actor';
 
-const temple = RG.FACT.createLevel('arena', 40, 40).toJSON();
-
-describe('RG.Factory.ItemRandomizer', () => {
+describe('ItemRandomizer', () => {
     it('Randomizes item properties for proc generation', () => {
         const itemRand = new ItemRand();
         const food = new RG.Item.Food('meat');
@@ -22,16 +26,16 @@ describe('RG.Factory.ItemRandomizer', () => {
 });
 
 const MockParser = function() {
-    this.createRandomItem = () => new RG.Item.Food('testFood');
-    this.createActor = name => new RG.Actor.Rogue(name);
+    this.createRandomItem = () => new Item.Food('testFood');
+    this.createActor = name => new SentientActor(name);
 };
 
-describe('RG.Factory.Base', () => {
+describe('FactoryBase', () => {
     it('Can create randomized towns', () => {
-        const factory = new RG.Factory.Base();
+        const factory = new FactoryBase();
         const conf = {
             parser: new MockParser(),
-            func: function() {return 'dummy';},
+            func: () => 'dummy',
             nShops: 2,
             shopFunc: [
                 item => (item.getType() === 'potion'),
@@ -63,7 +67,7 @@ describe('RG.Factory.Base', () => {
     });
 });
 
-describe('RG.Factory.Game', () => {
+describe('FactoryGame', () => {
 
     let conf = null;
 
@@ -83,16 +87,17 @@ describe('RG.Factory.Game', () => {
         };
     });
 
-
     it('can create new games', () => {
-        const gameFactory = new RG.Factory.Game();
+        const gameFactory = new FactoryGame();
         const game = gameFactory.createNewGame(conf);
         expect(game).to.exist;
         expect(game.getPlayer().getName()).to.equal('Player Hero');
     });
 
     it('can create new games with preset levels', () => {
-        const gameFactory = new RG.Factory.Game();
+        const factLevel = new FactoryLevel();
+        const temple = factLevel.createLevel('arena', 40, 40).toJSON();
+        const gameFactory = new FactoryGame();
         temple.id = RG.LEVEL_ID_ADD + 1000000;
         const worldConf = {
             name: 'PresetLevelWorld',

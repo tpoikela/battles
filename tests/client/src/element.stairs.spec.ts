@@ -1,11 +1,11 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const RGTest = require('../../roguetest');
+import { expect } from 'chai';
+import RG from '../../../client/src/rg';
+import {RGTest} from '../../roguetest';
+import {FromJSON} from '../../../client/src/game.fromjson';
+import * as Element from '../../../client/src/element';
 
-const FromJSON = require('../../../client/src/game').FromJSON;
-
-const Stairs = RG.Element.Stairs;
+const Stairs = Element.ElementStairs;
 
 describe('Element.Stairs', () => {
     it('has down-attr, prop type, type and name', () => {

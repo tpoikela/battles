@@ -1,8 +1,7 @@
 
 import { expect } from 'chai';
-
-const RG = require('../../../client/src/battles');
-const Disposition = require('../../../client/src/disposition');
+import RG from '../../../client/src/rg';
+import {Disposition} from '../../../client/src/disposition';
 
 describe('Disposition', () => {
     it('it generates dispos table for rivals', () => {

@@ -1,18 +1,18 @@
 
 import { expect } from 'chai';
 
-const RG = require('../../../client/src/battles');
-RG.Random = require('../../../client/src/random');
-RG.DungeonGenerator = require('../../../client/src/dungeon-generator');
+import RG from '../../../client/src/rg';
+import {Random} from '../../../client/src/random';
+import {DungeonGenerator} from '../../../client/src/dungeon-generator';
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 describe('DungeonGenerator', function() {
     this.timeout(10000);
 
     it('generates dungeon levels', () => {
         RNG.setSeed(new Date().getTime());
-        const gen = new RG.DungeonGenerator();
+        const gen = new DungeonGenerator();
         const conf = {
             nBigRooms: 0,
             rerunOnFailure: true
@@ -30,7 +30,7 @@ describe('DungeonGenerator', function() {
 
     it('generates dungeon levels with actors/items', () => {
         RNG.setSeed(new Date().getTime());
-        const gen = new RG.DungeonGenerator();
+        const gen = new DungeonGenerator();
         const cols = RNG.getUniformInt(80, 120);
         const rows = RNG.getUniformInt(28, 56);
         const conf = {};

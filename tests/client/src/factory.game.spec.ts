@@ -1,9 +1,9 @@
 
 import { expect } from 'chai';
 
-const RG = require('../../../client/src/battles');
-const FactoryGame = require('../../../client/src/factory.game');
-const OW = require('../../../client/src/overworld.map');
+import RG from '../../../client/src/rg';
+import {FactoryGame} from '../../../client/src/factory.game';
+import {OWMap} from '../../../client/src/overworld.map';
 
 describe('Factory.Game', () => {
     it('can generate worldConf based on territory map', () => {
@@ -12,23 +12,24 @@ describe('Factory.Game', () => {
         const pRace = 'goblin';
         const [playerX, playerY] = [0, 0];
         const owConf = FactoryGame.getOwConf(1.0);
-        const overworld = OW.createOverWorld(owConf);
-        overworld.terrMap = gameFact.createTerritoryMap(overworld, pRace,
+        const overworld = OWMap.createOverWorld(owConf);
+        const owTerrMap = gameFact.createTerritoryMap(overworld, pRace,
             playerX, playerY);
+        overworld.setTerrMap(owTerrMap);
 
         const worldAndConf = RG.OverWorld.createOverWorldLevel(
           overworld, owConf);
         const [worldLevel, worldConf] = worldAndConf;
         expect(worldLevel).to.not.be.empty;
 
-        gameFact.mapZonesToTerritoryMap(overworld.terrMap, worldConf);
+        gameFact.mapZonesToTerritoryMap(overworld.getTerrMap(), worldConf);
 
         const citiesConf = worldConf.area[0].city;
 
         const coordMap = new RG.OverWorld.CoordMap();
         coordMap.setXYMap(10, 10);
 
-        const terrMap = overworld.terrMap;
+        const terrMap = overworld.getTerrMap();
         const terrMapXY = terrMap.getMap();
         // const owMap = overworld.getMap();
 

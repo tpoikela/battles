@@ -1,17 +1,18 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const RGTest = require('../../roguetest');
-const ConfStack = require('../../../client/src/conf-stack');
+import { expect } from 'chai';
+import RG from '../../../client/src/rg';
+import {RGTest} from '../../roguetest';
+import {ConfStack} from '../../../client/src/conf-stack';
+import {FactoryWorld} from '../../../client/src/factory.world';
 
 const expectConnected = RGTest.expectConnected;
 
-describe('Factory.World', function() {
+describe('FactoryWorld', function() {
     this.timeout(3000);
     let fact = null;
 
     beforeEach(() => {
-        fact = new RG.Factory.World();
+        fact = new FactoryWorld();
     });
 
     afterEach(() => {
@@ -42,9 +43,7 @@ describe('Factory.World', function() {
 
     });
 
-
     it('has scope, conf and hier name management', () => {
-        const fact = new RG.Factory.World();
         const conf1 = {name: 'Top', myConf: 'Top_abc'};
         const conf2 = {name: 'Sub', constraint: 'abc'};
         const conf3 = {name: 'SubSub', myConf: 'SubSub_xxx'};
@@ -288,7 +287,7 @@ describe('Factory.World', function() {
             },
             city: [cityConf]
         };
-        const fact = new RG.Factory.World();
+        fact = new FactoryWorld();
         const area = fact.createArea(areaConf);
         expect(area.getZones('City')).to.have.length(1);
         const city = area.getZones('City')[0];
@@ -339,7 +338,7 @@ describe('Factory.World', function() {
                 ['Summit2', 'Summit2', 0, 1]
             ]
         };
-        const fact = new RG.Factory.World();
+        fact = new FactoryWorld();
         const mountain = fact.createMountain(mountainConf);
 
         const summits = mountain.getSummits();
@@ -362,7 +361,7 @@ describe('Factory.World', function() {
 
     const towerName = 'Black tower';
     it('has createPresetLevels for creating all levels using factory', () => {
-        const fact = new RG.Factory.World();
+        fact = new FactoryWorld();
         const nLevels = 3;
         const towerConf = {
             name: towerName,
