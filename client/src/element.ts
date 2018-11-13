@@ -9,6 +9,13 @@ import * as Mixin from './mixin';
 import * as Component from './component';
 import {compsToJSON} from './component.base';
 
+export interface ElementJSON {
+    id: number;
+    name: string;
+    type: string;
+    components: {[key: string]: any};
+}
+
 export const Element: any = {};
 
 const wallRegexp = /wall/;
@@ -26,6 +33,7 @@ interface NameArgs {
 /* Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
 export class ElementBase extends Mixin.Typed(Entity) {
+
     constructor(elemName: string | NameArgs, elemType?: string) {
         let name = null;
         let type = null;
@@ -79,7 +87,7 @@ export class ElementBase extends Mixin.Typed(Entity) {
 
     /* Should be enough for stateless elements.
      * Does not work for doors or stairs etc. */
-    toJSON() {
+    toJSON(): ElementJSON {
         const components = compsToJSON(this);
         const obj = {
             id: this.getID(),
@@ -91,7 +99,6 @@ export class ElementBase extends Mixin.Typed(Entity) {
             obj.components = components;
         }
         return obj;
-
     }
 }
 Element.Base = ElementBase;
