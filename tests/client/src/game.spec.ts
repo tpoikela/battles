@@ -3,21 +3,22 @@
  * long sequence with GUI, but this module makes sure that basics are working.
  */
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const RGTest = require('../../roguetest.js');
-const Game = require('../../../client/src/game');
+import {expect} from 'chai';
+import RG from '../../../client/src/rg';
+import {RGTest} from '../../roguetest';
+import {GameMain, WinCondition} from '../../../client/src/game';
+import {ObjectShell} from '../../../client/src/objectshellparser';
+import {FactoryLevel} from '../../../client/src/factory.level';
 
 const checkXY = RGTest.checkActorXY;
 const Actor = RG.Actor.Rogue;
 
-const RGObjects = require('../../../client/data/battles_objects.js');
-RG.Effects = require('../../../client/data/effects.js');
+import {Objects} from '../../../client/data/battles_objects';
+import {Effects} from '../../../client/data/effects';
 
-
-const globalParser = new RG.ObjectShell.Parser();
-globalParser.parseShellData(RG.Effects);
-globalParser.parseShellData(RGObjects);
+const globalParser = new ObjectShell.Parser();
+globalParser.parseShellData(Effects);
+globalParser.parseShellData(Objects);
 
 function checkMap(map, cols, rows) {
     for (let x = 0; x < cols; x++) {
@@ -29,14 +30,15 @@ function checkMap(map, cols, rows) {
 }
 
 function getNewLevel(cols, rows) {
-    return RG.FACT.createLevel('arena', cols, rows);
+    const factLevel = new FactoryLevel();
+    return factLevel.createLevel('arena', cols, rows);
 }
 
 
 describe('Game.Main', () => {
     let game = null;
     beforeEach( () => {
-        game = new Game.Main();
+        game = new GameMain();
     });
 
     it('Initializes the game and adds player', () => {
@@ -74,7 +76,7 @@ describe('Game.Main', () => {
             nAreas: 1, area: [{name: 'a1', maxX: 2, maxY: 2}]
         };
         const world = fact.createWorld(worldConf);
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         game.addPlace(world);
         expect(game.getLevels()).to.have.length(4);
 
@@ -230,7 +232,7 @@ describe('How AI brain works', () => {
 describe('How poison item is used, and experience propagates', () => {
     it('Kills an actor after some time', () => {
 
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         const level = RG.FACT.createLevel('arena', 20, 20);
         const assassin = new Actor('assassin');
         const poison = globalParser.createActualObj('items',
@@ -291,7 +293,7 @@ describe('How poison item is used, and experience propagates', () => {
 
 describe('Game.WinCondition', () => {
     it('description', () => {
-        const winCond = new RG.Game.WinCondition('Kill boss');
+        const winCond = new WinCondition('Kill boss');
         expect(winCond.isTrue(), 'Win condition false').to.be.false;
 
         const boss = new RG.Actor.Rogue('Huge evil boss');
