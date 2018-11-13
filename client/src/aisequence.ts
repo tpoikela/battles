@@ -1,6 +1,4 @@
 
-// const RG = require('./battles');
-
 /* eslint-disable max-len */
 /*
  * Created by Pietro Polsinelli on 15/05/2015. Twitter: @ppolsinelli
@@ -12,8 +10,10 @@
  *
  */
 
-const RG = require('./rg');
-const debug = require('debug')('bitn:aisequence');
+import RG from './rg';
+
+import dbg = require('debug');
+const debug = dbg('bitn:aisequence');
 
 function SelectorNode(condFunc, actionIfTrue, actionIfFalse) {
     this.condFunc = condFunc;
@@ -106,7 +106,7 @@ function selectorRandom(selectorRandomNode, actor, arr) {
 // MODELS
 //----------------------------------------------------------------------
 
-const Models = {}; // Namespace for models
+const Models: any = {}; // Namespace for models
 
 Models.Rogue = {};
 
@@ -344,7 +344,7 @@ Models.SpellCaster.tree =
     );
 
 // Object for exports
-const BTree = {
+export const BTree = {
     SelectorNode,
     SequencerNode,
     SelectorRandomNode,
@@ -353,6 +353,3 @@ const BTree = {
     startBehavTree,
     Models
 };
-
-module.exports = BTree;
-
