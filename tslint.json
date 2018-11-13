@@ -18,7 +18,7 @@
         "no-unused-expression": true,
         "only-arrow-functions": false,
         "prefer-const": true,
-        "prefer-function-over-method": true,
+        "prefer-function-over-method": false,
         "quotemark": [true, "single"],
         "one-line": false,
         "ordered-imports": [
@@ -28,7 +28,7 @@
           }
         ],
         "object-literal-sort-keys": false,
-        "arrow-parens": [true, "ban-single-arg-parens"],
+        "arrow-parens": [false],
         "whitespace": [false, "check-separator"],
         "trailing-comma": [true, {"multi-line": "never"}],
         "variable-name": [true, "allow-pascal-case", "allow-leading-underscore"]
