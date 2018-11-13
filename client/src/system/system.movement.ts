@@ -6,8 +6,12 @@ import {SentientActor} from '../actor';
 import {Cell} from '../map.cell';
 import {create} from '../component.base';
 import * as Component from '../component';
+import * as Element from '../element';
 
-const debug = require('debug')('bitn:System.Movement');
+import dbg = require('debug');
+const debug = dbg('bitn:System.Movement');
+
+type ElementExploration = Element.ElementExploration;
 
 const {addSkillsExp} = SystemBase;
 
@@ -80,7 +84,9 @@ export class SystemMovement extends SystemBase {
     private _processExploreElem(ent: SentientActor, cell: Cell) {
         const level = ent.getLevel();
         const [x, y] = [cell.getX(), cell.getY()];
-        const expElem = cell.getPropType('exploration')[0];
+        const expElemU = cell.getPropType('exploration')[0] as unknown;
+        const expElem = expElemU as ElementExploration;
+
         if (level.removeElement(expElem, x, y)) {
             const givenExp = expElem.getExp();
             const expPoints = new Component.ExpPoints(givenExp);
