@@ -3,26 +3,27 @@
  * manual testing is added to the end of create() function.
  */
 
-const RG = require('../src/rg');
-RG.Component = require('../src/component');
-const Ability = require('../src/abilities');
-const Texts = require('../data/texts');
-const CityGenerator = require('../src/city-generator');
-const {ItemRandomizer} = require('../src/factory.items');
-const {EquipSlot} = require('../src/equipment');
-const Actors = require('./actors');
+import RG from '../src/rg';
+import * as Component from '../src/component';
+import {Ability} from '../src/abilities';
+import {Texts} from '../data/texts';
+import {CityGenerator} from '../src/city-generator';
+import {ItemRandomizer} from '../src/factory.items';
+import {EquipSlot} from '../src/equipment';
+import {Actors} from './actors';
+import * as Element from '../src/element';
+import {Random} from '../src/random';
 
-const {Quest, QuestPopulate}
-    = require('../src/quest-gen');
+import {Quest,QuestPopulate} from '../src/quest-gen';
 
-const EventPool = require('../src/eventpool');
+import {EventPool} from '../src/eventpool';
 
 const POOL = EventPool.getPool();
 
-const RNG = RG.Random.getRNG();
-const Stairs = RG.Element.Stairs;
+const RNG = Random.getRNG();
+const Stairs = Element.ElementStairs;
 
-const DebugGame = function(fact, parser) {
+export const DebugGame = function(fact, parser) {
     this._fact = fact;
     this._parser = parser;
 };
