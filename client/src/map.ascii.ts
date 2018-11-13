@@ -1,9 +1,10 @@
 /* File creates a Map from ASCII representation. */
 
-const RG = require('./rg');
-RG.Map = require('./map');
+import RG from './rg';
+import {CellMap} from './map';
+import * as Element from './element';
 
-const MapASCII = function(text, objMapper) {
+export const MapASCII = function(text, objMapper) {
     const lines = MapASCII.getTextArray(text);
     const numRows = lines.length;
     const numCols = lines[0].length;
@@ -21,7 +22,7 @@ const MapASCII = function(text, objMapper) {
                 });
             }
             else {
-                const marker = new Element.Marker(char);
+                const marker = new Element.ElementMarker(char);
                 mapObj.setProp(x, y, RG.TYPE_ELEM, marker);
             }
         });
@@ -91,5 +92,3 @@ MapASCII.DefaultMapper.prototype.getObjects = function(x, y, char) {
     }
     return res;
 };
-
-module.exports = MapASCII;
