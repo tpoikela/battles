@@ -8,6 +8,10 @@ import {GameMaster} from './game.master';
 import GameObject from './game-object';
 import {FactoryWorld} from './factory.world';
 import {World} from './world';
+import {Random} from './random';
+import {Geometry} from './geometry';
+import * as Component from './component';
+import {getIDCount} from './component.base';
 
 let POOL = EventPool.getPool();
 
@@ -28,16 +32,16 @@ export const GameMain = function() {
 
     this.currPlaceIndex = 0; // Add support for more worlds
 
-    this._rng = new RG.Random();
+    this._rng = new Random();
     this._engine = new Engine(this._eventPool);
     this._master = new GameMaster(this, this._eventPool);
 
     this.globalConf = {};
-    this.setGlobalConf = conf => {this.globalConf = conf;};
+    this.setGlobalConf = (conf) => {this.globalConf = conf;};
     this.getGlobalConf = () => this.globalConf;
 
     this.shownLevel = () => this._shownLevel;
-    this.setShownLevel = level => {this._shownLevel = level;};
+    this.setShownLevel = (level) => {this._shownLevel = level;};
 
     this.getPool = () => this._eventPool;
 
@@ -53,7 +57,7 @@ export const GameMain = function() {
 
     this.setRNG = function(rng) {
         this._rng = rng;
-        RG.Random.setRNG(this._rng);
+        Random.setRNG(this._rng);
     };
 
     this.playerCommandCallback = function(actor) {
@@ -127,7 +131,7 @@ export const GameMain = function() {
         }
         if (!actor) {actor = RG.CLICKED_ACTOR;}
         actor.setIsPlayer(true);
-        actor.add(new RG.Component.Player());
+        actor.add(new Component.Player());
         this.addPlayer(actor);
     };
 
@@ -232,7 +236,7 @@ export const GameMain = function() {
 
 
     /* Checks if player moved to a tile (from tile or was added). */
-    this.checkIfTileChanged = args => {
+    this.checkIfTileChanged = (args) => {
         const {actor, src, target} = args;
 
         const areaLevels = [target];
@@ -247,13 +251,13 @@ export const GameMain = function() {
         }
     };
 
-    this.isTileLevel = level => {
+    this.isTileLevel = (level) => {
         const area = this.getArea(0);
         return area.hasTiles([level]);
     };
 
     /* Checks if player exited an explored zone. */
-    this.checkIfExploredZoneLeft = args => {
+    this.checkIfExploredZoneLeft = (args) => {
         const {actor, src, target} = args;
         let emitEvent = false;
         if (actor.has('GameInfo') && src && target) {
@@ -284,18 +288,18 @@ export const GameMain = function() {
     this.hasNewMessages = () => this._engine.hasNewMessages();
 
     /* Adds an actor to scheduler.*/
-    this.addActor = actor => {this._engine.addActor(actor);};
+    this.addActor = (actor) => {this._engine.addActor(actor);};
 
     /* Removes an actor from a scheduler.*/
-    this.removeActor = actor => {this._engine.removeActor(actor);};
+    this.removeActor = (actor) => {this._engine.removeActor(actor);};
 
     /* Adds an event to the scheduler.*/
-    this.addEvent = gameEvent => {this._engine.addEvent(gameEvent);};
+    this.addEvent = (gameEvent) => {this._engine.addEvent(gameEvent);};
 
-    this.addActiveLevel = level => {this._engine.addActiveLevel(level);};
+    this.addActiveLevel = (level) => {this._engine.addActiveLevel(level);};
 
     /* Adds one level to the game.*/
-    this.addLevel = level => {
+    this.addLevel = (level) => {
         if (!this._engine.hasLevel(level)) {
             this._engine.addLevel(level);
         }
@@ -305,13 +309,13 @@ export const GameMain = function() {
     };
 
     /* Adds given level to the game unless it already exists. */
-    this.addLevelUnlessExists = level => {
+    this.addLevelUnlessExists = (level) => {
         if (!this._engine.hasLevel(level)) {
             this._engine.addLevel(level);
         }
     };
 
-    this.removeLevels = levels => {
+    this.removeLevels = (levels) => {
         this._engine.removeLevels(levels);
     };
 
@@ -322,8 +326,9 @@ export const GameMain = function() {
             if (!this._places.hasOwnProperty(name) ) {
                 const levels = place.getLevels();
                 if (levels.length > 0) {
-                    for (let i = 0; i < levels.length; i++) {
-                        this.addLevel(levels[i]);
+                    // for (let i = 0; i < levels.length; i++) {
+                    for (const level of levels) {
+                        this.addLevel(level);
                     }
                 }
                 else {
@@ -369,7 +374,7 @@ export const GameMain = function() {
 
     /* Must be called to advance the game by one player action. Non-player
      * actions are executed after the player action.*/
-    this.update = obj => {this._engine.update(obj);};
+    this.update = (obj) => {this._engine.update(obj);};
 
     this.getArea = (index) => {
         const world = this.getCurrentWorld();
@@ -432,7 +437,7 @@ export const GameMain = function() {
 
                     fact.createZonesForTile(world, area, x, y);
                     const levels = world.getLevels();
-                    levels.forEach(l => {this.addLevelUnlessExists(l);});
+                    levels.forEach((l) => {this.addLevelUnlessExists(l);});
                 }
             }
         }
@@ -471,7 +476,7 @@ export const GameMain = function() {
     this.getChunkManager = () => this._chunkManager;
 
     this.getGameMaster = () => this._master;
-    this.setGameMaster = master => {
+    this.setGameMaster = (master) => {
         this._master = master;
         this._master.setPlayer(this.getPlayer());
         const world = Object.values(this._places)[0];
@@ -490,7 +495,7 @@ export const GameMain = function() {
             engine: {},
             gameMaster: this._master.toJSON(),
             gameObjectID: GameObject.ID,
-            lastComponentID: RG.Component.idCount,
+            lastComponentID: getIDCount(),
             globalConf: this.globalConf,
             rng: this._rng.toJSON(),
             charStyles: RG.charStyles,
@@ -501,7 +506,7 @@ export const GameMain = function() {
         if (!this.hasPlaces()) {
             const levels = [];
             const _levels = this._engine.getLevels();
-            _levels.forEach(level => {
+            _levels.forEach((level) => {
                 levels.push(level.toJSON());
             });
             obj.levels = levels;
@@ -509,7 +514,7 @@ export const GameMain = function() {
         }
         else {
             const places = { };
-            Object.keys(this._places).forEach(name => {
+            Object.keys(this._places).forEach((name) => {
                 const place = this._places[name];
                 places[name] = place.toJSON();
             });
@@ -550,7 +555,7 @@ export const GameMain = function() {
     };
 
     /* Sets the function to be called for animations. */
-    this.setAnimationCallback = cb => {
+    this.setAnimationCallback = (cb) => {
         if (typeof cb === 'function') {
             this._engine.animationCallback = cb;
         }
@@ -617,9 +622,9 @@ export const GameMain = function() {
       return null;
     };
 
-    this.setOverWorldExplored = xy => {
-        const box = RG.Geometry.getBoxAround(xy[0], xy[1], 1, true);
-        box.forEach(coord => {
+    this.setOverWorldExplored = (xy) => {
+        const box = Geometry.getBoxAround(xy[0], xy[1], 1, true);
+        box.forEach((coord) => {
             this._overworld.setExplored(coord);
         });
     };
@@ -641,14 +646,15 @@ export const GameMain = function() {
             return level.getActors()[filterFunc](filter);
         }
         else if (Number.isInteger(levelId)) {
-            const level = levels.find(l => l.getID() === levelId);
+            const level = levels.find((l) => l.getID() === levelId);
             if (level) {
                 return level.getActors()[filterFunc](filter);
             }
         }
         else { // Search all levels (slow)
-            for (let i = 0; i < levels.length; i++) {
-                const found = levels[i].getActors()[filterFunc](filter);
+            // for (let i = 0; i < levels.length; i++) {
+            for (const level of levels) {
+                const found = level.getActors()[filterFunc](filter);
                 if (found) {return found;}
             }
         }
@@ -686,7 +692,7 @@ Game.Save = function() {
     // Contains names of players for restore selection
     const _playerList = '_battles_player_data_';
 
-    this.setStorage = stor => {_storageRef = stor;};
+    this.setStorage = (stor) => {_storageRef = stor;};
 
     this.getDungeonLevel = () => _dungeonLevel;
 
@@ -711,7 +717,7 @@ Game.Save = function() {
     this.getPlayersAsList = function() {
         const dbObj = this.getPlayersAsObj();
         if (dbObj !== null) {
-            return Object.keys(dbObj).map(val => dbObj[val]);
+            return Object.keys(dbObj).map((val) => dbObj[val]);
         }
         else {
             return [];
@@ -726,7 +732,7 @@ Game.Save = function() {
     };
 
     /* Deletes given player from the list of save games.*/
-    this.deletePlayer = name => {
+    this.deletePlayer = (name) => {
         _checkStorageValid();
         let dbString = _storageRef.getItem(_playerList);
         const dbObj = JSON.parse(dbString);
@@ -801,7 +807,7 @@ Game.Save = function() {
 
 /* Describes a condition when the player has won the game. 1st version pretty
  * much checks if given actor is killed. */
-Game.WinCondition = function(name) {
+export const WinCondition = function(name) {
     const _name = name;
     this.description = ''; // Shown when condition filled
 
@@ -866,3 +872,5 @@ Game.WinCondition = function(name) {
     };
 
 };
+
+Game.WinCondition = WinCondition;
