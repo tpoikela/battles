@@ -4,15 +4,17 @@
  * This tile map has one feature (town/mountain/dungeon) per tile, to keep the
  * overworld map useful for navigation and seeing details.
  */
-const debug = require('debug')('bitn:OW');
+import dbg = require('debug');
+const debug = dbg('bitn:OW');
 
 import RG from './rg';
-import {Random} from './random';
+
 import {CellMap} from './map';
-import {Level} from './level';
-import {TerritoryMap} from '../data/territory-map';
-import {OW} from './ow-constants';
 import {Geometry} from './geometry';
+import {Level} from './level';
+import {OW} from './ow-constants';
+import {Random} from './random';
+import {TerritoryMap} from '../data/territory-map';
 import {Territory} from './territory';
 
 const getRNG = Random.getRNG;
@@ -27,6 +29,12 @@ export interface OWMapConf {
     printResult?: boolean;
     owTilesX?: number;
     owTilesY?: number;
+    nLevelsX?: number;
+    nLevelsY?: number;
+    playerX?: number;
+    playerY?: number;
+    playerRace?: string;
+    createTerritory?: boolean;
 }
 
 
@@ -61,7 +69,7 @@ export class OWMap {
 
     public _biomeMap: {[key: string]: string};
 
-    public _terrMap: any;
+    public _terrMap: Territory;
 
     public coordMap: any;
 
@@ -169,11 +177,11 @@ export class OWMap {
         }
     }
 
-    setTerrMap(terrMap) {
+    setTerrMap(terrMap: Territory) {
         this._terrMap = terrMap;
     }
 
-    getTerrMap() {
+    getTerrMap(): Territory {
         return this._terrMap;
     }
 
