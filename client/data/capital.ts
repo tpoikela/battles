@@ -3,6 +3,7 @@
 import RG from '../src/rg';
 import {Placer} from '../src/placer';
 import {Path} from '../src/path';
+import {Builder} from '../src/builder';
 
 import {ObjectShell} from '../src/objectshellparser';
 import * as Element from '../src/element';
@@ -93,7 +94,7 @@ export class Capital {
       mainLevel.addStairs(stairsEast, cols - 1, midY);
 
       const path = Path.getMinWeightPath(mainMap, 0, midY, cols - 1, midY);
-      Path.addPathToMap(mainMap, path);
+      Builder.addPathToMap(mainMap, path);
     }
     else {
       const midX = Math.floor(cols / 2);
@@ -104,7 +105,7 @@ export class Capital {
 
       const path = Path.getMinWeightPath(mainMap, midX, 0, midX, rows - 1,
           Path.getShortestPassablePathWithDoors);
-      Path.addPathToMap(mainMap, path);
+      Builder.addPathToMap(mainMap, path);
     }
 
     // Create the actors and items for this level

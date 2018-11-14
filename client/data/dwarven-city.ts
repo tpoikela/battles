@@ -1,5 +1,6 @@
 
 import RG from '../src/rg';
+import {FactoryLevel} from '../src/factory.level';
 import {Castle} from '../data/tiles.castle';
 import {Placer} from '../src/placer';
 import {Level} from '../src/level';
@@ -27,7 +28,9 @@ export class DwarvenCity {
         stdDev: 10,
         filterW: 7
       };
-      const mainLevel = RG.FACT.createLevel('wall', cols, rows, wallOpts);
+
+      const factLevel = new FactoryLevel();
+      const mainLevel = factLevel.createLevel('wall', cols, rows, wallOpts);
 
       // Entrance level (southern fortress)
       const outerColsRatio = conf.outerColsRatio || 0.35;
@@ -50,7 +53,7 @@ export class DwarvenCity {
       const fortEndX = cols - fortStartX;
 
       // Empty level to ensure city can be accessed
-      const passageLevel = RG.FACT.createLevel('empty', 14, 50);
+      const passageLevel = factLevel.createLevel('empty', 14, 50);
 
       // Tile all levels together into mainLevel
       const tileConf = {

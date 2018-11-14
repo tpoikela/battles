@@ -13,13 +13,6 @@ const parser = ObjectShell.getParser();
 ELEM.BRIDGE = Object.freeze(parser.createElement('bridge'));
 ELEM.CHASM = Object.freeze(parser.createElement('chasm'));
 
-ELEM.FLOOR = Object.freeze(parser.createElement('floor'));
-ELEM.FLOOR_CASTLE = Object.freeze(parser.createElement('floorcastle'));
-ELEM.FLOOR_CAVE = Object.freeze(parser.createElement('floorcave'));
-ELEM.FLOOR_CRYPT = Object.freeze(parser.createElement('floorcrypt'));
-ELEM.FLOOR_HOUSE = Object.freeze(parser.createElement('floorhouse'));
-ELEM.FLOOR_WOODEN = Object.freeze(parser.createElement('floorwooden'));
-
 ELEM.GRASS = Object.freeze(parser.createElement('grass'));
 ELEM.HIGH_ROCK = Object.freeze(parser.createElement('highrock'));
 ELEM.LAVA = Object.freeze(parser.createElement('lava'));
@@ -29,6 +22,13 @@ ELEM.SKY = Object.freeze(parser.createElement('sky'));
 ELEM.SNOW = Object.freeze(parser.createElement('snow'));
 ELEM.STONE = Object.freeze(parser.createElement('stone'));
 ELEM.TREE = Object.freeze(parser.createElement('tree'));
+
+ELEM.FLOOR = Object.freeze(new ElementBase('floor'));
+ELEM.FLOOR_CASTLE = Object.freeze(new ElementBase('floorcastle'));
+ELEM.FLOOR_CAVE = Object.freeze(new ElementBase('floorcave'));
+ELEM.FLOOR_CRYPT = Object.freeze(new ElementBase('floorcrypt'));
+ELEM.FLOOR_HOUSE = Object.freeze(new ElementBase('floorhouse'));
+ELEM.FLOOR_WOODEN = Object.freeze(new ElementBase('floorwooden'));
 
 ELEM.WALL = Object.freeze(new ElementWall('wall'));
 ELEM.WALL_CASTLE = Object.freeze(new ElementWall('wallcastle'));

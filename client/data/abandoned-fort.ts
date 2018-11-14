@@ -2,8 +2,10 @@
 
 import RG from '../src/rg';
 import {FactoryItem} from '../src/factory.items';
+import {FactoryLevel} from '../src/factory.level';
 import {ObjectShell} from '../src/objectshellparser';
 import {Path} from '../src/path';
+import {Builder} from '../src/builder';
 import {Level} from '../src/level';
 import * as Element from '../src/element';
 import {Castle} from '../data/tiles.castle';
@@ -43,7 +45,7 @@ export class AbandonedFort {
     const mountConf = {
         nRoadTurns: 0, snowRatio: 0.3
     };
-    const mainLevel = RG.FACT.createLevel('mountain', cols, rows, mountConf);
+    const mainLevel = this.createLevel('mountain', cols, rows, mountConf);
     const mainMap = mainLevel.getMap();
 
     const mapGen = new RG.Map.Generator();
@@ -60,7 +62,7 @@ export class AbandonedFort {
     RG.Geometry.mergeMapBaseElems(mainMap, outerWall.map, outerX, outerY);
 
     const wallCols = Math.floor(cols / 2);
-    const mountWall = RG.FACT.createLevel('wall', wallCols, rows,
+    const mountWall = this.createLevel('wall', wallCols, rows,
       mainWallOpts);
     const wallX = cols - mountWall.getMap().cols;
     const wallY = 0;
@@ -135,11 +137,16 @@ export class AbandonedFort {
       startRoomFunc: Castle.startRoomFuncWest
     };
 
-    const castle = RG.FACT.createLevel('castle', castleCols,
+    const castle = this.createLevel('castle', castleCols,
       castleRows, castleOpts);
     return castle;
 
   }
+
+  createLevel(name: string, cols, rows, conf: any): Level {
+      return new FactoryLevel().createLevel(name, cols, rows, conf);
+  }
+
 
   createPathToFort(level, castleX) {
     const map = level.getMap();
@@ -147,8 +154,6 @@ export class AbandonedFort {
     const x1 = castleX + 1;
     const y0 = Math.floor(map.rows / 2);
     const y1 = Math.floor(map.rows / 2);
-    /* const coord = Path.getMinWeightPath(map, x0, y0, x1, y1);
-    const chosenCoord = Path.addPathToMap(map, coord); */
     this.createVariedPath(map, {x0, x1, y0, y1});
   }
 
@@ -162,7 +167,7 @@ export class AbandonedFort {
         const segCoord = Path.getMinWeightPath(map, x, y0, xEnd, y1);
         coord = coord.concat(segCoord);
       }
-      Path.addPathToMap(map, coord);
+      Builder.addPathToMap(map, coord);
   }
 
   getLevel() {

@@ -13,6 +13,9 @@ import {EquipSlot} from '../src/equipment';
 import {Actors} from './actors';
 import * as Element from '../src/element';
 import {Random} from '../src/random';
+import * as Item from '../src/item';
+import * as Time from '../src/time';
+import {MapGenerator} from '../src/map.generator';
 
 import {Quest,QuestPopulate} from '../src/quest-gen';
 
@@ -158,11 +161,11 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     player.getInvEq().addItem(coins);
 
     // if (!player.getBook()) {
-        const spellbook = new RG.Spell.SpellBook(player);
-        player.setBook(spellbook);
-        RG.Spell.addAllSpells(spellbook);
-        player.add(new RG.Component.SpellPower());
-        player.get('SpellPower').setPP(100);
+    const spellbook = new RG.Spell.SpellBook(player);
+    player.setBook(spellbook);
+    RG.Spell.addAllSpells(spellbook);
+    player.add(new RG.Component.SpellPower());
+    player.get('SpellPower').setPP(100);
     // }
 
     const vActor = new RG.Actor.Virtual('spawner');
@@ -478,7 +481,7 @@ DebugGame.prototype.createLastBattle = function(game, obj) {
     this._fact.createHumanArmy(level, this._parser);
 
     level.setOnFirstEnter(() => {
-        const demonEvent = new RG.Time.OneShotEvent(
+        const demonEvent = new Time.OneShotEvent(
             this._fact.createDemonArmy.bind(this._fact, level, this._parser),
             100 * 20,
             'Demon hordes are unleashed from the unsilent abyss!');
@@ -542,24 +545,24 @@ const ActorKillListener = function(parent, game, level) {
     POOL.listenEvent(RG.EVT_ACTOR_CREATED, this);
     POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
-    this.addSnow = (level, ratio) => {
-        const map = level.getMap();
-        RG.Map.Generator.addRandomSnow(map, ratio);
+    this.addSnow = (lev, ratio) => {
+        const map = lev.getMap();
+        MapGenerator.addRandomSnow(map, ratio);
     };
 
     /* Called after all winter demons have been slain.*/
     this.allDemonsKilled = () => {
         RG.gameMsg(
-            "Humans have vanquished all demons! But it's not over..");
-        const windsEvent = new RG.Time.OneShotEvent(
+            'Humans have vanquished all demons! But it\'s not over..');
+        const windsEvent = new Time.OneShotEvent(
             this.addSnow.bind(this, this._level, 0.2), 20 * 100,
-            "Winds are blowing stronger. You feel it's getting colder"
+            'Winds are blowing stronger. You feel it\'s getting colder'
         );
         this._game.addEvent(windsEvent);
-        const stormEvent = new RG.Time.OneShotEvent(
+        const stormEvent = new Time.OneShotEvent(
             () => {}, 35 * 100, Texts.battle.eyeOfStorm);
         this._game.addEvent(stormEvent);
-        const beastEvent = new RG.Time.OneShotEvent(
+        const beastEvent = new Time.OneShotEvent(
             parent.createBeastArmy.bind(parent, this._level, this._parser),
             50 * 100,
             'Winter spread by Blizzard Beasts! Hell seems to freeze.');
@@ -570,14 +573,11 @@ const ActorKillListener = function(parent, game, level) {
         RG.gameMsg(Texts.battle.beastsSlain);
         // DO a final message of game over
         // Add random people to celebrate
-        const msgEvent = new RG.Time.OneShotEvent(() => {}, 10 * 100,
+        const msgEvent = new Time.OneShotEvent(() => {}, 10 * 100,
             Texts.battle.enemiesDead);
         this._game.addEvent(msgEvent);
-        const msgEvent2 = new RG.Time.OneShotEvent(() => {}, 20 * 100,
+        const msgEvent2 = new Time.OneShotEvent(() => {}, 20 * 100,
             'Battles in the North will continue soon in larger scale...');
         this._game.addEvent(msgEvent2);
     };
 }; // const ActorKillListener
-
-
-module.exports = DebugGame;
