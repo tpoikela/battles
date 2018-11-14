@@ -4,6 +4,7 @@ import RG from './rg';
 import dbg = require('debug');
 const debug = dbg('bitn:FactoryZone');
 
+import * as Verify from './verify';
 import {Factory, FactoryBase} from './factory';
 import {FactoryItem} from './factory.items';
 import {MountainGenerator} from './mountain-generator';
@@ -11,6 +12,7 @@ import {CityGenerator} from './city-generator';
 import {CastleGenerator} from './castle-generator';
 import {Random} from './random';
 import {ObjectShell} from './objectshellparser';
+import * as Element from './element';
 
 const RNG = Random.getRNG();
 
@@ -30,7 +32,7 @@ export interface ItemConf { // TODO cleanup
 
 export const FactoryZone = function() {
     FactoryBase.call(this);
-    this._verif = new RG.Verify.Conf('FactoryZone');
+    this._verif = new Verify.Conf('FactoryZone');
     this._parser = ObjectShell.getParser();
 
     this.getRandLevelType = () => {
@@ -391,7 +393,7 @@ export const FactoryZone = function() {
         if (extras.rooms) {
             extras.rooms.forEach(room => {
                 room.getDoors((x, y) => {
-                    level.addElement(new RG.Element.Door(), x, y);
+                    level.addElement(new Element.ElementDoor(true), x, y);
                 });
             });
 
@@ -404,5 +406,3 @@ export const FactoryZone = function() {
 
 };
 RG.extend2(FactoryZone, FactoryBase);
-
-module.exports = FactoryZone;
