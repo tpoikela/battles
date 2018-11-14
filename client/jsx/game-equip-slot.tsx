@@ -1,23 +1,23 @@
 
 import * as React from 'react';
-const RG = require('../src/rg');
-const Item = require('../src/item');
+import RG from '../src/rg';
+import * as Item from '../src/item';
 
 interface ISelection {
     slotName: string;
     slotNumber: number;
-    item: Item.Base;
+    item: Item.ItemBase;
 }
 
 interface IGameEquipSlotProps {
   slotName: string;
-  item: Item.Base;
+  item: Item.ItemBase;
   slotNumber: number;
   setEquipSelected(selection: ISelection): void;
 }
 
 /* Component for one equipment slot.*/
-export default class GameEquipSlot extends Component {
+export default class GameEquipSlot extends React.Component {
 
   public props: IGameEquipSlotProps;
 
@@ -39,7 +39,7 @@ export default class GameEquipSlot extends Component {
 
   public render() {
     const slotName: string = this.props.slotName;
-    const item: Item.Base = this.props.item;
+    const item: Item.ItemBase = this.props.item;
     let msg: string = 'Empty';
     let className: string = 'inv-equip-slot';
     if (item !== null) {

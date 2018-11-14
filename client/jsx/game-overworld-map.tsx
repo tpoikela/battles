@@ -3,7 +3,7 @@ import * as React from 'react';
 import ModalHeader from './modal-header';
 import GameBoard from './game-board';
 
-const RG = require('../src/rg');
+import RG from '../src/rg';
 
 interface IGameOverWorldMapProps {
   ow: any;
@@ -16,10 +16,10 @@ interface IGameOverWorldMapState {
     tabShown: string;
 }
 
-const Screen = require('../gui/screen');
-const Modal = require('react-bootstrap-modal');
-const KeyCode = require('../gui/keycode');
-const Keys = require('../src/keymap');
+import {Screen} from '../gui/screen';
+import Modal from 'react-bootstrap-modal';
+import {KeyCode} from '../gui/keycode';
+import {Keys} from '../src/keymap';
 
 const [owViewportX, owViewportY] = [10, 10];
 const owBoardClassName = 'game-board-player-view';

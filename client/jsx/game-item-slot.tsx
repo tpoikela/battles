@@ -1,11 +1,11 @@
 
 import * as React from 'react';
-const RG = require('../src/rg');
-const Item = require('../src/item');
+import RG from '../src/rg';
+import * as Item from '../src/item';
 
 interface IGameItemSlotProps {
-  item: Item.Base;
-  setSelectedItem(item: Item.Base): void;
+  item: Item.ItemBase;
+  setSelectedItem(item: Item.ItemBase): void;
 }
 
 /* Component stores one item, renders its description and selects it if

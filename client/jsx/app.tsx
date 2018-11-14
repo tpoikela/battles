@@ -1,7 +1,7 @@
 
-const React = require('react');
-const ReactDOM = require('react-dom');
-const BattlesTop = require('./top');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {BattlesTop} from './top';
 
 ReactDOM.render(
     <BattlesTop />,

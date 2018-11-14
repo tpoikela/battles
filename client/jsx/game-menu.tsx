@@ -1,8 +1,8 @@
 
 import * as React from 'react';
 
-const Item = require('../src/item');
-const linewrap = require('linewrap');
+import * as Item from '../src/item';
+import linewrap = require('linewrap');
 
 const textLeftMargin = 3;
 const wrap = linewrap(80 - textLeftMargin);
@@ -11,7 +11,7 @@ interface IGameMenuProps {
   height: number;
   menuObj: any;
   width: number;
-  menuItemClicked(item: Item.Base): void;
+  menuItemClicked(item: Item.ItemBase): void;
 }
 
 function padToWidth(w, text, marginLeft, padChar = '&nbsp;'): string {
@@ -47,7 +47,7 @@ export default class GameMenu extends React.Component {
     super(props);
   }
 
-  menuItemClicked(item: Item) {
+  menuItemClicked(item: Item.ItemBase) {
     console.log('Clicked menu item ' + item);
     this.props.menuItemClicked(item);
   }

@@ -1,4 +1,3 @@
-'use strict';
 
 import * as React from 'react';
 
@@ -26,22 +25,23 @@ import GameStats, {VIEW_MAP, VIEW_PLAYER} from './game-stats';
 import PluginManager from '../gui/plugin-manager';
 
 const debug = require('debug')('bitn:top');
-const ROT = require('../../lib/rot');
-const RG = require('../src/rg');
-const Keys = require('../src/keymap');
-RG.Game = require('../src/game');
-RG.Verify = require('../src/verify');
-const KeyCode = require('../gui/keycode');
-const MultiKeyHandler = require('../gui/multikey-handler');
 
-const md5 = require('js-md5');
+import ROT from '../../lib/rot';
+import RG from '../src/rg';
+import {Keys} from '../src/keymap';
+import {GameMain} from '../src/game';
+import * as  Verify from '../src/verify';
+import {KeyCode} from '../gui/keycode';
+import {MultiKeyHandler} from '../gui/multikey-handler';
 
-const Screen = require('../gui/screen');
-const Persist = require('../src/persist');
-const worldConf = require('../data/conf.world');
-const wwork = require('webworkify');
+import md5 = require('js-md5');
 
-const EventPool = require('../src/eventpool');
+import {Screen} from '../gui/screen';
+import {Persist} from '../src/persist';
+import {WorldConf} from '../data/conf.world';
+import wwork = require('webworkify');
+
+import {EventPool} from '../src/eventpool';
 const POOL = EventPool.getPool();
 
 const INV_SCREEN = 'Inventory';
@@ -103,13 +103,19 @@ const ProxyListener = function(cbNotify) {
 
 };
 
+export interface IBattlesTopState {
+
+}
+
 /* Top-level Component for the Battles GUI.*/
-class BattlesTop extends Component {
+export class BattlesTop extends React.Component {
+
+    public game: GameMain;
 
     constructor(props) {
         super(props);
         this.game = null;
-        this.gameSave = new RG.Game.Save();
+        this.gameSave = new Game.Save();
         this.pluginManager = new PluginManager();
 
         // Some IDs needed for this component
@@ -385,11 +391,11 @@ class BattlesTop extends Component {
 
             const persist = new Persist(playerName);
             persist.fromStorage().then(result => {
-                const fromJSON = new RG.Game.FromJSON();
+                const fromJSON = new FromJSON();
 
                 // Pick JSON matching the selected player name
                 const json = result;
-                const game = new RG.Game.Main();
+                const game = new GameMain();
                 const restGame = fromJSON.createGame(game, json);
                 const player = restGame.getPlayer();
                 if (player !== null) {
@@ -491,8 +497,8 @@ class BattlesTop extends Component {
             }
             else {
                 const gameJSON = JSON.parse(e.data);
-                const fromJSON = new RG.Game.FromJSON();
-                let game = new RG.Game.Main();
+                const fromJSON = new FromJSON();
+                let game = new GameMain();
                 game = fromJSON.createGame(game, gameJSON);
 
                 this.game = game;
@@ -827,8 +833,8 @@ class BattlesTop extends Component {
             window.parser = parser;
         }
         else {
-            const fromJSON = new RG.Game.FromJSON();
-            const game = new RG.Game.Main();
+            const fromJSON = new FromJSON();
+            const game = new GameMain();
             const restGame = fromJSON.createGame(game, jsonData);
             const player = restGame.getPlayer();
             if (player !== null) {
@@ -1456,5 +1462,3 @@ class BattlesTop extends Component {
     }
 
 }
-
-module.exports = BattlesTop;
