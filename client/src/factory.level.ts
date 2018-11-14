@@ -10,12 +10,19 @@ export class FactoryLevel {
 
     private _verif: Verify.Conf;
 
+    public static createLevel(
+        type: string, cols: number, rows: number, conf?
+    ): Level {
+        const factLevel = new FactoryLevel();
+        return factLevel.createLevel(type, cols, rows, conf);
+    }
+
     constructor() {
         this._verif = new Verify.Conf('FactoryLevel');
     }
 
     /* Factory method for creating levels.*/
-    createLevel(levelType, cols, rows, conf?) {
+    createLevel(levelType, cols, rows, conf?): Level {
         const mapgen = new MapGenerator();
         let mapObj = null;
         const level = new Level();
