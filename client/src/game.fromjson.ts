@@ -15,6 +15,8 @@ import {WorldFromJSON} from './world.fromjson';
 import {Level} from './level';
 import {ActorClass} from './actor-class';
 import {EventPool} from '../src/eventpool';
+import {Dice} from './dice';
+import {Spell} from './spell';
 
 const POOL = EventPool.getPool();
 
@@ -562,10 +564,10 @@ FromJSON.prototype.createTopGoal = function(json, entity) {
 };
 
 FromJSON.prototype.createSpells = (json, entity) => {
-    entity._spellbook = new RG.Spell.SpellBook(entity);
+    entity._spellbook = new Spell.SpellBook(entity);
     json.spellbook.spells.forEach(spell => {
-        if (RG.Spell.hasOwnProperty(spell.new)) {
-            const spellObj = new RG.Spell[spell.new]();
+        if (Spell.hasOwnProperty(spell.new)) {
+            const spellObj = new Spell[spell.new]();
             spellObj.setPower(spell.power);
             if (spell.range) {
                 spellObj.setRange(spell.range);
@@ -575,7 +577,7 @@ FromJSON.prototype.createSpells = (json, entity) => {
                 const dice = {};
                 Object.keys(spell.dice).forEach(key => {
                     const die = spell.dice[key];
-                    dice[key] = RG.FACT.createDie(die);
+                    dice[key] = Dice.create(die);
                 });
                 spellObj._dice = dice;
             }
