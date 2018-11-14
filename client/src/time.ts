@@ -27,7 +27,7 @@ Action.prototype.doAction = function() {
 
 /* Event is something that is scheduled and takes place but it's not an actor.
  * An example is regeneration or poison effect.*/
-const GameEvent = function(dur, cb, repeat, offset) {
+export const GameEvent = function(dur, cb, repeat, offset) {
 
     // var _cb = cb;
     let _repeat = repeat;
