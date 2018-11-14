@@ -3,6 +3,7 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {Random} from '../random';
 import {EventPool} from '../eventpool';
+import * as Component from '../component';
 
 const RNG = Random.getRNG();
 
@@ -67,7 +68,7 @@ export class SystemDisability extends SystemBase {
                     ent.remove('Movement');
                     const map = ent.getLevel().getMap();
                     if (map.hasXY(x, y)) {
-                        const movComp = new RG.Component.Movement(x, y,
+                        const movComp = new Component.Movement(x, y,
                             ent.getLevel());
                         ent.add(movComp);
                     }

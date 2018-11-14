@@ -3,6 +3,8 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import {Random} from '../random';
+import * as Component from '../component';
+import * as Item from '../item';
 
 const POOL = EventPool.getPool();
 
@@ -63,7 +65,7 @@ export class SystemDamage extends SystemBase {
             if (damageSrc) {
                 if (damageSrc.isPlayer() || ent.isPlayer()) {
                     if (!RG.isNullOrUndef([damageSrc, ent])) {
-                        const evtComp = new RG.Component.Event();
+                        const evtComp = new Component.Event();
                         evtComp.setArgs({type: RG.EVT_ACTOR_DAMAGED,
                             cause: damageSrc});
                         ent.add(evtComp);
@@ -277,7 +279,7 @@ export class SystemDamage extends SystemBase {
         const cell = actor.getCell();
         const [x, y] = actor.getXY();
 
-        actor.add(new RG.Component.Dead());
+        actor.add(new Component.Dead());
 
         if (level.removeActor(actor)) {
             const nameKilled = actor.getName();
@@ -302,19 +304,19 @@ export class SystemDamage extends SystemBase {
             RG.gameDanger({cell, msg: killMsg});
             POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor});
 
-            const evtComp = new RG.Component.Event();
+            const evtComp = new Component.Event();
             evtComp.setArgs({type: RG.EVT_ACTOR_KILLED,
                 cause: src});
             actor.add(evtComp);
 
             // Finally drop a corpse
             if (actor.has('Corporeal')) {
-                const corpse = new RG.Item.Corpse(nameKilled + ' corpse');
+                const corpse = new Item.Corpse(nameKilled + ' corpse');
                 const cssClass = RG.getCssClass(RG.TYPE_ACTOR, nameKilled);
                 RG.addCellStyle(RG.TYPE_ITEM, corpse.getName(), cssClass);
                 level.addItem(corpse, x, y);
                 if (actor.has('QuestTarget')) {
-                    const qEvent = new RG.Component.QuestTargetEvent();
+                    const qEvent = new Component.QuestTargetEvent();
                     qEvent.setEventType('kill');
                     qEvent.setArgs({corpse});
                     qEvent.setTargetComp(actor.get('QuestTarget'));
@@ -333,7 +335,7 @@ export class SystemDamage extends SystemBase {
         if (att !== NO_DAMAGE_SRC && !att.has('Dead')) {
             const defLevel = def.get('Experience').getExpLevel();
             const defDanger = def.get('Experience').getDanger();
-            const expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
+            const expPoints = new Component.ExpPoints(defLevel + defDanger);
             att.add(expPoints);
 
             // Give additional battle experience
@@ -350,7 +352,7 @@ export class SystemDamage extends SystemBase {
             const data = inBattleComp.getData();
             if (data) {
                 const name = data.name;
-                const comp = new RG.Component.BattleExp();
+                const comp = new Component.BattleExp();
                 comp.setData({kill: 0, name});
                 att.add(comp);
             }

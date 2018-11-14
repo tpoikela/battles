@@ -3,6 +3,7 @@ import RG from '../rg';
 import {ObjectShell} from '../objectshellparser';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
+import * as Component from '../component';
 
 const parser = ObjectShell.getParser();
 
@@ -54,7 +55,7 @@ export class SystemQuest extends SystemBase {
             return;
         }
         const questTargets = giverComp.getQuestTargets();
-        const questComp = new RG.Component.Quest();
+        const questComp = new Component.Quest();
         questComp.setQuestID(giverComp.getQuestID());
 
         if (questTargets.length === 0) {
@@ -108,7 +109,7 @@ export class SystemQuest extends SystemBase {
             const numSteps = giverComp.getQuestTargets().length;
             // Give exp reward
             const expPoints = giverComp.getDanger() * numSteps;
-            const expComp = new RG.Component.ExpPoints(expPoints);
+            const expComp = new Component.ExpPoints(expPoints);
             ent.add(expComp);
 
             // Give reward, items + any other info
@@ -389,7 +390,7 @@ export class SystemQuest extends SystemBase {
 
     /* Helper function to add QuestTargetEvent for entity. */
     static addQuestEvent(ent, qTarget, eventType, args = {}) {
-        const qEvent = new RG.Component.QuestTargetEvent();
+        const qEvent = new Component.QuestTargetEvent();
         qEvent.setArgs(args);
         qEvent.setEventType(eventType);
         qEvent.setTargetComp(qTarget);

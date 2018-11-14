@@ -1,10 +1,10 @@
 /* Handles system creation and updates. */
 
 import RG from '../rg';
-import * as System from './index';
+import {System, SystemBase} from './index';
 
 interface SystemCreate {
-    create: (comps: string[], pool: any) => System.SystemBase;
+    create: (comps: string[], pool: any) => SystemBase;
     comps: string[];
 }
 
@@ -17,10 +17,10 @@ export class SystemManager {
 
     private _engine: any; // TODO fix typings
     private systemOrder: string[];
-    private systems: {[key: string]: System.SystemBase};
+    private systems: {[key: string]: SystemBase};
     public loopSystemOrder: string[];
-    private loopSystems: {[key: string]: System.SystemBase};
-    private timeSystems: {[key: string]: System.SystemBase};
+    private loopSystems: {[key: string]: SystemBase};
+    private timeSystems: {[key: string]: SystemBase};
 
     constructor(engine, pool) {
         this._engine = engine;
@@ -55,18 +55,26 @@ export class SystemManager {
         // Systems updated once each game loop (once for each player action)
         this.loopSystemOrder = ['Hunger'];
         this.loopSystems = {};
-        this.loopSystems.Hunger = new System.SystemHunger(['Action', 'Hunger'], pool);
+        this.loopSystems.Hunger = new System.Hunger(['Action', 'Hunger'], pool);
 
         // Time-based systems are added to the scheduler directly
         this.timeSystems = {};
 
-        const effects = new System.SystemTimeEffects(
+        const effects = new System.TimeEffects(
             ['Expiration', 'Poison', 'Fading', 'Heat', 'Coldness', 'DirectDamage',
                 'RegenEffect'], pool
         );
 
         this.timeSystems['TimeEffects'] = effects;
         this._engine.addTimeSystem('TimeEffects', effects);
+    }
+
+    get(type: string): SystemBase {
+        if (this.systems.hasOwnProperty(type)) {
+            return this.systems[type];
+
+        }
+        return null;
     }
 
     updateSystems() {
@@ -162,5 +170,3 @@ SystemManager.systems = {
     Communication: ['Communication'],
     Quest: ['GiveQuest', 'QuestCompleted', 'QuestTargetEvent']
 };
-
-module.exports = SystemManager;

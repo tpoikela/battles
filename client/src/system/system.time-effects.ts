@@ -3,6 +3,7 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import {Entity} from  '../entity';
+import * as Component from '../component';
 
 const POOL = EventPool.getPool();
 
@@ -90,7 +91,7 @@ export class SystemTimeEffects extends SystemBase {
             }
             else if (RG.isSuccess(poison.getProb())) {
                 const poisonDmg = poison.rollDamage();
-                const dmgComp = new RG.Component.Damage(poisonDmg,
+                const dmgComp = new Component.Damage(poisonDmg,
                     RG.DMG.POISON);
                 dmgComp.setSource(poison.getSource());
                 ent.add(dmgComp);
@@ -114,7 +115,7 @@ export class SystemTimeEffects extends SystemBase {
             }
             else if (RG.isSuccess(ddComp.getProb())) {
                 const ddCompDmg = ddComp.getDamage();
-                const dmgComp = new RG.Component.Damage(ddCompDmg,
+                const dmgComp = new Component.Damage(ddCompDmg,
                     ddComp.getDamageType());
                 dmgComp.setDamageCateg(ddComp.getDamageCateg());
                 dmgComp.setSource(ddComp.getSource());
@@ -167,7 +168,7 @@ export class SystemTimeEffects extends SystemBase {
             const tempComp = ent.get('BodyTemp');
             tempComp.decr();
             if (tempComp.isFrozen()) {
-                const dmgComp = new RG.Component.Damage(1, RG.DMG.COLD);
+                const dmgComp = new Component.Damage(1, RG.DMG.COLD);
                 ent.add(dmgComp);
             }
         }

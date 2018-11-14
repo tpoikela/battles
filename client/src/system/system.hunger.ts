@@ -1,6 +1,7 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
+import * as Component from '../component';
 
 /* Processes entities with hunger component.*/
 export class SystemHunger extends SystemBase {
@@ -16,7 +17,7 @@ export class SystemHunger extends SystemBase {
         if (hungerComp.isStarving()) {
 
             if (ent.has('Health') && RG.isSuccess(RG.HUNGER_PROB)) {
-                const dmg = new RG.Component.Damage(RG.HUNGER_DMG,
+                const dmg = new Component.Damage(RG.HUNGER_DMG,
                     RG.DMG.HUNGER);
                 ent.add(dmg);
                 RG.gameWarn(ent.getName() + ' is starving!');

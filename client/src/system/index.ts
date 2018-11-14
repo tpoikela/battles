@@ -35,7 +35,7 @@ System.Chat = SystemChat;
 
 import {SystemCommunication} from './system.communication';
 export {SystemCommunication} from './system.communication';
-System.Communication = System.Communication;
+System.Communication = SystemCommunication;
 
 import {SystemDamage} from './system.damage';
 export {SystemDamage} from './system.damage';
