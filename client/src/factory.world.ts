@@ -6,10 +6,12 @@ import {Constraints} from './constraints';
 const dbg = require('debug')
 const debug = dbg('bitn:Factory.World');
 
+import * as Verify from './verify';
 import {ConfStack} from './conf-stack';
 import {World} from './world';
 import {Factory} from './factory';
 import {FactoryZone} from './factory.zone';
+import {ObjectShell} from './objectshellparser';
 
 import {DungeonGenerator} from './dungeon-generator';
 import {CaveGenerator} from './cave-generator';
@@ -128,7 +130,7 @@ export const DungeonFeatures = function(zoneType) {
     this.generateBoss = (nLevel, level, conf) => {
         this._verif.verifyConf('generateBoss', conf,
             ['maxDanger', 'maxValue']);
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const bossDanger = conf.maxDanger + 2;
         const bossActor = parser.createRandomActor(
             {func: actor => (
@@ -193,7 +195,7 @@ export const DungeonFeatures = function(zoneType) {
  * building the world. Separation of concerns, you know.
  */
 export const FactoryWorld = function() {
-    this._verif = new RG.Verify.Conf('Factory.World');
+    this._verif = new Verify.Conf('FactoryWorld');
     this.factZone = new FactoryZone();
 
     // Creates all zones when the area is created if true. Setting it to true
@@ -225,7 +227,7 @@ export const FactoryWorld = function() {
      * saved game. */
     this.setId2Level = function(id2level) {
         if (Object.keys(id2level).length === 0) {
-            RG.warn('Factory.World', 'setId2Level',
+            RG.warn('FactoryWorld', 'setId2Level',
                 'There are no levels/keys present in id2level map. Bug?');
         }
         this.id2level = id2level;
@@ -288,7 +290,7 @@ export const FactoryWorld = function() {
             this.debug('createAllZones set to ' + this.createAllZones);
         }
         this.pushScope(conf);
-        const world = new World.Top(conf.name);
+        const world = new World.WorldTop(conf.name);
         world.setConf(conf);
         for (let i = 0; i < conf.nAreas; i++) {
             const areaConf = conf.area[i];
@@ -385,7 +387,7 @@ export const FactoryWorld = function() {
     this.populateAreaLevel = function(area, x, y) {
         const playerX = Math.floor(area.getSizeX() / 2);
         const playerY = area.getSizeY() - 1;
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
 
         const level = area.getTileXY(x, y).getLevel();
 
@@ -515,7 +517,7 @@ export const FactoryWorld = function() {
                         levelCol.push(level);
                     }
                     else {
-                        RG.err('Factory.World', 'getAreaLevels',
+                        RG.err('FactoryWorld', 'getAreaLevels',
                             `No level ID ${tile.level} in id2level`);
                     }
                 });
@@ -523,7 +525,7 @@ export const FactoryWorld = function() {
             });
         }
         else {
-            RG.err('Factory.World', 'getAreaLevels',
+            RG.err('FactoryWorld', 'getAreaLevels',
                 'conf.tiles null/undefined, but id2levelSet true');
 
         }
@@ -1531,5 +1533,3 @@ function debugPrintConfAndTile(conf, tileLevel, tag) {
         }
     }
 }
-
-module.exports = FactoryWorld;
