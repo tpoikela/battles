@@ -29,6 +29,7 @@ import {create, ComponentBase} from './component.base';
 import * as Component from './component';
 import {Random} from './random';
 import {SentientActor} from './actor';
+import {Dice} from './dice';
 
 const RNG = Random.getRNG();
 const {KeyMap} = Keys;
@@ -37,7 +38,7 @@ type Coord = [number, number];
 
 // const NO_SELECTION_NEEDED = () => {};
 
-const Spell: any = {};
+export const Spell: any = {};
 
 /* Used for sorting the spells by spell power. */
 /* function compareSpells(s1, s2) {
@@ -477,7 +478,7 @@ SpellBase.prototype.equals = function(rhs) {
 
 SpellBase.prototype.setDice = function(name, dice) {
     if (typeof dice === 'string') {
-        this._dice[name] = RG.FACT.createDie(dice);
+        this._dice[name] = Dice.create(dice);
     }
     else if (dice.roll) {
         this._dice[name] = dice;
@@ -518,7 +519,7 @@ SpellBase.prototype.toJSON = function() {
 Spell.AddComponent = function(name, power) {
     SpellBase.call(this, name, power);
     this._compName = '';
-    this._dice.duration = RG.FACT.createDie('1d6 + 3');
+    this._dice.duration = Dice.create('1d6 + 3');
 
 };
 RG.extend2(Spell.AddComponent, SpellBase);
@@ -562,7 +563,7 @@ Spell.AddComponent.prototype.getSelectionObject = function(actor) {
 Spell.Flying = function() {
     Spell.AddComponent.call(this, 'Flying', 5);
     this.setCompName('Flying');
-    this._dice.duration = RG.FACT.createDie('10d5 + 5');
+    this._dice.duration = Dice.create('10d5 + 5');
 
     this.aiShouldCastSpell = (args, cb) => {
         return aiSpellCellFriend(args, cb);
@@ -577,7 +578,7 @@ RG.extend2(Spell.Flying, Spell.AddComponent);
 Spell.Telepathy = function() {
     Spell.AddComponent.call(this, 'Telepathy', 5);
     this.setCompName('Telepathy');
-    this._dice.duration = RG.FACT.createDie('10d10 + 10');
+    this._dice.duration = Dice.create('10d10 + 10');
 
     this.aiShouldCastSpell = (args, cb) => {
         let res = aiSpellCellFriend(args, cb);
@@ -638,7 +639,7 @@ Spell.Telepathy.prototype.cast = function(args) {
 Spell.Paralysis = function() {
     Spell.AddComponent.call(this, 'Paralysis', 7);
     this.setCompName('Paralysis');
-    this.setDuration(RG.FACT.createDie('1d6 + 2'));
+    this.setDuration(Dice.create('1d6 + 2'));
 
     this.aiShouldCastSpell = (args, cb) => {
         return aiSpellCellEnemy(args, cb);
@@ -649,7 +650,7 @@ RG.extend2(Spell.Paralysis, Spell.AddComponent);
 Spell.StunningTouch = function() {
     Spell.AddComponent.call(this, 'StunningTouch', 7);
     this.setCompName('Stun');
-    this.setDuration(RG.FACT.createDie('1d6 + 2'));
+    this.setDuration(Dice.create('1d6 + 2'));
 
     this.aiShouldCastSpell = (args, cb) => {
         return aiSpellCellEnemy(args, cb);
@@ -664,7 +665,7 @@ RG.extend2(Spell.StunningTouch, Spell.AddComponent);
 Spell.SpiritForm = function() {
     Spell.AddComponent.call(this, 'SpiritForm', 10);
     this.setCompName('Ethereal');
-    this.setDuration(RG.FACT.createDie('1d6 + 4'));
+    this.setDuration(Dice.create('1d6 + 4'));
 
     this.aiShouldCastSpell = (args, cb) => {
         return aiSpellCellFriend(args, cb);
@@ -720,7 +721,7 @@ RG.extend2(Spell.DispelMagic, Spell.RemoveComponent);
 /* A spell for melee combat using grasp of winter. */
 Spell.GraspOfWinter = function() {
     SpellBase.call(this, 'Grasp of winter');
-    this._dice.damage = RG.FACT.createDie('4d4 + 4');
+    this._dice.damage = Dice.create('4d4 + 4');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
@@ -747,7 +748,7 @@ RG.extend2(Spell.GraspOfWinter, SpellBase);
 //------------------------------------------------------
 Spell.Ranged = function(name, power) {
     SpellBase.call(this, name, power);
-    this._dice.damage = RG.FACT.createDie('4d4 + 4');
+    this._dice.damage = Dice.create('4d4 + 4');
     this._range = 5;
 
 };
@@ -805,7 +806,7 @@ RG.extend2(Spell.BoltBase, Spell.Ranged);
 /* Class Frost bolt which shoots a ray to one direction from the caster. */
 Spell.FrostBolt = function() {
     Spell.BoltBase.call(this, 'Frost bolt', 5);
-    this.setDice('damage', RG.FACT.createDie('4d4 + 4'));
+    this.setDice('damage', Dice.create('4d4 + 4'));
     this.setRange(5);
     this.damageType = RG.DMG.ICE;
 };
@@ -816,7 +817,7 @@ Spell.LightningBolt = function() {
     Spell.BoltBase.call(this, 'Lightning bolt', 8);
     this.damageType = RG.DMG.LIGHTNING;
     this.setRange(6);
-    this.setDice('damage', RG.FACT.createDie('6d3 + 3'));
+    this.setDice('damage', Dice.create('6d3 + 3'));
 };
 RG.extend2(Spell.LightningBolt, Spell.BoltBase);
 
@@ -825,7 +826,7 @@ Spell.ScorpionsTail = function() {
     Spell.BoltBase.call(this, 'Scorpions tail', 1);
     this.damageType = RG.DMG.MELEE;
     this.setRange(2);
-    this.setDice('damage', RG.FACT.createDie('2d4 + 2'));
+    this.setDice('damage', Dice.create('2d4 + 2'));
 };
 RG.extend2(Spell.ScorpionsTail, Spell.BoltBase);
 
@@ -836,7 +837,7 @@ Spell.ScorpionsTail.prototype.onHit = function(actor, src) {
 
 Spell.ShadowRay = function() {
     Spell.BoltBase.call(this, 'Shadow ray', 8);
-    this.setDice('damage', RG.FACT.createDie('6d4 + 4'));
+    this.setDice('damage', Dice.create('6d4 + 4'));
     this.setRange(8);
     this.damageType = RG.DMG.NECRO;
 };
@@ -846,7 +847,7 @@ Spell.CrossBolt = function() {
     Spell.BoltBase.call(this, 'Cross bolt', 20);
     this.damageType = RG.DMG.LIGHTNING;
     this.setRange(6);
-    this.setDice('damage', RG.FACT.createDie('6d3 + 3'));
+    this.setDice('damage', Dice.create('6d3 + 3'));
 
     this.cast = function(args) {
         const chosenDir = args.dir;
@@ -872,13 +873,13 @@ RG.extend2(Spell.CrossBolt, Spell.BoltBase);
 
 Spell.PoisonBreath = function() {
     Spell.BoltBase.call(this, 'PoisonBreath', 8);
-    this.setDice('damage', RG.FACT.createDie('6d4 + 4'));
+    this.setDice('damage', Dice.create('6d4 + 4'));
     this.setRange(8);
     this.damageType = RG.DMG.POISON;
     this.nActors = 2;
     this.stopOnHit = true;
     this._createdActor = 'Poison gas';
-    this._dice.duration = RG.FACT.createDie('5d5 + 5');
+    this._dice.duration = Dice.create('5d5 + 5');
 };
 RG.extend2(Spell.PoisonBreath, Spell.BoltBase);
 
@@ -900,7 +901,7 @@ Spell.PoisonBreath.prototype.onHit = function(actor, src) {
 
 Spell.WaterBolt = function() {
     Spell.BoltBase.call(this, 'WaterBolt', 10);
-    this.setDice('damage', RG.FACT.createDie('4d4 + 4'));
+    this.setDice('damage', Dice.create('4d4 + 4'));
     this.setRange(5);
     this.damageType = RG.DMG.WATER;
 };
@@ -910,8 +911,8 @@ RG.extend2(Spell.WaterBolt, Spell.BoltBase);
 Spell.IceShield = function() {
     SpellBase.call(this, 'Ice shield', 7);
 
-    this._dice.duration = RG.FACT.createDie('5d5 + 5');
-    this._dice.defense = RG.FACT.createDie('1d6 + 1');
+    this._dice.duration = Dice.create('5d5 + 5');
+    this._dice.defense = Dice.create('1d6 + 1');
 
     this.cast = args => {
         const actor = args.src;
@@ -944,8 +945,8 @@ Spell.IceShield.prototype.toString = function() {
 Spell.MagicArmor = function() {
     SpellBase.call(this, 'MagicArmor', 5);
 
-    this._dice.duration = RG.FACT.createDie('5d5 + 5');
-    this._dice.protection = RG.FACT.createDie('2d6 + 1');
+    this._dice.duration = Dice.create('5d5 + 5');
+    this._dice.protection = Dice.create('2d6 + 1');
 
     this.cast = args => {
         const actor = args.src;
@@ -985,7 +986,7 @@ Spell.MagicArmor.prototype.toString = function() {
 /* IcyPrison spell which paralyses actors for a certain duration. */
 Spell.IcyPrison = function() {
     SpellBase.call(this, 'Icy prison', 10);
-    this._dice.duration = RG.FACT.createDie('1d8 + 1');
+    this._dice.duration = Dice.create('1d8 + 1');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
@@ -1213,7 +1214,7 @@ Spell.SummonFlyingEyes = function() {
     Spell.SummonBase.call(this, 'SummonFlyingEyes', 4);
     this.summonType = 'flying eye';
     this.nActors = '1d6 + 1';
-    this._dice.duration = RG.FACT.createDie('10d5 + 10');
+    this._dice.duration = Dice.create('10d5 + 10');
 
     this.postSummonCallback = (cell, args, minion) => {
         // Each minion fades out after a period
@@ -1249,7 +1250,7 @@ RG.extend2(Spell.SummonFlyingEyes, Spell.SummonBase);
 * this spell. */
 Spell.PowerDrain = function() {
     SpellBase.call(this, 'PowerDrain', 15);
-    this._dice.duration = RG.FACT.createDie('20d5 + 10');
+    this._dice.duration = Dice.create('20d5 + 10');
 
     this.cast = args => {
         const actor = args.src;
@@ -1395,7 +1396,7 @@ RG.extend2(Spell.LightningArrow, Spell.Missile);
 Spell.EnergyArrow = function() {
     Spell.Missile.call(this, 'EnergyArrow', 2);
     this.setRange(5);
-    this.setDice('damage', RG.FACT.createDie('1d4 + 1'));
+    this.setDice('damage', Dice.create('1d4 + 1'));
     this.damageType = RG.DMG.ENERGY;
     this.ammoName = 'Energy arrow';
 };
@@ -1408,7 +1409,7 @@ RG.extend2(Spell.EnergyArrow, Spell.Missile);
 Spell.PoisonArrow = function() {
     Spell.Missile.call(this, 'PoisonArrow', 20);
     this.setRange(10);
-    this.setDice('damage', RG.FACT.createDie('1d6 + 2'));
+    this.setDice('damage', Dice.create('1d6 + 2'));
     this.damageType = RG.DMG.POISON;
     this.ammoName = 'Poison arrow';
 };
@@ -1431,7 +1432,7 @@ Spell.PoisonArrow.prototype.onHit = function(actor) {
 Spell.RockStorm = function() {
     Spell.Missile.call(this, 'RockStorm', 35);
     this.setRange(4);
-    this.setDice('damage', RG.FACT.createDie('5d4 + 1'));
+    this.setDice('damage', Dice.create('5d4 + 1'));
     this.damageType = RG.DMG.MELEE;
     this.ammoName = 'Huge rock';
 
@@ -1464,7 +1465,7 @@ RG.extend2(Spell.RockStorm, Spell.Missile);
 /* MindControl spell takes over an enemy for a certain number of turns. */
 Spell.MindControl = function() {
     SpellBase.call(this, 'MindControl', 25);
-    this._dice.duration = RG.FACT.createDie('1d6 + 3');
+    this._dice.duration = Dice.create('1d6 + 3');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
@@ -1524,7 +1525,7 @@ RG.extend2(Spell.AreaBase, Spell.Ranged);
 /* Blizzard spell produce damaging effect over certain area. */
 Spell.Blizzard = function() {
     Spell.AreaBase.call(this, 'Blizzard', 35);
-    this.setDice('damage', RG.FACT.createDie('5d5 + 5'));
+    this.setDice('damage', Dice.create('5d5 + 5'));
     this.damageType = RG.DMG.ICE;
     this.setRange(6);
 };
@@ -1536,7 +1537,7 @@ Spell.Blizzard.prototype.onHit = function(actor /* , src*/) {
 
 Spell.EnergyStorm = function() {
     Spell.AreaBase.call(this, 'EnergyStorm', 20);
-    this.setDice('damage', RG.FACT.createDie('3d4 + 3'));
+    this.setDice('damage', Dice.create('3d4 + 3'));
     this.damageType = RG.DMG.ENERGY;
 };
 RG.extend2(Spell.EnergyStorm, Spell.AreaBase);
@@ -1556,7 +1557,7 @@ function aiEnemyWithinDist(args, cb, spell) {
 /* Healing spell, duh. */
 Spell.Heal = function() {
     SpellBase.call(this, 'Heal', 6);
-    this._dice.healing = RG.FACT.createDie('2d4');
+    this._dice.healing = Dice.create('2d4');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
@@ -1582,7 +1583,7 @@ RG.extend2(Spell.Heal, SpellBase);
 
 Spell.RingBase = function(name, power) {
     SpellBase.call(this, name, power);
-    this._dice.duration = RG.FACT.createDie('10d10');
+    this._dice.duration = Dice.create('10d10');
     this._range = 2;
     this._createdActor = 'Fire';
 
@@ -1621,7 +1622,7 @@ RG.extend2(Spell.RingBase, SpellBase);
 
 Spell.RingOfFire = function() {
     Spell.RingBase.call(this, 'RingOfFire', 10);
-    this._dice.duration = RG.FACT.createDie('10d10');
+    this._dice.duration = Dice.create('10d10');
     this._range = 2;
     this._createdActor = 'Fire';
 };
@@ -1629,7 +1630,7 @@ RG.extend2(Spell.RingOfFire, Spell.RingBase);
 
 Spell.RingOfFrost = function() {
     Spell.RingBase.call(this, 'RingOfFrost', 10);
-    this._dice.duration = RG.FACT.createDie('10d10');
+    this._dice.duration = Dice.create('10d10');
     this._range = 2;
     this._createdActor = 'Ice flame';
 };
@@ -1637,7 +1638,7 @@ RG.extend2(Spell.RingOfFrost, Spell.RingBase);
 
 Spell.RingOfEnergy = function() {
     Spell.RingBase.call(this, 'RingOfEnergy', 10);
-    this._dice.duration = RG.FACT.createDie('10d10');
+    this._dice.duration = Dice.create('10d10');
     this._range = 3;
     this._createdActor = 'Forcefield';
 };
@@ -1645,7 +1646,7 @@ RG.extend2(Spell.RingOfEnergy, Spell.RingBase);
 
 Spell.PoisonCloud = function() {
     Spell.RingBase.call(this, 'PoisonCloud', 15);
-    this._dice.duration = RG.FACT.createDie('10d10');
+    this._dice.duration = Dice.create('10d10');
     this._range = 1;
     this._createdActor = 'Poison gas';
 };
@@ -1653,7 +1654,7 @@ RG.extend2(Spell.PoisonCloud, Spell.RingBase);
 
 Spell.ForceField = function() {
     SpellBase.call(this, 'ForceField', 5);
-    this._dice.duration = RG.FACT.createDie('10d10');
+    this._dice.duration = Dice.create('10d10');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
@@ -1723,7 +1724,6 @@ Spell.ForceField = function() {
 };
 RG.extend2(Spell.ForceField, SpellBase);
 
-
 /* Used for testing the spells. Adds all spells to given SpellBook. */
 Spell.addAllSpells = book => {
     book.addSpell(new Spell.Blizzard());
@@ -1761,5 +1761,3 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.SummonUndeadUnicorns());
     book.addSpell(new Spell.Telepathy());
 };
-
-export default Spell;
