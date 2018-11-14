@@ -6,7 +6,7 @@ import * as Item from './item';
 
 const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 
-type PropsType = Element.ElementBase | Item.Base | BaseActor;
+type PropsType = Element.ElementBase | Item.ItemBase | BaseActor;
 type Door = Element.ElementDoor;
 type LeverDoor = Element.ElementLeverDoor;
 type Stairs = Element.ElementStairs;
