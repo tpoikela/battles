@@ -1,7 +1,7 @@
 
 /* Code for handling keycode stuff. */
 
-const KeyCode = {};
+export const KeyCode: any = {};
 
 /* Get the keycode from an event. */
 KeyCode.getKeyCode = function(evt) {
@@ -9,4 +9,3 @@ KeyCode.getKeyCode = function(evt) {
     return keyCode;
 };
 
-module.exports = KeyCode;
