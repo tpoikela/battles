@@ -630,7 +630,7 @@ export const Geometry: any = {
     /* Returns all coordinates within straight line between two points. Returns
      * empty array if there is no line. Straight means all cardinal directions.
      */
-    getStraightLine: function(x0, y0, x1, y1, incEnds = true) {
+    getStraightLine: function(x0, y0, x1, y1, incEnds = true): Coord[] {
         if (this.isLine(x0, y0, x1, y1)) {
             const res = [];
             const dX = x1 === x0 ? 0 : (x1 - x0) / Math.abs(x1 - x0);
@@ -660,7 +660,7 @@ export const Geometry: any = {
     * https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS
     *   /FOURTH_EDITION/PROGRAMS/bresenham.c
     */
-    getBresenham: function(x1, y1, x2, y2) {
+    getBresenham: function(x1, y1, x2, y2): Coord[] {
         let dx, dy, i, e;
         let incx, incy, inc1, inc2;
         let x, y;
