@@ -26,6 +26,7 @@ import RG from './rg';
 import {Names} from '../data/name-gen';
 import {LevelGen} from '../data/level-gen';
 import {Path} from './path';
+import {Builder} from './builder';
 import {MapGenerator} from './map.generator';
 import {OWMap} from './overworld.map';
 import {OW} from './ow-constants';
@@ -1381,7 +1382,7 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
             RG.err('overworld.js', 'addGlobalFeatures',
                 'No path from player to capital.');
         }
-        Path.addPathToMap(owLevel.getMap(), path);
+        Builder.addPathToMap(owLevel.getMap(), path);
     }
 
     // Create road from capital north to wtower south
@@ -1401,7 +1402,7 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
         const pathCapWTower = Path.getWeightPathSegmented(owLevel.getMap(),
             owLevelCapExitXY[0], owLevelCapExitXY[1],
             wTowerLevelXY[0], wTowerLevelXY[1], nPathSeg);
-        Path.addPathToMap(owLevel.getMap(), pathCapWTower);
+        Builder.addPathToMap(owLevel.getMap(), pathCapWTower);
     }
 }
 
