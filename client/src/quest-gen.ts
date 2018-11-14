@@ -14,6 +14,7 @@ import {QuestGrammar} from '../data/quest-grammar';
 import {Names} from '../data/name-gen';
 import {EventPool} from '../src/eventpool';
 import {SentientActor} from './actor';
+import * as Item from './item';
 
 const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
@@ -1059,7 +1060,7 @@ export class QuestPopulate {
 
     getItemToSteal() {
         const location = this.currQuest.getCurrent('location');
-        const item = new RG.Item.Base('Quest trophy');
+        const item = new Item.ItemBase('Quest trophy');
 
         if (!Placer.addEntityToCellType(item, location, c => c.hasHouse())) {
             return null;
@@ -1071,7 +1072,7 @@ export class QuestPopulate {
 
     getItemToGather() {
         const location = this.currQuest.getCurrent('location');
-        const item = new RG.Item.Base('Quest item to gather');
+        const item = new Item.ItemBase('Quest item to gather');
 
         if (!Placer.addEntityToCellType(item, location, c => c.isPassable())) {
             return null;
@@ -1416,7 +1417,7 @@ export class QuestPopulate {
     }
 
     createBook(target, level) {
-        const book = new RG.Item.Book(Names.getBookName());
+        const book = new Item.Book(Names.getBookName());
         const location = this.popQuestCrossRef(target);
         if (location) {
             level.addItem(book);
