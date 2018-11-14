@@ -7,6 +7,7 @@ import ROT from '../../lib/rot';
 import {CellMap} from './map';
 import {Path} from './path';
 import {BSP} from '../../lib/bsp';
+import {Builder} from './builder';
 
 import {TemplateLevel} from './template.level';
 import {Crypt} from '../data/tiles.crypt';
@@ -617,7 +618,7 @@ export class MapGenerator {
                 const coord = Path.getMinWeightOrShortest(map, x0, y0, x1,
                     y1, passableFuncs);
                 if (coord) {
-                    const chosenCoord = Path.addPathToMap(map, coord);
+                    const chosenCoord = Builder.addPathToMap(map, coord);
                     if (chosenCoord.length > 0) {inBounds = true;}
                     paths.push(chosenCoord);
                     prevX = x1;
@@ -646,7 +647,7 @@ export class MapGenerator {
                         const coord = Path.getMinWeightOrShortest(map, x0, y0,
                             x1, y1, passableFuncs);
                         if (coord) {
-                            const chosenCoord = Path.addPathToMap(map, coord);
+                            const chosenCoord = Builder.addPathToMap(map, coord);
                             paths.push(chosenCoord);
                         }
                     }

@@ -11,6 +11,8 @@ interface MixinArgs {
     [key: string]: any;
 }
 
+type Coord = [number, number];
+
 /* A mixin used for typed objects. */
 export const Typed = superclass => class extends superclass {
 
@@ -20,8 +22,8 @@ export const Typed = superclass => class extends superclass {
         this._propType = args.propType || '';
     }
 
-    public getPropType() {return this._propType;}
-    public getType() {return this.type;}
+    public getPropType(): string {return this._propType;}
+    public getType(): string {return this.type;}
 
     public setPropType(propType) {
         const index = RG.PROP_TYPES.indexOf(propType);
@@ -34,7 +36,7 @@ export const Typed = superclass => class extends superclass {
         }
     }
 
-    public setType(type) {
+    public setType(type: string): void {
         this.type = type;
         RG.nullOrUndefError('Object.Typed: setType', 'arg |type|', type);
     }
@@ -44,6 +46,8 @@ export const Typed = superclass => class extends superclass {
 export interface Locatable {
     getX: () => number;
     getY: () => number;
+    getXY: () => Coord;
+    getLevel: () => any; // Add typings
 }
 
 /* Mixin used in Locatable objects with x,y coordinates. */
@@ -65,11 +69,11 @@ export const Locatable = superclass => class extends superclass {
     public getX() {return this._x;}
     public getY() {return this._y;}
 
-    public isAtXY(x, y) {
+    public isAtXY(x, y): boolean {
         return x === this._x && y === this._y;
     }
 
-    public getXY() {
+    public getXY(): Coord {
         return [this._x, this._y];
     }
 
@@ -112,7 +116,7 @@ export const Locatable = superclass => class extends superclass {
     }
 
     /* Returns true if locatables are in same position.*/
-    public isSamePos(obj) {
+    public isSamePos(obj: Locatable) {
         if (this._x !== obj.getX()) {return false;}
         if (this._y !== obj.getY()) {return false;}
         if (this._level !== obj.getLevel()) {return false;}

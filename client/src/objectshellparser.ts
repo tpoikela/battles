@@ -398,7 +398,7 @@ export const Creator = function(db, dbNoRandom) {
                     case 'weapon': return new Item.Weapon(obj.name);
                     default: {
                         if (subtype) {
-                            const item = new Item.Base(obj.name);
+                            const item = new Item.ItemBase(obj.name);
                             item.setType(obj.type);
                             return item;
                         }

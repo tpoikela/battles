@@ -9,6 +9,7 @@ import {Path, CoordXY, PathFunc} from './path';
 import {SentientActor} from './actor';
 import {SpellBase, SpellArgs} from './spell';
 import * as Item from './item';
+import {Brain} from './brain';
 
 const RNG = Random.getRNG();
 export const Goal: any = {};
@@ -417,7 +418,7 @@ export class GoalMoveUntilEnemy extends GoalBase {
         }
         else if (map.isPassable(nextX, nextY)) {
             const level = this.actor.getLevel();
-            const movComp = new RG.Component.Movement(nextX, nextY, level);
+            const movComp = new Component.Movement(nextX, nextY, level);
             this.actor.add(movComp);
 
             const name = this.actor.getName();
@@ -702,7 +703,7 @@ export class GoalAttackActor extends GoalBase {
         const miss = this.actor.getInvEq().getEquipment().getItem('missile');
         if (miss) {
             const range = RG.getMissileRange(this.actor, miss);
-            const getDist = RG.Path.shortestDist(eX, eY, aX, aY);
+            const getDist = Path.shortestDist(eX, eY, aX, aY);
             if (getDist <= range) {return true;}
             // TODO test for a clean shot
         }
@@ -794,7 +795,7 @@ export class GoalHitActor extends GoalBase {
         const [aX, aY] = this.targetActor.getXY();
         const cell = level.getMap().getCell(aX, aY);
         const target = cell.getProp('actors')[0];
-        const attackComp = new RG.Component.Attack({target});
+        const attackComp = new Component.Attack({target});
         this.actor.add(attackComp);
         this.dbg(`${this.getType()} added Attack comp`);
         this.status = GOAL_ACTIVE;
@@ -822,7 +823,7 @@ export class GoalShootActor extends GoalBase {
 
     activate() {
         const [eX, eY] = this.targetActor.getXY();
-        const mComp = new RG.Component.Missile(this.actor);
+        const mComp = new Component.Missile(this.actor);
         const invEq = this.actor.getInvEq();
         const shotItem = invEq.unequipAndGetItem('missile', 1);
 
@@ -913,7 +914,7 @@ export class GoalExplore extends GoalBase {
         const map = level.getMap();
         if (map.hasXY(newX, newY)) {
             if (this.shouldMoveTo(map, newX, newY)) {
-                const movComp = new RG.Component.Movement(newX, newY, level);
+                const movComp = new Component.Movement(newX, newY, level);
                 this.actor.add(movComp);
             }
             else if (!this.canOpenDoorAt(map, newX, newY)) {
@@ -937,7 +938,7 @@ export class GoalExplore extends GoalBase {
         if (cell.hasDoor()) {
             const door = cell.getPropType('door')[0];
             if (door.canToggle()) {
-                const comp = new RG.Component.OpenDoor();
+                const comp = new Component.OpenDoor();
                 comp.setDoor(door);
                 this.actor.add(comp);
                 return true;
@@ -998,7 +999,7 @@ export class GoalFleeFromActor extends GoalBase {
     activate() {
         const brain = this.actor.getBrain();
         const seenCells = brain.getSeenCells();
-        const actorCells = RG.Brain.findCellsWithActors(this.actor, seenCells);
+        const actorCells = Brain.findCellsWithActors(this.actor, seenCells);
         let foundCell = null;
         actorCells.forEach(cell => {
             const actors = cell.getActors();
@@ -1146,7 +1147,7 @@ Goal.Follow = GoalFollow;
 
 /* Goal for picking up items. */
 export class GoalGetItem extends GoalBase {
-    public targetItem: Item.Base;
+    public targetItem: Item.ItemBase;
 
     constructor(actor, targetItem) {
         super(actor);
@@ -1178,7 +1179,7 @@ export class GoalGetItem extends GoalBase {
             const [iX, iY] = foundCell.getXY();
             // If on top of it, pick it up
             if (x === iX && y === iY) {
-                const pickup = new RG.Component.Pickup();
+                const pickup = new Component.Pickup();
                 this.actor.add(pickup);
                 this.status = GOAL_COMPLETED;
             }
@@ -1254,7 +1255,7 @@ export class GoalShopkeeper extends GoalBase {
                 moveToRandomDir(this.actor);
             }
             else if (!this.hasShouted) {
-                const comm = new RG.Component.Communication();
+                const comm = new Component.Communication();
                 comm.addMsg({src: this.actor,
                     type: 'Shout', shout: 'Hello traveller!'});
                 this.actor.add(comm);
@@ -1301,7 +1302,7 @@ export class GoalGoHome extends GoalBase {
         const cell = this.actor.getCell();
         if (cell.getBaseElem().getType() === 'floorhouse') {
             if (RG.isSuccess(0.03)) {
-                const comm = new RG.Component.Communication();
+                const comm = new Component.Communication();
                 comm.addMsg({src: this.actor,
                     type: 'Shout', shout: 'Home sweet home!'});
                 this.actor.add(comm);
@@ -1342,7 +1343,7 @@ function moveToRandomDir(actor) {
         if (--tries === 0) {break;}
     }
     if (tries > 0) {
-        const movComp = new RG.Component.Movement(xy[0], xy[1], level);
+        const movComp = new Component.Movement(xy[0], xy[1], level);
         actor.add(movComp);
     }
     // Tried to move outside map
@@ -1353,7 +1354,7 @@ function moveActorTo(actor, cell) {
     const xy = cell.getXY();
     const level = actor.getLevel();
     if (level.getMap().isPassable(xy[0], xy[1])) {
-        const movComp = new RG.Component.Movement(xy[0], xy[1], level);
+        const movComp = new Component.Movement(xy[0], xy[1], level);
         actor.add(movComp);
     }
 }
