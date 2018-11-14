@@ -4,9 +4,14 @@ import {Constraints} from './constraints';
 import RG from './rg';
 import {Factory} from './factory';
 import {World} from './world';
-import {GoalsTop} from './goals-top';
 import {Battle, Army} from './game.battle';
 import {Random} from './random';
+import {FactoryLevel} from './factory.level';
+import {ObjectShell} from './objectshellparser';
+import * as Brain from './brain';
+import * as Component from './component';
+import * as GoalsTop from './goals-top';
+import * as Element from './element';
 
 import {BBox} from './geometry';
 
@@ -108,7 +113,7 @@ export class FactoryBattle {
 
         if (parentLevel) {
             // Add connecting stairs between battle and area
-            const stairsArea = new RG.Element.Stairs('battle', parentLevel);
+            const stairsArea = new Element.ElementStairs('battle', parentLevel);
             const map = parentLevel.getMap();
 
             // TODO randomize this position
@@ -159,7 +164,7 @@ export class FactoryBattle {
 
     /* Creates an army of specified faction. */
     createArmy(battle, faction, conf) {
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const armySize = conf.armySize || 20;
         const maxDanger = conf.danger || 5;
 
@@ -172,7 +177,7 @@ export class FactoryBattle {
         for (let i = 0; i < armySize - 1; i++) {
             const actor = parser.createRandomActor({func: actorFunc});
             if (actor) {
-                const comp = new RG.Component.InBattle();
+                const comp = new Component.InBattle();
                 comp.setData({name: battle.getName(),
                     army: army.getName()});
                 actor.add(comp);
@@ -188,7 +193,7 @@ export class FactoryBattle {
         const commander = parser.createRandomActor({func: commFunc});
         if (commander) {
             this.addCommanderAbilities(commander);
-            const comp = new RG.Component.InBattle();
+            const comp = new Component.InBattle();
             comp.setData({name: battle.getName(),
                 army: army.getName()});
             commander.add(comp);
@@ -234,17 +239,17 @@ export class FactoryBattle {
     createBattleLevel(cols, rows, conf) {
         const levelType = conf.levelType || 'forest';
         const forestConf = RG.getForestConf(cols, rows);
-        const battleLevel = RG.FACT.createLevel(levelType, cols, rows,
+        const battleLevel = FactoryLevel.createLevel(levelType, cols, rows,
             forestConf);
         return battleLevel;
     }
 
     addCommanderAbilities(actor) {
-        const brain = new RG.Brain.GoalOriented(actor);
+        const brain = new Brain.BrainGoalOriented(actor);
         const topGoal = new GoalsTop.ThinkCommander(actor);
         actor.setBrain(brain);
         brain.setGoal(topGoal);
-        actor.add(new RG.Component.Commander());
+        actor.add(new Component.Commander());
         actor.setFOVRange(10);
         return actor;
     }
