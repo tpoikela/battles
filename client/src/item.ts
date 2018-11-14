@@ -9,15 +9,17 @@ import {EventPool} from '../src/eventpool';
 
 const POOL = EventPool.getPool();
 
+type Coord = [number, number];
+
 //---------------------------------------------------------------------------
 // ITEMS
 //---------------------------------------------------------------------------
 
-const Item: any = {};
+export const Item: any = {};
 
 /* Models an item. Each item is ownable by someone. During game, there are no
  * items with null owners. Ownership shouldn't be ever set to null. */
-export class Base extends Entity {
+export class ItemBase extends Entity {
 
     public _owner: Actor.SentientActor;
     public isOwnable: boolean;
@@ -70,7 +72,7 @@ export class Base extends Entity {
         return null;
     }
 
-    public getXY() {
+    public getXY(): Coord {
         if (this._owner) {return this._owner.getXY();}
         return null;
     }
@@ -120,7 +122,7 @@ export class Base extends Entity {
         return txt;
     }
 
-    public copy(rhs) {
+    public copy(rhs: ItemBase) {
         this.setName(rhs.getName());
         this.setType(rhs.getType());
         this.setWeight(rhs.getWeight());
@@ -143,13 +145,13 @@ export class Base extends Entity {
         RG.err('Item', 'useItem', 'pure virtual function');
     }
 
-    public clone() {
-        const newItem = new Item.Base(this.getName());
+    public clone(): ItemBase {
+        const newItem = new ItemBase(this.getName());
         newItem.copy(this);
         return newItem;
     }
 
-    public equals(item) {
+    public equals(item: ItemBase): boolean {
         if (this.getID() === item.getID()) {
             return true;
         }
@@ -172,12 +174,12 @@ export class Base extends Entity {
     }
 
 }
-Item.Base = Base;
+Item.ItemBase = ItemBase;
 
 //----------------
 /* RGItemFood */
 //----------------
-export class Food extends Base {
+export class Food extends ItemBase {
 
     public _energy: number;
 
@@ -250,7 +252,7 @@ Item.Food = Food;
 //------------------
 /* Corpse */
 //------------------
-export class Corpse extends Base {
+export class Corpse extends ItemBase {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.CORPSE);
@@ -261,7 +263,7 @@ Item.Corpse = Corpse;
 //------------------
 /* Weapon */
 //------------------
-export class Weapon extends Mixin.Damage(Base) {
+export class Weapon extends Mixin.Damage(ItemBase) {
 
     private _weaponType: string;
 
@@ -395,7 +397,7 @@ Item.Ammo = Ammo;
 //-------------------------------------------
 /* Armour Object for armour items. */
 //-------------------------------------------
-export class Armour extends Mixin.Defense(Base) {
+export class Armour extends Mixin.Defense(ItemBase) {
 
     private _armourType: string;
 
@@ -437,7 +439,7 @@ Item.Armour = Armour;
 //--------------------------------------
 /* Potion Object for potions. */
 //--------------------------------------
-export class Potion extends Base {
+export class Potion extends ItemBase {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.POTION);
@@ -484,7 +486,7 @@ Item.Potion = Potion;
 //----------------------------------------
 /* Rune Object for rune stones. */
 //----------------------------------------
-export class Rune extends Base {
+export class Rune extends ItemBase {
 
     private _charges: number;
 
@@ -554,11 +556,11 @@ Item.Missile = Missile;
 //------------------------------------------------------
 /* Container An item which holds other items. */
 //------------------------------------------------------
-export class Container extends Base {
+export class Container extends ItemBase {
 
-    private _items: Base[];
+    private _items: ItemBase[];
     private _iter: number;
-    private _removedItem: null | Base;
+    private _removedItem: null | ItemBase;
 
     constructor(owner) {
         super('container');
@@ -741,7 +743,7 @@ Item.Container = Container;
 //----------------
 /* Gold */
 //----------------
-export class Gold extends Base {
+export class Gold extends ItemBase {
 
     protected _purity: number;
 
@@ -788,7 +790,7 @@ Item.GoldCoin = GoldCoin;
 //-------------------------------------------
 /* SpiritGem for capturing spirits. */
 //-------------------------------------------
-export class SpiritGem extends Base {
+export class SpiritGem extends ItemBase {
 
     private _spirit: Actor.SentientActor;
     private _hasSpirit: boolean;
@@ -895,7 +897,7 @@ for (let i = 0; i < RG.GET_STATS.length; i++) {
 //------------------
 /* Mineral */
 //------------------
-export class Mineral extends Base {
+export class Mineral extends ItemBase {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM.MINERAL);
@@ -907,7 +909,7 @@ export interface BookData {
     [key: string]: any[];
 }
 
-export class Book extends Base {
+export class Book extends ItemBase {
 
     public text: string[];
     public metaData: BookData;
