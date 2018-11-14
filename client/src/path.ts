@@ -2,23 +2,22 @@
 import ROT from '../../lib/rot';
 import RG from './rg';
 import {CellMap} from './map';
-import {ELEM} from '../data/elem-constants';
 
 export const Path: any = {};
-
-const NO_PATH = Object.freeze([]);
 
 export interface CoordXY {
     x: number;
     y: number;
 }
 
+const NO_PATH = Object.freeze([]);
+
 export type PathFunc = (CellMap, x0: number, y0: number, x1: number, y1: number) => CoordXY[];
 
 /* Returns shortest path (array of x,y pairs) between two points. Does not
 * check if any of the cells are passable, unless a callback is given, which
 * is called with (x, y). */
-Path.getShortestPath = function(x0, y0, x1, y1, cb = () => true) {
+Path.getShortestPath = function(x0, y0, x1, y1, cb = () => true): CoordXY[] {
     const coords = [];
     const passableCallback = cb;
     const finder = new ROT.Path.AStar(x1, y1, passableCallback);
@@ -28,7 +27,7 @@ Path.getShortestPath = function(x0, y0, x1, y1, cb = () => true) {
     return coords;
 };
 
-Path.getShortestSeenPath = function(actor, map, x1, y1) {
+Path.getShortestSeenPath = function(actor, map, x1, y1): CoordXY[] {
     const seenCells = actor.getBrain().getSeenCells();
     const lut = {};
 
@@ -49,7 +48,9 @@ Path.getShortestSeenPath = function(actor, map, x1, y1) {
     };
 
     const [x0, y0] = actor.getXY();
-    if (isSourceBlocked(x0, y0, map, passableCb)) {return NO_PATH;}
+    if (isSourceBlocked(x0, y0, map, passableCb)) {
+        return NO_PATH as CoordXY[];
+    }
 
     const coords = [];
     const finder = new ROT.Path.AStar(x1, y1, passableCb);
@@ -64,7 +65,7 @@ Path.getShortestSeenPath = function(actor, map, x1, y1) {
 
 /* NOTE: This has problem that if x0,y0 or x1,y1 have actors, returns no path at
  * all. */
-Path.getShortestPassablePath = function(map, x0, y0, x1, y1) {
+Path.getShortestPassablePath = function(map, x0, y0, x1, y1): CoordXY[] {
     const coords = [];
     const passableCallback = (x, y) => map.isPassable(x, y);
     const finder = new ROT.Path.AStar(x1, y1, passableCallback);
@@ -76,7 +77,7 @@ Path.getShortestPassablePath = function(map, x0, y0, x1, y1) {
 
 /* Returns shortest actor to actor path. Returns shortest path between two
  * actors excluding the source and destination points. */
-Path.getActorToActorPath = function(map, x0, y0, x1, y1) {
+Path.getActorToActorPath = function(map, x0, y0, x1, y1): CoordXY[] {
     const coords = [];
     const passableCb = (x, y) => {
         if (map.hasXY(x, y)) {
@@ -89,7 +90,9 @@ Path.getActorToActorPath = function(map, x0, y0, x1, y1) {
     };
 
     // Terminate search immediately if source is completely blocked
-    if (isSourceBlocked(x0, y0, map, passableCb)) {return NO_PATH;}
+    if (isSourceBlocked(x0, y0, map, passableCb)) {return 
+        NO_PATH as CoordXY[];
+    }
 
     const finder = new ROT.Path.AStar(x1, y1, passableCb);
     finder.compute(x0, y0, (x, y) => {
@@ -102,7 +105,7 @@ Path.getActorToActorPath = function(map, x0, y0, x1, y1) {
 
 /* Returns shortest path for actor in x0,y0, excluding the source point. If
  * destination point is impassable, returns an empty array. */
-Path.getShortestActorPath = function(map, x0, y0, x1, y1, cb) {
+Path.getShortestActorPath = function(map, x0, y0, x1, y1, cb): CoordXY[] {
     const coords = [];
     const passableCb = (x, y) => {
         if (map.hasXY(x, y)) {
@@ -115,7 +118,9 @@ Path.getShortestActorPath = function(map, x0, y0, x1, y1, cb) {
         }
         return false;
     };
-    if (isSourceBlocked(x0, y0, map, passableCb)) {return NO_PATH;}
+    if (isSourceBlocked(x0, y0, map, passableCb)) {
+        return NO_PATH as CoordXY[];
+    }
 
     const finder = new ROT.Path.AStar(x1, y1, passableCb);
     finder.compute(x0, y0, (x, y) => {
@@ -143,7 +148,7 @@ Path.getShortestPassablePathWithDoors = function(map, x0, y0, x1, y1) {
 
 
 /* Returns shortest distance (in cells) between two points.*/
-Path.shortestDist = function(x0, y0, x1, y1) {
+Path.shortestDist = function(x0, y0, x1, y1): number {
     const coords = Path.getShortestPath(x0, y0, x1, y1);
     return coords.length - 1; // Subtract one because starting cell included
 };
@@ -244,27 +249,6 @@ Path.getWeightPathSegmented = function(map, x0, y0, x1, y1, nSeg, pathFunc) {
     return finalPath;
 };
 
-Path.addPathToMap = function(map: CellMap, coord: CoordXY[]) {
-    const chosenCoord = [];
-    for (let j = 0; j < coord.length; j++) {
-        const c = coord[j];
-        if (map.hasXY(c.x, c.y)) {
-            const baseElem = map.getBaseElemXY(c.x, c.y);
-            const type = baseElem.getType();
-            if (type.match(/(chasm|water)/)) {
-                map.setBaseElemXY(c.x, c.y, ELEM.BRIDGE);
-            }
-            else if ((/stone|highrock/).test(type)) {
-                map.setBaseElemXY(c.x, c.y, ELEM.PATH);
-            }
-            else {
-                map.setBaseElemXY(c.x, c.y, ELEM.ROAD);
-            }
-            chosenCoord.push(c);
-        }
-    }
-    return chosenCoord;
-};
 
 /* Returns the path segment sizes. For example, dist=17, nSeg=4,
  * produces [4, 4, 4, 5] */
