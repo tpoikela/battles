@@ -9,29 +9,30 @@ import SimulationButtons from './simulation-buttons';
 
 import GameMessages from '../jsx/game-messages';
 import LevelSaveLoad from './level-save-load';
-import Capital from '../data/capital';
-import AbandonedFort, {abandonedFortConf} from '../data/abandoned-fort';
-import DwarvenCity, {dwarvenCityConf} from '../data/dwarven-city';
+import {Capital} from '../data/capital';
+import {AbandonedFort, abandonedFortConf} from '../data/abandoned-fort';
+import {DwarvenCity, dwarvenCityConf} from '../data/dwarven-city';
 
 import EditorContextMenu from './editor-context-menu';
 import EditorClickHandler from './editor-click-handler';
 
-const ROT = require('../../lib/rot');
-ROT.Map.Wall = require('../../lib/map.wall');
-const DungeonGenerator = require('../src/dungeon-generator');
-const {CaveGenerator} = require('../src/cave-generator');
-const MountainGenerator = require('../src/mountain-generator');
-const CastleGenerator = require('../src/castle-generator');
+import ROT from '../../lib/rot';
+import {MapWall} from '../../lib/map.wall';
+import {DungeonGenerator} from '../src/dungeon-generator';
+import {CaveGenerator} from '../src/cave-generator';
+import {MountainGenerator} from '../src/mountain-generator';
+import {CastleGenerator} from '../src/castle-generator';
 
-const Screen = require('../gui/screen');
+import {Screen} from '../gui/screen';
+
+import RG from '../src/rg';
+import {OWMap} from '../src/overworld.map';
+import {OverWorld} from '../src/overworld';
+import {FactoryWorld} from '../src/factory.world';
+import {WorldConf} from '../src/world.creator';
+import {ObjectShell} from '../src/objectshellparser';
 
 const NO_VISIBLE_CELLS = [];
-
-const RG = require('../src/rg');
-const OW = require('../src/overworld.map');
-RG.getOverWorld = require('../src//overworld');
-
-const WorldConf = require('../src/world.creator');
 
 const editorLevelTypes = [
   'Castle', 'Cave', 'Dungeon', 'MountainFace', 'MountainSummit',
@@ -85,10 +86,20 @@ const updateLevelAndErrorMsg = (level, msg) => (
   })
 );
 
+export interface IGameEditorProps {
+    editorData: any;
+
+}
+
 /* Component for game/level editor. */
 export default class GameEditor extends Component {
 
-  constructor(props) {
+  public screen: Screen;
+  public parser: any;
+  public intervalID: number;
+  public frameID: number;
+
+  constructor(props: IGameEditorProps) {
     super(props);
     this.handleKeyDown = this.handleKeyDown.bind(this);
 
@@ -162,9 +173,9 @@ export default class GameEditor extends Component {
     level.editorID = state.idCount++;
     state.level = level;
     state.levelList.push(level);
-    window.LEVEL = level;
+    (window as any).LEVEL = level;
 
-    this.parser = RG.ObjectShell.getParser();
+    this.parser = ObjectShell.getParser();
 
     this.intervalID = null;
     this.frameID = null;
@@ -420,8 +431,8 @@ export default class GameEditor extends Component {
       owTilesX: mult * 40,
       owTilesY: mult * 40
     };
-    const overworld = OW.createOverWorld(owConf);
-    const worldAndConf = RG.OverWorld.createOverWorldLevel(
+    const overworld = OWMap.createOverWorld(owConf);
+    const worldAndConf = OverWorld.createOverWorldLevel(
       overworld, owConf);
     const worldLevel = worldAndConf[0];
     this.addLevelToEditor(worldLevel);
@@ -429,7 +440,7 @@ export default class GameEditor extends Component {
 
   generateZone() {
     const zoneType = this.state.zoneType;
-    const fact = new RG.Factory.World();
+    const fact = new FactoryWorld();
     const featConf = this.state.zoneConf[zoneType];
 
     try {
