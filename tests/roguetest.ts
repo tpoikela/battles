@@ -149,16 +149,6 @@ RGTest.expectConnected = function(b1, b2, nConns) {
         .to.equal(nConns);
 };
 
-
-/* Moves entity from its current position to x,y. */
-RGTest.moveEntityTo = function(ent, x, y) {
-    const level = ent.getLevel();
-    if (level.moveActorTo(ent, x, y)) {
-        return true;
-    }
-    throw new Error(`Cannot move entity to ${x}, ${y}`);
-};
-
 /* Equips all given items for the given actor, and checks that everything
  * succeeds. */
 RGTest.equipItems = function(ent, items) {
