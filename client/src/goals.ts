@@ -775,7 +775,6 @@ export class GoalAttackActor extends GoalBase {
 }
 Goal.AttackActor = GoalAttackActor;
 
-
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
@@ -1049,7 +1048,7 @@ export class GoalFleeFromActor extends GoalBase {
     }
 
 }
-Goal.Flee = GoalFleeFromActor;
+Goal.FleeFromActor = GoalFleeFromActor;
 
 /* Goal used when actor is casting a spell. Spell is always an instantaneous
  * goal taking exactly one turn to process. */
