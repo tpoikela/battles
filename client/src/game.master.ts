@@ -474,7 +474,11 @@ export class GameMaster {
 
     }
 
-    createBattleIntoAreaTileLevel(parentLevel) {
+    createBattleIntoAreaTileLevel(parentLevel: Level) {
+        if (!parentLevel) {
+            RG.err('GameMaster', 'createBattleIntoAreaTileLevel',
+                `Parent level is null`);
+        }
         const parentId = parentLevel.getID();
 
         const ow = this.game.getOverWorld();
