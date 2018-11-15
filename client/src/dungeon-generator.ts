@@ -11,6 +11,8 @@ import {Path} from './path';
 import {DungeonPopulate} from './dungeon-populate';
 import {Random} from './random';
 import {ELEM} from '../data/elem-constants';
+import {ObjectShell} from './objectshellparser';
+import {ElementMarker, ElementDoor} from './element';
 
 const WALL = 1;
 
@@ -472,7 +474,7 @@ export class DungeonGenerator extends LevelGenerator {
                 const coord = Geometry.getBorderForBbox(bbox);
                 coord.forEach(xy => {
                     if (!map.has(xy, 'floor')) {
-                        const marker = new RG.Element.Marker('w');
+                        const marker = new ElementMarker('w');
                         marker.setTag('room wall');
                         level.addElement(marker, xy[0], xy[1]);
                     }
@@ -495,7 +497,7 @@ export class DungeonGenerator extends LevelGenerator {
                 const bbox = room.getInnerBbox();
                 const coord = Geometry.getCoordBbox(bbox);
                 coord.forEach(xy => {
-                    const marker = new RG.Element.Marker('t');
+                    const marker = new ElementMarker('t');
                     marker.setTag('term');
                     level.addElement(marker, xy[0], xy[1]);
                 });
@@ -529,7 +531,7 @@ export class DungeonGenerator extends LevelGenerator {
             room.getDoors((x, y) => {
                 const cell = level.getMap().getCell(x, y);
                 if (!cell.hasDoor()) {
-                    const door = new RG.Element.Door();
+                    const door = new ElementDoor(true);
                     level.addElement(door, x, y);
                 }
             });
@@ -559,7 +561,7 @@ export class DungeonGenerator extends LevelGenerator {
 
     /* Decorates the room corners with fire. */
     addFireToRoom(level, room) {
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const corners = Object.values(room.getCorners());
         corners.forEach(xy => {
             const fire = parser.createActor('Fire');
@@ -685,7 +687,7 @@ export class DungeonGenerator extends LevelGenerator {
         this._addWallsToBrokenPath(level);
 
         criticalPath.forEach(xy => {
-            const critPathElem = new RG.Element.Marker('*');
+            const critPathElem = new ElementMarker('*');
             critPathElem.setTag('critical_path');
             level.addElement(critPathElem, xy.x, xy.y);
         });
@@ -700,7 +702,7 @@ export class DungeonGenerator extends LevelGenerator {
             const {x, y} = path[i];
             const cell = level.getMap().getCell(x, y);
             if (cell.hasDoor()) {
-                const marker = new RG.Element.Marker('X');
+                const marker = new ElementMarker('X');
                 marker.setTag('path broken');
                 level.addElement(marker, x, y);
                 return true;
