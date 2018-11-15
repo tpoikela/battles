@@ -987,7 +987,7 @@ export class MapGenerator {
         };
     }
 
-    static getWallElem(wallType) {
+    static getWallElem(wallType): Element.ElementWall {
         switch (wallType) {
             case 'wallcave': return ELEM.WALL_CAVE;
             case 'wallcastle': return ELEM.WALL_CASTLE;
@@ -998,7 +998,7 @@ export class MapGenerator {
         }
     }
 
-    static getFloorElem(floorType) {
+    static getFloorElem(floorType): Element.ElementBase {
         switch (floorType) {
             case 'floorcave': return ELEM.FLOOR_CAVE;
             case 'floorcastle': return ELEM.FLOOR_CASTLE;
