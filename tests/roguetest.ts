@@ -5,13 +5,15 @@
  */
 
 import RG from '../client/src/rg';
-import { expect } from 'chai';
+import {expect} from 'chai';
 import {Screen} from '../client/gui/screen';
 
 import {FactoryWorld} from '../client/src/factory.world';
 import {FactoryItem} from '../client/src/factory.items';
 import {GameMain} from '../client/src/game';
 import {Random} from '../client/src/random';
+import {FactoryLevel} from '../client/src/factory.level';
+import {SentientActor} from '../client/src/actor';
 
 export const RGTest: any = {};
 
@@ -42,7 +44,8 @@ RGTest.createMockLevel = function(cols, rows) {
 };
 
 RGTest.createLevel = function(type, cols, rows) {
-    return RG.FACT.createLevel('arena', cols, rows);
+    const factLevel = new FactoryLevel();
+    return factLevel.createLevel('arena', cols, rows);
 };
 
 RGTest.equipItem = function(actor, item) {
@@ -53,7 +56,7 @@ RGTest.equipItem = function(actor, item) {
 
 
 RGTest.getMeAWizard = function(conf: any = {}) {
-    const wizard = new RG.Actor.Rogue('wizard');
+    const wizard = new SentientActor('wizard');
     wizard.setType(conf.type || 'human');
     const brain = new RG.Brain.SpellCaster(wizard);
     wizard.setBrain(brain);
@@ -218,7 +221,7 @@ RGTest.MsgCatcher = function() {
 };
 
 RGTest.createSpirit = function(name) {
-    const spirit = new RG.Actor.Rogue(name);
+    const spirit = new SentientActor(name);
     spirit.setType('spirit');
     spirit.add(new RG.Component.Ethereal());
     return spirit;
@@ -280,10 +283,12 @@ RGTest.updateSystems = systems => {
 RGTest.enablePrint = true;
 
 RGTest.printMemUsage = msg => {
-    const used = process.memoryUsage().heapUsed / 1024 / 1024;
-    const usedMb = Math.round(used * 100) / 100;
-    if (RGTest.enablePrint) {
-        console.log(`${msg} The script uses approximately ${usedMb} MB`);
+    if (process) {
+        const used = process.memoryUsage().heapUsed / 1024 / 1024;
+        const usedMb = Math.round(used * 100) / 100;
+        if (RGTest.enablePrint) {
+            console.log(`${msg} The script uses approximately ${usedMb} MB`);
+        }
     }
 };
 
@@ -371,7 +376,7 @@ RGTest.createTestWorld = function(conf = {}) {
 };
 
 RGTest.createPlayer = function(items = [], equip = []) {
-    const player = new RG.Actor.Rogue('player');
+    const player = new SentientActor('player');
     player.setIsPlayer(true);
 	FactoryItem.addItemsToActor(player, items);
 	FactoryItem.equipItemsToActor(player, equip);

@@ -1,12 +1,13 @@
 
+import 'mocha';
 import { expect } from 'chai';
 
-const RG = require('../../../client/src/battles');
-const {Quest, QuestGen, QuestPopulate}
-    = require('../../../client/src/quest-gen');
-const FactoryWorld = require('../../../client/src/factory.world');
-const QuestGrammar = require('../../../client/data/quest-grammar');
-const RGTest = require('../../roguetest');
+import RG from '../../../client/src/rg';
+import {Quest, QuestGen, QuestPopulate}
+    from '../../../client/src/quest-gen';
+import {FactoryWorld} from '../../../client/src/factory.world';
+import {QuestGrammar} from '../../../client/data/quest-grammar';
+import {RGTest} from '../../roguetest';
 
 const questGram1 = '<QUEST> ::= "goto" "kill";';
 
@@ -21,8 +22,9 @@ const questGram3 =
 <get> ::= <goto> "get_it";
 <learn> ::= "learn_it";`;
 
+
 describe('QuestGen', () => {
-    let questGen = null;
+    let questGen: QuestGen = null;
 
     beforeEach(() => {
         questGen = new QuestGen();
@@ -47,7 +49,7 @@ describe('QuestGen', () => {
 
     it('creates a single task from each term', () => {
         const rules = QuestGen.parse(questGram3);
-        const conf = {debug: true, rules};
+        const conf = {debug: false, rules};
         const quest = questGen.genQuestWithConf(conf);
         expect(quest.numTasks()).to.equal(6);
     });
@@ -62,7 +64,7 @@ describe('QuestGen', () => {
         const {actorMotivations} = QuestGrammar;
         actorMotivations.forEach(motive => {
             console.log('Motive:', motive);
-            conf = {motive, maxQuests: 1};
+            conf = {motive, maxQuests: 1} as any;
             quest = questGen.genQuestWithMotive(conf);
 
             const msg = `Motive ${motive} OK`;
@@ -149,6 +151,8 @@ describe('QuestPopulate', () => {
             const player = RGTest.createPlayer(['Potion of power']);
             const world = RGTest.createTestWorld();
             const area = world.getCurrentArea();
+            const tileLevel = area.getTileXY(0, 0).getLevel();
+            tileLevel.addActor(player, 2, 2);
             const game = RGTest.createGame({place: world, player});
             expect(game).to.not.be.empty;
             const city = area.getTileXY(0, 0).getZones('City')[0];
