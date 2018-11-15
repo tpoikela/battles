@@ -17,6 +17,12 @@ let POOL = EventPool.getPool();
 
 export const Game: any = {};
 
+export interface PlaceObj {
+    place: string;
+    x: number;
+    y: number;
+}
+
 /* Top-level main object for the game.  */
 export const GameMain = function() {
     this._players = []; // List of players
@@ -90,7 +96,7 @@ export const GameMain = function() {
 
     /* Adds player to the game. By default, it's added to the first level if
      * player has no level yet.*/
-    this.addPlayer = (player, obj) => {
+    this.addPlayer = (player, obj?: PlaceObj) => {
         let levelOK = false;
         this._master.setPlayer(player);
         if (!RG.isNullOrUndef([player.getLevel()])) {
@@ -449,19 +455,19 @@ export const GameMain = function() {
 
     /* Adds one battle to the game. If active = true, battle level is activated
      * and battle started immediately. */
-    this.addBattle = (battle, id = -1, active = false) => {
+    this.addBattle = (battle, id = -1, active = false): void => {
         const level = battle.getLevel();
         this.addLevel(level);
         if (active) {
             this._engine.addActiveLevel(level);
         }
         if (this.hasPlaces() && id > -1) {
-            this._addBattleZoneToArea(id, battle);
+            this._addBattleZoneToArea(battle, id);
         }
     };
 
     /* Creates a new zone and adds it into area. */
-    this._addBattleZoneToArea = (parentID, battle) => {
+    this._addBattleZoneToArea = (battle, parentID) => {
         const level = battle.getLevel();
         const zoneName = 'Zone of ' + battle.getName();
         const battleZone = new World.BattleZone(zoneName);
@@ -470,8 +476,14 @@ export const GameMain = function() {
         const world = this.getCurrentWorld();
         const area = world.getAreas()[0];
         const xy = area.findTileXYById(parentID);
-        battleZone.setTileXY(xy[0], xy[1]);
-        area.addZone('BattleZone', battleZone);
+        if (xy) {
+            battleZone.setTileXY(xy[0], xy[1]);
+            area.addZone('BattleZone', battleZone);
+        }
+        else {
+            RG.err('GameMain', '_addBattleZoneToArea',
+            `ID ${parentID} not found in area.`);
+        }
     };
 
     this.getChunkManager = () => this._chunkManager;
