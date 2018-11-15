@@ -1408,7 +1408,7 @@ RG.isItem = obj => {
 /* Returns true if given object is an entity. Can return false results
  * sometimes. */
 RG.isEntity = obj => {
-    if (obj._comps && obj._compsByType && obj.add && obj.get) {
+    if (obj.comps && obj.compsByType && obj.add && obj.get) {
         return true;
     }
     return false;
