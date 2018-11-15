@@ -1,6 +1,16 @@
 
 import RG from './rg';
 
+export interface Listener {
+    hasNotify: boolean;
+    notify: (evtName: string, args) => void;
+    listenerID?: number; // Added in EventPool
+}
+
+export interface EvtArgs {
+    [key: string]: any;
+}
+
 /* Event pool can be used to emit events and register callbacks for listeners.
  * This decouples the emitter and listener from each other.
  * Each emitted event can contain an object 'args', which is emitted with the
@@ -19,7 +29,7 @@ export class EventPool  { // {{{2
 
     private static id: number = 0;
 
-    private _listeners: any;
+    private _listeners: {[key: string]: Listener[]};
     private _nListeners: number;
     private _listenerID: number;
     private _lastEmitted: any;
@@ -45,17 +55,17 @@ export class EventPool  { // {{{2
     }
 
 
-    public getNumListeners() {
+    public getNumListeners(): number {
         return this._nListeners;
     }
 
-    public getNumEventsListened() {
+    public getNumEventsListened(): number {
         return Object.keys(this._listeners).length;
     }
 
     /* Emits an event with given name. args must be in object-notation ie.
      * {data: "abcd"} */
-    public emitEvent(evtName, args) {
+    public emitEvent(evtName: string, args: EvtArgs): void {
         if (!RG.isNullOrUndef([evtName])) {
             ++this.notifyStackSize;
             if (process.env.NODE_ENV !== 'production') {
@@ -89,7 +99,7 @@ export class EventPool  { // {{{2
     }
 
     /* Register an event listener. */
-    public listenEvent(evtName, obj) {
+    public listenEvent(evtName, obj: Listener): void {
         if (!RG.isNullOrUndef([evtName])) {
             if (obj.hasOwnProperty('notify') || obj.hasNotify) {
                 if (this._listeners.hasOwnProperty(evtName)) {
@@ -109,7 +119,7 @@ export class EventPool  { // {{{2
             }
             else {
                 let msg = 'evtName: ' + evtName;
-                msg += '\nprototype: ' + JSON.stringify(obj.prototype);
+                msg += '\nprototype: ' + JSON.stringify(obj);
                 msg += '\nCannot add object. Listener must implement notify()!';
                 RG.err('EventPool', 'listenEvent', msg);
             }
@@ -119,10 +129,33 @@ export class EventPool  { // {{{2
         }
     }
 
+    public isListener(obj): boolean {
+        let found = false;
+        this.forEachEvent(obj, foundObj => {
+            // As callback is called only for found object,
+            // we can set the found to true
+            found = true;
+        });
+        return found;
+    }
+
+    /* Calls callback with object for each event */
+    public forEachEvent(obj, cb): void {
+        const id = obj.listenerID;
+        const evtKeys = Object.keys(this._listeners);
+        evtKeys.forEach(evt => {
+            const index = this._listeners[evt].findIndex(sought =>
+                sought.listenerID === id);
+            if (index >= 0) {
+                cb(obj, evt);
+            }
+        });
+    }
+
     /* Removes the object from a list of event listeners. Note that if remove is
      * is triggered within notify() function of an object, the removal is made
      * pending and processed once notify() finishes (see this.dontRemove). */
-    public removeListener(obj) {
+    public removeListener(obj): void {
         if (obj.hasOwnProperty('listenerID')) {
             if (this.cannotRemove) {
                 this.pendingRemoves.push(obj);
@@ -131,7 +164,7 @@ export class EventPool  { // {{{2
             let nRemoved = 0;
             const id = obj.listenerID;
 
-            const evtKeys = Reflect.ownKeys(this._listeners);
+            const evtKeys = Object.keys(this._listeners);
             evtKeys.forEach(evt => {
                 const index = this._listeners[evt].findIndex(sought =>
                     sought.listenerID === id);
@@ -161,15 +194,15 @@ export class EventPool  { // {{{2
     }
 
     /* Returns listeners for the given event. */
-    public getListeners(evtName) {
+    public getListeners(evtName): Listener[] {
         if (this._listeners.hasOwnProperty(evtName)) {
             return this._listeners[evtName].slice();
         }
         return [];
     }
 
-    public printListeners() {
-        Reflect.ownKeys(this._listeners).forEach(evt => {
+    public printListeners(): void {
+        Object.keys(this._listeners).forEach(evt => {
             RG.diag(`Listeners for event ${String(evt)}`);
             RG.diag(this._listeners[evt]);
         });
