@@ -441,7 +441,7 @@ Component.create = create;
 export const defineComponent = function(name, args) {
     if (!Component.hasOwnProperty(name)) {
         const CompDecl = DataComponent(name, args);
-        Component[name] = CompDecl;
+        // Component[name] = CompDecl;
         return CompDecl;
     }
     RG.err('Component', 'defineComponent',
