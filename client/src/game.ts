@@ -27,8 +27,9 @@ export const GameMain = function() {
 
     this._enableChunkUnload = false;
     this._chunkManager = null;
-    this._eventPool = new EventPool();
-    POOL = this._eventPool;
+    this._eventPool = POOL;
+    // this._eventPool = new EventPool();
+    // POOL = this._eventPool;
 
     this.currPlaceIndex = 0; // Add support for more worlds
 
@@ -807,25 +808,52 @@ Game.Save = function() {
 
 /* Describes a condition when the player has won the game. 1st version pretty
  * much checks if given actor is killed. */
-export const WinCondition = function(name) {
-    const _name = name;
-    this.description = ''; // Shown when condition filled
+export class WinCondition {
 
-    this._condIncomplete = {};
-    this._condFilled = {};
+    private _name: string;
+    private description: string; // Shown when condition filled
 
-    this.getName = () => _name;
+    private _condIncomplete = {};
+    private _condFilled: {[key: string]: boolean};
+    private pool: EventPool;
+    private _isTrue: boolean;
+    public hasNotify: boolean;
+    private _notifyCallbacks: {[key: string]: (any) => void};
 
-    this._isTrue = false;
-    this.isTrue = function() {return this._isTrue;};
+    constructor(name, pool?) {
+        this._name = name;
+        this.description = ''; // Shown when condition filled
 
-    this._notifyCallbacks = {};
-    this.addNotifyCallback = function(type, func) {
+        this._condIncomplete = {};
+        this._condFilled = {};
+        this.pool = pool || POOL;
+        this._isTrue = false;
+        this.hasNotify = true;
+        this._notifyCallbacks = {
+            [RG.EVT_ACTOR_KILLED]: this.actorKilledCallback.bind(this)
+        };
+    }
+
+    getName() {
+        return this._name;
+    }
+
+    setPool(pool: EventPool): void {
+        if (pool !== this.pool) {
+            if (this.pool.isListener(this)) {
+                this.pool.removeListener(this);
+            }
+        }
+        this.pool = pool;
+    }
+
+    isTrue() {return this._isTrue;}
+
+    addNotifyCallback(type, func) {
         this._notifyCallbacks[type] = func;
-    };
+    }
 
-    this.hasNotify = true;
-    this.notify = function(evtName, args) {
+    notify(evtName, args) {
         if (this._notifyCallbacks.hasOwnProperty(evtName)) {
             this._notifyCallbacks[evtName](args);
         }
@@ -836,28 +864,28 @@ export const WinCondition = function(name) {
                 this.onTrue();
             }
         }
-    };
+    }
 
     /* Add an event to listen to for win condition. */
-    this._addEvent = function(type) {
-        POOL.listenEvent(type, this);
-    };
+    _addEvent(type) {
+        this.pool.listenEvent(type, this);
+    }
 
-    this.addActorKilled = function(actor) {
+    addActorKilled(actor) {
         this._addEvent(RG.EVT_ACTOR_KILLED);
         this._condIncomplete[RG.EVT_ACTOR_KILLED] = [actor.getID()];
-    };
+    }
 
     /* Customisable callback fired on condition being true. */
-    this.onTrue = function() {
-        let msg = `Condition: ${_name}, Description: ${this.description}.`;
+    onTrue() {
+        let msg = `Condition: ${this._name}, Description: ${this.description}.`;
         msg += 'Congratulations. You have won!';
         RG.gameSuccess(msg);
-        POOL.emitEvent(RG.EVT_WIN_COND_TRUE, {name: _name});
-    };
+        this.pool.emitEvent(RG.EVT_WIN_COND_TRUE, {name: this._name});
+    }
 
     // Some default callbacks (if not overwritten)
-    this._notifyCallbacks[RG.EVT_ACTOR_KILLED] = (args) => {
+    actorKilledCallback(args) {
         const actor = args.actor;
         const actors = this._condIncomplete[RG.EVT_ACTOR_KILLED];
         if (actors) {
