@@ -28,14 +28,14 @@ export class SystemBaseAction extends SystemBase {
 
         // Initialisation of dispatch table for handler functions
         this._dtable = {
-            Give: this._handleGive,
-            Jump: this._handleJump,
-            OpenDoor: this._handleOpenDoor,
-            Pickup: this._handlePickup,
-            Read: this._handleRead,
-            UseElement: this._handleUseElement,
-            UseItem: this._handleUseItem,
-            UseStairs: this._handleUseStairs
+            Give: this._handleGive.bind(this),
+            Jump: this._handleJump.bind(this),
+            OpenDoor: this._handleOpenDoor.bind(this),
+            Pickup: this._handlePickup.bind(this),
+            Read: this._handleRead.bind(this),
+            UseElement: this._handleUseElement.bind(this),
+            UseItem: this._handleUseItem.bind(this),
+            UseStairs: this._handleUseStairs.bind(this)
         };
     }
 
