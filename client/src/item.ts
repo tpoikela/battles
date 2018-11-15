@@ -6,6 +6,7 @@ import * as Mixin from './mixin';
 import * as Actor from './actor';
 import {Entity} from './entity';
 import {EventPool} from '../src/eventpool';
+import {Dice} from './dice';
 
 const POOL = EventPool.getPool();
 
@@ -451,7 +452,7 @@ export class Potion extends ItemBase {
             const cell = obj.target;
             if (cell.hasActors()) {
                 const target = cell.getProp('actors')[0];
-                const die = new RG.Die(1, 10, 2);
+                const die = new Dice(1, 10, 2);
                 const pt = die.roll();
                 if (target.has('Health')) {
                     target.get('Health').addHP(pt);
