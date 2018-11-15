@@ -1,6 +1,7 @@
 
 /* Contains the code for base class of level generator. */
 import RG from './rg';
+import {ElementMarker, ElementDoor} from './element';
 
 export class LevelGenerator {
     public shouldRemoveMarkers: boolean;
@@ -12,14 +13,14 @@ export class LevelGenerator {
     addStartAndEndPoint(level, start, end) {
         if (start) {
             const [sX, sY] = start;
-            const startPointElem = new RG.Element.Marker('<');
+            const startPointElem = new ElementMarker('<');
             startPointElem.setTag('start_point');
             level.addElement(startPointElem, sX, sY);
         }
 
         if (end) {
             const [eX, eY] = end;
-            const goalPoint = new RG.Element.Marker('>');
+            const goalPoint = new ElementMarker('>');
             goalPoint.setTag('end_point');
             level.addElement(goalPoint, eX, eY);
         }
