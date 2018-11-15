@@ -34,6 +34,7 @@ export const TagComponent = function(type: string, compAttrib: any = {}) {
     RG.extend2(CompDecl, ComponentBase);
     Component.createdCompDecls[type] = CompDecl;
     handleCompAttrib(CompDecl, compAttrib);
+    addNewCompDecl(type, CompDecl);
     return CompDecl;
 };
 Component.TagComponent = TagComponent;
@@ -44,6 +45,16 @@ function handleCompAttrib(CompDecl: any, compAttrib: any) {
             CompDecl[attr] = compAttrib[attr];
         }
     });
+}
+
+function addNewCompDecl(type: string, CompDecl: any) {
+    if (!Component.hasOwnProperty(type)) {
+        Component[type] = CompDecl;
+    }
+    else {
+        RG.err('Component', 'addCompDecl',
+            `Comp ${type} exists already!`);
+    }
 }
 
 /* Can be used to create simple data components with setters/getters.
@@ -140,6 +151,7 @@ export const DataComponent = (type: string, members: any, compAttrib: any = {}) 
     CompDecl.prototype.members = Object.freeze(members);
     handleCompAttrib(CompDecl, compAttrib);
     Component.createdCompDecls[type] = CompDecl;
+    addNewCompDecl(type, CompDecl);
     return CompDecl;
 };
 Component.DataComponent = DataComponent;
