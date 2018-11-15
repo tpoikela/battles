@@ -5,7 +5,7 @@ import RG from '../../../client/src/rg';
 import {chaiBattles} from '../../helpers/chai-battles';
 import {RGTest} from '../../roguetest';
 import {SentientActor} from '../../../client/src/actor';
-import {Item}from '../../../client/src/item';
+import {Item} from '../../../client/src/item';
 import {Inventory} from '../../../client/src/inv';
 import {EventPool} from '../../../client/src/eventpool';
 import * as Component from '../../../client/src/component';

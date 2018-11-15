@@ -3,18 +3,28 @@
 
 import RG from '../../../client/src/rg';
 import { expect } from 'chai';
-import {RGTest} from '../../roguetest';
+import {SentientActor} from  '../../../client/src/actor';
+import * as Element from  '../../../client/src/element';
+import {Item} from '../../../client/src/item';
+import {Level} from '../../../client/src/level';
+import {FactoryLevel} from '../../../client/src/factory.level';
 
-const Actor = RG.Actor.Rogue;
-const Level = RG.Map.Level;
-const Item = RG.Item.Base;
+const Actor = SentientActor;
+const ItemBase = Item.ItemBase;
 
-const Stairs = RG.Element.Stairs;
-const Door = RG.Element.Door;
+const Stairs = Element.ElementStairs;
+const Door = Element.ElementDoor;
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
 describe('Map.Level', () => {
+
+    let factLevel = null;
+
+    beforeEach(() => {
+        factLevel = new FactoryLevel();
+    });
+
     it('has unique ID and level number', () => {
         const level1 = new Level();
         const level2 = new Level();
@@ -25,7 +35,7 @@ describe('Map.Level', () => {
     });
 
     it('It has a list of map cells', () => {
-        const level1 = RGTest.createLevel('arena', 20, 20);
+        const level1 = factLevel.createLevel('arena', 20, 20);
         expect(level1.getMap()).to.not.be.empty;
 
         const freeCell = level1.getFreeRandCell();
@@ -36,7 +46,7 @@ describe('Map.Level', () => {
     });
 
     it('has actors', () => {
-        const level1 = RGTest.createLevel('arena', 20, 20);
+        const level1 = factLevel.createLevel('arena', 20, 20);
         const actor = new Actor('actor');
         level1.addActor(actor, 2, 2);
 
@@ -50,9 +60,9 @@ describe('Map.Level', () => {
     });
 
     it('has items', () => {
-        const level1 = RGTest.createLevel('arena', 20, 20);
-        const item1 = new Item('item1');
-        const item2 = new Item('item2');
+        const level1 = factLevel.createLevel('arena', 20, 20);
+        const item1 = new ItemBase('item1');
+        const item2 = new ItemBase('item2');
         expect(level1.addItem(item1, 2, 2)).to.be.true;
         expect(level1.addItem(item2, 3, 3)).to.be.true;
 
@@ -71,7 +81,7 @@ describe('Map.Level', () => {
     });
 
     it('has a list of elements', () => {
-        const level1 = RGTest.createLevel('arena', 20, 20);
+        const level1 = factLevel.createLevel('arena', 20, 20);
         const stairs = new Stairs('stairsDown', level1);
         const elem1 = new Door(true);
         level1.addElement(elem1, 2, 2);
@@ -81,8 +91,8 @@ describe('Map.Level', () => {
     });
 
     it('has stairs as elements', () => {
-        const level1 = RGTest.createLevel('arena', 20, 20);
-        const level2 = RGTest.createLevel('arena', 20, 20);
+        const level1 = factLevel.createLevel('arena', 20, 20);
+        const level2 = factLevel.createLevel('arena', 20, 20);
         const stairs = new Stairs('stairsDown', level1, level2);
         level1.addStairs(stairs, 5, 5);
 
@@ -95,9 +105,9 @@ describe('Map.Level', () => {
     });
 
     it('has function to move objects around', () => {
-        const level1 = RGTest.createLevel('arena', 20, 20);
-        const level2 = RGTest.createLevel('arena', 20, 20);
-        const actor = new RG.Actor.Rogue('mover');
+        const level1 = factLevel.createLevel('arena', 20, 20);
+        const level2 = factLevel.createLevel('arena', 20, 20);
+        const actor = new Actor('mover');
         level1.addActor(actor, 1, 1);
 
         level1.moveActorTo(actor, 3, 7);
@@ -110,7 +120,13 @@ describe('Map.Level', () => {
     });
 
     it('can be serialized to JSON', () => {
-        const level1 = RGTest.createLevel('arena', 20, 20);
+        const level1 = factLevel.createLevel('arena', 20, 20);
+        const map = level1.getMap();
+        const cells = map.getCells();
+        const cell0 = cells[0];
+        expect(cell0.getBaseElem().getType()).to.equal('wall');
+        expect(cells[35].getBaseElem().getType()).to.equal('floor');
+
         const json = level1.toJSON();
         expect(json.id).to.equal(level1.getID());
         expect(json.levelNumber).to.equal(level1.getLevelNumber());

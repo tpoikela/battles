@@ -31,6 +31,11 @@ describe('MapGenerator', () => {
             expect(map).to.exist;
             expect(map.cols).to.equal(50);
             expect(map.rows).to.equal(200);
+
+            const cells = map.getCells();
+            const cell= cells[0];
+            const baseElem = cell.getBaseElem();
+            expect(baseElem.getType()).to.not.equal('');
         }
 
     });
