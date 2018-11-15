@@ -17,6 +17,9 @@ import {ActorClass} from './actor-class';
 import {EventPool} from '../src/eventpool';
 import {Dice} from './dice';
 import {Spell} from './spell';
+import {ELEM, ELEM_MAP} from '../data/elem-constants';
+import {ObjectShell} from './objectshellparser';
+import {Component} from './component.base';
 
 const POOL = EventPool.getPool();
 
@@ -29,7 +32,7 @@ const OBJ_REF_NOT_FOUND = null;
 export const FromJSON = function() {
 
     this._dungeonLevel = 1;
-    this._parser = RG.ObjectShell.getParser();
+    this._parser = ObjectShell.getParser();
 
     // Lookup table for mapping level ID to Map.Level object
     this.id2level = {};
@@ -164,7 +167,8 @@ FromJSON.prototype.createGame = function(game, gameJSON) {
         this.setChunkMode(true);
     }
 
-    RG.Component.idCount = gameJSON.lastComponentID;
+    Component.setIDCount(gameJSON.lastComponentID);
+    // Component.idCount = gameJSON.lastComponentID;
 
     const allLevels = [];
     const levelsToRestore = this.getLevelsToRestore(gameJSON);
@@ -349,13 +353,13 @@ FromJSON.prototype.addCompsToEntity = function(ent, comps) {
 
 /* Creates the component with given name. */
 FromJSON.prototype.createComponent = function(name, compJSON) {
-    if (!RG.Component.hasOwnProperty(name)) {
-        let msg = `No |${name}| in RG.Component.`;
+    if (!Component.hasOwnProperty(name)) {
+        let msg = `No |${name}| in Component.`;
         msg += ` compJSON: ${JSON.stringify(compJSON)}`;
         RG.err('Game.FromJSON', 'createComponent', msg);
     }
     // TODO remove error check, change to RG.Component.create(name)
-    const newCompObj = new RG.Component[name]();
+    const newCompObj = new Component[name]();
     for (const setFunc in compJSON) {
         if (typeof newCompObj[setFunc] === 'function') {
             const valueToSet = compJSON[setFunc];
@@ -871,20 +875,20 @@ FromJSON.prototype.createBaseElem = function(cell) {
     const type = RG.elemIndexToType[cell];
     switch (type) {
         case '#': // wall
-        case 'wall': return RG.ELEM.WALL;
+        case 'wall': return ELEM.WALL;
         case '.': // floor
-        case 'floor': return RG.ELEM.FLOOR;
-        case 'tree': return RG.ELEM.TREE;
-        case 'grass': return RG.ELEM.GRASS;
-        case 'stone': return RG.ELEM.STONE;
-        case 'water': return RG.ELEM.WATER;
-        case 'chasm': return RG.ELEM.CHASM;
-        case 'road': return RG.ELEM.ROAD;
-        case 'highrock': return RG.ELEM.HIGH_ROCK;
-        case 'bridge': return RG.ELEM.BRIDGE;
+        case 'floor': return ELEM.FLOOR;
+        case 'tree': return ELEM.TREE;
+        case 'grass': return ELEM.GRASS;
+        case 'stone': return ELEM.STONE;
+        case 'water': return ELEM.WATER;
+        case 'chasm': return ELEM.CHASM;
+        case 'road': return ELEM.ROAD;
+        case 'highrock': return ELEM.HIGH_ROCK;
+        case 'bridge': return ELEM.BRIDGE;
         default: {
-            if (RG.elemTypeToObj[type]) {
-                return RG.elemTypeToObj[type];
+            if (ELEM_MAP.elemTypeToObj[type]) {
+                return ELEM_MAP.elemTypeToObj[type];
             }
             else {
                 RG.err('Game.fromJSON', 'createBaseElem',
