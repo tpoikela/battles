@@ -13,6 +13,8 @@ import {FactoryLevel} from './factory.level';
 import {DungeonPopulate}from './dungeon-populate';
 import {EventPool} from '../src/eventpool';
 import {Random} from './random';
+import * as Element from './element';
+import {ELEM_MAP} from '../data/elem-constants';
 
 const POOL = EventPool.getPool();
 
@@ -84,21 +86,21 @@ export const FactoryBase = function() {
     this.createSpell = name => this._actorFact.createSpell(name);
 
     this.createElement = elemType => {
-        if (RG.elemTypeToObj[elemType]) {
-            return RG.elemTypeToObj[elemType];
+        if (ELEM_MAP.elemTypeToObj[elemType]) {
+            return ELEM_MAP.elemTypeToObj[elemType];
         }
         switch (elemType) {
-            case 'door' : return new RG.Element.Door(true);
-            case 'opendoor' : return new RG.Element.Door(false);
+            case 'door' : return new Element.ElementDoor(true);
+            case 'opendoor' : return new Element.ElementDoor(false);
             default: return null;
         }
     };
 
     this.createFloorCell = (x, y) =>
-        new Cell(x, y, new RG.Element.Base('floor'));
+        new Cell(x, y, new Element.ElementBase('floor'));
 
     this.createWallCell = (x, y) =>
-        new Cell(x, y, new RG.Element.Base('wall'));
+        new Cell(x, y, new Element.ElementWall('wall'));
 
     /* Factory method for creating levels.*/
     this.createLevel = function(levelType, cols, rows, conf) {
