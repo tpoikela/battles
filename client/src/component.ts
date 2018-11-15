@@ -23,6 +23,8 @@ const BaseProto = ComponentBase.prototype;
 
 const NO_TYPE = Object.freeze('');
 
+export * from './component.base';
+
 /* Action component is added to all schedulable acting entities.*/
 export const Action = UniqueTransientDataComponent('Action',
     {energy: 0, active: false});
@@ -840,24 +842,24 @@ export const DoubleShot = TagComponent('DoubleShot');
 //--------------------------------------------
 
 export const SpellPower = UniqueDataComponent('SpellPower', {
-    pp: 10, maxPP: 10
+    PP: 10, maxPP: 10
 });
 
 SpellPower.prototype.addPP = function(pp) {
-    this.pp += pp;
-    if (this.pp > this.maxPP) {this.pp = this.maxPP;}
+    this.PP += pp;
+    if (this.PP > this.maxPP) {this.PP = this.maxPP;}
 };
 
 SpellPower.prototype.decrPP = function(pp) {
-    this.pp -= pp;
+    this.PP -= pp;
 };
 
 SpellPower.prototype.hasPower = function() {
-    return this.pp > 0;
+    return this.PP > 0;
 };
 
 SpellPower.prototype.canCast = function(spellPP) {
-    return this.pp >= spellPP;
+    return this.PP >= spellPP;
 };
 
 /* PowerDrain component which is cancels a SpellCast and adds spell power to
