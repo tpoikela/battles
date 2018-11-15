@@ -16,6 +16,7 @@ import {OW} from './ow-constants';
 import {Random} from './random';
 import {TerritoryMap} from '../data/territory-map';
 import {Territory} from './territory';
+import {ElementMarker} from './element';
 
 const getRNG = Random.getRNG;
 
@@ -330,7 +331,7 @@ export class OWMap {
         const cellList = new CellMap(sizeX, sizeY);
         for (let x = 0; x < sizeX; x++) {
             for (let y = 0; y < sizeY; y++) {
-                const marker = new RG.Element.Marker(map[x][y]);
+                const marker = new ElementMarker(map[x][y]);
                 if (OW.classNames[map[x][y]]) {
                     marker.setClassName(OW.classNames[map[x][y]]);
                 }

@@ -1,12 +1,14 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const OW = require('../../../client/src/overworld.map');
-const Screen = require('../../../client/gui/screen');
+import {expect} from 'chai';
+import RG from '../../../client/src/rg';
+import {OWMap} from '../../../client/src/overworld.map';
+import {OW} from '../../../client/src/ow-constants';
+import {Screen} from '../../../client/gui/screen';
+import {ElementMarker} from '../../../client/src/element';
 
-describe('OW.Map', () => {
+describe('OWMap', () => {
     it('can be created', () => {
-        const ow = new OW.Map();
+        const ow = new OWMap();
         expect(ow).to.exist;
     });
 
@@ -15,7 +17,7 @@ describe('OW.Map', () => {
             owTilesX: 40,
             owTilesY: 20
         };
-        const overworld = OW.createOverWorld(conf);
+        const overworld = OWMap.createOverWorld(conf);
         const map = overworld.getMap();
 
         expect(map).to.have.length(40);
@@ -27,7 +29,7 @@ describe('OW.Map', () => {
             owTilesX: 40,
             owTilesY: 20
         };
-        const ow = OW.createOverWorld(conf);
+        const ow = OWMap.createOverWorld(conf);
         expect(ow.getBiome(0, 1)).to.not.be.empty;
 
         const features = ow.getFeaturesByType(OW.WCAPITAL);
@@ -39,24 +41,31 @@ describe('OW.Map', () => {
             owTilesX: 40,
             owTilesY: 20
         };
-        const ow = OW.createOverWorld(conf);
+        const ow = OWMap.createOverWorld(conf);
         const map = ow.getCellList();
         // map.debugPrintInASCII();
         map.getCells(c => {
             c._explored = true;
+            return true;
         });
 
-        const player = new RG.Element.Marker('@');
+        const player = new ElementMarker('@');
         map.getCell(10, 5).removeProps(RG.TYPE_ELEM);
         map.getCell(10, 5).setProp(RG.TYPE_ELEM, player);
 
         const screen = new Screen(15, 7);
-        screen.renderAllVisible(5, 5, map);
-        screen.printRenderedChars();
+        let render = () => {
+            screen.renderAllVisible(5, 5, map);
+        };
+        expect(render).not.to.throw(Error);
+        // screen.printRenderedChars();
 
         map.getCell(20, 10).removeProps(RG.TYPE_ELEM);
         map.getCell(20, 10).setProp(RG.TYPE_ELEM, player);
-        screen.renderAllVisible(20, 10, map);
-        screen.printRenderedChars();
+        render = () => {
+            screen.renderAllVisible(20, 10, map);
+        };
+        expect(render).not.to.throw(Error);
+        // screen.printRenderedChars();
     });
 });
