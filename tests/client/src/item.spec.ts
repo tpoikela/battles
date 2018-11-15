@@ -1,27 +1,34 @@
 
-const chai = require('chai');
-const chaiBattles = require('../../helpers/chai-battles.js');
-const RG = require('../../../client/src/battles');
-const RGTest = require('../../roguetest');
+import chai from 'chai';
+import RG from '../../../client/src/rg';
+
+import {chaiBattles} from '../../helpers/chai-battles';
+import {RGTest} from '../../roguetest';
+import {SentientActor} from '../../../client/src/actor';
+import {Item}from '../../../client/src/item';
+import {Inventory} from '../../../client/src/inv';
+import {EventPool} from '../../../client/src/eventpool';
+import * as Component from '../../../client/src/component';
+import {Cell} from  '../../../client/src/map.cell';
+import * as Element from  '../../../client/src/element';
 
 chai.use(chaiBattles);
 const expect = chai.expect;
-const Actor = RG.Actor.Rogue;
-const Item = RG.Item.Base;
+const Actor = SentientActor;
 
 describe('How items are typed, physical entities', () => {
 
     it('has a type', () => {
-        Object.keys(RG.Item).forEach(item => {
+        Object.keys(Item).forEach(item => {
             if (!(/Container/).test(item)) {
-                const newItem = new RG.Item[item]();
-                expect(newItem.getType(), 'RG.Item.' + item).not.to.be.empty;
+                const newItem = new Item[item]();
+                expect(newItem.getType(), 'Item.' + item).not.to.be.empty;
             }
         });
     });
 
     it('Has weight and size', () => {
-        const item = new Item('TestItem');
+        const item = new Item.ItemBase('TestItem');
         expect(item.has('Physical')).to.equal(true);
 
         item.setWeight(3.0);
@@ -35,7 +42,7 @@ describe('How items are typed, physical entities', () => {
     });
 
     it('can be converted to human-readable string', () => {
-        const arrows = new RG.Item.Ammo('arrow');
+        const arrows = new Item.Ammo('arrow');
         arrows.setCount(15);
         const arrStr = arrows.toString();
         expect(arrStr).to.not.match(/NaN/);
@@ -44,24 +51,24 @@ describe('How items are typed, physical entities', () => {
     });
 
     it('can be compared', () => {
-        Object.keys(RG.Item).forEach(item => {
+        Object.keys(Item).forEach(item => {
             if (!(/Container/).test(item)) {
-                const newItem = new RG.Item[item]();
+                const newItem = new Item[item]();
                 expect(newItem.equals(newItem),
                     'Identity: ' + item).to.equal(true);
             }
         });
-        const arrow1 = new RG.Item.Missile('Arrow');
-        const arrow2 = new RG.Item.Missile('Steel arrow');
+        const arrow1 = new Item.Missile('Arrow');
+        const arrow2 = new Item.Missile('Steel arrow');
         expect(arrow1.equals(arrow2)).to.be.false;
     });
 
     it('can be cloned with components', () => {
-        const item = new RG.Item.Base('some item');
-        const stats = new RG.Component.Stats();
+        const item = new Item.ItemBase('some item');
+        const stats = new Component.Stats();
         stats.setAccuracy(10);
         item.add(stats);
-        const statsMods = new RG.Component.StatsMods();
+        const statsMods = new Component.StatsMods();
         item.add(statsMods);
 
         const itemClone = item.clone();
@@ -73,7 +80,7 @@ describe('How items are typed, physical entities', () => {
     });
 
     it('has a value depending on count', () => {
-        const arrow = new RG.Item.Ammo('arrow');
+        const arrow = new Item.Ammo('arrow');
         arrow.setValue(100);
         arrow.setCount(10);
         expect(arrow.getValue()).to.equal(100);
@@ -82,18 +89,18 @@ describe('How items are typed, physical entities', () => {
 
 describe('How items are stacked', () => {
     it('Adds two items to create a count of 2', () => {
-        const item1 = new RG.Item.Base('Test item');
+        const item1 = new Item.ItemBase('Test item');
         item1.setType('test');
-        const item2 = new RG.Item.Base('Test item');
+        const item2 = new Item.ItemBase('Test item');
         item2.setType('test');
         expect(RG.addStackedItems(item1, item2)).to.equal(true);
         expect(item1.getCount()).to.equal(2);
     });
 
     it('Stacks weapons correctly', () => {
-        const weapon1 = new RG.Item.Weapon('Short sword');
+        const weapon1 = new Item.Weapon('Short sword');
         weapon1.setAttack(3);
-        const weapon2 = new RG.Item.Weapon('Short sword');
+        const weapon2 = new Item.Weapon('Short sword');
         weapon2.setAttack(3);
         expect(weapon1.equals(weapon2)).to.equal(true);
 
@@ -106,17 +113,17 @@ describe('How items are stacked', () => {
 
 describe('How stackes are broken into multiple items', () => {
     it('Splits item stack into two items', () => {
-        const itemStack = new RG.Item.Base('Arrow');
+        const itemStack = new Item.ItemBase('Arrow');
         itemStack.setType('missile');
         itemStack.setCount(2);
         const arrow = RG.removeStackedItems(itemStack, 1);
         itemStack.setType('missile');
         expect(arrow.getName()).to.equal('Arrow');
 
-        const hugeStack = new RG.Item.Base('Gold coin');
+        const hugeStack = new Item.ItemBase('Gold coin');
         hugeStack.setType('gold');
         hugeStack.setCount(10000);
-        const newStack = new RG.Item.Base('Gold coin');
+        const newStack = new Item.ItemBase('Gold coin');
         newStack.setType('gold');
         newStack.setCount(100);
 
@@ -130,14 +137,14 @@ describe('How stackes are broken into multiple items', () => {
         expect(newStack.getCount()).to.equal(1100);
         expect(hugeStack.getCount()).to.equal(9000);
 
-        const testStack = new RG.Item.Base('test item');
+        const testStack = new Item.ItemBase('test item');
         testStack.setType('test');
         const stack = RG.removeStackedItems(testStack, 1);
         expect(stack).to.equal(testStack);
         expect(testStack.getCount()).to.equal(1);
         expect(stack.getCount()).to.equal(1);
 
-        const two = new RG.Item.Base('test item');
+        const two = new Item.ItemBase('test item');
         two.setType('test');
         two.setCount(5);
         const rmvTwo = RG.removeStackedItems(two, 5);
@@ -147,14 +154,14 @@ describe('How stackes are broken into multiple items', () => {
     });
 
     it('Manages missile items correctly', () => {
-        const arrow = new RG.Item.Missile('arrow');
+        const arrow = new Item.Missile('arrow');
         arrow.setAttack(3);
-        const arrow2 = new RG.Item.Missile('arrow');
+        const arrow2 = new Item.Missile('arrow');
         arrow2.setAttack(3);
         expect(RG.addStackedItems(arrow, arrow2)).to.equal(true);
         expect(arrow.getCount()).to.equal(2);
 
-        const arrow3 = new RG.Item.Missile('arrow');
+        const arrow3 = new Item.Missile('arrow');
         arrow3.setAttack(10);
         expect(RG.addStackedItems(arrow, arrow3)).to.equal(false);
         expect(arrow.getCount()).to.equal(2);
@@ -168,12 +175,12 @@ describe('How stackes are broken into multiple items', () => {
 describe('How inventory container works', () => {
 
     it('Checks items by reference for existence', () => {
-        const player = new RG.Actor.Rogue('player');
-        const invEq = new RG.Inv.Inventory(player);
+        const player = new SentientActor('player');
+        const invEq = new Inventory(player);
         const inv = invEq.getInventory();
 
-        const arrow = new RG.Item.Missile('arrow');
-        const arrow2 = new RG.Item.Missile('arrow');
+        const arrow = new Item.Missile('arrow');
+        const arrow2 = new Item.Missile('arrow');
         expect(inv.hasItem(arrow)).to.equal(false);
         inv.addItem(arrow);
         expect(inv.hasItem(arrow)).to.equal(true);
@@ -184,24 +191,24 @@ describe('How inventory container works', () => {
         expect(inv.first().getCount()).to.equal(2);
 
         // 2. Add count and non-count items
-        const steelArrow4 = new RG.Item.Missile('Steel arrow');
-        const steelArrow1 = new RG.Item.Missile('Steel arrow');
+        const steelArrow4 = new Item.Missile('Steel arrow');
+        const steelArrow1 = new Item.Missile('Steel arrow');
         steelArrow4.setCount(4);
         inv.addItem(steelArrow4);
         inv.addItem(steelArrow1);
         expect(inv.last().getCount()).to.equal(5);
 
         // 3. Add non-count and count item
-        const rubyArrow1 = new RG.Item.Missile('Ruby arrow');
-        const rubyArrow6 = new RG.Item.Missile('Ruby arrow');
+        const rubyArrow1 = new Item.Missile('Ruby arrow');
+        const rubyArrow6 = new Item.Missile('Ruby arrow');
         rubyArrow6.setCount(6);
         inv.addItem(rubyArrow1);
         inv.addItem(rubyArrow6);
         expect(inv.last().getCount()).to.equal(7);
 
         // 4. Add two count items
-        const ebonyArrow3 = new RG.Item.Missile('Ebony arrow');
-        const ebonyArrow5 = new RG.Item.Missile('Ebony arrow');
+        const ebonyArrow3 = new Item.Missile('Ebony arrow');
+        const ebonyArrow5 = new Item.Missile('Ebony arrow');
         ebonyArrow3.setCount(3);
         ebonyArrow5.setCount(5);
         inv.addItem(ebonyArrow3);
@@ -229,26 +236,26 @@ describe('How item stacks work with equipped missiles', () => {
     let eq = null;
 
     beforeEach(() => {
-        player = new RG.Actor.Rogue('player');
-        invEq = new RG.Inv.Inventory(player);
+        player = new SentientActor('player');
+        invEq = new Inventory(player);
         inv = invEq.getInventory();
         eq = invEq.getEquipment();
     });
 
     it('Stacks item in inv when added individually', () => {
         for (let i = 0; i < 10; i++) {
-            const arrow = new RG.Item.Missile('arrow');
+            const arrow = new Item.Missile('arrow');
             invEq.addItem(arrow);
         }
         const newArrow = inv.first();
         expect(newArrow.getCount()).to.equal(10);
 
-        const sword = new RG.Item.Weapon('sword');
+        const sword = new Item.Weapon('sword');
         invEq.addItem(sword);
         expect(invEq.equipItem(sword)).to.equal(true);
 
         // Add some arrows and test they're seen in inv
-        const testArrow = new RG.Item.Missile('Steel arrow');
+        const testArrow = new Item.Missile('Steel arrow');
         testArrow.setCount(12);
         invEq.addItem(testArrow);
         expect(invEq.hasItem(testArrow)).to.equal(true);
@@ -279,7 +286,7 @@ describe('How item stacks work with equipped missiles', () => {
         expect(oneArrow.getCount()).to.equal(1);
 
         // Try to equip non-inv items
-        const sixArrows = new RG.Item.Missile('Steel arrow');
+        const sixArrows = new Item.Missile('Steel arrow');
         sixArrows.setCount(6);
         expect(invEq.equipNItems(sixArrows, 6)).to.equal(true);
         expect(sixArrows.getCount()).to.equal(6);
@@ -288,7 +295,7 @@ describe('How item stacks work with equipped missiles', () => {
         const sevenArrows = invEq.getEquipped('missile');
         expect(sevenArrows.getCount()).to.equal(7);
 
-        const anotherSix = new RG.Item.Missile('Steel arrow');
+        const anotherSix = new Item.Missile('Steel arrow');
         anotherSix.setCount(6);
         invEq.addItem(anotherSix);
         expect(invEq.equipNItems(anotherSix, 6)).to.equal(true);
@@ -307,17 +314,17 @@ describe('How item stacks work with equipped missiles', () => {
     });
 
     it('Equips armour correctly', () => {
-        const collar = new RG.Item.Armour('Collar');
+        const collar = new Item.Armour('Collar');
         collar.setArmourType('neck');
         inv.addItem(collar);
         expect(invEq.equipItem(collar)).to.equal(true);
 
-        const plate = new RG.Item.Armour('Plate mail');
+        const plate = new Item.Armour('Plate mail');
         plate.setArmourType('chest');
         inv.addItem(plate);
         expect(invEq.equipItem(plate)).to.equal(true);
 
-        const gem = new RG.Item.SpiritGem('Lesser gem');
+        const gem = new Item.SpiritGem('Lesser gem');
         expect(gem.getArmourType()).to.equal('spiritgem');
         inv.addItem(gem);
         expect(invEq.equipItem(gem)).to.equal(true);
@@ -334,7 +341,7 @@ describe('Usable one-shot items', () => {
     let pool = null;
 
     beforeEach(() => {
-        pool = new RG.EventPool();
+        pool = new EventPool();
         itemDestroy = new RGTest.ItemDestroyer(pool);
     });
 
@@ -346,10 +353,10 @@ describe('Usable one-shot items', () => {
 
 
     it('Player uses a potion and it is destroyed after this.', () => {
-        const potion = new RG.Item.Potion('potion');
+        const potion = new Item.Potion('potion');
         potion.setCount(1);
         const player = new Actor('Player');
-        const cell = RG.FACT.createFloorCell();
+        const cell = new Cell(0, 0, new Element.ElementBase('floor'));
         cell.setProp('actors', player);
         expect(cell.hasProp('actors')).to.equal(true);
         const invEq = player.getInvEq();
@@ -393,19 +400,19 @@ describe('Usable one-shot items', () => {
 
 describe('Gold coins and other valuables', () => {
     it('Has weight and stacks normally', () => {
-        const gold = new RG.Item.Gold('Gold nugget');
+        const gold = new Item.Gold('Gold nugget');
         gold.setCount(3);
         gold.setWeight(0.1);
 
-        const coin = new RG.Item.GoldCoin();
+        const coin = new Item.GoldCoin();
         expect(coin.getPurity()).to.equal(1.0);
 
     });
 });
 
-describe('RG.Item.MissileWeapon', () => {
+describe('Item.MissileWeapon', () => {
     it('Shoots arrows or bolts', () => {
-        const bow = new RG.Item.MissileWeapon('bow');
+        const bow = new Item.MissileWeapon('bow');
         expect(bow).to.have.property('getAttackRange');
     });
 });
