@@ -82,10 +82,10 @@ export const FactoryBase = function() {
     this.createBrain = (actor, brainName) =>
         this._actorFact.createBrain(actor, brainName);
 
-    /* Factory method for AI brain creation.*/
+    /* Factory method for Spell creation. */
     this.createSpell = name => this._actorFact.createSpell(name);
 
-    this.createElement = elemType => {
+    this.createElement = (elemType) => {
         if (ELEM_MAP.elemTypeToObj[elemType]) {
             return ELEM_MAP.elemTypeToObj[elemType];
         }
@@ -96,15 +96,15 @@ export const FactoryBase = function() {
         }
     };
 
-    this.createFloorCell = (x, y) =>
+    this.createFloorCell = (x, y): Cell =>
         new Cell(x, y, new Element.ElementBase('floor'));
 
-    this.createWallCell = (x, y) =>
+    this.createWallCell = (x, y): Cell =>
         new Cell(x, y, new Element.ElementWall('wall'));
 
     /* Factory method for creating levels.*/
-    this.createLevel = function(levelType, cols, rows, conf) {
-        this._levelFact.createLevel(levelType, cols, rows, conf);
+    this.createLevel = function(levelType, cols, rows, conf): Level {
+        return this._levelFact.createLevel(levelType, cols, rows, conf);
     };
 
 
