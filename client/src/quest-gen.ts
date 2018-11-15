@@ -15,6 +15,7 @@ import {Names} from '../data/name-gen';
 import {EventPool} from '../src/eventpool';
 import {SentientActor} from './actor';
 import * as Item from './item';
+import * as Component from './component';
 
 const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
@@ -355,7 +356,7 @@ export class QuestData {
         if (!RG.isEntity(obj)) {
             if (!obj.createTarget) {
                 const json = JSON.stringify(obj);
-                RG.err('QuestData', 'add',
+                RG.err('QuestData', 'addTarget',
                     `Only entities can be added. Got: ${json}`);
             }
         }
@@ -1267,7 +1268,7 @@ export class QuestPopulate {
             // Grab random actor and make it the quest giver
             const level = RNG.arrayGetRand(zone.getLevels());
             const questGiver = this.getActorForQuests(level.getActors());
-            const giverComp = new RG.Component.QuestGiver(questData.getDescr());
+            const giverComp = new Component.QuestGiver(questData.getDescr());
             this.addTargetsToGiver(giverComp, questData);
 
             questGiver.add(giverComp);
@@ -1321,7 +1322,7 @@ export class QuestPopulate {
             RG.err('QuestPopulate', 'setAsQuestTarget', msg);
         }
 
-        const qTarget = new RG.Component.QuestTarget();
+        const qTarget = Component.create('QuestTarget');
         qTarget.setTargetType(key);
         qTarget.setTarget(target);
         qTarget.setTargetID(target.getID());
@@ -1336,12 +1337,12 @@ export class QuestPopulate {
     }
 
     handleRepair(target) {
-        target.add(new RG.Component.Broken());
+        target.add(Component.create('Broken'));
     }
 
     /* Adds some info to listen to for the target actor. */
     handleListen(target) {
-        const questInfo = RG.Component.create('QuestInfo');
+        const questInfo = Component.create('QuestInfo');
         questInfo.setQuestion('Can you tell me something to report?');
         questInfo.setInfo('Generate something to report');
         // TODO add some quest-specific info
@@ -1350,7 +1351,7 @@ export class QuestPopulate {
     }
 
     handleReport(target) {
-        const questReport = RG.Component.create('QuestReport');
+        const questReport = Component.create('QuestReport');
         const listenTarget = this.popQuestCrossRef(target);
         if (listenTarget) {
             questReport.setExpectInfoFrom(listenTarget.getID());
@@ -1374,7 +1375,7 @@ export class QuestPopulate {
     /* Adds a unique name to the given target entity (uses Named comp). */
     addUniqueName(target) {
         if (!target.has('Named')) {
-            const namedComp = new RG.Component.Named();
+            const namedComp = Component.create('Named');
             if (target.getName) {
                 namedComp.setName(target.getName());
             }
