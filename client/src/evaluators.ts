@@ -5,7 +5,7 @@
  * number between 0 and 1.
  */
 import RG from './rg';
-import * as Goal from './goals';
+import {Goal, GoalBase} from './goals';
 import GoalThief from './goal.thief';
 import {SentientActor} from './actor';
 import {Random} from './random';
@@ -171,7 +171,7 @@ export class EvaluatorFlee extends EvaluatorBase {
     setActorGoal(actor) {
         if (this.enemyActor) {
             const topGoal = actor.getBrain().getGoal();
-            const goal = new Goal.GoalFleeFromActor(actor, this.enemyActor);
+            const goal = new Goal.FleeFromActor(actor, this.enemyActor);
             topGoal.addGoal(goal);
             ++Evaluator.hist[this.type];
         }
@@ -208,7 +208,7 @@ export class EvaluatorPatrol extends EvaluatorBase {
         const topGoal = actor.getBrain().getGoal();
         const coords = this.coords;
         if (coords.length > 0) {
-            const goal = new Goal.GoalPatrol(actor, coords);
+            const goal = new Goal.Patrol(actor, coords);
             topGoal.addGoal(goal);
             ++Evaluator.hist[this.type];
         }
@@ -261,7 +261,7 @@ export class EvaluatorGuard extends EvaluatorBase {
 
     setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
-        const goal = new Goal.GoalGuard(actor, [this.x, this.y]);
+        const goal = new Goal.Guard(actor, [this.x, this.y]);
         topGoal.addGoal(goal);
         ++Evaluator.hist[this.type];
     }
@@ -278,7 +278,7 @@ Evaluator.hist.Guard = 0;
 /* Evaluator to check if actor should flee from a fight. */
 export class EvaluatorOrders extends EvaluatorBase {
 
-    public goal: Goal.GoalBase;
+    public goal: GoalBase;
     public srcActor: SentientActor;
     public subEval: EvaluatorBase;
 
@@ -375,7 +375,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
     setActorGoal(actor) {
         if (this.spell) {
             const topGoal = actor.getBrain().getGoal();
-            const goal = new Goal.GoalCastSpell(actor, this.spell, this.spellArgs);
+            const goal = new Goal.CastSpell(actor, this.spell, this.spellArgs);
             topGoal.addGoal(goal);
             ++Evaluator.hist[this.type];
         }
@@ -458,7 +458,7 @@ export class EvaluatorShopkeeper extends EvaluatorBase {
 
     setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
-        const goal = new Goal.GoalShopkeeper(actor, this.x, this.y);
+        const goal = new Goal.Shopkeeper(actor, this.x, this.y);
         topGoal.addGoal(goal);
         ++Evaluator.hist[this.type];
     }
@@ -522,7 +522,7 @@ export class EvaluatorGoHome extends EvaluatorBase {
 
     setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
-        const goal = new Goal.GoalGoHome(actor, this.x, this.y, this.maxDistHome);
+        const goal = new Goal.GoHome(actor, this.x, this.y, this.maxDistHome);
         topGoal.addGoal(goal);
         ++Evaluator.hist[this.type];
     }
