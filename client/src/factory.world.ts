@@ -17,6 +17,7 @@ import {DungeonGenerator} from './dungeon-generator';
 import {CaveGenerator} from './cave-generator';
 import {CastleGenerator} from './castle-generator';
 import {QuestPopulate} from './quest-gen';
+import {Brain} from './brain';
 
 import * as Element from './element';
 import {Random} from './random';
@@ -84,14 +85,14 @@ const levelSizes = {
 /* Used to add details like bosses and distinct room features into dungeon
  * levels. */
 export const DungeonFeatures = function(zoneType) {
-    this._verif = new RG.Verify.Conf('DungeonFeatures');
+    this._verif = new Verify.Conf('DungeonFeatures');
     this._zoneType = zoneType;
 
     /* Adds special features to the last level of the zone. */
     this.addLastLevelFeatures = function(nLevel, level, conf) {
         this._verif.verifyConf('addLastLevelFeatures', conf,
             ['maxDanger', 'maxValue']);
-        const exploreElem = new RG.Element.Exploration();
+        const exploreElem = new Element.ElementExploration();
         const expPoints = 10 * (nLevel + 1) * conf.maxDanger;
         if (!Number.isInteger(expPoints)) {
             RG.err('DungeonFeatures', 'addLastLevelFeatures',
@@ -102,7 +103,7 @@ export const DungeonFeatures = function(zoneType) {
 
         const parent = level.getParent();
         if (parent && parent.getName) {
-            exploreElem.addData({zoneName: parent.getName()});
+            exploreElem.addData('zoneName', parent.getName());
         }
 
         const extras = level.getExtras();
@@ -127,6 +128,7 @@ export const DungeonFeatures = function(zoneType) {
 
     };
 
+    /* TODO Move to object which is related to actors. */
     this.generateBoss = (nLevel, level, conf) => {
         this._verif.verifyConf('generateBoss', conf,
             ['maxDanger', 'maxValue']);
@@ -156,8 +158,9 @@ export const DungeonFeatures = function(zoneType) {
         return bossActor;
     };
 
+    /* TODO Move to object which is related to actors. */
     this.addMinions = (boss, nLevel, level, conf) => {
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const bossType = boss.getType();
         const isSwarm = RNG.getUniform() <= 0.5;
         let numMinions = nLevel + 1;
@@ -167,7 +170,7 @@ export const DungeonFeatures = function(zoneType) {
             dangerMinion -= 1;
         }
         const dist = Math.round(Math.sqrt(numMinions)) + 1;
-        const cells = RG.Brain.getBoxOfFreeCellsAround(boss, dist);
+        const cells = Brain.getBoxOfFreeCellsAround(boss, dist);
         RNG.shuffle(cells);
 
         const minionFunc = actor => (
