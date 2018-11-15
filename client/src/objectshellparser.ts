@@ -9,6 +9,8 @@ import {Brain} from './brain';
 import {Random} from './random';
 import {ElementBase} from './element';
 import * as Component from './component';
+import {Dice} from './dice';
+import {Spell} from './spell';
 
 const RNG = Random.getRNG();
 export const ObjectShell: any = {};
@@ -260,9 +262,9 @@ export const Creator = function(db, dbNoRandom) {
         const poisonComp = new Component.Poison();
         poisonComp.setProb(poison.prob);
         poisonComp.setSource(obj);
-        poisonComp.setDamageDie(RG.createDie(poison.damage));
+        poisonComp.setDamageDie(Dice.create(poison.damage));
 
-        const dieDuration = RG.createDie(poison.duration);
+        const dieDuration = Dice.create(poison.duration);
         poisonComp.setDurationDie(dieDuration);
         const addOnHit = new Component.AddOnHit();
         addOnHit.setComp(poisonComp);
@@ -328,8 +330,7 @@ export const Creator = function(db, dbNoRandom) {
             }
 
             if (onHit.duration) {
-                const arr = RG.parseDieSpec(onHit.duration);
-                const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+                const durDie = Dice.create(onHit.duration);
                 const durComponent = new Component.Duration();
                 durComponent.setDurationDie(durDie);
                 durComponent.setComp(addedComp);
@@ -353,10 +354,10 @@ export const Creator = function(db, dbNoRandom) {
 
     /* Creates a spellbook and adds specified spells into it. */
     this.addSpellbookAndSpells = (shell, obj) => {
-        obj.setBook(new RG.Spell.SpellBook(obj));
+        obj.setBook(new Spell.SpellBook(obj));
         shell.spells.forEach(spell => {
-            if (RG.Spell[spell]) {
-                obj.getBook().addSpell(new RG.Spell[spell]());
+            if (Spell[spell]) {
+                obj.getBook().addSpell(new Spell[spell]());
             }
             else {
                 const msg = `Spell |${spell}| does not exist.`;
@@ -429,12 +430,22 @@ export const Creator = function(db, dbNoRandom) {
                     const compName = compData.comp;
                     if (newObj.has(compName)) {
                         // 1. Call existing comp with setter (fname)
-                        newObj.get(compName)[fname](val);
+                        if (typeof newObj.get(compName)[fname] === 'function') {
+                            newObj.get(compName)[fname](val);
+                        }
+                        else {
+                            this.noFuncError(compName, fname, compData);
+                        }
                     }
                     else { // 2. Or create a new component
                         const comp = this.createComponent(compName);
-                        comp[fname](val); // Then call comp setter
-                        newObj.add(comp);
+                        if (typeof comp[fname] === 'function') {
+                            comp[fname](val); // Then call comp setter
+                            newObj.add(comp);
+                        }
+                        else {
+                            this.noFuncError(compName, fname, compData);
+                        }
                     }
                 });
             }
@@ -478,6 +489,12 @@ export const Creator = function(db, dbNoRandom) {
             newObj.add(this.createComponent(compData.comp, val));
         }
     };
+
+    this.noFuncError = (compName: string, fname: string, compData) => {
+        const json = 'compData ' + JSON.stringify(compData);
+        RG.err('ObjectShellParser', 'addCompToObj',
+           `Comp: ${compName} no func ${fname}, ${json}`);
+    }
 
     /* This function makes a pile of mess if used on non-entities. */
     this.addComponents = (shell, entity) => {
