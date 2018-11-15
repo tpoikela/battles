@@ -33,6 +33,14 @@ RGUnitTests.checkCSSClassName = function(obj, expClass) {
     expect(RG.getStyleClassForCell(cell)).to.equal(expClass);
 };
 
+/* Moves entity from its current position to x,y. */
+RGUnitTests.moveEntityTo = function(ent, x, y) {
+    const level = ent.getLevel();
+    if (level.moveActorTo(ent, x, y)) {
+        return true;
+    }
+    throw new Error(`Cannot move entity to ${x}, ${y}`);
+};
 
 /* Adds each entity into the level into a random location. */
 RGUnitTests.wrapIntoLevel = function(arr, cols = 20, rows = 20) {

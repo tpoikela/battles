@@ -200,6 +200,7 @@ describe('How AI brain works', () => {
         const rows = 20;
         level = getNewLevel(cols, rows);
         mons1 = new Actor('Monster');
+        mons1.setBrain(new Brain.BrainGoalOriented(mons1));
         player = new Actor('Player');
         player.setIsPlayer(true);
         mons1.addEnemy(player);
@@ -301,13 +302,15 @@ describe('How poison item is used, and experience propagates', () => {
 });
 
 describe('Game.WinCondition', () => {
-    it('description', () => {
+    it('can listen to event and become true', () => {
+        const pool = new EventPool();
         const winCond = new WinCondition('Kill boss');
+        winCond.setPool(pool);
         expect(winCond.isTrue(), 'Win condition false').to.equal(false);
 
         const boss = new SentientActor('Huge evil boss');
         winCond.addActorKilled(boss);
-        POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: boss});
+        pool.emitEvent(RG.EVT_ACTOR_KILLED, {actor: boss});
         expect(winCond.isTrue(), 'Win condition true now').to.equal(true);
 
     });

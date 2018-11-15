@@ -1,11 +1,18 @@
 
-const chai = require('chai');
-const RGTest = require('../../roguetest');
-const RG = require('../../../client/src/battles');
+import chai from 'chai';
+import {RGTest}  from '../../roguetest';
+import {RGUnitTests}  from '../../rg.unit-tests';
+import RG from '../../../client/src/rg';
 
-const Goal = require('../../../client/src/goals');
-const Evaluator = require('../../../client/src/evaluators');
-const chaiBattles = require('../../helpers/chai-battles');
+import {Goal} from '../../../client/src/goals';
+import {Evaluator} from '../../../client/src/evaluators';
+import {chaiBattles} from '../../helpers/chai-battles';
+import {System} from '../../../client/src/system';
+import {Brain} from '../../../client/src/brain';
+import {SentientActor} from '../../../client/src/actor';
+import {ELEM} from '../../../client/data/elem-constants';
+import * as Component from '../../../client/src/component';
+import * as Time from '../../../client/src/time';
 
 chai.use(chaiBattles);
 const expect = chai.expect;
@@ -18,24 +25,24 @@ describe('Actor Goal', () => {
     let systems = null;
 
     beforeEach(() => {
-        movSys = new RG.System.Movement(['Movement']);
-        attSys = new RG.System.Attack(['Attack']);
-        dmgSys = new RG.System.Damage(['Damage']);
+        movSys = new System.Movement(['Movement']);
+        attSys = new System.Attack(['Attack']);
+        dmgSys = new System.Damage(['Damage']);
         systems = [movSys, attSys, dmgSys];
     });
 
     it('it indicates to actor what to do', () => {
-        const actor = new RG.Actor.Rogue('thinker');
-        const enemy = new RG.Actor.Rogue('enemy');
-        actor.setBrain(new RG.Brain.GoalOriented(actor));
+        const actor = new SentientActor('thinker');
+        const enemy = new SentientActor('enemy');
+        actor.setBrain(new Brain.GoalOriented(actor));
 
         actor.addEnemy(enemy);
         enemy.addEnemy(actor);
         const startHP = enemy.get('Health').getHP();
-        const level = RGTest.wrapIntoLevel([actor, enemy]);
+        const level = RGUnitTests.wrapIntoLevel([actor, enemy]);
         expect(level.getActors().length).to.equal(2);
-        RGTest.moveEntityTo(actor, 5, 5);
-        RGTest.moveEntityTo(enemy, 17, 17);
+        RGUnitTests.moveEntityTo(actor, 5, 5);
+        RGUnitTests.moveEntityTo(enemy, 17, 17);
 
         enemy.get('Combat').setDefense(0);
         enemy.get('Stats').setAgility(1);
@@ -53,15 +60,15 @@ describe('Actor Goal', () => {
         const coordSame = origX === newX && origY === newY;
         expect(coordSame, 'Not same coord').to.equal(false);
 
-        RGTest.moveEntityTo(actor, 2, 2);
-        RGTest.moveEntityTo(enemy, 5, 5);
+        RGUnitTests.moveEntityTo(actor, 2, 2);
+        RGUnitTests.moveEntityTo(enemy, 5, 5);
 
-        // const catcher = new RGTest.MsgCatcher();
+        // const catcher = new RGUnitTests.MsgCatcher();
         RGTest.updateGame(actor, systems, 10, () => {
             // level.debugPrintInASCII();
         });
-        // RGTest.printScreen(actor);
-        // RGTest.printLevel(level);
+        // RGUnitTests.printScreen(actor);
+        // RGUnitTests.printLevel(level);
         const endHP = enemy.get('Health').getHP();
         expect(endHP, 'Health must decrease').to.be.below(startHP);
 
@@ -79,15 +86,15 @@ describe('Actor Goal', () => {
     });
 
     it('can be injected into actor via "commander"', () => {
-        const commander = new RG.Actor.Rogue('commander');
-        const soldier = new RG.Actor.Rogue('soldier');
+        const commander = new SentientActor('commander');
+        const soldier = new SentientActor('soldier');
         const actors = [commander, soldier];
-        commander.setBrain(new RG.Brain.GoalOriented(commander));
-        soldier.setBrain(new RG.Brain.GoalOriented(soldier));
+        commander.setBrain(new Brain.GoalOriented(commander));
+        soldier.setBrain(new Brain.GoalOriented(soldier));
 
-        RGTest.wrapIntoLevel(actors);
-        RGTest.moveEntityTo(commander, 2, 2);
-        RGTest.moveEntityTo(soldier, 3, 3);
+        RGUnitTests.wrapIntoLevel(actors);
+        RGUnitTests.moveEntityTo(commander, 2, 2);
+        RGUnitTests.moveEntityTo(soldier, 3, 3);
 
         const topGoal = soldier.getBrain().getGoal();
         topGoal.removeEvaluators();
@@ -106,16 +113,16 @@ describe('Actor Goal', () => {
     });
 
     it('can be Commander Battle goal', () => {
-        const commander = new RG.Actor.Rogue('commander');
-        const inBattleComp = new RG.Component.InBattle();
-        commander.add(new RG.Component.Commander());
+        const commander = new SentientActor('commander');
+        const inBattleComp = new Component.InBattle();
+        commander.add(new Component.Commander());
         commander.add(inBattleComp);
-        commander.setBrain(new RG.Brain.Commander(commander));
+        commander.setBrain(new Brain.Commander(commander));
         commander.setFOVRange(10);
         const soldiers = [];
         for (let i = 0; i < 10; i++) {
-            const soldier = new RG.Actor.Rogue('soldier' + i);
-            soldier.setBrain(new RG.Brain.GoalOriented(soldier));
+            const soldier = new SentientActor('soldier' + i);
+            soldier.setBrain(new Brain.GoalOriented(soldier));
             soldiers.push(soldier);
 
             soldier.addFriend(commander);
@@ -123,29 +130,29 @@ describe('Actor Goal', () => {
         }
 
         const actors = [commander].concat(soldiers);
-        const level = RGTest.wrapIntoLevel(actors);
+        const level = RGUnitTests.wrapIntoLevel(actors);
         soldiers.forEach((soldier, i) => {
-            RGTest.moveEntityTo(soldier, 3, 5 + i);
+            RGUnitTests.moveEntityTo(soldier, 3, 5 + i);
         });
-        RGTest.moveEntityTo(commander, 2, 10);
+        RGUnitTests.moveEntityTo(commander, 2, 10);
 
-        // RGTest.printLevel(level);
+        // RGUnitTests.printLevel(level);
         RGTest.updateGame(actors, systems, 11);
 
         soldiers.forEach(soldier => {
             expect(soldier.getX()).to.be.above(5);
         });
         expect(level.getActors().length).to.equal(11);
-        // RGTest.printLevel(level);
+        // RGUnitTests.printLevel(level);
 
     });
 
     it('It can tell actor to guard x,y coordinate', () => {
-        const guardian = new RG.Actor.Rogue('guardian');
-        guardian.setBrain(new RG.Brain.GoalOriented(guardian));
+        const guardian = new SentientActor('guardian');
+        guardian.setBrain(new Brain.GoalOriented(guardian));
 
-        RGTest.wrapIntoLevel([guardian]);
-        RGTest.moveEntityTo(guardian, 4, 4);
+        RGUnitTests.wrapIntoLevel([guardian]);
+        RGUnitTests.moveEntityTo(guardian, 4, 4);
 
         const topGoal = guardian.getBrain().getGoal();
         // topGoal.removeEvaluators();
@@ -159,22 +166,22 @@ describe('Actor Goal', () => {
     });
 
     it('has a Goal.Flee for fleeing from enemies', () => {
-        const injured = new RG.Actor.Rogue('injured');
+        const injured = new SentientActor('injured');
         injured.get('Health').setMaxHP(100);
         injured.get('Health').setHP(100);
         injured.get('Health').decrHP(95);
-        injured.setBrain(new RG.Brain.GoalOriented(injured));
-        const enemy = new RG.Actor.Rogue('enemy');
+        injured.setBrain(new Brain.GoalOriented(injured));
+        const enemy = new SentientActor('enemy');
         injured.addEnemy(enemy);
 
-        const level = RGTest.wrapIntoLevel([enemy, injured]);
-        RGTest.moveEntityTo(injured, 6, 6);
-        RGTest.moveEntityTo(enemy, 4, 4);
+        const level = RGUnitTests.wrapIntoLevel([enemy, injured]);
+        RGUnitTests.moveEntityTo(injured, 6, 6);
+        RGUnitTests.moveEntityTo(enemy, 4, 4);
 
         const topGoal = injured.getBrain().getGoal();
 
-        let funcDone = injured.nextAction();
-        expect(funcDone).to.be.function;
+        let action = injured.nextAction();
+        expect(action).to.be.an.instanceof(Time.Action);
 
         let subGoals = topGoal.getSubGoals();
         expect(subGoals).to.have.length(1);
@@ -186,12 +193,12 @@ describe('Actor Goal', () => {
         expect(movComp.getX()).to.equal(7);
         expect(movComp.getY()).to.equal(7);
 
-        RGTest.moveEntityTo(injured, 7, 7);
-        RGTest.moveEntityTo(enemy, 5, 5);
+        RGUnitTests.moveEntityTo(injured, 7, 7);
+        RGUnitTests.moveEntityTo(enemy, 5, 5);
 
         const map = level.getMap();
-        map.setBaseElemXY(8, 8, RG.ELEM.WALL);
-        funcDone = injured.nextAction();
+        map.setBaseElemXY(8, 8, ELEM.WALL);
+        action = injured.nextAction();
 
         subGoals = topGoal.getSubGoals();
         expect(subGoals).to.have.length(1);

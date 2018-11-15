@@ -1,12 +1,14 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
+import {expect} from 'chai';
+import RG from '../../../client/src/rg';
+import * as Item from '../../../client/src/item';
+import * as Component from '../../../client/src/component';
+import {SentientActor} from '../../../client/src/actor';
+import {EquipSlot} from '../../../client/src/equipment';
 
-const Item = RG.Item.Base;
-const Actor = RG.Actor.Rogue;
-const {EquipSlot} = require('../../../client/src/equipment');
+const Actor = SentientActor;
 
-describe('RG.Inv.Inventory', () => {
+describe('Inv.Inventory', () => {
 
     let actor = null;
     let invEq = null;
@@ -19,7 +21,7 @@ describe('RG.Inv.Inventory', () => {
     });
 
     it('can have items added and removed', () => {
-        const sword = new Item('Sword');
+        const sword = new Item.ItemBase('Sword');
         invEq.addItem(sword);
         expect(invEq.hasItem(sword)).to.equal(true);
         expect(invEq.removeItem(sword)).to.equal(true);
@@ -28,7 +30,7 @@ describe('RG.Inv.Inventory', () => {
         expect(removedItem).to.equal(sword);
 
         for (let i = 0; i < 4; i++) {
-            const dagger = new Item('Dagger');
+            const dagger = new Item.ItemBase('Dagger');
             invEq.addItem(dagger);
         }
         const numItems = inventory.getItems().length;
@@ -36,9 +38,9 @@ describe('RG.Inv.Inventory', () => {
     });
 
     it('can contain and equip items', () => {
-        const food = new Item('Bagel');
+        const food = new Item.ItemBase('Bagel');
         food.setType('food');
-        const sword = new Item('Sword');
+        const sword = new Item.ItemBase('Sword');
         sword.setType('weapon');
 
         invEq.addItem(food);
@@ -54,7 +56,7 @@ describe('RG.Inv.Inventory', () => {
     });
 
     it('can equip and unequip items in inventory', () => {
-        const sword = new RG.Item.Weapon('sword');
+        const sword = new Item.Weapon('sword');
 
         invEq.addItem(sword);
         invEq.equipItem(sword);
@@ -68,7 +70,7 @@ describe('RG.Inv.Inventory', () => {
     });
 
     it('Equips armour into correct slots', () => {
-        const helmet = new RG.Item.Armour('Helmet');
+        const helmet = new Item.Armour('Helmet');
         helmet.setArmourType('head');
 
         invEq.addItem(helmet);
@@ -80,8 +82,8 @@ describe('RG.Inv.Inventory', () => {
     });
 
     it('Equips missile weapons and ammo correctly', () => {
-        const rifle = new RG.Item.MissileWeapon('rifle');
-        const ammo = new RG.Item.Ammo('rifle bullet');
+        const rifle = new Item.MissileWeapon('rifle');
+        const ammo = new Item.Ammo('rifle bullet');
 
         invEq.addItem(rifle);
         invEq.addItem(ammo);
@@ -103,11 +105,11 @@ describe('RG.Inv.Inventory', () => {
         const inv = invEq.getInventory();
         const eq = invEq.getEquipment();
 
-        const heavySword = new RG.Item.Weapon('HeavySword');
+        const heavySword = new Item.Weapon('HeavySword');
         heavySword.setWeight(21.0);
         expect(invEq.canCarryItem(heavySword)).to.equal(false);
 
-        const lightSword = new RG.Item.Weapon('Light lightSword');
+        const lightSword = new Item.Weapon('Light lightSword');
         lightSword.setWeight(5.0);
         lightSword.setCount(2);
         expect(invEq.canCarryItem(lightSword)).to.equal(true);
@@ -116,7 +118,7 @@ describe('RG.Inv.Inventory', () => {
         expect(eq.getWeight()).to.equal(5.0);
         expect(inv.getWeight()).to.equal(5.0);
 
-        const shuriken = new RG.Item.Missile('Shuriken');
+        const shuriken = new Item.Missile('Shuriken');
         shuriken.setCount(20);
         shuriken.setWeight(0.1);
         invEq.addItem(shuriken);
@@ -126,9 +128,9 @@ describe('RG.Inv.Inventory', () => {
     it('Should not lose the item count (Bug was found)', () => {
         const inv = invEq.getInventory();
 
-        const dart = new RG.Item.Missile('Dart');
+        const dart = new Item.Missile('Dart');
         dart.setCount(1);
-        const arrow = new RG.Item.Missile('Arrow');
+        const arrow = new Item.Missile('Arrow');
         arrow.setCount(1);
 
         invEq.addItem(dart);
@@ -150,10 +152,10 @@ describe('RG.Inv.Inventory', () => {
 
     it('should work with multiple slots of same type', () => {
         const eq = invEq.getEquipment();
-        eq.addSlot('spiritgem', new EquipSlot(eq, 'spiritgem'));
+        eq.addSlot('spiritgem', new EquipSlot(eq));
         for (let i = 0; i < 2; i++) {
-            const gem = new RG.Item.SpiritGem('my big gem ' + i);
-            const stats = new RG.Component.Stats();
+            const gem = new Item.SpiritGem('my big gem ' + i);
+            const stats = new Component.Stats();
             stats.setPerception(2);
             gem.add(stats);
             invEq.addItem(gem);
@@ -172,8 +174,8 @@ describe('RG.Inv.Inventory', () => {
         const strength = eq.getStrength();
         expect(strength).to.equal(0);
 
-        const swordOfStrength = new RG.Item.Weapon('sword');
-        const stats = new RG.Component.Stats();
+        const swordOfStrength = new Item.Weapon('sword');
+        const stats = new Component.Stats();
         stats.setStrength(10);
         swordOfStrength.add(stats);
         invEq.addItem(swordOfStrength);
@@ -183,14 +185,14 @@ describe('RG.Inv.Inventory', () => {
 
     /*
     it('preserves entity ID between equips', () => {
-        const sword = new RG.Item.Weapon('sword');
+        const sword = new Item.Weapon('sword');
         const id = sword.getID();
         invEq.addItem(sword);
         invEq.equipItem(sword, 0);
         const unequippedSword = invEq.unequipAndGetItem('hand', 1);
         expect(unequippedSword.getID()).to.equal(id);
 
-        const arrows = new RG.Item.Ammo();
+        const arrows = new Item.Ammo();
         // const arrowID = arrows.getID();
         arrows.setCount(10);
         invEq.addItem(arrows);
