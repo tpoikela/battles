@@ -3,6 +3,7 @@ import RG from './rg';
 import * as Element from './element';
 import {BaseActor} from './actor';
 import * as Item from './item';
+import {ELEM_MAP} from '../data/elem-constants';
 
 const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 
@@ -407,7 +408,7 @@ export class Cell {
 
     toJSON(): CellJSON {
         const json: CellJSON = {
-            t: RG.elemTypeToIndex[this._baseElem.getType()]
+            t: ELEM_MAP.elemTypeToIndex[this._baseElem.getType()]
         };
 
         if (this._explored) {
