@@ -1,6 +1,7 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
+import {Geometry} from '../geometry';
 
 /* System which handles events such as actorKilled, onPickup etc. This system
  * must be updated after most of the other systems have been processed, up to
@@ -144,7 +145,7 @@ export class SystemEvents extends SystemBase {
 
             const radius = this._getEventRadius(ent);
             const [x0, y0] = [srcCell.getX(), srcCell.getY()];
-            const cellCoords = RG.Geometry.getBoxAround(x0, y0, radius, true);
+            const cellCoords = Geometry.getBoxAround(x0, y0, radius, true);
             const cells = ent.getLevel().getMap().getCellsWithCoord(cellCoords);
 
             // Search for entity which could react to this event for each cell

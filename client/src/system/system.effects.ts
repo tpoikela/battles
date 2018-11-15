@@ -2,6 +2,7 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
+import {Dice} from '../dice';
 import * as Component from '../component';
 
 const handlerTable = {
@@ -268,8 +269,9 @@ const getDieValue = function(intStrOrDie) {
         return intStrOrDie;
     }
     else if (typeof intStrOrDie === 'string') {
-        const arr = RG.parseDieSpec(intStrOrDie);
-        const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+        // const arr = RG.parseDieSpec(intStrOrDie);
+        // const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+        const durDie = Dice.create(intStrOrDie);
         const duration = durDie.roll();
         return duration;
     }
