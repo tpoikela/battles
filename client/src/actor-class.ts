@@ -168,13 +168,13 @@ export class ActorClassBase {
         this._className = name;
     }
 
-    getActor() {return this._actor;}
+    public getActor() {return this._actor;}
 
-    getClassName() {
+    public getClassName() {
         return this._className;
     }
 
-    getLevelUpMsg(level) {
+    public getLevelUpMsg(level) {
         let msg = '';
         if (this._messages.hasOwnProperty(level)) {
             msg += this._messages[level];
@@ -185,7 +185,7 @@ export class ActorClassBase {
 
     /* Called when a level is advanced by the actor. Checks for messages, and if
      * the next ability is triggered. */
-    advanceLevel() {
+    public advanceLevel() {
         const newLevel = this._actor.get('Experience').getExpLevel();
         if (this._messages.hasOwnProperty(newLevel)) {
             const cell = this._actor.getCell();
@@ -199,7 +199,7 @@ export class ActorClassBase {
         this.incrStats(newLevel);
     }
 
-    incrStats(newLevel) {
+    public incrStats(newLevel) {
         const actor = this._actor;
         this._lastStateIncr = '';
 
@@ -263,14 +263,14 @@ export class Alpinist extends ActorClassBase {
 
     }
 
-    setStartingStats() {
+    public setStartingStats() {
         const stats = this._actor.get('Stats');
         stats.incrStat('perception', 3);
         stats.incrStat('agility', 3);
         stats.incrStat('magic', -2);
     }
 
-    incrStats(newLevel) {
+    public incrStats(newLevel) {
         const stats = this._actor.get('Stats');
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
@@ -311,7 +311,7 @@ export class Adventurer extends ActorClassBase {
 
     /* Called when a level is advanced by the actor. Checks for messages, and if
      * the next ability is triggered. */
-    advanceLevel() {
+    public advanceLevel() {
         super.advanceLevel();
         const newLevel = this._actor.get('Experience').getExpLevel();
         if (newLevel % 4 === 0 && !this._advances.hasOwnProperty(newLevel)) {
@@ -323,7 +323,7 @@ export class Adventurer extends ActorClassBase {
         }
     }
 
-    setStartingStats() {
+    public setStartingStats() {
         const stats = this._actor.get('Stats');
         for (let i = 0; i < 3; i++) {
             let statName = RNG.arrayGetRand(RG.STATS);
@@ -332,7 +332,7 @@ export class Adventurer extends ActorClassBase {
         }
     }
 
-    incrStats(newLevel) {
+    public incrStats(newLevel) {
         super.incrStats(newLevel);
         const statName = RNG.arrayGetRand(RG.STATS);
         this._lastStateIncr += `\n${statName} was increased.`;
@@ -395,18 +395,18 @@ export class Blademaster extends ActorClassBase {
         };
     }
 
-    setStartingStats() {
+    public setStartingStats() {
         const stats = this._actor.get('Stats');
         stats.incrStat('strength', 3);
         stats.incrStat('magic', -3);
     }
 
-    getLevelUpMsg(level) {
+    public getLevelUpMsg(level) {
         const msg = super.getLevelUpMsg(level);
         return msg;
     }
 
-    incrStats(newLevel) {
+    public incrStats(newLevel) {
         const stats = this._actor.get('Stats');
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
@@ -477,13 +477,13 @@ export class Cryomancer extends ActorClassBase {
         };
     }
 
-    setStartingStats() {
+    public setStartingStats() {
         const stats = this._actor.get('Stats');
         stats.incrStat('strength', -2);
         stats.incrStat('magic', 3);
     }
 
-    incrStats(newLevel) {
+    public incrStats(newLevel) {
         const stats = this._actor.get('Stats');
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
@@ -551,14 +551,14 @@ export class Marksman extends ActorClassBase {
         };
     }
 
-    setStartingStats() {
+    public setStartingStats() {
         const stats = this._actor.get('Stats');
         stats.incrStat('accuracy', 3);
         stats.incrStat('perception', 2);
         stats.incrStat('magic', -3);
     }
 
-    incrStats(newLevel) {
+    public incrStats(newLevel) {
         const stats = this._actor.get('Stats');
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
@@ -632,13 +632,13 @@ export class Spellsinger extends ActorClassBase {
         };
     }
 
-    setStartingStats() {
+    public setStartingStats() {
         const stats = this._actor.get('Stats');
         stats.incrStat('perception', 2);
         stats.incrStat('magic', 2);
     }
 
-    incrStats(newLevel) {
+    public incrStats(newLevel) {
         const stats = this._actor.get('Stats');
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
@@ -713,13 +713,13 @@ export class Spiritcrafter extends ActorClassBase {
         };
     }
 
-    setStartingStats() {
+    public setStartingStats() {
         const stats = this._actor.get('Stats');
         stats.incrStat('willpower', 4);
         stats.incrStat('magic', 2);
     }
 
-    incrStats(newLevel) {
+    public incrStats(newLevel) {
         const stats = this._actor.get('Stats');
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
