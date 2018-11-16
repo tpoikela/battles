@@ -6,6 +6,7 @@ import {Keys} from './keymap';
 import * as Menu from './menu';
 import {SentientActor} from './actor';
 import * as Item from './item';
+import * as Component from './component';
 
 export const Chat: any = {};
 const stats = RG.STATS;
@@ -164,14 +165,14 @@ export class ChatQuest extends ChatBase {
             RG.err('ChatQuest', 'questCallback',
                 'target and questGiver must be defined');
         }
-        const giveQuestComp = new RG.Component.GiveQuest();
+        const giveQuestComp = new Component.GiveQuest();
         giveQuestComp.setTarget(this.chatter);
         giveQuestComp.setGiver(this.questGiver);
         this.chatter.add(giveQuestComp);
     }
 
     rewardCallback() {
-        const questCompl = new RG.Component.QuestCompleted();
+        const questCompl = new Component.QuestCompleted();
         questCompl.setGiver(this.questGiver);
         this.chatter.add(questCompl);
     }
