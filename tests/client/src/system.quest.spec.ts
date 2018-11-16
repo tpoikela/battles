@@ -1,17 +1,15 @@
 
-const chai = require('chai');
+import chai from 'chai';
+import RG from '../../../client/src/rg';
 
-const RG = require('../../../client/src/rg');
-const Actor = require('../../../client/src/actor');
-const Component = require('../../../client/src/component');
-const EventPool = require('../../../client/src/eventpool');
-const System = require('../../../client/src/system');
-const Quests = require('../../../client/src/quest-gen');
+import {SentientActor} from '../../../client/src/actor';
+import * as Component from '../../../client/src/component';
+import {EventPool} from '../../../client/src/eventpool';
+import {System} from '../../../client/src/system';
+import {Quest, QuestPopulate} from '../../../client/src/quest-gen';
 
-const {Quest, QuestPopulate} = Quests;
-
-const RGTest = require('../../roguetest');
-const chaiBattles = require('../../helpers/chai-battles.js');
+import {RGTest} from '../../roguetest';
+import {chaiBattles} from '../../helpers/chai-battles';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -27,7 +25,7 @@ describe('System.Quest', () => {
     let pool = null;
 
     beforeEach(() => {
-        pool = new EventPool();
+        pool = EventPool.getPool();
         questPopul = new QuestPopulate();
         sysQuest = new System.Quest(['GiveQuest', 'QuestCompleted',
             'QuestTargetEvent'], pool);
@@ -55,7 +53,7 @@ describe('System.Quest', () => {
 		questPopul.mapQuestToResources(reportQuest, city, null);
 		questPopul.addQuestComponents(city);
 
-        const quester = new Actor.Rogue('hero');
+        const quester = new SentientActor('hero');
         level.addActor(quester, 1, 1);
 		const actors = level.getActors();
 
@@ -273,7 +271,7 @@ function giveQuest(giver, quester) {
     questChatObj.questCallback();
 }
 
-function cleanupQuests(giver, quester) {
+function cleanupQuests(giver, quester?) {
     giver.remove('QuestGiver');
     if (quester) {quester.removeAll('Quest');}
 }
