@@ -1,8 +1,9 @@
 /* Contains code for thief goal. */
 
 import RG from './rg';
-import Goal from './goals';
-import Random from './random';
+import {Goal} from './goals';
+import {Random} from './random';
+import {Cell} from './map.cell';
 
 const {
     GOAL_ACTIVE,
@@ -11,7 +12,7 @@ const RNG = Random.getRNG();
 
 /* With this Goal, an actor can search a house for interesting features,
  * such as items to pick up. */
-class GoalSearchHouse extends Goal.Base {
+export class GoalSearchHouse extends Goal.Base {
 
     constructor(actor) {
         super(actor);
@@ -93,7 +94,7 @@ class GoalSearchHouse extends Goal.Base {
 
 /* This goal of thief makes an actor to find items, then sell them to a
  * shopkeeper. */
-class GoalThief extends Goal.Base {
+export class GoalThief extends Goal.Base {
 
     constructor(actor) {
         super(actor);
@@ -205,7 +206,7 @@ class GoalThief extends Goal.Base {
 
             if (!nextGoal && !actorCell.hasDoor() && this.doorCooldown <= 0) {
                 // Else if a door is seen, go inside
-                Object.values(elemsCache).forEach(cell => {
+                Object.values(elemsCache).forEach((cell: Cell) => {
                     if (cell.hasDoor()) {
                         const xy = cell.getXY();
                         const keyXY = cell.getKeyXY();
@@ -261,7 +262,7 @@ class GoalThief extends Goal.Base {
 }
 Goal.Thief = GoalThief;
 
-function ifItemFoundCreateGoal(actor, seenCells, cache, cacheAcceptFunc) {
+function ifItemFoundCreateGoal(actor, seenCells, cache?, cacheAcceptFunc?) {
     let nextGoal = null;
     for (let i = 0; i < seenCells.length; i++) {
         const cell = seenCells[i];
@@ -282,5 +283,3 @@ function ifItemFoundCreateGoal(actor, seenCells, cache, cacheAcceptFunc) {
     }
     return nextGoal;
 }
-
-export default GoalThief;
