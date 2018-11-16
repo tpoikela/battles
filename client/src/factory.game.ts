@@ -18,6 +18,7 @@ import {Factory} from './factory';
 import {FromJSON} from './game.fromjson';
 import {GameMain} from './game';
 import {Geometry} from './geometry';
+import {Builder} from './builder';
 import {OWMap, OWMapConf} from './overworld.map';
 import {ObjectShell} from './objectshellparser';
 import {OverWorld} from './overworld';
@@ -241,7 +242,7 @@ FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
 
     this.progress('Splitting Overworld Level Map into AreaTiles...');
     RG.Map.Level.idCount = 0;
-    const splitLevels = Geometry.splitLevel(worldLevel, owConf);
+    const splitLevels = Builder.splitLevel(worldLevel, owConf);
     this.progress('DONE');
 
     this.progress('Creating and connectting World.Area tiles...');
