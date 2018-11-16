@@ -1,6 +1,7 @@
 
 import RG from './rg';
 import {Random} from './random';
+// import {FactoryLevel} from './factory.level';
 
 const RNG = Random.getRNG();
 
@@ -289,8 +290,9 @@ export const Geometry: any = {
         for (let x = 0; x < conf.nLevelsX; x++) {
             const levelCol = [];
             for (let y = 0; y < conf.nLevelsY; y++) {
-                const subLevel = RG.FACT.createLevel('empty', width, height);
+                /* const subLevel = new FactoryLevel().createLevel('empty', width, height);
                 levelCol.push(subLevel);
+                */
             }
             levels.push(levelCol);
         }
