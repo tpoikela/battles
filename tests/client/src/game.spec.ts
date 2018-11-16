@@ -257,7 +257,6 @@ describe('How poison item is used, and experience propagates', () => {
         poison.useItem({target: level.getMap().getCell(6, 6)});
 
         const startExp = assassin.get('Experience').getExp();
-
         let count = 0;
         while (victim.get('Health').isAlive() && count < 100) {
             game.simulateGame();

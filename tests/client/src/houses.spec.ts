@@ -1,9 +1,8 @@
 
 // const RG = require('../../../client/src/battles');
-const expect = require('chai').expect;
-const {House, HouseGenerator} = require('../../../client/src/houses');
-
-const MapGen = require('../../../client/src/map.generator');
+import {expect} from 'chai';
+import {House, HouseGenerator} from '../../../client/src/houses';
+import {MapGenerator} from '../../../client/src/map.generator';
 
 describe('HouseGenerator', () => {
 
@@ -28,10 +27,10 @@ describe('HouseGenerator', () => {
     });
 
     it('can be used in town maps', () => {
-        const mapGen = new MapGen();
+        const mapGen = new MapGenerator();
         const conf = {};
         const townMap = mapGen.createTownBSP(160, 100, conf);
         expect(townMap).to.not.be.empty;
-        townMap.map.debugPrintInASCII();
+        // townMap.map.debugPrintInASCII();
     });
 });

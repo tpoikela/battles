@@ -1,6 +1,11 @@
 /* Contains definitions for different interfaces.
- * TO be refactored later.
+ * DON'T add any imports from non-interface files. Everything here
+ * should contain only primitive values or objects/arrays of them.
+ * Use any in case of requiring something else or move the interface to
+ * a file containing particular type.
  */
+
+export type Coord = [number, number];
 
 export interface SubZoneConf {
     name: string;

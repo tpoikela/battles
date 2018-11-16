@@ -5,24 +5,23 @@ import {LevelGenerator} from './level-generator';
 import {MapGenerator} from './map.generator';
 import {DungeonPopulate} from './dungeon-populate';
 import {Random} from './random';
+import {Level} from './level';
 
 const RNG = Random.getRNG();
 
 /* Object for the city generator. */
-export class CityGenerator {
+export class CityGenerator extends LevelGenerator {
 
     public static options: {[key: string]: any};
-
     public addDoors: boolean;
-    public shouldRemoveMarkers: boolean;
 
     constructor() {
-        LevelGenerator.call(this);
+        super();
         this.addDoors = true;
         this.shouldRemoveMarkers = true;
     }
 
-    create(cols, rows, conf) {
+    create(cols, rows, conf): Level {
         const level = this.createLevel(cols, rows, conf);
 
         this.populateCityLevel(level, conf);
@@ -31,7 +30,7 @@ export class CityGenerator {
     }
 
     /* Returns a castle level without populating it. */
-    createLevel(cols, rows, conf) {
+    createLevel(cols, rows, conf): Level {
         const mapGen = new MapGenerator();
         let mapObj = null;
 
@@ -51,7 +50,7 @@ export class CityGenerator {
         return level;
     }
 
-    createHouseElements(level) {
+    createHouseElements(level: Level): void {
         const houses = level.getExtras().houses;
         for (let i = 0; i < houses.length; i++) {
             const doorXY = houses[i].door;
@@ -60,7 +59,7 @@ export class CityGenerator {
         }
     }
 
-    fillUnusedAreas(level, areas) {
+    fillUnusedAreas(level: Level, areas): void {
         const map = level.getMap();
         const elems = [RG.ELEM.GRASS, RG.ELEM.TREE, RG.ELEM.WATER];
         areas.forEach(area => {
@@ -77,7 +76,7 @@ export class CityGenerator {
         });
     }
 
-    populateCityLevel(level, conf) {
+    populateCityLevel(level: Level, conf): void {
         let houses = level.getExtras().houses;
         const dungPopul = new DungeonPopulate(conf);
 
@@ -91,7 +90,7 @@ export class CityGenerator {
         this.createTownsfolk(level, conf);
     }
 
-    createTownsfolk(level, conf) {
+    createTownsfolk(level: Level, conf): void {
         const dungPopul = new DungeonPopulate(conf);
         const houses = level.getExtras().houses;
         houses.forEach(house => {
@@ -99,8 +98,6 @@ export class CityGenerator {
         });
     }
 }
-
-RG.extend2(CityGenerator, LevelGenerator);
 
 CityGenerator.options = {
     village: {
@@ -118,5 +115,3 @@ CityGenerator.options = {
 
     }
 };
-
-module.exports = CityGenerator;

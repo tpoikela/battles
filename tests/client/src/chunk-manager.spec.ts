@@ -1,5 +1,5 @@
 
-import chai = require('chai');
+import chai from 'chai';
 
 import RG from '../../../client/src/rg';
 import * as World from '../../../client/src/world';

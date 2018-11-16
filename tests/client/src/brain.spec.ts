@@ -10,20 +10,24 @@ import {Keys} from '../../../client/src/keymap';
 import {Path} from '../../../client/src/path';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {SentientActor} from '../../../client/src/actor';
-import * as Brain from '../../../client/src/brain';
+import {Brain} from '../../../client/src/brain';
 import * as Item from '../../../client/src/item';
 import {BrainPlayer} from '../../../client/src/brain.player';
 import {SystemMovement} from '../../../client/src/system/system.movement';
 import {SystemBaseAction} from '../../../client/src/system/system.base-action';
 import {Cell} from '../../../client/src/map.cell';
 import * as Element from '../../../client/src/element';
+import {System} from '../../../client/src/system';
+import * as Component from '../../../client/src/component';
+import {RGUnitTests} from '../../rg.unit-tests';
+import {Spell} from '../../../client/src/spell';
 
 const {KEY} = Keys;
 
 const expect = chai.expect;
 chai.use(chaiBattles);
 
-const BrainSentient = Brain.BrainSentient;
+const BrainSentient = Brain.Sentient;
 const ElementBase = Element.ElementBase;
 
 describe('BrainPlayer', () => {
@@ -40,11 +44,11 @@ describe('BrainPlayer', () => {
         human = new SentientActor('Human friend');
 
         demon.setType('demon');
-        demon.setBrain(new RG.Brain.Demon(demon));
+        demon.setBrain(new Brain.GoalOriented(demon));
         demon.addEnemy(player);
 
         human.setType('human');
-        human.setBrain(new RG.Brain.Human(human));
+        human.setBrain(new Brain.GoalOriented(human));
         player.setIsPlayer(true);
         level.addActor(player, 1, 1);
         level.addActor(demon, 1, 2);
@@ -211,7 +215,7 @@ describe('BrainPlayer', () => {
 
     it('has commands for using spellpowers', () => {
         const brain = new BrainPlayer(player);
-        player.setBook(new RG.Spell.SpellBook(player));
+        player.setBook(new Spell.SpellBook(player));
         let func = brain.decideNextAction({code: KEY.POWER});
         expect(func).to.be.null;
         expect(brain.isMenuShown()).to.equal(true);
@@ -230,10 +234,10 @@ describe('BrainPlayer', () => {
         orc.addEnemy(player);
         goblin.addEnemy(player);
 
-        RGTest.wrapIntoLevel([player, orc, goblin]);
-        RGTest.moveEntityTo(player, 2, 2);
-        RGTest.moveEntityTo(orc, 1, 1);
-        RGTest.moveEntityTo(goblin, 3, 3);
+        RGUnitTests.wrapIntoLevel([player, orc, goblin]);
+        RGUnitTests.moveEntityTo(player, 2, 2);
+        RGUnitTests.moveEntityTo(orc, 1, 1);
+        RGUnitTests.moveEntityTo(goblin, 3, 3);
 
         const brain = player.getBrain();
         expect(brain.hasTargetSelected()).to.be.false;
@@ -276,11 +280,11 @@ describe('BrainSentient', () => {
         human = new SentientActor('Human friend');
 
         demon.setType('demon');
-        demon.setBrain(new RG.Brain.Demon(demon));
+        demon.setBrain(new Brain.GoalOriented(demon));
         demon.addEnemy(player);
 
         human.setType('human');
-        human.setBrain(new RG.Brain.Human(human));
+        human.setBrain(new Brain.GoalOriented(human));
 
         player.setIsPlayer(true);
         level.addActor(player, 1, 1);
@@ -288,11 +292,11 @@ describe('BrainSentient', () => {
     });
 
     it('Has 1st priority for enemies', () => {
-        let cells = Brain.Brain.getCellsAroundActor(demon);
+        let cells = Brain.getCellsAroundActor(demon);
         expect(cells).to.have.length(8);
 
         level.addActor(human, 0, 0);
-        cells = Brain.Brain.getCellsAroundActor(human);
+        cells = Brain.getCellsAroundActor(human);
         expect(cells).to.have.length(3);
     });
 
@@ -303,6 +307,7 @@ describe('BrainSentient', () => {
         arena.addActor(rogue, 1, 1);
         const action = rogue.nextAction();
         action.doAction();
+        movSys.update();
         movSys.update();
         const cellChanged = rogue.getCell().getX() !== 1 ||
             rogue.getCell().getY() !== 1;
@@ -350,10 +355,11 @@ describe('BrainSentient', () => {
 describe('Brain.Summoner', () => {
     it('can summon help when seeing enemies', () => {
         const summoner = new SentientActor('summoner');
-        const brain = new RG.Brain.Summoner(summoner);
+        const brain = new Brain.Summoner(summoner);
         summoner.setBrain(brain);
 
-        const level = RG.FACT.createLevel('arena', 10, 10);
+        const factLevel = new FactoryLevel();
+        const level = factLevel.createLevel('arena', 10, 10);
         const player = new SentientActor('Player');
         player.setIsPlayer(true);
         level.addActor(summoner, 1, 1);
@@ -369,22 +375,23 @@ describe('Brain.Summoner', () => {
 
 describe('Brain.Human', () => {
     it('communicates enemies to friend actors', () => {
-        const commSystem = new RG.System.Communication(
+        const commSystem = new System.Communication(
             ['Communication']
         );
         const human = new SentientActor('human');
-        const brain = new RG.Brain.Human(human);
+        const brain = new Brain.Sentient(human);
         brain.commProbability = 1.01;
         human.setBrain(brain);
 
         const human2 = new SentientActor('human2');
-        const brain2 = new RG.Brain.Human(human2);
+        const brain2 = new Brain.Sentient(human2);
         human2.setBrain(brain2);
 
         const demon = new SentientActor('demon');
         demon.setType('demon');
 
-        const level = RG.FACT.createLevel('arena', 10, 10);
+        const factLevel = new FactoryLevel();
+        const level = factLevel.createLevel('arena', 10, 10);
         level.addActor(human, 2, 2);
         level.addActor(human2, 1, 1);
         level.addActor(demon, 3, 3);
@@ -399,18 +406,18 @@ describe('Brain.Human', () => {
 
 describe('Brain.Archer', () => {
     it('can do ranged attacks on enemies', () => {
-        const missSystem = new RG.System.Missile(['Missile']);
+        const missSystem = new System.Missile(['Missile']);
         const player = new SentientActor('player');
         player.setIsPlayer(true);
 
         const archer = new SentientActor('archer');
         const arrow = new Item.Ammo('arrow');
-        arrow.add(new RG.Component.Indestructible());
+        arrow.add(new Component.Indestructible());
         arrow.count = 10;
         const bow = new Item.MissileWeapon('bow');
         RGTest.equipItems(archer, [arrow, bow]);
 
-        const brain = new RG.Brain.Archer(archer);
+        const brain = new Brain.Archer(archer);
         archer.setBrain(brain);
         archer.getBrain().addEnemy(player);
 
@@ -433,8 +440,8 @@ describe('Brain.SpellCaster', () => {
     let systems = null;
 
     beforeEach(() => {
-        spellSystem = new RG.System.SpellCast(['SpellCast']);
-        effectSystem = new RG.System.SpellEffect(['SpellRay']);
+        spellSystem = new System.SpellCast(['SpellCast']);
+        effectSystem = new System.SpellEffect(['SpellRay']);
         systems = [spellSystem, effectSystem];
     });
 

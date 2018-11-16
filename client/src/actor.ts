@@ -6,7 +6,7 @@ import * as Mixin from './mixin';
 import * as Component from './component';
 import {compsToJSON} from './component.base';
 
-import {BrainSentient} from './brain';
+import {BrainGoalOriented} from './brain';
 import {BrainVirtual} from './brain.virtual';
 import {BrainPlayer} from './brain.player';
 
@@ -123,7 +123,7 @@ export class SentientActor extends BaseActor {
     constructor(name) { // {{{2
         super(name);
 
-        this._brain = new BrainSentient(this);
+        this._brain = new BrainGoalOriented(this);
         this._brain.getMemory().addEnemyType('player');
 
         this._invEq = new Inventory(this);

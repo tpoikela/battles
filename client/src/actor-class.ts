@@ -7,7 +7,7 @@ import {Random} from './random';
 import {Ability} from './abilities';
 import {EquipSlot} from './equipment';
 import {SentientActor} from './actor';
-import { ObjectShell } from "./objectshellparser";
+import {ObjectShell} from './objectshellparser';
 
 const {Abilities} = Ability;
 
@@ -32,7 +32,7 @@ ActorClass.create = function(name, entity) {
 
 /* Returns the object used to render level up menu. This shows messages related
  * to the level up such as stats increases. */
-ActorClass.getLevelUpObject = function(level, actorClass):  MenuInfoOnly {
+ActorClass.getLevelUpObject = function(level, actorClass): MenuInfoOnly {
     const selObj = new MenuInfoOnly();
     const actor = actorClass.getActor();
     const className = actorClass.getClassName();

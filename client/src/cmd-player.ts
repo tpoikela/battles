@@ -6,6 +6,7 @@ import RG from './rg';
 import {Path} from './path';
 import {SentientActor} from './actor';
 import {BrainPlayer} from './brain.player';
+import * as Component from './component';
 
 export const Cmd: any = {};
 
@@ -42,7 +43,7 @@ export class CmdAttack extends CmdBase {
         const dist = Path.shortestDist(pX, pY, tX, tY);
         const attackRange = RG.getMeleeAttackRange(this._actor);
         if (dist <= attackRange) {
-            const attackComp = new RG.Component.Attack({target: actor});
+            const attackComp = new Component.Attack({target: actor});
             this._actor.add(attackComp);
             return ACTION_ALREADY_DONE;
         }
@@ -102,7 +103,7 @@ export class CmdMissile extends CmdBase {
                 if (!RG.isNullOrUndef([obj.target])) {
                     const x = obj.target.getX();
                     const y = obj.target.getY();
-                    const mComp = new RG.Component.Missile(this._actor);
+                    const mComp = new Component.Missile(this._actor);
                     mComp.setTargetXY(x, y);
                     mComp.setDamage(RG.getMissileDamage(this._actor, missile));
                     mComp.setAttack(RG.getMissileAttack(this._actor, missile));
@@ -148,7 +149,7 @@ export class CmdUseItem extends CmdBase {
             }
             else if (!result) {
                 // return this.brain.cmdNotPossible('You cannot use that item.');
-                const useComp = new RG.Component.UseItem();
+                const useComp = new Component.UseItem();
                 useComp.setItem(item);
                 useComp.setTarget(obj.target);
                 this._actor.add(useComp);
@@ -172,7 +173,7 @@ export class CmdUseElement extends CmdBase {
     execute(obj) {
         const cell = obj.target;
         const elems = cell.getElements();
-        const useComp = new RG.Component.UseElement();
+        const useComp = new Component.UseElement();
         elems.forEach(elem => {
             if (elem.onUse) {
                 useComp.setElement(elem);
@@ -207,7 +208,7 @@ export class CmdDropItem extends CmdBase {
           // this.brain._wantConfirm = true;
           const confirmCb = () => {
               // const sellOk = shopElem.sellItem(obj.item, this._actor);
-              const trans = new RG.Component.Transaction();
+              const trans = new Component.Transaction();
               trans.setArgs({item: obj.item, seller: this._actor,
                   shop: shopElem, callback: obj.callback,
                   buyer: shopElem.getShopkeeper(), count: dropCount});
@@ -235,7 +236,7 @@ Cmd.DropItem = CmdDropItem;
 export class CmdEquipItem extends CmdBase {
 
     execute(obj) {
-        const eqComp = new RG.Component.Equip();
+        const eqComp = new Component.Equip();
         // eqComp.setItem(obj.item);
         eqComp.setArgs(obj);
         eqComp.setIsRemove(false);
@@ -250,7 +251,7 @@ Cmd.EquipItem = CmdEquipItem;
 export class CmdUnequipItem extends CmdBase {
 
     execute(obj) {
-        const eqComp = new RG.Component.Equip();
+        const eqComp = new Component.Equip();
         eqComp.setArgs(obj);
         eqComp.setIsRemove(true);
         this._actor.add(eqComp);

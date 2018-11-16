@@ -2,15 +2,20 @@
 /* Contains the code for base class of level generator. */
 import RG from './rg';
 import {ElementMarker, ElementDoor} from './element';
+import {Level} from './level';
 
-export class LevelGenerator {
+import {Coord} from './interfaces';
+
+export abstract class LevelGenerator {
     public shouldRemoveMarkers: boolean;
 
     constructor() {
         this.shouldRemoveMarkers = true;
     }
 
-    addStartAndEndPoint(level, start, end) {
+    abstract create(cols, rows, conf): Level;
+
+    addStartAndEndPoint(level: Level, start: Coord, end: Coord): void {
         if (start) {
             const [sX, sY] = start;
             const startPointElem = new ElementMarker('<');
@@ -26,7 +31,7 @@ export class LevelGenerator {
         }
     }
 
-    removeMarkers(level, conf) {
+    removeMarkers(level: Level, conf): void {
         let markersPreserved = ['start_point', 'end_point', 'critical_path'];
         if (conf.markersPreserved) {
             markersPreserved = markersPreserved.concat(conf.markersPreserved);

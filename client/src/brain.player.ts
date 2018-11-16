@@ -4,10 +4,13 @@ import {Menu, SelectionObject} from './menu';
 import {Keys} from './keymap';
 import {Cell} from './map.cell';
 import * as GoalsBattle from './goals-battle';
-import {Cmd} from './cmd-player';
+import * as Cmd from './cmd-player';
 import {BaseActor, SentientActor} from './actor';
 import {Random} from './random';
 import * as Item from './item';
+import * as Component from './component';
+import {Brain} from './brain';
+import {Geometry} from './geometry';
 
 const RNG = Random.getRNG();
 const KeyMap = Keys.KeyMap;
@@ -33,7 +36,7 @@ const chatSelObject = player => {
             if (args.dir) {
                 args.src = player;
                 return () => {
-                    const chatComp = new RG.Component.Chat();
+                    const chatComp = new Component.Chat();
                     chatComp.setArgs(args);
                     player.add(chatComp);
                 };
@@ -200,7 +203,7 @@ class TargetingFSM {
                     const actor = this.getActor();
                     const [tx, ty] = [cell.getX(), cell.getY()];
                     const [ax, ay] = [actor.getX(), actor.getY()];
-                    const path = RG.Geometry.getBresenham(ax, ay, tx, ty);
+                    const path = Geometry.getBresenham(ax, ay, tx, ty);
                     const pathCells = path.map(xy => (
                         actor.getLevel().getMap().getCell(xy[0], xy[1])
                     ));
@@ -254,7 +257,7 @@ class TargetingFSM {
             this.setSelectedCells(actor.getCell());
         }
         else if (code === Keys.KEY.SELECT_ALL) {
-            const friends = RG.Brain.findCellsWithFriends(actor,
+            const friends = Brain.findCellsWithFriends(actor,
                 visibleCells);
             this.setSelectedCells(friends);
         }
@@ -339,7 +342,7 @@ class TargetingFSM {
         if (cell && cell.getX) {
             const [tx, ty] = [cell.getX(), cell.getY()];
             const [ax, ay] = [actor.getX(), actor.getY()];
-            const path = RG.Geometry.getBresenham(ax, ay, tx, ty);
+            const path = Geometry.getBresenham(ax, ay, tx, ty);
 
             const invEq = actor.getInvEq();
             const missile = invEq.getEquipped('missile');
@@ -649,7 +652,7 @@ export class BrainPlayer {
         const nCoins = shopElem.getItemPriceForBuying(topItem);
 
         const buyItemCallback = () => {
-            const trans = new RG.Component.Transaction();
+            const trans = new Component.Transaction();
             trans.setArgs({item: topItem, buyer: this._actor,
               shop: shopElem, seller: shopElem.getShopkeeper()});
             this._actor.add(trans);
@@ -726,7 +729,7 @@ export class BrainPlayer {
     /* Tries to open/close a door nearby the player. TODO: Handle multiple
      * doors. */
     tryToToggleDoor() {
-        const cellsAround = RG.Brain.getCellsAroundActor(this._actor);
+        const cellsAround = Brain.getCellsAroundActor(this._actor);
         const doorCells = cellsAround.filter(c => c.hasDoor());
         if (doorCells.length === 1) {
             return this.openDoorFromCell(doorCells[0]);
@@ -744,7 +747,7 @@ export class BrainPlayer {
         if (doorCell) {
             const door = doorCell.getPropType('door')[0];
             if (door) {
-                const comp = new RG.Component.OpenDoor();
+                const comp = new Component.OpenDoor();
                 comp.setDoor(door);
                 this._actor.add(comp);
                 return ACTION_ALREADY_DONE;
@@ -928,7 +931,7 @@ export class BrainPlayer {
               else {
                 this.energy = RG.energy.PICKUP;
                 return () => {
-                  const pickup = new RG.Component.Pickup();
+                  const pickup = new Component.Pickup();
                   this._actor.add(pickup);
                 };
               }
@@ -936,7 +939,7 @@ export class BrainPlayer {
             else {
               this.energy = RG.energy.PICKUP;
               return () => {
-                const pickup = new RG.Component.Pickup();
+                const pickup = new Component.Pickup();
                 this._actor.add(pickup);
               };
             }
@@ -951,7 +954,7 @@ export class BrainPlayer {
           cmdType = 'STAIRS';
           if (currCell.hasConnection()) {
             return () => {
-                const stairsComp = new RG.Component.UseStairs();
+                const stairsComp = new Component.UseStairs();
                 this._actor.add(stairsComp);
             };
           }
@@ -984,7 +987,7 @@ export class BrainPlayer {
         }
 
         if (KeyMap.isRead(code)) {
-            const readComp = new RG.Component.Read();
+            const readComp = new Component.Read();
             this._actor.add(readComp);
             return ACTION_ALREADY_DONE;
         }
@@ -1049,7 +1052,7 @@ export class BrainPlayer {
         if (!currMap.hasXY(x, y)) {
           if (this._actor.getCell().hasPassage()) {
               const cb = () => {
-                  const stairsComp = new RG.Component.UseStairs();
+                  const stairsComp = new Component.UseStairs();
                   this._actor.add(stairsComp);
               };
               const msg = "Press 'y' to move to another area";
@@ -1078,7 +1081,7 @@ export class BrainPlayer {
 
           const attackCallback = () => {
             this._setAttackStats();
-            const attackComp = new RG.Component.Attack({target});
+            const attackComp = new Component.Attack({target});
             this._actor.add(attackComp);
           };
 
@@ -1111,7 +1114,7 @@ export class BrainPlayer {
         }
 
         return () => {
-          const movComp = new RG.Component.Movement(x, y, level);
+          const movComp = new Component.Movement(x, y, level);
           this._actor.add(movComp);
         };
     }
@@ -1190,7 +1193,7 @@ export class BrainPlayer {
     }
 
     giveItemToActor(item, actor) {
-        const giveComp = new RG.Component.Give();
+        const giveComp = new Component.Give();
         giveComp.setGiveTarget(actor);
         giveComp.setItem(item);
         this._actor.add(giveComp);
@@ -1206,7 +1209,7 @@ export class BrainPlayer {
     jumpCallback(dXdY) {
         this.energy = RG.energy.JUMP;
         const [x, y] = dXdY;
-        const jumpCmp = new RG.Component.Jump();
+        const jumpCmp = new Component.Jump();
         jumpCmp.setX(x);
         jumpCmp.setY(y);
         this._actor.add(jumpCmp);
