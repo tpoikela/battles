@@ -2,6 +2,7 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import * as Component from '../component';
+import { Geometry } from '../geometry';
 
 export class SystemAreaEffects extends SystemBase {
     public radRange: number;
@@ -11,27 +12,6 @@ export class SystemAreaEffects extends SystemBase {
         this.radRange = 1;
     }
 
-    private _createRadiationComps(ent, compName, srcName) {
-        const map = ent.getLevel().getMap();
-        const cell = ent.getCell();
-        const [x, y] = cell.getXY();
-        const radiationBox = RG.Geometry.getBoxAround(x, y, this.radRange);
-        radiationBox.forEach(xy => {
-            if (map.hasXY(xy[0], xy[1])) {
-                const cell = map.getCell(xy[0], xy[1]);
-                if (cell.hasActors()) {
-                    const actors = cell.getActors();
-                    actors.forEach(actor => {
-                        // Name check prevents slow down when lots of fire
-                        // actors are present
-                        if (actor.getName() !== srcName) {
-                            actor.add(new Component[compName]());
-                        }
-                    });
-                }
-            }
-        });
-    };
 
     updateEntity(ent) {
         const flameComps = ent.getList('Flame');
@@ -66,4 +46,26 @@ export class SystemAreaEffects extends SystemBase {
             this._createRadiationComps(ent, 'Coldness', 'Ice flame');
         }
     }
+
+    private _createRadiationComps(ent, compName, srcName) {
+        const map = ent.getLevel().getMap();
+        const cell = ent.getCell();
+        const [x, y] = cell.getXY();
+        const radiationBox = Geometry.getBoxAround(x, y, this.radRange);
+        radiationBox.forEach(xy => {
+            if (map.hasXY(xy[0], xy[1])) {
+                const cell = map.getCell(xy[0], xy[1]);
+                if (cell.hasActors()) {
+                    const actors = cell.getActors();
+                    actors.forEach(actor => {
+                        // Name check prevents slow down when lots of fire
+                        // actors are present
+                        if (actor.getName() !== srcName) {
+                            actor.add(new Component[compName]());
+                        }
+                    });
+                }
+            }
+        });
+    };
 }
