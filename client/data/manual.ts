@@ -7,7 +7,7 @@ import {Keys} from '../src/keymap';
 import marked = require('marked');
 
 const {GUI, KEY, getChar} = Keys;
-const Manual: any = {};
+export const Manual: any = {};
 
 const moveTable = `
 <p>To move around, use:</p>
@@ -204,4 +204,3 @@ TODO
 `; // END OF MANUAL //
 
 Manual.fullText = marked(fullManualMarkdown);
-module.exports = Manual;
