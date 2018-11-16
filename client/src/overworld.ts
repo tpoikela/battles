@@ -327,7 +327,7 @@ OverWorld.CoordMap = CoordMap;
  */
 OverWorld.createOverWorld = (conf = {}) => {
     // 1st generate the high-level map
-    const overworld = OW.createOverWorld(conf);
+    const overworld = OWMap.createOverWorld(conf);
     // Then use this to generate placement details
     return OverWorld.createOverWorldLevel(overworld, conf);
 };
