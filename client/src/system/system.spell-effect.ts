@@ -2,6 +2,8 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import * as Component from '../component';
+import {ObjectShell} from '../objectshellparser';
+import {Geometry} from '../geometry';
 
 const {addSkillsExp} = SystemBase;
 
@@ -243,7 +245,7 @@ export class SystemSpellEffect extends SystemBase {
     processSpellMissile(ent, spellComp) {
         const args = spellComp.getArgs();
         const spell = args.spell;
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
 
         const spellArrow = parser.createItem(spell.getAmmoName());
         const mComp = new Component.Missile(args.src);
@@ -279,7 +281,7 @@ export class SystemSpellEffect extends SystemBase {
         const range = spell.getRange();
         const [x0, y0] = [args.src.getX(), args.src.getY()];
         const map = args.src.getLevel().getMap();
-        const coord = RG.Geometry.getBoxAround(x0, y0, range);
+        const coord = Geometry.getBoxAround(x0, y0, range);
 
         coord.forEach(xy => {
             if (map.hasXY(xy[0], xy[1])) {
