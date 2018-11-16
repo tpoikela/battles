@@ -415,13 +415,11 @@ describe('Brain.Archer', () => {
         const bow = new Item.MissileWeapon('bow');
         RGTest.equipItems(archer, [arrow, bow]);
 
-        const brain = new Brain.Archer(archer);
-        archer.setBrain(brain);
         archer.getBrain().addEnemy(player);
 
-        const level = RGTest.wrapIntoLevel([player, archer]);
-        RGTest.moveEntityTo(player, 2, 2);
-        RGTest.moveEntityTo(archer, 4, 4);
+        const level = RGUnitTests.wrapIntoLevel([player, archer]);
+        RGUnitTests.moveEntityTo(player, 2, 2);
+        RGUnitTests.moveEntityTo(archer, 4, 4);
 
         const action = archer.nextAction();
         action.doAction();
