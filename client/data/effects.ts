@@ -208,7 +208,7 @@ const Effects = {
                 const name = this.getTopOwner().getName();
                 const msg = `${name} digs through stone with ${this.getName()}`;
                 const effArgs = {
-                    name: this.useArgs.name,
+                    // name: this.useArgs.name,
                     effectType: 'ChangeElement',
                     fromType: 'wall',
                     target: obj,
@@ -227,8 +227,7 @@ const Effects = {
             func: function(obj) {
                 const actor = getTargetActor(obj);
                 if (actor) {
-                    const arr = Dice.parseDieSpec(this.useArgs.hp);
-                    const die = new Dice(arr[0], arr[1], arr[2]);
+                    const die = Dice.create(this.useArgs.hp);
                     const pt = die.roll();
                     if (actor.has('Health')) {
                         actor.get('Health').addHP(pt);
