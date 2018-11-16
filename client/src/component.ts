@@ -8,6 +8,7 @@ import {ComponentBase, Component} from './component.base';
 import {EventPool} from './eventpool';
 import {Entity} from './entity';
 import {Dice} from './dice';
+import {Geometry} from './geometry';
 
 const POOL = EventPool.getPool();
 
@@ -388,7 +389,7 @@ Missile.prototype.stopMissile = function() {
 };
 
 Missile.prototype.setTargetXY = function(x, y) {
-    this.path = RG.Geometry.getBresenham(this.x, this.y, x, y);
+    this.path = Geometry.getBresenham(this.x, this.y, x, y);
     this.targetX = x;
     this.targetY = y;
     if (this.path.length > 0) {this.pathIter = 0;}
