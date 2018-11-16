@@ -1,7 +1,7 @@
 
 import RG from '../rg';
 import * as Component from '../component';
-import {Entity} from  '../entity';
+import {Entity} from '../entity';
 import {EventPool} from '../eventpool';
 
 const dbg = require('debug');
@@ -17,6 +17,43 @@ const POOL = EventPool.getPool();
  */
 //---------------------------------------------------
 export abstract class SystemBase {
+
+    //---------------------------------------------------------
+    // Non-member functions used for utility in other systems
+    //---------------------------------------------------------
+
+    /* For adding skills experience components. */
+    public static addSkillsExp(att, skill, pts = 1): void {
+        if (att.has('Skills')) {
+            const comp = new Component.SkillsExp();
+            comp.setSkill(skill);
+            comp.setPoints(pts);
+            att.add(comp);
+        }
+    }
+
+    /* After succesful hit, adds the given comp to specified entity ent. */
+    public static addCompToEntAfterHit(comp, ent, src): void {
+        const compClone = comp.clone();
+
+        if (compClone.hasOwnProperty('duration')) {
+            const compDur = compClone.rollDuration();
+            const expiration = new Component.Expiration();
+            expiration.addEffect(compClone, compDur);
+            ent.add(expiration);
+        }
+
+        // Source not present in negative buffs like StatsMods/CombatMods,
+        // but needed for Poison etc damage
+        if (compClone.getSource) {
+            const compSrc = compClone.getSource();
+            if (RG.isNullOrUndef([compSrc])) {
+                compClone.setSource(src);
+            }
+        }
+
+        ent.add(compClone);
+    }
 
     public type: string; // Type of the system
     public compTypes: string[];
@@ -66,15 +103,15 @@ export abstract class SystemBase {
         this.debugEnabled = debug.enabled;
     }
 
-    addEntity(entity: Entity) {
+    public addEntity(entity: Entity): void {
         this.entities[entity.getID()] = entity;
     }
 
-    removeEntity(entity: Entity) {
+    public removeEntity(entity: Entity): void {
         delete this.entities[entity.getID()];
     }
 
-    notify(evtName, obj) {
+    public notify(evtName, obj) {
         if (obj.hasOwnProperty('add')) {
             if (this.hasCompTypes(obj.entity)) {this.addEntity(obj.entity);}
         }
@@ -89,7 +126,7 @@ export abstract class SystemBase {
 
     /* Returns true if entity has all required component types, or if
      * compTypesAny if set, if entity has any required component. */
-    hasCompTypes(entity): boolean {
+    public hasCompTypes(entity): boolean {
         const compTypes = this.compTypes;
         if (this.compTypesAny === false) { // All types must be present
             return entity.hasAll(compTypes);
@@ -100,66 +137,29 @@ export abstract class SystemBase {
     }
 
     /* Returns true if there is at least 1 entity to process. */
-    hasEntities(): boolean {
+    public hasEntities(): boolean {
         return Object.keys(this.entities).length > 0;
     }
 
-    update(): void {
+    public update(): void {
         for (const e in this.entities) {
             if (!e) {continue;}
             this.updateEntity(this.entities[e]);
         }
     }
 
-    updateEntity(e: Entity): void {
-        RG.err('SystemBase', 'updateEntity', 
+    public updateEntity(e: Entity): void {
+        RG.err('SystemBase', 'updateEntity',
             'Not implemented in the base class');
     }
 
     /* For printing out debug information. */
-    dbg(msg): void {
+    public dbg(msg): void {
         if (debug.enabled) {
             const nEnt = Object.keys(this.entities).length;
             let descr = `[System ${this.type.toString()}]`;
             descr += ` nEntities: ${nEnt}`;
             debug(`${descr} ${msg}`);
         }
-    }
-
-    //---------------------------------------------------------
-    // Non-member functions used for utility in other systems
-    //---------------------------------------------------------
-
-    /* For adding skills experience components. */
-    static addSkillsExp(att, skill, pts = 1): void {
-        if (att.has('Skills')) {
-            const comp = new Component.SkillsExp();
-            comp.setSkill(skill);
-            comp.setPoints(pts);
-            att.add(comp);
-        }
-    }
-
-    /* After succesful hit, adds the given comp to specified entity ent. */
-    static addCompToEntAfterHit(comp, ent, src): void {
-        const compClone = comp.clone();
-
-        if (compClone.hasOwnProperty('duration')) {
-            const compDur = compClone.rollDuration();
-            const expiration = new Component.Expiration();
-            expiration.addEffect(compClone, compDur);
-            ent.add(expiration);
-        }
-
-        // Source not present in negative buffs like StatsMods/CombatMods,
-        // but needed for Poison etc damage
-        if (compClone.getSource) {
-            const compSrc = compClone.getSource();
-            if (RG.isNullOrUndef([compSrc])) {
-                compClone.setSource(src);
-            }
-        }
-
-        ent.add(compClone);
     }
 }
