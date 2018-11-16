@@ -1,21 +1,26 @@
 
-const RG = require('../../../client/src/battles');
-const RGObjects = require('../../../client/data/battles_objects');
-const RGTest = require('../../roguetest.js');
+import RG from '../../../client/src/rg';
+import chai from 'chai';
 
-const Effects = require('../../../client/data/effects');
-
-const chai = require('chai');
-const chaiBattles = require('../../helpers/chai-battles.js');
+import {Objects} from '../../../client/data/battles_objects';
+import {RGTest} from '../../roguetest';
+import {RGUnitTests} from '../../rg.unit-tests';
+import {Effects} from '../../../client/data/effects';
+import {chaiBattles} from '../../helpers/chai-battles';
+import {SentientActor } from '../../../client/src/actor';
+import {ObjectShell} from '../../../client/src/objectshellparser';
+import {FactoryActor} from '../../../client/src/factory.actors';
+import {FactoryLevel} from '../../../client/src/factory.level';
+import {FactoryBase as Factory} from '../../../client/src/factory';
+import {FromJSON} from '../../../client/src/game.fromjson';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
 
-const Parser = RG.ObjectShell.Parser;
-const Creator = RG.ObjectShell.Creator;
+const Parser = ObjectShell.Parser;
+const Creator = ObjectShell.Creator;
 
-const Actor = RG.Actor.Rogue;
-
+const Actor = SentientActor;
 RG.cellRenderArray = RG.cellRenderVisible;
 
 const wolfShell = {
@@ -23,11 +28,13 @@ const wolfShell = {
     hp: 9
 };
 
+const factLevel = new FactoryLevel();
+
 //---------------------------------------------------------------------------
 // PARSER TESTS
 //---------------------------------------------------------------------------
 
-describe('RG.ObjectShell.Parser', () => {
+describe('ObjectShell.Parser', () => {
 
     it('Returns base objects and supports also base', () => {
         const parser = new Parser();
@@ -71,8 +78,8 @@ describe('RG.ObjectShell.Parser', () => {
 
         RGTest.expectEqualHealth(createdWolf, wolfObj);
 
-        const player = RG.FACT.createPlayer('player', {});
-        const cell = RG.FACT.createFloorCell();
+        const player = new FactoryActor().createPlayer('player', {});
+        const cell = new Factory().createFloorCell();
         cell.setProp('actors', player);
         cell.setExplored(true);
 
@@ -97,7 +104,7 @@ describe('RG.ObjectShell.Parser', () => {
 
     it('can create actors in constrained-random manner', () => {
         const parser = new Parser();
-        const wolf = Object.assign({}, wolfShell);
+        const wolf: any = Object.assign({}, wolfShell);
         wolf.type = 'animal';
         wolf.danger = 2;
         parser.parseObjShell(RG.TYPE_ACTOR, wolf);
@@ -203,7 +210,7 @@ describe('RG.ObjectShell.Parser', () => {
         const parser = new Parser();
         const bat = {name: 'bat', addComp: 'Flying'};
         const shell = parser.parseObjShell(RG.TYPE_ACTOR, bat);
-        const batActor = new RG.Actor.Rogue('bat');
+        const batActor = new SentientActor('bat');
 
         creator.addComponents(shell, batActor);
         expect(batActor).to.have.component('Flying');
@@ -251,15 +258,15 @@ describe('RG.ObjectShell.Parser', () => {
 
         expect(randFood.getEnergy()).to.equal(100);
         expect(randFood.getValue()).to.equal(5);
-        RGTest.checkChar(randFood, '%');
-        RGTest.checkCSSClassName(randFood, 'cell-item-food');
+        RGUnitTests.checkChar(randFood, '%');
+        RGUnitTests.checkCSSClassName(randFood, 'cell-item-food');
 
         const geleeFood = parser.createRandomItem({
             func: function(item) {return item.value >= 99;}
         });
         expect(geleeFood.getEnergy()).to.equal(500);
         expect(geleeFood.getType()).to.equal('food');
-        RGTest.checkChar(geleeFood, '%');
+        RGUnitTests.checkChar(geleeFood, '%');
 
     });
 
@@ -273,16 +280,16 @@ describe('RG.ObjectShell.Parser', () => {
         const waterElem = parser.createElement('water');
         expect(waterElem).to.not.be.empty;
         expect(waterElem.getName()).to.equal('water');
-        RGTest.checkChar(waterElem, '~');
-        RGTest.checkCSSClassName(waterElem, 'cell-element-water');
+        RGUnitTests.checkChar(waterElem, '~');
+        RGUnitTests.checkCSSClassName(waterElem, 'cell-element-water');
 
-        parser.parseShellCateg(RG.TYPE_ELEM, RGObjects.elements);
-        RGObjects.elements.forEach(shell => {
+        parser.parseShellCateg(RG.TYPE_ELEM, Objects.elements);
+        Objects.elements.forEach(shell => {
             if (shell.dontCreate !== true) {
                 const elem = parser.createElement(shell.name);
                 expect(elem).to.not.be.empty;
-                RGTest.checkChar(elem, shell.char);
-                RGTest.checkCSSClassName(elem, shell.className);
+                RGUnitTests.checkChar(elem, shell.char);
+                RGUnitTests.checkCSSClassName(elem, shell.className);
             }
 
         });
@@ -300,7 +307,7 @@ describe('ObjectShellParser.parseShellData()', () => {
     before(() => {
         parser = new Parser();
         parser.parseShellData(Effects);
-        parser.parseShellData(RGObjects);
+        parser.parseShellData(Objects);
     });
 
     it('Should parse all actors properly', () => {
@@ -320,8 +327,8 @@ describe('ObjectShellParser.parseShellData()', () => {
         expect(ratObj.get('Combat').getAttack()).to.equal(1);
         expect(ratObj.get('Combat').getDefense()).to.equal(1);
         expect(ratObj.get('Stats').getSpeed()).to.equal(100);
-        RGTest.checkChar(ratObj, 'r');
-        RGTest.checkCSSClassName(ratObj, 'cell-actor-animal');
+        RGUnitTests.checkChar(ratObj, 'r');
+        RGUnitTests.checkCSSClassName(ratObj, 'cell-actor-animal');
 
     });
 
@@ -330,7 +337,7 @@ describe('ObjectShellParser.parseShellData()', () => {
         expect(bayShell.base).to.equal('MeleeWeaponBase');
         const bayon = parser.createActualObj('items', 'Bayonette');
         expect(bayon.has('Physical')).to.equal(true);
-        RGTest.checkCSSClassName(bayon, 'cell-item-melee-weapon');
+        RGUnitTests.checkCSSClassName(bayon, 'cell-item-melee-weapon');
     });
 
     it('Should parse weapons properly', () => {
@@ -402,11 +409,11 @@ describe('ObjectShellParser.parseShellData()', () => {
     });
 
     it('Creates a proper pickaxe with digger capability', () => {
-        const cell = RG.FACT.createWallCell();
+        const cell = new Factory().createWallCell();
         const pickaxe = parser.createActualObj('items', 'Pick-axe');
         expect(pickaxe).to.have.property('useItem');
 
-        const digger = new RG.Actor.Rogue('Dwarf');
+        const digger = new SentientActor('Dwarf');
         digger.getInvEq().addItem(pickaxe);
         expect(cell.getBaseElem().getType()).to.equal('wall');
         pickaxe.useItem({target: cell});
@@ -416,15 +423,15 @@ describe('ObjectShellParser.parseShellData()', () => {
     it('can create gold coins', () => {
         const goldcoin = parser.createActualObj(RG.TYPE_ITEM, 'Gold coin');
         expect(goldcoin.getName()).to.equal('Gold coin');
-        RGTest.checkChar(goldcoin, '$');
-        RGTest.checkCSSClassName(goldcoin, 'cell-item-gold-coin');
+        RGUnitTests.checkChar(goldcoin, '$');
+        RGUnitTests.checkCSSClassName(goldcoin, 'cell-item-gold-coin');
     });
 
     it('can create stat-boosting potions', () => {
         const potion = parser.createItem('Potion of agility');
-        const user = new RG.Actor.Rogue('user');
+        const user = new SentientActor('user');
         user.getInvEq().addItem(potion);
-        const cell = RGTest.wrapObjWithCell(user);
+        const cell = RGUnitTests.wrapObjWithCell(user);
         // const agil = user.get('Stats').getAgility();
         potion.useItem({target: cell});
         expect(user).to.have.component('UseItem');
@@ -482,23 +489,23 @@ describe('ObjectShellParser.parseShellData()', () => {
     });
 
     it('can create all possible actors', () => {
-        const {actors} = RGObjects;
+        const {actors} = Objects;
         Object.values(actors).forEach(shell => {
             if (!shell.dontCreate && shell.name) {
-                try {
-                    const actorObj = parser.createActor(shell.name);
-                    expect(actorObj).to.not.be.empty;
-                }
-                catch (e) {
+                // try {
+                const actorObj = parser.createActor(shell.name);
+                expect(actorObj).to.not.be.empty;
+                // }
+                /* catch (e) {
                     const msg = e.message + ' ' + JSON.stringify(shell);
                     throw new Error(msg);
-                }
+                }*/
             }
         });
     });
 
     it('can create all possible items', () => {
-        const {items} = RGObjects;
+        const {items} = Objects;
         Object.values(items).forEach(shell => {
             if (!shell.dontCreate && shell.name) {
                 try {
@@ -533,7 +540,7 @@ describe('Data query functions for objects', function() {
     before(() => {
         parser = new Parser();
         parser.parseShellData(Effects);
-        parser.parseShellData(RGObjects);
+        parser.parseShellData(Objects);
     });
 
     it('can filter query with category/function', () => {
@@ -626,7 +633,7 @@ describe('Data query functions for objects', function() {
 
         const json = addOnHit.toJSON();
 
-        const fromJSON = new RG.Game.FromJSON();
+        const fromJSON = new FromJSON();
         const newAddOnHitComp = fromJSON.createComponent('AddOnHit', json);
         expect(newAddOnHitComp.getType()).to.equal('AddOnHit');
 
@@ -641,7 +648,7 @@ describe('Data query functions for objects', function() {
         let newDurClone = newDurComp.clone();
         expect(newDurClone.getID()).not.to.equal(newDurComp.getID());
 
-        const victim = new RG.Actor.Rogue('victim');
+        const victim = new SentientActor('victim');
         expect(victim).not.to.have.component('StatsMods');
 
         victim.add(newDurClone);
@@ -678,9 +685,9 @@ describe('Data query functions for objects', function() {
     it('can create firemaking kits and other tools', () => {
         const firekit = parser.createEntity('firemaking kit');
         expect(firekit).to.have.property('useItem');
-        const level = RG.FACT.createLevel('arena', 20, 20);
+        const level = factLevel.createLevel('arena', 20, 20);
         const cell = level.getMap().getCell(1, 1);
-        const fireStarter = new RG.Actor.Rogue('firestarted');
+        const fireStarter = new SentientActor('firestarted');
         level.addActor(fireStarter, 1, 2);
         fireStarter.getInvEq().addItem(firekit);
 
@@ -690,8 +697,7 @@ describe('Data query functions for objects', function() {
 
         const clonedKit = firekit.clone();
         expect(clonedKit.useArgs).to.exist;
-        expect(clonedKit.useItem).to.be.a.function;
-
+        expect(clonedKit.useItem).to.be.a('function');
     });
 
     it('can create runes', () => {
