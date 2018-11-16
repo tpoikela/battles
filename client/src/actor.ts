@@ -89,7 +89,7 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
             type: this.getType(),
             levelID,
             brain: this._brain.toJSON(),
-            new: 'Base'
+            new: 'Base' // Must match a constr function name in Actor
         };
 
         obj.components = compsToJSON(this);
@@ -255,7 +255,7 @@ export class SentientActor extends BaseActor {
             }
         }
         else {
-            RG.err('Actor.Rogue', 'setIsPlayer',
+            RG.err('Actor.Sentient', 'setIsPlayer',
                 'Actor cannot be changed from player to mob.');
         }
     }
@@ -312,7 +312,7 @@ export class SentientActor extends BaseActor {
             inventory: this.getInvEq().getInventory().toJSON(),
             equipment: this.getInvEq().getEquipment().toJSON(),
             brain: this._brain.toJSON(),
-            new: 'Rogue',
+            new: 'Sentient', // Must match a constr function name in Actor
             components: compsToJSON(this)
         };
 
