@@ -11,6 +11,7 @@ import {Geometry} from './geometry';
 import {Path} from './path';
 import {DungeonPopulate} from './dungeon-populate';
 import {Random} from './random';
+import {ELEM} from '../data/elem-constants';
 
 const RNG = Random.getRNG();
 
@@ -72,7 +73,7 @@ export class MountainGenerator {
         const cols = map.cols;
         const wallRows = Math.round(map.rows / 6);
         const wallConf = {
-            wallElem: RG.ELEM.HIGH_ROCK,
+            wallElem: ELEM.HIGH_ROCK,
             meanWy: Math.round(wallRows / 2.5)
         };
 
@@ -148,7 +149,7 @@ export class MountainGenerator {
                 const [x, y] = xy;
                 if (map.hasXY(x, y)) {
                     result.push(xy);
-                    map.setBaseElemXY(x, y, RG.ELEM.STONE);
+                    map.setBaseElemXY(x, y, ELEM.STONE);
                 }
             });
         });
