@@ -29,7 +29,7 @@ export class Dice {
     }
 
 
-    public static getDieValue(strOrNumOrDie: DiceValue) {
+    public static getValue(strOrNumOrDie: DiceValue) {
         if (typeof strOrNumOrDie === 'number') {
             if (Number.isInteger((strOrNumOrDie as number))) {
                 return strOrNumOrDie;
