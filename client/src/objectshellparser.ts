@@ -688,9 +688,9 @@ Creator.prototype.createBrain = function(actor, brainName) {
         return new Brain[brainName](actor);
     }
     let msg = `Warning. No brain type |${brainName}| found`;
-    msg += 'Using the default Brain.Rogue instead.';
+    msg += 'Using the default Brain.Sentient instead.';
     console.warn(msg);
-    return new Brain.BrainSentient(actor);
+    return new Brain.Sentient(actor);
 };
 
 
