@@ -5,6 +5,7 @@ import RG from './rg';
 import {Keys} from './keymap';
 import * as Menu from './menu';
 import {SentientActor} from './actor';
+import * as Item from './item';
 
 export const Chat: any = {};
 const stats = RG.STATS;
@@ -23,6 +24,17 @@ interface SelObject {
     pre?: string[];
     post?: string[];
 }
+
+
+/* Trades the given gold weight from given to another actor. */
+Chat.tradeGoldWeightFromTo = (gw, actorFrom, actorTo) => {
+    const nCoins = RG.getGoldInCoins(gw);
+    const coins = new Item.GoldCoin();
+    const nCoinsRemoved = RG.removeNCoins(actorFrom, nCoins);
+    coins.setCount(nCoinsRemoved);
+    actorTo.getInvEq().addItem(coins);
+};
+
 
 /* Chat object added to actors which have any interesting things to chat about.
  */
@@ -233,7 +245,7 @@ export class ChatTrainer extends ChatBase {
                 return;
             }
             else {
-                RG.tradeGoldWeightFromTo(gw, this.chatter, this.trainer);
+                Chat.tradeGoldWeightFromTo(gw, this.chatter, this.trainer);
             }
 
             const targetStats = this.chatter.get('Stats');
