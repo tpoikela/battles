@@ -42,11 +42,11 @@ export class EvaluatorBase {
         this.type = 'Base';
     }
 
-    calculateDesirability(actor) {
+    public calculateDesirability(actor) {
         throw new Error('Pure virtual function');
     }
 
-    setActorGoal(actor, ...args) {
+    public setActorGoal(actor, ...args) {
         const topGoal = actor.getBrain().getGoal();
         if (Goal[this.type]) {
             const goal = new Goal[this.type](actor, ...args);
@@ -59,15 +59,15 @@ export class EvaluatorBase {
         }
     }
 
-    isOrder() {return false;}
+    public isOrder() {return false;}
 
-    getType() {return this.type;}
+    public getType() {return this.type;}
 
-    setBias(bias) {
+    public setBias(bias) {
         this.actorBias = bias;
     }
 
-    toJSON() {
+    public toJSON() {
         return {
             type: this.getType(),
             bias: this.actorBias
@@ -75,7 +75,7 @@ export class EvaluatorBase {
     }
 
     /* Called by FromJSON. */
-    setArgs(args) {}
+    public setArgs(args) {}
 
 }
 Evaluator.Base = EvaluatorBase;
@@ -90,7 +90,7 @@ export class EvaluatorAttackActor extends EvaluatorBase {
         this.type = 'AttackActor';
     }
 
-    calculateDesirability(actor) {
+    public calculateDesirability(actor) {
         const brain = actor.getBrain();
         const seenCells = brain.getSeenCells();
         const enemyCell = brain.findEnemyCell(seenCells);
@@ -102,7 +102,7 @@ export class EvaluatorAttackActor extends EvaluatorBase {
         return Evaluator.NOT_POSSIBLE;
     }
 
-    setActorGoal(actor) {
+    public setActorGoal(actor) {
         super.setActorGoal(actor, this.enemyActor);
         /* const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.AttackActor(actor, this.enemyActor);
@@ -122,7 +122,7 @@ export class EvaluatorExplore extends EvaluatorBase {
         this.type = 'Explore';
     }
 
-    calculateDesirability(/* actor */) {
+    public calculateDesirability(/* actor */) {
         /* const enemyCells = RG.Brain.getEnemyCellsAround(actor);
         if (enemyCells.length > 0) {
             return 0.01;
@@ -144,7 +144,7 @@ export class EvaluatorFlee extends EvaluatorBase {
         this.type = 'Flee';
     }
 
-    calculateDesirability(actor) {
+    public calculateDesirability(actor) {
         const enemies = actor.getBrain().getSeenEnemies();
         if (enemies.length > 0) {
             const health = actor.get('Health');
@@ -170,7 +170,7 @@ export class EvaluatorFlee extends EvaluatorBase {
         return Evaluator.NOT_POSSIBLE;
     }
 
-    setActorGoal(actor) {
+    public setActorGoal(actor) {
         if (this.enemyActor) {
             const topGoal = actor.getBrain().getGoal();
             const goal = new Goal.FleeFromActor(actor, this.enemyActor);
@@ -198,15 +198,15 @@ export class EvaluatorPatrol extends EvaluatorBase {
         this.coords = coord;
     }
 
-    setCoords(coords) {
+    public setCoords(coords) {
         this.coords = coords;
     }
 
-    calculateDesirability() {
+    public calculateDesirability() {
         return this.actorBias;
     }
 
-    setActorGoal(actor) {
+    public setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
         const coords = this.coords;
         if (coords.length > 0) {
@@ -220,11 +220,11 @@ export class EvaluatorPatrol extends EvaluatorBase {
         }
     }
 
-    setArgs(args) {
+    public setArgs(args) {
         this.coords = args.coords;
     }
 
-    toJSON() {
+    public toJSON() {
         const json: any = super.toJSON();
         json.args = {
             coords: this.coords
@@ -247,28 +247,28 @@ export class EvaluatorGuard extends EvaluatorBase {
         if (xy) {this.setXY(xy);}
     }
 
-    setXY(xy) {
+    public setXY(xy) {
         this.x = xy[0];
         this.y = xy[1];
     }
 
-    setArgs(args) {
+    public setArgs(args) {
         const {xy} = args;
         this.setXY(xy);
     }
 
-    calculateDesirability() {
+    public calculateDesirability() {
         return this.actorBias;
     }
 
-    setActorGoal(actor) {
+    public setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.Guard(actor, [this.x, this.y]);
         topGoal.addGoal(goal);
         ++Evaluator.hist[this.type];
     }
 
-    toJSON() {
+    public toJSON() {
         const json: any = super.toJSON();
         json.args = {xy: [this.x, this.y]};
         return json;
@@ -291,12 +291,12 @@ export class EvaluatorOrders extends EvaluatorBase {
     }
 
     /* Sets the arguments used for goal injection for commanded actor. */
-    setArgs(args) {
+    public setArgs(args) {
         this.goal = args.goal;
         this.srcActor = args.srcActor;
     }
 
-    calculateDesirability() {
+    public calculateDesirability() {
         // TODO evaluate srcActor status
         // Evaluate difficulty of goal
         const commanderMult = 1.0;
@@ -309,7 +309,7 @@ export class EvaluatorOrders extends EvaluatorBase {
         return 0;
     }
 
-    acceptsOrdersFromSource() {
+    public acceptsOrdersFromSource() {
         if (this.srcActor.has('Commander')) {
             return true;
         }
@@ -319,7 +319,7 @@ export class EvaluatorOrders extends EvaluatorBase {
         return false;
     }
 
-    setActorGoal(actor) {
+    public setActorGoal(actor) {
         if (this.goal) {
             const topGoal = actor.getBrain().getGoal();
             topGoal.addGoal(this.goal);
@@ -331,11 +331,11 @@ export class EvaluatorOrders extends EvaluatorBase {
         }
     }
 
-    setSubEvaluator(evaluator) {
+    public setSubEvaluator(evaluator) {
         this.subEval = evaluator;
     }
 
-    isOrder() {return true;}
+    public isOrder() {return true;}
 
 }
 Evaluator.Orders = EvaluatorOrders;
@@ -354,15 +354,15 @@ export class EvaluatorCastSpell extends EvaluatorBase {
         this._castingProb = 0.2;
     }
 
-    setCastingProbability(prob) {
+    public setCastingProbability(prob) {
         this._castingProb = prob;
     }
 
-    getCastingProbability() {
+    public getCastingProbability() {
         return this._castingProb;
     }
 
-    calculateDesirability(actor) {
+    public calculateDesirability(actor) {
         this.spell = this.getRandomSpell(actor);
         if (!this.spell) {return 0;}
 
@@ -374,7 +374,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
         return 0;
     }
 
-    setActorGoal(actor) {
+    public setActorGoal(actor) {
         if (this.spell) {
             const topGoal = actor.getBrain().getGoal();
             const goal = new Goal.CastSpell(actor, this.spell, this.spellArgs);
@@ -387,7 +387,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
         }
     }
 
-    getRandomSpell(actor) {
+    public getRandomSpell(actor) {
         const book = actor.getBook();
         if (book && book.getSpells().length > 0) {
             const spell = RNG.arrayGetRand(book.getSpells());
@@ -397,7 +397,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
     }
 
     /* Returns true if spellcaster can cast a spell. */
-    canCastSpell(actor) {
+    public canCastSpell(actor) {
         if (actor.has('SpellPower')) {
             const spellPower = actor.get('SpellPower');
             if (spellPower.getPP() >= this.spell.getCastingPower()) {
@@ -410,7 +410,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
     }
 
     /* Returns true if spellcaster should cast the spell. */
-    shouldCastSpell(actor) {
+    public shouldCastSpell(actor) {
         const brain = actor.getBrain();
         const seenCells = brain.getSeenCells();
         const enemyCell = brain.findEnemyCell(seenCells);
@@ -420,8 +420,8 @@ export class EvaluatorCastSpell extends EvaluatorBase {
             args.enemy = enemyCell.getActors()[0];
         }
         if (this.spell.aiShouldCastSpell) {
-            return this.spell.aiShouldCastSpell(args, (actor, args) => {
-                this.spellArgs = args;
+            return this.spell.aiShouldCastSpell(args, (act, newArgs) => {
+                this.spellArgs = newArgs;
             });
         }
         else {
@@ -448,7 +448,7 @@ export class EvaluatorShopkeeper extends EvaluatorBase {
         this.type = 'Shopkeeper';
     }
 
-    calculateDesirability(actor) {
+    public calculateDesirability(actor) {
         // TODO calculate dist from shop etc
         if (actor.has('Shopkeeper')) {
             return this.actorBias;
@@ -458,20 +458,20 @@ export class EvaluatorShopkeeper extends EvaluatorBase {
         return 0;
     }
 
-    setActorGoal(actor) {
+    public setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.Shopkeeper(actor, this.x, this.y);
         topGoal.addGoal(goal);
         ++Evaluator.hist[this.type];
     }
 
-    setArgs(args) {
+    public setArgs(args) {
         const {xy} = args;
         this.x = xy[0];
         this.y = xy[1];
     }
 
-    toJSON() {
+    public toJSON() {
         const json: any = super.toJSON();
         json.args = {xy: [this.x, this.y]};
         return json;
@@ -498,7 +498,7 @@ export class EvaluatorGoHome extends EvaluatorBase {
         this.maxDistHome = 5;
     }
 
-    calculateDesirability(actor) {
+    public calculateDesirability(actor) {
         if (this.timeToHomeSick > 0) {
             this.timeToHomeSick -= 1;
             return 0.0;
@@ -522,21 +522,21 @@ export class EvaluatorGoHome extends EvaluatorBase {
         return 0.0;
     }
 
-    setActorGoal(actor) {
+    public setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.GoHome(actor, this.x, this.y, this.maxDistHome);
         topGoal.addGoal(goal);
         ++Evaluator.hist[this.type];
     }
 
-    setArgs(args) {
+    public setArgs(args) {
         const {xy} = args;
         this.x = xy[0];
         this.y = xy[1];
         this.timeToHomeSick = args.timeToHomeSick;
     }
 
-    toJSON() {
+    public toJSON() {
         const json: any = super.toJSON();
         json.args = {
             xy: [this.x, this.y],
@@ -556,10 +556,53 @@ export class EvaluatorThief extends EvaluatorBase {
         this.type = 'Thief';
     }
 
-    calculateDesirability(/* actor */) {
+    public calculateDesirability(/* actor */) {
         return this.actorBias;
     }
 
 }
 Evaluator.Thief = EvaluatorThief;
 Evaluator.hist.Thief = 0;
+
+export class EvaluatorCommunicate extends EvaluatorBase {
+
+    constructor(actorBias) {
+        super(actorBias);
+        this.type = 'Communicate';
+    }
+
+    public calculateDesirability(actor): number {
+        if (this.willCommunicate(actor)) {
+            return this.actorBias;
+        }
+    }
+
+    /* Returns true if actor will communicate something. */
+    public willCommunicate(actor): boolean {
+        const brain = actor.getBrain();
+        const communicateOrAttack = RNG.getUniform();
+        const seenCells = brain.getSeenCells();
+        const friendCell = brain.findFriendCell(seenCells);
+        const memory = brain.getMemory();
+
+        let friendActor = null;
+        if (RG.isNullOrUndef([friendCell])) {
+            return false;
+        }
+        else {
+            friendActor = friendCell.getActors()[0];
+            if (memory.hasCommunicatedWith(friendActor)) {
+                return false;
+            }
+            else if (friendActor.has('Communication')) {
+                return false;
+            }
+        }
+
+        if (communicateOrAttack < (1.0 - this.actorBias)) {
+            return false;
+        }
+        return true;
+    }
+}
+Evaluator.Communicate = EvaluatorCommunicate;

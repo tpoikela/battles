@@ -8,7 +8,6 @@ import RG from './rg';
 import GameObject from './game-object';
 import {EventPool} from '../src/eventpool';
 
-const POOL = EventPool.getPool();
 
 // Helper function for faster splice
 const spliceOne = function(arr: any[], index: number): void {
@@ -27,10 +26,15 @@ const spliceOne = function(arr: any[], index: number): void {
  */
 export class Entity extends GameObject {
 
+    public static POOL: EventPool;
     public static num: {[key: string]: number};
 
     public static createEntityID(): number {
         return GameObject.createObjectID();
+    }
+
+    public static setPool(pool): void {
+        Entity.POOL = pool;
     }
 
     public static getIDCount(): number {
@@ -71,7 +75,7 @@ export class Entity extends GameObject {
                 if (this.compsByType[compName].length === 0) {
                     delete this.compsByType[compName];
                 }
-                POOL.emitEvent(compName, {entity: this, remove: true});
+                Entity.POOL.emitEvent(compName, {entity: this, remove: true});
             }
         }
         else if (Number.isInteger(nameOrCompOrId)) {
@@ -142,7 +146,7 @@ export class Entity extends GameObject {
             this.compsByType[compName].push(compObj);
         }
         compObj.entityAddCallback(this);
-        POOL.emitEvent(compName, {entity: this, add: true});
+        Entity.POOL.emitEvent(compName, {entity: this, add: true});
     }
 
     /* Returns true if entity has given component. Lookup by ID is much faster
@@ -209,6 +213,7 @@ export class Entity extends GameObject {
     }
 
 }
+Entity.setPool(EventPool.getPool());
 
 /* For histogramming purposes, to see how many calls are done per function. */
 Entity.num = {};

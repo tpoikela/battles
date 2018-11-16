@@ -30,7 +30,7 @@ export class CmdBase {
 /* Executes one attack against target actor/cell. */
 export class CmdAttack extends CmdBase {
 
-    execute(obj) {
+    public execute(obj) {
       let actor = obj.target;
       if (actor.hasActors) { // We're dealing with cell
         if (obj.target.hasActors()) {
@@ -59,7 +59,7 @@ Cmd.Attack = CmdAttack;
 
 export class CmdMissile extends CmdBase {
 
-    execute(obj) {
+    public execute(obj) {
         const invEq = this._actor.getInvEq();
         let fireRate = 1;
         if (this._actor.has('DoubleShot')) {
@@ -130,7 +130,7 @@ Cmd.Missile = CmdMissile;
 /* Executed when player uses an item. */
 export class CmdUseItem extends CmdBase {
 
-    execute(obj) {
+    public execute(obj) {
         if (obj.hasOwnProperty('item')) {
             const item = obj.item;
             let result = false;
@@ -145,7 +145,7 @@ export class CmdUseItem extends CmdBase {
                 if (result) {
                     msg = `You used ${item.getName()}!`;
                 }
-                obj.callback({msg: msg, result});
+                obj.callback({msg, result});
             }
             else if (!result) {
                 // return this.brain.cmdNotPossible('You cannot use that item.');
@@ -170,7 +170,7 @@ Cmd.UseItem = CmdUseItem;
 /* Command for using an element. */
 export class CmdUseElement extends CmdBase {
 
-    execute(obj) {
+    public execute(obj) {
         const cell = obj.target;
         const elems = cell.getElements();
         const useComp = new Component.UseElement();
@@ -187,7 +187,7 @@ Cmd.UseElement = CmdUseElement;
 
 export class CmdDropItem extends CmdBase {
 
-  execute(obj) {
+  public execute(obj) {
       const invEq = this._actor.getInvEq();
       const actorCell = this._actor.getCell();
       let result = false;
@@ -217,7 +217,7 @@ export class CmdDropItem extends CmdBase {
           msg = `Press y to sell item for ${price} gold coins.`;
           this.brain.setWantConfirm(this.brain.energy, confirmCb, msg);
           if (obj.hasOwnProperty('callback')) {
-              obj.callback({msg: msg, result});
+              obj.callback({msg, result});
           }
       }
       else if (invEq.dropNItems(obj.item, dropCount)) {
@@ -225,7 +225,7 @@ export class CmdDropItem extends CmdBase {
           msg = 'Item dropped!';
       }
       if (obj.hasOwnProperty('callback')) {
-          obj.callback({msg: msg, result});
+          obj.callback({msg, result});
       }
       return ACTION_ALREADY_DONE;
   }
@@ -235,7 +235,7 @@ Cmd.DropItem = CmdDropItem;
 
 export class CmdEquipItem extends CmdBase {
 
-    execute(obj) {
+    public execute(obj) {
         const eqComp = new Component.Equip();
         // eqComp.setItem(obj.item);
         eqComp.setArgs(obj);
@@ -250,7 +250,7 @@ Cmd.EquipItem = CmdEquipItem;
 /* Executed when an actor unequips an item. */
 export class CmdUnequipItem extends CmdBase {
 
-    execute(obj) {
+    public execute(obj) {
         const eqComp = new Component.Equip();
         eqComp.setArgs(obj);
         eqComp.setIsRemove(true);
