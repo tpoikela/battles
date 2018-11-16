@@ -21,6 +21,9 @@ import {System} from '../../../client/src/system';
 import * as Component from '../../../client/src/component';
 import {RGUnitTests} from '../../rg.unit-tests';
 import {Spell} from '../../../client/src/spell';
+import {Evaluator} from '../../../client/src/evaluators';
+import {Entity} from '../../../client/src/entity';
+import {EventPool} from '../../../client/src/eventpool';
 
 const {KEY} = Keys;
 
@@ -94,7 +97,7 @@ describe('BrainPlayer', () => {
 
         const sword = new Item.Weapon('sword');
         brain.decideNextAction({cmd: 'use', item: sword});
-        expect(brain.energy).to.equal(1);
+        expect(brain.energy).to.equal(RG.energy.USE);
 
         const potion = new Item.Potion('healing potion');
         player.get('Health').decrHP(5);
@@ -215,15 +218,22 @@ describe('BrainPlayer', () => {
 
     it('has commands for using spellpowers', () => {
         const brain = new BrainPlayer(player);
-        player.setBook(new Spell.SpellBook(player));
+        const book = new Spell.SpellBook(player);
+        player.setBook(book);
+        book.addSpell(new Spell.FrostBolt());
+        // Bring up the spell menu
         let func = brain.decideNextAction({code: KEY.POWER});
         expect(func).to.be.null;
         expect(brain.isMenuShown()).to.equal(true);
+
+        // Choose 1st shown spell (FrostBolt)
         func = brain.decideNextAction({code: ROT.VK_0});
         expect(func).to.be.null;
         expect(brain.isMenuShown()).to.equal(false);
+
+        // Select direction (a == left)
         func = brain.decideNextAction({code: Keys.VK_a});
-        expect(typeof func).to.equal('function');
+        expect(func).to.be.a('function');
     });
 
     it('has commands for shooting and targeting', () => {
@@ -301,16 +311,23 @@ describe('BrainSentient', () => {
     });
 
     it('explores randomly when no enemies', () => {
-        const movSys = new SystemMovement(['Movement']);
+        const pool = new EventPool();
+        const movSys = new SystemMovement(['Movement'], pool);
         const arena = factLevel.createLevel('arena', 10, 10);
         const rogue = new SentientActor('rogue');
+        Entity.setPool(pool);
         arena.addActor(rogue, 1, 1);
         const action = rogue.nextAction();
         action.doAction();
-        movSys.update();
-        movSys.update();
-        const cellChanged = rogue.getCell().getX() !== 1 ||
-            rogue.getCell().getY() !== 1;
+
+        let cellChanged = false;
+        for (let i = 0; i < 10; i++) {
+            movSys.update();
+            cellChanged = rogue.getCell().getX() !== 1 ||
+                rogue.getCell().getY() !== 1;
+            if (cellChanged) {break;}
+            
+        }
         expect(cellChanged, 'Actor cell changed').to.be.true;
     });
 
@@ -352,39 +369,20 @@ describe('BrainSentient', () => {
 
 });
 
-describe('Brain.Summoner', () => {
-    it('can summon help when seeing enemies', () => {
-        const summoner = new SentientActor('summoner');
-        const brain = new Brain.Summoner(summoner);
-        summoner.setBrain(brain);
-
-        const factLevel = new FactoryLevel();
-        const level = factLevel.createLevel('arena', 10, 10);
-        const player = new SentientActor('Player');
-        player.setIsPlayer(true);
-        level.addActor(summoner, 1, 1);
-        level.addActor(player, 3, 3);
-
-        brain.summonProbability = 1.01;
-        const summonAction = summoner.nextAction();
-        summonAction.doAction();
-        expect(level.getActors(), 'There should be one actor added')
-            .to.have.length(3);
-    });
-});
-
 describe('Brain.Human', () => {
     it('communicates enemies to friend actors', () => {
         const commSystem = new System.Communication(
             ['Communication']
         );
         const human = new SentientActor('human');
-        const brain = new Brain.Sentient(human);
-        brain.commProbability = 1.01;
+        const brain = new Brain.GoalOriented(human);
         human.setBrain(brain);
+        const goal = brain.getGoal();
+        const evalComm = new Evaluator.Communicate(3.0);
+        goal.addEvaluator(evalComm);
 
         const human2 = new SentientActor('human2');
-        const brain2 = new Brain.Sentient(human2);
+        const brain2 = new Brain.GoalOriented(human2);
         human2.setBrain(brain2);
 
         const demon = new SentientActor('demon');
