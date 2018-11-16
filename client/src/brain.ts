@@ -207,19 +207,19 @@ export class BrainBase {
         this._type = null;
     }
 
-    setActor(actor: BaseActor) {this._actor = actor;}
-    getActor(): BaseActor {return this._actor;}
-    getType() {return this._type;}
-    setType(type) {this._type = type;}
+    public setActor(actor: BaseActor) {this._actor = actor;}
+    public getActor(): BaseActor {return this._actor;}
+    public getType() {return this._type;}
+    public setType(type) {this._type = type;}
 
-    getMemory() {return NO_MEMORY;}
+    public getMemory() {return NO_MEMORY;}
 
-    decideNextAction() {
+    public decideNextAction() {
         RG.err('BrainBase', 'decideNextAction',
             'Not implemented. Do in derived class');
     }
 
-    toJSON() {
+    public toJSON() {
         return {
             type: this._type
         };
@@ -233,7 +233,7 @@ export class BrainNonSentient extends BrainBase {
         this.setType('NonSentient');
     }
 
-    decideNextAction() {
+    public decideNextAction() {
         return NO_ACTION_TAKEN;
     }
 }
@@ -266,48 +266,48 @@ export class BrainSentient {
         // this._passableCallback = this._passableCallback.bind(this);
     }
 
-    getType() {
+    public getType() {
         return this._type;
     }
 
-    setType(type) {
+    public setType(type) {
         this._type = type;
     }
 
-    getMemory() {
+    public getMemory() {
         return this._memory;
     }
 
-    setActor(actor) {
+    public setActor(actor) {
         this._actor = actor;
     }
 
-    getActor() {
+    public getActor() {
         return this._actor;
     }
 
-    addEnemy(actor) {
+    public addEnemy(actor) {
         this._memory.addEnemy(actor);
     }
 
-    addFriend(actor) {
+    public addFriend(actor) {
         this._memory.addFriend(actor);
     }
 
-    addEnemyType(type) {
+    public addEnemyType(type) {
         this._memory.addEnemyType(type);
     }
 
     /* Main function for retrieving the actionable callback. */
-    decideNextAction() {
+    public decideNextAction() {
         this._cache.seen = null;
-        RG.err('BrainSentient', 'decideNextAction', 
+        RG.err('BrainSentient', 'decideNextAction',
             'Not implemented in this class');
         // return BTree.startBehavTree(Models.Rogue.tree, this._actor)[0];
     }
 
     // Returns cells seen by this actor
-    getSeenCells() {
+    public getSeenCells() {
         if (this._cache.seen) {
             return this._cache.seen;
         }
@@ -321,20 +321,20 @@ export class BrainSentient {
     }
 
     /* Checks if the actor can melee attack given x,y coordinate.*/
-    canMeleeAttack(x, y) {
+    public canMeleeAttack(x, y) {
         const attackRange = this._actor.get('Combat').getAttackRange();
         const [dX, dY] = RG.dXdYAbs([x, y], this._actor);
         if (dX <= attackRange && dY <= attackRange) {return true;}
         return false;
     }
 
-    findSeenCell(func) {
+    public findSeenCell(func) {
         const seenCells = this.getSeenCells();
         return seenCells.filter(func);
     }
 
     /* Returns true if this actor can see the given actor. */
-    canSeeActor(actor) {
+    public canSeeActor(actor) {
         const seenCells = this.getSeenCells();
         const cells = Brain.findCellsWithActors(this._actor, seenCells);
         let canSee = false;
@@ -350,7 +350,7 @@ export class BrainSentient {
     }
 
     /* Given a list of cells, returns a cell with an enemy in it or null.*/
-    findEnemyCell(seenCells) {
+    public findEnemyCell(seenCells) {
         const enemyCells = [];
         const cells = Brain.findCellsWithActors(this._actor, seenCells);
         for (let i = 0; i < cells.length; i++) {
@@ -375,7 +375,7 @@ export class BrainSentient {
     }
 
     /* Finds a friend cell among seen cells.*/
-    findFriendCell(seenCells) {
+    public findFriendCell(seenCells) {
         const memory = this.getMemory();
         const cells = Brain.findCellsWithActors(this._actor, seenCells);
         for (let i = 0; i < cells.length; i++) {
@@ -385,14 +385,14 @@ export class BrainSentient {
         return null;
     }
 
-    toJSON() {
+    public toJSON() {
         return {
             type: this.getType(),
             memory: this.getMemory().toJSON()
         };
     }
 
-    canPickupItem() {
+    public canPickupItem() {
         const cell = this._actor.getCell();
         if (cell.hasItems()) {
             const topItem = cell.getItems()[0];
@@ -401,7 +401,7 @@ export class BrainSentient {
         return false;
     }
 
-    pickupItem() {
+    public pickupItem() {
         return () => {
             const pickup = new Component.Pickup();
             this._actor.add(pickup);
@@ -409,7 +409,7 @@ export class BrainSentient {
     }
 
     /* Takes action towards given enemy cell.*/
-    actionTowardsEnemy(enemyCell) {
+    public actionTowardsEnemy(enemyCell) {
         const level = this._actor.getLevel();
         const playX = enemyCell.getX();
         const playY = enemyCell.getY();
@@ -426,7 +426,7 @@ export class BrainSentient {
         }
     }
 
-    tryToMoveTowardsCell(cell) {
+    public tryToMoveTowardsCell(cell) {
         // Simple dX,dY computation as first option
         const level = this._actor.getLevel();
         const [aX, aY] = this._actor.getXY();
@@ -460,7 +460,7 @@ export class BrainSentient {
     }
 
     /* Returns all friends that are visible to the brain's actor. */
-    getSeenFriends() {
+    public getSeenFriends() {
         const friends = [];
         const memory = this.getMemory();
         const seenCells = this.getSeenCells();
@@ -475,7 +475,7 @@ export class BrainSentient {
     }
 
     /* Returns all enemies that are visible to the brain's actor. */
-    getSeenEnemies() {
+    public getSeenEnemies() {
         const memory = this.getMemory();
         const seenCells = this.getSeenCells();
         const filterFunc = actor => memory.isEnemy(actor);
@@ -485,7 +485,7 @@ export class BrainSentient {
 
     /* Based on seenCells, AI explores the unexplored free cells, or picks on
      * cell randomly, if everything's explored.*/
-    exploreLevel(seenCells) {
+    public exploreLevel(seenCells) {
         // Wander around exploring
         let index = -1;
         let perms = [];
@@ -524,14 +524,14 @@ export class BrainSentient {
     /* Returns shortest path from actor to the given cell. Resulting cells are
      * returned in order: closest to the actor first. Thus moving to the
      * next cell can be done by taking the first returned cell.*/
-    getShortestPathTo(cell) {
+    public getShortestPathTo(cell) {
         const [toX, toY] = cell.getXY();
         const map = this._actor.getLevel().getMap();
         return map.getShortestPathTo(this._actor, toX, toY);
     }
 
     /* Flees from the given cell or explores randomly if cannot. */
-    fleeFromCell(cell, seenCells) {
+    public fleeFromCell(cell, seenCells) {
         const x = cell.getX();
         const y = cell.getY();
         const thisX = this._actor.getX();
@@ -554,12 +554,12 @@ export class BrainSentient {
     }
 
     /* Returns all free cells around the actor owning the brain.*/
-    getFreeCellsAround() {
+    public getFreeCellsAround() {
         const cellsAround = Brain.getCellsAroundActor(this._actor);
         return cellsAround.filter(cell => cell.isFree());
     }
 
-    getRandAdjacentFreeCell() {
+    public getRandAdjacentFreeCell() {
         const cellsAround = this.getFreeCellsAround();
         if (cellsAround.length > 0) {
             return RNG.arrayGetRand(cellsAround);
@@ -570,156 +570,6 @@ export class BrainSentient {
 
 Brain.Sentient = BrainSentient;
 
-
-/* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
-/* BrainAnimal = function(actor) {
-    BrainSentient.call(this, actor);
-    this.setType('Animal');
-    this._memory.addEnemyType('player');
-    this._memory.addEnemyType('human');
-
-};
-RG.extend2(BrainAnimal, BrainSentient);
-*/
-
-/* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
-/*
-Brain.Demon = function(actor) {
-    BrainSentient.call(this, actor);
-    this.setType('Demon');
-    this._memory.addEnemyType('player');
-    this._memory.addEnemyType('human');
-
-};
-RG.extend2(Brain.Demon, BrainSentient);
-*/
-
-/* Brain object used by Undead. */
-/*
-Brain.Undead = function(actor) {
-    BrainSentient.call(this, actor);
-    this.setType('Undead');
-    this._memory.addEnemyType('player');
-    this._memory.addEnemyType('human');
-    this._memory.addEnemyType('dwarf');
-};
-RG.extend2(Brain.Undead, BrainSentient);
-*/
-
-/* Brain used by summoners. */
-/*
-Brain.Summoner = function(actor) {
-    BrainSentient.call(this, actor);
-    this.setType('Summoner');
-
-    this.numSummoned = 0;
-    this.maxSummons = 20;
-    this.summonProbability = 0.2;
-
-    this._memory.addEnemyType('player');
-
-    this.willSummon = function() {
-        if (this.numSummoned === this.maxSummons) {return false;}
-        const summon = RNG.getUniform();
-        if (summon > (1.0 - this.summonProbability)) {
-            return true;
-        }
-        return false;
-    };
-
-    this.summonMonster = function() {
-        const level = this._actor.getLevel();
-        const cellsAround = this.getFreeCellsAround();
-        if (cellsAround.length > 0) {
-            const freeX = cellsAround[0].getX();
-            const freeY = cellsAround[0].getY();
-            const summoned = RG.FACT.createActor('Summoned',
-                {hp: 15, att: 7, def: 7});
-            summoned.get('Experience').setExpLevel(5);
-            level.addActor(summoned, freeX, freeY);
-            RG.gameMsg(this._actor.getName() + ' summons some help');
-            this.numSummoned += 1;
-        }
-        else {
-            const txt = ' screamed an incantation but nothing happened';
-            RG.gameMsg(this._actor.getName() + txt);
-        }
-        return ACTION_ALREADY_DONE;
-    };
-
-
-};
-RG.extend2(Brain.Summoner, BrainSentient);
-
-Brain.Summoner.prototype.decideNextAction = function() {
-    this._cache.seen = null;
-    return BTree.startBehavTree(Models.Summoner.tree, this._actor)[0];
-};
-*/
-
-
-/* This brain is used by humans who are not hostile to the player.*/
-/*
-Brain.Human = function(actor) {
-    BrainSentient.call(this, actor);
-    this.setType('Human');
-
-    this.commProbability = 0.5;
-
-    this.getMemory().addEnemyType('demon');
-
-    this.willCommunicate = function() {
-        const communicateOrAttack = RNG.getUniform();
-        const seenCells = this.getSeenCells();
-        const friendCell = this.findFriendCell(seenCells);
-        const memory = this.getMemory();
-
-        let friendActor = null;
-        if (RG.isNullOrUndef([friendCell])) {
-            return false;
-        }
-        else {
-            friendActor = friendCell.getProp('actors')[0];
-            if (memory.hasCommunicatedWith(friendActor)) {
-                return false;
-            }
-            else if (friendActor.has('Communication')) {
-                return false;
-            }
-        }
-
-        if (communicateOrAttack < (1.0 - this.commProbability)) {
-            return false;
-        }
-        return true;
-
-    };
-
-    this.communicateEnemies = function() {
-        const memory = this.getMemory();
-        const enemies = memory.getEnemies();
-        const seenCells = this.getSeenCells();
-        const friendCell = this.findFriendCell(seenCells);
-        const friendActor = friendCell.getProp('actors')[0];
-
-        const comComp = new Component.Communication();
-        const msg = {type: 'Enemies', enemies, src: this.getActor()};
-        comComp.addMsg(msg);
-
-        friendActor.add(comComp);
-        memory.addCommunicationWith(friendActor);
-        return ACTION_ALREADY_DONE;
-    };
-
-};
-RG.extend2(Brain.Human, BrainSentient);
-
-Brain.Human.prototype.decideNextAction = function() {
-    this._cache.seen = null;
-    return BTree.startBehavTree(Models.Human.tree, this._actor)[0];
-};
-/*
-
 /* Brain object used by archers. */
 export class BrainArcher extends BrainSentient {
     constructor(actor) {
@@ -728,7 +578,7 @@ export class BrainArcher extends BrainSentient {
     }
 
     /* Checks if the actor can attack given x,y coordinate.*/
-    canDoRangedAttack(): boolean {
+    public canDoRangedAttack(): boolean {
         const seenCells = this.getSeenCells();
         const enemy = this.findEnemyCell(seenCells);
         const x = enemy.getX();
@@ -746,7 +596,7 @@ export class BrainArcher extends BrainSentient {
     }
 
     /* Performs a ranged attack on enemy cell. */
-    doRangedAttack(): () => void {
+    public doRangedAttack(): () => void {
         const seenCells = this.getSeenCells();
         const enemy = this.findEnemyCell(seenCells);
         const x = enemy.getX();
@@ -763,7 +613,7 @@ export class BrainArcher extends BrainSentient {
         return ACTION_ALREADY_DONE;
     }
 
-    decideNextAction() {
+    public decideNextAction() {
         this._cache.seen = null;
         // return BTree.startBehavTree(Models.Archer.tree, this._actor)[0];
         RG.err('BrainArcher', 'decideNextAction', 'Not supported anymore');
@@ -783,18 +633,18 @@ export class BrainGoalOriented extends BrainSentient {
         this.goal = new GoalsTop.ThinkBasic(actor);
     }
 
-    getGoal() {return this.goal;}
-    setGoal(goal) {this.goal = goal;}
+    public getGoal(): GoalsTop.GoalTop {return this.goal;}
+    public setGoal(goal) {this.goal = goal;}
 
     /* Must return function. */
-    decideNextAction() {
+    public decideNextAction() {
         this._cache.seen = null;
         this.goal.process();
         this._cache.seen = null;
         return ACTION_ALREADY_DONE;
     }
 
-    toJSON() {
+    public toJSON() {
         const json: any = super.toJSON();
         json.goal = this.goal.toJSON();
         return json;
@@ -813,7 +663,7 @@ export class BrainSpellCaster extends BrainGoalOriented {
         this.goal.getEvaluator('CastSpell').setCastingProbability(0.8);
     }
 
-    decideNextAction() {
+    public decideNextAction() {
         this._cache.seen = null;
         this.goal.process();
         this._cache.seen = null;
@@ -835,7 +685,7 @@ Brain.Explorer = BrainExplorer;
 
 export class BrainSpirit extends BrainGoalOriented {
     constructor(actor) {
-        super(actor)
+        super(actor);
         this.setType('Spirit');
         this.goal.removeEvaluators();
         this.goal.addEvaluator(new Evaluator.Explore());
@@ -845,7 +695,7 @@ Brain.Spirit = BrainSpirit;
 
 export class BrainThief extends BrainGoalOriented {
     constructor(actor) {
-        super(actor)
+        super(actor);
         this.setType('Thief');
         this.goal.addEvaluator(new Evaluator.Thief(1.2));
         this.goal.setBias({Thief: 1.2, AttackActor: 0.7});
@@ -866,7 +716,7 @@ export class BrainAnimal extends BrainGoalOriented {
     }
 
     /* Must return function. */
-    decideNextAction() {
+    public decideNextAction() {
         this._cache.seen = null;
         this.goal.process();
         this._cache.seen = null;
@@ -884,7 +734,7 @@ export class BrainCommander extends BrainGoalOriented {
     }
 
     /* Must return function. */
-    decideNextAction() {
+    public decideNextAction() {
         this._cache.seen = null;
         this.goal.process();
         this._cache.seen = null;
@@ -901,7 +751,7 @@ export class BrainFlame extends BrainSentient {
         this.setType('Flame');
     }
 
-    decideNextAction() {
+    public decideNextAction() {
         const cell = this._actor.getCell();
         const actors = cell.getActors();
         actors.forEach(actor => {
@@ -929,7 +779,7 @@ export class BrainCloud extends BrainFlame {
         this.chanceToMove = 0.2;
     }
 
-    decideNextAction() {
+    public decideNextAction() {
         if (RNG.getUniform() <= this.chanceToMove) {
             const dir = RNG.getRandDir();
             const [newX, newY] = RG.newXYFromDir(dir, this._actor);
@@ -957,7 +807,7 @@ export class BrainMindControl extends BrainGoalOriented {
         this.setGoal = goal => {this.goal = goal;};
     }
 
-    decideNextAction() {
+    public decideNextAction() {
         // At the moment does nothing, it could attack the
         // enemies of the source of MindControl
         return ACTION_ALREADY_DONE;
