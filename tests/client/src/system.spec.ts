@@ -16,9 +16,13 @@ import * as Component from '../../../client/src/component';
 import * as Element from '../../../client/src/element';
 import { ELEM } from '../../../client/data/elem-constants';
 import {System} from '../../../client/src/system';
-import { FactoryLevel } from '../../../client/src/factory.level';
-import { FactoryActor } from '../../../client/src/factory.actors';
-import { MapGenerator } from '../../../client/src/map.generator';
+import {FactoryLevel} from '../../../client/src/factory.level';
+import {FactoryActor} from '../../../client/src/factory.actors';
+import {MapGenerator} from '../../../client/src/map.generator';
+import {ObjectShell} from '../../../client/src/objectshellparser';
+import {Dice} from '../../../client/src/dice';
+import {FromJSON} from '../../../client/src/game.fromjson';
+import {Spell} from '../../../client/src/spell';
 
 const Stairs = Element.ElementStairs;
 const expect = chai.expect;
@@ -29,6 +33,7 @@ const Factory = new FactoryLevel();
 const updateSystems = RGTest.updateSystems;
 
 const factLevel = new FactoryLevel();
+const factActor = new FactoryActor();
 
 describe('System.Hunger', () => {
     it('Subtracts energy from actors with hunger', () => {
@@ -119,7 +124,7 @@ describe('System.Attack', () => {
         const timeSys = new System.TimeEffects(['DirectDamage']);
         systems.push(timeSys);
 
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const voidDagger = parser.createItem('Void dagger');
         human.get('Combat').setDefense(0);
         human.get('Stats').setAgility(0);
@@ -158,7 +163,7 @@ describe('System.Damage', () => {
         const addOnHit = new Component.AddOnHit();
         const poisonComp = new Component.Poison();
         addOnHit.setComp(poisonComp);
-        const dieDur = RG.FACT.createDie('1d6 + 5');
+        const dieDur = Dice.create('1d6 + 5');
         poisonComp.setDurationDie(dieDur);
         poisonSword.add(addOnHit);
         const human = new SentientActor('Human');
@@ -200,12 +205,12 @@ describe('System.Damage', () => {
         const level = factLevel.createLevel('arena', 20, 20);
 
         const monsterStats = {hp: 5, att: 1, def: 1, prot: 1};
-        const monster = RG.FACT.createActor('TestMonster', monsterStats);
+        const monster = factActor.createActor('TestMonster', monsterStats);
         let hList = monster.getList('Health');
         expect(hList).to.have.length(1);
 
         const humanStats = {hp: 5, att: 1, def: 1, prot: 1};
-        const human = RG.FACT.createActor('Human', humanStats);
+        const human = factActor.createActor('Human', humanStats);
 
         const dSystem = new System.Damage(['Damage']);
         const systems = [dSystem];
@@ -261,7 +266,7 @@ describe('System.SpellCast', () => {
         const spellPower = new Component.SpellPower(20);
         mage.add(spellPower);
 
-        const frostBolt = new RG.Spell.FrostBolt();
+        const frostBolt = new Spell.FrostBolt();
         frostBolt.setCaster(mage);
 
         const spellCast = new Component.SpellCast();
@@ -321,7 +326,7 @@ describe('System.Movement', () => {
         const level = factLevel.createLevel('arena', 20, 20);
         level.addActor(player, 1, 1);
 
-        const expElem = new RG.Element.Exploration();
+        const expElem = new Element.ElementExploration();
         expElem.setExp(100);
         level.addElement(expElem, 2, 2);
         const movComp = new Component.Movement(2, 2, level);
@@ -517,7 +522,7 @@ describe('System.SpiritBind', () => {
         binder.getInvEq().addItem(gem);
 
         const sword = new Item.Weapon('sword');
-        const cell = RGTest.wrapObjWithCell(sword);
+        const cell = RGUnitTests.wrapObjWithCell(sword);
 
         expect(gem.getStrength()).to.equal(10);
         expect(RG.getItemStat('getStrength', gem)).to.equal(10);
@@ -548,7 +553,7 @@ describe('System.SpiritBind', () => {
 
         // Try toJSON/restoring while we're here
         const json = sword.toJSON();
-        const newSword = new RG.Game.FromJSON().createItem(json);
+        const newSword = new FromJSON().createItem(json);
 
         expect(newSword).to.have.component('GemBound');
         const restGem = newSword.get('GemBound').getGem();
