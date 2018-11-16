@@ -8,6 +8,7 @@
     "rules": {
         "comment-format": [false, "check-space"],
         "indent": [true, "spaces", 4],
+        "interface-name": false,
         "max-classes-per-file": false,
         "no-bitwise": false,
         "no-conditional-assignment": true,
@@ -19,6 +20,7 @@
         "no-unused-expression": true,
         "only-arrow-functions": false,
         "prefer-const": true,
+        "prefer-for-of": false,
         "prefer-function-over-method": false,
         "quotemark": [true, "single"],
         "one-line": false,
