@@ -7,10 +7,9 @@ import * as Actor from './actor';
 import {Entity} from './entity';
 import {EventPool} from '../src/eventpool';
 import {Dice} from './dice';
+import {Coord} from './interfaces';
 
 const POOL = EventPool.getPool();
-
-type Coord = [number, number];
 
 //---------------------------------------------------------------------------
 // ITEMS
@@ -22,10 +21,10 @@ export const Item: any = {};
  * items with null owners. Ownership shouldn't be ever set to null. */
 export class ItemBase extends Entity {
 
-    public _owner: Actor.SentientActor;
     public isOwnable: boolean;
     public useArgs: any;
     public isUsable: boolean;
+    protected _owner: Actor.SentientActor;
     private _name: string;
 
     constructor(name) {
@@ -63,12 +62,12 @@ export class ItemBase extends Entity {
     /* Returns the direct owner of this object.*/
     public getOwner() {return this._owner;}
 
-    public getX() {
+    public getX(): number {
         if (this._owner) {return this._owner.getX();}
         return null;
     }
 
-    public getY() {
+    public getY(): number {
         if (this._owner) {return this._owner.getY();}
         return null;
     }
@@ -142,8 +141,8 @@ export class ItemBase extends Entity {
         });
     }
 
-    public useItem(obj): void {
-        RG.err('Item', 'useItem', 'pure virtual function');
+    public useItem(obj): boolean {
+        return false;
     }
 
     public clone(): ItemBase {
@@ -182,7 +181,7 @@ Item.ItemBase = ItemBase;
 //----------------
 export class Food extends ItemBase {
 
-    public _energy: number;
+    protected _energy: number;
 
     constructor(name) {
         super(name);
@@ -191,11 +190,12 @@ export class Food extends ItemBase {
         this.isUsable = true;
     }
 
-    public setEnergy(energy) {this._energy = energy;}
-    public getEnergy() {return this._energy;}
+    public setEnergy(energy: number): void {this._energy = energy;}
+    public getEnergy(): number {return this._energy;}
 
     /* Uses (eats) the food item.*/
-    public useItem(obj: any) {
+    public useItem(obj: any): boolean {
+        // TODO move this into the system
         if (obj.hasOwnProperty('target')) {
             const cell = obj.target;
             if (cell.hasActors()) {
@@ -215,6 +215,7 @@ export class Food extends ItemBase {
                     else {
                         this.decrCount(1);
                     }
+                    return true;
                 }
                 else {
                     RG.gameWarn(target.getName() +
@@ -228,6 +229,7 @@ export class Food extends ItemBase {
         else {
             RG.err('ItemFood', 'useItem', 'No target given in obj.');
         }
+        return false;
     }
 
     public getConsumedEnergy() {
@@ -447,7 +449,7 @@ export class Potion extends ItemBase {
         this.isUsable = true;
     }
 
-    public useItem(obj) {
+    public useItem(obj): boolean {
         if (obj.hasOwnProperty('target')) {
             const cell = obj.target;
             if (cell.hasActors()) {
@@ -821,18 +823,20 @@ export class SpiritGem extends ItemBase {
     }
 
     /* Used for capturing the spirits inside the gem.*/
-    public useItem(obj) {
+    public useItem(obj): boolean {
         const binder = this.getOwner().getOwner();
         if (binder) {
             const bindComp = new Component.SpiritBind();
             bindComp.setTarget(obj.target);
             bindComp.setBinder(binder);
             this.add(bindComp);
+            return true;
         }
         else {
             const msg = `binder is null. obj: ${JSON.stringify(obj)}`;
             RG.err('Item.SpiritGem', 'useItem', msg);
         }
+        return false;
     }
 
     public clone() {
@@ -892,7 +896,7 @@ for (let i = 0; i < RG.GET_STATS.length; i++) {
             if (!this._hasSpirit) {return 0;}
             return this._spirit.get('Stats')[funcName]();
         })(); // Immediately call the function
-    }
+    };
 }
 
 //------------------
@@ -937,13 +941,15 @@ export class Book extends ItemBase {
         return this.metaData[key];
     }
 
-    public useItem() {
+    public useItem(): boolean {
         const owner = this.getTopOwner();
         if (owner) {
             const compRead = new Component.Read();
             compRead.setReadTarget(this);
             owner.add(compRead);
+            return true;
         }
+        return false;
     }
 
     public getText() {
