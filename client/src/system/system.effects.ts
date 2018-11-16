@@ -4,6 +4,7 @@ import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import {Dice} from '../dice';
 import * as Component from '../component';
+import {ELEM} from '../../data/elem-constants';
 
 const handlerTable = {
     AddComp: true,
@@ -159,7 +160,7 @@ export class SystemEffects extends SystemBase {
         const useArgs = effComp.getArgs();
         const cell = getTargetCellOrFail(useArgs);
         const fromType = useArgs.fromType;
-        const toType = useArgs.toType || RG.ELEM.FLOOR;
+        const toType = useArgs.toType || ELEM.FLOOR;
         if (cell.getBaseElem().getType() === fromType) {
             cell.setBaseElem(toType);
         }
