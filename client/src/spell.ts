@@ -30,6 +30,10 @@ import * as Component from './component';
 import {Random} from './random';
 import {SentientActor} from './actor';
 import {Dice} from './dice';
+import { ObjectShell } from './objectshellparser';
+import { Brain } from './brain';
+import {Geometry} from './geometry';
+import {Path} from './path';
 
 const RNG = Random.getRNG();
 const {KeyMap} = Keys;
@@ -784,7 +788,7 @@ Spell.BoltBase = function(name, power) {
 
         const [x0, y0] = [actor.getX(), actor.getY()];
         const [x1, y1] = [enemy.getX(), enemy.getY()];
-        const lineXY = RG.Geometry.getStraightLine(x0, y0, x1, y1);
+        const lineXY = Geometry.getStraightLine(x0, y0, x1, y1);
         if (lineXY.length > 1) {
             const dX = lineXY[1][0] - lineXY[0][0];
             const dY = lineXY[1][1] - lineXY[0][1];
@@ -885,8 +889,8 @@ RG.extend2(Spell.PoisonBreath, Spell.BoltBase);
 
 Spell.PoisonBreath.prototype.onHit = function(actor, src) {
     addPoisonEffect(actor, src);
-    const parser = RG.ObjectShell.getParser();
-    const cells = RG.Brain.getCellsAroundActor(actor, 1);
+    const parser = ObjectShell.getParser();
+    const cells = Brain.getCellsAroundActor(actor, 1);
 
     for (let i = 0; i < this.nActors; i++) {
         const cell = RNG.arrayGetRand(cells);
@@ -1028,7 +1032,7 @@ Spell.SummonBase = function(name, power) {
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        const nActors = RG.getDieValue(this.nActors);
+        const nActors = Dice.getValue(this.nActors);
 
         // Will be called by System.SpellEffect
         obj.callback = cell => {
@@ -1041,7 +1045,7 @@ Spell.SummonBase = function(name, power) {
                 const caster = args.src;
                 const map = caster.getLevel().getMap();
                 const [cX, cY] = caster.getXY();
-                const coord = RG.Geometry.getBoxAround(cX, cY, 2);
+                const coord = Geometry.getBoxAround(cX, cY, 2);
                 let nPlaced = 0;
                 let watchdog = 30;
 
@@ -1076,7 +1080,7 @@ Spell.SummonBase = function(name, power) {
 
     this.aiShouldCastSpell = (args, cb) => {
         const {actor, enemy} = args;
-        const friends = RG.Brain.getFriendCellsAround(actor);
+        const friends = Brain.getFriendCellsAround(actor);
         if (friends.length === 0) {
             if (typeof cb === 'function') {
                 const summonCell = actor.getBrain().getRandAdjacentFreeCell();
@@ -1100,7 +1104,7 @@ Spell.SummonBase = function(name, power) {
         const level = caster.getLevel();
 
         // TODO create proper minion
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
 
         let minion = null;
         if (this.summonType !== '') {
@@ -1358,7 +1362,7 @@ Spell.Missile.prototype.aiShouldCastSpell = function(args, cb) {
     if (enemy) {
         const [eX, eY] = enemy.getXY();
         const [aX, aY] = actor.getXY();
-        const getDist = RG.Path.shortestDist(eX, eY, aX, aY);
+        const getDist = Path.shortestDist(eX, eY, aX, aY);
         if (getDist <= this.getRange()) {
             const spellArgs = {target: enemy, src: actor};
             cb(actor, spellArgs);
@@ -1545,7 +1549,7 @@ RG.extend2(Spell.EnergyStorm, Spell.AreaBase);
 function aiEnemyWithinDist(args, cb, spell) {
     const {actor, enemy} = args;
     if (!enemy) {return false;}
-    const getDist = RG.Brain.distToActor(actor, enemy);
+    const getDist = Brain.distToActor(actor, enemy);
     if (getDist <= spell.getRange()) {
         const spellArgs = {target: enemy, src: actor};
         cb(actor, spellArgs);
@@ -1601,10 +1605,10 @@ Spell.RingBase = function(name, power) {
     };
 
     this.castCallback = () => {
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const caster = this._caster;
 
-        const cells = RG.Brain.getCellsAroundActor(caster, this._range);
+        const cells = Brain.getCellsAroundActor(caster, this._range);
         cells.forEach(cell => {
             if (cell.isPassable() || cell.hasActors()) {
                 const fire = parser.createActor(this._createdActor);
@@ -1671,7 +1675,7 @@ Spell.ForceField = function() {
     };
 
     this.castCallback = (args) => {
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const caster = this._caster;
         const level = caster.getLevel();
         const {dir} = args;
