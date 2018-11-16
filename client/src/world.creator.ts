@@ -403,7 +403,7 @@ WorldConf.Creator = function() {
             }
         });
 
-        this.rand = new RG.Random();
+        this.rand = new Random();
         this.rand.setSeed(conf.seed);
 
         const areas = this.createAreasConf(conf);
