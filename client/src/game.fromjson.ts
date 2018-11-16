@@ -22,6 +22,7 @@ import {ObjectShell} from './objectshellparser';
 import {Component} from './component.base';
 import {Item} from './item';
 import {Actor} from './actor';
+import {Brain} from './brain';
 
 const POOL = EventPool.getPool();
 const SentientActor = Actor.SentientActor;
@@ -487,8 +488,8 @@ FromJSON.prototype.createQuestData = function(json) {
 
 FromJSON.prototype.createBrain = function(brainJSON, ent) {
     const type = brainJSON.type;
-    if (RG.Brain[type]) {
-        const brainObj = new RG.Brain[type](ent);
+    if (Brain[type]) {
+        const brainObj = new Brain[type](ent);
         ent.setBrain(brainObj);
         if (type === 'Player') {
             this.restorePlayerBrain(ent, brainJSON);
@@ -543,7 +544,7 @@ FromJSON.prototype.createBrain = function(brainJSON, ent) {
     }
     else {
         RG.err('FromJSON', 'createBrain',
-            `Cannot find RG.Brain.${type}, JSON: ${brainJSON}`);
+            `Cannot find Brain.${type}, JSON: ${brainJSON}`);
     }
 };
 
