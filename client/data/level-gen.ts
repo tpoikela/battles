@@ -221,5 +221,3 @@ LevelGen.getCityConf = (cityName, conf) => {
     if (connect) {obj.connectLevels = connect;}
     return obj;
 };
-
-module.exports = LevelGen;
