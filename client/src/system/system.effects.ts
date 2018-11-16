@@ -5,6 +5,7 @@ import {EventPool} from '../eventpool';
 import {Dice} from '../dice';
 import * as Component from '../component';
 import {ELEM} from '../../data/elem-constants';
+import {ObjectShell} from '../objectshellparser';
 
 const handlerTable = {
     AddComp: true,
@@ -102,7 +103,8 @@ export class SystemEffects extends SystemBase {
             compToAdd.setSource(srcEnt);
         }
 
-        const dur = getDieValue(useArgs.duration);
+        // const dur = getDieValue(useArgs.duration);
+        const dur = Dice.getValue(useArgs.duration);
         const expirMsg = useArgs.endMsg;
 
         Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
@@ -133,7 +135,7 @@ export class SystemEffects extends SystemBase {
         const useArgs = effComp.getArgs();
         const cell = getTargetCellOrFail(useArgs);
 
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const entity = parser.createEntity(useArgs.entityName);
 
         if (entity) {
@@ -265,6 +267,7 @@ function getCompName(useArgs, targetEnt) {
  * @param {int|string|RG.Die} intStrOrDie - Value for the die roll
  * @return {int} - Return of the die roll
  */
+/*
 const getDieValue = function(intStrOrDie) {
     if (Number.isInteger(intStrOrDie)) {
         return intStrOrDie;
@@ -283,6 +286,7 @@ const getDieValue = function(intStrOrDie) {
         'Could not extract value from ' + intStrOrDie);
     return 0;
 };
+*/
 
 const convertValueIfNeeded = function(intStrOrDie) {
     if (Number.isInteger(intStrOrDie)) {
