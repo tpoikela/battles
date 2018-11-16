@@ -20,8 +20,11 @@ import {Spell} from './spell';
 import {ELEM, ELEM_MAP} from '../data/elem-constants';
 import {ObjectShell} from './objectshellparser';
 import {Component} from './component.base';
+import {Item} from './item';
+import {Actor} from './actor';
 
 const POOL = EventPool.getPool();
+const SentientActor = Actor.SentientActor;
 
 const OBJ_REF_REMOVED = Symbol();
 const OBJ_REF_NOT_FOUND = null;
@@ -239,7 +242,7 @@ FromJSON.prototype.createGame = function(game, gameJSON) {
 
 /* Handles creation of restored player from JSON.*/
 FromJSON.prototype.restorePlayer = function(json) {
-    const player = new RG.Actor.Rogue(json.name);
+    const player = new SentientActor(json.name);
     player.setIsPlayer(true);
     // TODO hack for now, these are restored later
     player.remove('StatsMods');
@@ -607,8 +610,8 @@ FromJSON.prototype.createItem = function(obj) {
     }
     else {
         const typeCapitalized = this.getItemObjectType(item);
-        if (RG.Item[typeCapitalized]) {
-            itemObj = new RG.Item[typeCapitalized]();
+        if (Item[typeCapitalized]) {
+            itemObj = new Item[typeCapitalized]();
         }
         else {
             let msg = `No RG.Item[${typeCapitalized}] found for new()`;
@@ -629,9 +632,11 @@ FromJSON.prototype.createItem = function(obj) {
             itemObj[func](item[func]); // Use setter
         }
         else if (func !== 'components') {
-            const json = JSON.stringify(itemObj);
-            RG.err('Game.FromJSON', 'createItem',
-              `${func} not func in ${json}`);
+            if (func !== 'isUsable') {
+                const json = JSON.stringify(itemObj);
+                RG.err('Game.FromJSON', 'createItem',
+                  `${func} not func in ${json}`);
+            }
         }
     }
     this.addEntityInfo(itemObj, obj);
@@ -809,8 +814,8 @@ FromJSON.prototype.createActor = function(json) {
     }
 
     let entity = null;
-    if (json.new && RG.Actor[json.new]) {
-        entity = new RG.Actor[json.new](json.name);
+    if (json.new && Actor[json.new]) {
+        entity = new Actor[json.new](json.name);
     }
     else {
         let msg = '';
