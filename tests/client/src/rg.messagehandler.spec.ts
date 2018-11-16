@@ -1,6 +1,6 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
+import { expect } from 'chai';
+import RG from '../../../client/src/rg';
 
 const MsgHandler = RG.MessageHandler;
 
