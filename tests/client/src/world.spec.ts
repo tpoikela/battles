@@ -1,10 +1,16 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const World = require('../../../client/src/world');
-const RGTest = require('../../roguetest');
+import chai from 'chai';
+import RG from '../../../client/src/rg';
+import {World} from '../../../client/src/world';
+import {RGTest} from '../../roguetest';
+import {FactoryLevel} from '../../../client/src/factory.level';
+import {ObjectShell} from '../../../client/src/objectshellparser';
+import * as Element from '../../../client/src/element';
+
+const expect = chai.expect;
 
 const expectConnected = RGTest.expectConnected;
+const factLevel = new FactoryLevel();
 
 describe('World.Branch', () => {
     it('Contains a number of connected levels', () => {
@@ -12,7 +18,7 @@ describe('World.Branch', () => {
         const levels = [];
         const branch = new World.Branch('br1');
         for (let i = 0; i < nlevels; i++) {
-            levels.push(RG.FACT.createLevel('arena', 20, 20));
+            levels.push(factLevel.createLevel('arena', 20, 20));
             branch.addLevel(levels[i]);
             expect(branch.hasLevel(levels[i])).to.equal(true);
         }
@@ -29,7 +35,7 @@ describe('World.Branch', () => {
 
 const addLevelsToBranch = (br, nLevels) => {
     for (let i = 0; i < nLevels; i++) {
-        const level = RG.FACT.createLevel('arena', 20, 20);
+        const level = factLevel.createLevel('arena', 20, 20);
         br.addLevel(level);
     }
     br.connectLevels();
@@ -49,7 +55,7 @@ describe('World.Dungeon', () => {
             dungeon.addBranch(branch);
             branches.push(branch);
             branchNames.push(brName);
-            const entrStairs = new RG.Element.Stairs('stairsUp');
+            const entrStairs = new Element.ElementStairs('stairsUp');
             branch.setEntrance(entrStairs, 0);
         }
         expect(branches[0].getParent()).to.equal(dungeon);
@@ -74,7 +80,7 @@ describe('World.AreaTile', () => {
 
         let testArea = new World.Area('TestArea', 2, 2);
         const areaTile = testArea.getTileXY(0, 0);
-        const tileLevel = RG.FACT.createLevel('ruins', cols, rows);
+        const tileLevel = factLevel.createLevel('ruins', cols, rows);
         areaTile.setLevel(tileLevel);
         expect(areaTile.isNorthEdge()).to.equal(true);
         expect(areaTile.isSouthEdge()).to.equal(false);
@@ -84,7 +90,7 @@ describe('World.AreaTile', () => {
 
         testArea = new World.Area('TestArea', 3, 3);
         const tile11 = testArea.getTileXY(1, 1);
-        const level11 = RG.FACT.createLevel('ruins', cols, rows);
+        const level11 = factLevel.createLevel('ruins', cols, rows);
         tile11.setLevel(level11);
         expect(tile11.isNorthEdge()).to.equal(false);
         expect(tile11.isSouthEdge()).to.equal(false);
@@ -93,22 +99,22 @@ describe('World.AreaTile', () => {
 
         // Create 2 more tiles, and test connect()
         const tile21 = new World.AreaTile(2, 1, testArea);
-        const level21 = RG.FACT.createLevel('ruins', cols, rows);
+        const level21 = factLevel.createLevel('ruins', cols, rows);
         tile21.setLevel(level21);
         const tile12 = new World.AreaTile(1, 2, testArea);
-        const level12 = RG.FACT.createLevel('ruins', cols, rows);
+        const level12 = factLevel.createLevel('ruins', cols, rows);
         tile12.setLevel(level12);
         tile11.connect(tile21, tile12);
 
-        expect(level21.getStairs(level11) === null).to.equal(false);
-        expect(level11.getStairs(level21) === null).to.equal(false);
-        expect(level12.getStairs(level11) === null).to.equal(false);
+        expect(level21.getStairs() === null).to.equal(false);
+        expect(level11.getStairs() === null).to.equal(false);
+        expect(level12.getStairs() === null).to.equal(false);
     });
 
     it('can be serialized to JSON', () => {
         const testArea = new World.Area('TestArea', 2, 2);
         const areaTile = new World.AreaTile(0, 1, testArea);
-        const tileLevel = RG.FACT.createLevel('ruins', 10, 10);
+        const tileLevel = factLevel.createLevel('ruins', 10, 10);
         areaTile.setLevel(tileLevel);
         const json = areaTile.toJSON();
         expect(json.levels[0].id).to.equal(tileLevel.getID());
@@ -144,9 +150,9 @@ describe('World.Area', () => {
 describe('World.Mountain', () => {
 
     it('has at least one entrance', () => {
-        const mountain = new RG.World.Mountain('mount1');
-        const face = new RG.World.MountainFace('northFace');
-        const level = RG.FACT.createLevel('arena', 10, 10);
+        const mountain = new World.Mountain('mount1');
+        const face = new World.MountainFace('northFace');
+        const level = factLevel.createLevel('arena', 10, 10);
         face.addLevel(level);
         expect(face.getEntrance()).to.be.null;
         face.addEntrance(0);
@@ -160,11 +166,11 @@ describe('World.Mountain', () => {
     });
 
     it('can have multiple connected mountain faces + summits', () => {
-        const mountain = new RG.World.Mountain('Mount Doom');
+        const mountain = new World.Mountain('Mount Doom');
         const faceNames = ['north', 'south', 'east', 'west'];
         faceNames.forEach(face => {
-            const faceObj = new RG.World.MountainFace(face);
-            const level = RG.FACT.createLevel('empty', 10, 10);
+            const faceObj = new World.MountainFace(face);
+            const level = factLevel.createLevel('empty', 10, 10);
             faceObj.addLevel(level);
             mountain.addFace(faceObj);
         });
@@ -178,8 +184,8 @@ describe('World.Mountain', () => {
         mountain.connectSubZones('east', 'west', 0, 0);
         expectConnected(faces[2], faces[3], 1);
 
-        const summit = new RG.World.MountainSummit('North summit');
-        const summitLevel = RG.FACT.createLevel('empty', 10, 10);
+        const summit = new World.MountainSummit('North summit');
+        const summitLevel = factLevel.createLevel('empty', 10, 10);
         summit.addLevel(summitLevel);
         mountain.addSummit(summit);
 
@@ -194,9 +200,9 @@ describe('World.Mountain', () => {
 
 describe('World.CityQuarter', () => {
     it('contains levels and entrances', () => {
-        const q = new RG.World.CityQuarter('North');
+        const q = new World.CityQuarter('North');
         expect(q.getName()).to.equal('North');
-        const level = RG.FACT.createLevel('arena', 10, 10);
+        const level = factLevel.createLevel('arena', 10, 10);
         q.addLevel(level);
         expect(q.getLevels()).to.have.length(1);
         q.addEntrance(0);
@@ -207,11 +213,11 @@ describe('World.CityQuarter', () => {
 
 describe('World.City', () => {
     it('contains quarters and entrances', () => {
-        const city = new RG.World.City('City1');
+        const city = new World.City('City1');
         expect(city.getName()).to.equal('City1');
 
-        const q1 = new RG.World.CityQuarter('Q1');
-        const level = RG.FACT.createLevel('arena', 10, 10);
+        const q1 = new World.CityQuarter('Q1');
+        const level = factLevel.createLevel('arena', 10, 10);
         q1.addLevel(level);
         q1.addEntrance(0);
         city.addQuarter(q1);
@@ -221,8 +227,8 @@ describe('World.City', () => {
     });
 
     it('can be serialized to JSON', () => {
-        const city = new RG.World.City('City1');
-        const q1 = new RG.World.CityQuarter('Q1');
+        const city = new World.City('City1');
+        const q1 = new World.CityQuarter('Q1');
         city.addQuarter(q1);
 
         const json = city.toJSON();
@@ -232,8 +238,8 @@ describe('World.City', () => {
 
 describe('World.BattleZone', () => {
     it('can contain levels', () => {
-        const bz = new RG.World.BattleZone('Terrain 666');
-        const arena = RG.FACT.createLevel('arena', 30, 30);
+        const bz = new World.BattleZone('Terrain 666');
+        const arena = factLevel.createLevel('arena', 30, 30);
         bz.addLevel(arena);
         expect(bz.getLevels()).to.have.length(1);
 
@@ -245,15 +251,15 @@ describe('World.BattleZone', () => {
 
 describe('World.Shop', () => {
     it('can be set abandoned', () => {
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const conf = {nShops: 1, parser};
-        const shopLevel = RG.FACT.createLevel('town', 80, 40, conf);
-        const shop = new RG.World.Shop();
+        const shopLevel = factLevel.createLevel('town', 80, 40, conf);
+        const shop = new World.WorldShop();
         const keeper = parser.createActor('shopkeeper');
         const coord = [];
         for (let i = 0; i < 10; i++) {
             const [x, y] = [i + 1, 1];
-            const shopElem = new RG.Element.Shop();
+            const shopElem = new Element.ElementShop();
             shopElem.setShopkeeper(keeper);
             shopLevel.addElement(shopElem, x, y);
             coord.push([x, y]);
