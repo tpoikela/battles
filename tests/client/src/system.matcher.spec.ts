@@ -1,10 +1,10 @@
 
 import { expect } from 'chai';
 
-const RG = require('../../../client/src/battles');
-const Matcher = require('../../../client/src/system/system.matcher');
-const Entity = require('../../../client/src/entity');
-const Component = require('../../../client/src/component');
+import RG from '../../../client/src/rg';
+import {Matcher} from '../../../client/src/system/system.matcher';
+import {Entity} from '../../../client/src/entity';
+import * as Component from '../../../client/src/component';
 
 describe('System.Matcher', () => {
     it('it matches entities/components', () => {

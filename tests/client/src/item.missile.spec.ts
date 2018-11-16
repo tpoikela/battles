@@ -1,9 +1,15 @@
 
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
+import {expect} from 'chai';
+import RG from '../../../client/src/rg';
+import { SentientActor } from '../../../client/src/actor';
+import { System } from '../../../client/src/system';
+import * as Item from '../../../client/src/item';
+import * as Component from '../../../client/src/component';
+import * as Element from '../../../client/src/element';
+import {FactoryLevel} from '../../../client/src/factory.level';
 
-const Actor = RG.Actor.Rogue;
+const Actor = SentientActor;
 
 const updateSystems = systems => {
     for (let i = 0; i < systems.length; i++) {
@@ -13,15 +19,15 @@ const updateSystems = systems => {
 
 
 const createSystems = () => {
-    const mSystem = new RG.System.Missile(['Missile']);
-    const dSystem = new RG.System.Damage(['Damage']);
+    const mSystem = new System.Missile(['Missile']);
+    const dSystem = new System.Damage(['Damage']);
     return [mSystem, dSystem];
 };
 
 const createMissile = obj => {
-    const mEnt = new RG.Item.Missile('missile');
-    mEnt.add(new RG.Component.Indestructible());
-    const mComp = new RG.Component.Missile(obj.src);
+    const mEnt = new Item.Missile('missile');
+    mEnt.add(new Component.Indestructible());
+    const mComp = new Component.Missile(obj.src);
     mComp.setDamage(obj.d);
     mEnt.add(mComp);
     mComp.setTargetXY(obj.x, obj.y);
@@ -36,17 +42,18 @@ describe('How missile is fired and hits a wall', () => {
     let srcEnt = null;
 
     beforeEach(() => {
+        const factLevel = new FactoryLevel();
         systems = createSystems();
-        level = RG.FACT.createLevel('arena', 30, 30);
+        level = factLevel.createLevel('arena', 30, 30);
         srcEnt = new Actor('archer');
         level.addActor(srcEnt, 1, 1);
     });
 
     it('Starts from source and flies to target', () => {
 
-        const mEnt = new RG.Item.Missile('missile');
-        mEnt.add(new RG.Component.Indestructible());
-        const mComp = new RG.Component.Missile(srcEnt);
+        const mEnt = new Item.Missile('missile');
+        mEnt.add(new Component.Indestructible());
+        const mComp = new Component.Missile(srcEnt);
         mEnt.add(mComp);
 
         expect(mComp.getX()).to.equal(1);
@@ -66,14 +73,14 @@ describe('How missile is fired and hits a wall', () => {
     });
 
     it('Stops and hits a wall', () => {
-        const wall = new RG.Element.Wall('wall');
+        const wall = new Element.ElementWall('wall');
         const map = level.getMap();
         const cell = map.getCell(1, 3);
         cell.setBaseElem(wall);
 
-        const mEnt = new RG.Item.Missile('missile');
-        mEnt.add(new RG.Component.Indestructible());
-        const mComp = new RG.Component.Missile(srcEnt);
+        const mEnt = new Item.Missile('missile');
+        mEnt.add(new Component.Indestructible());
+        const mComp = new Component.Missile(srcEnt);
         mEnt.add(mComp);
         mComp.setTargetXY(1, 4);
         mComp.setRange(3);
@@ -97,7 +104,7 @@ describe('How missile is fired and hits a wall', () => {
         targetEnt.get('Stats').setAgility(0);
         level.addActor(targetEnt, 1, 6);
 
-        // const mEnt = new RG.Item.Missile('missile');
+        // const mEnt = new Item.Missile('missile');
         const mComp = createMissile({src: srcEnt, x: 1, y: 6, r: 10, d: 5});
         mComp.setAttack(1);
 
@@ -132,7 +139,7 @@ describe('How missile is fired and hits a wall', () => {
 
     it('Missile passes through ethereal beings', () => {
         const etherBeing = new Actor('spirit');
-        etherBeing.add(new RG.Component.Ethereal());
+        etherBeing.add(new Component.Ethereal());
         level.addActor(etherBeing, 1, 2);
         const etherCell = etherBeing.getCell();
 
@@ -150,17 +157,17 @@ describe('How missile is fired and hits a wall', () => {
 
 describe('How missile weapons affect missiles', () => {
     it('adds to the default range of missile', () => {
-        const sword = new RG.Item.Weapon('sword');
+        const sword = new Item.Weapon('sword');
         sword.setAttack(10);
-        const rifle = new RG.Item.MissileWeapon('rifle');
+        const rifle = new Item.MissileWeapon('rifle');
         rifle.setAttack(1);
         rifle.setAttackRange(4);
         rifle.setDamageDie('1d1+1');
-        const ammo = new RG.Item.Ammo('rifle bullet');
+        const ammo = new Item.Ammo('rifle bullet');
         ammo.setAttack(2);
         ammo.setAttackRange(2);
         ammo.setDamageDie('3d1+3');
-        const actor = new RG.Actor.Rogue('rogue');
+        const actor = new SentientActor('rogue');
         actor.get('Stats').setAccuracy(0);
         actor.get('Stats').setAgility(0);
         actor.get('Combat').setAttack(0);

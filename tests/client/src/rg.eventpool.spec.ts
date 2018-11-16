@@ -106,12 +106,12 @@ describe('EventPool', () => {
         emitter.emit('RandomEvent', {data: 'abcd'});
 
         // Works also with symbols
-        const symEvent = Symbol();
-        const symListener = new Listener(symEvent);
+        const evtCustom = 'EVT_CUSTOM';
+        const symListener = new Listener(evtCustom);
         pool.listenEvent(symListener.eventName, symListener);
 
         expect(symListener.notified).to.equal(false);
-        emitter.emit(symEvent, {data: 'sym data'});
+        emitter.emit(evtCustom, {data: 'sym data'});
         expect(symListener.notified).to.equal(true);
     });
 
@@ -123,7 +123,7 @@ describe('EventPool', () => {
             pool.listenEvent(listenerInst.eventName, listenerInst);
         }
 
-        const EVENT = Symbol();
+        const EVENT = 'EVT_EVENT';
         for (let i = 0; i < 10; i++) {
             const listenerInst = new Listener(EVENT);
             listeners.push(listenerInst);

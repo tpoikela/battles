@@ -5,6 +5,7 @@ import { Geometry } from '../../../client/src/geometry';
 import {SentientActor } from '../../../client/src/actor';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import * as Item from '../../../client/src/item';
+import { Builder } from '../../../client/src/builder';
 
 describe('Geometry', () => {
 
@@ -19,7 +20,7 @@ describe('Geometry', () => {
             const l1 = factLevel.createLevel('arena', 20, 10);
 
             const conf = {nLevelsX: 2, nLevelsY: 1};
-            const levels = Geometry.splitLevel(l1, conf);
+            const levels = Builder.splitLevel(l1, conf);
 
             expect(levels).to.have.length(2);
 
@@ -56,7 +57,7 @@ describe('Geometry', () => {
             }
 
             const conf = {nLevelsX: 2, nLevelsY: 2};
-            const levels = Geometry.splitLevel(l1, conf);
+            const levels = Builder.splitLevel(l1, conf);
             expect(levels).to.have.length(2);
             expect(levels[0]).to.have.length(2);
 

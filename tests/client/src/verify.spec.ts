@@ -22,4 +22,14 @@ describe('Verify', () => {
         expect(func).to.throw(Error);
     });
 
+    it('can verify reqs with |', function() {
+        const conf = new Verify.Conf('Verif split');
+        let ok = conf.verifyReq({a: 1, b: 2, ccc: 3}, 'zzz|bbb|ccc');
+        expect(ok).to.equal(true);
+        
+        ok = conf.verifyReq({a: 1, b: 2, xxx: 3}, 'zzz|bbb|ccc');
+        expect(ok).to.not.equal(true);
+    });
+    
+
 });

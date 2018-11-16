@@ -1,9 +1,9 @@
 
 import { expect } from 'chai';
 
-const RG = require('../../../client/src/battles');
-RG.Random = require('../../../client/src/random');
-const MountainGenerator = require('../../../client/src/mountain-generator');
+import RG from '../../../client/src/rg';
+import {Random} from '../../../client/src/random';
+import {MountainGenerator} from '../../../client/src/mountain-generator';
 
 describe('MountainGenerator', () => {
     it('generates mountain levels', () => {

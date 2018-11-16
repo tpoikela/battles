@@ -14,8 +14,11 @@ import {GameMain} from '../client/src/game';
 import {Random} from '../client/src/random';
 import {FactoryLevel} from '../client/src/factory.level';
 import {SentientActor} from '../client/src/actor';
+import { EventPool } from '../client/src/eventpool';
 
 export const RGTest: any = {};
+
+const POOL = EventPool.getPool();
 
 RGTest.rng = new Random();
 
@@ -203,8 +206,7 @@ RGTest.MsgCatcher = function() {
             }
         }
     };
-
-    RG.POOL.listenEvent(RG.EVT_MSG, this);
+    POOL.listenEvent(RG.EVT_MSG, this);
 
     /* Adds a message filter to select which messages to print. */
     this.addFilter = filter => {

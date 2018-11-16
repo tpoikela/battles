@@ -1,8 +1,8 @@
 
-const expect = require('chai').expect;
+import {expect} from 'chai';
 // const RG = require('../../../client/src/battles');
-const Keys = require('../../../client/src/keymap');
-const Menu = require('../../../client/src/menu');
+import {Keys} from '../../../client/src/keymap';
+import {Menu} from '../../../client/src/menu';
 
 describe('Menu.Base', () => {
     it('accepts a list of options to show', () => {
