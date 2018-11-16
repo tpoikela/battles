@@ -1,10 +1,17 @@
 
-const chai = require('chai');
-const RG = require('../../../client/src/battles');
-const RGTest = require('../../roguetest');
-const chaiBattles = require('../../helpers/chai-battles.js');
-const Keys = require('../../../client/src/keymap');
-const FromJSON = require('../../../client/src/game.fromjson');
+import chai from 'chai';
+import {RG} from '../../../client/src/battles';
+import {RGTest} from '../../roguetest';
+import {chaiBattles} from '../../helpers/chai-battles';
+import {Keys} from '../../../client/src/keymap';
+import {FromJSON} from '../../../client/src/game.fromjson';
+import * as Component from '../../../client/src/component';
+import {SentientActor} from '../../../client/src/actor';
+import * as Item from '../../../client/src/item';
+import {Spell} from '../../../client/src/spell';
+import {System} from '../../../client/src/system';
+import {ObjectShell} from '../../../client/src/objectshellparser';
+import { RGUnitTests } from '../../rg.unit-tests';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -21,19 +28,19 @@ describe('Spell.SpellBook', () => {
 
     beforeEach(() => {
         systems = [
-            new RG.System.SpellCast(['SpellCast']),
-            new RG.System.SpellEffect(
+            new System.SpellCast(['SpellCast']),
+            new System.SpellEffect(
             ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea', 'SpellSelf']
             ),
-            new RG.System.Missile(['Missile']),
-            new RG.System.Damage(['Damage'])
+            new System.Missile(['Missile']),
+            new System.Damage(['Damage'])
         ];
-        wizard = new RG.Actor.Rogue('wizard');
-        book = new RG.Spell.SpellBook(wizard);
-        RG.Spell.addAllSpells(book);
+        wizard = new SentientActor('wizard');
+        book = new Spell.SpellBook(wizard);
+        Spell.addAllSpells(book);
         bookSpells = book.getSpells();
 
-        spellPower = new RG.Component.SpellPower();
+        spellPower = new Component.SpellPower();
         spellPower.setPP(10000);
         spellPower.setMaxPP(10000);
         wizard.add(spellPower);
@@ -60,12 +67,12 @@ describe('Spell.SpellBook', () => {
     });
 
     it('has functions for AI spellcasters', () => {
-        const enemy = new RG.Actor.Rogue('enemy');
-        const friend = new RG.Actor.Rogue('friend');
-        const level = RGTest.wrapIntoLevel([enemy, friend, wizard]);
-        RGTest.moveEntityTo(wizard, 1, 1);
-        RGTest.moveEntityTo(friend, 2, 1);
-        RGTest.moveEntityTo(enemy, 3, 3);
+        const enemy = new SentientActor('enemy');
+        const friend = new SentientActor('friend');
+        const level = RGUnitTests.wrapIntoLevel([enemy, friend, wizard]);
+        RGUnitTests.moveEntityTo(wizard, 1, 1);
+        RGUnitTests.moveEntityTo(friend, 2, 1);
+        RGUnitTests.moveEntityTo(enemy, 3, 3);
 
         wizard.addEnemy(enemy);
         wizard.addFriend(friend);
@@ -99,22 +106,22 @@ describe('Spell.SpellBook', () => {
 
     it('has serialisation for all spells', () => {
         const bookJSON = book.toJSON();
-        const wizard2 = new RG.Actor.Rogue('wizard2');
+        const wizard2 = new SentientActor('wizard2');
         const fromJSON = new FromJSON();
         const newBook = fromJSON.createSpells({spellbook: bookJSON}, wizard2);
         expect(newBook.equals(book)).to.be.true;
     });
 
     it('can cast all spells successfully', () => {
-        const enemy = new RG.Actor.Rogue('enemy');
-        const level = RGTest.wrapIntoLevel([enemy, wizard]);
+        const enemy = new SentientActor('enemy');
+        const level = RGUnitTests.wrapIntoLevel([enemy, wizard]);
         let items = level.getItems();
         expect(items).to.have.length(0);
 
-        RGTest.moveEntityTo(wizard, 1, 1);
-        RGTest.moveEntityTo(enemy, 3, 3);
+        RGUnitTests.moveEntityTo(wizard, 1, 1);
+        RGUnitTests.moveEntityTo(enemy, 3, 3);
         const rockStorm = bookSpells.find(s => s.getName() === 'RockStorm');
-        const spellCast = new RG.Component.SpellCast();
+        const spellCast = new Component.SpellCast();
         spellCast.setSource(wizard);
         spellCast.setSpell(rockStorm);
         spellCast.setArgs({src: wizard});
@@ -130,16 +137,16 @@ describe('Spell.SpellBook', () => {
 describe('Spell.IcyPrison', () => {
 
     it('adds paralysis for an actor', () => {
-        const effSystem = new RG.System.SpellEffect(['SpellCell']);
+        const effSystem = new System.SpellEffect(['SpellCell']);
 
-        const caster = new RG.Actor.Rogue('caster');
-        const icyPrison = new RG.Spell.IcyPrison();
+        const caster = new SentientActor('caster');
+        const icyPrison = new Spell.IcyPrison();
         icyPrison.setCaster(caster);
-        const paralyzed = new RG.Actor.Rogue('paralyzed');
-        RGTest.wrapIntoLevel([caster, paralyzed]);
+        const paralyzed = new SentientActor('paralyzed');
+        RGUnitTests.wrapIntoLevel([caster, paralyzed]);
 
-        RGTest.moveEntityTo(caster, 1, 1);
-        RGTest.moveEntityTo(paralyzed, 2, 1);
+        RGUnitTests.moveEntityTo(caster, 1, 1);
+        RGUnitTests.moveEntityTo(paralyzed, 2, 1);
 
         const spellArgs = {
             src: caster,
@@ -154,16 +161,16 @@ describe('Spell.IcyPrison', () => {
 
 describe('Spell.LightningArrow', () => {
     it('can be cast by AI', () => {
-        const castSystem = new RG.System.SpellCast(['SpellCast']);
-        const effSystem = new RG.System.SpellEffect(['SpellMissile']);
+        const castSystem = new System.SpellCast(['SpellCast']);
+        const effSystem = new System.SpellEffect(['SpellMissile']);
         const systems = [castSystem, effSystem];
 
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const thunderbird = parser.createActor('thunderbird');
         const human = parser.createActor('human');
-        RGTest.wrapIntoLevel([thunderbird, human]);
-        RGTest.moveEntityTo(thunderbird, 1, 1);
-        RGTest.moveEntityTo(human, 5, 5);
+        RGUnitTests.wrapIntoLevel([thunderbird, human]);
+        RGUnitTests.moveEntityTo(thunderbird, 1, 1);
+        RGUnitTests.moveEntityTo(human, 5, 5);
 
         // Adjust evaluators and casting probability
         RGTest.ensureSpellCast(thunderbird);
@@ -177,18 +184,18 @@ describe('Spell.LightningArrow', () => {
 
 describe('Spell.SummonIceMinion', () => {
     it('can be cast by AI', () => {
-        const castSystem = new RG.System.SpellCast(['SpellCast']);
-        const effSystem = new RG.System.SpellEffect(spellComps);
+        const castSystem = new System.SpellCast(['SpellCast']);
+        const effSystem = new System.SpellEffect(spellComps);
         const systems = [castSystem, effSystem];
 
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const monarch = parser.createActor('Frostburn monarch');
         RGTest.ensureSpellCast(monarch);
 
         const human = parser.createActor('human');
-        RGTest.wrapIntoLevel([monarch, human]);
-        RGTest.moveEntityTo(monarch, 2, 2);
-        RGTest.moveEntityTo(human, 5, 5);
+        RGUnitTests.wrapIntoLevel([monarch, human]);
+        RGUnitTests.moveEntityTo(monarch, 2, 2);
+        RGUnitTests.moveEntityTo(human, 5, 5);
 
         monarch.nextAction();
         expect(monarch).to.have.component('SpellCast');
@@ -199,21 +206,21 @@ describe('Spell.SummonIceMinion', () => {
 
 describe('Spell.Blizzard', () => {
     it('affects an area around caster', () => {
-        const castSystem = new RG.System.SpellCast(['SpellCast']);
-        const effSystem = new RG.System.SpellEffect(spellComps);
-        const dmgSystem = new RG.System.Damage(['Damage']);
-        const animSystem = new RG.System.Animation(['Animation']);
+        const castSystem = new System.SpellCast(['SpellCast']);
+        const effSystem = new System.SpellEffect(spellComps);
+        const dmgSystem = new System.Damage(['Damage']);
+        const animSystem = new System.Animation(['Animation']);
         const systems = [castSystem, effSystem];
 
-        const caster = new RG.Actor.Rogue('caster');
-        const victim = new RG.Actor.Rogue('victim');
-        const blizzard = new RG.Spell.Blizzard();
+        const caster = new SentientActor('caster');
+        const victim = new SentientActor('victim');
+        const blizzard = new Spell.Blizzard();
         blizzard.setCaster(caster);
-        RGTest.wrapIntoLevel([caster, victim]);
-        RGTest.moveEntityTo(caster, 3, 2);
-        RGTest.moveEntityTo(victim, 5, 5);
+        RGUnitTests.wrapIntoLevel([caster, victim]);
+        RGUnitTests.moveEntityTo(caster, 3, 2);
+        RGUnitTests.moveEntityTo(victim, 5, 5);
 
-        const spellPower = new RG.Component.SpellPower();
+        const spellPower = new Component.SpellPower();
         spellPower.setPP(100);
         spellPower.setMaxPP(100);
         caster.add(spellPower);

@@ -1,13 +1,17 @@
 
-const chai = require('chai');
+import chai from 'chai';
 
-const RG = require('../../../client/src/battles');
-const Effects = require('../../../client/data/effects');
-const Cell = require('../../../client/src/map.cell');
-RG.System = require('../../../client/src/system');
-const chaiBattles = require('../../helpers/chai-battles');
+import RG from '../../../client/src/rg';
+import {Effects} from '../../../client/data/effects';
+import {Cell} from '../../../client/src/map.cell';
+import {System} from '../../../client/src/system';
+import {chaiBattles} from '../../helpers/chai-battles';
+import * as Item from '../../../client/src/item';
+import {SentientActor} from '../../../client/src/actor';
+import {ELEM} from '../../../client/data/elem-constants';
 
-const RGTest = require('../../roguetest');
+import {RGTest} from '../../roguetest';
+import {RGUnitTests} from '../../rg.unit-tests';
 
 chai.use(chaiBattles);
 const expect = chai.expect;
@@ -17,7 +21,7 @@ const getEffectByName = (obj, name) => {
     return obj.effects[index];
 };
 
-describe('RG.Effects', () => {
+describe('Effects', () => {
 
     let useEffect = null;
     let useSystem = null;
@@ -28,15 +32,15 @@ describe('RG.Effects', () => {
 
     beforeEach(() => {
         useEffect = getEffectByName(Effects, 'use');
-        useSystem = new RG.System.BaseAction(['UseItem']);
-        effSystem = new RG.System.Effects(['Effects']);
-        sword = new RG.Item.Weapon('Add comp');
+        useSystem = new System.BaseAction(['UseItem']);
+        effSystem = new System.Effects(['Effects']);
+        sword = new Item.Weapon('Add comp');
         sword.useArgs = { };
         sword.use = useEffect.func.bind(sword);
-        userActor = new RG.Actor.Rogue('User One');
+        userActor = new SentientActor('User One');
         userActor.getInvEq().addItem(sword);
 
-        cell = new Cell(0, 0, RG.ELEM.FLOOR);
+        cell = new Cell(0, 0, ELEM.FLOOR);
         cell.setProp('actors', userActor);
     });
 
@@ -53,7 +57,7 @@ describe('RG.Effects', () => {
         const useFunc = diggerEffect.func.bind(sword);
         sword.useFuncs = [useFunc];
 
-        expect(cell.setBaseElem(RG.ELEM.WALL));
+        expect(cell.setBaseElem(ELEM.WALL));
         expect(cell.getBaseElem().getType()).to.equal('wall');
         sword.use({target: cell});
 
@@ -68,23 +72,23 @@ describe('RG.Effects', () => {
     it('has heal effect', () => {
         const healEffect = getEffectByName(Effects, 'heal');
 
-        const potion = new RG.Item.Potion('Healing potion');
+        const potion = new Item.Potion('Healing potion');
         potion.useArgs = { };
         potion.useArgs.hp = '12d1';
 
-        potion.use = useEffect.func.bind(potion);
+        (potion as any).use = useEffect.func.bind(potion);
         const healFunc = healEffect.func.bind(potion);
-        potion.useFuncs = [healFunc];
+        (potion as any).useFuncs = [healFunc];
 
-        const actor = new RG.Actor.Rogue('Healed one');
+        const actor = new SentientActor('Healed one');
         actor.getInvEq().addItem(potion);
         actor.get('Health').setHP(10);
         const hpBefore = actor.get('Health').getHP();
 
-        const cell = new Cell(0, 0, RG.ELEM.FLOOR);
+        const cell = new Cell(0, 0, ELEM.FLOOR);
         cell.setProp('actors', actor);
 
-        potion.use({target: cell});
+        (potion as any).use({target: cell});
 
         expect(actor).to.have.component('UseItem');
         useSystem.update();
@@ -96,23 +100,23 @@ describe('RG.Effects', () => {
     it('has stun effect', () => {
         const stunEffect = getEffectByName(Effects, 'stun');
 
-        const potion = new RG.Item.Potion('Stunning potion');
+        const potion = new Item.Potion('Stunning potion');
         potion.useArgs = { };
         potion.useArgs.duration = '12d1';
 
-        potion.use = useEffect.func.bind(potion);
+        (potion as any).use = useEffect.func.bind(potion);
         const stunFunc = stunEffect.func.bind(potion);
-        potion.useFuncs = [stunFunc];
+        (potion as any).useFuncs = [stunFunc];
 
-        const actor = new RG.Actor.Rogue('Healed one');
+        const actor = new SentientActor('Healed one');
         actor.getInvEq().addItem(potion);
 
-        const cell = new Cell(0, 0, RG.ELEM.FLOOR);
+        const cell = new Cell(0, 0, ELEM.FLOOR);
         cell.setProp('actors', actor);
 
         expect(actor.has('Stun')).to.equal(false);
         expect(actor.has('Expiration')).to.equal(false);
-        potion.use({target: cell});
+        (potion as any).use({target: cell});
         expect(actor.has('Stun')).to.equal(true);
         expect(actor.has('Expiration')).to.equal(true);
     });
@@ -196,9 +200,9 @@ describe('RG.Effects', () => {
     it('has an effect to add entities to cells', () => {
         const addEntEffect = getEffectByName(Effects, 'addEntity');
 
-        const level = RGTest.wrapIntoLevel([userActor]);
+        const level = RGUnitTests.wrapIntoLevel([userActor]);
         cell = level.getCell(1, 1);
-        RGTest.moveEntityTo(userActor, 1, 1);
+        RGUnitTests.moveEntityTo(userActor, 1, 1);
 
         sword.useArgs.entityName = 'Fire';
 

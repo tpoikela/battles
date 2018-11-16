@@ -1,30 +1,46 @@
 
-const chai = require('chai');
-const RG = require('../../../client/src/battles');
-const Entity = require('../../../client/src/entity');
-const Cell = require('../../../client/src/map.cell');
+import chai from 'chai';
+import ROT from '../../../lib/rot';
+import RG from '../../../client/src/rg';
 
-const RGTest = require('../../roguetest');
-const ROT = require('../../../lib/rot');
-const chaiBattles = require('../../helpers/chai-battles.js');
+import {Entity} from '../../../client/src/entity';
+import {Cell} from '../../../client/src/map.cell';
+import {Level} from '../../../client/src/level';
 
+import {RGTest} from '../../roguetest';
+import {RGUnitTests} from '../../rg.unit-tests';
+import {chaiBattles} from '../../helpers/chai-battles';
+import {SentientActor } from '../../../client/src/actor';
+import * as Item from '../../../client/src/item';
+import * as Component from '../../../client/src/component';
+import * as Element from '../../../client/src/element';
+import { ELEM } from '../../../client/data/elem-constants';
+import {System} from '../../../client/src/system';
+import { FactoryLevel } from '../../../client/src/factory.level';
+import { FactoryActor } from '../../../client/src/factory.actors';
+import { MapGenerator } from '../../../client/src/map.generator';
+
+const Stairs = Element.ElementStairs;
 const expect = chai.expect;
 chai.use(chaiBattles);
-const Factory = RG.FACT;
+const Factory = new FactoryLevel();
 
 /* Updates given systems in given order.*/
 const updateSystems = RGTest.updateSystems;
 
+const factLevel = new FactoryLevel();
+
 describe('System.Hunger', () => {
     it('Subtracts energy from actors with hunger', () => {
-        const system = new RG.System.Hunger(['Hunger', 'Action']);
+        const system = new System.Hunger(['Hunger', 'Action']);
 
-        const hunger = new RG.Component.Hunger();
+        const hunger = new Component.Hunger();
         hunger.setEnergy(2000);
         hunger.setMaxEnergy(2000);
 
-        const player = RG.FACT.createPlayer('Player', {});
-        const action = new RG.Component.Action();
+        const factActor = new FactoryActor();
+        const player = factActor.createPlayer('Player', {});
+        const action = new Component.Action();
         player.add(hunger);
         player.add(action);
         action.addEnergy(100);
@@ -48,15 +64,15 @@ describe('System.Attack', () => {
     let beast = null;
 
     beforeEach(() => {
-        attackSystem = new RG.System.Attack(['Attack']);
+        attackSystem = new System.Attack(['Attack']);
         systems = [attackSystem];
-        human = new RG.Actor.Rogue('Human');
-        beast = new RG.Actor.Rogue('Beast');
-        RGTest.wrapIntoLevel([human, beast]);
+        human = new SentientActor('Human');
+        beast = new SentientActor('Beast');
+        RGUnitTests.wrapIntoLevel([human, beast]);
     });
 
     it('handles attacks between actors and adds Damage', () => {
-        const sword = new RG.Item.Weapon('Sword');
+        const sword = new Item.Weapon('Sword');
         sword.setDamageDie('10d10 + 10');
         sword.setAttack(100);
         human.get('Combat').setAttack(100);
@@ -67,7 +83,7 @@ describe('System.Attack', () => {
         beast.get('Combat').setDefense(0);
         beast.get('Stats').setAgility(0);
 
-        const attackComp = new RG.Component.Attack({target: beast});
+        const attackComp = new Component.Attack({target: beast});
         human.add(attackComp);
         updateSystems(systems);
 
@@ -76,13 +92,13 @@ describe('System.Attack', () => {
     });
 
     it('takes into account hits bypassing protection', () => {
-        const damageSystem = new RG.System.Damage(['Damage']);
+        const damageSystem = new System.Damage(['Damage']);
         systems.push(damageSystem);
 
-        const bypassComp = new RG.Component.BypassProtection();
+        const bypassComp = new Component.BypassProtection();
         bypassComp.setChance(1.0);
         beast.add(bypassComp);
-        const attackComp = new RG.Component.Attack({target: human});
+        const attackComp = new Component.Attack({target: human});
         beast.add(attackComp);
         beast.get('Combat').setAttack(100);
 
@@ -98,9 +114,9 @@ describe('System.Attack', () => {
     });
 
     it('can apply AddOnHit components', function() {
-        const damageSystem = new RG.System.Damage(['Damage']);
+        const damageSystem = new System.Damage(['Damage']);
         systems.push(damageSystem);
-        const timeSys = new RG.System.TimeEffects(['DirectDamage']);
+        const timeSys = new System.TimeEffects(['DirectDamage']);
         systems.push(timeSys);
 
         const parser = RG.ObjectShell.getParser();
@@ -110,7 +126,7 @@ describe('System.Attack', () => {
         beast.getInvEq().addItem(voidDagger);
         beast.getInvEq().equipItem(voidDagger);
 
-        const attComp = new RG.Component.Attack();
+        const attComp = new Component.Attack();
         attComp.setTarget(human);
         beast.add(attComp);
 
@@ -135,31 +151,31 @@ describe('System.Attack', () => {
 
 describe('System.Damage', () => {
     it('handles adding components on hit', () => {
-        const dSystem = new RG.System.Damage(['Damage']);
+        const dSystem = new System.Damage(['Damage']);
         const systems = [dSystem];
 
-        const poisonSword = new RG.Item.Weapon('Sword of Poison');
-        const addOnHit = new RG.Component.AddOnHit();
-        const poisonComp = new RG.Component.Poison();
+        const poisonSword = new Item.Weapon('Sword of Poison');
+        const addOnHit = new Component.AddOnHit();
+        const poisonComp = new Component.Poison();
         addOnHit.setComp(poisonComp);
         const dieDur = RG.FACT.createDie('1d6 + 5');
         poisonComp.setDurationDie(dieDur);
         poisonSword.add(addOnHit);
-        const human = new RG.Actor.Rogue('Human');
+        const human = new SentientActor('Human');
         human.getInvEq().addItem(poisonSword);
         human.getInvEq().equipItem(poisonSword);
 
-        const beast = new RG.Actor.Rogue('Beast');
-        const dmgComp = new RG.Component.Damage(10, 'slash');
+        const beast = new SentientActor('Beast');
+        const dmgComp = new Component.Damage(10, 'slash');
         dmgComp.setSource(human);
         dmgComp.setWeapon(poisonSword);
         beast.add(dmgComp);
 
-        RGTest.wrapIntoLevel([human, beast]);
+        RGUnitTests.wrapIntoLevel([human, beast]);
 
-        const beastAddOnHit = new RG.Component.AddOnHit();
-        const beastDmgComp = new RG.Component.Damage(10, 'slash');
-        const beastPoisonComp = new RG.Component.Poison();
+        const beastAddOnHit = new Component.AddOnHit();
+        const beastDmgComp = new Component.Damage(10, 'slash');
+        const beastPoisonComp = new Component.Poison();
         beastPoisonComp.setDamageDie('1d4');
         beastPoisonComp.setDurationDie('1d4');
         beastAddOnHit.setComp(beastPoisonComp);
@@ -172,7 +188,7 @@ describe('System.Damage', () => {
         expect(beast).to.have.component('Poison');
         expect(human).to.have.component('Poison');
 
-        const dmg2 = new RG.Component.Damage(5, 'slash');
+        const dmg2 = new Component.Damage(5, 'slash');
         dmg2.setSource(beast);
         human.add(dmg2);
         updateSystems(systems);
@@ -181,7 +197,7 @@ describe('System.Damage', () => {
     });
 
     it('Drops loot when lethal damage is dealt', () => {
-        const level = RG.FACT.createLevel('arena', 20, 20);
+        const level = factLevel.createLevel('arena', 20, 20);
 
         const monsterStats = {hp: 5, att: 1, def: 1, prot: 1};
         const monster = RG.FACT.createActor('TestMonster', monsterStats);
@@ -191,17 +207,17 @@ describe('System.Damage', () => {
         const humanStats = {hp: 5, att: 1, def: 1, prot: 1};
         const human = RG.FACT.createActor('Human', humanStats);
 
-        const dSystem = new RG.System.Damage(['Damage']);
+        const dSystem = new System.Damage(['Damage']);
         const systems = [dSystem];
 
-        const lootItem = new RG.Item.Base('Loot item');
-        const loot = new RG.Component.Loot(lootItem);
+        const lootItem = new Item.ItemBase('Loot item');
+        const loot = new Component.Loot(lootItem);
 
-        const invItem = new RG.Item.Weapon('Sword');
+        const invItem = new Item.Weapon('Sword');
 
         monster.getInvEq().addItem(invItem);
         monster.add(loot);
-        const dmgComp = new RG.Component.Damage(6, RG.DMG.FIRE);
+        const dmgComp = new Component.Damage(6, RG.DMG.FIRE);
         dmgComp.setSource(human);
         monster.add(dmgComp);
         expect(dSystem.entities.hasOwnProperty(monster.getID())).to.equal(true);
@@ -228,27 +244,27 @@ describe('System.Damage', () => {
 
 describe('System.SpellCast', () => {
     it('handles spellcasting of actors', () => {
-        const dSystem = new RG.System.Damage(['Damage']);
-        const effectSystem = new RG.System.SpellEffect(['SpellRay']);
-        const spellSystem = new RG.System.SpellCast(['SpellCast']);
+        const dSystem = new System.Damage(['Damage']);
+        const effectSystem = new System.SpellEffect(['SpellRay']);
+        const spellSystem = new System.SpellCast(['SpellCast']);
         const systems = [spellSystem, effectSystem, dSystem];
 
-        const mage = new RG.Actor.Rogue('mage');
-        const orc = new RG.Actor.Rogue('orc');
+        const mage = new SentientActor('mage');
+        const orc = new SentientActor('orc');
         orc.get('Stats').setAgility(0); // Ensure spell hits
-        RGTest.wrapIntoLevel([mage, orc]);
-        RGTest.moveEntityTo(mage, 1, 1);
-        RGTest.moveEntityTo(orc, 3, 1);
+        RGUnitTests.wrapIntoLevel([mage, orc]);
+        RGUnitTests.moveEntityTo(mage, 1, 1);
+        RGUnitTests.moveEntityTo(orc, 3, 1);
 
         const startHP = orc.get('Health').getHP();
 
-        const spellPower = new RG.Component.SpellPower(20);
+        const spellPower = new Component.SpellPower(20);
         mage.add(spellPower);
 
         const frostBolt = new RG.Spell.FrostBolt();
         frostBolt.setCaster(mage);
 
-        const spellCast = new RG.Component.SpellCast();
+        const spellCast = new Component.SpellCast();
         spellCast.setSource(mage);
         spellCast.setSpell(frostBolt);
         spellCast.setArgs({dir: [1, 0], src: mage});
@@ -263,17 +279,17 @@ describe('System.SpellCast', () => {
 
 describe('System.Disability', () => {
     it('stops actors from acting', () => {
-        const disSystem = new RG.System.Disability(['Stun', 'Paralysis']);
-        const movSystem = new RG.System.Movement(['Movement']);
+        const disSystem = new System.Disability(['Stun', 'Paralysis']);
+        const movSystem = new System.Movement(['Movement']);
 
-        const walker = new RG.Actor.Rogue('walker');
-        const level = RGTest.wrapIntoLevel([walker]);
-        RGTest.moveEntityTo(walker, 2, 2);
-        const movComp = new RG.Component.Movement(level, 3, 3);
+        const walker = new SentientActor('walker');
+        const level = RGUnitTests.wrapIntoLevel([walker]);
+        RGUnitTests.moveEntityTo(walker, 2, 2);
+        const movComp = new Component.Movement(level, 3, 3);
         movComp.setLevel(level);
         movComp.setXY(3, 3);
         walker.add(movComp);
-        walker.add(new RG.Component.Paralysis());
+        walker.add(new Component.Paralysis());
 
         updateSystems([disSystem, movSystem]);
 
@@ -286,7 +302,7 @@ describe('System.Disability', () => {
         expect(walker.getX()).to.equal(3);
         expect(walker.getY()).to.equal(3);
 
-        walker.add(new RG.Component.Stun());
+        walker.add(new Component.Stun());
         movComp.setXY(5, 5);
         walker.add(movComp);
         updateSystems([disSystem, movSystem]);
@@ -299,16 +315,16 @@ describe('System.Disability', () => {
 
 describe('System.Movement', () => {
     it('handles actor movement', () => {
-        const movSystem = new RG.System.Movement(['Movement']);
-        const player = new RG.Actor.Rogue('player name');
+        const movSystem = new System.Movement(['Movement']);
+        const player = new SentientActor('player name');
         player.setIsPlayer(true);
-        const level = RG.FACT.createLevel('arena', 20, 20);
+        const level = factLevel.createLevel('arena', 20, 20);
         level.addActor(player, 1, 1);
 
         const expElem = new RG.Element.Exploration();
         expElem.setExp(100);
         level.addElement(expElem, 2, 2);
-        const movComp = new RG.Component.Movement(2, 2, level);
+        const movComp = new Component.Movement(2, 2, level);
         player.add(movComp);
 
         expect(level.getElements()).to.have.length(1);
@@ -320,9 +336,9 @@ describe('System.Movement', () => {
 
     it('Moves but is blocked by walls.', () => {
         const movSystem = new System.Movement(['Movement']);
-        const actor = new Actor('TestActor');
-        const level = new Level(10, 10);
-        const mapgen = new RG.Map.Generator();
+        const actor = new SentientActor('TestActor');
+        const level = new Level();
+        const mapgen = new MapGenerator();
         mapgen.setGen('arena', 10, 10);
         const mapObj = mapgen.getMap();
         level.setMap(mapObj.map);
@@ -331,14 +347,14 @@ describe('System.Movement', () => {
         expect(actor.getY()).to.equal(2);
 
         // Actors x,y changes due to move
-        const movComp = new RG.Component.Movement(2, 3, level);
+        const movComp = new Component.Movement(2, 3, level);
         actor.add(movComp);
         movSystem.update();
         expect(actor.getX()).to.equal(2);
         expect(actor.getY()).to.equal(3);
 
         // Create a wall to block the passage
-        const wall = new Element.Wall('wall');
+        const wall = new Element.ElementWall('wall');
         level.getMap().setBaseElemXY(4, 4, wall);
         movSystem.update();
         expect(actor.getX(), "X didn't change due to wall").to.equal(2);
@@ -350,7 +366,9 @@ describe('System.Movement', () => {
         const movSystem = new System.Movement(['Movement']);
         const level1 = Factory.createLevel('arena', 20, 20);
         const level2 = Factory.createLevel('arena', 20, 20);
-        const player = Factory.createPlayer('Player', {});
+
+        const factActor = new FactoryActor();
+        const player = factActor.createPlayer('Player', {});
 
         const stairs1 = new Stairs('stairsDown', level1, level2);
         const stairs2 = new Stairs('stairsUp', level2, level1);
@@ -405,7 +423,7 @@ describe('System.Movement', () => {
         stairsDown23.setTargetStairs(stairsUp32);
         stairsUp32.setTargetStairs(stairsDown23);
 
-        const movComp = new RG.Component.Movement(12, 13, level2);
+        const movComp = new Component.Movement(12, 13, level2);
         player.add(movComp);
         movSystem.update();
         level2.useStairs(player);
@@ -423,28 +441,28 @@ describe('System.Movement', () => {
 describe('System.Chat', () => {
 
     it('handles chat actions between player and NPC', () => {
-        const chatter = new RG.Actor.Rogue('chatter');
+        const chatter = new SentientActor('chatter');
         chatter.setIsPlayer(true);
-        const coins = new RG.Item.GoldCoin();
+        const coins = new Item.GoldCoin();
         coins.setCount(1000);
         chatter.getInvEq().addItem(coins);
 
-        const trainer = new RG.Actor.Rogue('trainer');
-        RGTest.wrapIntoLevel([chatter, trainer]);
-        const chatSys = new RG.System.Chat(['Chat']);
+        const trainer = new SentientActor('trainer');
+        RGUnitTests.wrapIntoLevel([chatter, trainer]);
+        const chatSys = new System.Chat(['Chat']);
 
         trainer.get('Stats').setAccuracy(20);
 
         const accBefore = chatter.get('Stats').getAccuracy();
 
-        RGTest.moveEntityTo(chatter, 1, 1);
-        RGTest.moveEntityTo(trainer, 2, 2);
-        const chatComp = new RG.Component.Chat();
+        RGUnitTests.moveEntityTo(chatter, 1, 1);
+        RGUnitTests.moveEntityTo(trainer, 2, 2);
+        const chatComp = new Component.Chat();
         const args = {dir: [1, 1]};
         chatComp.setArgs(args);
         chatter.add(chatComp);
 
-        const trainComp = new RG.Component.Trainer();
+        const trainComp = new Component.Trainer();
         trainer.add(trainComp);
 
         updateSystems([chatSys]);
@@ -464,15 +482,15 @@ describe('System.Chat', () => {
 
 describe('System.SpiritBind', () => {
     it('is used to bind spirits into spirit gems', () => {
-        const spiritSys = new RG.System.SpiritBind(['SpiritBind']);
+        const spiritSys = new System.SpiritBind(['SpiritBind']);
 
-        const binder = new RG.Actor.Rogue('shaman');
-        const spirit = new RG.Actor.Rogue('Evil spirit');
+        const binder = new SentientActor('shaman');
+        const spirit = new SentientActor('Evil spirit');
         spirit.setType('spirit');
-        spirit.add(new RG.Component.Ethereal());
-        RGTest.wrapIntoLevel([binder, spirit]);
+        spirit.add(new Component.Ethereal());
+        RGUnitTests.wrapIntoLevel([binder, spirit]);
 
-        const gem = new RG.Item.SpiritGem('Great gem');
+        const gem = new Item.SpiritGem('Great gem');
         binder.getInvEq().addItem(gem);
         gem.useItem({target: spirit.getCell()});
 
@@ -486,19 +504,19 @@ describe('System.SpiritBind', () => {
     });
 
     it('is used to bind gems into items', () => {
-        const spiritSys = new RG.System.SpiritBind(['SpiritBind']);
-        const binder = new RG.Actor.Rogue('shaman');
+        const spiritSys = new System.SpiritBind(['SpiritBind']);
+        const binder = new SentientActor('shaman');
 
-        const spirit = new RG.Actor.Rogue('Evil spirit');
+        const spirit = new SentientActor('Evil spirit');
         spirit.setType('spirit');
-        spirit.add(new RG.Component.Ethereal());
+        spirit.add(new Component.Ethereal());
         spirit.get('Stats').setStrength(10);
 
-        const gem = new RG.Item.SpiritGem('Great gem');
+        const gem = new Item.SpiritGem('Great gem');
         gem.setSpirit(spirit);
         binder.getInvEq().addItem(gem);
 
-        const sword = new RG.Item.Weapon('sword');
+        const sword = new Item.Weapon('sword');
         const cell = RGTest.wrapObjWithCell(sword);
 
         expect(gem.getStrength()).to.equal(10);
@@ -512,7 +530,7 @@ describe('System.SpiritBind', () => {
         expect(items).to.have.length(1);
 
         // 2nd attempt, crafting skill added
-        binder.add(new RG.Component.SpiritItemCrafter());
+        binder.add(new Component.SpiritItemCrafter());
         gem.useItem({target: cell});
         updateSystems([spiritSys]);
         expect(sword).to.have.component('GemBound');
@@ -546,32 +564,32 @@ describe('System.SpiritBind', () => {
 describe('System.TimeEffects', () => {
 
     it('removes components from entities', () => {
-        const expirSys = new RG.System.TimeEffects(['Expiration']);
+        const expirSys = new System.TimeEffects(['Expiration']);
         const entity = new Entity();
-        const expComp = new RG.Component.Expiration();
+        const expComp = new Component.Expiration();
         expect(entity).not.to.have.component('StatsMods');
-        const statsMods = new RG.Component.StatsMods();
+        const statsMods = new Component.StatsMods();
         expComp.addEffect(statsMods, 10);
         entity.add(statsMods);
         expect(entity).to.have.component('StatsMods');
         entity.add(expComp);
 
-        entity.getName = () => 'an entity';
-        entity.getCell = () => null;
+        (entity as any).getName = () => 'an entity';
+        (entity as any).getCell = () => null;
 
-        const statsMods2 = new RG.Component.StatsMods();
+        const statsMods2 = new Component.StatsMods();
         expComp.addEffect(statsMods2, 20);
         entity.add(statsMods2);
         let modsList = entity.getList('StatsMods');
         expect(modsList).to.have.length(2);
 
-        const durComp = new RG.Component.Duration();
+        const durComp = new Component.Duration();
         durComp.setDurationDie('8d1 + 4');
-        const statsComp3 = new RG.Component.StatsMods();
+        const statsComp3 = new Component.StatsMods();
         statsComp3.setMagic(2);
         statsComp3.setWillpower(-2);
         durComp.setComp(statsComp3);
-        const expComp2 = new RG.Component.Expiration();
+        const expComp2 = new Component.Expiration();
         const duration = durComp.rollDuration();
         expComp2.addEffect(durComp, duration);
         entity.add(durComp);
@@ -603,25 +621,25 @@ describe('System.TimeEffects', () => {
     });
 
     it('processes Coldness effects into damage', () => {
-        const timeSys = new RG.System.TimeEffects(['Expiration', 'Coldness']);
-        const damageSystem = new RG.System.Damage(['Damage']);
+        const timeSys = new System.TimeEffects(['Expiration', 'Coldness']);
+        const damageSystem = new System.Damage(['Damage']);
 
-        const ghoul = new RG.Actor.Rogue('ghoul');
-        const actor = new RG.Actor.Rogue('frozen');
-        const bodyTemp = new RG.Component.BodyTemp();
+        const ghoul = new SentientActor('ghoul');
+        const actor = new SentientActor('frozen');
+        const bodyTemp = new Component.BodyTemp();
         bodyTemp.setTemp(-95);
         actor.add(bodyTemp);
         actor.get('Health').setHP(5);
-        RGTest.wrapIntoLevel([actor]);
+        RGUnitTests.wrapIntoLevel([actor]);
 
-        const expirComp = new RG.Component.Expiration();
-        const paralComp = new RG.Component.Paralysis();
+        const expirComp = new Component.Expiration();
+        const paralComp = new Component.Paralysis();
         paralComp.setSource(ghoul);
         expirComp.addEffect(paralComp, 15);
         actor.add(expirComp);
         actor.add(paralComp);
 
-        actor.add(new RG.Component.Coldness());
+        actor.add(new Component.Coldness());
 
         for (let i = 0; i < 13; i++) {
             updateSystems([timeSys, damageSystem]);
@@ -641,14 +659,14 @@ describe('System.TimeEffects', () => {
 
 describe('System.Experience', () => {
     it('checks gained exp points and gives exp levels', () => {
-        const expSys = new RG.System.ExpPoints(['ExpPoints']);
-        const actor = new RG.Actor.Rogue('rogue');
-        RGTest.wrapIntoLevel([actor]);
+        const expSys = new System.ExpPoints(['ExpPoints']);
+        const actor = new SentientActor('rogue');
+        RGUnitTests.wrapIntoLevel([actor]);
 
         const compExp = actor.get('Experience');
         expect(compExp.getExp()).to.equal(0);
         for (let i = 1; i <= 4; i++) {
-            actor.add(new RG.Component.ExpPoints(i * 10));
+            actor.add(new Component.ExpPoints(i * 10));
         }
 
         updateSystems([expSys]);
@@ -659,20 +677,20 @@ describe('System.Experience', () => {
 
 describe('System.Skills', () => {
     it('it handles skill progression of actors', () => {
-        const skillsSys = new RG.System.Skills(['SkillsExp']);
-        const entity = new RG.Actor.Rogue('rogue');
-        RGTest.wrapIntoLevel([entity]);
+        const skillsSys = new System.Skills(['SkillsExp']);
+        const entity = new SentientActor('rogue');
+        RGUnitTests.wrapIntoLevel([entity]);
 
-        const skillComp = new RG.Component.Skills();
+        const skillComp = new Component.Skills();
         entity.add(skillComp);
 
-        const expComp = new RG.Component.SkillsExp();
+        const expComp = new Component.SkillsExp();
         expComp.setSkill('Melee');
         expComp.setPoints(10);
         entity.add(expComp);
 
         for (let i = 0; i < 3; i++) {
-            const expCompSpells = new RG.Component.SkillsExp();
+            const expCompSpells = new Component.SkillsExp();
             expCompSpells.setSkill('SpellCasting');
             expCompSpells.setPoints(10);
             entity.add(expCompSpells);
@@ -695,30 +713,30 @@ describe('System.Shop', () => {
     let actor = null;
 
     beforeEach(() => {
-        shopSys = new RG.System.Shop(['Transaction']);
-        shopkeeper = new RG.Actor.Rogue('shopkeeper');
-        actor = new RG.Actor.Rogue('buyer');
+        shopSys = new System.Shop(['Transaction']);
+        shopkeeper = new SentientActor('shopkeeper');
+        actor = new SentientActor('buyer');
 
-        shopCell = new Cell();
-        shopCell.setBaseElem(RG.ELEM.FLOOR);
-        shopElem = new RG.Element.Shop();
+        shopCell = new Cell(0, 0);
+        shopCell.setBaseElem(ELEM.FLOOR);
+        shopElem = new Element.ElementShop();
         shopCell.setProp(RG.TYPE_ELEM, shopElem);
-        RGTest.wrapIntoLevel([shopkeeper, actor]);
+        RGUnitTests.wrapIntoLevel([shopkeeper, actor]);
 
     });
 
     it('it handles buying transactions', () => {
-        const item = new RG.Item.Weapon('sword');
+        const item = new Item.Weapon('sword');
         item.setValue(100);
-        item.add(new RG.Component.Unpaid());
+        item.add(new Component.Unpaid());
         shopCell.setProp(RG.TYPE_ITEM, item);
-        const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+        const coins = new Item.GoldCoin(RG.GOLD_COIN_NAME);
         coins.setCount(100);
 
         const buyer = actor;
         buyer.getInvEq().addItem(coins);
 
-        const trans = new RG.Component.Transaction();
+        const trans = new Component.Transaction();
         trans.setArgs({
             item, buyer, seller: shopkeeper, shop: shopElem
         });
@@ -729,17 +747,17 @@ describe('System.Shop', () => {
     });
 
     it('handles selling transactions', () => {
-        const item = new RG.Item.Weapon('sword');
+        const item = new Item.Weapon('sword');
         item.setValue(100);
 
-        const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+        const coins = new Item.GoldCoin(RG.GOLD_COIN_NAME);
         coins.setCount(100);
         shopkeeper.getInvEq().addItem(coins);
 
         const seller = actor;
         seller.getInvEq().addItem(item);
 
-        const trans = new RG.Component.Transaction();
+        const trans = new Component.Transaction();
         trans.setArgs({
             item, buyer: shopkeeper, seller, shop: shopElem
         });
@@ -752,18 +770,18 @@ describe('System.Shop', () => {
     });
 
     it('works with item count > 1', () => {
-        const arrows = new RG.Item.Ammo('arrow');
+        const arrows = new Item.Ammo('arrow');
         arrows.setCount(15);
         arrows.setValue(20);
 
-        const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+        const coins = new Item.GoldCoin(RG.GOLD_COIN_NAME);
         coins.setCount(100);
         shopkeeper.getInvEq().addItem(coins);
 
         const seller = actor;
         seller.getInvEq().addItem(arrows);
 
-        const trans = new RG.Component.Transaction();
+        const trans = new Component.Transaction();
         trans.setArgs({
             item: arrows, buyer: shopkeeper, seller, shop: shopElem, count: 10
         });
@@ -784,23 +802,23 @@ describe('System.Shop', () => {
 
 describe('System.Event', () => {
     it('It responds to entities with Component.Event', () => {
-        const eventSys = new RG.System.Events(['Event']);
-        const actor = new RG.Actor.Rogue('killed one');
-        const killer = new RG.Actor.Rogue('killer');
-        const clueless = new RG.Actor.Rogue('clueless');
+        const eventSys = new System.Events(['Event']);
+        const actor = new SentientActor('killed one');
+        const killer = new SentientActor('killer');
+        const clueless = new SentientActor('clueless');
 
-        const player = new RG.Actor.Rogue('player hero');
+        const player = new SentientActor('player hero');
         player.setIsPlayer(true);
 
         const actors = [actor, killer, clueless, player];
-        const level = RGTest.wrapIntoLevel(actors);
-        RGTest.moveEntityTo(actor, 2, 2);
-        RGTest.moveEntityTo(player, 2, 3);
-        RGTest.moveEntityTo(killer, 3, 3);
-        RGTest.moveEntityTo(clueless, 5, 5);
+        const level = RGUnitTests.wrapIntoLevel(actors);
+        RGUnitTests.moveEntityTo(actor, 2, 2);
+        RGUnitTests.moveEntityTo(player, 2, 3);
+        RGUnitTests.moveEntityTo(killer, 3, 3);
+        RGUnitTests.moveEntityTo(clueless, 5, 5);
         eventSys.addLevel(level, 2);
 
-        const evt = new RG.Component.Event();
+        const evt = new Component.Event();
         const args = {
             type: RG.EVT_ACTOR_KILLED,
             actor,
@@ -816,18 +834,18 @@ describe('System.Event', () => {
 
 describe('System.AreaEffects', () => {
     it('handles Fire components in cells', () => {
-        const areaSys = new RG.System.AreaEffects(['Flame']);
-        const damageSystem = new RG.System.Damage(['Damage']);
+        const areaSys = new System.AreaEffects(['Flame']);
+        const damageSystem = new System.Damage(['Damage']);
         const systems = [areaSys, damageSystem];
 
-        const burntActor = new RG.Actor.Rogue('victim');
-        RGTest.wrapIntoLevel([burntActor]);
+        const burntActor = new SentientActor('victim');
+        RGUnitTests.wrapIntoLevel([burntActor]);
 
-        const flameEnt = new RG.Actor.Rogue('flame');
+        const flameEnt = new SentientActor('flame');
         const health = burntActor.get('Health');
 
         while (!health.isDead()) {
-            const fireComp = new RG.Component.Flame();
+            const fireComp = new Component.Flame();
             fireComp.setDamageType(RG.DMG.FIRE);
             fireComp.setSource(flameEnt);
             burntActor.add(fireComp);
@@ -845,11 +863,13 @@ describe('System.AreaEffects', () => {
 
 describe('System.BaseAction', () => {
     it('handles logic to pickup items', () => {
-        const sysBaseAction = new RG.System.BaseAction(['Pickup']);
+        const sysBaseAction = new System.BaseAction(['Pickup']);
         const level = Factory.createLevel('arena', 20, 20);
-        const actor = Factory.createPlayer('Player', {});
+
+        const factActor = new FactoryActor();
+        const actor = factActor.createPlayer('Player', {});
         const inv = actor.getInvEq().getInventory();
-        const weapon = new RG.Item.Weapon('weapon');
+        const weapon = new Item.Weapon('weapon');
 
         expect(level.addItem(weapon, 2, 4)).to.equal(true);
         expect(level.addActor(actor, 2, 4)).to.equal(true);

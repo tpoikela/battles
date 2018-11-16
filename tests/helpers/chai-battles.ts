@@ -6,6 +6,12 @@ declare global {
     export namespace Chai {
         interface Assertion {
             component(expectedText: string): Promise<void>;
+
+            accuracy(expectedNum: number): Promise<void>;
+
+        }
+        interface TypeComparison {
+            entity: any;
         }
     }
 }
