@@ -1,35 +1,44 @@
 
 import { expect } from 'chai';
 
-const RG = require('../../../client/src/battles');
-const RGTest = require('../../roguetest');
+import RG from '../../../client/src/rg';
+import {RGTest} from '../../roguetest';
+import { Brain } from '../../../client/src/brain';
+import { SentientActor } from '../../../client/src/actor';
+import * as Item from '../../../client/src/item';
+import { RGUnitTests } from '../../rg.unit-tests';
+import * as Component from '../../../client/src/component';
+import * as Element from '../../../client/src/element';
+import {GameMain} from '../../../client/src/game';
+import {Goal} from '../../../client/src/goals';
 
 describe('Goal.Thief', () => {
     it('manages the thief behaviour', () => {
 
-        const thief = new RG.Actor.Rogue('thief');
-        const thiefBrain = new RG.Brain.Thief(thief);
+        const thief = new SentientActor('thief');
+        const thiefBrain = new Brain.Thief(thief);
         thief.setBrain(thiefBrain);
 
-        const shopkeeper = new RG.Actor.Rogue('keeper');
-        shopkeeper.add(new RG.Component.Shopkeeper());
-        const coins = new RG.Item.GoldCoin();
-        coins.count = 100;
+        const shopkeeper = new SentientActor('keeper');
+        shopkeeper.add(new Component.Shopkeeper());
+        shopkeeper.setBrain(new Brain.GoalOriented(shopkeeper));
+        const coins = new Item.GoldCoin();
+        coins.setCount(100);
         shopkeeper.getInvEq().addItem(coins);
 
-        const level = RGTest.wrapIntoLevel([thief, shopkeeper], 5, 5);
+        const level = RGUnitTests.wrapIntoLevel([thief, shopkeeper], 5, 5);
 
-        const shopElem = new RG.Element.Shop();
+        const shopElem = new Element.ElementShop();
         shopElem.setShopkeeper(shopkeeper);
-        const food = new RG.Item.Food('food');
-        food.add(new RG.Component.Unpaid());
+        const food = new Item.Food('food');
+        food.add(new Component.Unpaid());
         level.addElement(shopElem, 2, 2);
         level.addItem(food, 2, 2);
 
-        const sword = new RG.Item.Weapon('sword');
+        const sword = new Item.Weapon('sword');
         level.addItem(sword, 1, 1);
 
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         game.addActiveLevel(level);
         const catcher = new RGTest.MsgCatcher();
         catcher.enabled = true;
