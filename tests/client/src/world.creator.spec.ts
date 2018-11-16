@@ -1,8 +1,6 @@
 
-const expect = require('chai').expect;
-// const RG = require('../../../client/src/battles');
-
-const WorldConf = require('../../../client/src/world.creator');
+import {expect} from 'chai';
+import {WorldConf} from '../../../client/src/world.creator';
 
 describe('World.Creator', () => {
     it('can create a configuration to build the game world', () => {
