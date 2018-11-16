@@ -6,13 +6,15 @@
  */
 import RG from './rg';
 import {Goal, GoalBase} from './goals';
-import GoalThief from './goal.thief';
+import {GoalThief} from './goal.thief';
 import {SentientActor} from './actor';
 import {Random} from './random';
 import {SpellArgs} from './spell';
 import {Brain} from './brain';
 
 type Coord = [number, number];
+
+Goal.Thief = GoalThief;
 
 export const Evaluator: any = {};
 Evaluator.hist = {};
