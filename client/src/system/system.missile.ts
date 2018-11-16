@@ -19,7 +19,7 @@ export class SystemMissile extends SystemBase {
         this.criticalShot = RG.MISSILE_CRITICAL_SHOT;
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const mComp = ent.get('Missile');
         const attacker = mComp.getSource();
         const level = mComp.getLevel();
@@ -44,7 +44,7 @@ export class SystemMissile extends SystemBase {
             mComp.next();
             const currX = mComp.getX();
             const currY = mComp.getY();
-            let currCell = null;
+            let currCell: Cell = null;
             if (map.hasXY(currX, currY)) {
                 currCell = map.getCell(currX, currY);
             }
@@ -71,7 +71,7 @@ export class SystemMissile extends SystemBase {
                 shownMsg = firedMsg + ' thuds to an obstacle';
             }
             else if (currCell.hasProp('actors')) {
-                const actor = currCell.getProp('actors')[0];
+                const actor = currCell.getActors()[0];
                 // Check hit and miss
                 if (this.targetHit(ent, actor, mComp)) {
                     this.finishMissileFlight(ent, mComp, currCell);
@@ -97,9 +97,9 @@ export class SystemMissile extends SystemBase {
                     this.finishMissileFlight(ent, mComp, currCell);
                     RG.debug(this, 'In target cell, and missed an entity');
 
-                    const actor = currCell.getFirstActor();
-                    if (actor) {
-                        const targetName = actor.getName();
+                    const actorFirst = currCell.getFirstActor();
+                    if (actorFirst) {
+                        const targetName = actorFirst.getName();
                         shownMsg = firedMsg + ' misses ' + targetName;
                     }
                     else {
@@ -115,12 +115,12 @@ export class SystemMissile extends SystemBase {
             else if (mComp.inTarget()) {
                 this.finishMissileFlight(ent, mComp, currCell);
                 RG.debug(this, 'In target cell but no hits');
-                shownMsg = ent.getName() + " doesn't hit anything";
+                shownMsg = ent.getName() + ' doesn\'t hit anything';
             }
             else if (!mComp.hasRange()) {
                 this.finishMissileFlight(ent, mComp, currCell);
                 RG.debug(this, 'Missile out of range. Hit nothing.');
-                shownMsg = ent.getName() + " doesn't hit anything";
+                shownMsg = ent.getName() + ' doesn\'t hit anything';
             }
             if (shownMsg.length > 0) {
                 RG.gameMsg({cell: currCell, msg: shownMsg});
@@ -131,7 +131,7 @@ export class SystemMissile extends SystemBase {
 
     /* Adds damage to hit actor, and returns the verb for the message
      * corresponding to the hit (ie critical or not). */
-    _addDamageToActor(ent, mComp) {
+    public _addDamageToActor(ent, mComp) {
         let hitVerb = 'hits';
         const dmg = mComp.getDamage();
         const damageComp = new Component.Damage(dmg,
@@ -152,7 +152,7 @@ export class SystemMissile extends SystemBase {
         return hitVerb;
     }
 
-    finishMissileFlight(ent, mComp, currCell) {
+    public finishMissileFlight(ent, mComp, currCell) {
         mComp.stopMissile(); // Target reached, stop missile
         ent.remove(mComp);
 
@@ -198,7 +198,7 @@ export class SystemMissile extends SystemBase {
     }
 
     /* Returns true if the ammo/missile is destroyed. */
-    _isItemDestroyed(ent) {
+    public _isItemDestroyed(ent) {
         const name = ent.getName();
         const prob = RNG.getUniform();
         if (ent.has('Ammo')) {
@@ -223,14 +223,14 @@ export class SystemMissile extends SystemBase {
         }
     }
 
-    _formatFiredMsg(ent, att) {
+    public _formatFiredMsg(ent, att) {
         let verb = 'thrown';
         if (ent.has('Ammo')) {verb = 'shot';}
         return `${ent.getName()} ${verb} by ${att.getName()}`;
     }
 
     /* Returns true if the target was hit.*/
-    targetHit(ent, target, mComp) {
+    public targetHit(ent, target, mComp) {
         if (target.has('Ethereal')) {
             return false;
         }
