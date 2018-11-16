@@ -1112,15 +1112,6 @@ RG.removeNCoins = (actor, ncoins) => {
     return ncoinsRemoved;
 };
 
-/* Trades the given gold weight from given to another actor. */
-RG.tradeGoldWeightFromTo = (gw, actorFrom, actorTo) => {
-    const nCoins = RG.getGoldInCoins(gw);
-    const coins = new RG.Item.GoldCoin();
-    const nCoinsRemoved = RG.removeNCoins(actorFrom, nCoins);
-    coins.setCount(nCoinsRemoved);
-    actorTo.getInvEq().addItem(coins);
-};
-
 /* Returns the total stat value of the given stat. Note that stat must be given
  * in getter format ie 'getStrength', not Strength. */
 RG.getItemStat = (getFuncName, item) => {
