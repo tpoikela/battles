@@ -1,13 +1,13 @@
 
-
 import RG from './rg';
-import {Menu} from './menu';
+import {MenuInfoOnly} from './menu';
 import * as Component from './component';
-import * as Spell from './spell';
+import {Spell} from './spell';
 import {Random} from './random';
 import {Ability} from './abilities';
 import {EquipSlot} from './equipment';
 import {SentientActor} from './actor';
+import { ObjectShell } from "./objectshellparser";
 
 const {Abilities} = Ability;
 
@@ -32,8 +32,8 @@ ActorClass.create = function(name, entity) {
 
 /* Returns the object used to render level up menu. This shows messages related
  * to the level up such as stats increases. */
-ActorClass.getLevelUpObject = function(level, actorClass) {
-    const selObj = new Menu.InfoOnly();
+ActorClass.getLevelUpObject = function(level, actorClass):  MenuInfoOnly {
+    const selObj = new MenuInfoOnly();
     const actor = actorClass.getActor();
     const className = actorClass.getClassName();
     const levelMsg = actorClass.getLevelUpMsg(level);
@@ -45,7 +45,7 @@ ActorClass.getLevelUpObject = function(level, actorClass) {
 
 /* Adds a given ability for the actor. Creates also the component to store all
  * the abilities if it's not found. */
-ActorClass.addAbility = function(abilName, actor) {
+ActorClass.addAbility = function(abilName, actor): void {
     let abilities = null;
     if (!actor.has('Abilities')) {
         abilities = new Abilities();
@@ -63,7 +63,17 @@ ActorClass.addAbility = function(abilName, actor) {
     }
 };
 
-ActorClass.startingItems = {
+export interface ItemConstr {
+    name?: string;
+    count?: number;
+    func?: (item) => boolean;
+}
+
+export interface ItemConstrMap {
+    [key: string]: ItemConstr[];
+}
+
+const startingItems: ItemConstrMap = {
     Alpinist: [
         {name: 'Ration', count: 1},
         {name: 'rope', count: 1},
@@ -94,8 +104,9 @@ ActorClass.startingItems = {
         {name: 'Potion of eagle', count: 1}
     ]
 };
+ActorClass.startingItems = startingItems;
 
-ActorClass.equipment = {
+const equipment: ItemConstrMap = {
     Alpinist: [
         {name: 'Piolet', count: 1},
         {name: 'Spiked boots', count: 1}
@@ -127,14 +138,15 @@ ActorClass.equipment = {
         {name: 'Leather armour', count: 1}
     ]
 };
+ActorClass.equipment = equipment;
 
-ActorClass.getEquipment = function(name) {
+ActorClass.getEquipment = function(name): ItemConstr[] {
     const items = ActorClass.equipment[name];
     const result = substituteConstraints(items);
     return result;
 };
 
-ActorClass.getStartingItems = function(name) {
+ActorClass.getStartingItems = function(name): ItemConstr[] {
     const items = ActorClass.startingItems[name];
     const result = substituteConstraints(items);
     return result;
@@ -229,10 +241,10 @@ export class Alpinist extends ActorClassBase {
             1: () => {
             },
             4: () => {
-                this._actor.add(new RG.Component.Climber());
+                this._actor.add(new Component.Climber());
             },
             8: () => {
-                this._actor.add(new RG.Component.Jumper());
+                this._actor.add(new Component.Jumper());
             },
             12: () => {
                 ActorClass.addAbility('Camouflage', this._actor);
@@ -288,11 +300,11 @@ export class Adventurer extends ActorClassBase {
         };
         this._advances = {
             1: () => {
-                const book = new RG.Spell.SpellBook(this._actor);
+                const book = new Spell.SpellBook(this._actor);
                 this._actor.setBook(book);
             },
             4: () => {
-                this._actor.add(new RG.Component.NourishedOne());
+                this._actor.add(new Component.NourishedOne());
             }
         };
     }
@@ -355,30 +367,30 @@ export class Blademaster extends ActorClassBase {
 
             },
             4: () => {
-                this._actor.add(new RG.Component.Defender());
+                this._actor.add(new Component.Defender());
             },
             8: () => {
-                this._actor.add(new RG.Component.Attacker());
+                this._actor.add(new Component.Attacker());
             },
             12: () => {
-                this._actor.add(new RG.Component.MasterEquipper());
+                this._actor.add(new Component.MasterEquipper());
             },
             16: () => {
-                this._actor.add(new RG.Component.BiDirStrike());
+                this._actor.add(new Component.BiDirStrike());
             },
             20: () => {
-                this._actor.add(new RG.Component.Sharpener());
+                this._actor.add(new Component.Sharpener());
                 ActorClass.addAbility('Sharpener', this._actor);
             },
             24: () => {
-                this._actor.add(new RG.Component.Ambidexterity());
+                this._actor.add(new Component.Ambidexterity());
             },
             28: () => {
-                this._actor.add(new RG.Component.CounterAttack());
+                this._actor.add(new Component.CounterAttack());
             },
             32: () => {
                 this._actor.get('Combat').setAttackRange(2);
-                this._actor.add(new RG.Component.LongReach());
+                this._actor.add(new Component.LongReach());
             }
         };
     }
@@ -433,34 +445,34 @@ export class Cryomancer extends ActorClassBase {
         this._advances = {
             1: () => {
                 // Create the spellbook
-                const book = new RG.Spell.SpellBook(this._actor);
-                const grasp = new RG.Spell.GraspOfWinter();
+                const book = new Spell.SpellBook(this._actor);
+                const grasp = new Spell.GraspOfWinter();
                 book.addSpell(grasp);
                 this._actor.setBook(book);
             },
             4: () => {
-                this._actor.getBook().addSpell(new RG.Spell.IceShield());
+                this._actor.getBook().addSpell(new Spell.IceShield());
             },
             8: () => {
-                this._actor.getBook().addSpell(new RG.Spell.FrostBolt());
+                this._actor.getBook().addSpell(new Spell.FrostBolt());
             },
             12: () => {
-                this._actor.getBook().addSpell(new RG.Spell.IcyPrison());
+                this._actor.getBook().addSpell(new Spell.IcyPrison());
             },
             16: () => {
-                this._actor.getBook().addSpell(new RG.Spell.SummonIceMinion());
+                this._actor.getBook().addSpell(new Spell.SummonIceMinion());
             },
             20: () => {
-                this._actor.getBook().addSpell(new RG.Spell.PowerDrain());
+                this._actor.getBook().addSpell(new Spell.PowerDrain());
             },
             24: () => {
-                this._actor.getBook().addSpell(new RG.Spell.IceArrow());
+                this._actor.getBook().addSpell(new Spell.IceArrow());
             },
             28: () => {
-                this._actor.getBook().addSpell(new RG.Spell.MindControl());
+                this._actor.getBook().addSpell(new Spell.MindControl());
             },
             32: () => {
-                this._actor.getBook().addSpell(new RG.Spell.Blizzard());
+                this._actor.getBook().addSpell(new Spell.Blizzard());
             }
         };
     }
@@ -513,28 +525,28 @@ export class Marksman extends ActorClassBase {
 
             },
             4: () => {
-                this._actor.add(new RG.Component.EagleEye());
+                this._actor.add(new Component.EagleEye());
             },
             8: () => {
-                this._actor.add(new RG.Component.StrongShot());
+                this._actor.add(new Component.StrongShot());
             },
             12: () => {
-                this._actor.add(new RG.Component.ThroughShot());
+                this._actor.add(new Component.ThroughShot());
             },
             16: () => {
-                this._actor.add(new RG.Component.MixedShot());
+                this._actor.add(new Component.MixedShot());
             },
             20: () => {
-                this._actor.add(new RG.Component.LongRangeShot());
+                this._actor.add(new Component.LongRangeShot());
             },
             24: () => {
-                this._actor.add(new RG.Component.RangedEvasion());
+                this._actor.add(new Component.RangedEvasion());
             },
             28: () => {
-                this._actor.add(new RG.Component.CriticalShot());
+                this._actor.add(new Component.CriticalShot());
             },
             32: () => {
-                this._actor.add(new RG.Component.DoubleShot());
+                this._actor.add(new Component.DoubleShot());
             }
         };
     }
@@ -588,34 +600,34 @@ export class Spellsinger extends ActorClassBase {
 
         this._advances = {
             1: () => {
-                const book = new RG.Spell.SpellBook(this._actor);
+                const book = new Spell.SpellBook(this._actor);
                 this._actor.setBook(book);
-                this._actor.getBook().addSpell(new RG.Spell.MagicArmor());
+                this._actor.getBook().addSpell(new Spell.MagicArmor());
             },
             4: () => {
-                this._actor.getBook().addSpell(new RG.Spell.SummonAnimal());
+                this._actor.getBook().addSpell(new Spell.SummonAnimal());
             },
             8: () => {
-                this._actor.getBook().addSpell(new RG.Spell.Heal());
+                this._actor.getBook().addSpell(new Spell.Heal());
             },
             12: () => {
-                this._actor.getBook().addSpell(new RG.Spell.Flying());
+                this._actor.getBook().addSpell(new Spell.Flying());
             },
             16: () => {
-                this._actor.getBook().addSpell(new RG.Spell.Paralysis());
+                this._actor.getBook().addSpell(new Spell.Paralysis());
             },
             20: () => {
-                this._actor.getBook().addSpell(new RG.Spell.LightningArrow());
+                this._actor.getBook().addSpell(new Spell.LightningArrow());
             },
             24: () => {
-                const airSpell = new RG.Spell.SummonAirElemental();
+                const airSpell = new Spell.SummonAirElemental();
                 this._actor.getBook().addSpell(airSpell);
             },
             28: () => {
-                this._actor.getBook().addSpell(new RG.Spell.CrossBolt());
+                this._actor.getBook().addSpell(new Spell.CrossBolt());
             },
             32: () => {
-                this._actor.getBook().addSpell(new RG.Spell.RockStorm());
+                this._actor.getBook().addSpell(new Spell.RockStorm());
             }
         };
     }
@@ -664,7 +676,7 @@ export class Spiritcrafter extends ActorClassBase {
 
         this._advances = {
             1: () => {
-                const book = new RG.Spell.SpellBook(this._actor);
+                const book = new Spell.SpellBook(this._actor);
                 this._actor.setBook(book);
             },
             4: () => {
@@ -672,10 +684,10 @@ export class Spiritcrafter extends ActorClassBase {
                 eq.addSlot('spiritgem', new EquipSlot('spiritgem'));
             },
             8: () => {
-                this._actor.getBook().addSpell(new RG.Spell.EnergyArrow());
+                this._actor.getBook().addSpell(new Spell.EnergyArrow());
             },
             12: () => {
-                this._actor.getBook().addSpell(new RG.Spell.ForceField());
+                this._actor.getBook().addSpell(new Spell.ForceField());
             },
             16: () => {
                 const eq = this.getActor().getInvEq().getEquipment();
@@ -683,18 +695,18 @@ export class Spiritcrafter extends ActorClassBase {
                 // Gems weight only 50% of their weight
             },
             20: () => {
-                this._actor.add(new RG.Component.SpiritItemCrafter());
+                this._actor.add(new Component.SpiritItemCrafter());
             },
             24: () => {
-                this._actor.getBook().addSpell(new RG.Spell.SpiritForm());
+                this._actor.getBook().addSpell(new Spell.SpiritForm());
             },
             28: () => {
-                this._actor.getBook().addSpell(new RG.Spell.EnergyStorm());
+                this._actor.getBook().addSpell(new Spell.EnergyStorm());
             },
             32: () => {
                 const eq = this.getActor().getInvEq().getEquipment();
                 eq.addSlot('spiritgem', new EquipSlot('spiritgem'));
-                this._actor.getBook().addSpell(new RG.Spell.RingOfEnergy());
+                this._actor.getBook().addSpell(new Spell.RingOfEnergy());
                 // TODO turn gems into power/health
                 // Gems weight only 10% of their weight
             }
@@ -732,11 +744,11 @@ export const ACTOR_CLASSES_NO_ADV = ACTOR_CLASSES.filter(ac => (
     ac !== 'Adventurer'));
 
 function getRandExcludeAdventurer() {
-    return RNG.arrayGetRand(RG.ACTOR_CLASSES_NO_ADV);
+    return RNG.arrayGetRand(ACTOR_CLASSES_NO_ADV);
 }
 
-function substituteConstraints(items) {
-    const parser = RG.ObjectShell.getParser();
+function substituteConstraints(items): ItemConstr[] {
+    const parser = ObjectShell.getParser();
     const result = [];
     items.forEach(item => {
         if (typeof item === 'function') {
