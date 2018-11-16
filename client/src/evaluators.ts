@@ -10,6 +10,7 @@ import GoalThief from './goal.thief';
 import {SentientActor} from './actor';
 import {Random} from './random';
 import {SpellArgs} from './spell';
+import {Brain} from './brain';
 
 type Coord = [number, number];
 
@@ -142,7 +143,6 @@ export class EvaluatorFlee extends EvaluatorBase {
     }
 
     calculateDesirability(actor) {
-        // const enemyCells = RG.Brain.getEnemyCellsAround(actor);
         const enemies = actor.getBrain().getSeenEnemies();
         if (enemies.length > 0) {
             const health = actor.get('Health');
@@ -412,7 +412,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
         const brain = actor.getBrain();
         const seenCells = brain.getSeenCells();
         const enemyCell = brain.findEnemyCell(seenCells);
-        const actorCellsAround = RG.Brain.getActorCellsAround(actor);
+        const actorCellsAround = Brain.getActorCellsAround(actor);
         const args: any = {actor, actorCellsAround};
         if (enemyCell) {
             args.enemy = enemyCell.getActors()[0];
