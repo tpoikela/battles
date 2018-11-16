@@ -51,37 +51,37 @@ export class Cell {
         this._isPassable = elem ? elem.isPassable() : true;
     }
 
-    getX() {return this._x;}
-    getY() {return this._y;}
-    getXY() {return [this._x, this._y];}
-    setX(x) {this._x = x;}
-    setY(y) {this._y = y;}
+    public getX() {return this._x;}
+    public getY() {return this._y;}
+    public getXY() {return [this._x, this._y];}
+    public setX(x) {this._x = x;}
+    public setY(y) {this._y = y;}
 
-    isAtXY(x, y) {
+    public isAtXY(x, y) {
         return x === this._x && y === this._y;
     }
 
-    getKeyXY() {
+    public getKeyXY() {
         return this._x + ',' + this._y;
     }
 
     /* Sets/gets the base element for this cell. There can be only one element.*/
-    setBaseElem(elem) {
+    public setBaseElem(elem) {
         this._baseElem = elem;
         this._lightPasses = elem.lightPasses();
         this._isPassable = elem.isPassable();
     }
 
-    getBaseElem() { return this._baseElem; }
+    public getBaseElem() { return this._baseElem; }
 
     /* Returns true if the cell has props of given type.*/
-    hasProp(prop) {
+    public hasProp(prop) {
         return this._p.hasOwnProperty(prop);
     }
 
     /* Returns the given type of props, or null if does not have any props of that
      * type. */
-    getProp(prop: string): PropsType[] {
+    public getProp(prop: string): PropsType[] {
         if (this._p.hasOwnProperty(prop)) {
             return this._p[prop];
         }
@@ -89,24 +89,24 @@ export class Cell {
     }
 
     /* Queries cell about possible elements. */
-    hasElements() {
+    public hasElements() {
         return this.hasProp(TYPE_ELEM);
     }
 
-    getElements(): Element.ElementBase[] {
+    public getElements(): Element.ElementBase[] {
         return this.getProp(TYPE_ELEM) as Element.ElementBase[];
     }
 
     /* Returns true if cell has any actors.*/
-    hasActors() {
+    public hasActors() {
         return this.hasProp(TYPE_ACTOR);
     }
 
-    getActors(): BaseActor[] {
+    public getActors(): BaseActor[] {
         return (this.getProp(TYPE_ACTOR) as BaseActor[]);
     }
 
-    getFirstActor(): BaseActor {
+    public getFirstActor(): BaseActor {
         const actors = this.getProp(TYPE_ACTOR) as BaseActor[];
         if (actors && actors.length > 0) {
             return actors[0];
@@ -114,16 +114,16 @@ export class Cell {
         return null;
     }
 
-    getSentientActors() {
+    public getSentientActors() {
         const actors = this.getActors();
         return actors.filter(actor => !actor.has('NonSentient'));
     }
 
-    hasItems() {return this.hasProp(TYPE_ITEM);}
-    getItems() {return this.getProp(TYPE_ITEM);}
+    public hasItems() {return this.hasProp(TYPE_ITEM);}
+    public getItems() {return this.getProp(TYPE_ITEM);}
 
     /* Checks if this cell has a marker with given tag. */
-    hasMarker(tag) {
+    public hasMarker(tag) {
         if (this.hasElements()) {
             const elems = this.getElements() as Element.ElementBase[];
             for (let i = 0; i < elems.length; i++) {
@@ -138,12 +138,12 @@ export class Cell {
     }
 
     /* Returns true if cell has any props. */
-    hasProps() {
+    public hasProps() {
         return Object.keys(this._p).length > 0;
     }
 
     /* Returns true if cell has stairs.*/
-    hasStairs(): boolean {
+    public hasStairs(): boolean {
         const propType = this.getConnection();
         if (propType) {
             const name = propType.getName();
@@ -153,34 +153,34 @@ export class Cell {
     }
 
     /* Returns true if cell has passage to another tile. */
-    hasPassage(): boolean {
+    public hasPassage(): boolean {
         const propType = this.getConnection();
         if (propType) {return propType.getName() === 'passage';}
         return false;
     }
 
-    hasShop(): boolean {
+    public hasShop(): boolean {
         return this.hasPropType('shop');
     }
 
-    getShop(): Element.ElementShop {
+    public getShop(): Element.ElementShop {
         const shopU = this.getPropType('shop')[0] as unknown;
         return shopU as Element.ElementShop;
     }
 
-    hasDoor(): boolean {
+    public hasDoor(): boolean {
         return this.hasPropType('door');
     }
 
-    hasConnection(): boolean {
+    public hasConnection(): boolean {
         return this.hasPropType('connection');
     }
 
-    hasHouse(): boolean {
+    public hasHouse(): boolean {
         return this._baseElem.getType() === 'floorhouse';
     }
 
-    hasConnectionType(type): boolean {
+    public hasConnectionType(type): boolean {
         if (this.hasConnection()) {
             const connection = this.getConnection();
             return connection.getName() === type;
@@ -188,27 +188,27 @@ export class Cell {
         return false;
     }
 
-    hasTown(): boolean {
+    public hasTown(): boolean {
         return this.hasConnectionType('town');
     }
 
-    hasBattle(): boolean {
+    public hasBattle(): boolean {
         return this.hasConnectionType('battle');
     }
 
-    hasMountain(): boolean {
+    public hasMountain(): boolean {
         return this.hasConnectionType('mountain');
     }
 
     /* Return stairs in this cell, or null if there are none.*/
-    getStairs(): Stairs {
+    public getStairs(): Stairs {
         if (this.hasStairs()) {
             return this.getConnection();
         }
         return null;
     }
 
-    getConnection(): Stairs {
+    public getConnection(): Stairs {
         if (this.hasPropType('connection')) {
             const connU = this.getPropType('connection')[0] as unknown;
             return connU as Stairs;
@@ -217,7 +217,7 @@ export class Cell {
     }
 
     /* Returns passage in this cell, or null if not found. */
-    getPassage(): Stairs {
+    public getPassage(): Stairs {
         if (this.hasPassage()) {
             return this.getConnection();
         }
@@ -225,7 +225,7 @@ export class Cell {
     }
 
     /* Returns true if light passes through this map cell.*/
-    lightPasses(): boolean {
+    public lightPasses(): boolean {
         // if (!this._baseElem.lightPasses()) {return false;}
         if (!this._lightPasses) {return false;}
         // if (this.hasProp(TYPE_ELEM)) {
@@ -245,13 +245,13 @@ export class Cell {
         return true;
     }
 
-    isPassable(): boolean {return this.isFree();}
+    public isPassable(): boolean {return this.isFree();}
 
-    isPassableByAir(): boolean {
+    public isPassableByAir(): boolean {
         return this._baseElem.isPassableByAir();
     }
 
-    isDangerous(): boolean {
+    public isDangerous(): boolean {
         if (this._p[TYPE_ACTOR]) {
             const actors = this.getProp(TYPE_ACTOR);
             if (actors) {
@@ -261,19 +261,19 @@ export class Cell {
         return false;
     }
 
-    hasObstacle(): boolean {
+    public hasObstacle(): boolean {
         return this._baseElem.isObstacle();
     }
 
-    isSpellPassable(): boolean {
+    public isSpellPassable(): boolean {
         return this._baseElem.isSpellPassable();
     }
 
-    setExplored() {this._explored = true;}
-    isExplored(): boolean {return this._explored;}
+    public setExplored() {this._explored = true;}
+    public isExplored(): boolean {return this._explored;}
 
     /* Returns true if it's possible to move to this cell.*/
-    isFree(isFlying = false): boolean {
+    public isFree(isFlying = false): boolean {
         // if (!isFlying && !this._baseElem.isPassable()) {return false;}
         if (!isFlying && !this._isPassable) {return false;}
 
@@ -308,7 +308,7 @@ export class Cell {
         }
     }
 
-    getDoor(): Door {
+    public getDoor(): Door {
         if (this.hasPropType('door')) {
             const door = this.getPropType('door')[0] as unknown;
             return (door as Door);
@@ -316,7 +316,7 @@ export class Cell {
         return null;
     }
 
-    getLeverDoor(): LeverDoor {
+    public getLeverDoor(): LeverDoor {
         if (this.hasPropType('leverdoor')) {
             const door = this.getPropType('leverdoor')[0] as unknown;
             return (door as LeverDoor);
@@ -325,7 +325,7 @@ export class Cell {
     }
 
     /* Add given obj with specified property type.*/
-    setProp(prop, obj) {
+    public setProp(prop, obj) {
         if (obj.getType() === 'connection' && this.hasConnection()) {
             let msg = `${this._x},${this._y}`;
             msg += `\nExisting: ${JSON.stringify(this.getConnection())}`;
@@ -355,12 +355,12 @@ export class Cell {
         }
     }
 
-    removeProps(propType) {
+    public removeProps(propType) {
         delete this._p[propType];
     }
 
     /* Removes the given object from cell properties.*/
-    removeProp(prop, obj) {
+    public removeProp(prop, obj) {
         if (this.hasProp(prop)) {
             const props = this._p[prop];
             const index = props.indexOf(obj);
@@ -375,7 +375,7 @@ export class Cell {
     }
 
     /* Returns string representation of the cell.*/
-    toString() {
+    public toString() {
         let str = 'Map.Cell ' + this._x + ', ' + this._y;
         str += ' explored: ' + this._explored;
         str += ' passes light: ' + this.lightPasses();
@@ -394,7 +394,7 @@ export class Cell {
     }
 
     /* Returns true if the cell has an usable element. */
-    hasUsable() {
+    public hasUsable() {
         const elems = this.getProp(RG.TYPE_ELEM) as Element.ElementBase[];
         if (elems) {
             for (let i = 0; i < elems.length; i++) {
@@ -406,7 +406,7 @@ export class Cell {
         return false;
     }
 
-    toJSON(): CellJSON {
+    public toJSON(): CellJSON {
         const json: CellJSON = {
             t: ELEM_MAP.elemTypeToIndex[this._baseElem.getType()]
         };
@@ -431,7 +431,7 @@ export class Cell {
 
     /* Returns name (or type if unnamed) for each prop in this cell, including the
      * base element type. */
-    getPropNames() {
+    public getPropNames() {
         const result = [this._baseElem.getType()];
         const keys = Object.keys(this._p);
         keys.forEach(propType => {
@@ -447,7 +447,7 @@ export class Cell {
      * myCell.hasPropType("wall"). Doesn't check for basic props like "actors",
      * RG.TYPE_ITEM etc.
      */
-    hasPropType(propType) {
+    public hasPropType(propType) {
         if (this._baseElem.getType() === propType) {return true;}
 
         const keys = Object.keys(this._p);
@@ -464,7 +464,7 @@ export class Cell {
     }
 
     /* Returns all props with given type in the cell.*/
-    getPropType(propType): PropsType[] {
+    public getPropType(propType): PropsType[] {
         const props = [];
         if (this._baseElem.getType() === propType) {return [this._baseElem];}
         Object.keys(this._p).forEach(prop => {
@@ -479,7 +479,7 @@ export class Cell {
     }
 
     /* For debugging to find a given object. */
-    findObj(filterFunc) {
+    public findObj(filterFunc) {
         const result = [];
         Object.keys(this._p).forEach(propType => {
             const props = this._p[propType];
