@@ -15,6 +15,7 @@ import {Random} from '../client/src/random';
 import {FactoryLevel} from '../client/src/factory.level';
 import {SentientActor} from '../client/src/actor';
 import { EventPool } from '../client/src/eventpool';
+import {Brain} from '../client/src/brain';
 
 export const RGTest: any = {};
 
@@ -61,7 +62,7 @@ RGTest.equipItem = function(actor, item) {
 RGTest.getMeAWizard = function(conf: any = {}) {
     const wizard = new SentientActor('wizard');
     wizard.setType(conf.type || 'human');
-    const brain = new RG.Brain.SpellCaster(wizard);
+    const brain = new Brain.SpellCaster(wizard);
     wizard.setBrain(brain);
 
     wizard._spellbook = new RG.Spell.SpellBook(wizard);
