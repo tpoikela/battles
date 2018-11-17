@@ -4,6 +4,8 @@
 import RG from './rg';
 import {Constraints} from './constraints';
 import {BrainBase} from './brain';
+import {Constraint} from './interfaces';
+import { ObjectShell } from './objectshellparser';
 
 const spawnProb = 0.10;
 
@@ -30,7 +32,7 @@ export class BrainSpawner extends BrainVirtual {
     }
 
 
-    public setConstraint(constraint) {
+    public setConstraint(constraint: Constraint) {
         this.constraint = constraint;
         this._constraintFunc = new Constraints().getConstraints(constraint);
     }
@@ -43,7 +45,7 @@ export class BrainSpawner extends BrainVirtual {
                 const freeCell = level.getFreeRandCell();
                 const [x, y] = [freeCell.getX(), freeCell.getY()];
 
-                const parser = RG.ObjectShell.getParser();
+                const parser = ObjectShell.getParser();
                 const newActor = parser.createRandomActor(
                     {func: this._constraintFunc});
                 if (newActor) {
