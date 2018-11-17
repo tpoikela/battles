@@ -6,6 +6,8 @@ import {MapGenerator} from './map.generator';
 import {DungeonPopulate} from './dungeon-populate';
 import {Random} from './random';
 import {Level} from './level';
+import {ELEM} from '../data/elem-constants';
+import {ElementDoor} from './element';
 
 const RNG = Random.getRNG();
 
@@ -21,7 +23,7 @@ export class CityGenerator extends LevelGenerator {
         this.shouldRemoveMarkers = true;
     }
 
-    create(cols, rows, conf): Level {
+    public create(cols, rows, conf): Level {
         const level = this.createLevel(cols, rows, conf);
 
         this.populateCityLevel(level, conf);
@@ -30,7 +32,7 @@ export class CityGenerator extends LevelGenerator {
     }
 
     /* Returns a castle level without populating it. */
-    createLevel(cols, rows, conf): Level {
+    public createLevel(cols, rows, conf): Level {
         const mapGen = new MapGenerator();
         let mapObj = null;
 
@@ -41,7 +43,7 @@ export class CityGenerator extends LevelGenerator {
             mapObj = mapGen.createTownBSP(cols, rows, conf);
         }
 
-        const level = new RG.Map.Level();
+        const level = new Level();
         level.setMap(mapObj.map);
 
         level.addExtras('houses', mapObj.houses);
@@ -50,18 +52,18 @@ export class CityGenerator extends LevelGenerator {
         return level;
     }
 
-    createHouseElements(level: Level): void {
+    public createHouseElements(level: Level): void {
         const houses = level.getExtras().houses;
         for (let i = 0; i < houses.length; i++) {
             const doorXY = houses[i].door;
-            const door = new RG.Element.Door(true);
+            const door = new ElementDoor(true);
             level.addElement(door, doorXY[0], doorXY[1]);
         }
     }
 
-    fillUnusedAreas(level: Level, areas): void {
+    public fillUnusedAreas(level: Level, areas): void {
         const map = level.getMap();
-        const elems = [RG.ELEM.GRASS, RG.ELEM.TREE, RG.ELEM.WATER];
+        const elems = [ELEM.GRASS, ELEM.TREE, ELEM.WATER];
         areas.forEach(area => {
             const baseElem = RNG.arrayGetRand(elems);
             let {w, h} = area;
@@ -76,7 +78,7 @@ export class CityGenerator extends LevelGenerator {
         });
     }
 
-    populateCityLevel(level: Level, conf): void {
+    public populateCityLevel(level: Level, conf): void {
         let houses = level.getExtras().houses;
         const dungPopul = new DungeonPopulate(conf);
 
@@ -90,7 +92,7 @@ export class CityGenerator extends LevelGenerator {
         this.createTownsfolk(level, conf);
     }
 
-    createTownsfolk(level: Level, conf): void {
+    public createTownsfolk(level: Level, conf): void {
         const dungPopul = new DungeonPopulate(conf);
         const houses = level.getExtras().houses;
         houses.forEach(house => {

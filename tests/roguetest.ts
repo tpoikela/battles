@@ -16,6 +16,11 @@ import {FactoryLevel} from '../client/src/factory.level';
 import {SentientActor} from '../client/src/actor';
 import { EventPool } from '../client/src/eventpool';
 import {Brain} from '../client/src/brain';
+import * as Item from '../client/src/item';
+import * as Component from '../client/src/component';
+import {Spell} from '../client/src/spell';
+import { FactoryActor } from '../client/src/factory.actors';
+import { Dice } from '../client/src/dice';
 
 export const RGTest: any = {};
 
@@ -65,17 +70,18 @@ RGTest.getMeAWizard = function(conf: any = {}) {
     const brain = new Brain.SpellCaster(wizard);
     wizard.setBrain(brain);
 
-    wizard._spellbook = new RG.Spell.SpellBook(wizard);
-    const spell = RG.FACT.createSpell('FrostBolt');
+    wizard._spellbook = new Spell.SpellBook(wizard);
+    const actorFact = new FactoryActor();
+    const spell = actorFact.createSpell('FrostBolt');
     spell.setPower(conf.power || 11);
     spell.setRange(conf.range || 7);
-    spell.setDice('damage', RG.FACT.createDie([1, 2, 3]));
+    spell.setDice('damage', Dice.create([1, 2, 3]));
     wizard._spellbook.addSpell(spell);
 
     // Adjust evaluators and casting probability
     RGTest.ensureSpellCast(wizard);
 
-    const spellPower = new RG.Component.SpellPower();
+    const spellPower = new Component.SpellPower();
     spellPower.setPP(30);
     spellPower.setMaxPP(40);
     wizard.add(spellPower);
@@ -226,12 +232,12 @@ RGTest.MsgCatcher = function() {
 RGTest.createSpirit = function(name) {
     const spirit = new SentientActor(name);
     spirit.setType('spirit');
-    spirit.add(new RG.Component.Ethereal());
+    spirit.add(new Component.Ethereal());
     return spirit;
 };
 
 RGTest.createBoundGem = function() {
-    const gem = new RG.Item.SpiritGem('Great gem');
+    const gem = new Item.SpiritGem('Great gem');
     const spirit = RGTest.createSpirit('Legendary spirit');
     spirit.get('Stats').setStrength(100);
     spirit.get('Stats').setAgility(100);

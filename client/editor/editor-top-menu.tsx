@@ -1,6 +1,7 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {Level} from '../src/level';
 
 import TopMenuLogic from './top-menu-logic';
 
@@ -8,19 +9,29 @@ import {
   Nav, NavItem, NavDropdown, MenuItem
 } from 'react-bootstrap';
 
+interface IEditorTopMenuProps {
+    addLevel: () => void;
+    level: Level;
+    menuCallback: (any) => void;
+    toggleEditor: () => void;
+}
+
 export default class EditorTopMenu extends Component {
 
-  constructor(props) {
+  public menuLogic: TopMenuLogic;
+  public props: IEditorTopMenuProps;
+
+  constructor(props: IEditorTopMenuProps) {
       super(props);
       this.handleSelect = this.handleSelect.bind(this);
   }
 
-  handleSelect(eventKey) {
+  public handleSelect(eventKey) {
     this.props.menuCallback(eventKey);
     this.menuLogic.menuCallback(eventKey);
   }
 
-  render() {
+  public render() {
     return (
     <div className='editor-top-menu'>
       <Nav activeKey='1' bsStyle='tabs' onSelect={this.handleSelect}>
@@ -96,9 +107,3 @@ export default class EditorTopMenu extends Component {
   }
 }
 
-EditorTopMenu.propTypes = {
-    addLevel: PropTypes.func.isRequired,
-    level: PropTypes.object,
-    menuCallback: PropTypes.func.isRequired,
-    toggleEditor: PropTypes.func.isRequired
-};

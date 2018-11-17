@@ -8,27 +8,35 @@ import {BrainBase} from './brain';
 const spawnProb = 0.10;
 
 /* Brains for virtual actors such as spawners. */
-export const BrainVirtual = function(actor) {
-    BrainBase.call(this, actor);
-    this.setType('Virtual');
-};
-RG.extend2(BrainVirtual, BrainBase);
+export class BrainVirtual extends BrainBase {
+
+    constructor(actor) {
+        super(actor);
+        this.setType('Virtual');
+    }
+}
 
 /* Brain object used by Spawner virtual actors. */
-export const BrainSpawner = function(actor) {
-    BrainVirtual.call(this, actor);
-    this.setType('Spawner');
+export class BrainSpawner extends BrainVirtual {
 
-    this.constraint = null;
-    this._constraintFunc = null;
+    public constraint: Constraint;
+    protected _constraintFunc: (shell) => boolean;
 
-    this.setConstraint = constraint => {
+    constructor(actor) {
+        super(actor);
+        this.setType('Spawner');
+        this.constraint = null;
+        this._constraintFunc = null;
+    }
+
+
+    public setConstraint(constraint) {
         this.constraint = constraint;
         this._constraintFunc = new Constraints().getConstraints(constraint);
-    };
+    }
 
     /* Spawns an actor to the current level (if any). */
-    this.decideNextAction = function() {
+    public decideNextAction(): () => void {
         if (RG.isSuccess(spawnProb)) {
             return () => {
                 const level = this.getActor().getLevel();
@@ -45,14 +53,13 @@ export const BrainSpawner = function(actor) {
             };
         }
         return () => {};
-    };
+    }
 
-    this.toJSON = function() {
+    public toJSON() {
         return {
             type: this.getType(),
             constraint: this.constraint
         };
-    };
+    }
 
-};
-RG.extend2(BrainSpawner, BrainVirtual);
+}

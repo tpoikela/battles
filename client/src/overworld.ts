@@ -235,7 +235,7 @@ OverWorld.SubLevel.prototype.getFeaturesByType = function(type) {
 /* Object to translate coordinates between different maps and levels.
  */
 //---------------------------------------------------------------------------
-const CoordMap = function(args: any = {}) { // TODO typings
+export const CoordMap = function(args: any = {}) { // TODO typings
     // Size of the large overworld Map.Level
     this.worldCols = args.worldCols || 0;
     this.worldRows = args.worldRows || 0;

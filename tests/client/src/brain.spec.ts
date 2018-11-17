@@ -311,20 +311,18 @@ describe('BrainSentient', () => {
     });
 
     it('explores randomly when no enemies', () => {
-        const pool = new EventPool();
-        const movSys = new SystemMovement(['Movement'], pool);
+        const movSys = new SystemMovement(['Movement']);
         const arena = factLevel.createLevel('arena', 10, 10);
         const rogue = new SentientActor('rogue');
-        Entity.setPool(pool);
-        arena.addActor(rogue, 1, 1);
+        arena.addActor(rogue, 3, 3);
         const action = rogue.nextAction();
         action.doAction();
 
         let cellChanged = false;
         for (let i = 0; i < 10; i++) {
             movSys.update();
-            cellChanged = rogue.getCell().getX() !== 1 ||
-                rogue.getCell().getY() !== 1;
+            cellChanged = rogue.getCell().getX() !== 3 ||
+                rogue.getCell().getY() !== 3;
             if (cellChanged) {break;}
             
         }
@@ -447,9 +445,9 @@ describe('Brain.SpellCaster', () => {
 
         const goblin = new SentientActor('goblin');
         goblin.setType('goblin');
-        RGTest.wrapIntoLevel([wizard, goblin]);
-        RGTest.moveEntityTo(wizard, 2, 2);
-        RGTest.moveEntityTo(goblin, 4, 4);
+        RGUnitTests.wrapIntoLevel([wizard, goblin]);
+        RGUnitTests.moveEntityTo(wizard, 2, 2);
+        RGUnitTests.moveEntityTo(goblin, 4, 4);
 
         const action = wizard.nextAction();
         action.doAction();

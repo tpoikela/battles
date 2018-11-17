@@ -1,16 +1,44 @@
 
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import Modal from 'react-modal';
+import {Level} from '../src/level';
+import {Battle} from '../src/game.battle';
 
-const debug = require('debug')('bitn:TopMenuLogic');
-const FactoryBattle = require('../src/factory.battle');
+import dbg = require('debug');
+const debug = dbg('bitn:TopMenuLogic');
+
+import {FactoryBattle} from '../src/factory.battle';
+
+interface ITopMenuLogicProps {
+  addLevel: (Level) => void;
+  level: Level;
+  onRef: any;
+}
+
+
+interface ITopMenuLogicState {
+    showModal: boolean;
+    options: {[key: string]: any};
+    cmdOptionsText: string;
+    errorMsg: string;
+    currentCmd: string;
+}
+
+interface FuncObj {
+    showModal: boolean;
+    func: (any) => void;
+}
 
 /* This component handles any menu access and shows the required modal for
  * selecting the options. */
 export default class TopMenuLogic extends Component {
 
-    constructor(props) {
+    public props: ITopMenuLogicProps;
+    public state: ITopMenuLogicState;
+    public battles: Battle[];
+    public functions: {[key: string]: FuncObj};
+
+    constructor(props: ITopMenuLogicProps) {
       super(props);
       this.state = {
         showModal: false,
@@ -32,19 +60,19 @@ export default class TopMenuLogic extends Component {
       };
     }
 
-    componentDidMount() {
+    public componentDidMount() {
       this.props.onRef(this);
     }
 
-    componentWillUnmount() {
+    public componentWillUnmount() {
       this.props.onRef(null);
     }
 
-    onClickModalCancel() {
+    public onClickModalCancel() {
       this.setState({showModal: false, errorMsg: ''});
     }
 
-    onClickModalOK() {
+    public onClickModalOK() {
       try {
         const options = JSON.parse(this.state.cmdOptionsText);
         const funcToCall = this.functions[this.state.currentCmd].func;
@@ -64,11 +92,11 @@ export default class TopMenuLogic extends Component {
       }
     }
 
-    onChangeCmdOptions(evt) {
+    public onChangeCmdOptions(evt) {
       this.setState({cmdOptionsText: evt.target.value});
     }
 
-    menuCallback(eventKey) {
+    public menuCallback(eventKey) {
       const showModal = this.needsModal(eventKey);
       // TODO get default options for that command
       const options = {name: eventKey};
@@ -81,7 +109,7 @@ export default class TopMenuLogic extends Component {
 
     /* Top menu logic renders only optionally the modal used to modify the
      * settings for each command. */
-    render() {
+    public render() {
       let errorMsg = null;
       if (this.state.errorMsg !== '') {
         errorMsg = (<span className='text-danger'>
@@ -116,7 +144,7 @@ export default class TopMenuLogic extends Component {
     }
 
     /* Returns true if the given menu command requires modal. */
-    needsModal(eventKey) {
+    public needsModal(eventKey) {
       if (this.functions.hasOwnProperty(eventKey)) {
         const options = this.functions[eventKey];
         if (options.showModal) {
@@ -129,7 +157,7 @@ export default class TopMenuLogic extends Component {
     }
 
     /* Creates a new battle using current level. */
-    newBattle(conf) {
+    public newBattle(conf) {
       debug('TopMenuLogic newBattle() begin');
       // const level = this.props.level;
       const fact = new FactoryBattle();
@@ -141,9 +169,3 @@ export default class TopMenuLogic extends Component {
     }
 
 }
-
-TopMenuLogic.propTypes = {
-  addLevel: PropTypes.func.isRequired,
-  level: PropTypes.object,
-  onRef: PropTypes.func
-};

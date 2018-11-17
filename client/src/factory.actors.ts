@@ -5,6 +5,7 @@ import * as Actor from './actor';
 import * as Brain from './brain';
 import * as ObjectShell from './objectshellparser';
 import {ActorMods} from '../data/actor-mods';
+import {Spell} from './spell';
 
 import dbg = require('debug');
 const debug = dbg('bitn:FactoryActor');
@@ -129,11 +130,11 @@ export const FactoryActor = function() {
 };
 
 FactoryActor.prototype.createSpell = function(spellName) {
-    if (RG.Spell.hasOwnProperty(spellName)) {
-        return new RG.Spell[spellName]();
+    if (Spell.hasOwnProperty(spellName)) {
+        return new Spell[spellName]();
     }
     else {
-        const keys = Object.keys(RG.Spell).join('\n\t');
+        const keys = Object.keys(Spell).join('\n\t');
         RG.err('FactoryActor', 'createSpell',
             `No spell ${spellName} found in RG.Spell: \n\t${keys}`);
     }
@@ -163,9 +164,9 @@ FactoryActor.prototype.generateNActors = function(nActors, func, maxDanger) {
         }
         else {
             actor = parser.createRandomActor({
-                func: actor => (
-                    func(actor) &&
-                    actor.danger <= maxDanger
+                func: actShell => (
+                    func(actShell) &&
+                    actShell.danger <= maxDanger
                 )
             });
         }

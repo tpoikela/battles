@@ -5,21 +5,30 @@
 
 import RG from '../src/rg';
 import * as Component from '../src/component';
-import {Ability} from '../src/abilities';
-import {Texts} from '../data/texts';
-import {CityGenerator} from '../src/city-generator';
-import {ItemRandomizer} from '../src/factory.items';
-import {EquipSlot} from '../src/equipment';
-import {Actors} from './actors';
 import * as Element from '../src/element';
-import {Random} from '../src/random';
 import * as Item from '../src/item';
 import * as Time from '../src/time';
+import {Ability} from '../src/abilities';
+import {Actors} from './actors';
+import {Brain} from '../src/brain';
+import {BrainSpawner} from '../src/brain.virtual';
+import {Battle, Army} from '../src/game.battle';
+import {CityGenerator} from '../src/city-generator';
+import {EquipSlot} from '../src/equipment';
+import {ItemRandomizer} from '../src/factory.items';
 import {MapGenerator} from '../src/map.generator';
+import {Random} from '../src/random';
+import {Spell} from '../src/spell';
+import {Texts} from '../data/texts';
+import {VirtualActor} from '../src/actor';
 
-import {Quest,QuestPopulate} from '../src/quest-gen';
+import {Quest, QuestPopulate} from '../src/quest-gen';
 
 import {EventPool} from '../src/eventpool';
+import {Factory} from '../src/factory';
+import {FactoryLevel} from '../src/factory.level';
+import {World} from '../src/world';
+import {WinCondition} from '../src/game';
 
 const POOL = EventPool.getPool();
 
@@ -41,18 +50,18 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     // game.addLevel(level);
     level.addActor(player, pX, pY);
 
-    const cityQuarter = new RG.World.CityQuarter('Debug quarter');
+    const cityQuarter = new World.CityQuarter('Debug quarter');
     cityQuarter.addLevel(level);
     level.shops.forEach(shop => {
         cityQuarter.addShop(shop);
     });
-    const city = new RG.World.City('Wrapper city for Debug quarter');
+    const city = new World.City('Wrapper city for Debug quarter');
     city.addQuarter(cityQuarter);
     city.tileX = 0;
     city.tileY = 0;
-    const area = new RG.World.Area('Wrapper area', 2, 2, 10, 10);
+    const area = new World.Area('Wrapper area', 2, 2, 10, 10);
     area.addZone('City', city);
-    const world = new RG.World.Top('Wrapper world');
+    const world = new World.WorldTop('Wrapper world');
     world.addArea(area);
     game.addPlace(world);
 
@@ -60,7 +69,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     spirit.get('Stats').setStrength(500);
     level.addActor(spirit, 2, 1);
 
-    const gem = new RG.Item.SpiritGem('Lesser gem');
+    const gem = new Item.SpiritGem('Lesser gem');
     level.addItem(gem);
 
     const pickaxe = this._parser.createActualObj('items', 'Pick-axe');
@@ -82,7 +91,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
 
     // Test for shops
     const keeper = this._parser.createActualObj('actors', 'shopkeeper');
-    const gold = new RG.Item.GoldCoin();
+    const gold = new Item.GoldCoin();
     gold.setCount(50);
     keeper.getInvEq().addItem(gold);
     level.addActor(keeper, 2, 2);
@@ -93,7 +102,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     shopCell.setProp('elements', shopElem);
     const soldItem = this._parser.createActualObj('items',
         'Ruby glass sword');
-    soldItem.add(new RG.Component.Unpaid());
+    soldItem.add(new Component.Unpaid());
     shopCell.setProp('items', soldItem);
     shopElem.setShopkeeper(keeper);
     */
@@ -127,16 +136,16 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     player.getInvEq().addItem(potStr);
 
     // BladeMaster components
-    player.add(new RG.Component.Attacker());
-    player.add(new RG.Component.Defender());
-    player.add(new RG.Component.MasterEquipper());
-    player.add(new RG.Component.BiDirStrike());
-    player.add(new RG.Component.BiDirStrike());
+    player.add(new Component.Attacker());
+    player.add(new Component.Defender());
+    player.add(new Component.MasterEquipper());
+    player.add(new Component.BiDirStrike());
+    player.add(new Component.BiDirStrike());
 
     // Marksman components
-    player.add(new RG.Component.ThroughShot());
+    player.add(new Component.ThroughShot());
 
-    const winCond = new RG.Game.WinCondition('Kill a keeper');
+    const winCond = new WinCondition('Kill a keeper');
     winCond.addActorKilled(keeper);
 
     game.addPlayer(player);
@@ -147,35 +156,35 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     const gem2 = this._parser.createItem('Greater spirit gem');
     player.getInvEq().addItem(gem1);
     player.getInvEq().addItem(gem2);
-    player.add(new RG.Component.SpiritItemCrafter());
+    player.add(new Component.SpiritItemCrafter());
 
-    const exploreElem = new RG.Element.Exploration();
+    const exploreElem = new Element.ElementExploration();
     exploreElem.setExp(100);
     level.addElement(exploreElem, 1, 20);
 
     const trainer = this.createTrainer();
     level.addActor(trainer, 1, 2);
 
-    const coins = new RG.Item.GoldCoin();
+    const coins = new Item.GoldCoin();
     coins.setCount(600);
     player.getInvEq().addItem(coins);
 
     // if (!player.getBook()) {
-    const spellbook = new RG.Spell.SpellBook(player);
+    const spellbook = new Spell.SpellBook(player);
     player.setBook(spellbook);
-    RG.Spell.addAllSpells(spellbook);
-    player.add(new RG.Component.SpellPower());
+    Spell.addAllSpells(spellbook);
+    player.add(new Component.SpellPower());
     player.get('SpellPower').setPP(100);
     // }
 
-    const vActor = new RG.Actor.Virtual('spawner');
-    const spawnBrain = new RG.Brain.Spawner(vActor);
+    const vActor = new VirtualActor('spawner');
+    const spawnBrain = new BrainSpawner(vActor);
     spawnBrain.setConstraint({op: 'lt', prop: 'danger', value: 10});
     vActor.setBrain(spawnBrain);
     level.addVirtualProp(RG.TYPE_ACTOR, vActor);
 
     const fire = this._parser.createActor('Fire');
-    const fadingComp = new RG.Component.Fading();
+    const fadingComp = new Component.Fading();
     fadingComp.setDuration(20);
     fire.add(fadingComp);
     level.addActor(fire, 7, 1);
@@ -202,10 +211,10 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     itemRand.adjustItem(runeForce, 100);
     player.getInvEq().addItem(runeForce);
 
-    const lever = new RG.Element.Lever();
+    const lever = new Element.ElementLever();
     level.addElement(lever, 2, 1);
     for (let i = 0; i < 3; i++) {
-        const leverDoor = new RG.Element.LeverDoor();
+        const leverDoor = new Element.ElementLeverDoor();
         lever.addTarget(leverDoor);
         level.addElement(leverDoor, 3 + i, 1);
     }
@@ -245,7 +254,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
 
     player.getInvEq().addItem(parser.createItem('Boots of flying'));
 
-    const regen = new RG.Component.RegenEffect();
+    const regen = new Component.RegenEffect();
     regen.setPP(2);
     regen.setWaitPP(0);
     regen.setMaxWaitPP(0);
@@ -280,7 +289,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     questPopul.addQuestComponents(city);
     */
 
-    const newBook = new RG.Item.Book('Book of shadows');
+    const newBook = new Item.Book('Book of shadows');
     newBook.addText('In the land of mordor where shadows lie...');
     player.getInvEq().addItem(newBook);
 
@@ -309,7 +318,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
 DebugGame.prototype.createTrainer = function() {
     const human = this._parser.createActor('fighter');
     human.setName('Old trainer');
-    const trainComp = new RG.Component.Trainer();
+    const trainComp = new Component.Trainer();
     trainComp.getChatObj().setTrainer(human);
     human.add(trainComp);
     return human;
@@ -318,14 +327,14 @@ DebugGame.prototype.createTrainer = function() {
 DebugGame.prototype.addGoblinWithLoot = function(level) {
     const goblin = this._parser.createActor('goblin');
     goblin.setName('goblin with loot');
-    const loot = new RG.Component.Loot(new RG.Item.Weapon('sword'));
+    const loot = new Component.Loot(new Item.Weapon('sword'));
     goblin.add(loot);
 
     /* Should fix this TODO
     const ssCorner = new RG.Element.Stairs('stairs', level, level);
     level.addStairs(ssCorner, level.getMap().cols - 2, level.getMap().rows - 2);
     const ssLoot = new RG.Element.Stairs('stairs', level, level);
-    const lootCompStairs = new RG.Component.Loot(ssLoot);
+    const lootCompStairs = new Component.Loot(ssLoot);
     goblin.add(lootCompStairs );
     ssLoot.connect(ssCorner);
     */
@@ -334,16 +343,17 @@ DebugGame.prototype.addGoblinWithLoot = function(level) {
 
 
 DebugGame.prototype.createDebugBattle = function(obj, game, player) {
-    const battle = new RG.Game.Battle('Battle of ice kingdoms');
-    const army1 = new RG.Game.Army('Blue army');
-    const army2 = new RG.Game.Army('Red army');
+    const battle = new Battle('Battle of ice kingdoms');
+    const army1 = new Army('Blue army');
+    const army2 = new Army('Red army');
     this.addActorsToArmy(army1, 10, 'warlord');
     this.addActorsToArmy(army2, 10, 'Winter demon');
 
-    const battleLevel = RG.FACT.createLevel('arena', 60, 30);
+    const factLevel = new FactoryLevel();
+    const battleLevel = factLevel.createLevel('arena', 60, 30);
     battle.setLevel(battleLevel);
-    battle.addArmy(army1, 1, 1);
-    battle.addArmy(army2, 1, 2);
+    battle.addArmy(army1, 1, 1, {});
+    battle.addArmy(army2, 1, 2, {});
     game.addBattle(battle);
 
     game.addPlayer(player);
@@ -367,7 +377,7 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
     const allStairsDown = [];
     const allLevels = [];
 
-    const branch = new RG.World.Branch('StartBranch');
+    const branch = new World.Branch('StartBranch');
 
     const itemConstraint = maxValue => item => item.value <= maxValue;
     // Generate all game levels
@@ -383,7 +393,7 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
         const actorsPerLevel = Math.round(numFree / sqrPerActor);
         const itemsPerLevel = Math.round(numFree / sqrPerItem);
 
-        const potion = new RG.Item.Potion('Healing potion');
+        const potion = new Item.Potion('Healing potion');
         level.addItem(potion);
         const missile = this._parser.createActualObj('items', 'Shuriken');
         missile.setCount(20);
@@ -413,7 +423,7 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
         {hp: 100, att: 10, def: 10});
     summoner.setType('summoner');
     summoner.get('Experience').setExpLevel(10);
-    summoner.setBrain(new RG.Brain.Summoner(summoner));
+    summoner.setBrain(new Brain.Summoner(summoner));
     lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
 
     const townLevel = this.createLastBattle(game, {cols: 80, rows: 60});
@@ -424,7 +434,7 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
     game.addPlace(branch);
 
     const finalStairs = new Stairs(true, allLevels[nLevels - 1], townLevel);
-    const stairsLoot = new RG.Component.Loot(finalStairs);
+    const stairsLoot = new Component.Loot(finalStairs);
     summoner.add(stairsLoot);
     allStairsDown.push(finalStairs);
 
@@ -459,7 +469,7 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
 };
 
 DebugGame.prototype.createLastBattle = function(game, obj) {
-    const levelConf = RG.Factory.cityConfBase({});
+    const levelConf = Factory.cityConfBase({});
     levelConf.parser = this._parser;
 
     levelConf.nShops = 5;

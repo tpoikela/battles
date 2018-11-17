@@ -11,12 +11,12 @@ import * as Component from './component';
 import {WorldShop} from './world';
 import * as Item from './item';
 import * as Element from './element';
+import {ObjectShell} from './objectshellparser';
 
 const MIN_ACTORS_ROOM = 2;
 const RNG = Random.getRNG();
 
 const popOptions = ['NOTHING', 'LOOT', 'GOLD', 'GUARDIAN', 'ELEMENT', 'CORPSE',
-
     'TIP'];
 
 interface PopulConf {
@@ -27,14 +27,14 @@ interface PopulConf {
 
 export class DungeonPopulate {
 
+    public actorFunc: (shell) => boolean;
+
     private theme: string;
     private maxDanger: number;
     private maxValue: number;
 
     private _itemFact: FactoryItem;
     private _actorFact: any;
-
-    public actorFunc: (shell) => boolean;
 
     constructor(conf: PopulConf = {}) {
         this.theme = conf.theme ||  '';
@@ -52,7 +52,7 @@ export class DungeonPopulate {
     *   3. bigRooms: spawn depending on theme
     *   4. Critical path: Gold coins?
     */
-    populateLevel(level) {
+    public populateLevel(level) {
         const extras = level.getExtras();
         const maxDanger = this.maxDanger;
         const maxValue = this.maxValue;
@@ -160,7 +160,7 @@ export class DungeonPopulate {
         }
     }
 
-    setActorFunc(func) {
+    public setActorFunc(func) {
         if (typeof func === 'function') {
             this.actorFunc = func;
         }
@@ -170,7 +170,7 @@ export class DungeonPopulate {
         }
     }
 
-    addPointGuardian(level, point, maxDanger) {
+    public addPointGuardian(level, point, maxDanger) {
         const eXY = point;
         if (RG.isNullOrUndef([maxDanger]) || maxDanger < 1) {
             RG.err('DungeonPopulate', 'addPointGuardian',
@@ -191,7 +191,7 @@ export class DungeonPopulate {
         }
     }
 
-    getEndPointGuardian(maxDanger) {
+    public getEndPointGuardian(maxDanger) {
         let currDanger = maxDanger;
         let guardian = null;
         let actorFunc = actor => actor.danger <= currDanger;
@@ -208,7 +208,7 @@ export class DungeonPopulate {
         return guardian;
     }
 
-    addMainLoot(level, center, maxValue) {
+    public addMainLoot(level, center, maxValue) {
         const [cx, cy] = center;
         // Add main loot
         // 1. Scale is from 2-4 normal value, this scales the
@@ -228,7 +228,7 @@ export class DungeonPopulate {
     }
 
     /* Given level and x,y coordinate, tries to populate that point with content. */
-    populatePoint(level, point, conf) {
+    public populatePoint(level, point, conf) {
         const {maxDanger} = conf;
         const type = RNG.arrayGetRand(popOptions);
         // const [pX, pY] = point;
@@ -251,26 +251,26 @@ export class DungeonPopulate {
     };*/
 
     /* Adds an element into the given point. */
-    addElementToPoint(level, point, conf) {
+    public addElementToPoint(level, point, conf) {
         if (conf.true) {
             // console.log('DungeonPopulate', level, conf, point); // TODO
         }
     }
 
     /* Creates a corpse to the given point, and adds some related loot there. */
-    addCorpseToPoint(level, point, conf) {
+    public addCorpseToPoint(level, point, conf) {
         if (conf.true) {
             // console.log('DungeonPopulate', level, conf, point); // TODO
         }
     }
 
-    addLootToPoint(level, point) {
+    public addLootToPoint(level, point) {
         const maxValue = this.maxValue;
         const lootTypes = [RG.ITEM_POTION, RG.ITEM_SPIRITGEM, RG.ITEM_AMMUNITION,
             RG.ITEM_POTION, RG.ITEM_RUNE];
         const generatedType = RNG.arrayGetRand(lootTypes);
 
-        const parser = RG.ObjectShell.getParser();
+        const parser = ObjectShell.getParser();
         const lootPrize = parser.createRandomItem(
             {func: item => item.type >= generatedType
                 && item.value <= maxValue}
@@ -283,7 +283,7 @@ export class DungeonPopulate {
         return false;
     }
 
-    addGoldToPoint(level, point) {
+    public addGoldToPoint(level, point) {
         const numCoins = this.maxValue;
         const gold = new Item.GoldCoin();
         gold.setCount(numCoins);
@@ -293,13 +293,13 @@ export class DungeonPopulate {
 
     /* Adds a tip/hint to the given point. These hints can reveal information
      * about world map etc. */
-    addTipToPoint(level, point, conf) {
+    public addTipToPoint(level, point, conf) {
         if (conf.true) {
             // console.log('DungeonPopulate', level, conf, point); // TODO
         }
     }
 
-    createShops(level, conf) {
+    public createShops(level, conf) {
         const extras = level.getExtras();
         const shopHouses = [];
         if (extras.hasOwnProperty('houses')) {
@@ -398,7 +398,7 @@ export class DungeonPopulate {
     }
 
     /* Creates a shopkeeper actor. */
-    createShopkeeper(conf) {
+    public createShopkeeper(conf) {
         let keeper = null;
         if (conf.parser) {
             if (conf.actor) {
@@ -437,7 +437,7 @@ export class DungeonPopulate {
         return keeper;
     }
 
-    createTrainers(level, conf) {
+    public createTrainers(level, conf) {
         const houses = level.getExtras().houses;
         if (RG.isSuccess(RG.TRAINER_PROB)) {
             let trainer = null;
@@ -469,7 +469,7 @@ export class DungeonPopulate {
         return [];
     }
 
-    populateHouse(level, house, conf) {
+    public populateHouse(level, house, conf) {
         const floorPerActor = 9;
         const numFloor = house.numFloor;
         let numActors = Math.round(numFloor / floorPerActor);
@@ -487,8 +487,8 @@ export class DungeonPopulate {
         }
     }
 
-    createActor(conf) {
-        const parser = RG.ObjectShell.getParser();
+    public createActor(conf) {
+        const parser = ObjectShell.getParser();
         const maxDanger = conf.maxDanger || this.maxDanger;
         let actor = null;
         if (maxDanger > 0) {
@@ -512,7 +512,7 @@ export class DungeonPopulate {
         return actor;
     }
 
-    addActorsToBbox(level, bbox, conf) {
+    public addActorsToBbox(level, bbox, conf) {
         const nActors = conf.nActors || 4;
         const {maxDanger, func} = conf;
         const actors = this._actorFact.generateNActors(nActors, func, maxDanger);
@@ -520,7 +520,7 @@ export class DungeonPopulate {
     }
 
     /* Adds N items to the given level in bounding box coordinates. */
-    addItemsToBbox(level, bbox, conf) {
+    public addItemsToBbox(level, bbox, conf) {
         const nItems = conf.nItems || 4;
         const itemConf = Object.assign({itemsPerLevel: nItems}, conf);
         const items = this._itemFact.generateItems(itemConf);

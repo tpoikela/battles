@@ -22,6 +22,8 @@ import {DungeonGenerator} from '../src/dungeon-generator';
 import {CaveGenerator} from '../src/cave-generator';
 import {MountainGenerator} from '../src/mountain-generator';
 import {CastleGenerator} from '../src/castle-generator';
+import {FactoryLevel} from '../src/factory.level';
+import {Geometry} from '../src/geometry';
 
 import {Screen} from '../gui/screen';
 
@@ -61,8 +63,8 @@ const getSelection = (c0, c1, map) => {
     if (x0 === x1 && y0 === y1) {
       return [c0];
     }
-    const bb = RG.Geometry.getBoxCornersForCells(c0, c1);
-    const coord = RG.Geometry.getBox(bb.ulx, bb.uly, bb.lrx, bb.lry);
+    const bb = Geometry.getBoxCornersForCells(c0, c1);
+    const coord = Geometry.getBox(bb.ulx, bb.uly, bb.lrx, bb.lry);
     const res = [];
     coord.forEach(xy => {
       res.push(map.getCell(xy[0], xy[1]));
@@ -74,7 +76,7 @@ const startSimulation = (startTime, level) =>
   () => (
     {
       level,
-      startTime: startTime,
+      startTime,
       simulationStarted: true,
       frameCount: 0
     }
@@ -234,7 +236,7 @@ export default class GameEditor extends Component {
     this.handleRightClick = this.handleRightClick.bind(this);
   }
 
-  componentDidMount() {
+  public componentDidMount() {
     document.addEventListener('keypress', this.handleKeyDown, true);
     if (this.props.editorData) {
         const {allLevels} = this.props.editorData;
@@ -244,11 +246,11 @@ export default class GameEditor extends Component {
     }
   }
 
-  getCurrMap() {
+  public getCurrMap() {
     return this.state.level.getMap();
   }
 
-  getCellCurrMap(x, y) {
+  public getCellCurrMap(x, y) {
     const map = this.getCurrMap();
     if (map.hasXY(x, y)) {
       return map.getCell(x, y);
@@ -257,33 +259,33 @@ export default class GameEditor extends Component {
   }
 
   /* Handles right clicks of the context menu. */
-  handleRightClick(evt, data, cell) {
+  public handleRightClick(evt, data, cell) {
       const [x, y] = cell.getXY();
       this.useClickHandler(x, y, cell, data.type);
   }
 
-  useClickHandler(x, y, cell, cmd) {
+  public useClickHandler(x, y, cell, cmd) {
     const clickHandler = new EditorClickHandler(this.state.level);
     if (clickHandler.handleClick(x, y, cell, cmd)) {
       this.setState({level: this.state.level});
     }
   }
 
-  onMouseOverCell(x, y) {
+  public onMouseOverCell(x, y) {
     const cell = this.getCellCurrMap(x, y);
     if (cell) {
       this.setState({mouseOverCell: cell});
     }
   }
 
-  onMouseDown(x, y) {
+  public onMouseDown(x, y) {
     if (!this.state.selectMode) {
       const cell = this.getCellCurrMap(x, y);
       this.setState({selectMode: true, selectBegin: cell, selectEnd: cell});
     }
   }
 
-  onMouseUp(x, y) {
+  public onMouseUp(x, y) {
     if (this.state.selectMode) {
       const cell = this.getCellCurrMap(x, y);
       const stateUpdates = {
@@ -297,7 +299,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  onMouseOver(x, y) {
+  public onMouseOver(x, y) {
     if (this.state.selectMode) {
       const cell = this.getCellCurrMap(x, y);
       if (cell) {
@@ -312,17 +314,17 @@ export default class GameEditor extends Component {
     }
   }
 
-  componentWillUnmount() {
+  public componentWillUnmount() {
     document.removeEventListener('keypress', this.handleKeyDown, true);
   }
 
-  setStateWithLevel(level, obj = {}) {
+  public setStateWithLevel(level, obj = {}) {
     level.getMap()._optimizeForRowAccess();
     this.setState(Object.assign({level}, obj));
   }
 
   /* Returns the first selected cell. */
-  getFirstSelectedCell() {
+  public getFirstSelectedCell() {
     if (this.state.selectedCell) {
       if (this.state.selectedCell.length > 0) {
         return this.state.selectedCell[0];
@@ -332,7 +334,7 @@ export default class GameEditor extends Component {
   }
 
   /* Handles some quick keys for faster placement. */
-  handleKeyDown(evt) {
+  public handleKeyDown(evt) {
     const keyCode = this.nextCode = evt.keyCode;
     if (keyCode === ROT.VK_PERIOD) {
       this.setState({elementType: 'floor'});
@@ -342,7 +344,7 @@ export default class GameEditor extends Component {
       this.setState({elementType: 'wall'});
       this.insertElement();
     }
-    else if (RG.KeyMap.inMoveCodeMap(keyCode)) {
+    else if (KeyMap.inMoveCodeMap(keyCode)) {
       let mult = 1;
       if (keyCode >= ROT.VK_1 && keyCode <= ROT.VK_9) {
         mult = 10;
@@ -355,7 +357,7 @@ export default class GameEditor extends Component {
 
       if (cell) {
         const [x0, y0] = [cell.getX(), cell.getY()];
-        const dir = RG.KeyMap.getDir(keyCode);
+        const dir = KeyMap.getDir(keyCode);
         const newX = x0 + dir[0] * mult;
         const newY = y0 + dir[1] * mult;
         const map = this.getCurrMap();
@@ -395,14 +397,14 @@ export default class GameEditor extends Component {
 
 
   /* Returns current level. */
-  getLevel() {
+  public getLevel() {
     if (this.state.levelList.length) {
       return this.state.levelList[this.state.levelIndex];
     }
     return null;
   }
 
-  onCellClick(x, y) {
+  public onCellClick(x, y) {
     const map = this.getCurrMap();
     if (map.hasXY(x, y)) {
       const cell = map.getCell(x, y);
@@ -418,7 +420,7 @@ export default class GameEditor extends Component {
 
   /* Generates a world scale map using overworld algorithm and adds it to the
    * editor. Does not generate any sublevels or zones. */
-  generateWorld() {
+  public generateWorld() {
     const mult = 1;
     const owConf = {
       worldX: mult * this.state.levelX,
@@ -438,7 +440,7 @@ export default class GameEditor extends Component {
     this.addLevelToEditor(worldLevel);
   }
 
-  generateZone() {
+  public generateZone() {
     const zoneType = this.state.zoneType;
     const fact = new FactoryWorld();
     const featConf = this.state.zoneConf[zoneType];
@@ -462,14 +464,14 @@ export default class GameEditor extends Component {
   }
 
   /* Generates a new level map and adds it to the editor.  */
-  generateLevel() {
+  public generateLevel() {
     const levelType = this.state.levelType;
     const level = this.createLevel(levelType);
     this.addLevelToEditor(level);
   }
 
   /* Creates the level of given type. */
-  createLevel(levelType) {
+  public createLevel(levelType) {
     let conf = {};
     if (this.state.levelConf.hasOwnProperty(levelType)) {
       conf = this.state.levelConf[levelType];
@@ -506,7 +508,8 @@ export default class GameEditor extends Component {
       level = new MountainGenerator().createSummit(cols, rows, conf);
     }
     else {
-      level = RG.FACT.createLevel(
+      const factLevel = new FactoryLevel();
+      level = factLevel.createLevel(
         levelType, this.state.levelX, this.state.levelY, conf);
     }
     delete conf.parser;
@@ -514,7 +517,7 @@ export default class GameEditor extends Component {
   }
 
   /* Adds one level to the editor and updates the state. */
-  addLevelToEditor(level) {
+  public addLevelToEditor(level) {
     level.getMap()._optimizeForRowAccess();
     level.editorID = this.state.idCount++;
 
@@ -522,10 +525,10 @@ export default class GameEditor extends Component {
     levelList.push(level);
     // Show the newly added level immediately
     const levelIndex = levelList.length - 1;
-    this.setShownLevel({level: level, levelList, levelIndex});
+    this.setShownLevel({level, levelList, levelIndex});
   }
 
-  addZoneToEditor(type, feat) {
+  public addZoneToEditor(type, feat) {
     const levels = feat.getLevels();
     const levelList = this.state.levelList;
     levels.forEach(level => {
@@ -541,7 +544,7 @@ export default class GameEditor extends Component {
 
   /* Inserts a sub-map into the current level. This overwrites all
    * overlapping cells in the large map (incl items and actors). */
-  subGenerateMap() {
+  public subGenerateMap() {
     const level = this.state.level;
     const levelType = this.state.subLevelType;
     let conf = {};
@@ -585,7 +588,7 @@ export default class GameEditor extends Component {
   }
 
   /* Generates and inserts random items into the map. */
-  generateItems() {
+  public generateItems() {
     const itemFunc = this.state.itemFunc;
     const maxValue = this.state.maxValue;
     const conf = {
@@ -605,7 +608,7 @@ export default class GameEditor extends Component {
   }
 
   /* Generates and inserts random actors into the map. */
-  generateActors() {
+  public generateActors() {
     const level = this.state.level;
 
     // Remove existing actors first
@@ -625,19 +628,19 @@ export default class GameEditor extends Component {
     this.setStateWithLevel(level);
   }
 
-  debugMsg(msg) {
+  public debugMsg(msg) {
     if (this.state.debug) {
       console.log('[DEBUG] ' + msg);
     }
   }
 
-  getBBoxForInsertion() {
+  public getBBoxForInsertion() {
     const c0 = this.state.selectBegin;
     const c1 = this.state.selectEnd;
     return RG.Geometry.getBoxCornersForCells(c0, c1);
   }
 
-  insertElement() {
+  public insertElement() {
     const {ulx, uly, lrx, lry} = this.getBBoxForInsertion();
     this.debugMsg('insertElement: ' + `${ulx}, ${uly}, ${lrx}, ${lry}`);
     const level = this.state.level;
@@ -651,7 +654,7 @@ export default class GameEditor extends Component {
     this.setStateWithLevel(level);
   }
 
-  insertActor() {
+  public insertActor() {
     const {ulx, uly, lrx, lry} = this.getBBoxForInsertion();
     this.debugMsg('insertActor: ' + `${ulx}, ${uly}, ${lrx}, ${lry}`);
     const level = this.state.level;
@@ -665,7 +668,7 @@ export default class GameEditor extends Component {
     this.setStateWithLevel(level);
   }
 
-  insertItem() {
+  public insertItem() {
     const {ulx, uly, lrx, lry} = this.getBBoxForInsertion();
     const level = this.state.level;
     try {
@@ -679,18 +682,18 @@ export default class GameEditor extends Component {
   }
 
   /* Inverts the map base elements (floor/wall) */
-  invertMap() {
+  public invertMap() {
     const level = this.state.level;
     const map = level.getMap();
     RG.Map.CellList.invertMap(map);
     this.setStateWithLevel(level);
   }
 
-  setMsg(msg) {
+  public setMsg(msg) {
     this.setState({errorMsg: msg});
   }
 
-  render() {
+  public render() {
     const mapShown = this.props.mapShown;
     let rowClass = 'cell-row-div-player-view';
     if (mapShown) {rowClass = 'cell-row-div-map-view';}
@@ -828,18 +831,18 @@ export default class GameEditor extends Component {
     );
   }
 
-  setEditorData() {
+  public setEditorData() {
     this.props.setEditorData(this.state.levelList, this.state.levelList);
   }
 
-  onLoadCallback(data) {
+  public onLoadCallback(data) {
     const fromJSON = new RG.Game.FromJSON();
     const level = fromJSON.restoreLevel(data);
     fromJSON.restoreEntityData();
     this.addLevelToEditor(level);
   }
 
-  getEditorMsg() {
+  public getEditorMsg() {
     if (this.state.errorMsg.length > 0) {
       return <span className='text-danger'>{this.state.errorMsg}</span>;
     }
@@ -853,14 +856,14 @@ export default class GameEditor extends Component {
 
   /* Modifes the given level configuration object based on the value
    * (level type) after level (sub) type is changed in the editor. */
-  modifyLevelConf(value, levelConf) {
+  public modifyLevelConf(value, levelConf) {
     levelConf.shown = value;
     if (!levelConf[value]) {
       levelConf[value] = this.getLevelConf(value);
     }
   }
 
-  getLevelConf(value) {
+  public getLevelConf(value) {
     console.log('getLevelConf with', value);
     if (value === 'town') {
       return RG.Factory.cityConfBase({});
@@ -918,7 +921,7 @@ export default class GameEditor extends Component {
 
   /* Zooms the game board in or out. TODO: Make this actually work correctly.
   */
-  zoom(inOut) {
+  public zoom(inOut) {
     let index = this.state.boardIndex;
 
     if (inOut === '+') {
@@ -939,7 +942,7 @@ export default class GameEditor extends Component {
   // onChangeXXX callbacks for <input> fields
   //----------------------------------------------------------------
 
-  onInputChange(evt) {
+  public onInputChange(evt) {
       const {name} = evt.target;
       let {value} = evt.target;
       const [tag, stateVar] = name.split('-');
@@ -960,7 +963,7 @@ export default class GameEditor extends Component {
       }
   }
 
-  onChangeLevelConf(confType, key, idHead) {
+  public onChangeLevelConf(confType, key, idHead) {
     const id = `#${idHead}--${confType}--${key}`;
     const inputElem = document.querySelector(id);
     const value = inputElem.value;
@@ -991,7 +994,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  onChangeZoneType(evt) {
+  public onChangeZoneType(evt) {
     const type = evt.target.value;
     const featConf = WorldConf.getBaseConf(type);
     const zoneConf = this.state.zoneConf;
@@ -1001,7 +1004,7 @@ export default class GameEditor extends Component {
       lastTouchedConf: zoneConf});
   }
 
-  onChangeMapType(evt) {
+  public onChangeMapType(evt) {
     const value = evt.target.value;
     const levelType = value;
     const levelConf = this.state.levelConf;
@@ -1009,7 +1012,7 @@ export default class GameEditor extends Component {
     this.setState({levelType, levelConf, lastTouchedConf: levelConf});
   }
 
-  getInt(value, base) {
+  public getInt(value, base) {
     const retValue = parseInt(value, base);
     if (Number.isInteger(retValue)) {
       return retValue;
@@ -1017,7 +1020,7 @@ export default class GameEditor extends Component {
     return '';
   }
 
-  onChangeSubType(evt) {
+  public onChangeSubType(evt) {
     const value = evt.target.value;
     const subLevelConf = this.state.subLevelConf;
     this.modifyLevelConf(value, subLevelConf);
@@ -1025,7 +1028,7 @@ export default class GameEditor extends Component {
       lastTouchedConf: subLevelConf});
   }
 
-  onChangeInputInt(evt) {
+  public onChangeInputInt(evt) {
       const [tag, stateVar] = evt.target.name.split('-');
       if (tag === 'input') {
           const value = this.getInt(evt.target.value, 10);
@@ -1033,7 +1036,7 @@ export default class GameEditor extends Component {
       }
   }
 
-  onChangeCellSelectX(evt) {
+  public onChangeCellSelectX(evt) {
     const newX = this.getInt(evt.target.value, 10);
     const cell = this.getFirstSelectedCell();
     const update = {cellSelectX: newX};
@@ -1049,7 +1052,7 @@ export default class GameEditor extends Component {
     this.setState(update);
   }
 
-  onChangeCellSelectY(evt) {
+  public onChangeCellSelectY(evt) {
     const newY = this.getInt(evt.target.value, 10);
     const cell = this.getFirstSelectedCell();
     const update = {cellSelectY: newY};
@@ -1069,7 +1072,7 @@ export default class GameEditor extends Component {
   // SIMULATION METHODS
   //----------------------------------------------------------------
 
-  playAnimation() {
+  public playAnimation() {
     if (this.game.hasAnimation()) {
       const anim = this.game.getAnimationFrame();
       this.setState({render: true, animation: anim});
@@ -1084,7 +1087,7 @@ export default class GameEditor extends Component {
   }
 
   /* Starts a simulation of the level. */
-  simulateLevel(step = false) {
+  public simulateLevel(step = false) {
     if (!this.state.level) {
       const msg = 'You must create a level before simulation!';
       this.setState({errorMsg: msg});
@@ -1119,26 +1122,26 @@ export default class GameEditor extends Component {
     }
   }
 
-  mainLoop() {
+  public mainLoop() {
     const frameCount = this.state.frameCount;
     const fps = 1000 * frameCount /
       (new Date().getTime() - this.state.startTime);
     for (let n = 0; n < this.state.turnsPerFrame; n++) {
       this.game.simulateGame();
     }
-    this.setState({frameCount: frameCount + 1, fps: fps});
+    this.setState({frameCount: frameCount + 1, fps});
     this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
   }
 
   /* Simulates the game for N turns, then renders once. */
-  mainLoopFast() {
+  public mainLoopFast() {
     for (let i = 0; i < this.state.turnsPerSec; i++) {
       this.game.simulateGame();
     }
     this.setShownLevel({level: this.game.getLevels()[0]});
   }
 
-  playSimulation() {
+  public playSimulation() {
     if (this.state.simulationStarted) {
       if (this.intervalID !== null) {
         clearInterval(this.intervalID);
@@ -1154,7 +1157,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  stepSimulation() {
+  public stepSimulation() {
     if (this.state.simulationStarted) {
       this.game.simulateGame();
       this.setShownLevel({level: this.game.getLevels()[0]});
@@ -1165,7 +1168,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  playFastSimulation() {
+  public playFastSimulation() {
     if (this.state.simulationStarted) {
       if (this.frameID) {
         cancelAnimationFrame(this.frameID);
@@ -1180,7 +1183,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  pauseSimulation() {
+  public pauseSimulation() {
     if (this.intervalID) {
       clearInterval(this.intervalID);
       this.intervalID = null;
@@ -1193,7 +1196,7 @@ export default class GameEditor extends Component {
   }
 
   /* Stops the simulation and deletes the game. */
-  stopSimulation() {
+  public stopSimulation() {
     if (this.state.simulationStarted) {
       if (this.intervalID) {
         clearInterval(this.intervalID);
@@ -1211,7 +1214,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  setShownLevel(args) {
+  public setShownLevel(args) {
     window.LEVEL = args.level;
     this.setState(args);
   }
@@ -1222,7 +1225,7 @@ export default class GameEditor extends Component {
 
   /* Returns the config element shown directly under level
    * generation. */
-  getConfElement(id, levelConf) {
+  public getConfElement(id, levelConf) {
     let elem = null;
     const confType = levelConf.shown;
     if (confType.length > 0) {
@@ -1256,7 +1259,7 @@ export default class GameEditor extends Component {
     return <div className='game-editor-level-conf'>{elem}</div>;
   }
 
-  getLevelSelectElement() {
+  public getLevelSelectElement() {
     const elem = editorLevelTypes.map(type => {
       const key = 'key-sel-type-' + type;
       return <option key={key} value={type}>{type}</option>;
@@ -1264,7 +1267,7 @@ export default class GameEditor extends Component {
     return elem;
   }
 
-  getElementSelectElem() {
+  public getElementSelectElem() {
     const elements = Object.keys(RG.cellStyles.elements);
     const elem = elements.map(elemType => {
       if (elemType !== 'default') {
@@ -1277,7 +1280,7 @@ export default class GameEditor extends Component {
   }
 
   /* Returns the <option> dropdown menu elements for items/actors. */
-  getSelectElem(type) {
+  public getSelectElem(type) {
     const items = this.parser.dbGet({categ: type});
     const elem = Object.values(items).map(item => {
       const key = `key-sel-${type}-${item.name}`;
@@ -1286,7 +1289,7 @@ export default class GameEditor extends Component {
     return elem;
   }
 
-  getZoneSelectElem() {
+  public getZoneSelectElem() {
     const featNames = ['branch', 'city', 'dungeon', 'face', 'mountain',
       'quarter'];
     const features = Object.values(featNames).map(type => {
@@ -1299,7 +1302,7 @@ export default class GameEditor extends Component {
 
     /* Returns the markup for editor panel containing all selection and
      * configuration options. */
-  getEditorPanelElement() {
+  public getEditorPanelElement() {
     const zoneSelectElem = this.getZoneSelectElem();
     const zoneConfElem = this.getConfElement('zone',
       this.state.zoneConf);
@@ -1536,7 +1539,7 @@ export default class GameEditor extends Component {
     );
   }
 
-  getSimulationButtons() {
+  public getSimulationButtons() {
     return (
       <div className='btn-div'>
 
@@ -1566,7 +1569,7 @@ export default class GameEditor extends Component {
   // Templates + Config stuff
   //-----------------------------
 
-  importConfig() {
+  public importConfig() {
     if (this.state.lastTouchedConf) {
       const shown = this.state.lastTouchedConf.shown;
       const conf = this.state.lastTouchedConf[shown];
@@ -1575,7 +1578,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  exportConfig() {
+  public exportConfig() {
     try {
       const conf = JSON.parse(this.state.confTemplText);
       const lastTouchedConf = this.state.lastTouchedConf;
@@ -1588,7 +1591,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  menuCallback(cmd, args) {
+  public menuCallback(cmd, args) {
     if (typeof this[cmd] === 'function') {
       if (Array.isArray(args)) {
           if (args.length === 1) {

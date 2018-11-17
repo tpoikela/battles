@@ -7,6 +7,7 @@ import RG from '../src/rg';
 import {Territory} from '../src/territory';
 import {OW} from '../src/ow-constants';
 import {Random} from '../src/random';
+import {OverWorld} from '../src/overworld';
 
 const RNG = Random.getRNG();
 
@@ -73,7 +74,7 @@ TerritoryMap.create = function(ow, playerRace, playerXY) {
     };
     terrMap.addRival(winterConf);
 
-    const coordMap = new RG.OverWorld.CoordMap();
+    const coordMap = new OverWorld.CoordMap();
     coordMap.xMap = 10;
     coordMap.yMap = 10;
     const bbox = coordMap.getOWTileBboxFromAreaTileXY(playerX, playerY);

@@ -155,7 +155,8 @@ export class BattlesTop extends React.Component {
     public gameState: GameStateTop;
     public state: IBattlesTopState;
     public pluginManager: PluginManager;
-
+    public guiCommands: {[key: string]: () => void};
+    public gameSave: GameSave;
 
     public loadScriptId: string;
     public levelInputId: string;
@@ -1223,7 +1224,7 @@ export class BattlesTop extends React.Component {
       this.showScreen('CharInfo');
     }
 
-    public GUIGoto(x, y) {
+    public GUIGoto(x: number, y: number) {
         const player = this.game.getPlayer();
         const cell = player.getCell();
         this.useClickHandler(x, y, cell, 'move');
@@ -1263,7 +1264,7 @@ export class BattlesTop extends React.Component {
             this.guiCommands[code](...args);
         }
         else if (Keys.KeyMap.isGoto(code)) {
-            this.GUIGoto(...args);
+            this.GUIGoto(...args as [number, number]);
         }
         else {
             console.error('Unknown keycode for GUI command.');
@@ -1389,36 +1390,36 @@ export class BattlesTop extends React.Component {
         this.setState({[key]: !wasShown});
     }
 
-    public showStartScreen() {
+    public showStartScreen(): void {
         if (!this.state.showStartScreen) {
             this.setState({showStartScreen: true});
         }
     }
 
-    public showLoadScreen() {
+    public showLoadScreen(): void {
       this.setState({showLoadScreen: true});
     }
 
     //--------------------------------
     // GAME CONFIG RELATED FUNCTIONS
     //-------------------------------
-    public setPlayerLevel(level) {
+    public setPlayerLevel(level): void {
         this.setGameSetting('playerLevel', level);
     }
 
-    public setPlayerClass(className) {
+    public setPlayerClass(className): void {
         this.setGameSetting('playerClass', className);
     }
 
-    public setPlayerRace(raceName) {
+    public setPlayerRace(raceName): void {
         this.setGameSetting('playerRace', raceName);
     }
 
-    public setPlayMode(mode) {
+    public setPlayMode(mode): void {
         this.setGameSetting('playMode', mode);
     }
 
-    public setGameSetting(name, value) {
+    public setGameSetting(name, value): void {
         this.gameConf[name] = value;
         this.setState({[name]: value});
     }
@@ -1445,13 +1446,13 @@ export class BattlesTop extends React.Component {
       }
     }
 
-    public showMsg(msg) {
+    public showMsg(msg): void {
         RG.diag('showMsg:', msg);
         this.setState({msg});
     }
 
     /* Binds the callbacks. */
-    public bindCallbacks() {
+    public bindCallbacks(): void {
         this.newGame = this.newGame.bind(this);
 
         // GameStartScreen callbacks

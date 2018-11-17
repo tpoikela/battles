@@ -1,16 +1,30 @@
 
 import React from 'react';
-import PropTypes from 'prop-types';
+import {Level} from '../src/level';
+
+interface LevelObj {
+    levelIndex: number;
+    level: Level;
+    levelList?: Level[];
+}
+
+interface IEditorLevelListProps {
+    levelList: Level[];
+    levelIndex: number;
+    setShownLevel: (LevelObj) => void;
+}
 
 /* This component is used to manage the game editor level list. */
 export default class EditorLevelList extends React.Component {
 
-  constructor(props) {
+  public props: IEditorLevelListProps;
+
+  constructor(props: IEditorLevelListProps) {
     super(props);
     this.deleteLevel = this.deleteLevel.bind(this);
   }
 
-  render() {
+  public render() {
     const gameEditorLevelList = this.getLevelList();
     return (
       <div className='list-group'>
@@ -21,7 +35,7 @@ export default class EditorLevelList extends React.Component {
   }
 
   /* Creates the LHS panel for browsing levels. */
-  getLevelList() {
+  public getLevelList() {
     const levelList = this.props.levelList.map((level, i) => {
       const selectLevel = this.selectLevel.bind(this, level, i);
       const className = this.props.levelIndex === i
@@ -53,12 +67,12 @@ export default class EditorLevelList extends React.Component {
   }
 
   /* Called when a level is selected from level list. */
-  selectLevel(level, i) {
-    this.props.setShownLevel({level: level, levelIndex: i});
+  public selectLevel(level, i) {
+    this.props.setShownLevel({level, levelIndex: i});
   }
 
   /* When delete X button is pressed, deletes the level. */
-  deleteLevel(evt) {
+  public deleteLevel(evt) {
     if (evt) {
       evt.stopPropagation();
     }
@@ -79,10 +93,3 @@ export default class EditorLevelList extends React.Component {
   }
 
 }
-
-EditorLevelList.propTypes = {
-  levelList: PropTypes.array,
-  levelIndex: PropTypes.number,
-  setShownLevel: PropTypes.func.isRequired
-};
-
