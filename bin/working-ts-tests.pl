@@ -45,6 +45,8 @@ tests/client/src/territory.spec.ts
 tests/lib/bsp.spec.ts
 );
 
+@files = glob("tests/client/src/*.ts");
+
 my $num_failed = 0;
 my @failed = ();
 
