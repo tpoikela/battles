@@ -1,5 +1,8 @@
 
 import RG from './rg';
+import {Constraint} from './interfaces';
+
+type ConstraintArg = Constraint | Constraint[];
 
 /* This class creates constraint functions from config objects. A single
  * constrains is defined by the following object:
@@ -12,7 +15,7 @@ import RG from './rg';
  */
 export class Constraints {
 
-    getConstraints(objOrArray) {
+    public getConstraints(objOrArray: ConstraintArg): (obj) => boolean {
         if (Array.isArray(objOrArray)) {
             const funcs = objOrArray.map(constr => (
                 this.getFunc(constr.op, constr.prop, constr.value)
@@ -36,7 +39,7 @@ export class Constraints {
         return null;
     }
 
-    getFunc(op, prop, value) {
+    public getFunc(op, prop, value): (obj) => boolean {
         if (Array.isArray(value)) {
             const funcs = value.map(val => (
                 this.getFunc(op, prop, val)
