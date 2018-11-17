@@ -698,7 +698,7 @@ export const GameMain = function() {
 
 /* An object for saving the game in specified storage (local/etc..) or restoring
 * the game from saved format. GUI should use this object. */
-Game.Save = function() {
+export const GameSave = function() {
     let _storageRef = null;
     let _dungeonLevel = null;
 
@@ -721,7 +721,7 @@ Game.Save = function() {
             return game;
         }
         else {
-            RG.err('Game.Save', 'restore', 'No name given (or null/undef).');
+            RG.err('GameSave', 'restore', 'No name given (or null/undef).');
         }
         return null;
     };
@@ -765,7 +765,7 @@ Game.Save = function() {
             _savePlayerInfo(name, player.toJSON(), conf);
         }
         else {
-            RG.err('Game.Save', 'savePlayer',
+            RG.err('GameSave', 'savePlayer',
                 'Cannot save null player. Forgot game.addPlayer?');
         }
     };
@@ -783,7 +783,7 @@ Game.Save = function() {
             return game;
         }
         else {
-            RG.err('Game.Save', 'restorePlayer',
+            RG.err('GameSave', 'restorePlayer',
                 'No player |' + name + '| found from the list.');
             return null;
         }
@@ -811,7 +811,7 @@ Game.Save = function() {
 
     const _checkStorageValid = () => {
         if (RG.isNullOrUndef([_storageRef])) {
-            throw new Error('Game.Save you must setStorage() first.');
+            throw new Error('GameSave you must setStorage() first.');
         }
     };
 
