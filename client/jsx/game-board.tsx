@@ -4,8 +4,8 @@ import GameRow from './game-row';
 
 interface IGameBoardProps {
     boardClassName: string;
-    charRows: string[];
-    classRows: string[];
+    charRows: string[][];
+    classRows: string[][];
     endY: number;
     rowClass: string;
     useRLE: boolean;
@@ -46,6 +46,7 @@ const eventToPosition = (e, elem, props: IGameBoardProps, elemID: string) => {
 /** Component which renders the game rows. {{{2 */
 export default class GameBoard extends React.Component {
 
+    public props: IGameBoardProps;
     public board: any;
 
     constructor(props: IGameBoardProps) {

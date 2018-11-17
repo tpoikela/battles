@@ -8,8 +8,8 @@ interface IGameStatsProps {
   player: any;
   selectedItem?: any;
   selectedCell?: any;
-  setViewType(): void;
-  toggleScreen(): void;
+  setViewType(type: number): void;
+  toggleScreen(any): void;
 }
 
 
@@ -39,7 +39,7 @@ export default class GameStats extends React.Component {
     this.changeMapView = this.changeMapView.bind(this);
   }
 
-  changeMapView() {
+  public changeMapView() {
     if (this.props.showMap) {
       this.props.setViewType(VIEW_PLAYER);
     }
@@ -48,7 +48,7 @@ export default class GameStats extends React.Component {
     }
   }
 
-  render() {
+  public render() {
     const player = this.props.player;
     const playerName = player.getName();
     const selectedItem = this.props.selectedItem;
@@ -137,15 +137,15 @@ export default class GameStats extends React.Component {
     );
   }
 
-  toggleScreen(type) {
+  public toggleScreen(type) {
     this.props.toggleScreen(type);
   }
 
-  getPlayerStatus(player) {
+  public getPlayerStatus(player) {
     const stat = [];
     statusComps.forEach(array => {
         const [compName, style, text, key] = array;
-      if (player.has(compName)) {
+        if (player.has(compName)) {
         stat.push(<p className={'text-' + style} key={key}>{text}</p>);
       }
     });

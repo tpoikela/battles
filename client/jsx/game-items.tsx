@@ -2,18 +2,19 @@
 import * as React from 'react';
 
 import GameItemSlot from './game-item-slot';
+import {Inv} from '../src/inv';
 
 interface IGameItemsProps {
   eqWeight: number;
   filter: string;
-  inv: any;
+  inv: Inv;
   maxWeight: number;
   setSelectedItem(): void;
 }
 
 
 /* Component which shows the inventory items.*/
-export default class GameItems extends Component {
+export default class GameItems extends React.Component {
 
   public props: IGameItemsProps;
 

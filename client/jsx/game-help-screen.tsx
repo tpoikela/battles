@@ -1,10 +1,9 @@
 import * as React from 'react';
 import ModalHeader from './modal-header';
 
-const RG = require('../src/rg');
-const Modal = require('react-bootstrap-modal');
-const Manual = require('../data/manual');
-
+import RG from '../src/rg';
+import Modal from 'react-bootstrap-modal';
+import {Manual} from '../data/manual';
 
 interface IGameHelpScreen {
   showHelpScreen: boolean;
@@ -21,7 +20,7 @@ export const TextHelp = ({char, descr}) => (
 
 
 /* This component contains short info on keys and how to play the game.*/
-export default class GameHelpScreen extends Component {
+export default class GameHelpScreen extends React.Component {
 
   public props: IGameHelpScreen;
 

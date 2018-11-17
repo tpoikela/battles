@@ -3,13 +3,15 @@ import * as React from 'react';
 import {ContextMenu, MenuItem} from 'react-contextmenu';
 import {Cell} from '../src/map.cell';
 
-interface IContextMenuItemsProps {
+export interface IContextMenuItemsProps {
   handleRightClick: any;
   menuItems: any;
   mouseOverCell: Cell;
 }
 
 export default class ContextMenuItems extends React.Component {
+
+  public props: IContextMenuItemsProps;
 
   constructor(props: IContextMenuItemsProps) {
       super(props);

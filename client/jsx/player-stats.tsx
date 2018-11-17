@@ -1,11 +1,12 @@
 
 import * as React from 'react';
+import RG from '../src/rg';
+import {SentientActor} from '../src/actor';
 
 interface IPlayerStatsProps {
-    player: Actor.Rogue;
+    player: SentientActor;
 }
 
-const RG = require('../src/rg');
 
 /* Component which renders the player stats into the left panel. */
 export default class PlayerStats extends React.Component {

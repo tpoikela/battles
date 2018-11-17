@@ -4,13 +4,14 @@ import * as React from 'react';
 interface IDropdownSelectProps {
   id: string;
   options: string[];
-  callback: () => void;
+  callback: (any) => void;
   currValue: string;
   titleName: string;
 }
 
 
 export default class DropdownSelect extends React.Component {
+  public props: IDropdownSelectProps;
 
   constructor(props: IDropdownSelectProps) {
     super(props);
@@ -38,6 +39,8 @@ export default class DropdownSelect extends React.Component {
   }
 
   private getOptElems() {
+    if (!this.props.options) {return null;}
+
     return this.props.options.map(opt => {
       const key = `key-${this.props.titleName}-${opt}`;
       return (

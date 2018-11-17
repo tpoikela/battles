@@ -19,7 +19,7 @@ export default class Modal extends React.Component {
         className='modal fade'
         id={this.props.id}
         role='dialog'
-        tabIndex='-1'
+        tabIndex={-1}
       >
         <div className='modal-dialog modal-lg'>
           <div className='modal-content'>

@@ -5,12 +5,12 @@ interface IRadioButtonsProps {
     buttons: string[];
     currValue: string;
     titleName: string;
-    callback(): void;
+    callback(any): void;
 }
 
 /* Can be used to create radio buttons for different types of selections.
  * Callback must be given, and the button name is passed into this callback.*/
-export default class RadioButtons extends Component {
+export default class RadioButtons extends React.Component {
 
     public props: IRadioButtonsProps;
 
@@ -19,18 +19,18 @@ export default class RadioButtons extends Component {
         this.onButtonClick = this.onButtonClick.bind(this);
     }
 
-    onButtonClick(name) {
+    public onButtonClick(name) {
         this.props.callback(name);
     }
 
-    shouldComponentUpdate(nextProps) {
+    public shouldComponentUpdate(nextProps) {
         if (nextProps.currValue !== this.props.currValue) {
             return true;
         }
         return false;
     }
 
-    render() {
+    public render() {
         const currValue = this.props.currValue;
         const buttons = this.props.buttons;
 

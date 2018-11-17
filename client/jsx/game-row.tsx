@@ -13,11 +13,11 @@ interface IGameRowProps {
 
 
 /** A row component which holds a number of cells. */
-export default class GameRow extends Component {
+export default class GameRow extends React.Component {
 
     public props: IGameRowProps;
 
-    shouldComponentUpdate(nextProps: IGameRowProps) {
+    public shouldComponentUpdate(nextProps: IGameRowProps) {
         if (this.props.rowClass !== nextProps.rowClass) {
             return true;
         }
@@ -69,7 +69,7 @@ export default class GameRow extends Component {
         return true;
     }
 
-    render() {
+    public render() {
         const y = this.props.y;
         const rowClass = this.props.rowClass;
 
@@ -92,12 +92,13 @@ export default class GameRow extends Component {
         else {
             rowCells = this.props.rowClasses.map( (rleAndClass, index) => {
                 const rleAndChar = this.props.rowChars[index];
+                const nChars = parseInt(rleAndChar[0], 10);
                 return (
                     <span
                         className={rleAndClass[1]}
                         key={y + ',' + index}
                     >
-                        {rleAndChar[1].repeat(rleAndChar[0])}
+                        {rleAndChar[1].repeat(nChars)}
                     </span>
                 );
             });

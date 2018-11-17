@@ -2,13 +2,13 @@
 import * as React from 'react';
 import ModalHeader from './modal-header';
 
-const RG = require('../src/rg');
-RG.Component = require('../src/component');
-const Actor = require('../src/actor');
-const Modal = require('react-bootstrap-modal');
+import RG from '../src/rg';
+import * as Component from '../src/component';
+import {SentienActor} from '../src/actor';
+import Modal from 'react-bootstrap-modal';
 
 interface IGameCharInfoProps {
-  player: Actor.Rogue;
+  player: SentienActor;
   showCharInfo: boolean;
   toggleScreen: () => void;
 }
@@ -22,11 +22,11 @@ export default class GameCharInfo extends React.Component {
     };
   }
 
-  selectTab(tabName: string) {
+  public selectTab(tabName: string) {
     this.setState({tabShown: tabName});
   }
 
-  toggleScreen(type: string) {
+  public toggleScreen(type: string) {
       this.props.toggleScreen(type);
   }
 
@@ -68,7 +68,7 @@ export default class GameCharInfo extends React.Component {
 
 
   /* Returns the markup for shown tab element. */
-  renderTabElement(tabName) {
+  public renderTabElement(tabName) {
     const actor = this.props.player;
 
     if (tabName === 'CharInfo') {
@@ -90,7 +90,7 @@ export default class GameCharInfo extends React.Component {
   }
 
   /* Returns buttons for selecting the different tabs. */
-  renderTabButtons() {
+  public renderTabButtons() {
       const buttonElems = GameCharInfo.menuTabs.map(name => (
         <button className='tab-select-button'
           key={name}
@@ -107,7 +107,7 @@ export default class GameCharInfo extends React.Component {
   }
 
   /* Returns the general character info tab for rendering. */
-  renderCharInfoGeneral(actor) {
+  public renderCharInfoGeneral(actor) {
       let actorClassName = 'None';
       if (actor.has('ActorClass')) {
           actorClassName = actor.get('ActorClass').getClassName();
@@ -157,7 +157,7 @@ export default class GameCharInfo extends React.Component {
 
   /* Returns the components tab containing info about all relevant components.
    * */
-  renderEffectsTab(actor) {
+  public renderEffectsTab(actor) {
     const comps = Object.values(actor.getComponents());
 
     const compNames = comps.map((c, index) => {
@@ -183,7 +183,7 @@ export default class GameCharInfo extends React.Component {
   }
 
   /* Returns the tab showing different players skills. */
-  renderSkillsTab(actor) {
+  public renderSkillsTab(actor) {
       let skillElem = null;
       if (!actor.has('Skills')) {
           skillElem = <li>Actor has no skills.</li>;
@@ -208,7 +208,7 @@ export default class GameCharInfo extends React.Component {
   }
 
   /* Renders information about battles fought by the player. */
-  renderBattlesTab(actor) {
+  public renderBattlesTab(actor) {
     const badges = actor.getList('BattleBadge');
     const battlesElem = badges.map(badge => (
       <li key={badge.getID()}>
@@ -231,7 +231,7 @@ export default class GameCharInfo extends React.Component {
   }
 
   /* Renders information about quests taken/completed by the player. */
-  renderQuestsTab(actor) {
+  public renderQuestsTab(actor) {
     const quests = actor.getList('Quest');
     const questsElem = quests.map(quest => (
       <li key={quest.getID()}>
@@ -253,7 +253,7 @@ export default class GameCharInfo extends React.Component {
   }
 
   /* Returns the exploration info in a formatted list. */
-  getExploreInfo(actor) {
+  public getExploreInfo(actor) {
     if (actor.has('GameInfo')) {
       const gameInfo = actor.get('GameInfo');
       const zones = gameInfo.getData().zones;

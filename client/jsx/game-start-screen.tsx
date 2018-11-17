@@ -4,33 +4,33 @@ import ModalHeader from './modal-header';
 import DropdownSelect from './dropdown-select';
 
 interface IGameStartScreenProps {
-  deleteGame(): void;
   loadFromEditor: boolean;
-  loadGame(): void;
-  newGame(): void;
   playerName: string;
   progress: string;
   savedPlayerList: any;
   seedName: string;
-  selectGame(): void;
   selectedGame: string;
+  settings: any;
+  showLoadScreen: boolean;
+  showStartScreen: boolean;
+  deleteGame(): void;
+  loadGame(): void;
+  newGame(): void;
+  selectGame(): void;
   setPlayMode(): void;
   setPlayerClass(): void;
   setPlayerLevel(): void;
   setPlayerName(): void;
   setPlayerRace(): void;
   setSeedName(): void;
-  settings: any;
-  showLoadScreen: boolean;
-  showStartScreen: boolean;
   toggleEditor(): void;
   toggleScreen(): void;
 }
 
 
-const RG = require('../src/rg');
-const Modal = require('react-bootstrap-modal');
-const Texts = require('../data/texts');
+import RG from '../src/rg';
+import Modal from 'react-bootstrap-modal';
+import {Texts} from '../data/texts';
 
 const config = require('../../public/config.js');
 
@@ -51,37 +51,37 @@ export default class GameStartScreen extends React.Component {
     this.onSeedChange = this.onSeedChange.bind(this);
   }
 
-  onNameChange(evt) {
-    var name = evt.target.value;
+  public onNameChange(evt) {
+    const name = evt.target.value;
     evt.stopPropagation();
     this.props.setPlayerName(name);
   }
 
-  onSeedChange(evt) {
-    var name = evt.target.value;
+  public onSeedChange(evt) {
+    const name = evt.target.value;
     evt.stopPropagation();
     this.props.setSeedName(name);
   }
 
   /* Loads a saved game.*/
-  loadGame() {
+  public loadGame() {
     this.props.loadGame(this.props.selectedGame);
   }
 
-  deleteGame() {
+  public deleteGame() {
     this.props.deleteGame(this.props.selectedGame);
   }
 
-  selectGame(name) {
+  public selectGame(name) {
     this.props.selectGame(name);
   }
 
-  render() {
+  public render() {
     const setPlayerLevel = this.props.setPlayerLevel;
     const setPlayMode = this.props.setPlayMode;
 
     const savedPlayerList = this.props.savedPlayerList;
-    var playerListHTML = savedPlayerList.map( (val, index) => {
+    const playerListHTML = savedPlayerList.map( (val, index) => {
       return (
         <div
           className='player-list-item' key={index}
@@ -259,7 +259,7 @@ export default class GameStartScreen extends React.Component {
     );
   }
 
-  toggleScreen(type) {
+  public toggleScreen(type) {
     this.props.toggleScreen(type);
   }
 
