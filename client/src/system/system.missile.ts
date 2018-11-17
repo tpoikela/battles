@@ -3,6 +3,7 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {Random} from '../random';
 import * as Component from '../component';
+import {Cell} from '../map.cell';
 
 const RNG = Random.getRNG();
 
