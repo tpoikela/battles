@@ -24,6 +24,8 @@ import {MountainGenerator} from '../src/mountain-generator';
 import {CastleGenerator} from '../src/castle-generator';
 import {FactoryLevel} from '../src/factory.level';
 import {Geometry} from '../src/geometry';
+import {Level} from '../src/level';
+import {Cell} from '../src/map.cell';
 
 import {Screen} from '../gui/screen';
 
@@ -88,14 +90,80 @@ const updateLevelAndErrorMsg = (level, msg) => (
   })
 );
 
+
+export interface IGameEditorState {
+      boardClassName: string;
+      boardIndex: number;
+      lastTouchedConf: {[key: string]: any};
+      zoneType: string;
+      /*
+      zoneList: [],
+      zoneConf: {shown: ''},
+
+      levelX: 80,
+      levelY: 50,
+      levelType: 'Cave',
+
+      subLevelX: 20,
+      subLevelY: 7,
+      subLevelType: 'arena',
+      subLevelTileX: 1,
+      subLevelTileY: 1,
+
+      errorMsg: '',
+      msg: '',
+
+      itemFunc: (item) => (item.value < 5000),
+      maxValue: 5000,
+
+      selectedCell: null,
+      selectMode: false,
+      selectBegin: null,
+
+      elementType: 'floor',
+      actorName: '',
+      itemName: '',
+      numEntities: 20,
+
+      insertXWidth: 1,
+      insertYWidth: 1,
+
+      levelConf: {shown: ''},
+      subLevelConf: {shown: ''},
+
+      level: null,
+      levelList: [],
+      levelIndex: 0,
+
+      showAnimations: true,
+      frameCount: 0,
+      fps: 0,
+      simulationStarted: false,
+      simulationPaused: false,
+      turnsPerSec: 1000,
+      turnsPerFrame: 1,
+      idCount: 0,
+      updateMap: true,
+
+      useRLE: true,
+      savedLevelName: 'saved_level_from_editor.json'
+      */
+}
+
 export interface IGameEditorProps {
     editorData: any;
-
+    levelList: Level[];
+    level: Level;
+    selectMode: boolean;
+    selectBegin: Cell;
+    selectEnd: Cell;
 }
 
 /* Component for game/level editor. */
 export default class GameEditor extends Component {
 
+  public state: IGameEditorState;
+  public props: IGameEditorProps;
   public screen: Screen;
   public parser: any;
   public intervalID: number;
@@ -105,7 +173,7 @@ export default class GameEditor extends Component {
     super(props);
     this.handleKeyDown = this.handleKeyDown.bind(this);
 
-    const state = {
+    const state: IGameEditorState = {
       boardClassName: 'game-board-player-view',
       boardIndex: boardViews.indexOf('game-board-player-view'),
       lastTouchedConf: null,
