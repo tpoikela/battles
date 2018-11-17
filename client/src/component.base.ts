@@ -278,7 +278,7 @@ export const ComponentBase = function(type: string) {
 
     this._onAddCallbacks = [];
     this._onRemoveCallbacks = [];
-}
+};
 Component.ComponentBase = ComponentBase;
 
 ComponentBase.prototype.getID = function(): number {return this._id;};
