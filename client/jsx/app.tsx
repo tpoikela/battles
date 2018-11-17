@@ -10,7 +10,7 @@ ReactDOM.render(
 
 if (/debug/.test(document.location.search)) {
     /* eslint-disable */
-    let createClass = React.createClass;
+    let createClass = (React as any).createClass;
     Object.defineProperty(React, 'createClass', {
       set: (nextCreateClass) => {
         createClass = nextCreateClass;
