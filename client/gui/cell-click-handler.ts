@@ -1,9 +1,10 @@
 
-const RG = require('../src/rg');
-const Path = require('../src/path');
-const Keys = require('../src/keymap');
+import RG from '../src/rg';
+import {Path} from '../src/path';
+import {Keys} from '../src/keymap';
+import {Cell} from '../src/map.cell';
 
-const dirToKeyCode = RG.KeyMap.dirToKeyCode;
+const dirToKeyCode = Keys.KeyMap.dirToKeyCode;
 
 /* This class handles various actions when player clicks a cell.
  * It creates a key buffer corresponding to the automated command, and then game
@@ -11,32 +12,35 @@ const dirToKeyCode = RG.KeyMap.dirToKeyCode;
  * */
 export default class CellClickHandler {
 
+    public _game: any;
+    protected _keyBuffer: number[];
+
     constructor(game) {
         this._game = game;
         this._keyBuffer = []; // Stores keys for the pending command
     }
 
     /* Returns the next keycode or null if buffer is empty. */
-    getNextCode() {
+    public getNextCode(): number {
         if (this._keyBuffer.length > 0) {
             return this._keyBuffer.shift();
         }
         return null;
     }
 
-    reset() {
+    public reset(): void {
         this._keyBuffer = [];
     }
 
-    hasKeys() {
+    public hasKeys(): boolean {
         return this._keyBuffer.length > 0;
     }
 
-    setKeys(keys) {
+    public setKeys(keys: number[]): void {
         this._keyBuffer = keys.slice();
     }
 
-    handleClick(x, y, cell, cmd) {
+    public handleClick(x: number, y: number, cell: Cell, cmd) {
         // Don't react to click if there are already keys
         if (this.hasKeys()) {return;}
 
@@ -55,11 +59,11 @@ export default class CellClickHandler {
 
     }
 
-    handleAttack(x, y, cell) {
+    public handleAttack(x, y, cell) {
         this._keyBuffer.push({cmd: 'attack', target: cell});
     }
 
-    handleChat(x, y, cell) {
+    public handleChat(x, y, cell) {
         const player = this._game.getPlayer();
         if (cell.hasActors()) {
             if (RG.withinRange(1, [x, y], player)) {
@@ -71,7 +75,7 @@ export default class CellClickHandler {
         }
     }
 
-    handleDoor(x, y, cell) {
+    public handleDoor(x, y, cell) {
         const player = this._game.getPlayer();
         if (cell.hasDoor()) {
             this.moveTo(player, x, y);
@@ -79,7 +83,7 @@ export default class CellClickHandler {
         }
     }
 
-    handleMove(x, y, cell) {
+    public handleMove(x, y, cell) {
         const player = this._game.getPlayer();
         const map = player.getLevel().getMap();
         if (map.hasXY(x, y)) {
@@ -92,7 +96,7 @@ export default class CellClickHandler {
         }
     }
 
-    handlePickup(x, y, cell) {
+    public handlePickup(x, y, cell) {
         if (cell.hasItems()) {
             const player = this._game.getPlayer();
             this.moveTo(player, x, y);
@@ -100,25 +104,25 @@ export default class CellClickHandler {
         }
     }
 
-    handleShoot(x, y, cell) {
+    public handleShoot(x, y, cell) {
         const cmd = {cmd: 'missile', target: cell};
         this._keyBuffer.push(cmd);
     }
 
-    handleUseStairs(x, y) {
+    public handleUseStairs(x, y) {
         const player = this._game.getPlayer();
         this.moveTo(player, x, y);
         this._keyBuffer.push(Keys.KEY.USE_STAIRS_DOWN);
     }
 
     // TODO move this into Player.Brain
-    handleUseElement(x, y, cell) {
+    public handleUseElement(x, y, cell) {
         const cmd = {cmd: 'use-element', target: cell};
         this._keyBuffer.push(cmd);
     }
 
     /* Tries to compute a path to given coordinate. Uses 2 different methods. */
-    moveTo(player, toX, toY) {
+    public moveTo(player, toX, toY) {
         let keyBuf = [];
         let [pX, pY] = [player.getX(), player.getY()];
         let pathPossible = true;
