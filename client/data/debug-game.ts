@@ -9,7 +9,7 @@ import * as Element from '../src/element';
 import * as Item from '../src/item';
 import * as Time from '../src/time';
 import {Ability} from '../src/abilities';
-import {Actors} from './actors';
+import {ActorsData} from './actors';
 import {Brain} from '../src/brain';
 import {BrainSpawner} from '../src/brain.virtual';
 import {Battle, Army} from '../src/game.battle';
@@ -21,6 +21,7 @@ import {Random} from '../src/random';
 import {Spell} from '../src/spell';
 import {Texts} from '../data/texts';
 import {VirtualActor} from '../src/actor';
+import {ELEM} from '../data/elem-constants';
 
 import {Quest, QuestPopulate} from '../src/quest-gen';
 
@@ -260,9 +261,9 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     regen.setMaxWaitPP(0);
     player.add(regen);
 
-    level.getMap().setBaseElemXY(pX - 1, pY - 1, RG.ELEM.WATER);
+    level.getMap().setBaseElemXY(pX - 1, pY - 1, ELEM.WATER);
 
-    const uniques = Actors.filter(item => (
+    const uniques = ActorsData.filter(item => (
         item.base === 'UniqueBase'
     ));
     uniques.forEach(uniqShell => {
