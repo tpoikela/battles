@@ -24,15 +24,17 @@ import {ContextMenuTrigger} from 'react-contextmenu';
 import GameStats, {VIEW_MAP, VIEW_PLAYER} from './game-stats';
 import PluginManager from '../gui/plugin-manager';
 
-const debug = require('debug')('bitn:top');
+import dbg = require('debug');
+const debug = dbg('bitn:top');
 
 import ROT from '../../lib/rot';
 import RG from '../src/rg';
 import {Keys} from '../src/keymap';
-import {GameMain} from '../src/game';
+import {GameMain, GameSave} from '../src/game';
 import * as  Verify from '../src/verify';
 import {KeyCode} from '../gui/keycode';
 import {MultiKeyHandler} from '../gui/multikey-handler';
+import {Cell} from '../src/map.cell';
 
 import md5 = require('js-md5');
 
@@ -40,17 +42,19 @@ import {Screen} from '../gui/screen';
 import {Persist} from '../src/persist';
 import {WorldConf} from '../data/conf.world';
 import wwork = require('webworkify');
+import {ACTOR_CLASSES} from '../src/actor-class';
 
 import {EventPool} from '../src/eventpool';
+import { FactoryGame } from "../src/factory.game";
 const POOL = EventPool.getPool();
 
 const INV_SCREEN = 'Inventory';
-window.RG = RG;
+(window as any).RG = RG;
 
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
 
-  static describeCell(cell, seenCells) {
+  public static describeCell(cell, seenCells) {
     const index = seenCells.indexOf(cell);
     if (index !== -1) {
       if (cell.hasActors()) {
@@ -81,7 +85,7 @@ class TopLogic {
     }
   }
 
-  static getAdjacentCell(player, code) {
+  public static getAdjacentCell(player, code) {
     if (RG.KeyMap.inMoveCodeMap(code) || RG.KeyMap.isRest(code)) {
       const [x, y] = player.getXY();
       const diffXY = RG.KeyMap.getDiff(code, x, y);
@@ -103,19 +107,73 @@ const ProxyListener = function(cbNotify) {
 
 };
 
-export interface IBattlesTopState {
+export interface EditorData {
+    [key: string]: any;
+}
 
+export interface IBattlesTopState {
+    boardClassName: string;
+    playMode: string;
+    equipSelected: null;
+    invMsg: string;
+    invMsgStyle: string;
+    levelSize: string;
+    loadFromEditor: boolean;
+    loadInProgress: boolean;
+    mouseOverCell: Cell;
+    playerLevel: string;
+    playerName: string;
+    render: boolean;
+    saveInProgress: boolean;
+    seedName: string;
+    selectedCell: null;
+    selectedGame: null;
+    selectedItem: null;
+    showPlugins: boolean;
+    showEditor: boolean;
+    showMap: boolean;
+    showGameMenu: boolean;
+    showStartScreen: boolean;
+    showHelpScreen: boolean;
+    showLoadScreen: boolean;
+    showOWMap: boolean;
+    showInventory: boolean;
+    showCharInfo: boolean;
+    showCreateScreen: boolean;
+    editorData: EditorData; // Data given to editor
+    plugins: any[];
+}
+
+export interface GameStateTop {
+    [key: string]: any;
 }
 
 /* Top-level Component for the Battles GUI.*/
 export class BattlesTop extends React.Component {
 
     public game: GameMain;
+    public gameState: GameStateTop;
+    public state: IBattlesTopState;
+    public pluginManager: PluginManager;
+
+
+    public loadScriptId: string;
+    public levelInputId: string;
+    public finishAutoOnSight: boolean;
+    public finishAutoDist: number;
+    public keyPending: boolean;
+    public gameConf: any;
+    public viewportPlayerX: number;
+    public viewportPlayerY: number;
+    public viewportX: number;
+    public viewportY: number;
+    public frameID: number;
+    public screen: Screen;
 
     constructor(props) {
         super(props);
         this.game = null;
-        this.gameSave = new Game.Save();
+        this.gameSave = new GameSave();
         this.pluginManager = new PluginManager();
 
         // Some IDs needed for this component
@@ -146,7 +204,7 @@ export class BattlesTop extends React.Component {
 
             playerLevel: 'Medium',
             levelSize: 'Medium',
-            playerClass: RG.ACTOR_CLASSES[0],
+            playerClass: ACTOR_CLASSES[0],
             playerRace: RG.ACTOR_RACES[0],
 
             sqrPerActor: 120,
@@ -155,7 +213,7 @@ export class BattlesTop extends React.Component {
             loadedPlayer: null,
             loadedLevel: null,
             playerName: 'Player',
-            world: worldConf,
+            world: WorldConf,
             xMult: 2,
             yMult: 3
         };
@@ -215,25 +273,25 @@ export class BattlesTop extends React.Component {
         this.initGUICommandTable();
     }
 
-    showPluginManager() {
+    public showPluginManager() {
         this.setState({showPlugins: !this.state.showPlugins});
     }
 
     /* Toggles the game editor view. Need to terminate the existing
      * animation. */
-    toggleEditor() {
+    public toggleEditor() {
         cancelAnimationFrame(this.frameID);
         const showStartScreen = this.state.showEditor;
         this.setState({showStartScreen,
             showEditor: !this.state.showEditor});
     }
 
-    selectSaveGame(name) {
+    public selectSaveGame(name) {
         this.setState({selectedGame: name});
     }
 
     /* Resets the GUI game state.*/
-    resetGameState() {
+    public resetGameState() {
         this.gameState = {
             autoTarget: false,
             visibleCells: [],
@@ -243,12 +301,12 @@ export class BattlesTop extends React.Component {
         };
     }
 
-    setPlayerName(name) {
+    public setPlayerName(name) {
         this.gameConf.playerName = name;
         this.setState({playerName: name});
     }
 
-    setSeedName(name) {
+    public setSeedName(name) {
         let seed = parseInt(name, 10);
         if (Number.isNaN(seed)) {
             const hash = md5(name);
@@ -263,7 +321,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Sets the size of the shown map.*/
-    setViewSize(obj, xOrY) {
+    public setViewSize(obj, xOrY) {
         if (obj === '+') {
             if (xOrY === 'X') {this.viewportX += 5;}
             else {this.viewportY += 2;}
@@ -277,7 +335,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Toggles view between normal view and zoomed out map view. */
-    setViewType(type) {
+    public setViewType(type) {
         if (type === VIEW_MAP) {
            this.viewportPlayerX = this.viewportX;
            this.viewportPlayerY = this.viewportY;
@@ -305,7 +363,7 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    createNewGameAsync() {
+    public createNewGameAsync() {
         return new Promise((resolve, reject) => {
             try {
                 this.createNewGame();
@@ -318,7 +376,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Called when "Embark" button is clicked to create a new game.*/
-    newGame() {
+    public newGame() {
         this.enableKeys();
         this.hideScreen('StartScreen');
 
@@ -334,7 +392,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Creates game from editor data. */
-    createGameFromEditor() {
+    public createGameFromEditor() {
         if (this.frameID) {
             cancelAnimationFrame(this.frameID);
         }
@@ -353,7 +411,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Saves the game position.*/
-    saveGame() {
+    public saveGame() {
         if (this.game) {
             const name = this.game.getPlayer().getName();
             const persist = new Persist(name);
@@ -371,7 +429,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Converts the current game into JSON. */
-    gameToJSON() {
+    public gameToJSON() {
         return new Promise((resolve, reject) => {
             try {
                 const json = this.game.toJSON();
@@ -384,7 +442,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Loads a saved game from a JSON. */
-    loadGame(playerName) {
+    public loadGame(playerName) {
         if (playerName) {
             this.setState({showLoadScreen: false, showStartScreen: false,
                 loadInProgress: true});
@@ -411,7 +469,7 @@ export class BattlesTop extends React.Component {
 
     /* Sets up the event pool, GUI callbacks, animation frame and first
      * visible cells for a restored game. */
-    initRestoredGame(game) {
+    public initRestoredGame(game) {
         if (this.frameID) {
             cancelAnimationFrame(this.frameID);
         }
@@ -436,7 +494,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Deletes a saved game from the list. */
-    deleteGame(name) {
+    public deleteGame(name) {
         if (name) {
             const persist = new Persist(name);
             persist.deleteStorage(() => {
@@ -447,7 +505,7 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    restoreConf(obj) {
+    public restoreConf(obj) {
         const props = ['cols', 'rows', 'sqrPerActor', 'sqrPerItem', 'levels'];
         for (let i = 0; i < props.length; i++) {
             this.gameConf[props[i]] = obj[props[i]];
@@ -455,7 +513,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Creates a new game instance.*/
-    createNewGame() {
+    public createNewGame() {
         if (this.frameID) {
             cancelAnimationFrame(this.frameID);
         }
@@ -470,25 +528,25 @@ export class BattlesTop extends React.Component {
             this.gameConf.seed = new Date().getTime();
         }
 
-        if (this.canUseWorker()) {
+        if (false && this.canUseWorker()) {
             this.showScreen('CreateScreen');
             this.createGameWorker();
         }
         else {
-            const gameFactory = new RG.Factory.Game();
+            const gameFactory = new FactoryGame();
             this.game = gameFactory.createNewGame(this.gameConf);
             this.initBeforeNewGame();
         }
     }
 
-    canUseWorker() {
+    public canUseWorker() {
         return (typeof window.Worker !== 'undefined') &&
             !this.pluginManager.anyPluginsEnabled();
     }
 
     /* Creates the new game using a worker to not block the main thread and
      * GUI updates. */
-    createGameWorker() {
+    public createGameWorker() {
         /* eslint global-require: 0 */
         const worker = wwork(require('../util/worker-create-game.js'));
         worker.onmessage = (e) => {
@@ -510,7 +568,7 @@ export class BattlesTop extends React.Component {
 
     /* Sets the event listeners, GUI callbacks and debugging refs before
      * starting the game. */
-    initBeforeNewGame() {
+    public initBeforeNewGame() {
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         this.game.setAnimationCallback(this.playAnimation.bind(this));
         this.setDebugRefsToWindow();
@@ -523,13 +581,13 @@ export class BattlesTop extends React.Component {
         this.setState({render: true});
     }
 
-    progress(msg) {
+    public progress(msg) {
         this.setState({progress: msg});
     }
 
     /* Sets some global variables which ease up the debugging with console.
      */
-    setDebugRefsToWindow() {
+    public setDebugRefsToWindow() {
         if (debug.enabled) {
             window.GAME = this.game; // For debugging
             const player = this.game.getPlayer();
@@ -537,11 +595,11 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    selectItemTop(item) {
+    public selectItemTop(item) {
         this.setState({selectedItem: item});
     }
 
-    selectEquipTop(selection) {
+    public selectEquipTop(selection) {
         if (selection) {
             this.setState({selectedItem: selection.item,
                 equipSelected: selection});
@@ -551,18 +609,18 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    setAutoMode() {
+    public setAutoMode() {
         this.ctrlMode = 'AUTOMATIC';
     }
 
-    onMouseOverCell(x, y) {
+    public onMouseOverCell(x, y) {
         const cell = this.getCellCurrMap(x, y);
         if (cell) {
             this.setState({mouseOverCell: cell});
         }
     }
 
-    getCellCurrMap(x, y) {
+    public getCellCurrMap(x, y) {
         const map = this.game.getPlayer().getLevel().getMap();
         if (map.hasXY(x, y)) {
             return map.getCell(x, y);
@@ -571,13 +629,13 @@ export class BattlesTop extends React.Component {
     }
 
     /* Handles right clicks of the context menu. */
-    handleRightClick(evt, data, cell) {
+    public handleRightClick(evt, data, cell) {
         const [x, y] = cell.getXY();
         this.useClickHandler(x, y, cell, data.type);
     }
 
     /* When a cell is clicked, perform a command/show debug info. */
-    onCellClick(x, y) {
+    public onCellClick(x, y) {
         const cell = this.getCellCurrMap(x, y);
         if (!cell) {
             RG.warn('BattlesTop', 'onCellClick',
@@ -616,7 +674,7 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    useClickHandler(x, y, cell, cmd) {
+    public useClickHandler(x, y, cell, cmd) {
         this.clickHandler = new CellClickHandler(this.game);
         this.clickHandler.handleClick(x, y, cell, cmd);
 
@@ -627,7 +685,7 @@ export class BattlesTop extends React.Component {
 
     /* When listening events, component gets notification via this
      * method.*/
-    notify(evtName, obj) {
+    public notify(evtName, obj) {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             const actor = obj.actor;
             if (actor.isPlayer()) {
@@ -636,17 +694,17 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    importJSON() {
+    public importJSON() {
         const fInput = document.querySelector(this.levelInputId);
         fInput.click();
     }
 
-    loadScript() {
+    public loadScript() {
         const fInput = document.querySelector(this.loadScriptId);
         fInput.click();
     }
 
-    onLoadScript() {
+    public onLoadScript() {
         const fileList = document.querySelector(this.loadScriptId).files;
         const file = fileList[0];
         if (file) {
@@ -660,34 +718,34 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    updatePluginList() {
+    public updatePluginList() {
         this.setState({showPlugins: true,
             plugins: this.pluginManager.getPlugins()
         });
     }
 
-    enableKeys() {
+    public enableKeys() {
       if (!this.keysEnabled) {
         document.addEventListener('keypress', this.handleKeyDown, true);
         this.keysEnabled = true;
       }
     }
 
-    disableKeys() {
+    public disableKeys() {
       if (this.keysEnabled) {
         document.removeEventListener('keypress', this.handleKeyDown, true);
         this.keysEnabled = false;
       }
     }
 
-    isValidKey(keyCode) {
+    public isValidKey(keyCode) {
         return Keys.isValidKey(keyCode) ||
             this.guiCommands[keyCode] ||
             Keys.isNumeric(keyCode);
     }
 
     /* Listens for player key presses and handles them.*/
-    handleKeyDown(evt) {
+    public handleKeyDown(evt) {
         evt.stopPropagation();
         evt.preventDefault();
         const keyCode = KeyCode.getKeyCode(evt);
@@ -713,7 +771,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Returns the next key, either from player or from click handler. */
-    getNextCode() {
+    public getNextCode() {
         if (this.ctrlMode === 'AUTOMATIC') {
             const nextCode = this.clickHandler.getNextCode();
             if (nextCode) {
@@ -732,7 +790,7 @@ export class BattlesTop extends React.Component {
     /* Checks and makes adjustments if auto-ctrl mode should be terminated.
      * Usually this happens when auto-mode command fails or if enemy is
      * seen. */
-    checkIfAutoModeDone() {
+    public checkIfAutoModeDone() {
         if (this.clickHandler) {
             if (!this.clickHandler.hasKeys()) {
                 this.ctrlMode = 'MANUAL';
@@ -763,7 +821,7 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    mainLoop() {
+    public mainLoop() {
         if (this.keyPending === true || this.ctrlMode === 'AUTOMATIC') {
             const code = this.getNextCode();
             if (code.cmd) {
@@ -808,7 +866,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Plays the animation until all animation frames have been shown. */
-    playAnimation() {
+    public playAnimation() {
         if (this.game.hasAnimation()) {
             const anim = this.game.getAnimationFrame();
             this.setState({render: true, animation: anim});
@@ -825,7 +883,7 @@ export class BattlesTop extends React.Component {
 
     /* Called when a JSON file is imported. This can be a save game or a
      * plugin */
-    onLoadCallback(jsonData) {
+    public onLoadCallback(jsonData) {
         if (jsonData.plugin) {
             const entry = this.pluginManager.readJSON(jsonData);
             const parser = RG.ObjectShell.getParser();
@@ -843,7 +901,7 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    render() {
+    public render() {
         let map = null;
         let player = null;
         let inv = null;
@@ -1094,7 +1152,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* When an ASCII menu item is clicked, this function should be called. */
-    menuItemClicked(key) {
+    public menuItemClicked(key) {
       if (key) {
         if (/\d+/.test(key)) {
           key = parseInt(key, 10);
@@ -1107,7 +1165,7 @@ export class BattlesTop extends React.Component {
       }
     }
 
-    setEditorData(levelsToPlay, allLevels) {
+    public setEditorData(levelsToPlay, allLevels) {
         const editorData = {
             levelsToPlay,
             allLevels
@@ -1116,7 +1174,7 @@ export class BattlesTop extends React.Component {
         this.setState({editorData, loadFromEditor: true});
     }
 
-    getOneSelectedCell() {
+    public getOneSelectedCell() {
         if (Array.isArray(this.state.selectedCell)) {
             return this.state.selectedCell[0];
         }
@@ -1128,7 +1186,7 @@ export class BattlesTop extends React.Component {
     //-------------------------------------------------------------
 
     /* GUI command keybindings are specified here. */
-    initGUICommandTable() {
+    public initGUICommandTable() {
         this.guiCommands = {};
         this.guiCommands[Keys.GUI.Help] = this.GUIHelp.bind(this);
         this.guiCommands[Keys.GUI.Inv] = this.GUIInventory;
@@ -1142,7 +1200,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Returns true if given command is a GUI command. */
-    isGUICommand(code) {
+    public isGUICommand(code) {
         if (this.gameState) {
             if (this.gameState.autoTarget && code === Keys.VK_t) {
                 return false;
@@ -1157,27 +1215,27 @@ export class BattlesTop extends React.Component {
         return false;
     }
 
-    GUIHelp() {
+    public GUIHelp() {
       this.showScreen('HelpScreen');
     }
 
-    GUICharInfo() {
+    public GUICharInfo() {
       this.showScreen('CharInfo');
     }
 
-    GUIGoto(x, y) {
+    public GUIGoto(x, y) {
         const player = this.game.getPlayer();
         const cell = player.getCell();
         this.useClickHandler(x, y, cell, 'move');
     }
 
     /* GameInventory should add a callback which updates the GUI (via props) */
-    doInvCmd(cmd) {
+    public doInvCmd(cmd) {
         this.game.update(cmd);
     }
 
     /* Calls a GUI command corresponding to the code.*/
-    doGUICommand(code, ...args) {
+    public doGUICommand(code, ...args) {
          if (this.gameState.useModeEnabled) {
             this.gameState.useModeEnabled = false;
             const item = this.state.selectedItem;
@@ -1213,17 +1271,17 @@ export class BattlesTop extends React.Component {
     }
 
     /* Called by GameInventory to change the message shown. */
-    setInventoryMsg(msg) {
+    public setInventoryMsg(msg) {
         this.setState({invMsg: msg.invMsg, invMsgStyle: msg.msgStyle});
     }
 
     /* Brings up the inventory.*/
-    GUIInventory() {
+    public GUIInventory() {
         this.toggleScreen(INV_SCREEN);
     }
 
     /* Toggles the map view. */
-    GUIMap() {
+    public GUIMap() {
       if (this.state.showMap) {
         this.setViewType(VIEW_PLAYER);
       }
@@ -1232,12 +1290,12 @@ export class BattlesTop extends React.Component {
       }
     }
 
-    GUIOverWorldMap() {
+    public GUIOverWorldMap() {
       this.toggleScreen('OWMap');
     }
 
     /* Finds the nearest enemy and shows its name when 'l' is pressed. */
-    GUILook() {
+    public GUILook() {
         if (this.gameState.isTargeting) {
             const nextCell = this.getNextTargetCell();
             if (nextCell) {
@@ -1273,7 +1331,7 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    GUIUseItem() {
+    public GUIUseItem() {
         if (!this.gameState.useModeEnabled) {
             this.gameState.useModeEnabled = true;
             if (this.state.selectedItem === null) {
@@ -1284,7 +1342,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* Selects next target when 'n' is pressed.*/
-    GUINextTarget() {
+    public GUINextTarget() {
         if (this.gameState.isTargeting) {
             const nextCell = this.getNextTargetCell();
             this.screen.setSelectedCell(nextCell);
@@ -1292,7 +1350,7 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    getNextTargetCell() {
+    public getNextTargetCell() {
         const numCells = this.gameState.enemyCells.length;
         if (numCells > 0) {
             let numNextCell = this.gameState.numCurrCell + 1;
@@ -1306,7 +1364,7 @@ export class BattlesTop extends React.Component {
         return null;
     }
 
-    showScreen(type) {
+    public showScreen(type) {
         const key = 'show' + type;
         this.disableKeys();
         if (this.state.hasOwnProperty(key)) {
@@ -1317,13 +1375,13 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    hideScreen(type) {
+    public hideScreen(type) {
         const key = 'show' + type;
         this.enableKeys();
         this.setState({[key]: false});
     }
 
-    toggleScreen(type) {
+    public toggleScreen(type) {
         const key = 'show' + type;
         const wasShown = this.state[key];
         if (wasShown) {this.enableKeys();}
@@ -1331,43 +1389,43 @@ export class BattlesTop extends React.Component {
         this.setState({[key]: !wasShown});
     }
 
-    showStartScreen() {
+    public showStartScreen() {
         if (!this.state.showStartScreen) {
             this.setState({showStartScreen: true});
         }
     }
 
-    showLoadScreen() {
+    public showLoadScreen() {
       this.setState({showLoadScreen: true});
     }
 
     //--------------------------------
     // GAME CONFIG RELATED FUNCTIONS
     //-------------------------------
-    setPlayerLevel(level) {
+    public setPlayerLevel(level) {
         this.setGameSetting('playerLevel', level);
     }
 
-    setPlayerClass(className) {
+    public setPlayerClass(className) {
         this.setGameSetting('playerClass', className);
     }
 
-    setPlayerRace(raceName) {
+    public setPlayerRace(raceName) {
         this.setGameSetting('playerRace', raceName);
     }
 
-    setPlayMode(mode) {
+    public setPlayMode(mode) {
         this.setGameSetting('playMode', mode);
     }
 
-    setGameSetting(name, value) {
+    public setGameSetting(name, value) {
         this.gameConf[name] = value;
         this.setState({[name]: value});
     }
 
     /* Can be used to call any class method from sub-component without
      * explicitly passing all possible callback functions as props. */
-    topMenuCallback(cmd, args) {
+    public topMenuCallback(cmd, args) {
       if (typeof this[cmd] === 'function') {
           if (Array.isArray(args)) {
               if (args.length === 1) {
@@ -1387,13 +1445,13 @@ export class BattlesTop extends React.Component {
       }
     }
 
-    showMsg(msg) {
+    public showMsg(msg) {
         RG.diag('showMsg:', msg);
         this.setState({msg});
     }
 
     /* Binds the callbacks. */
-    bindCallbacks() {
+    public bindCallbacks() {
         this.newGame = this.newGame.bind(this);
 
         // GameStartScreen callbacks
