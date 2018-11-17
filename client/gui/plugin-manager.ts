@@ -16,17 +16,17 @@ export class PluginEntry {
         this._onRemove = json.onRemove;
     }
 
-    getData() {return this._data;}
+    public getData() {return this._data;}
 
-    hasError() {
+    public hasError() {
         return (/ERROR/).test(this._status);
     }
 
-    getErrorMsg() {
+    public getErrorMsg() {
         return this._errorMsg;
     }
 
-    disable() {
+    public disable() {
         if (this._enabled) {
             if (typeof this._onRemove === 'function') {
                 try {
@@ -43,7 +43,7 @@ export class PluginEntry {
         }
     }
 
-    enable() {
+    public enable() {
         if (!this._enabled) {
             if (typeof this._onLoad === 'function') {
                 try {
@@ -60,11 +60,11 @@ export class PluginEntry {
         }
     }
 
-    getName() {
+    public getName() {
         return this._name;
     }
 
-    isEnabled() {
+    public isEnabled() {
         return this._enabled;
     }
 
@@ -78,14 +78,14 @@ export default class PluginManager {
         this._errorMsg = '';
     }
 
-    readJSON(json) {
+    public readJSON(json) {
         const entry = new PluginEntry(json);
         this._plugins.push(entry);
         return entry;
     }
 
     /* Returns true if any of the plugins are enabled. */
-    anyPluginsEnabled() {
+    public anyPluginsEnabled() {
         for (let i = 0; i < this._plugins.length; i++) {
             if (this._plugins[i].isEnabled()) {
                 return true;
@@ -94,25 +94,25 @@ export default class PluginManager {
         return false;
     }
 
-    findPlugin(name) {
+    public findPlugin(name) {
         return this._plugins.find(p => p._name === name);
     }
 
-    getPlugins() {
+    public getPlugins() {
         return this._plugins.slice();
     }
 
-    getPluginNames() {
+    public getPluginNames() {
         return this._plugins.map(p => p._name);
     }
 
-    addPlugin(pluginData) {
+    public addPlugin(pluginData) {
         const entry = new PluginEntry(pluginData);
         this._plugins.push(entry);
         return entry;
     }
 
-    deletePlugin(name) {
+    public deletePlugin(name) {
         const index = this._plugins.findIndex(p => p.getName() === name);
         if (index >= 0) {
             this._plugins[index].disable();
@@ -120,14 +120,14 @@ export default class PluginManager {
         }
     }
 
-    disablePlugin(name) {
+    public disablePlugin(name) {
         const plugin = this.findPlugin(name);
         if (plugin) {
             plugin.disable();
         }
     }
 
-    enablePlugin(name) {
+    public enablePlugin(name) {
         const plugin = this.findPlugin(name);
         if (plugin) {
             plugin.enable();
@@ -135,10 +135,10 @@ export default class PluginManager {
     }
 
     /* Loads a script using eval. */
-    loadScript(text) {
+    public loadScript(text) {
         try {
             /* eslint-disable */
-            let pluginData = null;
+            const pluginData = null;
             eval(text); // EVIL!!
             if (pluginData) {
                 pluginData.data = text;
