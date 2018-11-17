@@ -30,8 +30,8 @@ import * as Component from './component';
 import {Random} from './random';
 import {SentientActor} from './actor';
 import {Dice} from './dice';
-import { ObjectShell } from './objectshellparser';
-import { Brain } from './brain';
+import {ObjectShell} from './objectshellparser';
+import {Brain} from './brain';
 import {Geometry} from './geometry';
 import {Path} from './path';
 
@@ -58,10 +58,10 @@ export const Spell: any = {};
 
 const addPoisonEffect = (actor, src) => {
     const expLevel = src.get('Experience').getExpLevel();
-    const dmgDie = new RG.Die(1, expLevel, Math.ceil(expLevel / 2));
+    const dmgDie = new Dice(1, expLevel, Math.ceil(expLevel / 2));
     let prob = 0.07 * expLevel;
     if (prob >= 0.5) {prob = 0.5;}
-    const durDie = new RG.Die(2, expLevel + 5, Math.ceil(expLevel / 2));
+    const durDie = new Dice(2, expLevel + 5, Math.ceil(expLevel / 2));
     const dur = durDie.roll();
     poisonActor(actor, src, dur, dmgDie, prob);
 };
