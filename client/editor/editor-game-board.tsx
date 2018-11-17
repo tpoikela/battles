@@ -1,18 +1,33 @@
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import GameBoard from '../jsx/game-board';
 import {ContextMenuTrigger} from 'react-contextmenu';
+import {Screen} from '../gui/screen';
+
+export interface IEditorGameBoardProps {
+    boardClassName: string;
+    rowClass: string;
+    screen: Screen;
+    sizeX: number;
+    updateMap: boolean;
+    useRLE: boolean;
+    onCellClick(x: number, y: number): void;
+    onMouseDown(x: number, y: number): void;
+    onMouseOver(x: number, y: number): void;
+    onMouseOverCell(x: number, y: number): void;
+    onMouseUp(x: number, y: number): void;
+}
 
 /* Wrapper for the GameBoard to disable map updates for big maps. */
 export default class EditorGameBoard extends React.Component {
+    public props: IEditorGameBoardProps;
 
-    shouldComponentUpdate(nextProps) {
+    public shouldComponentUpdate(nextProps) {
         if (nextProps.updateMap) {return true;}
         return false;
     }
 
-    render() {
+    public render() {
         const {screen} = this.props;
         return (
             <ContextMenuTrigger id='right-click-context-menu'>
@@ -36,17 +51,3 @@ export default class EditorGameBoard extends React.Component {
         );
     }
 }
-
-EditorGameBoard.propTypes = {
-    boardClassName: PropTypes.string,
-    onCellClick: PropTypes.func,
-    onMouseDown: PropTypes.func,
-    onMouseOver: PropTypes.func,
-    onMouseOverCell: PropTypes.func,
-    onMouseUp: PropTypes.func,
-    rowClass: PropTypes.string,
-    screen: PropTypes.object,
-    sizeX: PropTypes.number,
-    updateMap: PropTypes.bool,
-    useRLE: PropTypes.bool
-};
