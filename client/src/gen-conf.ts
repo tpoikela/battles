@@ -2,7 +2,7 @@
  * objects used in generation of features.
  */
 
-const ConfGen = {};
+export const ConfGen: any = {};
 
 ConfGen.Level = {
     create: () => ({
@@ -119,5 +119,3 @@ function validateObject(data, templ, givenConf) {
     });
     return ok;
 }
-
-module.exports = ConfGen;
