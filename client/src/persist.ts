@@ -71,7 +71,7 @@ async function operateWithIDB(store, operation, data) {
     }
 }
 
-module.exports = function Persist(playerName) {
+export function Persist(playerName) {
     // this.fromStorage = () => operateWithIDB(playerName, 'GET', null);
     this.fromStorage = (cb) => {
         return localforage.getItem(playerName, cb);
@@ -84,4 +84,4 @@ module.exports = function Persist(playerName) {
     this.deleteStorage = cb => {
         localforage.removeItem(playerName).then(cb);
     };
-};
+}
