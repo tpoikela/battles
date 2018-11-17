@@ -25,7 +25,7 @@ const undeadBrain = 'GoalOriented';
  * of actors without adding any styles to CSS file.
  */
 
-const ActorsData = [
+export const ActorsData = [
 
     // ANIMALS
     {
@@ -1419,5 +1419,3 @@ function BypassComp(value) {
 function color(fg, bg) {
     return {fg, bg};
 }
-
-export default ActorsData;
