@@ -128,7 +128,7 @@ Keys.KeyMap = {
     },
 
     /* Converts a direction vector to keycode. */
-    dirToKeyCode: function(dXArg, dYArg) {
+    dirToKeyCode(dXArg, dYArg) {
         // Normalize first to unit vector (-1,0 or 1)
         let dX = dXArg;
         let dY = dYArg;
@@ -172,7 +172,7 @@ Keys.KeyMap = {
         return null;
     },
 
-    keyCodeToCardinalDir: function(code) {
+    keyCodeToCardinalDir(code) {
         switch (code) {
             case Keys.KEY.MOVE_NW: return 'NW';
             case Keys.KEY.MOVE_W: return 'W';
