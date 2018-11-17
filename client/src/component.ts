@@ -534,45 +534,29 @@ export const Ethereal = TagComponent('Ethereal',
 
 /* Stun component prevents actor from taking many actions like moving and
  * attacking. */
-export const Stun = function() {
-    ComponentBase.call(this, 'Stun');
+export const Stun = DataComponent('Stun', {source: null});
 
-    let _src = null;
-    this.getSource = () => _src;
-    this.setSource = src => {_src = src;};
-
-    this.toJSON = () => {
-        const obj = ComponentBase.prototype.toJSON.call(this);
-        if (RG.isActorActive(_src)) {
-            obj.setSource = RG.getObjRef('entity', _src);
-        }
-        return obj;
-    };
-
+Stun.prototype.toJSON = function() {
+    const obj = ComponentBase.prototype.toJSON.call(this);
+    if (RG.isActorActive(_src)) {
+        obj.setSource = RG.getObjRef('entity', _src);
+    }
+    return obj;
 };
 Stun.description = 'Stunning prevents some actions to be done';
-RG.extend2(Stun, ComponentBase);
 
 /* Paralysis component prevents actor from taking many actions like moving and
  * attacking. */
-export const Paralysis = function() {
-    ComponentBase.call(this, 'Paralysis');
-
-    let _src = null;
-    this.getSource = () => _src;
-    this.setSource = src => {_src = src;};
-
-    this.toJSON = () => {
-        const obj = ComponentBase.prototype.toJSON.call(this);
-        if (RG.isActorActive(_src)) {
-            obj.setSource = RG.getObjRef('entity', _src);
-        }
-        return obj;
-    };
-
-};
+export const Paralysis = DataComponent('Paralysis', {source: null});
 Paralysis.description = 'Paralysed actors cannot perform any actions';
-RG.extend2(Paralysis, ComponentBase);
+
+Paralysis.prototype.toJSON = function() {
+    const obj = ComponentBase.prototype.toJSON.call(this);
+    if (RG.isActorActive(this.source)) {
+        obj.setSource = RG.getObjRef('entity', this.source);
+    }
+    return obj;
+};
 
 /* Component added to summoned/created actors. */
 export const Created = UniqueDataComponent('Created', {creator: null});
@@ -611,7 +595,7 @@ export const MindControl = function() {
             ent.setPlayerCtrl(true);
         }
         else {
-            ent.setBrain(new RG.Brain.MindControl(ent));
+            ent.setBrain(new Brain.MindControl(ent));
         }
     };
 
@@ -627,6 +611,7 @@ export const MindControl = function() {
 
 };
 RG.extend2(MindControl, ComponentBase);
+Component.MindControl = MindControl;
 
 MindControl.prototype.toJSON = function() {
     const obj = ComponentBase.prototype.toJSON.call(this);
@@ -647,19 +632,19 @@ export class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(ComponentBase)) 
         this._prob = 0.05; // Prob. of poison kicking in
     }
 
-    getProb() {return this._prob;}
-    setProb(prob) {this._prob = prob;}
+    public getProb() {return this._prob;}
+    public setProb(prob) {this._prob = prob;}
 
-    getSource() {return this._src;}
-    setSource(src) {this._src = src;}
+    public getSource() {return this._src;}
+    public setSource(src) {this._src = src;}
 
-    copy(rhs) {
+    public copy(rhs) {
         super.copy(rhs);
         this._prob = rhs.getProb();
         this._src = rhs.getSource();
     }
 
-    toJSON() {
+    public toJSON() {
         const obj = super.toJSON();
         obj.setType = this.getType();
         obj.setProb = this._prob;
@@ -1177,7 +1162,7 @@ export const RegenEffect = DataComponent('RegenEffect', {
 export const Telepathy = DataComponent('Telepathy', {
     target: null, source: null
 }, {
-    description: "Grants ability to see through another being's eyes"
+    description: 'Grants ability to see through eyes of another being'
 });
 
 Telepathy.prototype.toJSON = function() {
