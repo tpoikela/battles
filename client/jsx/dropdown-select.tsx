@@ -2,7 +2,7 @@
 import * as React from 'react';
 
 interface IDropdownSelectProps {
-  id: string;
+  id?: string;
   options: string[];
   callback: (any) => void;
   currValue: string;
@@ -19,6 +19,7 @@ export default class DropdownSelect extends React.Component {
   }
 
   public render() {
+    const id = this.props.id || `select-id-${this.props.titleName}`;
     const optElems = this.getOptElems();
     return (
       <label>{this.props.titleName}
