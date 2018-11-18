@@ -2,6 +2,8 @@
 import * as React from 'react';
 import GameRow from './game-row';
 
+import {Coord} from '../src/interfaces';
+
 interface IGameBoardProps {
     boardClassName: string;
     charRows: string[][];
@@ -19,7 +21,7 @@ interface IGameBoardProps {
     onMouseUp(x: number, y: number): void;
 }
 
-const eventToPosition = (e, elem, props: IGameBoardProps, elemID: string) => {
+const eventToPosition = (e, elem, props: IGameBoardProps, elemID: string): Coord => {
     // Where the mouse was clicked
     const x = e.clientX;
     const y = e.clientY;
@@ -124,7 +126,7 @@ export default class GameBoard extends React.Component {
     }
 
     public getCellXY(evt): [number, number] {
-      return eventToPosition(evt, this.board, this.boards, 'game-board-row');
+      return eventToPosition(evt, this.board, this.props, 'game-board-row');
     }
 
     public render() {
