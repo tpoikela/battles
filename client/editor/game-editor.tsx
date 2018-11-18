@@ -157,10 +157,17 @@ export interface IGameEditorState {
       turnsPerFrame: number;
       idCount: number;
       updateMap: boolean;
+      startTime?: number;
 
       useRLE: boolean;
       savedLevelName: string;
-      confTemplText: string;
+      confTemplText?: string;
+
+      mouseOverCell?: Cell;
+      cellSelectX?: number;
+      cellSelectY?: number;
+      selectDiffX?: number;
+      selectDiffY?: number;
 }
 
 export interface IGameEditorProps {
@@ -177,10 +184,11 @@ export default class GameEditor extends Component {
   public props: IGameEditorProps;
   public screen: Screen;
   public parser: any;
-  public intervalID: number;
+  public intervalID: any;
   public frameID: number;
   public nextCode: number;
-  public game: GameMain;
+  public game: any; // TODO GameMain;
+  public animationID: number;
 
   constructor(props: IGameEditorProps) {
     super(props);
@@ -614,7 +622,7 @@ export default class GameEditor extends Component {
     const levelList = this.state.levelList;
     levels.forEach(level => {
       level.getMap()._optimizeForRowAccess();
-      level.editorID = this.state.idCount++;
+      (level as any).editorID = this.state.idCount++;
       levelList.push(level);
     });
     const zoneConf = this.state.zoneConf;
@@ -1046,8 +1054,8 @@ export default class GameEditor extends Component {
 
   public onChangeLevelConf(confType, key, idHead) {
     const id = `#${idHead}--${confType}--${key}`;
-    const inputElem = document.querySelector(id);
-    const value = inputElem.value;
+    const inputElem = document.querySelector(id) as HTMLInputElement;
+    const value = parseInt(inputElem.value, 10);
     let conf = null;
 
     if (idHead === 'main') {conf = this.state.levelConf;}
@@ -1058,10 +1066,10 @@ export default class GameEditor extends Component {
       // TODO how to handle functions
     }
     else if (isNaN(value)) {
-      conf[confType][key] = value;
+      conf[confType][key] = inputElem.value;
     }
     else {
-      conf[confType][key] = +value;
+      conf[confType][key] = value;
     }
 
     if (idHead === 'main') {
@@ -1093,12 +1101,12 @@ export default class GameEditor extends Component {
     this.setState({levelType, levelConf, lastTouchedConf: levelConf});
   }
 
-  public getInt(value, base) {
+  public getInt(value, base): number {
     const retValue = parseInt(value, base);
     if (Number.isInteger(retValue)) {
       return retValue;
     }
-    return '';
+    return 0;
   }
 
   public onChangeSubType(evt) {
@@ -1120,7 +1128,7 @@ export default class GameEditor extends Component {
   public onChangeCellSelectX(evt) {
     const newX = this.getInt(evt.target.value, 10);
     const cell = this.getFirstSelectedCell();
-    const update = {cellSelectX: newX};
+    const update: any = {cellSelectX: newX};
     const map = this.state.level.getMap();
     if (Number.isInteger(newX) && cell) {
       if (map.hasXY(newX, cell.getY())) {
@@ -1136,7 +1144,7 @@ export default class GameEditor extends Component {
   public onChangeCellSelectY(evt) {
     const newY = this.getInt(evt.target.value, 10);
     const cell = this.getFirstSelectedCell();
-    const update = {cellSelectY: newY};
+    const update: any = {cellSelectY: newY};
     const map = this.state.level.getMap();
     if (Number.isInteger(newY) && cell) {
       if (map.hasXY(cell.getX(), newY)) {
@@ -1176,7 +1184,7 @@ export default class GameEditor extends Component {
     else if (!this.state.simulationStarted) {
 
       this.game = new RG.Game.Main();
-      window.GAME = this.game; // Handle for debugging
+      (window as any).GAME = this.game; // Handle for debugging
 
       const fromJSON = new RG.Game.FromJSON();
       const json = this.state.level.toJSON();
@@ -1288,7 +1296,7 @@ export default class GameEditor extends Component {
         this.frameID = null;
       }
       this.game = null;
-      window.GAME = null;
+      (window as any).GAME = null;
       delete this.game;
       this.setShownLevel({level: this.getLevel(),
         simulationStarted: false, simulationPaused: false});
@@ -1296,7 +1304,7 @@ export default class GameEditor extends Component {
   }
 
   public setShownLevel(args) {
-    window.LEVEL = args.level;
+    (window as any).LEVEL = args.level;
     this.setState(args);
   }
 
@@ -1363,7 +1371,7 @@ export default class GameEditor extends Component {
   /* Returns the <option> dropdown menu elements for items/actors. */
   public getSelectElem(type) {
     const items = this.parser.dbGet({categ: type});
-    const elem = Object.values(items).map(item => {
+    const elem = Object.values(items).map((item: any) => {
       const key = `key-sel-${type}-${item.name}`;
       return <option key={key} value={item.name}>{item.name}</option>;
     });
