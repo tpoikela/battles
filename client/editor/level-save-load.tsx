@@ -2,20 +2,30 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
-const RG = require('../src/rg');
-RG.Map = require('../src/map');
-const FileSaver = require('file-saver');
+import RG from '../src/rg';
+import {CellMap} from '../src/map';
+import FileSaver = require('file-saver');
+
+interface ILevelSaveLoadProps {
+    objData: any;
+    savedObjName: string;
+    pretty?: boolean;
+    onSaveCallback?: (json: any) => void;
+    onLoadCallback: (json: any) => void;
+    setMsg: (any) => void;
+}
 
 /* Component which handles loading/saving of the levels from/to files. */
 export default class LevelSaveLoad extends Component {
+  public props: ILevelSaveLoadProps;
 
-  constructor(props) {
+  constructor(props: ILevelSaveLoadProps) {
     super(props);
     this.saveLevel = this.saveLevel.bind(this);
     this.loadLevel = this.loadLevel.bind(this);
   }
 
-  shouldComponentUpdate() {
+  shouldComponentUpdate(): boolean {
       return false;
   }
 
@@ -56,13 +66,14 @@ export default class LevelSaveLoad extends Component {
   /* Loads a user file and converts that into a level object, which will be
    * shown if the loading was successful. */
   loadLevel() {
-    const fileList = document.querySelector('#level-file-input').files;
+    const elem = document.querySelector('#level-file-input') as HTMLInputElement;
+    const fileList = elem.files;
 
     const file = fileList[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const text = reader.result;
+        const text = reader.result as string;
 
         try {
           // Many things can go wrong: Not JSON, not a valid level..
@@ -106,12 +117,3 @@ export default class LevelSaveLoad extends Component {
     );
   }
 }
-
-LevelSaveLoad.propTypes = {
-  onLoadCallback: PropTypes.func,
-  objData: PropTypes.object,
-  onSaveCallback: PropTypes.func,
-  pretty: PropTypes.bool,
-  savedObjName: PropTypes.string,
-  setMsg: PropTypes.func
-};
