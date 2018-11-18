@@ -1692,17 +1692,6 @@ RG.isSuccess = function(prob) {
     return rng.getUniform() <= prob;
 };
 
-//---------------------------------------------------------------------------
-// MessageHandler
-//---------------------------------------------------------------------------
-
-interface Message {
-    msg: string;
-    style?: string;
-    count?: number;
-    cell?: any;
-}
-
 
 /* A debug function which prints info about given entity. */
 RG.ent = function(whatever) {
@@ -1830,20 +1819,39 @@ RG.destroyItemIfNeeded = item => {
     }
 };
 
+//---------------------------------------------------------------------------
+// MessageHandler
+//---------------------------------------------------------------------------
+
+export interface IMessage {
+    msg: string;
+    style?: string;
+    count?: number;
+    cell?: any;
+    seen?: boolean;
+}
+
 /* Handles the game message listening and storing of the messages. */
-RG.MessageHandler = function() { // {{{2
+export class MessageHandler { // {{{2
+    public _lastMsg: IMessage;
+    public _messages: IMessage[];
+    public _prevMessages: IMessage[];
+    public _hasNew: boolean;
+    public hasNotify: boolean;
 
-    let _lastMsg: Message = null;
+    constructor() {
+        this._lastMsg = null;
+        this._messages = [];
+        this._prevMessages = [];
+        this._hasNew = false;
+        this.hasNotify = true;
+        POOL.listenEvent(RG.EVT_MSG, this);
+    }
 
-    let _messages: Message[] = [];
-    let _prevMessages: Message[] = [];
-    let _hasNew: boolean = false;
-
-    this.hasNotify = true;
-    this.notify = (evtName, msg) => {
+    notify(evtName, msg): void {
         if (evtName === RG.EVT_MSG) {
             if (msg.hasOwnProperty('msg')) {
-                const msgObj: Message = {msg: msg.msg, style: 'prim', count: 1};
+                const msgObj: IMessage = {msg: msg.msg, style: 'prim', count: 1};
 
                 if (msg.hasOwnProperty('cell')) {
                     msgObj.cell = msg.cell;
@@ -1853,34 +1861,34 @@ RG.MessageHandler = function() { // {{{2
                     msgObj.style = msg.style;
                 }
 
-                if (_lastMsg && _lastMsg.msg === msgObj.msg) {
-                    _lastMsg.count += 1;
+                if (this._lastMsg && this._lastMsg.msg === msgObj.msg) {
+                    this._lastMsg.count += 1;
                 }
                 else {
-                    _lastMsg = msgObj;
-                    _messages.push(msgObj);
+                    this._lastMsg = msgObj;
+                    this._messages.push(msgObj);
                 }
-                _hasNew = true;
+                this._hasNew = true;
             }
         }
     };
-    POOL.listenEvent(RG.EVT_MSG, this);
 
-    this.hasNew = () => _hasNew;
+    hasNew() {return this._hasNew;}
 
-    this.getMessages = () => {
-        _hasNew = false;
-        if (_messages.length > 0) {return _messages;}
-        else if (_prevMessages.length > 0) {return _prevMessages;}
+    getMessages(): IMessage[] {
+        this._hasNew = false;
+        if (this._messages.length > 0) {return this._messages;}
+        else if (this._prevMessages.length > 0) {return this._prevMessages;}
         else {return [];}
+    }
+
+    clear(): void {
+        if (this._messages.length > 0) {this._prevMessages = this._messages.slice();}
+        this._messages = [];
     };
 
-    this.clear = () => {
-        if (_messages.length > 0) {_prevMessages = _messages.slice();}
-        _messages = [];
-    };
-
-}; // }}} Messages
+}
+RG.MessageHandler = MessageHandler;
 
 /* eslint no-unused-vars: 0 */
 export default RG;
