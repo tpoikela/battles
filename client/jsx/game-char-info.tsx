@@ -4,7 +4,7 @@ import ModalHeader from './modal-header';
 
 import RG from '../src/rg';
 import * as Component from '../src/component';
-import {SentienActor} from '../src/actor';
+import {SentientActor} from '../src/actor';
 import Modal from 'react-bootstrap-modal';
 
 interface IGameCharInfoProps {
@@ -14,6 +14,7 @@ interface IGameCharInfoProps {
 }
 
 export default class GameCharInfo extends React.Component {
+  public props: IGameCharInfoProps;
 
   constructor(props: IGameCharInfoProps) {
     super(props);
@@ -22,11 +23,11 @@ export default class GameCharInfo extends React.Component {
     };
   }
 
-  public selectTab(tabName: string) {
+  public selectTab(tabName: string): void {
     this.setState({tabShown: tabName});
   }
 
-  public toggleScreen(type: string) {
+  public toggleScreen(type: string): void {
       this.props.toggleScreen(type);
   }
 
@@ -161,7 +162,7 @@ export default class GameCharInfo extends React.Component {
     const comps = Object.values(actor.getComponents());
 
     const compNames = comps.map((c, index) => {
-      const description = RG.Component[c.getType()].description;
+      const description = Component[c.getType()].description;
       if (description) {
         return (
           <p key={index}>

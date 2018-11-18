@@ -4,9 +4,9 @@ import {ContextMenu, MenuItem} from 'react-contextmenu';
 import {Cell} from '../src/map.cell';
 
 export interface IContextMenuItemsProps {
-  handleRightClick: any;
   menuItems: any;
   mouseOverCell: Cell;
+  handleRightClick(evt: any, data: any, cell: Cell): void;
 }
 
 export default class ContextMenuItems extends React.Component {

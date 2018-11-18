@@ -24,27 +24,27 @@ export class SystemEvents extends SystemBase {
 
         // Maps event types to handler functions
         this._dtable = {
-            [RG.EVT_ACTOR_KILLED]: this._handleActorKilled,
-            [RG.EVT_ITEM_PICKED_UP]: this._handleItemPickedUp,
-            [RG.EVT_ACTOR_DAMAGED]: this._handleActorDamaged,
-            [RG.EVT_ACTOR_ATTACKED]: this._handleActorAttacked,
-            [RG.EVT_ACTOR_USED_STAIRS]: this._handleActorUsedStairs
+            [RG.EVT_ACTOR_KILLED]: this._handleActorKilled.bind(this),
+            [RG.EVT_ITEM_PICKED_UP]: this._handleItemPickedUp.bind(this),
+            [RG.EVT_ACTOR_DAMAGED]: this._handleActorDamaged.bind(this),
+            [RG.EVT_ACTOR_ATTACKED]: this._handleActorAttacked.bind(this),
+            [RG.EVT_ACTOR_USED_STAIRS]: this._handleActorUsedStairs.bind(this)
             // ACTOR_KILLED: this._handleActorKilled.bind(this)
         };
     }
 
-    addLevel(level, radius) {
+    public addLevel(level: Level, radius: number): void {
         this.eventRadiusPerID[level.getID()] = radius;
     }
 
-    removeLevel(level) {
+    public removeLevel(level: Level): void {
         delete this.eventRadiusPerID[level.getID()];
     }
 
 
     /* Returns the radius which is used to calculate the event propagation
      * distance. */
-    _getEventRadius(ent) {
+    public _getEventRadius(ent): number {
         const id = ent.getLevel().getID();
         if (this.eventRadiusPerID.hasOwnProperty(id)) {
             return this.eventRadiusPerID[id];
@@ -53,7 +53,7 @@ export class SystemEvents extends SystemBase {
         return this.eventRadius;
     }
 
-    _handleActorKilled(ent, evt, actor) {
+    public _handleActorKilled(ent, evt, actor) {
         // React to friend/non-hostile being killed
         if (ent.isPlayer()) {
             const src = evt.cause;
@@ -66,7 +66,7 @@ export class SystemEvents extends SystemBase {
         }
     }
 
-    _handleItemPickedUp(ent, evt, actor) {
+    public _handleItemPickedUp(ent, evt, actor) {
         if (actor.getID() !== ent.getID()) {
             if (!actor.isEnemy(ent)) {
                 const cell = ent.getCell();
@@ -78,7 +78,7 @@ export class SystemEvents extends SystemBase {
         }
     }
 
-    _handleActorDamaged(ent, evt, actor) {
+    public _handleActorDamaged(ent, evt, actor) {
         if (ent.getID() !== actor.getID()) {
             const args = evt.getArgs();
             const {cause} = args;
@@ -86,7 +86,7 @@ export class SystemEvents extends SystemBase {
         }
     }
 
-    _handleActorAttacked(ent, evt, actor) {
+    public _handleActorAttacked(ent, evt, actor) {
         if (ent.getID() !== actor.getID()) {
             const args = evt.getArgs();
             const {cause} = args;
@@ -94,13 +94,12 @@ export class SystemEvents extends SystemBase {
         }
     }
 
-    _handleActorUsedStairs(ent, evt, actor) {
+    public _handleActorUsedStairs(ent, evt, actor) {
         RG.gameMsg(`${actor.getName()} saw ${ent.getName()} using stairs.`);
     }
 
-
     /* Decides if attacker must be added as enemy of the perceiving actor. */
-    _addActorAsEnemy(aggressor, victim, perceiver) {
+    public _addActorAsEnemy(aggressor, victim, perceiver) {
         if (victim.getType() === perceiver.getType()) {
             if (!perceiver.isEnemy(victim) && !victim.isEnemy(perceiver)) {
                 if (perceiver.isFriend(aggressor)) {
@@ -122,7 +121,7 @@ export class SystemEvents extends SystemBase {
         }
     }
 
-    _emitMsg(msg, aggr, victim, perc) {
+    public _emitMsg(msg, aggr, victim, perc) {
         const aggrName = aggr.getName();
         const cell = victim.getCell();
         let fullMsg = `${perc.getName()} ${msg} of ${aggrName} `;
@@ -130,7 +129,7 @@ export class SystemEvents extends SystemBase {
         RG.gameMsg({cell, msg: fullMsg});
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const evtList = ent.getList('Event');
         evtList.forEach(evt => {
             const args = evt.getArgs();
@@ -156,8 +155,8 @@ export class SystemEvents extends SystemBase {
                     actors.forEach(actor => {
                         if (!actor.isPlayer() && actor.has('Perception')) {
                             const seenCells = actor.getBrain().getSeenCells();
-                            const canSee = seenCells.find(cell => (
-                                cell.getX() === x0 && cell.getY() === y0
+                            const canSee = seenCells.find(c => (
+                                c.getX() === x0 && c.getY() === y0
                             ));
                             if (canSee) {
                                 // const name = actor.getName();

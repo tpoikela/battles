@@ -26,6 +26,7 @@ import {FactoryLevel} from '../src/factory.level';
 import {Geometry} from '../src/geometry';
 import {Level} from '../src/level';
 import {Cell} from '../src/map.cell';
+import {CellMap} from '../src/map';
 
 import {Screen} from '../gui/screen';
 
@@ -35,10 +36,15 @@ import {OverWorld} from '../src/overworld';
 import {FactoryWorld} from '../src/factory.world';
 import {WorldConf} from '../src/world.creator';
 import {ObjectShell} from '../src/objectshellparser';
+import {ZoneBase, SubZoneBase} from '../src/world';
+import {Keys} from '../src/keymap';
+import {GameMain} from '../src/game';
+
+const KeyMap = Keys.KeyMap;
 
 const NO_VISIBLE_CELLS = [];
 
-const editorLevelTypes = [
+const editorLevelTypes: string[] = [
   'Castle', 'Cave', 'Dungeon', 'MountainFace', 'MountainSummit',
   'abandoned_fort',
   'arena', 'castle', 'capital', 'cellular', 'cave', 'crypt',
@@ -48,7 +54,7 @@ const editorLevelTypes = [
   'ruins', 'rooms', 'summit', 'town', 'townwithwall', 'wall'
 ];
 
-const boardViews = [
+const boardViews: string[] = [
   'game-board-map-view-xxxxs',
   'game-board-map-view-xxxs',
   'game-board-map-view-xs',
@@ -90,73 +96,78 @@ const updateLevelAndErrorMsg = (level, msg) => (
   })
 );
 
+interface ZoneConf {
+    shown: string;
+    [key: string]: {[key: string]: any};
+}
+
+type ZoneFeat = ZoneBase | SubZoneBase;
 
 export interface IGameEditorState {
+      debug: boolean;
       boardClassName: string;
       boardIndex: number;
       lastTouchedConf: {[key: string]: any};
       zoneType: string;
-      /*
-      zoneList: [],
-      zoneConf: {shown: ''},
+      zoneList: ZoneBase[];
+      zoneConf: ZoneConf;
 
-      levelX: 80,
-      levelY: 50,
-      levelType: 'Cave',
+      levelX: number;
+      levelY: number;
+      levelType: string;
 
-      subLevelX: 20,
-      subLevelY: 7,
-      subLevelType: 'arena',
-      subLevelTileX: 1,
-      subLevelTileY: 1,
+      subLevelX: number;
+      subLevelY: number;
+      subLevelType: string;
+      subLevelTileX: number;
+      subLevelTileY: number;
 
-      errorMsg: '',
-      msg: '',
+      errorMsg: string;
+      msg: string;
 
-      itemFunc: (item) => (item.value < 5000),
-      maxValue: 5000,
+      itemFunc: (item) => boolean;
+      maxValue: number;
 
-      selectedCell: null,
-      selectMode: false,
-      selectBegin: null,
+      selectMode: boolean;
+      selectedCell: Cell[] | null;
+      selectBegin: Cell | null;
+      selectEnd: Cell | null;
 
-      elementType: 'floor',
-      actorName: '',
-      itemName: '',
-      numEntities: 20,
+      elementType: string;
+      actorName: string;
+      itemName: string;
+      numEntities: number;
 
-      insertXWidth: 1,
-      insertYWidth: 1,
+      insertXWidth: number;
+      insertYWidth: number;
 
-      levelConf: {shown: ''},
-      subLevelConf: {shown: ''},
+      levelConf: ZoneConf;
+      subLevelConf: ZoneConf;
 
-      level: null,
-      levelList: [],
-      levelIndex: 0,
+      level: Level | null;
+      levelList: Level[];
+      levelIndex: number;
 
-      showAnimations: true,
-      frameCount: 0,
-      fps: 0,
-      simulationStarted: false,
-      simulationPaused: false,
-      turnsPerSec: 1000,
-      turnsPerFrame: 1,
-      idCount: 0,
-      updateMap: true,
+      showAnimations: boolean;
+      frameCount: number;
+      fps: number;
+      simulationStarted: boolean;
+      simulationPaused: boolean;
+      turnsPerSec: number;
+      turnsPerFrame: number;
+      idCount: number;
+      updateMap: boolean;
 
-      useRLE: true,
-      savedLevelName: 'saved_level_from_editor.json'
-      */
+      useRLE: boolean;
+      savedLevelName: string;
+      confTemplText: string;
 }
 
 export interface IGameEditorProps {
     editorData: any;
-    levelList: Level[];
-    level: Level;
-    selectMode: boolean;
-    selectBegin: Cell;
-    selectEnd: Cell;
+    setEditorData: (a: any, b: any) => void;
+    toggleEditor: () => void;
+    mapShown: boolean;
 }
 
 /* Component for game/level editor. */
@@ -168,12 +179,15 @@ export default class GameEditor extends Component {
   public parser: any;
   public intervalID: number;
   public frameID: number;
+  public nextCode: number;
+  public game: GameMain;
 
   constructor(props: IGameEditorProps) {
     super(props);
     this.handleKeyDown = this.handleKeyDown.bind(this);
 
     const state: IGameEditorState = {
+      debug: false,
       boardClassName: 'game-board-player-view',
       boardIndex: boardViews.indexOf('game-board-player-view'),
       lastTouchedConf: null,
@@ -201,6 +215,7 @@ export default class GameEditor extends Component {
       selectedCell: null,
       selectMode: false,
       selectBegin: null,
+      selectEnd: null,
 
       elementType: 'floor',
       actorName: '',
@@ -314,7 +329,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  public getCurrMap() {
+  public getCurrMap(): CellMap {
     return this.state.level.getMap();
   }
 
@@ -356,7 +371,7 @@ export default class GameEditor extends Component {
   public onMouseUp(x, y) {
     if (this.state.selectMode) {
       const cell = this.getCellCurrMap(x, y);
-      const stateUpdates = {
+      const stateUpdates: any = {
         selectMode: false, selectEnd: cell,
         cellSelectX: cell.getX(), cellSelectY: cell.getY()
       };
@@ -540,16 +555,14 @@ export default class GameEditor extends Component {
 
   /* Creates the level of given type. */
   public createLevel(levelType) {
-    let conf = {};
+    let conf: any = {};
     if (this.state.levelConf.hasOwnProperty(levelType)) {
       conf = this.state.levelConf[levelType];
     }
-
     conf.transpose = false;
-
     const [cols, rows] = [this.state.levelX, this.state.levelY];
-
     conf.parser = this.parser;
+
     let level = null;
     if (levelType === 'capital') {
       level = new Capital(cols, rows, conf).getLevel();
@@ -585,9 +598,9 @@ export default class GameEditor extends Component {
   }
 
   /* Adds one level to the editor and updates the state. */
-  public addLevelToEditor(level) {
+  public addLevelToEditor(level: Level): void {
     level.getMap()._optimizeForRowAccess();
-    level.editorID = this.state.idCount++;
+    (level as any).editorID = this.state.idCount++;
 
     const levelList = this.state.levelList;
     levelList.push(level);
@@ -596,7 +609,7 @@ export default class GameEditor extends Component {
     this.setShownLevel({level, levelList, levelIndex});
   }
 
-  public addZoneToEditor(type, feat) {
+  public addZoneToEditor(type: string, feat: ZoneFeat) {
     const levels = feat.getLevels();
     const levelList = this.state.levelList;
     levels.forEach(level => {
@@ -682,7 +695,7 @@ export default class GameEditor extends Component {
     // Remove existing actors first
     const actors = level.getActors();
     actors.forEach(actor => {
-      level.removeActor(actor, actor.getX(), actor.getY());
+      level.removeActor(actor);
     });
 
     const conf = {
@@ -838,7 +851,7 @@ export default class GameEditor extends Component {
         <div className='row'>
           <div className='col-md-2'>
               <EditorLevelList
-                  levelList={this.state.levelIndex}
+                  levelIndex={this.state.levelIndex}
                   levelList={this.state.levelList}
                   setShownLevel={this.setShownLevel}
               />
@@ -1646,7 +1659,8 @@ export default class GameEditor extends Component {
     }
   }
 
-  public exportConfig() {
+  /* Reads JSON config from textarea and converts it into object. */
+  public exportConfig(): void {
     try {
       const conf = JSON.parse(this.state.confTemplText);
       const lastTouchedConf = this.state.lastTouchedConf;
@@ -1659,7 +1673,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  public menuCallback(cmd, args) {
+  public menuCallback(cmd: string, args?: any): void {
     if (typeof this[cmd] === 'function') {
       if (Array.isArray(args)) {
           if (args.length === 1) {
@@ -1681,9 +1695,3 @@ export default class GameEditor extends Component {
 
 }
 
-GameEditor.propTypes = {
-  editorData: PropTypes.object,
-  mapShown: PropTypes.bool,
-  setEditorData: PropTypes.func.isRequired,
-  toggleEditor: PropTypes.func
-};

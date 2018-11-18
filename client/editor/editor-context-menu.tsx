@@ -4,8 +4,9 @@ import ContextMenuItems from '../jsx/context-menu-items';
 
 interface IEditorContextMenuProps {
   mouseOverCell: any;
-  handleRightClick(): void;
+  handleRightClick(evt, data, cell): void;
 }
+
 
 const allMenuItems = {
   hasActors: [

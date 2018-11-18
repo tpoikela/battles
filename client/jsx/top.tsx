@@ -45,7 +45,7 @@ import wwork = require('webworkify');
 import {ACTOR_CLASSES} from '../src/actor-class';
 
 import {EventPool} from '../src/eventpool';
-import { FactoryGame } from "../src/factory.game";
+import { FactoryGame } from '../src/factory.game';
 const POOL = EventPool.getPool();
 
 const INV_SCREEN = 'Inventory';

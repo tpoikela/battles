@@ -349,7 +349,7 @@ function connectSubZones(subZones, sz1Arg, sz2Arg, l1, l2) {
     }
     else {
         RG.err('World', 'connectSubZones',
-            'Level ' + l2 + " doesn't exist in sub-zone " + sz2.getName());
+            'Level ' + l2 + ' doesn\'t exist in sub-zone ' + sz2.getName());
     }
 
 }
@@ -447,35 +447,35 @@ export class WorldBase extends GameObject {
         this.parent = null;
     }
 
-    getName() {
+    public getName() {
         return this.name;
     }
 
-    getHierName() {
+    public getHierName() {
         return this.hierName;
     }
 
-    setHierName(hierName) {
+    public setHierName(hierName) {
         this.hierName = hierName;
     }
 
-    getType() {
+    public getType() {
         return this.type;
     }
 
-    setType(type: string) {
+    public setType(type: string) {
         this.type = type;
     }
 
-    getParent(): WorldBase {
+    public getParent(): WorldBase {
         return this.parent;
     }
 
-    setParent(parent: WorldBase) {
+    public setParent(parent: WorldBase) {
         this.parent = parent;
     }
 
-    toJSON() {
+    public toJSON() {
         const obj: any = { // TODO fix typings
             hierName: this.hierName,
             id: this.getID(),
@@ -496,29 +496,29 @@ World.Base = WorldBase;
 //---------------------
 
 export class ZoneBase extends WorldBase {
-    protected _subZones: SubZoneBase[];
     public tileX: number;
     public tileY: number;
+    protected _subZones: SubZoneBase[];
 
     constructor(name) {
         super(name);
         this._subZones = [];
     }
 
-    getSubZoneArgs(s1Arg, s2Arg) {
+    public getSubZoneArgs(s1Arg, s2Arg) {
         return getSubZoneArgs(this._subZones, s1Arg, s2Arg);
     }
 
-    setTileXY(x, y): void {
+    public setTileXY(x, y): void {
         this.tileX = x;
         this.tileY = y;
     }
 
-    getTileXY(): Coord {
+    public getTileXY(): Coord {
         return [this.tileX, this.tileY];
     }
 
-    addSubZone(subZone: SubZoneBase): boolean {
+    public addSubZone(subZone: SubZoneBase): boolean {
         if (subZone.getID() === this.getID()) {
             RG.err('ZoneBase', 'addSubZone',
                 'Tried to add itself as sub zone: ' + this.getName());
@@ -531,12 +531,12 @@ export class ZoneBase extends WorldBase {
         return false;
     }
 
-    hasSubZone(subZone: SubZoneBase): boolean {
+    public hasSubZone(subZone: SubZoneBase): boolean {
         const index = this._subZones.indexOf(subZone);
         return index >= 0;
     }
 
-    getLevels(): Level[] {
+    public getLevels(): Level[] {
         let res = [];
         this._subZones.forEach(subFeat => {
             res = res.concat(subFeat.getLevels());
@@ -544,22 +544,22 @@ export class ZoneBase extends WorldBase {
         return res;
     }
 
-    connectSubZones(s1Arg, s2Arg, l1, l2): void {
+    public connectSubZones(s1Arg, s2Arg, l1, l2): void {
         connectSubZones(this._subZones, s1Arg, s2Arg, l1, l2);
     }
 
-    findLevel(name: string, nLevel: number): Level {
+    public findLevel(name: string, nLevel: number): Level {
         const level = findLevel(name, this._subZones, nLevel);
         return level;
     }
 
-    findSubZone(name) {
+    public findSubZone(name) {
         const subZone = findSubZone(name, this._subZones);
         return subZone;
     }
 
     /* Returns each entrance in each subzone. */
-    getEntrances() {
+    public getEntrances() {
         const entrances = [];
         this._subZones.forEach(sz => {
             const szEntr = sz.getEntrance();
@@ -570,20 +570,20 @@ export class ZoneBase extends WorldBase {
         return entrances;
     }
 
-    removeListeners(): void {
+    public removeListeners(): void {
         this._subZones.forEach(sz => {
             sz.removeListeners();
         });
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.x = this.tileX;
         json.y = this.tileY;
         return json;
     }
 
-    getID2Place() {
+    public getID2Place() {
         const res: {[key: number]: WorldBase} = {[this.getID()]: this};
         this._subZones.forEach(sz => {
             res[sz.getID()] = sz;
@@ -616,11 +616,11 @@ export class SubZoneBase extends WorldBase {
     }
 
     /* Returns entrance/exit for the branch.*/
-    getEntrance(): Stairs {
+    public getEntrance(): Stairs {
         return getEntrance(this._levels, this._entrance);
     }
 
-    getLevels(nLevel?: number): Level | Level[] | null {
+    public getLevels(nLevel?: number): Level | Level[] | null {
         if (RG.isNullOrUndef([nLevel])) {
             return this._levels;
         }
@@ -635,18 +635,18 @@ export class SubZoneBase extends WorldBase {
         return null;
     }
 
-    hasLevel(level: Level): boolean {
+    public hasLevel(level: Level): boolean {
         const index = this._levels.indexOf(level);
         return index >= 0;
     }
 
     /* Returns stairs leading to other sub-zones. Used only for testing
     * purposes. */
-    getStairsOther(): Stairs[] {
+    public getStairsOther(): Stairs[] {
         return getStairsOther(this.getName(), this._levels);
     }
 
-    addLevelFeature(feat): void {
+    public addLevelFeature(feat): void {
         const type = feat.getType();
         if (!this._levelFeatures.has(type)) {
             this._levelFeatures[type] = [];
@@ -654,12 +654,12 @@ export class SubZoneBase extends WorldBase {
         this._levelFeatures[type].push(feat);
     }
 
-    removeListeners() {
+    public removeListeners() {
         // Should be implemented in the derived class
         // Does nothing if there are no listeners to remove
     }
 
-    getLevel(nLevel: number): Level {
+    public getLevel(nLevel: number): Level {
         if (nLevel < this._levels.length) {
             return this._levels[nLevel];
         }
@@ -674,7 +674,7 @@ export class SubZoneBase extends WorldBase {
 
     /* Adds one level into the sub-zone. Checks for various possible errors like
      * duplicate levels. */
-    addLevel(level: Level): void {
+    public addLevel(level: Level): void {
         if (!RG.isNullOrUndef([level])) {
             if (!this.hasLevel(level)) {
                 level.setLevelNumber(this._levelCount++);
@@ -693,7 +693,7 @@ export class SubZoneBase extends WorldBase {
         }
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.nLevels = this._levels.length;
         json.levels = this._levels.map(level => level.getID());
@@ -717,13 +717,13 @@ export class Branch extends SubZoneBase {
         this._entrance = null;
     }
 
-    addEntrance(levelNumber: number): void {
+    public addEntrance(levelNumber: number): void {
         const entrStairs = new ElementStairs('stairsUp');
         this.setEntrance(entrStairs, levelNumber);
     }
 
     /* Adds entrance stairs for this branch. */
-    setEntrance(stairs: Stairs, levelNumber: number): void {
+    public setEntrance(stairs: Stairs, levelNumber: number): void {
         if (levelNumber < this._levels.length) {
             const level = this._levels[levelNumber];
 
@@ -745,7 +745,7 @@ export class Branch extends SubZoneBase {
         }
     }
 
-    setEntranceLocation(entrance) {
+    public setEntranceLocation(entrance) {
         if (!RG.isNullOrUndef([entrance])) {
             this._entrance = entrance;
         }
@@ -756,13 +756,13 @@ export class Branch extends SubZoneBase {
     }
 
     /* Returns entrance/exit for the branch.*/
-    getEntrance(): Stairs {
+    public getEntrance(): Stairs {
         return getEntrance(this._levels, this._entrance);
     }
 
     /* Connects specified level to the given stairs (Usually external to this
      * branch) .*/
-    connectLevelToStairs(nLevel: number, stairs: Stairs) {
+    public connectLevelToStairs(nLevel: number, stairs: Stairs) {
         if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
             RG.err('World.Branch', 'connectLevelToStairs',
                 'Stairs must be first connected to other level.');
@@ -770,11 +770,11 @@ export class Branch extends SubZoneBase {
     }
 
     /* Connects the added levels together.*/
-    connectLevels(): void {
+    public connectLevels(): void {
         connectLevelsLinear(this._levels);
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         const obj: any = {};
         if (this._entrance) {
@@ -802,16 +802,16 @@ export class Dungeon extends ZoneBase {
 
 
     /* Returns true if the dungeon has given branch.*/
-    hasBranch(branch): boolean {
+    public hasBranch(branch): boolean {
         return this.hasSubZone(branch);
     }
 
-    getBranches(): Branch[] {
+    public getBranches(): Branch[] {
         return this._subZones as Branch[];
     }
 
     /* Sets the entry branch(es) for the dungeon. */
-    setEntrance(branchName): void {
+    public setEntrance(branchName): void {
         if (typeof branchName === 'string') {
             this._entranceNames = [branchName];
         }
@@ -821,7 +821,7 @@ export class Dungeon extends ZoneBase {
     }
 
     /* Adds one branch to the dungeon. Returns true if OK. */
-    addBranch(branch: Branch): boolean {
+    public addBranch(branch: Branch): boolean {
         if (!this.hasBranch(branch)) {
             this._subZones.push(branch);
             // branch.setDungeon(this);
@@ -837,7 +837,7 @@ export class Dungeon extends ZoneBase {
     }
 
     /* Returns all entrances/exits for the dungeon.*/
-    getEntrances(): Stairs[] {
+    public getEntrances(): Stairs[] {
         const res = [];
         const nSubFeats = this._subZones.length;
         for (let i = 0; i < nSubFeats; i++) {
@@ -852,7 +852,7 @@ export class Dungeon extends ZoneBase {
         return res;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         const obj = {
             branch: this._subZones.map(br => br.toJSON()),
@@ -872,15 +872,15 @@ World.Dungeon = Dungeon;
  * It is also used as container for zones such as cities and dungeons. */
 export class AreaTile {
 
+    public cols: number;
+    public rows: number;
+    public zones: {[key: string]: ZoneBase[]};
+
     private _tileX: number;
     private _tileY: number;
     private _area: Area;
 
-    public cols: number;
-    public rows: number;
-
     private _level: Level;
-    public zones: {[key: string]: ZoneBase[]};
 
     constructor(x, y, area) {
         this._tileX = x;
@@ -903,31 +903,31 @@ export class AreaTile {
 
     }
 
-    getLevel(): Level {
+    public getLevel(): Level {
         return this._level;
     }
-    getTileX(): number {
+    public getTileX(): number {
         return this._tileX;
     }
-    getTileY(): number {
+    public getTileY(): number {
         return this._tileY;
     }
 
-    isNorthEdge(): boolean {
+    public isNorthEdge(): boolean {
         return this._tileY === 0;
     }
-    isSouthEdge(): boolean {
+    public isSouthEdge(): boolean {
         return this._tileY === (this._area.getSizeY() - 1);
     }
-    isWestEdge(): boolean {
+    public isWestEdge(): boolean {
         return this._tileX === 0;
     }
-    isEastEdge(): boolean {
+    public isEastEdge(): boolean {
         return this._tileX === (this._area.getSizeX() - 1);
     }
 
     /* Returns true for edge tiles.*/
-    isEdge(): boolean {
+    public isEdge(): boolean {
         if (this.isNorthEdge()) {return true;}
         if (this.isSouthEdge()) {return true;}
         if (this.isWestEdge()) {return true;}
@@ -936,14 +936,14 @@ export class AreaTile {
     }
 
     /* Sets the level for this tile.*/
-    setLevel(level: Level): void {
+    public setLevel(level: Level): void {
         this._level = level;
         this.cols = this._level.getMap().cols;
         this.rows = this._level.getMap().rows;
     }
 
     /* Connect this tile to east and south tiles */
-    connect(eastTile, southTile) {
+    public connect(eastTile, southTile) {
         const lastX = this.cols - 1;
         const lastY = this.rows - 1;
 
@@ -996,7 +996,7 @@ export class AreaTile {
         }
     }
 
-    addZone(type: string, zone: ZoneBase): void {
+    public addZone(type: string, zone: ZoneBase): void {
         if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
             RG.err('AreaTile', 'addZone',
                 'No tileX/tileY given!');
@@ -1007,18 +1007,18 @@ export class AreaTile {
         this.zones[type].push(zone);
     }
 
-    getZones(type?: string): ZoneBase[] {
+    public getZones(type?: string): ZoneBase[] {
         if (type) {
             return this.zones[type];
         }
         let zones = [];
-        Object.keys(this.zones).forEach(type => {
+        Object.keys(this.zones).forEach((type: string) => {
             zones = zones.concat(this.zones[type]);
         });
         return zones;
     }
 
-    getLevels(): Level[] {
+    public getLevels(): Level[] {
         let res = [this._level];
         Object.keys(this.zones).forEach(type => {
             this.zones[type].forEach(z => {res = res.concat(z.getLevels());});
@@ -1036,13 +1036,13 @@ export class AreaTile {
         return res;
     }
 
-    toString(): string {
+    public toString(): string {
         let msg = `${this._tileX},${this._tileY}, ID: ${this._level.getID()}`;
         msg += ` nZones: ${this.getZones().length}`;
         return msg;
     }
 
-    toJSON() {
+    public toJSON() {
         return {
             x: this._tileX,
             y: this._tileY,
@@ -1060,7 +1060,7 @@ export class AreaTile {
         };
     }
 
-    removeListeners(): void {
+    public removeListeners(): void {
         Object.values(this.zones).forEach(zoneList => {
             zoneList.forEach(zone => {
                 zone.removeListeners();
@@ -1079,6 +1079,11 @@ World.AreaTile = AreaTile;
  * */
 export class Area extends WorldBase {
 
+
+
+    // Keeps track which tiles contains real AreaTile objects
+    public tilesLoaded: boolean[][];
+
     private _sizeX: number;
     private _sizeY: number;
     private _cols: number;
@@ -1090,9 +1095,6 @@ export class Area extends WorldBase {
 
     // Control which tile has its zones created
     private zonesCreated: {[key: string]: boolean};
-
-    // Keeps track which tiles contains real AreaTile objects
-    public tilesLoaded: boolean[][];
 
     constructor(name, sizeX, sizeY, cols, rows, levels?: Level[]) {
         super(name);
@@ -1119,47 +1121,45 @@ export class Area extends WorldBase {
 
     }
 
-    getSizeX() {
+    public getSizeX() {
         return this._sizeX;
     }
-    getSizeY() {
+    public getSizeY() {
         return this._sizeY;
     }
 
-    isLoaded(x, y): boolean {
+    public isLoaded(x, y): boolean {
         return this.tilesLoaded[x][y];
     }
 
-    setLoaded(x, y) {this.tilesLoaded[x][y] = true;};
-    setUnloaded(x, y) {this.tilesLoaded[x][y] = false;};
-
-    markAllZonesCreated(): void {
+    public setLoaded(x, y) {this.tilesLoaded[x][y] = true;}    public setUnloaded(x, y) {this.tilesLoaded[x][y] = false;}
+    public markAllZonesCreated(): void {
         Object.keys(this.zonesCreated).forEach(key => {
             this.zonesCreated[key] = true;
         });
     }
 
-    markTileZonesCreated(x, y): void {
+    public markTileZonesCreated(x, y): void {
         this.zonesCreated[x + ',' + y] = true;
     }
 
-    tileHasZonesCreated(x, y): boolean {
+    public tileHasZonesCreated(x, y): boolean {
         return this.zonesCreated[x + ',' + y];
     }
 
-    getTiles(): AreaTileObj[][] {
+    public getTiles(): AreaTileObj[][] {
         return this._tiles;
     }
 
-    setConf(conf) {
+    public setConf(conf) {
         this._conf = conf;
     }
 
-    getConf() {
+    public getConf() {
         return this._conf;
     }
 
-    _init(levels?): void {
+    public _init(levels?): void {
         // Create the tiles
         for (let x = 0; x < this._sizeX; x++) {
             const tileColumn = [];
@@ -1202,11 +1202,11 @@ export class Area extends WorldBase {
     }
 
     /* Connects all tiles together from the sides. */
-    connectTiles() {
+    public connectTiles() {
         connectTiles(this._tiles, this._sizeX, this._sizeY);
     }
 
-    getLevels(): Level[] {
+    public getLevels(): Level[] {
         let res = [];
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
@@ -1220,7 +1220,7 @@ export class Area extends WorldBase {
     }
 
     /* Returns tile X,Y which has the level with given ID. */
-    findTileXYById(id): Coord | null {
+    public findTileXYById(id): Coord | null {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
                 if (this.tilesLoaded[x][y]) {
@@ -1234,7 +1234,7 @@ export class Area extends WorldBase {
     }
 
     /* Returns true if the area has given level as a tile level. */
-    hasTileWithId(id: number): boolean {
+    public hasTileWithId(id: number): boolean {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
                 if (this.tilesLoaded[x][y]) {
@@ -1251,7 +1251,7 @@ export class Area extends WorldBase {
     }
 
     /* Returns true if the area has tiles with given levels or level IDs. */
-    hasTiles(arr): boolean {
+    public hasTiles(arr): boolean {
         let result = arr.length > 0;
         arr.forEach(level => {
             if (typeof level.getID === 'function') {
@@ -1269,7 +1269,7 @@ export class Area extends WorldBase {
         return result;
     }
 
-    getTileXY(x, y): AreaTileObj {
+    public getTileXY(x, y): AreaTileObj {
         if (x >= 0 && x < this.getSizeX() && y >= 0 && y < this.getSizeY()) {
             return this._tiles[x][y];
         }
@@ -1282,7 +1282,7 @@ export class Area extends WorldBase {
         return null;
     }
 
-    addZone(type, zone: ZoneBase): void {
+    public addZone(type, zone: ZoneBase): void {
         if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
             RG.err('Area', 'addZone',
                 'No tileX/tileY given!');
@@ -1291,7 +1291,7 @@ export class Area extends WorldBase {
         zone.setParent(this);
     }
 
-    getZones(type): ZoneBase[] {
+    public getZones(type): ZoneBase[] {
         let res = [];
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
@@ -1303,7 +1303,7 @@ export class Area extends WorldBase {
         return res;
     }
 
-    createAreaConfig() {
+    public createAreaConfig() {
         return {
             name: this.getName(),
             maxX: this._sizeX,
@@ -1312,7 +1312,7 @@ export class Area extends WorldBase {
     }
 
     /* Serializes the Area into JSON. */
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         const tilesJSON = [];
         this._tiles.forEach((tileCol, x) => {
@@ -1339,7 +1339,7 @@ export class Area extends WorldBase {
     }
 
     /* Execute function cb for each tile. */
-    forEachTile(cb) {
+    public forEachTile(cb) {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
                 if (this.tilesLoaded[x][y]) {
@@ -1385,7 +1385,7 @@ export class Mountain extends ZoneBase {
 
     }
 
-    findLevel(name, nLevel) {
+    public findLevel(name, nLevel) {
         const faces = this.getFaces();
         const summits = this.getSummits();
         let level = findLevel(name, faces, nLevel);
@@ -1395,23 +1395,23 @@ export class Mountain extends ZoneBase {
         return level;
     }
 
-    addSummit(summit) {
+    public addSummit(summit) {
         this.addSubZone(summit);
     }
 
-    addFace(face) {
+    public addFace(face) {
         this.addSubZone(face);
     }
 
-    getFaces() {
+    public getFaces() {
         return this._subZones.filter(sz => sz.getType() === 'face');
     }
 
-    getSummits() {
+    public getSummits() {
         return this._subZones.filter(sz => sz.getType() === 'summit');
     }
 
-    connectFaceAndSummit(face, summit, l1, l2) {
+    public connectFaceAndSummit(face, summit, l1, l2) {
         const [sz1, sz2] = this.getSubZoneArgs(face, summit);
         if (sz2.getType() !== 'summit') {
             const type = sz2.getType();
@@ -1425,7 +1425,7 @@ export class Mountain extends ZoneBase {
         connectLevelsConstrained(connFace, connSummit);
     }
 
-    connectSubZones(s1Arg, s2Arg, l1, l2) {
+    public connectSubZones(s1Arg, s2Arg, l1, l2) {
         const [sz1, sz2] = this.getSubZoneArgs(s1Arg, s2Arg);
         // const sz1 = this.findSubZone(s1Arg);
         // const sz2 = this.findSubZone(s2Arg);
@@ -1447,7 +1447,7 @@ export class Mountain extends ZoneBase {
     }
 
     /* Serializes the World.Mountain object. */
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         const obj = {
             nFaces: this.getFaces().length,
@@ -1474,11 +1474,11 @@ export class MountainFace extends SubZoneBase {
         this._entrance = null;
     }
 
-    setEntrance(stairs) {
+    public setEntrance(stairs) {
         this._entrance = stairs;
     }
 
-    setEntranceLocation(entrance) {
+    public setEntranceLocation(entrance) {
         if (!RG.isNullOrUndef([entrance])) {
             this._entrance = entrance;
         }
@@ -1488,18 +1488,18 @@ export class MountainFace extends SubZoneBase {
         }
     }
 
-    getEntrance() {
+    public getEntrance() {
         return getEntrance(this._levels, this._entrance);
     }
 
-    connectLevelToStairs(nLevel, stairs) {
+    public connectLevelToStairs(nLevel, stairs) {
         if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
             RG.err('MountainFace', 'connectLevelToStairs',
                 'Stairs must be first connected to other level.');
         }
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         const obj: any = {};
         if (this._entrance) {
@@ -1509,7 +1509,7 @@ export class MountainFace extends SubZoneBase {
     }
 
     /* Entrance is created at the bottom by default. */
-    addEntrance(levelNumber) {
+    public addEntrance(levelNumber) {
         if (this._entrance === null) {
             const level = this._levels[levelNumber];
             const stairs = new ElementStairs('stairsDown', level);
@@ -1553,11 +1553,11 @@ export class MountainSummit extends SubZoneBase {
         this.setType('summit');
     }
 
-    getEntrance() {
+    public getEntrance() {
         return null;
     }
 
-    connectLevelToStairs(nLevel, stairs) {
+    public connectLevelToStairs(nLevel, stairs) {
         if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
             RG.err('World.MountainSummit', 'connectLevelToStairs',
                 'Stairs must be first connected to other level.');
@@ -1578,27 +1578,27 @@ export class City extends ZoneBase {
         this.setType('city');
     }
 
-    getQuarters() {
+    public getQuarters() {
         return this._subZones;
     }
 
-    addQuarter(quarter) {
+    public addQuarter(quarter) {
         if (!this.addSubZone(quarter)) {
             RG.err('World.City', 'addQuarter',
                 `City ${this.getName()} quarter not defined.`);
         }
     }
 
-    abutQuarters(q1, q2, l1, l2) {
+    public abutQuarters(q1, q2, l1, l2) {
         const res = connectSubZoneEdges(this._subZones, q1, q2, l1, l2);
         return res;
     }
 
-    hasQuarter(q) {
+    public hasQuarter(q) {
         return this.hasSubZone(q);
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         const obj = {
             nQuarters: this._subZones.length,
@@ -1625,7 +1625,7 @@ export class CityQuarter extends SubZoneBase {
         this._shops = [];
     }
 
-    removeListeners() {
+    public removeListeners() {
         this._shops.forEach(shop => {
             if (!shop.isAbandoned()) {
                 // Must clean up these to avoid memory leaks
@@ -1634,15 +1634,15 @@ export class CityQuarter extends SubZoneBase {
         });
     }
 
-    addShop(shop) {
+    public addShop(shop) {
         this._shops.push(shop);
     }
 
-    getShops() {
+    public getShops() {
         return this._shops;
     }
 
-    setEntranceLocation(entrance) {
+    public setEntranceLocation(entrance) {
         if (!RG.isNullOrUndef([entrance])) {
             this._entrance = entrance;
         }
@@ -1653,11 +1653,11 @@ export class CityQuarter extends SubZoneBase {
     }
 
     /* Returns entrance/exit for the quarter.*/
-    getEntrance() {
+    public getEntrance() {
         return getEntrance(this._levels, this._entrance);
     }
 
-    addEntrance(levelNumber) {
+    public addEntrance(levelNumber) {
         if (this._entrance === null) {
             const level = this._levels[levelNumber];
             const stairs = new ElementStairs('stairsDown', level);
@@ -1672,7 +1672,7 @@ export class CityQuarter extends SubZoneBase {
 
     /* Connects specified level to the given stairs (Usually external to this
      * quarter) .*/
-    connectLevelToStairs(nLevel, stairs) {
+    public connectLevelToStairs(nLevel, stairs) {
         if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
             RG.err('CityQuarter', 'connectLevelToStairs',
                 'Stairs must be first connected to other level.');
@@ -1680,11 +1680,11 @@ export class CityQuarter extends SubZoneBase {
     }
 
     /* Connects levels in linear fashion 0->1->2->...->N. */
-    connectLevels() {
+    public connectLevels() {
         connectLevelsLinear(this._levels);
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         const obj: any = {
             shops: this._shops.map(shop => shop.toJSON())
@@ -1710,15 +1710,15 @@ export class BattleZone extends ZoneBase {
         this._levels = [];
     }
 
-    addLevel(level) {
+    public addLevel(level) {
         return this._levels.push(level);
     }
 
-    getLevels() {
+    public getLevels() {
         return this._levels;
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         const nLevels = this._levels.length;
         const obj = {
@@ -1741,8 +1741,9 @@ World.BattleZone = BattleZone;
  * mountains, dungeons and cities. */
 export class WorldTop extends WorldBase {
 
-    private _areas: Area[];
     public currAreaIndex: number;
+
+    private _areas: Area[];
     private _conf: {[key: string]: any};
 
     constructor(name) {
@@ -1755,19 +1756,18 @@ export class WorldTop extends WorldBase {
         this._conf = {};
     }
 
-    getConf() {
+    public getConf() {
         return this._conf;
     }
 
-    setConf(conf) {this._conf = conf;};
-
+    public setConf(conf) {this._conf = conf;}
     /* Adds an area into the world. */
-    addArea(area) {
+    public addArea(area) {
         area.setParent(this);
         this._areas.push(area);
     }
 
-    getLevels() {
+    public getLevels() {
         let levels = [];
         this._areas.map(area => {
             levels = levels.concat(area.getLevels());
@@ -1775,10 +1775,10 @@ export class WorldTop extends WorldBase {
         return levels;
     }
 
-    getAreas() {return this._areas;}
+    public getAreas() {return this._areas;}
 
     /* Returns all zones of given type. */
-    getZones(type?: string): ZoneBase[] {
+    public getZones(type?: string): ZoneBase[] {
         let zones = [];
         this._areas.forEach(a => {
             zones = zones.concat(a.getZones(type));
@@ -1787,7 +1787,7 @@ export class WorldTop extends WorldBase {
     }
 
     /* Returns all stairs in the world. */
-    getStairs() {
+    public getStairs() {
         const res = [];
         this.getZones().forEach(zone =>
             zone.getLevels().forEach(l =>
@@ -1799,11 +1799,11 @@ export class WorldTop extends WorldBase {
         return res;
     }
 
-    getCurrentArea() {
+    public getCurrentArea() {
         return this._areas[this.currAreaIndex];
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         const area = this._areas.map(area => area.toJSON());
         let createAllZones = true;
@@ -1823,7 +1823,7 @@ export class WorldTop extends WorldBase {
     }
 
     /* Creates config for each area. This is mainly required for testing. */
-    createAreaConfig() {
+    public createAreaConfig() {
         const areaConf = [];
         this._areas.forEach(function(area) {
             areaConf.push(area.createAreaConfig());
@@ -1831,7 +1831,7 @@ export class WorldTop extends WorldBase {
         return areaConf;
     }
 
-    getID2Place() {
+    public getID2Place() {
         let res: {[key: string]: WorldBase} = {[this.getID()]: this};
         this._areas.forEach(area => {
             res[area.getID()] = area;
@@ -1852,12 +1852,12 @@ World.WorldTop = WorldTop;
 //---------------------------------------------------------------------------
 
 export class WorldShop {
+    public hasNotify: boolean;
 
     private _shopkeeper: SentientActor;
     private _level: Level;
     private _coord: Coord[];
     private _isAbandoned: boolean;
-    public hasNotify: boolean;
 
     constructor() {
         this._shopkeeper = null;
@@ -1869,20 +1869,20 @@ export class WorldShop {
         this.hasNotify = true;
     }
 
-    setLevel(level) {
+    public setLevel(level) {
         this._level = level;
     }
 
-    setCoord(coord) {
+    public setCoord(coord) {
         this._coord = coord;
     }
 
-    isAbandoned() {
+    public isAbandoned() {
         return this._isAbandoned;
     }
 
     /* Listens to shopkeeper killed event. */
-    notify(evtName, args) {
+    public notify(evtName, args) {
         if (this._shopkeeper) {
             if (args.actor.getID() === this._shopkeeper.getID()) {
                 this.setShopAbandoned();
@@ -1891,15 +1891,15 @@ export class WorldShop {
         }
     }
 
-    getLevel() {
+    public getLevel() {
         return this._level;
     }
 
-    getShopkeeper() {
+    public getShopkeeper() {
         return this._shopkeeper;
     }
 
-    setShopkeeper(keeper) {
+    public setShopkeeper(keeper) {
         if (keeper) {
             this._shopkeeper = keeper;
             POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
@@ -1910,7 +1910,7 @@ export class WorldShop {
         }
     }
 
-    setShopAbandoned() {
+    public setShopAbandoned() {
         this._isAbandoned = true;
         this._shopkeeper = null;
         this._coord.forEach(xy => {
@@ -1928,11 +1928,11 @@ export class WorldShop {
         });
     }
 
-    getCell(xy) {
+    public getCell(xy) {
         return this._level.getMap().getCell(xy[0], xy[1]);
     }
 
-    reclaimShop(actor) {
+    public reclaimShop(actor) {
         if (this._isAbandoned) {
             this._isAbandoned = false;
             this.setShopkeeper(actor);
@@ -1953,7 +1953,7 @@ export class WorldShop {
     }
 
     /* Get empty cells of the shop (no items in cells). */
-    emptyCells() {
+    public emptyCells() {
         const result = [];
         this._coord.forEach(xy => {
             const cell = this._level.getMap().getCell(xy[0], xy[1]);
@@ -1965,7 +1965,7 @@ export class WorldShop {
     }
 
     /* Adds new items to the empty cells of the shop. */
-    refreshShopItems(newItems) {
+    public refreshShopItems(newItems) {
         let nItem = 0;
         this._coord.forEach(xy => {
             const cell = this._level.getMap().getCell(xy[0], xy[1]);
@@ -1979,7 +1979,7 @@ export class WorldShop {
         });
     }
 
-    toJSON() {
+    public toJSON() {
         const obj: any = {
             isAbandoned: this._isAbandoned,
             level: this._level.getID(),

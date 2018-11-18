@@ -10,9 +10,9 @@ import {
 } from 'react-bootstrap';
 
 interface IEditorTopMenuProps {
-    addLevel: () => void;
+    addLevel: (level: Level) => void;
     level: Level;
-    menuCallback: (any) => void;
+    menuCallback: (cmd: string, args?: any) => void;
     toggleEditor: () => void;
 }
 
