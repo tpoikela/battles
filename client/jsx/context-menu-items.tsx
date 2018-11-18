@@ -89,7 +89,7 @@ export default class ContextMenuItems extends React.Component {
     return result;
   }
 
-  private isCorrectContext(queryFunc): bool {
+  private isCorrectContext(queryFunc): boolean {
     const cell = this.props.mouseOverCell;
     if (cell) {
       if (typeof cell[queryFunc] === 'function') {
