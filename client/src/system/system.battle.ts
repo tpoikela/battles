@@ -13,7 +13,7 @@ export class SystemBattle extends SystemBase {
         this.compTypesAny = true; // Triggered on at least one component
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         if (ent.has('BattleOver')) {
             const overComp = ent.get('BattleOver');
             if (ent.has('BattleExp')) {
@@ -63,15 +63,15 @@ export class SystemBattle extends SystemBase {
             this._emitMsg(ent, orderComp);
             ent.remove(orderComp);
         }
-    };
+    }
 
-    _getBadgeForBattle(bName, ent) {
+    public _getBadgeForBattle(bName, ent) {
         const badges = ent.getList('BattleBadge');
         const badge = badges.find(b => b.getData().name === bName);
         return badge;
     }
 
-    _emitMsg(ent, comp) {
+    public _emitMsg(ent, comp) {
         const srcName = comp.getArgs().srcActor.getName();
         const cell = ent.getCell();
         const msg = `${srcName} shouts a command into your direction.`;

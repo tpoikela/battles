@@ -15,10 +15,49 @@ export class SystemManager {
     public static systemOrder: string[];
     public static systems: {[key: string]: SystemSpec};
 
+    public static addSystemBefore(system, before) {
+        const index = SystemManager.systemOrder.indexOf(before);
+        if (index >= 0) {
+            SystemManager.insertSystemAt(index, system);
+        }
+    }
+
+    public static addSystemAfter(system, after) {
+        const index = SystemManager.systemOrder.indexOf(after);
+        if (index >= 0) {
+            SystemManager.insertSystemAt(index + 1, system);
+        }
+    }
+
+    public static removeSystem(system) {
+        delete SystemManager.systems[system];
+        const index = SystemManager.systemOrder.indexOf(system);
+        if (index >= 0) {
+            SystemManager.systemOrder.splice(index, 1);
+        }
+    }
+
+    public static insertSystemAt(index, system) {
+        SystemManager.systemOrder.splice(index, 0, system.name);
+        if (typeof system.create === 'function') {
+            if (system.name) {
+                SystemManager.systems[system.name] = system;
+            }
+            else {
+                RG.err('SystemManager', 'insertSystemAt',
+                    'No system.name given');
+            }
+        }
+        else {
+            RG.err('SystemManager', 'insertSystemAt',
+                'Object must specify system.create');
+        }
+    }
+    public loopSystemOrder: string[];
+
     private _engine: any; // TODO fix typings
     private systemOrder: string[];
     private systems: {[key: string]: SystemBase};
-    public loopSystemOrder: string[];
     private loopSystems: {[key: string]: SystemBase};
     private timeSystems: {[key: string]: SystemBase};
 
@@ -65,11 +104,11 @@ export class SystemManager {
                 'RegenEffect'], pool
         );
 
-        this.timeSystems['TimeEffects'] = effects;
+        this.timeSystems.TimeEffects = effects;
         this._engine.addTimeSystem('TimeEffects', effects);
     }
 
-    get(type: string): SystemBase {
+    public get(type: string): SystemBase {
         if (this.systems.hasOwnProperty(type)) {
             return this.systems[type];
 
@@ -77,56 +116,17 @@ export class SystemManager {
         return null;
     }
 
-    updateSystems() {
+    public updateSystems() {
         for (let i = 0; i < this.systemOrder.length; i++) {
             const sysName = this.systemOrder[i];
             this.systems[sysName].update();
         }
     }
 
-    updateLoopSystems() {
+    public updateLoopSystems() {
         for (let i = 0; i < this.loopSystemOrder.length; i++) {
             const sysName = this.loopSystemOrder[i];
             this.loopSystems[sysName].update();
-        }
-    }
-
-    static addSystemBefore(system, before) {
-        const index = SystemManager.systemOrder.indexOf(before);
-        if (index >= 0) {
-            SystemManager.insertSystemAt(index, system);
-        }
-    }
-
-    static addSystemAfter(system, after) {
-        const index = SystemManager.systemOrder.indexOf(after);
-        if (index >= 0) {
-            SystemManager.insertSystemAt(index + 1, system);
-        }
-    }
-
-    static removeSystem(system) {
-        delete SystemManager.systems[system];
-        const index = SystemManager.systemOrder.indexOf(system);
-        if (index >= 0) {
-            SystemManager.systemOrder.splice(index, 1);
-        }
-    }
-
-    static insertSystemAt(index, system) {
-        SystemManager.systemOrder.splice(index, 0, system.name);
-        if (typeof system.create === 'function') {
-            if (system.name) {
-                SystemManager.systems[system.name] = system;
-            }
-            else {
-                RG.err('SystemManager', 'insertSystemAt',
-                    'No system.name given');
-            }
-        }
-        else {
-            RG.err('SystemManager', 'insertSystemAt',
-                'Object must specify system.create');
         }
     }
 }

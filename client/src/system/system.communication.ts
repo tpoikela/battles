@@ -6,7 +6,7 @@ import {Communication} from '../component';
 import {EventPool} from '../eventpool';
 
 /* Processes entities with communication component.*/
-export class SystemCommunication extends SystemBase { 
+export class SystemCommunication extends SystemBase {
 
     private _msgFunc: {[key: string]: (ent, msg) => void};
 
@@ -17,22 +17,22 @@ export class SystemCommunication extends SystemBase {
         this._msgFunc = {
             Enemies: this.processEnemies.bind(this),
             Shout: this.processShout.bind(this)
-        }
+        };
 
     }
 
     // Each entity here has received communication and must capture its
     // information contents
-    updateEntity(ent: Entity): void {
+    public updateEntity(ent: Entity): void {
         const comComp = ent.get('Communication');
         const messages = comComp.getMsg();
         for (let i = 0; i < messages.length; i++) {
             this.processMessage(ent, messages[i]);
         }
         ent.remove('Communication');
-    };
+    }
 
-    processMessage(ent, msg): void {
+    public processMessage(ent, msg): void {
         if (this._msgFunc.hasOwnProperty(msg.type)) {
             this._msgFunc[msg.type](ent, msg);
         }
@@ -42,7 +42,7 @@ export class SystemCommunication extends SystemBase {
         }
     }
 
-    processEnemies(ent, msg): void {
+    public processEnemies(ent, msg): void {
         const enemies = msg.enemies;
         const srcName = msg.src.getName();
         for (let i = 0; i < enemies.length; i++) {
@@ -54,7 +54,7 @@ export class SystemCommunication extends SystemBase {
         RG.gameInfo(msgObj);
     }
 
-    processShout(ent, msg): void {
+    public processShout(ent, msg): void {
         const shoutMsg = msg.shout;
         const srcName = msg.src.getName();
         const msgObj = {cell: msg.src.getCell(),

@@ -33,7 +33,7 @@ export class SystemTimeEffects extends SystemBase {
 
     // Dispatch table used to call a handler function for each component
 
-    update(): void {
+    public update(): void {
         for (const e in this.entities) {
             if (!e) {continue;}
             const ent = this.entities[e];
@@ -59,10 +59,10 @@ export class SystemTimeEffects extends SystemBase {
             entRem.remove(compID);
         }
         this._expiredEffects = [];
-    };
+    }
 
     /* Decreases the remaining duration in the component by one.*/
-    _decreaseDuration(ent: Entity) {
+    public _decreaseDuration(ent: Entity) {
         const expirComps = ent.getList('Expiration');
         expirComps.forEach(tEff => {
             tEff.decrDuration();
@@ -72,11 +72,11 @@ export class SystemTimeEffects extends SystemBase {
                 this._expiredEffects.push([tEff.getID(), ent]);
             }
         });
-    };
+    }
 
 
     /* Applies the poison effect to the entity.*/
-    _applyPoison(ent: Entity): void {
+    public _applyPoison(ent: Entity): void {
         const poisonList = ent.getList('Poison');
         poisonList.forEach(poison => {
 
@@ -97,10 +97,10 @@ export class SystemTimeEffects extends SystemBase {
                 ent.add(dmgComp);
             }
         });
-    };
+    }
 
     /* Applies direct damage effect to given entity. */
-    _applyDirectDamage(ent: Entity): void {
+    public _applyDirectDamage(ent: Entity): void {
         const ddList = ent.getList('DirectDamage');
         ddList.forEach(ddComp => {
 
@@ -122,11 +122,11 @@ export class SystemTimeEffects extends SystemBase {
                 ent.add(dmgComp);
             }
         });
-    };
+    }
 
     /* Decreases duration in Fading comp, then remove the entity if duration is
      * 0. */
-    _applyFading(ent): void {
+    public _applyFading(ent): void {
         const fadingComp = ent.get('Fading');
         fadingComp.decrDuration();
         if (fadingComp.getDuration() <= 0) {
@@ -150,9 +150,9 @@ export class SystemTimeEffects extends SystemBase {
             }
             ent.remove(fadingComp);
         }
-    };
+    }
 
-    _applyHeat(ent): void {
+    public _applyHeat(ent): void {
         if (ent.has('Coldness')) {
             const cell = ent.getCell();
             ent.removeAll('Coldness');
@@ -160,10 +160,10 @@ export class SystemTimeEffects extends SystemBase {
             RG.gameMsg({cell, msg});
         }
         ent.removeAll('Heat');
-    };
+    }
 
     // TODO
-    _applyColdness(ent: Entity): void {
+    public _applyColdness(ent: Entity): void {
         if (ent.has('BodyTemp')) {
             const tempComp = ent.get('BodyTemp');
             tempComp.decr();
@@ -172,9 +172,9 @@ export class SystemTimeEffects extends SystemBase {
                 ent.add(dmgComp);
             }
         }
-    };
+    }
 
-    _applyRegenEffect(ent: Entity): void {
+    public _applyRegenEffect(ent: Entity): void {
         const regenEffects = ent.getList('RegenEffect');
         regenEffects.forEach(effComp => {
             let shouldRemove = true;
@@ -218,12 +218,12 @@ export class SystemTimeEffects extends SystemBase {
 
 
     /* Used for debug printing.*/
-    printMatchedType(ent: Entity): void {
+    public printMatchedType(ent: Entity): void {
         for (let i = 0; i < this.compTypes.length; i++) {
             if (ent.has(this.compTypes[i])) {
                 RG.debug(this.compTypes[i], 'Has component');
             }
         }
-    };
+    }
 
 }

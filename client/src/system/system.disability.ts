@@ -93,7 +93,7 @@ export class SystemDisability extends SystemBase {
         this._actComp = ['Attack', 'Movement', 'SpellCast'];
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         this._compOrder.forEach(compName => {
             if (ent.has(compName)) {
                 this._actComp.forEach(actCompName => {
@@ -105,7 +105,7 @@ export class SystemDisability extends SystemBase {
         });
     }
 
-    _emitMsg(comp, actionComp, ent) {
+    public _emitMsg(comp, actionComp, ent) {
         const cell = ent.getCell();
         const entName = ent.getName();
         const msg = `${entName} ${_msg[comp][actionComp]}`;

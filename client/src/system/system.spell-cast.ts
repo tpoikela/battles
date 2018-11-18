@@ -18,7 +18,7 @@ export class SystemSpellCast extends SystemBase {
         this.compTypesAny = true;
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const name = ent.getName();
         const cell = ent.getCell();
 
@@ -44,7 +44,7 @@ export class SystemSpellCast extends SystemBase {
                     const sName = spell.getName();
                     let msg = `Spell ${sName} was canceled by power drain of`;
                     msg += ` ${this._drainerName}`; // set in checkPowerDrain()
-                    RG.gameMsg({cell: cell, msg: msg});
+                    RG.gameMsg({cell, msg});
                 }
                 else {
                     // Spell drain check succeeded, can cast
@@ -54,14 +54,14 @@ export class SystemSpellCast extends SystemBase {
             }
             else {
                 const msg = `${name} has no enough power to cast spell`;
-                RG.gameMsg({cell: cell, msg: msg});
+                RG.gameMsg({cell, msg});
             }
             ent.remove('SpellCast');
         }
     }
 
     /* Checks if any power drainer managers to cancel the spell. */
-    _checkPowerDrain(spell, args, drainers) {
+    public _checkPowerDrain(spell, args, drainers) {
         let isDrained = false;
         const srcX = args.src.getX();
         const srcY = args.src.getY();

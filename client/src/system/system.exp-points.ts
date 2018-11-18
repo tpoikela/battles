@@ -9,7 +9,7 @@ export class SystemExpPoints extends SystemBase {
         super(RG.SYS.EXP_POINTS, compTypes, pool);
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const expList = ent.getList('ExpPoints');
         expList.forEach(expPoints => {
 
@@ -36,7 +36,7 @@ export class SystemExpPoints extends SystemBase {
                     }
                     else {
                         const msg = `${name} is more experienced now.`;
-                        RG.gameSuccess({msg: msg, cell: ent.getCell()});
+                        RG.gameSuccess({msg, cell: ent.getCell()});
                     }
                     levelingUp = true;
                 }

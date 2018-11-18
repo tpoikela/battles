@@ -3,6 +3,7 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {Random} from '../random';
 import * as Component from '../component';
+import {Brain} from '../brain';
 
 const RNG = Random.getRNG();
 
@@ -13,7 +14,7 @@ export class SystemAttack extends SystemBase {
         super(RG.SYS.ATTACK, compTypes, pool);
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const compList = ent.getList('Attack');
         compList.forEach(attComp => {
             this.processAttackComp(ent, attComp);
@@ -21,7 +22,7 @@ export class SystemAttack extends SystemBase {
         });
     }
 
-    processAttackComp(ent, attComp) {
+    public processAttackComp(ent, attComp) {
         const att = ent;
         const def = attComp.getTarget();
         const aName = att.getName();
@@ -54,8 +55,8 @@ export class SystemAttack extends SystemBase {
                     this.performAttack(att, biDirTarget, aName, defName);
 
                     if (biDirTarget.has('CounterAttack')) {
-                        const msg = `${defName} seems to counter attack.`;
-                        RG.gameMsg({cell: biDirTarget.getCell(), msg});
+                        const cMsg = `${defName} seems to counter attack.`;
+                        RG.gameMsg({cell: biDirTarget.getCell(), msg: cMsg});
                         this.performAttack(biDirTarget, att, defName, aName);
                     }
                 }
@@ -63,19 +64,19 @@ export class SystemAttack extends SystemBase {
 
             att.getBrain().getMemory().setLastAttacked(def);
         }
-    };
+    }
 
-    addAttackerBonus(att) {
-        const cells = RG.Brain.getEnemyCellsAround(att);
+    public addAttackerBonus(att): number {
+        const cells = Brain.getEnemyCellsAround(att);
         return cells.length;
     }
 
-    addDefenderBonus(def) {
-        const cells = RG.Brain.getEnemyCellsAround(def);
+    public addDefenderBonus(def): number {
+        const cells = Brain.getEnemyCellsAround(def);
         return cells.length;
     }
 
-    performAttack(att, def, aName, dName) {
+    public performAttack(att, def, aName, dName) {
         let totalAtt = RG.getMeleeAttack(att);
         if (att.has('Attacker')) {
             totalAtt += this.addAttackerBonus(att);
@@ -118,7 +119,7 @@ export class SystemAttack extends SystemBase {
     }
 
     /* Returns the defense value for given entity. */
-    getEntityDefense(def) {
+    public getEntityDefense(def) {
         if (def.has('Paralysis')) {
             return 0;
         }
@@ -131,9 +132,9 @@ export class SystemAttack extends SystemBase {
             }
         }
         return totalDef;
-    };
+    }
 
-    doDamage(att, def, dmg) {
+    public doDamage(att, def, dmg) {
         const dmgComp = new Component.Damage(dmg, RG.DMG.MELEE);
         dmgComp.setSource(att);
         def.add(dmgComp);
@@ -142,7 +143,7 @@ export class SystemAttack extends SystemBase {
     }
 
     /* Gets an enemy target for bi-directional strike, if any. */
-    getBiDirTarget(att, def) {
+    public getBiDirTarget(att, def) {
         // 1st, find opposite x,y for the 1st attack
         const [attX, attY] = [att.getX(), att.getY()];
         const [defX, defY] = [def.getX(), def.getY()];
@@ -168,7 +169,7 @@ export class SystemAttack extends SystemBase {
     }
 
     /* Checks if Shields skill should be increased. */
-    checkForShieldSkill(thr, totalAtt, totalDef, def) {
+    public checkForShieldSkill(thr, totalAtt, totalDef, def) {
         if (def.has('Skills')) {
             const shieldBonus = def.getShieldDefense();
             const defNoShield = totalDef - shieldBonus;
@@ -179,7 +180,7 @@ export class SystemAttack extends SystemBase {
         }
     }
 
-    _applyAddOnHitComp(att, def) {
+    public _applyAddOnHitComp(att, def) {
         const weapon = att.getWeapon();
         if (weapon && weapon.has) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {

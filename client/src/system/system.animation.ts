@@ -9,8 +9,9 @@ const POOL = EventPool.getPool();
 
 /* System which constructs the animations to play. */
 export class SystemAnimation extends SystemBase {
-    private _enabled: boolean;
+
     public currAnim: Animation;
+    private _enabled: boolean;
 
     constructor(compTypes, pool?) {
         super(RG.SYS.ANIMATION, compTypes, pool);
@@ -18,11 +19,11 @@ export class SystemAnimation extends SystemBase {
         this.currAnim = null;
     }
 
-    enableAnimations() {this._enabled = true;}
-    disableAnimations() {this._enabled = false;}
+    public enableAnimations() {this._enabled = true;}
+    public disableAnimations() {this._enabled = false;}
 
     /* Construct a missile animation from Missile component. */
-    missileAnimation(ent, args) {
+    public missileAnimation(ent, args) {
         const mComp = args.missile;
         const xEnd = args.to[0];
         const yEnd = args.to[1];
@@ -56,7 +57,7 @@ export class SystemAnimation extends SystemBase {
     }
 
     /* Constructs line animation (a bolt etc continuous thing). */
-    lineAnimation(ent, args) {
+    public lineAnimation(ent, args) {
         let x = args.from[0];
         let y = args.from[1];
         const dX = args.dir[0];
@@ -88,7 +89,7 @@ export class SystemAnimation extends SystemBase {
         this._setCurrAnim(animation);
     }
 
-    cellAnimation(ent, args) {
+    public cellAnimation(ent, args) {
         const animation = this._createAnimation(args);
         const frame = {};
         animation.slowDown = 10;
@@ -101,9 +102,8 @@ export class SystemAnimation extends SystemBase {
 
         animation.addFrame(frame);
         this._setCurrAnim(animation);
-    };
-
-    areaAnimation(ent, args) {
+    }
+    public areaAnimation(ent, args) {
         const animation = this._createAnimation(args);
         const maxRange = args.range;
         const [cX, cY] = [args.cX, args.cY];
@@ -122,18 +122,13 @@ export class SystemAnimation extends SystemBase {
         this._setCurrAnim(animation);
     }
 
-    private _setCurrAnim (animation) {
-        if (!this.currAnim) {this.currAnim = animation;}
-        else {this.currAnim.combine(animation);}
-    }
-
-    _createAnimation(args): Animation {
+    public _createAnimation(args): Animation {
         const animation = new Animation();
         animation.setLevel(args.level);
         return animation;
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         if (this._enabled) {
             const allAnimComps = ent.getList('Animation');
             allAnimComps.forEach(animComp => {
@@ -160,5 +155,10 @@ export class SystemAnimation extends SystemBase {
             POOL.emitEvent(RG.EVT_ANIMATION, {animation: this.currAnim});
             this.currAnim = null;
         }
+    }
+
+    private _setCurrAnim(animation) {
+        if (!this.currAnim) {this.currAnim = animation;}
+        else {this.currAnim.combine(animation);}
     }
 }

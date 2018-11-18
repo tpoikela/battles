@@ -9,7 +9,7 @@ export class SystemHunger extends SystemBase {
         super(RG.SYS.HUNGER, compTypes, pool);
     }
 
-    updateEntity(ent): void {
+    public updateEntity(ent): void {
         const hungerComp = ent.get('Hunger');
         const actionComp = ent.get('Action');
         hungerComp.decrEnergy(actionComp.getEnergy());

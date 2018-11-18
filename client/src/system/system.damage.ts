@@ -18,7 +18,7 @@ export class SystemDamage extends SystemBase {
         super(RG.SYS.DAMAGE, compTypes, pool);
     }
 
-    processDamageComp(ent, dmgComp) {
+    public processDamageComp(ent, dmgComp) {
         const health = ent.get('Health');
         if (health) {
             let totalDmg = this._getDamageModified(ent, dmgComp);
@@ -26,7 +26,7 @@ export class SystemDamage extends SystemBase {
             // Check if any damage was done at all
             if (totalDmg <= 0) {
                 totalDmg = 0;
-                const msg = "Attack doesn't penetrate protection of "
+                const msg = 'Attack doesn\'t penetrate protection of '
                     + ent.getName();
                 RG.gameMsg({msg, cell: ent.getCell()});
             }
@@ -74,9 +74,9 @@ export class SystemDamage extends SystemBase {
             }
         }
 
-    };
+    }
 
-    _getUltimateDmgSource(dmgComp) {
+    public _getUltimateDmgSource(dmgComp) {
         let damageSrc = dmgComp.getSourceActor();
         if (!damageSrc) {
             damageSrc = dmgComp.getSource();
@@ -89,7 +89,7 @@ export class SystemDamage extends SystemBase {
 
     /* Checks if protection checks can be applied to the damage caused. For
      * damage like hunger and poison, no protection helps.*/
-    _getDamageModified(ent, dmgComp) {
+    public _getDamageModified(ent, dmgComp) {
         const dmgType = dmgComp.getDamageType();
         let src = dmgComp.getSourceActor();
         if (!src) {
@@ -139,9 +139,9 @@ export class SystemDamage extends SystemBase {
         const protTotal = protEquip + protStats;
         const totalDmg = dmg - protTotal;
         return totalDmg;
-    };
+    }
 
-    _getDmgAfterWeaknessAndResistance(ent, dmgComp) {
+    public _getDmgAfterWeaknessAndResistance(ent, dmgComp) {
         const entName = ent.getName();
         let dmg = dmgComp.getDamage();
         if (ent.has('Weakness')) {
@@ -209,9 +209,9 @@ export class SystemDamage extends SystemBase {
             }
         }
         return dmg;
-    };
+    }
 
-    effectMatches(dmgComp, effComp) {
+    public effectMatches(dmgComp, effComp) {
         const effect = effComp.getEffect();
         const dmgType = dmgComp.getDamageType();
         const dmgCateg = dmgComp.getDamageCateg();
@@ -219,7 +219,7 @@ export class SystemDamage extends SystemBase {
     }
 
     /* Returns true if the hit bypasses defender's protection completely. */
-    bypassProtection(ent, src) {
+    public bypassProtection(ent, src) {
         const bypassChance = RNG.getUniform();
         if (src && src.has('BypassProtection')) {
             return bypassChance <= src.get('BypassProtection').getChance();
@@ -228,7 +228,7 @@ export class SystemDamage extends SystemBase {
     }
 
     /* Applies add-on hit effects such as poison, frost or others. */
-    _applyAddOnHitComp(ent, dmgComp) {
+    public _applyAddOnHitComp(ent, dmgComp) {
         const weapon = dmgComp.getWeapon();
         if (weapon && weapon.has) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
@@ -251,7 +251,7 @@ export class SystemDamage extends SystemBase {
         }
     }
 
-    _dropInvAndEq(actor) {
+    public _dropInvAndEq(actor) {
         const [x, y] = actor.getXY();
         if (!actor.getInvEq) {
             return;
@@ -274,7 +274,7 @@ export class SystemDamage extends SystemBase {
     }
 
     /* Removes actor from current level and emits Actor killed event.*/
-    _killActor(src, actor, dmgComp) {
+    public _killActor(src, actor, dmgComp) {
         const level = actor.getLevel();
         const cell = actor.getCell();
         const [x, y] = actor.getXY();
@@ -326,12 +326,12 @@ export class SystemDamage extends SystemBase {
             this._cleanUpComponents(actor);
         }
         else {
-            RG.err('System.Damage', 'killActor', "Couldn't remove actor");
+            RG.err('System.Damage', 'killActor', 'Couldn\'t remove actor');
         }
-    };
+    }
 
     /* When an actor is killed, gives experience to damage's source.*/
-    _giveExpToSource(att, def) {
+    public _giveExpToSource(att, def) {
         if (att !== NO_DAMAGE_SRC && !att.has('Dead')) {
             const defLevel = def.get('Experience').getExpLevel();
             const defDanger = def.get('Experience').getDanger();
@@ -343,10 +343,10 @@ export class SystemDamage extends SystemBase {
                 this._giveBattleExpToSource(att);
             }
         }
-    };
+    }
 
     /* Adds additional battle experience given if actor is in a battle. */
-    _giveBattleExpToSource(att) {
+    public _giveBattleExpToSource(att) {
         if (!att.has('BattleExp')) {
             const inBattleComp = att.get('InBattle');
             const data = inBattleComp.getData();
@@ -365,7 +365,7 @@ export class SystemDamage extends SystemBase {
         att.get('BattleExp').getData().kill += 1;
     }
 
-    _cleanUpComponents(actor) {
+    public _cleanUpComponents(actor) {
         const compTypes = ['Coldness', 'Expiration', 'Fading'];
         compTypes.forEach(compType => {
             const compList = actor.getList(compType);
@@ -378,7 +378,7 @@ export class SystemDamage extends SystemBase {
         });
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const dmgComps = ent.getList('Damage');
         dmgComps.forEach(dmgComp => {
             this.processDamageComp(ent, dmgComp);

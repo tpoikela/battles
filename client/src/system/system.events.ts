@@ -2,6 +2,7 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import {Geometry} from '../geometry';
+import {Level} from '../level';
 
 /* System which handles events such as actorKilled, onPickup etc. This system
  * must be updated after most of the other systems have been processed, up to

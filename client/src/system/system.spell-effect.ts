@@ -34,7 +34,7 @@ export class SystemSpellEffect extends SystemBase {
 
     /* For each different spell effect, grabs a list of components (if any
      * exist), then calls the corresponding function in dtable. */
-    updateEntity(ent) {
+    public updateEntity(ent) {
         spellEffects.forEach(effName => {
             if (ent.has(effName)) {
                 const effCompList = ent.getList(effName);
@@ -47,7 +47,7 @@ export class SystemSpellEffect extends SystemBase {
         });
     }
 
-    processSpellRay(ent, ray) {
+    public processSpellRay(ent, ray) {
         const args = ray.getArgs();
         const map = ent.getLevel().getMap();
         const spell = args.spell;
@@ -77,7 +77,7 @@ export class SystemSpellEffect extends SystemBase {
 
                         if (stopSpell) {
                             rangeLeft = 0;
-                            RG.gameMsg({cell: cell,
+                            RG.gameMsg({cell,
                                 msg: `${name} is stopped by ${actorName}`});
                         }
                         else if (spell.stopOnHit) {
@@ -87,11 +87,11 @@ export class SystemSpellEffect extends SystemBase {
                         // TODO add some evasion checks
                         // TODO add onHit callback for spell because
                         // not all spells cause damage
-                        RG.gameMsg({cell: cell,
+                        RG.gameMsg({cell,
                             msg: `${name} hits ${actorName}`});
                     }
                     else {
-                        RG.gameMsg({cell: cell,
+                        RG.gameMsg({cell,
                             msg: `${name} misses ${actorName}`});
                     }
                 }
@@ -119,7 +119,7 @@ export class SystemSpellEffect extends SystemBase {
         ent.add(animComp);
     }
 
-    rayHitsActor(actor, rangeLeft) {
+    public rayHitsActor(actor, rangeLeft) {
         if (!actor.has('Health')) {
             return false;
         }
@@ -144,7 +144,7 @@ export class SystemSpellEffect extends SystemBase {
         }
     }
 
-    processSpellCell(ent, spellComp) {
+    public processSpellCell(ent, spellComp) {
         const args = spellComp.getArgs();
         const map = ent.getLevel().getMap();
         const spell = args.spell;
@@ -242,7 +242,7 @@ export class SystemSpellEffect extends SystemBase {
         }
     }
 
-    processSpellMissile(ent, spellComp) {
+    public processSpellMissile(ent, spellComp) {
         const args = spellComp.getArgs();
         const spell = args.spell;
         const parser = ObjectShell.getParser();
@@ -274,7 +274,7 @@ export class SystemSpellEffect extends SystemBase {
     }
 
     /* Processes area-affecting spell effects. */
-    processSpellArea(ent, spellComp) {
+    public processSpellArea(ent, spellComp) {
         // const spellComp = ent.get('SpellArea');
         const args = spellComp.getArgs();
         const spell = args.spell;
@@ -313,7 +313,7 @@ export class SystemSpellEffect extends SystemBase {
     }
 
     /* Used for spell cast on self (or spells not requiring any targets). */
-    processSpellSelf(ent, spellComp) {
+    public processSpellSelf(ent, spellComp) {
         const args = spellComp.getArgs();
         if (typeof args.callback === 'function') {
             args.callback();
@@ -326,7 +326,7 @@ export class SystemSpellEffect extends SystemBase {
         addSingleCellAnim(ent, args, ent.getXY());
     }
 
-    _addDamageToActor(actor, args) {
+    public _addDamageToActor(actor, args) {
         const dmg = new Component.Damage();
         dmg.setSource(args.src);
         dmg.setDamageType(args.damageType);

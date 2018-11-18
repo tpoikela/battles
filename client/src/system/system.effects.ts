@@ -22,7 +22,69 @@ let handlerNames = Object.keys(handlerTable);
 
 export class SystemEffects extends SystemBase {
 
-    static handlerTable: {[key: string]: boolean};
+    public static handlerTable: {[key: string]: boolean};
+
+    //---------------
+    // HANDLERS END
+    //---------------
+
+    /** Adds an effect into the effect system.
+     * @param {string} effName - Name of the effect.
+     * @param {function} func - Function to process the effect.
+     * @return {boolean}
+     * func receives args (srcEnt, effComp).
+     */
+    public static addEffect(effName, func) {
+        if (!handlerTable.hasOwnProperty(effName)) {
+            const handlerName = 'handle' + effName.capitalize();
+            SystemEffects.prototype[handlerName] = func;
+            handlerTable[effName] = true;
+            handlerNames = Object.keys(handlerTable);
+            return true;
+        }
+        else {
+            RG.err('SystemEffects', 'addEffect',
+                `Effect ${effName} already exists.`);
+        }
+        return false;
+    }
+
+    /* Returns the target for the effect. Priority of targets is:
+     * 1. actors 2. items 3. elements 4. base element
+     */
+    public static getEffectTarget(useArgs) {
+        const objTarget = useArgs.target;
+        if (!objTarget) {
+            const msg = 'Possibly missing args for useItem().';
+            RG.err('system.effects.js', 'getEffectTarget',
+                `Given object was null/undefined. ${msg}`);
+        }
+        return SystemEffects.getTargetFromObj(objTarget, useArgs.targetType);
+    }
+
+    public static getTargetFromObj(objTarget, targetTypes) {
+        if (objTarget.hasOwnProperty('target')) {
+            const cell = objTarget.target;
+            let targetType = targetTypes;
+            if (!targetType) {
+                targetType = ['actors', 'items', 'elements', 'baseElem'];
+            }
+            if (!Array.isArray(targetType)) {targetType = [targetType];}
+
+            for (let i = 0; i < targetType.length; i++) {
+                if (cell.hasProp(targetType[i])) {
+                    return cell.getProp(targetType[i])[0];
+                }
+                else if (/base/.test(targetType[i])) {
+                    return cell.getBaseElem();
+                }
+            }
+        }
+        else {
+            return objTarget;
+        }
+        return null;
+    }
 
     private _dtable: {[key: string]: HandleFunc};
 
@@ -37,7 +99,7 @@ export class SystemEffects extends SystemBase {
         });
     }
 
-    updateEntity(ent): void {
+    public updateEntity(ent): void {
         const comps = ent.getList('Effects');
         comps.forEach(effComp => {
             const effType = effComp.getEffectType();
@@ -59,7 +121,7 @@ export class SystemEffects extends SystemBase {
         });
     }
 
-    _checkMsgEmits(ent, effComp) {
+    public _checkMsgEmits(ent, effComp) {
         const useArgs = effComp.getArgs();
         if (useArgs.startMsg) {
             RG.gameMsg({cell: ent.getCell(), msg: useArgs.startMsg});
@@ -72,7 +134,7 @@ export class SystemEffects extends SystemBase {
 
     /* Handler for effect 'AddComp'. Adds a component to target entity
      * for a given duration. */
-    handleAddComp(srcEnt, effComp) {
+    public handleAddComp(srcEnt, effComp) {
         const useArgs = effComp.getArgs();
         const targetEnt = SystemEffects.getEffectTarget(useArgs);
         const compName = getCompName(useArgs, targetEnt);
@@ -114,7 +176,7 @@ export class SystemEffects extends SystemBase {
     }
 
     /* Adds a value to an existing component value. */
-    handleModifyCompValue(srcEnt, effComp) {
+    public handleModifyCompValue(srcEnt, effComp) {
         const useArgs = effComp.getArgs();
         const targetEnt = SystemEffects.getEffectTarget(useArgs);
         const compName = getCompName(useArgs, targetEnt);
@@ -131,7 +193,7 @@ export class SystemEffects extends SystemBase {
     }
 
     /* Adds an entity to target cell. */
-    handleAddEntity(srcEnt, effComp) {
+    public handleAddEntity(srcEnt, effComp) {
         const useArgs = effComp.getArgs();
         const cell = getTargetCellOrFail(useArgs);
 
@@ -158,7 +220,7 @@ export class SystemEffects extends SystemBase {
         }
     }
 
-    handleChangeElement(srcEnt, effComp) {
+    public handleChangeElement(srcEnt, effComp) {
         const useArgs = effComp.getArgs();
         const cell = getTargetCellOrFail(useArgs);
         const fromType = useArgs.fromType;
@@ -168,7 +230,7 @@ export class SystemEffects extends SystemBase {
         }
     }
 
-    handleRemoveComp(srcEnt, effComp) {
+    public handleRemoveComp(srcEnt, effComp) {
         const useArgs = effComp.getArgs();
         const targetEnt = SystemEffects.getEffectTarget(useArgs);
         const compName = getCompName(useArgs, targetEnt);
@@ -181,68 +243,6 @@ export class SystemEffects extends SystemBase {
                 targetEnt.remove(compName);
             }
         }
-    }
-
-    //---------------
-    // HANDLERS END
-    //---------------
-
-    /** Adds an effect into the effect system.
-     * @param {string} effName - Name of the effect.
-     * @param {function} func - Function to process the effect.
-     * @return {boolean}
-     * func receives args (srcEnt, effComp).
-     */
-    static addEffect(effName, func) {
-        if (!handlerTable.hasOwnProperty(effName)) {
-            const handlerName = 'handle' + effName.capitalize();
-            SystemEffects.prototype[handlerName] = func;
-            handlerTable[effName] = true;
-            handlerNames = Object.keys(handlerTable);
-            return true;
-        }
-        else {
-            RG.err('SystemEffects', 'addEffect',
-                `Effect ${effName} already exists.`);
-        }
-        return false;
-    }
-
-    /* Returns the target for the effect. Priority of targets is:
-     * 1. actors 2. items 3. elements 4. base element
-     */
-    static getEffectTarget(useArgs) {
-        const objTarget = useArgs.target;
-        if (!objTarget) {
-            const msg = 'Possibly missing args for useItem().';
-            RG.err('system.effects.js', 'getEffectTarget',
-                `Given object was null/undefined. ${msg}`);
-        }
-        return SystemEffects.getTargetFromObj(objTarget, useArgs.targetType);
-    }
-
-    static getTargetFromObj(objTarget, targetTypes) {
-        if (objTarget.hasOwnProperty('target')) {
-            const cell = objTarget.target;
-            let targetType = targetTypes;
-            if (!targetType) {
-                targetType = ['actors', 'items', 'elements', 'baseElem'];
-            }
-            if (!Array.isArray(targetType)) {targetType = [targetType];}
-
-            for (let i = 0; i < targetType.length; i++) {
-                if (cell.hasProp(targetType[i])) {
-                    return cell.getProp(targetType[i])[0];
-                }
-                else if (/base/.test(targetType[i])) {
-                    return cell.getBaseElem();
-                }
-            }
-        }
-        else {
-            return objTarget;
-        }
-        return null;
     }
 }
 SystemEffects.handlerTable = handlerTable;

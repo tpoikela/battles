@@ -13,7 +13,7 @@ export class SystemAreaEffects extends SystemBase {
     }
 
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const flameComps = ent.getList('Flame');
         let isFire = false;
         let isIce = false;
@@ -67,5 +67,5 @@ export class SystemAreaEffects extends SystemBase {
                 }
             }
         });
-    };
+    }
 }

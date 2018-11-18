@@ -22,6 +22,10 @@ interface MoveBonuses {
 /* This system handles all entity movement.*/
 export class SystemMovement extends SystemBase {
 
+
+
+
+
     public climbRe: RegExp;
     public somethingSpecial: string[];
     private _bonuses: MoveBonuses;
@@ -64,74 +68,26 @@ export class SystemMovement extends SystemBase {
                     this.speedPenalty(0.25)
                 ]
             }
-        }
+        };
     }
 
-
-    /* Checks movements like climbing. */
-    private _checkSpecialMovement(ent: SentientActor, cell: Cell) {
-        const elemType = cell.getBaseElem().getType();
-        if (this.climbRe.test(elemType) && ent.has('Climber')) {
-            const msg = `${ent.getName()} climbs the rocky terrain`;
-            RG.gameMsg({cell, msg});
-            return true;
-        }
-        return false;
-    };
-
-    /* When player enters exploration element cell, function processes this. At
-    *  the moment, this gives only exp to player. */
-    private _processExploreElem(ent: SentientActor, cell: Cell) {
-        const level = ent.getLevel();
-        const [x, y] = [cell.getX(), cell.getY()];
-        const expElemU = cell.getPropType('exploration')[0] as unknown;
-        const expElem = expElemU as ElementExploration;
-
-        if (level.removeElement(expElem, x, y)) {
-            const givenExp = expElem.getExp();
-            const expPoints = new Component.ExpPoints(givenExp);
-            ent.add(expPoints);
-            addSkillsExp(ent, 'Exploration', 1);
-
-            if (expElem.hasData()) {
-                const expData = expElem.getData();
-                if (expData.zoneType) {
-                    ent.get('GameInfo').addZoneType(expData.zoneType);
-                }
-            }
-
-            // Add level parent ID to the info list
-            const levelParent = level.getParent();
-            if (levelParent) {
-                ent.get('GameInfo').addZone(levelParent.getID());
-            }
-
-            let msg = expElem.getMsg();
-            if (msg.length === 0) {
-                msg = `${ent.getName()} has explored zone thoroughly.`;
-            }
-            RG.gameInfo({cell, msg});
-            if (ent.isPlayer()) {ent.getBrain().addMark();}
-        }
-    };
-
-    speedPenalty(scale) {
+    public speedPenalty(scale) {
         return {
             value: -scale, srcComp: 'Stats', srcFunc: 'getSpeed',
             targetComp: 'StatsMods', targetFunc: 'setSpeed'
         };
     }
 
-    defensePenalty(scale) {
+    public defensePenalty(scale) {
         return {
             value: -scale, srcComp: 'Combat', srcFunc: 'getDefense',
             targetComp: 'CombatMods', targetFunc: 'setDefense'
-        }
+        };
     }
 
     /* If player moved to the square, checks if any messages must
      * be emitted. */
-    checkMessageEmits(prevCell: Cell, newCell: Cell) {
+    public checkMessageEmits(prevCell: Cell, newCell: Cell) {
         if (newCell.hasProp(RG.TYPE_ELEM)) {
             if (newCell.hasStairs()) {
                 const stairs = newCell.getStairs();
@@ -235,68 +191,9 @@ export class SystemMovement extends SystemBase {
         if (baseMsg.length > 0) {
             RG.gameMsg(baseMsg);
         }
-    };
-
-    /* Reports an error if an entity could not be removed. */
-    private _moveError(ent) {
-        const [xOld, yOld] = ent.getXY();
-        const level = ent.getLevel();
-        const map = level.getMap();
-        const coord = xOld + ', ' + yOld;
-        RG.diag('\n\nSystem.Movement list of actors:');
-        RG.printObjList(level.getActors(),
-            ['getID', 'getName', 'getX', 'getY']);
-        this._diagnoseRemovePropError(xOld, yOld, map, ent);
-        RG.err('MovementSystem', 'moveActorTo',
-            "Couldn't remove ent |" + ent.getName() + '| @ ' + coord);
     }
 
-
-    /* If removal of moved entity fails, tries to diagnose the error. */
-    private _diagnoseRemovePropError(xTry, yTry, map, ent) {
-        const propType = ent.getPropType();
-        let xFound = -1;
-        let yFound = -1;
-        for (let x = 0; x < map.cols; x++) {
-            for (let y = 0; y < map.rows; y++) {
-                if (map.removeProp(x, y, propType, ent)) {
-                    xFound = x;
-                    yFound = y;
-                }
-            }
-        }
-
-        const cell = map.getCell(xTry, yTry);
-        RG.diag(`Cell at ${xTry},${yTry}:`);
-        RG.diag(cell);
-
-        const entCell = ent.getCell();
-        RG.diag('Cell of the entity:');
-        RG.diag(entCell);
-
-        RG.diag('System.Movement: diagnoseRemovePropError:');
-        const name = ent.getName();
-        if (xFound >= 0 && yFound >= 0) {
-            const xy = `${xFound},${yFound} instead of ${xTry},${yTry}.`;
-            const msg = `\tEnt |${name}| found from |${xy}|`;
-            RG.diag(msg);
-        }
-        else {
-            const msg = `\tNo ent |${name}| found on entire map.`;
-            RG.diag(msg);
-        }
-
-        // Last resort, try find.
-        RG.diag('map.Find list of objects: ');
-        const objects = map.findObj(obj => {
-            return obj.getName && obj.getName().match(/keeper/);
-        });
-        RG.diag(objects);
-
-    }
-
-
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const movComp = ent.get('Movement');
         const [x, y] = movComp.getXY();
 
@@ -338,13 +235,13 @@ export class SystemMovement extends SystemBase {
             }
         }
         else {
-            RG.debug(this, "Cell wasn't free at " + x + ', ' + y);
+            RG.debug(this, 'Cell wasn\'t free at ' + x + ', ' + y);
         }
         ent.remove(movComp);
     }
     /* Checks if cell type has changed, and if some penalties/bonuses must be
      * applied to the moved entity. */
-    checkForStatsMods(ent, prevCell, newCell) {
+    public checkForStatsMods(ent, prevCell, newCell) {
         const [prevType, newType] = [prevCell.getBaseElem().getType(),
             newCell.getBaseElem().getType()
         ];
@@ -406,7 +303,110 @@ export class SystemMovement extends SystemBase {
                 }
             });
         }
-    };
+    }
 
-};
+    /* Checks movements like climbing. */
+    private _checkSpecialMovement(ent: SentientActor, cell: Cell) {
+        const elemType = cell.getBaseElem().getType();
+        if (this.climbRe.test(elemType) && ent.has('Climber')) {
+            const msg = `${ent.getName()} climbs the rocky terrain`;
+            RG.gameMsg({cell, msg});
+            return true;
+        }
+        return false;
+    }
+    /* When player enters exploration element cell, function processes this. At
+    *  the moment, this gives only exp to player. */
+    private _processExploreElem(ent: SentientActor, cell: Cell) {
+        const level = ent.getLevel();
+        const [x, y] = [cell.getX(), cell.getY()];
+        const expElemU = cell.getPropType('exploration')[0] as unknown;
+        const expElem = expElemU as ElementExploration;
+
+        if (level.removeElement(expElem, x, y)) {
+            const givenExp = expElem.getExp();
+            const expPoints = new Component.ExpPoints(givenExp);
+            ent.add(expPoints);
+            addSkillsExp(ent, 'Exploration', 1);
+
+            if (expElem.hasData()) {
+                const expData = expElem.getData();
+                if (expData.zoneType) {
+                    ent.get('GameInfo').addZoneType(expData.zoneType);
+                }
+            }
+
+            // Add level parent ID to the info list
+            const levelParent = level.getParent();
+            if (levelParent) {
+                ent.get('GameInfo').addZone(levelParent.getID());
+            }
+
+            let msg = expElem.getMsg();
+            if (msg.length === 0) {
+                msg = `${ent.getName()} has explored zone thoroughly.`;
+            }
+            RG.gameInfo({cell, msg});
+            if (ent.isPlayer()) {ent.getBrain().addMark();}
+        }
+    }
+    /* Reports an error if an entity could not be removed. */
+    private _moveError(ent) {
+        const [xOld, yOld] = ent.getXY();
+        const level = ent.getLevel();
+        const map = level.getMap();
+        const coord = xOld + ', ' + yOld;
+        RG.diag('\n\nSystem.Movement list of actors:');
+        RG.printObjList(level.getActors(),
+            ['getID', 'getName', 'getX', 'getY']);
+        this._diagnoseRemovePropError(xOld, yOld, map, ent);
+        RG.err('MovementSystem', 'moveActorTo',
+            'Couldn\'t remove ent |' + ent.getName() + '| @ ' + coord);
+    }
+
+
+    /* If removal of moved entity fails, tries to diagnose the error. */
+    private _diagnoseRemovePropError(xTry, yTry, map, ent) {
+        const propType = ent.getPropType();
+        let xFound = -1;
+        let yFound = -1;
+        for (let x = 0; x < map.cols; x++) {
+            for (let y = 0; y < map.rows; y++) {
+                if (map.removeProp(x, y, propType, ent)) {
+                    xFound = x;
+                    yFound = y;
+                }
+            }
+        }
+
+        const cell = map.getCell(xTry, yTry);
+        RG.diag(`Cell at ${xTry},${yTry}:`);
+        RG.diag(cell);
+
+        const entCell = ent.getCell();
+        RG.diag('Cell of the entity:');
+        RG.diag(entCell);
+
+        RG.diag('System.Movement: diagnoseRemovePropError:');
+        const name = ent.getName();
+        if (xFound >= 0 && yFound >= 0) {
+            const xy = `${xFound},${yFound} instead of ${xTry},${yTry}.`;
+            const msg = `\tEnt |${name}| found from |${xy}|`;
+            RG.diag(msg);
+        }
+        else {
+            const msg = `\tNo ent |${name}| found on entire map.`;
+            RG.diag(msg);
+        }
+
+        // Last resort, try find.
+        RG.diag('map.Find list of objects: ');
+        const objects = map.findObj(obj => {
+            return obj.getName && obj.getName().match(/keeper/);
+        });
+        RG.diag(objects);
+
+    }
+
+}
 

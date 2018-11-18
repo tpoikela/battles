@@ -9,7 +9,7 @@ export class SystemSkills extends SystemBase {
         super(RG.SYS.SKILLS, compTypes, pool);
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const comps = ent.getList('SkillsExp');
         const entSkills = ent.get('Skills');
         const cell = ent.getCell();

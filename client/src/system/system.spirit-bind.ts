@@ -12,14 +12,14 @@ export class SystemSpiritBind extends SystemBase {
         this.compTypesAny = true;
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         if (ent.has('SpiritBind')) {
             this._doSpiritBind(ent);
         }
     }
 
     /* Called when spirit bind is attempted by a binder. */
-    _doSpiritBind(ent) {
+    public _doSpiritBind(ent) {
         const bindComp = ent.get('SpiritBind');
         const binder = bindComp.getBinder();
         const bName = binder.getName();

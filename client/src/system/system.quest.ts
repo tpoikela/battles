@@ -11,6 +11,15 @@ type HandleFunc = (ent, qEvent, questComp) => void;
 
 export class SystemQuest extends SystemBase {
 
+    /* Helper function to add QuestTargetEvent for entity. */
+    public static addQuestEvent(ent, qTarget, eventType, args = {}) {
+        const qEvent = new Component.QuestTargetEvent();
+        qEvent.setArgs(args);
+        qEvent.setEventType(eventType);
+        qEvent.setTargetComp(qTarget);
+        ent.add(qEvent);
+    }
+
     private _eventTable: {[key: string]: HandleFunc};
 
     constructor(compTypes, pool?: EventPool) {
@@ -29,7 +38,7 @@ export class SystemQuest extends SystemBase {
         };
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         if (ent.has('GiveQuest')) {
             const giveComp = ent.get('GiveQuest');
             this.processGiveQuestComp(ent, giveComp);
@@ -48,7 +57,7 @@ export class SystemQuest extends SystemBase {
     }
 
     /* When a quest is given to an actor, this function processes it. */
-    processGiveQuestComp(ent, comp) {
+    public processGiveQuestComp(ent, comp) {
         const giver = comp.getGiver();
         const giverComp = giver.get('QuestGiver');
         if (giverComp.getHasGivenQuest()) {
@@ -78,7 +87,7 @@ export class SystemQuest extends SystemBase {
 
     /* Checks if any messages should be shown to player after a quest is
      * accepted. */
-    checkQuestMsgEmits(ent, questComp) {
+    public checkQuestMsgEmits(ent, questComp) {
         const entLevel = ent.getLevel();
         const firstLevel = questComp.first('location');
         const giverName = questComp.getGiver().name;
@@ -95,7 +104,7 @@ export class SystemQuest extends SystemBase {
         questMsg({cell: ent.getCell(), msg});
     }
 
-    processComplComp(ent, comp) {
+    public processComplComp(ent, comp) {
         console.log('processComplComp');
         const giver = comp.getGiver();
         const questID = giver.get('QuestGiver').getQuestID();
@@ -121,7 +130,7 @@ export class SystemQuest extends SystemBase {
 
     }
 
-    giveQuestReward(ent, comp) {
+    public giveQuestReward(ent, comp) {
         if (comp.hasReward()) {
             if (!comp.getHasGivenReward()) {
                 comp.setHasGivenReward(true);
@@ -147,7 +156,7 @@ export class SystemQuest extends SystemBase {
         }
     }
 
-    processQuestEvent(ent, qEvent) {
+    public processQuestEvent(ent, qEvent) {
         const targetType = qEvent.getEventType();
         const quests = ent.getList('Quest');
 
@@ -168,7 +177,7 @@ export class SystemQuest extends SystemBase {
     }
 
     /* Checks a battle quest event after battle is over. */
-    onBattleEvent(ent, qEvent, questComp) {
+    public onBattleEvent(ent, qEvent, questComp) {
         const args = qEvent.getArgs();
         const qTarget = qEvent.getTargetComp();
         const level = qTarget.getTarget();
@@ -192,7 +201,7 @@ export class SystemQuest extends SystemBase {
         }
     }
 
-    onGetEvent(ent, qEvent, questComp) {
+    public onGetEvent(ent, qEvent, questComp) {
         const qTarget = qEvent.getTargetComp();
         const item = qTarget.getTarget();
         const questTargets = questComp.getQuestTargets();
@@ -204,7 +213,7 @@ export class SystemQuest extends SystemBase {
         questMsg({cell: ent.getCell(), msg});
     }
 
-    onGiveEvent(ent, qEvent, questComp) {
+    public onGiveEvent(ent, qEvent, questComp) {
         console.log('processing onGiveEvent');
         const args = qEvent.getArgs();
         const {actor, item} = args;
@@ -217,7 +226,7 @@ export class SystemQuest extends SystemBase {
         questMsg({cell: ent.getCell(), msg});
     }
 
-    onGotoEvent(ent, qEvent, questComp) {
+    public onGotoEvent(ent, qEvent, questComp) {
         const targetComp = qEvent.getTargetComp();
         const level = targetComp.getTarget();
         const questTargets = questComp.getQuestTargets();
@@ -229,7 +238,7 @@ export class SystemQuest extends SystemBase {
     }
 
     /* Called when quest event where an actor is killed happens. */
-    onKillEvent(ent, qEvent, questComp) {
+    public onKillEvent(ent, qEvent, questComp) {
         const args = qEvent.getArgs();
         if (args && args.corpse) {
             const targetComp = qEvent.getTargetComp();
@@ -251,7 +260,7 @@ export class SystemQuest extends SystemBase {
         }
     }
 
-    onListenEvent(ent, qEvent, questComp) {
+    public onListenEvent(ent, qEvent, questComp) {
         const args = qEvent.getArgs();
         if (args && args.info) {
             const info = args.info.getInfo();
@@ -272,7 +281,7 @@ export class SystemQuest extends SystemBase {
         }
     }
 
-    onReadEvent(ent, qEvent, questComp) {
+    public onReadEvent(ent, qEvent, questComp) {
         const targetComp = qEvent.getTargetComp();
         const readEntity = targetComp.getTarget();
         const questTargets = questComp.getQuestTargets();
@@ -298,7 +307,7 @@ export class SystemQuest extends SystemBase {
         }
     }
 
-    onReportEvent(ent, qEvent, questComp) {
+    public onReportEvent(ent, qEvent, questComp) {
         const questTargets = questComp.getQuestTargets();
         const targetComp = qEvent.getTargetComp();
         const reportTarget = targetComp.getTarget();
@@ -340,7 +349,7 @@ export class SystemQuest extends SystemBase {
     }
 
     /* Moves QuestTarget from one entity to another. */
-    moveQuestTargetComp(srcEnt, destEnt) {
+    public moveQuestTargetComp(srcEnt, destEnt) {
         try {
             const qTarget = srcEnt.get('QuestTarget');
             qTarget.changeEntity(destEnt);
@@ -353,7 +362,7 @@ export class SystemQuest extends SystemBase {
         }
     }
 
-    setTargetCompleted(targetObj, questComp) {
+    public setTargetCompleted(targetObj, questComp) {
         const ent = questComp.getEntity();
         if (targetObj.isCompleted === false) {
             targetObj.isCompleted = true;
@@ -375,7 +384,7 @@ export class SystemQuest extends SystemBase {
 
     /* WHen a quest becomes completed, check if any other quest has that one
      * as a subquest, then mark the subquest item completed. */
-    checkSubQuestCompletion(ent, questComp) {
+    public checkSubQuestCompletion(ent, questComp) {
         const questID = questComp.getQuestID();
         const questList = ent.getList('Quest');
         questList.forEach(quest => {
@@ -386,15 +395,6 @@ export class SystemQuest extends SystemBase {
                 }
             });
         });
-    }
-
-    /* Helper function to add QuestTargetEvent for entity. */
-    static addQuestEvent(ent, qTarget, eventType, args = {}) {
-        const qEvent = new Component.QuestTargetEvent();
-        qEvent.setArgs(args);
-        qEvent.setEventType(eventType);
-        qEvent.setTargetComp(qTarget);
-        ent.add(qEvent);
     }
 
 }

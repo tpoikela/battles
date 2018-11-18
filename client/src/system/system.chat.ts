@@ -12,7 +12,7 @@ export class SystemChat extends SystemBase {
         super(RG.SYS.CHAT, compTypes, pool);
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const args = ent.get('Chat').getArgs();
         const dir = args.dir;
 
@@ -44,7 +44,7 @@ export class SystemChat extends SystemBase {
     }
 
     /* Returns all actors in the given direction. */
-    getActorsInDirection(ent, dir) {
+    public getActorsInDirection(ent, dir) {
         const [dX, dY] = [dir[0], dir[1]];
         const x = ent.getX() + dX;
         const y = ent.getY() + dY;
@@ -67,7 +67,7 @@ export class SystemChat extends SystemBase {
         return NO_ACTORS_FOUND;
     }
 
-    getChatObject(ent, srcActor, compType) {
+    public getChatObject(ent, srcActor, compType) {
         const chatObj = srcActor.get(compType).getChatObj();
         chatObj.setTarget(ent);
         const selObj = chatObj.getSelectionObject();
@@ -82,7 +82,7 @@ export class SystemChat extends SystemBase {
         return null;
     }
 
-    getGenericChatObject(ent, actor) {
+    public getGenericChatObject(ent, actor) {
         if (ent.has('Quest')) {
             const chatObj = new Chat.ChatBase();
             const aName = actor.getName();
@@ -92,7 +92,7 @@ export class SystemChat extends SystemBase {
         return null;
     }
 
-    addQuestSpecificItems(ent, actor, chatObj) {
+    public addQuestSpecificItems(ent, actor, chatObj) {
         if (ent.has('Quest')) {
             const qTargets = ent.get('Quest').getQuestTargets();
 
@@ -147,7 +147,7 @@ export class SystemChat extends SystemBase {
 
     /* Checks if initiator of chat is on quest and needs to query for any
      * information. */
-    processQuestTarget(target, actor, chatObj) {
+    public processQuestTarget(target, actor, chatObj) {
         const aName = actor.getName();
         const tName = target.name;
         let resp = null;

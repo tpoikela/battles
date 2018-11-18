@@ -39,7 +39,7 @@ export class SystemBaseAction extends SystemBase {
         };
     }
 
-    updateEntity(ent): void {
+    public updateEntity(ent): void {
         handledComps.forEach(compType => {
             if (ent.has(compType)) {
                 this._dtable[compType](ent);

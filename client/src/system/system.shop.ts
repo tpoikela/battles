@@ -12,7 +12,7 @@ export class SystemShop extends SystemBase {
         super(RG.SYS.SHOP, compTypes, pool);
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const trans = ent.get('Transaction');
         const args = trans.getArgs();
         const {buyer} = args;
@@ -26,7 +26,7 @@ export class SystemShop extends SystemBase {
         ent.remove(trans);
     }
 
-    _checkArgsOK(ent, args) {
+    public _checkArgsOK(ent, args) {
         const {item, buyer, shop, seller} = args;
         let msg = '';
         if (!item) {
@@ -48,7 +48,7 @@ export class SystemShop extends SystemBase {
     }
 
 
-    buyItem(args) {
+    public buyItem(args) {
         const {item, buyer, shop, seller} = args;
         if (!buyer.getInvEq().canCarryItem(item)) {
             RG.gameMsg(buyer.getName() + ' cannot carry more weight');
@@ -74,12 +74,12 @@ export class SystemShop extends SystemBase {
         }
         else {
             RG.gameMsg({cell: buyerCell, msg: buyer.getName() +
-                " doesn't have enough money to buy " + item.getName() + ' for '
+                ' doesn\'t have enough money to buy ' + item.getName() + ' for '
                 + nCoins + ' coins.'});
         }
     }
 
-    sellItem(args) {
+    public sellItem(args) {
         const {item, buyer, seller, shop} = args;
         if (!seller) {
             RG.err('System.Shop', 'sellItem',
@@ -107,7 +107,7 @@ export class SystemShop extends SystemBase {
                     ' sold ' + itemName + ' for ' + nCoins + ' coins.'});
                 if (args.callback) {
                     const msg = `${item.getName()} was sold.`;
-                    args.callback({msg: msg, result: true});
+                    args.callback({msg, result: true});
                 }
                 addSkillsExp(seller, 'Trading', 1);
             }
@@ -116,10 +116,10 @@ export class SystemShop extends SystemBase {
             const name = buyer.getName();
             RG.gameMsg({cell: buyer.getCell(),
                 msg: 'Buyer ' + name +
-                " doesn't have enough gold to buy it."});
+                ' doesn\'t have enough gold to buy it.'});
             if (args.callback) {
                 const msg = `Cannot sell ${item.getName()}.`;
-                args.callback({msg: msg, result: false});
+                args.callback({msg, result: false});
             }
         }
 

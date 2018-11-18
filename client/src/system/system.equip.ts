@@ -8,7 +8,7 @@ export class SystemEquip extends SystemBase {
         super(RG.SYS.EQUIP, compTypes, pool);
     }
 
-    updateEntity(ent) {
+    public updateEntity(ent) {
         const eqComp = ent.get('Equip');
         if (eqComp.getIsRemove()) {
             this.unequipItem(ent, eqComp.getArgs());
@@ -17,9 +17,9 @@ export class SystemEquip extends SystemBase {
             this.equipItem(ent, eqComp.getArgs());
         }
         ent.remove(eqComp);
-    };
+    }
 
-    unequipItem(ent, obj) {
+    public unequipItem(ent, obj) {
         const slotName = obj.slot;
         const slotNumber = obj.slotNumber;
         const invEq = ent.getInvEq();
@@ -43,7 +43,7 @@ export class SystemEquip extends SystemBase {
             if (result) {
                 msg = `Unequipping from ${slotName} succeeded!`;
             }
-            obj.callback({msg: msg, result});
+            obj.callback({msg, result});
         }
 
         const item = invEq.getEquipment().getUnequipped(slotName, slotNumber);
@@ -57,7 +57,7 @@ export class SystemEquip extends SystemBase {
         }
     }
 
-    equipItem(ent, obj) {
+    public equipItem(ent, obj) {
         const invEq = ent.getInvEq();
         const item = obj.item;
         let result = false;
@@ -76,7 +76,7 @@ export class SystemEquip extends SystemBase {
             if (result) {
                 msg = `Equipping ${item.getName()} succeeded!`;
             }
-            obj.callback({msg: msg, result});
+            obj.callback({msg, result});
         }
 
         // If equip was success, handle equip effects
@@ -88,7 +88,7 @@ export class SystemEquip extends SystemBase {
         }
     }
 
-    handleAddOnEquip(ent, addComp, equip = true) {
+    public handleAddOnEquip(ent, addComp, equip = true) {
         if (equip) {
             const comp = addComp.getComp();
             ent.add(comp);
