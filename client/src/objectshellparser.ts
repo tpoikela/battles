@@ -1,7 +1,7 @@
 
 import RG from './rg';
 import {Objects} from '../data/battles_objects';
-import Actors, {adjustActorValues} from '../data/actors';
+import {ActorsData, adjustActorValues} from '../data/actors';
 import * as Actor from './actor';
 import * as Item from './item';
 import {Effects} from '../data/effects';
