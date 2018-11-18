@@ -1,6 +1,10 @@
 
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
+
+interface ISimulationButtonsProps {
+    menuCallback: (id: string) => void;
+    simulationStarted: boolean;
+};
 
 /*
 const buttons = {
@@ -15,7 +19,9 @@ const buttons = {
 
 export default class SimulationButtons extends React.Component {
 
-    constructor(props) {
+    public props: ISimulationButtonsProps;
+
+    constructor(props: ISimulationButtonsProps) {
         super(props);
         this.callback = this.callback.bind(this);
     }
@@ -74,8 +80,3 @@ export default class SimulationButtons extends React.Component {
         );
     }
 }
-
-SimulationButtons.propTypes = {
-    menuCallback: PropTypes.func.isRequired,
-    simulationStarted: PropTypes.bool
-};
