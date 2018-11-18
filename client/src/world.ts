@@ -620,11 +620,8 @@ export class SubZoneBase extends WorldBase {
         return getEntrance(this._levels, this._entrance);
     }
 
-    public getLevels(nLevel?: number): Level | Level[] | null {
-        if (RG.isNullOrUndef([nLevel])) {
-            return this._levels;
-        }
-        else if (nLevel < this._levels.length) {
+    public getLevelN(nLevel: number): Level {
+        if (nLevel < this._levels.length) {
             return this._levels[nLevel];
         }
         else {
@@ -633,6 +630,10 @@ export class SubZoneBase extends WorldBase {
                 `No nLevel ${nLevel} found. Max: ${nLevels}`);
         }
         return null;
+    }
+
+    public getLevels(): Level[] {
+        return this._levels.slice()
     }
 
     public hasLevel(level: Level): boolean {
@@ -1418,8 +1419,8 @@ export class Mountain extends ZoneBase {
             RG.err('World.Mountain', 'connectFaceAndSummit',
                 `Expected 2nd arg summit, got: ${type}`);
         }
-        const level1 = sz1.getLevels(l1);
-        const level2 = sz2.getLevels(l2);
+        const level1 = sz1.getLevelN(l1);
+        const level2 = sz2.getLevelN(l2);
         const connFace = {y: () => 0, level: level1};
         const connSummit = {level: level2};
         connectLevelsConstrained(connFace, connSummit);
