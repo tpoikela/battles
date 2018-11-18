@@ -9,6 +9,7 @@ import {EventPool} from './eventpool';
 import {Entity} from './entity';
 import {Dice} from './dice';
 import {Geometry} from './geometry';
+import {Brain} from './brain';
 
 const POOL = EventPool.getPool();
 
@@ -538,8 +539,8 @@ export const Stun = DataComponent('Stun', {source: null});
 
 Stun.prototype.toJSON = function() {
     const obj = ComponentBase.prototype.toJSON.call(this);
-    if (RG.isActorActive(_src)) {
-        obj.setSource = RG.getObjRef('entity', _src);
+    if (RG.isActorActive(this.source)) {
+        obj.setSource = RG.getObjRef('entity', this.source);
     }
     return obj;
 };
