@@ -132,7 +132,7 @@ export default class TopMenuLogic extends Component {
             {errorMsg}
             <button
               className='btn btn-danger'
-              onClick={this.onClickCancel}
+              onClick={this.onClickModalCancel}
             >Cancel</button>
             <button
               className='btn btn-success'
