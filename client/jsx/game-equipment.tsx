@@ -1,11 +1,11 @@
 
 import * as React from 'react';
-import GameEquipSlot from './game-equip-slot';
+import {GameEquipSlot, ISelection} from './game-equip-slot';
 
 interface IGameEquipmentProps {
   eq: any;
   isMasterEquipper: boolean;
-  setEquipSelected(): void;
+  setEquipSelected(selection: ISelection): void;
 }
 
 /* Component which shows the equipment of the player.*/
@@ -27,7 +27,7 @@ const GameEquipment = (props: IGameEquipmentProps) => {
       items = [items];
     }
 
-    let key = i;
+    let key = '' + i;
     if (items && items.length > 0) {
       for (let j = 0; j < items.length; j++) {
         key += ',' + j;

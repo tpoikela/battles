@@ -13,18 +13,18 @@ interface IGameStartScreenProps {
   settings: any;
   showLoadScreen: boolean;
   showStartScreen: boolean;
-  deleteGame(): void;
-  loadGame(): void;
+  deleteGame(name: string): void;
+  loadGame(name: string): void;
   newGame(): void;
-  selectGame(): void;
-  setPlayMode(): void;
-  setPlayerClass(): void;
-  setPlayerLevel(): void;
-  setPlayerName(): void;
-  setPlayerRace(): void;
-  setSeedName(): void;
+  selectGame(name: string): void;
+  setPlayMode(name: string): void;
+  setPlayerClass(name: string): void;
+  setPlayerLevel(name: string): void;
+  setPlayerName(name: string): void;
+  setPlayerRace(name: string): void;
+  setSeedName(name: string): void;
   toggleEditor(): void;
-  toggleScreen(): void;
+  toggleScreen(name: string): void;
 }
 
 

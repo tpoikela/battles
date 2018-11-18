@@ -7,6 +7,10 @@ interface IGamePluginsProps {
     updatePluginList(): void;
 }
 
+interface IGamePluginsState {
+    msg: string;
+}
+
 const checkbox = (name, cb, isChecked) => (
     <input checked={isChecked} name={name} onChange={cb} type='checkbox'/>
 );
@@ -17,6 +21,7 @@ const deleteButton = (cb) => (
 
 export default class GamePlugins extends React.Component {
 
+    public state: IGamePluginsState;
     public props: IGamePluginsProps;
 
     constructor(props: IGamePluginsProps) {
@@ -56,16 +61,18 @@ export default class GamePlugins extends React.Component {
         this.props.updatePluginList();
     }
 
-    isUnsafeChecked() {
-        const elem = document.querySelector('#plugin-maybe-unsafe');
+    isUnsafeChecked(): boolean {
+        const unsafeID = '#plugin-maybe-unsafe';
+        const elem = (document.querySelector(unsafeID) as HTMLInputElement);
         return elem.checked;
     }
 
-    onChange(evt) {
+    onChange(evt: React.SyntheticEvent): void {
         const unsafeChecked = this.isUnsafeChecked();
         if (unsafeChecked) {
-            const isChecked = evt.target.checked;
-            const pluginName = evt.target.name;
+            const target = evt.target as HTMLInputElement;
+            const isChecked = target.checked;
+            const pluginName = target.name;
 
             if (isChecked) {
                 this.props.pluginManager.enablePlugin(pluginName);

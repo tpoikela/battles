@@ -4,23 +4,32 @@ import * as React from 'react';
 import ModalHeader from './modal-header';
 import GameItems from './game-items';
 import GameEquipment from './game-equipment';
+import {ItemBase} from '../src/item';
+import {ISelection} from "./game-equip-slot";
 
 interface IGameInventoryProps {
-  doInvCmd(): void;
+  count: number;
+  doInvCmd(cmd: any): void;
   eq: any;
   equipSelected: any;
-  handleKeyDown(): void;
+  handleKeyDown(evt: any): void;
   inv: any;
   invMsg: string;
   maxWeight: number;
   msgStyle: string;
   player: any;
-  selectEquipTop(): void;
-  selectItemTop(): void;
+  selectEquipTop(selection: ISelection): void;
+  selectItemTop(item: ItemBase): void;
   selectedItem: any;
-  setInventoryMsg(): void;
+  setInventoryMsg(msg: any): void;
   showInventory: boolean;
   toggleScreen(type: string): void;
+}
+
+
+interface IGameInventoryState {
+    count: string;
+    filter: string;
 }
 
 const RG = require('../src/rg');
@@ -32,6 +41,7 @@ const Keys = require('../src/keymap');
 export default class GameInventory extends React.Component {
 
   public props: IGameInventoryProps;
+  public state: IGameInventoryState;;
 
   constructor(props: IGameInventoryProps) {
     super(props);
@@ -44,7 +54,7 @@ export default class GameInventory extends React.Component {
     this.onChangeCount = this.onChangeCount.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.state = {
-        count: 0,
+        count: '1',
         filter: 'All'
     };
   }
@@ -184,7 +194,7 @@ export default class GameInventory extends React.Component {
     this.setState({count: item.getCount()});
   }
 
-  setEquipSelected(selection) {
+  setEquipSelected(selection: ISelection) {
     const msg = 'Equipment Selected: ' + selection.item.toString();
     this.props.selectEquipTop(selection);
     this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});

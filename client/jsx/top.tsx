@@ -43,9 +43,12 @@ import {Persist} from '../src/persist';
 import {WorldConf} from '../data/conf.world';
 import wwork = require('webworkify');
 import {ACTOR_CLASSES} from '../src/actor-class';
+import {SentientActor} from '../src/actor';
 
 import {EventPool} from '../src/eventpool';
-import { FactoryGame } from '../src/factory.game';
+import {FactoryGame} from '../src/factory.game';
+import {FromJSON} from '../src/game.fromjson';
+import { IMessage } from "../src/rg";
 const POOL = EventPool.getPool();
 
 const INV_SCREEN = 'Inventory';
@@ -98,20 +101,27 @@ class TopLogic {
 
 }
 
-const ProxyListener = function(cbNotify) {
-  this.hasNotify = true;
+class ProxyListener {
+    public hasNotify: boolean;
+    public cbNotify: (evtName: string, obj) => void;
 
-  this.notify = function(evtName, obj) {
-    cbNotify(evtName, obj);
-  };
+     constructor(cbNotify) {
+         this.hasNotify = true;
+         this.cbNotify = cbNotify;
+     }
 
-};
+    public notify(evtName, obj) {
+        this.cbNotify(evtName, obj);
+    }
+
+}
 
 export interface EditorData {
     [key: string]: any;
 }
 
 export interface IBattlesTopState {
+    animation: Animation;
     boardClassName: string;
     playMode: string;
     equipSelected: null;
@@ -121,6 +131,8 @@ export interface IBattlesTopState {
     loadFromEditor: boolean;
     loadInProgress: boolean;
     mouseOverCell: Cell;
+    playerClass: string;
+    playerRace: string;
     playerLevel: string;
     playerName: string;
     render: boolean;
@@ -142,6 +154,7 @@ export interface IBattlesTopState {
     showCreateScreen: boolean;
     editorData: EditorData; // Data given to editor
     plugins: any[];
+    progress: string;
 }
 
 export interface GameStateTop {
@@ -151,18 +164,21 @@ export interface GameStateTop {
 /* Top-level Component for the Battles GUI.*/
 export class BattlesTop extends React.Component {
 
-    public game: GameMain;
+    public game: any; // TODO GameMain
     public gameState: GameStateTop;
     public state: IBattlesTopState;
     public pluginManager: PluginManager;
-    public guiCommands: {[key: string]: () => void};
-    public gameSave: GameSave;
+    public guiCommands: {[key: string]: (any) => void};
+    public gameSave: any; // TODO GameSave;
 
     public loadScriptId: string;
     public levelInputId: string;
     public finishAutoOnSight: boolean;
     public finishAutoDist: number;
     public keyPending: boolean;
+    public keysEnabled: boolean;
+    public autoModeKeyBuffer: number[];
+    public ctrlMode: string;
     public gameConf: any;
     public viewportPlayerX: number;
     public viewportPlayerY: number;
@@ -170,6 +186,13 @@ export class BattlesTop extends React.Component {
     public viewportY: number;
     public frameID: number;
     public screen: Screen;
+    public hasNotify: boolean;
+    public listener: ProxyListener;
+    public multiHandler: MultiKeyHandler;
+    public savedPlayerList: SentientActor[];
+    public clickHandler: CellClickHandler;
+    public nextCode: number;
+    public animationID: number;
 
     constructor(props) {
         super(props);
@@ -223,22 +246,23 @@ export class BattlesTop extends React.Component {
         this.finishAutoOnSight = true;
         this.finishAutoDist = 3;
 
-        this.keysEnabled = false;
         this.keyPending = false;
+        this.keysEnabled = false;
         this.autoModeKeyBuffer = [];
         this.ctrlMode = 'MANUAL';
 
-        this.hasNotify = true;
         this.notify = this.notify.bind(this);
+        this.hasNotify = true;
         this.listener = new ProxyListener(this.notify);
         this.multiHandler = new MultiKeyHandler();
 
-        this.gameSave.setStorage(window.localStorage);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
+        this.gameSave.setStorage(window.localStorage);
 
         this.state = {
+            animation: null,
             boardClassName: 'game-board-player-view',
-            playMode: 'OverWorld',
+            editorData: {}, // Data given to editor
             equipSelected: null,
             invMsg: '',
             invMsgStyle: '',
@@ -246,27 +270,30 @@ export class BattlesTop extends React.Component {
             loadFromEditor: false,
             loadInProgress: false,
             mouseOverCell: null,
+            playMode: 'OverWorld',
+            playerClass: '',
+            playerRace: '',
             playerLevel: 'Medium',
             playerName: 'Player',
+            plugins: [],
+            progress: '',
             render: true,
             saveInProgress: false,
             seedName: '',
             selectedCell: null,
             selectedGame: null,
             selectedItem: null,
-            showPlugins: false,
-            showEditor: false,
-            showMap: false,
-            showGameMenu: false,
-            showStartScreen: true,
-            showHelpScreen: false,
-            showLoadScreen: false,
-            showOWMap: false,
-            showInventory: false,
             showCharInfo: false,
             showCreateScreen: false,
-            editorData: {}, // Data given to editor
-            plugins: []
+            showEditor: false,
+            showGameMenu: false,
+            showHelpScreen: false,
+            showInventory: false,
+            showLoadScreen: false,
+            showMap: false,
+            showOWMap: false,
+            showPlugins: false,
+            showStartScreen: true
         };
 
         // Binding of callbacks
@@ -541,7 +568,7 @@ export class BattlesTop extends React.Component {
     }
 
     public canUseWorker() {
-        return (typeof window.Worker !== 'undefined') &&
+        return (typeof (window as any).Worker !== 'undefined') &&
             !this.pluginManager.anyPluginsEnabled();
     }
 
@@ -549,7 +576,7 @@ export class BattlesTop extends React.Component {
      * GUI updates. */
     public createGameWorker() {
         /* eslint global-require: 0 */
-        const worker = wwork(require('../util/worker-create-game.js'));
+        const worker = wwork(require('../util/worker-create-game'));
         worker.onmessage = (e) => {
             if (e.data.progress) {
                 this.progress(e.data.progress);
@@ -590,9 +617,9 @@ export class BattlesTop extends React.Component {
      */
     public setDebugRefsToWindow() {
         if (debug.enabled) {
-            window.GAME = this.game; // For debugging
+            (window as any).GAME = this.game; // For debugging
             const player = this.game.getPlayer();
-            window.PLAYER = player; // For debugging
+            (window as any).PLAYER = player; // For debugging
         }
     }
 
@@ -697,16 +724,17 @@ export class BattlesTop extends React.Component {
 
     public importJSON() {
         const fInput = document.querySelector(this.levelInputId);
-        fInput.click();
+        (fInput  as HTMLInputElement).click();
     }
 
     public loadScript() {
         const fInput = document.querySelector(this.loadScriptId);
-        fInput.click();
+        (fInput as HTMLInputElement).click();
     }
 
     public onLoadScript() {
-        const fileList = document.querySelector(this.loadScriptId).files;
+        const fileElem = document.querySelector(this.loadScriptId);
+        const fileList = (fileElem as HTMLInputElement).files;
         const file = fileList[0];
         if (file) {
             const reader = new FileReader();
@@ -837,7 +865,7 @@ export class BattlesTop extends React.Component {
             else {
                 const player = this.game.getPlayer();
                 const brain = player.getBrain();
-                const updates = {render: true, showGameMenu: false};
+                const updates: any = {render: true, showGameMenu: false};
                 if (brain.hasTargetSelected()) {
                     updates.selectedCell = brain.getSelectedCells();
                     this.screen.setSelectedCell(updates.selectedCell);
@@ -889,7 +917,7 @@ export class BattlesTop extends React.Component {
             const entry = this.pluginManager.readJSON(jsonData);
             const parser = RG.ObjectShell.getParser();
             parser.parseShellData(entry.getData());
-            window.parser = parser;
+            (window as any).parser = parser;
         }
         else {
             const fromJSON = new FromJSON();
@@ -908,7 +936,7 @@ export class BattlesTop extends React.Component {
         let inv = null;
         let eq = null;
         let maxWeight = null;
-        let message = [];
+        let message: IMessage[] = [];
         let charRows = null;
         let classRows = null;
         let startX = null;
@@ -1026,7 +1054,7 @@ export class BattlesTop extends React.Component {
                 {gameValid && !this.state.showEditor &&
                  this.state.showInventory &&
                 <GameInventory
-                    doInvCmd={this.doInvCmd}
+                    doinvcmd={this.doInvCmd}
                     eq={eq}
                     equipSelected={this.state.equipSelected}
                     handleKeyDown={this.handleKeyDown}

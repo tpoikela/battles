@@ -2,14 +2,15 @@
 import * as React from 'react';
 
 import GameItemSlot from './game-item-slot';
-import {Inv} from '../src/inv';
+import {Inventory} from '../src/inv';
+import * as Item from '../src/item';
 
 interface IGameItemsProps {
   eqWeight: number;
   filter: string;
-  inv: Inv;
+  inv: Item.Container;
   maxWeight: number;
-  setSelectedItem(): void;
+  setSelectedItem(item: Item.ItemBase): void;
 }
 
 
@@ -23,8 +24,9 @@ export default class GameItems extends React.Component {
     const filter = this.props.filter;
     const items = [];
     const setSelectedItem = this.props.setSelectedItem;
-    let totalWeight = inv.getWeight() + this.props.eqWeight;
-    totalWeight = totalWeight.toFixed(2);
+
+    const totalWeight = inv.getWeight() + this.props.eqWeight;
+    const totalWeightStr = totalWeight.toFixed(2);
     const maxWeight = this.props.maxWeight;
 
     let item = inv.first();
@@ -44,7 +46,7 @@ export default class GameItems extends React.Component {
 
     return (
       <div>
-        <p>Items: {totalWeight} kg (max {maxWeight} kg)</p>
+        <p>Items: {totalWeightStr} kg (max {maxWeight} kg)</p>
         {items}
       </div>
     );

@@ -3,7 +3,7 @@ import * as React from 'react';
 import RG from '../src/rg';
 import * as Item from '../src/item';
 
-interface ISelection {
+export interface ISelection {
     slotName: string;
     slotNumber: number;
     item: Item.ItemBase;
@@ -17,7 +17,7 @@ interface IGameEquipSlotProps {
 }
 
 /* Component for one equipment slot.*/
-export default class GameEquipSlot extends React.Component {
+export class GameEquipSlot extends React.Component {
 
   public props: IGameEquipSlotProps;
 

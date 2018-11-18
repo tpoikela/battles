@@ -1,10 +1,10 @@
 
 import * as React from 'react';
-
-const Cell = require('../src/map.cell');
+import {Cell} from '../src/map.cell';
+import {IMessage} from "../src/rg";
 
 interface IGameMessagesProps {
-  message: string[];
+  message: IMessage[];
   visibleCells: Cell[];
   saveInProgress: boolean;
   showAll: boolean;
@@ -12,6 +12,8 @@ interface IGameMessagesProps {
 
 /* Component for displaying in-game messages.*/
 export default class GameMessages extends React.Component {
+
+  public static styleToClassName: {[key: string]: string};
 
   public props: IGameMessagesProps;
 
@@ -25,7 +27,7 @@ export default class GameMessages extends React.Component {
     const seenCells = this.props.visibleCells;
     const showAll = this.props.showAll;
 
-    let msgList = <span>Saving the game...</span>;
+    let msgList = [<span>Saving the game...</span>];
     if (!this.props.saveInProgress) {
         msgList = message.map((val, itemIndex) => {
         const className = styles[val.style];

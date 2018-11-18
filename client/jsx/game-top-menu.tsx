@@ -2,7 +2,7 @@
 import React from 'react';
 
 interface IGameTopMenuProps {
-  menuCallback(): void;
+  menuCallback(cmd: string, args: any): void;
 }
 
 import {
