@@ -9,6 +9,61 @@ const defaultBrain = 'GoalOriented';
 const demonBrain = 'GoalOriented';
 const undeadBrain = 'GoalOriented';
 
+export interface Color {
+    fg: string;
+    bg: string;
+}
+
+// Defines all possible attributes which can be given
+export interface ActorShell {
+    name: string; // Only name is mandatory
+
+    // Meta-attributes
+    actorType?: string;
+    base?: string;
+    char?: string;
+    'color-fg'?: string;
+    'color-bg'?: string;
+    color?: Color;
+    className?: string;
+    dontCreate?: boolean;
+    noRandom?: boolean;
+
+    // Direct attributes of actor
+    accuracy?: number;
+    agility?: number;
+    attack?: number;
+    brain?: string;
+    damage?: number | string;
+    danger?: number;
+    defense?: number;
+    enemies?: string[];
+    fovrange?: number;
+    hp?: number;
+    magic?: number;
+    maxPP?: number;
+    perception?: number;
+    pp?: number;
+    protection?: number;
+    power?: number;
+    range?: number;
+    speed?: number;
+    strength?: number;
+    spells?: string[];
+    type?: string;
+    unique?: boolean;
+    willpower?: number;
+
+    // TODO more complex typings
+    onHit?: any
+    onAttackHit?: any
+    addComp?: any;
+    poison?: any;
+    equip?: any[];
+    inv?: any[];
+
+}
+
 /* Instructions:
  *   base: 'baseName' inherits all properties from the base object (expect
  *   the special property dontCreate). You can chain as many base objects and
@@ -25,7 +80,7 @@ const undeadBrain = 'GoalOriented';
  * of actors without adding any styles to CSS file.
  */
 
-export const ActorsData = [
+export const ActorsData: ActorShell[] = [
 
     // ANIMALS
     {
@@ -889,8 +944,9 @@ export const ActorsData = [
     },
     {
         name: 'summoner', char: '@', base: 'human', hp: 50,
-        type: 'summoner', enemies: ['player'],
-        attack: 7, defense: 7, damage: '2d4', brain: 'Summoner',
+        attack: 7, defense: 7, damage: '2d4',
+        brain: 'SpellCaster',
+        spells: ['SummonKin'], maxPP: 30, pp: 30,
         danger: 10
     },
 
@@ -1147,13 +1203,13 @@ export const ActorsData = [
     },
     {
       name: 'Hyrkhian elite', base: 'HyrkhianBase',
-      attack: 6, defense: 6, protection: 3, hp: 35, brain: 'Human',
+      attack: 6, defense: 6, protection: 3, hp: 35, brain: defaultBrain,
       strength: 13,
       equip: ['Mithril short sword', 'Chain armour', 'Chain helmet'], danger: 8
     },
     {
       name: 'Hyrkhian commander', base: 'HyrkhianBase',
-      attack: 8, defense: 8, protection: 4, hp: 50, brain: 'Human',
+      attack: 8, defense: 8, protection: 4, hp: 50, brain: defaultBrain,
       strength: 15,
       equip: ['Great battle axe', 'Steel armour', 'Steel helmet'], danger: 10
     },
@@ -1202,7 +1258,7 @@ export const ActorsData = [
         name: 'flying eye', className: 'cell-actor-void',
         base: 'SpecialBase', char: 'e', type: 'eye',
         addComp: ['Ethereal'], brain: 'Explorer', hp: 1,
-        speed: 130, fovrange: 3, actorType: 'Rogue'
+        speed: 130, fovrange: 3, actorType: 'Sentient'
     },
 
     // UNIQUES
