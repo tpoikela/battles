@@ -8,6 +8,8 @@ import {Builder} from '../src/builder';
 import {ObjectShell} from '../src/objectshellparser';
 import * as Element from '../src/element';
 import {Level} from '../src/level';
+import {FactoryLevel} from '../src/factory.level';
+import {Geometry} from '../src/geometry';
 
 type Stairs = Element.ElementStairs;
 
@@ -35,7 +37,8 @@ export class Capital {
       wallOpts.west = false;
       wallOpts.meanWx = Math.floor(0.9 * cols / 2);
     }
-    const mainLevel = RG.FACT.createLevel('wall', cols, rows, wallOpts);
+    const factLevel = new FactoryLevel();
+    const mainLevel = factLevel.createLevel('wall', cols, rows, wallOpts);
     const mainMap = mainLevel.getMap();
 
     // Not exact position, but give proportions for sub-levels
@@ -67,7 +70,7 @@ export class Capital {
       levelConf[i].nHouses = Math.floor(
         levelCols * levelRows / 500);
 
-      const level = RG.FACT.createLevel(
+      const level = factLevel.createLevel(
         'townwithwall', levelCols, levelRows, levelConf[i]);
       subLevels.push(level);
 
@@ -83,7 +86,7 @@ export class Capital {
       tileConf.y = 0;
       tileConf.x = Math.floor(subLevelPos[0] * rows);
     }
-    RG.Geometry.tileLevels(mainLevel, subLevels, tileConf);
+    Geometry.tileLevels(mainLevel, subLevels, tileConf);
 
     // Add entrance stairs and create path through the level
     if (conf.transpose) {

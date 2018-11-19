@@ -6,6 +6,7 @@ import {Vault} from './tiles.vault';
 import {CastleGenerator} from '../src/castle-generator';
 import {FactoryZone} from '../src/factory.zone';
 import {Geometry} from '../src/geometry';
+import {FactoryLevel} from '../src/factory.level';
 
 const tileSize = 9;
 
@@ -125,14 +126,15 @@ export class BlackTower {
     }
 
     /* Generate the outside yard for the first level. */
-    generateYard(levels) {
+    generateYard(levels): void {
         const level0 = levels[0];
         const scaleYard = 1.4;
 
         const [cols, rows] = level0.getColsRows();
         const yardRows = Math.round(rows * scaleYard);
         const yardCols = Math.round(cols * scaleYard);
-        const yardLevel = RG.FACT.createLevel('arctic', yardCols, yardRows);
+        const factLevel = new FactoryLevel();
+        const yardLevel = factLevel.createLevel('arctic', yardCols, yardRows);
 
         const startX = Math.round((yardCols - cols) / 2);
         const startY = Math.round((yardRows - rows) / 2);
