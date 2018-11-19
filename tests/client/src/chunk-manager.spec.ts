@@ -9,6 +9,8 @@ import {GameMain} from '../../../client/src/game';
 import {Battle} from '../../../client/src/game.battle';
 import {chaiBattles} from '../../helpers/chai-battles';
 import {SentientActor} from '../../../client/src/actor';
+import * as Component from '../../../client/src/component';
+import {FromJSON} from '../../../client/src/game.fromjson';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -42,6 +44,9 @@ describe('ChunkManager', function() {
 
     afterEach(() => {
         RGTest.enablePrint = true;
+        game = null;
+        area = null;
+        world = null;
     });
 
     it('manager stuff correctly', () => {
@@ -52,7 +57,7 @@ describe('ChunkManager', function() {
             manager.setPlayerTile(0, 2, 0, 1);
             manager.setPlayerTile(1, 2, 0, 2);
         };
-        expect(func).not.to.throw();
+        expect(func).not.to.throw(Error);
     });
 
     it('stores the state of world area/chunks ', () => {
@@ -61,7 +66,7 @@ describe('ChunkManager', function() {
         expect(game.getLevels().length).to.equal(sizeX * sizeY);
 
         game.getLevels().forEach(level => {
-            const qTarget = new RG.Component.QuestTarget();
+            const qTarget = new Component.QuestTarget();
             qTarget.setTargetType('location');
             qTarget.setTarget(level);
             level.add(qTarget);
@@ -170,40 +175,48 @@ describe('ChunkManager', function() {
         });
     });
 
-    it('prevents loading of the full world after restore', () => {
+    it.only('prevents loading of the full world after restore', () => {
+        console.log('XXX WWW FALING TEST STARTS');
         game.addPlayer(player);
         const manager = game.getChunkManager();
         expect(manager).to.exist;
 
         let levels = game.getLevels();
-        expect(levels.length).to.equal(5);
+        expect(levels.length).to.equal(16);
 
-        game.movePlayer(2, 2);
+        game.movePlayer(1, 0); // ChunkManager changes levels to 6
+        levels = game.getLevels();
+        expect(levels.length).to.equal(6 + 1);
+        expect(area.isLoaded(0, 0)).to.equal(true);
+        expect(area.isLoaded(0, 2)).to.equal(false);
+        expect(area.isLoaded(2, 2)).to.equal(false);
+
         const numLoaded = manager.getNumInState(LOAD.LOADED);
-        expect(numLoaded).to.equal(9);
+        expect(numLoaded).to.equal(6);
 
         world.getConf().createAllZones = false;
 
         let json = game.toJSON();
-        let fromJSON = new RG.Game.FromJSON();
+        let fromJSON = new FromJSON();
         fromJSON.setChunkMode(true);
 
-        let newGame = new RG.Game.Main();
+        let newGame = new GameMain();
         newGame = fromJSON.createGame(newGame, json);
         expect(newGame).to.exist;
 
         const newManager = newGame.getChunkManager();
         const newNumLoaded = newManager.getNumInState(LOAD.LOADED);
         const newLevels = newGame.getLevels();
-        expect(newLevels).to.have.length(10);
-        expect(newNumLoaded).to.equal(9);
+        expect(newLevels).to.have.length(7);
+        expect(newNumLoaded).to.equal(6);
 
         const newGameMaster = newGame.getGameMaster();
         let battle = Object.values(newGameMaster.battles)[0];
         expect(battle).not.to.have.property('getLevel');
 
-        game.movePlayer(2, 1);
         game.movePlayer(1, 1);
+
+        game.movePlayer(2, 1);
         levels = newGame.getLevels();
         expect(levels.length).to.equal(11);
 

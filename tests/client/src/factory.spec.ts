@@ -12,7 +12,7 @@ import {SentientActor} from '../../../client/src/actor';
 describe('ItemRandomizer', () => {
     it('Randomizes item properties for proc generation', () => {
         const itemRand = new ItemRand();
-        const food = new RG.Item.Food('meat');
+        const food = new Item.Food('meat');
         const weightBefore = food.getWeight();
         itemRand.adjustItem(food);
 
@@ -79,7 +79,7 @@ describe('FactoryGame', () => {
             playerLevel: 'Medium',
             sqrPerActor: 40,
             sqrPerItem: 100,
-            playMode: 'Dungeon',
+            playMode: 'Arena',
             loadedPlayer: null,
             loadedLevel: null,
             playerName: 'Player Hero',
@@ -128,7 +128,7 @@ describe('FactoryGame', () => {
         expect(game).to.exist;
 
         const levels = game.getLevels();
-        expect(levels).to.have.length(7);
+        expect(levels).to.have.length(4 + 2);
 
         const presetLevel = game.getLevels().find(level => (
             level.getID() === temple.id

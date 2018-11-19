@@ -4,15 +4,19 @@ import RG from '../../../client/src/rg';
 import {RGTest} from '../../roguetest';
 import {ConfStack} from '../../../client/src/conf-stack';
 import {FactoryWorld} from '../../../client/src/factory.world';
+import {FactoryLevel} from '../../../client/src/factory.level';
+import {ElementStairs} from '../../../client/src/element';
 
 const expectConnected = RGTest.expectConnected;
 
 describe('FactoryWorld', function() {
     this.timeout(3000);
     let fact = null;
+    let factLevel = null;
 
     beforeEach(() => {
         fact = new FactoryWorld();
+        factLevel = new FactoryLevel();
     });
 
     afterEach(() => {
@@ -246,9 +250,9 @@ describe('FactoryWorld', function() {
     });
 
     it('can create a city with preset levels/created stairs', () => {
-        const level = RG.FACT.createLevel('arena', 20, 20, {});
-        const stairs1 = new RG.Element.Stairs('stairsDown', level);
-        const stairs2 = new RG.Element.Stairs('stairsUp', level);
+        const level = factLevel.createLevel('arena', 20, 20, {});
+        const stairs1 = new ElementStairs('stairsDown', level);
+        const stairs2 = new ElementStairs('stairsUp', level);
         level.addStairs(stairs1, 1, 1);
         level.addStairs(stairs2, 15, 15);
 
@@ -278,7 +282,7 @@ describe('FactoryWorld', function() {
                     stairs: {getStairs: 0}}
             ]
         };
-        const areaLevel = RG.FACT.createLevel('empty', 100, 100, {});
+        const areaLevel = factLevel.createLevel('empty', 100, 100, {});
         const areaLevels = [[areaLevel]];
         const areaConf = {
             name: 'Area1x1', maxX: 1, maxY: 1, nCities: 1,

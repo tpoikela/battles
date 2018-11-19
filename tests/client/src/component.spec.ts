@@ -5,13 +5,17 @@ import {Entity}  from '../../../client/src/entity';
 import * as Component from '../../../client/src/component';
 import {TagComponent, DataComponent, NO_SERIALISATION
 } from '../../../client/src/component.base';
+import {SentientActor} from '../../../client/src/actor';
+import { FactoryActor } from "../../../client/src/factory.actors";
+
+const ComponentBase = Component.ComponentBase;
 
 describe('Component.Base', () => {
 
     it('has exactly one related entity', () => {
         const entity = new Entity();
         const entity2 = new Entity();
-        const comp = new RG.Component.Base('Base');
+        const comp = new ComponentBase('Base');
 
         expect(comp.getType()).to.equal('Base');
 
@@ -29,12 +33,12 @@ describe('Component.Base', () => {
     });
 
     it('can be copied, cloned, compared', () => {
-        const comp = new RG.Component.Base('Base');
+        const comp = new ComponentBase('Base');
         const compClone = comp.clone();
         expect(comp.equals(compClone)).to.be.true;
         expect(compClone.equals(comp)).to.be.true;
 
-        const compCopy = new RG.Component.Base('XXX');
+        const compCopy = new ComponentBase('XXX');
         compCopy.copy(comp);
         expect(comp.equals(compCopy)).to.be.true;
         expect(comp.toString()).to.match(/Base/);
@@ -53,7 +57,7 @@ describe('Component.Base', () => {
     });
 
     it('has onAdd/Remove callback mechanism', () => {
-        const comp = new RG.Component.Base('Base');
+        const comp = new ComponentBase('Base');
         const entity = new Entity();
 
         let calledAdd = false;
@@ -160,7 +164,7 @@ describe('RG.DataComponent', () => {
 describe('Component.Action', () => {
 
     it('active status and energy', () => {
-        const action = new RG.Component.Action();
+        const action = new Component.Action();
         expect(action.getEnergy()).to.equal(0);
         expect(action.getActive()).to.equal(false);
 
@@ -170,7 +174,7 @@ describe('Component.Action', () => {
 
 describe('Component.Poison', () => {
     it('can be copied or cloned', () => {
-        const p1 = new RG.Component.Poison();
+        const p1 = new Component.Poison();
         p1.setProb(0.01);
         p1.setDamageDie('1d6 + 4');
         p1.setDurationDie('3d5 + 15');
@@ -186,8 +190,9 @@ describe('Component.Poison', () => {
 
 describe('Component.Combat', () => {
     it('contains damage dies for damage dealing', () => {
-        const player = RG.FACT.createPlayer('Player', {});
-        const combatComp = new RG.Component.Combat();
+        const actorFact = new FactoryActor();
+        const player = actorFact.createPlayer('Player', {});
+        const combatComp = new Component.Combat();
         player.add(combatComp);
         expect(player.get('Combat').rollDamage() >= 1).to.equal(true);
         expect(player.get('Combat').rollDamage() <= 4).to.equal(true);
@@ -197,9 +202,9 @@ describe('Component.Combat', () => {
 describe('Component.Physical', () => {
 
     it('stores size and weight of an entity', () => {
-        const phyComp = new RG.Component.Physical();
+        const phyComp = new Component.Physical();
         phyComp.setWeight(20);
-        const phyComp2 = new RG.Component.Physical();
+        const phyComp2 = new Component.Physical();
         phyComp2.setWeight(10);
 
         expect(phyComp.getWeight()).to.equal(20);
@@ -210,11 +215,11 @@ describe('Component.Physical', () => {
 
 describe('Component.Expiration', () => {
     it('it manages other components inside entity', () => {
-        const expComp = new RG.Component.Expiration();
-        expComp.addEffect(new RG.Component.StatsMods(), 10);
+        const expComp = new Component.Expiration();
+        expComp.addEffect(new Component.StatsMods(), 10);
 
-        const expComp2 = new RG.Component.Expiration();
-        expComp2.addEffect(new RG.Component.StatsMods(), 10);
+        const expComp2 = new Component.Expiration();
+        expComp2.addEffect(new Component.StatsMods(), 10);
 
         const duration = expComp.getDuration();
         const duration2 = expComp2.getDuration();
@@ -226,8 +231,8 @@ describe('Component.Expiration', () => {
 
 describe('Component.AddOnHit', () => {
     it('can be used to add other comps to actors', () => {
-        const compHit = new RG.Component.AddOnHit();
-        const poisonComp = new RG.Component.Poison();
+        const compHit = new Component.AddOnHit();
+        const poisonComp = new Component.Poison();
         poisonComp.setDurationDie('1d8');
         poisonComp.setDamageDie('1d6 + 5');
         compHit.setComp(poisonComp);
@@ -242,8 +247,8 @@ describe('Component.AddOnHit', () => {
 
 describe('Component.Quest', () => {
     it('stores info about quests', () => {
-        const questGiver = new RG.Actor.Rogue('giver');
-        const questComp = new RG.Component.Quest();
+        const questGiver = new SentientActor('giver');
+        const questComp = new Component.Quest();
         questComp.setGiver(questGiver);
 
         const json = questComp.toJSON();

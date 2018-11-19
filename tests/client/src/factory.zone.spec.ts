@@ -1,10 +1,19 @@
 
-const RG = require('../../../client/src/battles');
-const expect = require('chai').expect;
+import RG from '../../../client/src/rg';
+import {expect} from 'chai';
+import { FactoryZone } from '../../../client/src/factory.zone';
+import { FactoryLevel } from '../../../client/src/factory.level';
 
-describe('Factory.Zone', () => {
+describe('FactoryZone', () => {
+
+    let factLevel = null;
+
+    beforeEach(() => {
+        factLevel = new FactoryLevel();
+    });
+
     it('can create village levels', () => {
-        const fact = new RG.Factory.Zone();
+        const fact = new FactoryZone();
         const villageConf = {
             x: 80, y: 28,
             cityType: 'Village',
@@ -21,7 +30,7 @@ describe('Factory.Zone', () => {
     });
 
     it('can create the capital level', () => {
-        const fact = new RG.Factory.Zone();
+        const fact = new FactoryZone();
         const capitalConf = {
             x: 100, y: 100,
             cityType: 'Capital',
@@ -34,8 +43,8 @@ describe('Factory.Zone', () => {
     });
 
     it('can add actors/items to the level', () => {
-        const fact = new RG.Factory.Zone();
-        const level = RG.FACT.createLevel('arena', 20, 20, {});
+        const fact = new FactoryZone();
+        const level = factLevel.createLevel('arena', 20, 20, {});
 
         const conf = {
             item: item => (
@@ -65,7 +74,7 @@ describe('Factory.Zone', () => {
     });
 
     it('can create villages/town with items inside houses', () => {
-        const fact = new RG.Factory.Zone();
+        const fact = new FactoryZone();
         const townConf = {
             x: 80, y: 28,
             cityType: 'Village',
@@ -84,7 +93,7 @@ describe('Factory.Zone', () => {
     });
 
     it('can create dungeon levels with special features', () => {
-        const fact = new RG.Factory.Zone();
+        const fact = new FactoryZone();
         const conf = {
             dungeonType: 'digger',
             x: 100, y: 100, nLevel: 5, sqrPerActor: 10000,

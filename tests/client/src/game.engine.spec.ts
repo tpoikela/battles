@@ -4,20 +4,25 @@
  * ECS system ordering and actor scheduling.
  */
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
+import {expect} from 'chai';
+import RG from '../../../client/src/rg';
 
-const Engine = require('../../../client/src/engine');
-const Actor = require('../../../client/src/actor');
-const Keys = require('../../../client/src/keymap');
+import {Engine} from '../../../client/src/engine';
+import {Actor, SentientActor} from '../../../client/src/actor';
+import {Keys} from '../../../client/src/keymap';
+import * as Component from '../../../client/src/component';
+import { EventPool } from "../../../client/src/eventpool";
+import { FactoryLevel } from "../../../client/src/factory.level";
+import { Dice } from "../../../client/src/dice";
 
 /* Creates a game engine with 2 actors scheduled for actions.*/
 const EngineWithActors = function(pool) {
     this.engine = new Engine(pool);
-    this.actor = new Actor.Rogue('TestActor');
-    this.actor2 = new Actor.Rogue('TestActor2');
+    this.actor = new SentientActor('TestActor');
+    this.actor2 = new SentientActor('TestActor2');
 
-    const level = RG.FACT.createLevel('arena', 30, 30);
+    const factLevel = new FactoryLevel();
+    const level = factLevel.createLevel('arena', 30, 30);
     level.addActor(this.actor, 1, 1);
     level.addActor(this.actor2, 2, 2);
     this.actor.get('Action').enable();
@@ -31,7 +36,7 @@ describe('Game.Engine', () => {
     let pool = null;
 
     beforeEach( () => {
-        pool = RG.POOL;
+        pool = EventPool.getPool();
         eng = new EngineWithActors(pool);
         engine = eng.engine;
     });
@@ -67,7 +72,7 @@ describe('Game.Engine', () => {
         engine.simulateGame();
         expect(engine.nextActor).to.not.be.null;
 
-        const hunger = new RG.Component.Hunger(1000);
+        const hunger = new Component.Hunger(1000);
         actor.add(hunger);
         actor.getBrain().energy = 10; // Add energy artificially
         const energyBefore = hunger.getEnergy();
@@ -84,14 +89,14 @@ describe('Game.Engine', () => {
     it('Uses Systems to manage entity behaviour', () => {
         const timeSystem = engine.sysMan.timeSystems.TimeEffects;
 
-        const poison = new RG.Component.Poison();
-        const expiration = new RG.Component.Expiration();
+        const poison = new Component.Poison();
+        const expiration = new Component.Expiration();
         expiration.addEffect(poison, 20);
         expect(expiration.hasEffects()).to.equal(true);
         expect(expiration.hasEffect(poison)).to.equal(true);
         // poison.setDuration(20);
         poison.setProb(1.0);
-        poison.setDamageDie(new RG.Die(1, 1, 10));
+        poison.setDamageDie(new Dice(1, 1, 10));
         poison.setSource(eng.actor2);
 
         const currHP = eng.actor.get('Health').getHP();
@@ -124,7 +129,7 @@ describe('Game.Engine', () => {
     });
 
     it('has high-level update() function for GUI', () => {
-        const player = new RG.Actor.Rogue('player');
+        const player = new SentientActor('player');
         player.setIsPlayer(true);
         engine.playerCommandCallback = () => true;
 

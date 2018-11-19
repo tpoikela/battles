@@ -2,11 +2,13 @@
 import {expect} from 'chai';
 import RG from '../../../client/src/rg';
 import * as Item from '../../../client/src/item';
+import {SentientActor} from '../../../client/src/actor';
 
 import {
     EquipSlot,
     Equipment
 } from '../../../client/src/equipment';
+import * as Component from '../../../client/src/component';
 
 describe('EquipSlot', () => {
 
@@ -32,7 +34,7 @@ describe('Equipment', () => {
     let eq = null;
 
     beforeEach(() => {
-        player = new RG.Actor.Rogue('rogue');
+        player = new SentientActor('rogue');
         eq = new Equipment(player);
     });
 
@@ -40,8 +42,11 @@ describe('Equipment', () => {
         const slotTypes = eq.getSlotTypes();
         const nLast = slotTypes.length - 1;
         expect(slotTypes).to.have.length.above(5);
-        expect(slotTypes[0]).to.equal('hand');
-        expect(slotTypes[nLast]).to.equal('spiritgem');
+
+        const handSlot = slotTypes.findIndex(type => type === 'hand');
+        expect(handSlot).to.be.at.least(0);
+        const gemSlot = slotTypes.findIndex(type => type === 'spiritgem');
+        expect(gemSlot).to.be.at.least(0);
     });
 
     it('can have items equipped', () => {
@@ -52,7 +57,7 @@ describe('Equipment', () => {
         expect(eq.getNumSlots('spiritgem')).to.equal(2);
 
         for (let i = 0; i < 2; i++) {
-            const gem = new RG.Item.SpiritGem('my big gem ' + i);
+            const gem = new Item.SpiritGem('my big gem ' + i);
             eq.equipItem(gem, i);
         }
         expect(eq.getItems()).to.have.length(2);
@@ -70,16 +75,16 @@ describe('Equipment', () => {
     });
 
     it('can have a shield equipped', () => {
-        const shield = new RG.Item.Armour('shield');
+        const shield = new Item.Armour('shield');
         shield.setArmourType('shield');
         shield.setDefense(10);
-        const actor = new RG.Actor.Rogue('shielder');
+        const actor = new SentientActor('shielder');
         const invEq = actor.getInvEq();
         invEq.addItem(shield);
         invEq.equipItem(shield);
         expect(actor.getShieldDefense()).to.equal(10);
 
-        const skills = new RG.Component.Skills();
+        const skills = new Component.Skills();
         skills.addSkill('Shields');
         skills.setLevel('Shields', 5);
         actor.add(skills);
@@ -87,10 +92,10 @@ describe('Equipment', () => {
     });
 
     it('can have equipped items removed and re-equipped', () => {
-        const shield = new RG.Item.Armour('shield');
+        const shield = new Item.Armour('shield');
         shield.setArmourType('shield');
 
-        const actor = new RG.Actor.Rogue('equipper');
+        const actor = new SentientActor('equipper');
         const invEq = actor.getInvEq();
         const eq = invEq.getEquipment();
         let eqItems = eq.getItems();
@@ -110,7 +115,7 @@ describe('Equipment', () => {
         invEq.unequipItem('shield', 1, 0);
         expect(eq.getItems()).to.have.length(0);
 
-        const arrows = new RG.Item.Ammo('arrow');
+        const arrows = new Item.Ammo('arrow');
         arrows.setCount(10);
         invEq.addItem(arrows);
         invEq.equipNItems(arrows, 10);

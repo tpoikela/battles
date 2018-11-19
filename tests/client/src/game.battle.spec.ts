@@ -85,7 +85,7 @@ describe('Game.Battle', function() {
 
         // Check that event listeners are properly cleaned up
         const func = () => {
-            RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: survivors[0]});
+            POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: survivors[0]});
         };
         expect(func).not.to.throw();
 
