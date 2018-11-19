@@ -25,6 +25,9 @@ const ElementStairs = Element.ElementStairs;
 
 export const World: any = {};
 
+type SubZoneArg = SubZoneBase | string;
+export type SubZoneConn = [SubZoneArg, SubZoneArg, number, number];
+
 interface Entrance {
     levelNumber: number;
     x: number;
@@ -59,7 +62,7 @@ function removeExistingConnection(level, x, y) {
 
 /* Adds exits (ie passages/stairs) to the given edge (or any edge) of the level.
  * Returns an array of created connections. */
-const addExitsToEdge = (
+export const addExitsToEdge = (
     level, exitType = 'passage', edge = 'any', overwrite = false): Stairs[] => {
     // level, exitType = 'passage', edge = 'any', overwrite = false) => {
     const map = level.getMap();
@@ -111,7 +114,7 @@ const addExitsToEdge = (
 
 /* Returns true if given level edge has any connections. If edge=any, then
  * checks all edges. */
-const edgeHasConnections = (level, edge) => {
+export const edgeHasConnections = (level, edge) => {
     const map = level.getMap();
     const cols = map.cols;
     const rows = map.rows;
@@ -313,7 +316,7 @@ function connectLevelToStairs(levels, nLevel, stairs) {
     return false;
 }
 
-function getSubZoneArgs(subZones, sz1Arg, sz2Arg) {
+function getSubZoneArgs(subZones, sz1Arg, sz2Arg): [SubZoneBase, SubZoneBase] {
     let sz1 = sz1Arg;
     let sz2 = sz2Arg;
 
@@ -326,7 +329,7 @@ function getSubZoneArgs(subZones, sz1Arg, sz2Arg) {
 }
 
 /* Connects 2 sub-zones like dungeon branch or city quarter together.*/
-function connectSubZones(subZones, sz1Arg, sz2Arg, l1, l2) {
+function connectSubZones(subZones: SubZoneBase[], sz1Arg, sz2Arg, l1, l2) {
     if (RG.isNullOrUndef([l1, l2])) {
         RG.err('World', 'connectSubZones',
             `l1 (${l1}) and l2 (${l2}) must be non-null and integers.`);
@@ -643,6 +646,13 @@ export class SubZoneBase extends WorldBase {
         return index >= 0;
     }
 
+    public connectLevelToStairs(nLevel: number, stairs: Stairs) {
+        if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
+            RG.err('SubZoneBase', 'connectLevelToStairs',
+                'Stairs must be first connected to other level.');
+        }
+    }
+
     /* Returns stairs leading to other sub-zones. Used only for testing
     * purposes. */
     public getStairsOther(): Stairs[] {
@@ -763,14 +773,6 @@ export class Branch extends SubZoneBase {
         return getEntrance(this._levels, this._entrance);
     }
 
-    /* Connects specified level to the given stairs (Usually external to this
-     * branch) .*/
-    public connectLevelToStairs(nLevel: number, stairs: Stairs) {
-        if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
-            RG.err('World.Branch', 'connectLevelToStairs',
-                'Stairs must be first connected to other level.');
-        }
-    }
 
     /* Connects the added levels together.*/
     public connectLevels(): void {
@@ -1238,9 +1240,10 @@ export class Area extends WorldBase {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
                 if (this.tilesLoaded[x][y]) {
-                    console.log(`Area ${this.getID()} Tile ${x},${y} is loaded`);
+                    const currId = this._tiles[x][y].getLevel().getID();
+                    console.log(`Area ${this.getID()} Tile ${x},${y} is loaded (ID: ${currId})`);
                     try {
-                        if (this._tiles[x][y].getLevel().getID() === id) {
+                        if (currId === id) {
                             return [x, y];
                         }
                     }
@@ -1399,15 +1402,20 @@ export class Area extends WorldBase {
 
     public printDebugInfo(): void {
         const tilesJSON: Coord[] = [];
-        const tiles: Coord[] = [];
+        const loadedTiles: Coord[] = [];
+        const tilesOther: Coord[] = [];
         this.forEachTile((x, y, tile) => {
             if ((tile as AreaTileJSON).isJSON) {tilesJSON.push([x, y]);}
-            else {tiles.push([x, y]);}
+            else if (this.tilesLoaded[x][y]) {loadedTiles.push([x, y]);}
+            else {tilesOther.push([x, y]);}
         });
 
         let msg = `Area ID ${this.getID()} debug info:\n`;
-        msg += `\t\nTiles as JSON: ${tilesJSON.map(xy => `${xy[0]},${xy[1]}`)}`;
-        msg += `\t\nTiles LOADED: ${tiles.map(xy => `${xy[0]},${xy[1]}`)}`;
+        msg += `\t\nTiles as JSON: ${tilesJSON.join(' | ')}`;
+        msg += `\t\nTiles LOADED: ${loadedTiles.join(' | ')}`;
+        msg += `\t\nTiles OTHER: ${tilesOther.join(' | ')}`;
+        this.printLevelIDs();
+        console.log('Tile[0][2]: ', this._tiles[0][2]);
         console.log(msg);
     }
 
@@ -1555,13 +1563,6 @@ export class MountainFace extends SubZoneBase {
         return getEntrance(this._levels, this._entrance);
     }
 
-    public connectLevelToStairs(nLevel, stairs) {
-        if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
-            RG.err('MountainFace', 'connectLevelToStairs',
-                'Stairs must be first connected to other level.');
-        }
-    }
-
     public toJSON() {
         const json = super.toJSON();
         const obj: any = {};
@@ -1620,12 +1621,6 @@ export class MountainSummit extends SubZoneBase {
         return null;
     }
 
-    public connectLevelToStairs(nLevel, stairs) {
-        if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
-            RG.err('World.MountainSummit', 'connectLevelToStairs',
-                'Stairs must be first connected to other level.');
-        }
-    }
 }
 
 World.MountainSummit = MountainSummit;
@@ -1733,14 +1728,6 @@ export class CityQuarter extends SubZoneBase {
         }
     }
 
-    /* Connects specified level to the given stairs (Usually external to this
-     * quarter) .*/
-    public connectLevelToStairs(nLevel, stairs) {
-        if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
-            RG.err('CityQuarter', 'connectLevelToStairs',
-                'Stairs must be first connected to other level.');
-        }
-    }
 
     /* Connects levels in linear fashion 0->1->2->...->N. */
     public connectLevels() {
@@ -1839,7 +1826,9 @@ export class WorldTop extends WorldBase {
         return levels;
     }
 
-    public getAreas(): Area[] {return this._areas;}
+    public getAreas(): Area[] {
+        return this._areas;
+    }
 
     /* Returns all zones of given type. */
     public getZones(type?: string): ZoneBase[] {
@@ -1921,7 +1910,7 @@ export class WorldShop {
     private _shopkeeper: SentientActor;
     private _level: Level;
     private _coord: Coord[];
-    private _isAbandoned: boolean;
+    public _isAbandoned: boolean;
 
     constructor() {
         this._shopkeeper = null;
