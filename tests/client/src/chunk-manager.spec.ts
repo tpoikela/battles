@@ -11,6 +11,7 @@ import {chaiBattles} from '../../helpers/chai-battles';
 import {SentientActor} from '../../../client/src/actor';
 import * as Component from '../../../client/src/component';
 import {FromJSON} from '../../../client/src/game.fromjson';
+import {EventPool} from '../../../client/src/eventpool';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -176,8 +177,10 @@ describe('ChunkManager', function() {
     });
 
     it.only('prevents loading of the full world after restore', () => {
-        console.log('XXX WWW FALING TEST STARTS');
+        const tile00 = area.getTiles()[0][0];
+        tile00.getLevel().addActor(player, 1, 1);
         game.addPlayer(player);
+
         const manager = game.getChunkManager();
         expect(manager).to.exist;
 
@@ -197,6 +200,8 @@ describe('ChunkManager', function() {
         world.getConf().createAllZones = false;
 
         let json = game.toJSON();
+        game = null;
+
         let fromJSON = new FromJSON();
         fromJSON.setChunkMode(true);
 
@@ -214,11 +219,12 @@ describe('ChunkManager', function() {
         let battle = Object.values(newGameMaster.battles)[0];
         expect(battle).not.to.have.property('getLevel');
 
-        game.movePlayer(1, 1);
-
-        game.movePlayer(2, 1);
+        newGame.movePlayer(1, 1);
+        console.log('1,1 Player level ID', newGame.getPlayer().getLevel().getID());
+        newGame.movePlayer(2, 1);
+        console.log('2,1 Player level ID', newGame.getPlayer().getLevel().getID());
         levels = newGame.getLevels();
-        expect(levels.length).to.equal(11);
+        expect(levels.length).to.equal(12);
 
         const masterBattles = newGameMaster.battles;
         const battleArrays = Object.values(masterBattles);
@@ -226,16 +232,17 @@ describe('ChunkManager', function() {
         const battleLevel = battleObj.getLevel();
         expect(battleLevel).to.exist;
 
-        fromJSON = new RG.Game.FromJSON();
+        json = newGame.toJSON();
+        fromJSON = new FromJSON();
         fromJSON.setChunkMode(true);
-        newGame = new RG.Game.Main();
+        newGame = new GameMain();
         newGame = fromJSON.createGame(newGame, json);
 
         // Simulate player moving around overworld levels
-        game.movePlayer(2, 1);
-        game.movePlayer(3, 1);
-        game.movePlayer(3, 2);
-        game.movePlayer(3, 1);
+        newGame.movePlayer(2, 1);
+        newGame.movePlayer(3, 1);
+        newGame.movePlayer(3, 2);
+        newGame.movePlayer(3, 1);
 
         // Store number of connections in all levels
         levels = newGame.getLevels();
@@ -244,9 +251,9 @@ describe('ChunkManager', function() {
 
         // Serialize game, restore using chunkMode
         json = newGame.toJSON();
-        fromJSON = new RG.Game.FromJSON();
+        fromJSON = new FromJSON();
         fromJSON.setChunkMode(true);
-        newGame = new RG.Game.Main();
+        newGame = new GameMain();
         newGame = fromJSON.createGame(newGame, json);
 
         // Get num of connections now, compare to prev number
@@ -256,9 +263,8 @@ describe('ChunkManager', function() {
             (acc, val) => {acc += val.length;}, 0);
         expect(nConns).to.equal(nConnsAfter);
 
-        game.movePlayer(3, 2);
-        game.movePlayer(3, 1);
-
+        newGame.movePlayer(3, 2);
+        newGame.movePlayer(3, 1);
     });
 
 });
