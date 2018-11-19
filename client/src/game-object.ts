@@ -11,7 +11,7 @@ interface ObjRef {
     value?: GameObject;
 }
 
-class GameObject {
+export class GameObject {
 
     public static ID: number;
 
@@ -131,6 +131,3 @@ class GameObject {
 }
 
 GameObject.ID = 1;
-
-
-export default GameObject;

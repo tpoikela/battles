@@ -5,7 +5,7 @@
  * saving/restoring the game). */
 
 import RG from './rg';
-import GameObject from './game-object';
+import {GameObject} from './game-object';
 import {EventPool} from '../src/eventpool';
 
 

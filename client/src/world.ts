@@ -3,15 +3,16 @@
  * dungeons, dungeon branches etc.
  */
 
-import debug = require('debug');
-const dbg = debug('bitn:world');
+import dbg = require('debug');
+const debug = dbg('bitn:world');
 
 import RG from './rg';
-import GameObject from './game-object';
 import * as Element from './element';
+import {GameObject} from './game-object';
 import {EventPool} from './eventpool';
 import {Random} from './random';
 import {Level} from './level';
+import {Cell} from './map.cell';
 import {SentientActor} from './actor';
 import {FactoryLevel} from './factory.level';
 
@@ -33,9 +34,10 @@ interface Entrance {
 export interface AreaTileJSON {
     level: number;
     [key: string]: any;
+    isJSON: boolean;
 }
 
-type AreaTileObj = AreaTile | AreaTileJSON;
+export type AreaTileObj = AreaTile | AreaTileJSON;
 
 const RNG = Random.getRNG();
 
@@ -50,7 +52,7 @@ function removeExistingConnection(level, x, y) {
     const cell = level.getMap().getCell(x, y);
     if (cell.hasConnection()) {
         const conn = cell.getConnection();
-        dbg(`world.js Removing conn@${x},${y}`);
+        debug(`world.js Removing conn@${x},${y}`);
         level.removeElement(conn, x, y);
     }
 }
@@ -405,18 +407,18 @@ function connectTiles(tiles, sizeX, sizeY): void {
     }
     for (let x = 0; x < sizeX; x++) {
         for (let y = 0; y < sizeY; y++) {
-            dbg(`Trying to connect tile ${x},${y} now`);
+            debug(`Trying to connect tile ${x},${y} now`);
             if (x < sizeX - 1 && y < sizeY - 1) {
-                dbg(`>> Connecting tile ${x},${y} now`);
+                debug(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(
                     tiles[x + 1][y], tiles[x][y + 1]);
             }
             else if (x < sizeX - 1) {
-                dbg(`>> Connecting tile ${x},${y} now`);
+                debug(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(tiles[x + 1][y], null);
             }
             else if (y < sizeY - 1) {
-                dbg(`>> Connecting tile ${x},${y} now`);
+                debug(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(null, tiles[x][y + 1]);
             }
         }
@@ -1080,10 +1082,11 @@ World.AreaTile = AreaTile;
  * */
 export class Area extends WorldBase {
 
-
-
     // Keeps track which tiles contains real AreaTile objects
     public tilesLoaded: boolean[][];
+
+    // Control which tile has its zones created
+    public zonesCreated: {[key: string]: boolean};
 
     private _sizeX: number;
     private _sizeY: number;
@@ -1093,9 +1096,6 @@ export class Area extends WorldBase {
     private _tiles: AreaTileObj[][];
 
     private _conf: {[key: string]: any};
-
-    // Control which tile has its zones created
-    private zonesCreated: {[key: string]: boolean};
 
     constructor(name, sizeX, sizeY, cols, rows, levels?: Level[]) {
         super(name);
@@ -1122,10 +1122,10 @@ export class Area extends WorldBase {
 
     }
 
-    public getSizeX() {
+    public getSizeX(): number {
         return this._sizeX;
     }
-    public getSizeY() {
+    public getSizeY(): number {
         return this._sizeY;
     }
 
@@ -1133,7 +1133,16 @@ export class Area extends WorldBase {
         return this.tilesLoaded[x][y];
     }
 
-    public setLoaded(x, y) {this.tilesLoaded[x][y] = true;}    public setUnloaded(x, y) {this.tilesLoaded[x][y] = false;}
+    public setLoaded(x, y): void {
+        console.log(`Area ${this.getID()} setLoaded ${x},${y}`);
+        this.tilesLoaded[x][y] = true;
+    }   
+
+    public setUnloaded(x, y): void {
+        console.log(`Area ${this.getID()} setUnloaded UNLOAD ${x},${y}`);
+        this.tilesLoaded[x][y] = false;
+    }
+
     public markAllZonesCreated(): void {
         Object.keys(this.zonesCreated).forEach(key => {
             this.zonesCreated[key] = true;
@@ -1150,6 +1159,10 @@ export class Area extends WorldBase {
 
     public getTiles(): AreaTileObj[][] {
         return this._tiles;
+    }
+
+    public setTile(x, y, tile: AreaTile) {
+        this._tiles[x][y] = tile;
     }
 
     public setConf(conf) {
@@ -1225,12 +1238,23 @@ export class Area extends WorldBase {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
                 if (this.tilesLoaded[x][y]) {
-                    if (this._tiles[x][y].getLevel().getID() === id) {
-                        return [x, y];
+                    console.log(`Area ${this.getID()} Tile ${x},${y} is loaded`);
+                    try {
+                        if (this._tiles[x][y].getLevel().getID() === id) {
+                            return [x, y];
+                        }
+                    }
+                    catch (e) {
+                        console.log(`Area ${this.getID()} ERROR`);
+                        console.log(`Failed to call getLevel for tile ${x},${y}`);
+                        console.log('Tile as JSON: ', this._tiles[x][y]);
+                        throw new Error(e);
                     }
                 }
             }
         }
+        console.log('Returning null for ID ' + id);
+        this.printLevelIDs();
         return null;
     }
 
@@ -1329,6 +1353,7 @@ export class Area extends WorldBase {
         });
 
         const obj = {
+            isJSON: true,
             conf: this.getConf(),
             maxX: this._sizeX, maxY: this._sizeY,
             cols: this._cols, rows: this._rows,
@@ -1340,7 +1365,7 @@ export class Area extends WorldBase {
     }
 
     /* Execute function cb for each tile. */
-    public forEachTile(cb) {
+    public forEachTileLoaded(cb) {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
                 if (this.tilesLoaded[x][y]) {
@@ -1349,6 +1374,43 @@ export class Area extends WorldBase {
             }
         }
     }
+
+    public forEachTile(cb: (x: number, y: number, tile: AreaTileObj) => void) {
+        for (let x = 0; x < this._tiles.length; x++) {
+            for (let y = 0; y < this._tiles[x].length; y++) {
+                cb(x, y, this._tiles[x][y]);
+            }
+        }
+    }
+
+    public printLevelIDs(): void {
+        const allIDs: number[] = [];
+        this.forEachTile((x, y, tile) => {
+            if (this.tilesLoaded[x][y]) {
+                allIDs.push(this._tiles[x][y].getLevel().getID());
+            }
+            else {
+                allIDs.push((this._tiles[x][y] as AreaTileJSON).level);
+            }
+
+        });
+        console.log('Found level IDs', allIDs);
+    }
+
+    public printDebugInfo(): void {
+        const tilesJSON: Coord[] = [];
+        const tiles: Coord[] = [];
+        this.forEachTile((x, y, tile) => {
+            if ((tile as AreaTileJSON).isJSON) {tilesJSON.push([x, y]);}
+            else {tiles.push([x, y]);}
+        });
+
+        let msg = `Area ID ${this.getID()} debug info:\n`;
+        msg += `\t\nTiles as JSON: ${tilesJSON.map(xy => `${xy[0]},${xy[1]}`)}`;
+        msg += `\t\nTiles LOADED: ${tiles.map(xy => `${xy[0]},${xy[1]}`)}`;
+        console.log(msg);
+    }
+
 }
 World.Area = Area;
 
@@ -1762,13 +1824,14 @@ export class WorldTop extends WorldBase {
     }
 
     public setConf(conf) {this._conf = conf;}
+
     /* Adds an area into the world. */
-    public addArea(area) {
+    public addArea(area: Area): void {
         area.setParent(this);
         this._areas.push(area);
     }
 
-    public getLevels() {
+    public getLevels(): Level[] {
         let levels = [];
         this._areas.map(area => {
             levels = levels.concat(area.getLevels());
@@ -1776,7 +1839,7 @@ export class WorldTop extends WorldBase {
         return levels;
     }
 
-    public getAreas() {return this._areas;}
+    public getAreas(): Area[] {return this._areas;}
 
     /* Returns all zones of given type. */
     public getZones(type?: string): ZoneBase[] {
@@ -1788,7 +1851,7 @@ export class WorldTop extends WorldBase {
     }
 
     /* Returns all stairs in the world. */
-    public getStairs() {
+    public getStairs(): Stairs[] {
         const res = [];
         this.getZones().forEach(zone =>
             zone.getLevels().forEach(l =>
@@ -1800,7 +1863,7 @@ export class WorldTop extends WorldBase {
         return res;
     }
 
-    public getCurrentArea() {
+    public getCurrentArea(): Area {
         return this._areas[this.currAreaIndex];
     }
 
@@ -1870,15 +1933,15 @@ export class WorldShop {
         this.hasNotify = true;
     }
 
-    public setLevel(level) {
+    public setLevel(level: Level): void {
         this._level = level;
     }
 
-    public setCoord(coord) {
+    public setCoord(coord: Coord[]): void {
         this._coord = coord;
     }
 
-    public isAbandoned() {
+    public isAbandoned(): boolean {
         return this._isAbandoned;
     }
 
@@ -1892,15 +1955,15 @@ export class WorldShop {
         }
     }
 
-    public getLevel() {
+    public getLevel(): Level {
         return this._level;
     }
 
-    public getShopkeeper() {
+    public getShopkeeper(): SentientActor {
         return this._shopkeeper;
     }
 
-    public setShopkeeper(keeper) {
+    public setShopkeeper(keeper: SentientActor) {
         if (keeper) {
             this._shopkeeper = keeper;
             POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
@@ -1911,7 +1974,7 @@ export class WorldShop {
         }
     }
 
-    public setShopAbandoned() {
+    public setShopAbandoned(): void {
         this._isAbandoned = true;
         this._shopkeeper = null;
         this._coord.forEach(xy => {
@@ -1929,7 +1992,7 @@ export class WorldShop {
         });
     }
 
-    public getCell(xy) {
+    public getCell(xy): Cell {
         return this._level.getMap().getCell(xy[0], xy[1]);
     }
 
@@ -1995,7 +2058,7 @@ export class WorldShop {
 
 World.WorldShop = WorldShop;
 
-World.isZone = function(feature) {
+World.isZone = function(feature: WorldBase): boolean {
     if (feature.getType) {
         const type = feature.getType();
         return (/(city|battlezone|mountain|dungeon)/).test(type);
