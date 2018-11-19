@@ -13,8 +13,6 @@ type AreaTileJSON = World.AreaTileJSON;
 import dbg = require('debug');
 const debug = dbg('bitn:ChunkManager');
 
-debug.enabled = true;
-
 const LOAD = Object.freeze(
     {EMPTY: 'EMPTY', LOADED: 'LOADED', JSON: 'JSON', ON_DISK: 'ON_DISK',
         LOADED2JSON: 'LOADED2JSON'});
