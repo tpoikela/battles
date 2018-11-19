@@ -8,7 +8,7 @@ const debug = dbg('bitn:Factory.World');
 
 import * as Verify from './verify';
 import {ConfStack} from './conf-stack';
-import {World} from './world';
+import * as World from './world';
 import {Factory, FactoryBase} from './factory';
 import {FactoryZone} from './factory.zone';
 import {ObjectShell} from './objectshellparser';
@@ -18,6 +18,7 @@ import {CaveGenerator} from './cave-generator';
 import {CastleGenerator} from './castle-generator';
 import {QuestPopulate} from './quest-gen';
 import {Brain} from './brain';
+import {Level} from './level';
 
 import * as Element from './element';
 import {Random} from './random';
@@ -25,6 +26,9 @@ import {Random} from './random';
 const RNG = Random.getRNG();
 const Stairs = Element.ElementStairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
+
+type WorldTop = World.WorldTop;
+type Area = World.Area;
 
 interface GlobalConf {
     levelSize: string;
@@ -311,7 +315,7 @@ export const FactoryWorld = function() {
 
 
     /* Creates an area which can be added to a world. */
-    this.createArea = function(conf) {
+    this.createArea = function(conf): World.Area {
         this._verif.verifyConf('createArea', conf,
             ['name', 'maxX', 'maxY']);
         this.pushScope(conf);
@@ -346,11 +350,11 @@ export const FactoryWorld = function() {
         return area;
     };
 
-    this.restoreCreatedZones = (world, area, areaConf) => {
-        Object.keys(areaConf.zonesCreated).forEach(xy => {
-            const [xStr, yStr] = xy.split(',');
+    this.restoreCreatedZones = (world: WorldTop, area: Area, areaConf): void => {
+        Object.keys(areaConf.zonesCreated).forEach(keyXY => {
+            const [xStr, yStr] = keyXY.split(',');
             const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
-            if (areaConf.zonesCreated[xy]) {
+            if (areaConf.zonesCreated[keyXY]) {
                 this.debug(`\tRestoring created zones for tile ${x},${y}`);
                 this.createZonesForTile(world, area, x, y);
             }
@@ -358,10 +362,10 @@ export const FactoryWorld = function() {
     };
 
     /* Creates zones for given area tile x,y with located in area areaName. */
-    this.createZonesForTile = function(world, area, x, y) {
+    this.createZonesForTile = (world: WorldTop, area: Area, x, y): void => {
         // Setup the scope & conf stacks
         if (!area.tileHasZonesCreated(x, y)) {
-            this.debug(`Creating Area ${x},${y} zones`);
+            this.debug(`Creating Area ${x},${y} zones (not created yet)`);
             const worldConf = world.getConf();
             this.pushScope(worldConf);
             const areaConf = area.getConf();
@@ -387,7 +391,7 @@ export const FactoryWorld = function() {
 
     /* Adds actors and items into AreaTile level. Config for world/area should
      * already exists in the stack, so calling this.getConf() gets it. */
-    this.populateAreaLevel = function(area, x, y) {
+    this.populateAreaLevel = (area: Area, x, y): void => {
         const playerX = Math.floor(area.getSizeX() / 2);
         const playerY = area.getSizeY() - 1;
         const parser = ObjectShell.getParser();
@@ -428,7 +432,7 @@ export const FactoryWorld = function() {
         fact.addNRandActors(level, parser, levelConf);
     };
 
-    this._createAllZones = function(area, conf, tx = -1, ty = -1) {
+    this._createAllZones = (area, conf, tx = -1, ty = -1): void => {
         this.debug(`_createAllZones ${tx}, ${ty}`);
         if (!conf.tiles) {
             // Is this ever entered? Can be removed?
@@ -445,7 +449,9 @@ export const FactoryWorld = function() {
         }
     };
 
-    this.createZonesFromArea = function(area, conf, tx = -1, ty = -1) {
+    this.createZonesFromArea = (area: Area, conf, tx = -1, ty = -1): void => {
+        this.debug(`createZonesFromArea ${tx}, ${ty}`);
+        area.printDebugInfo();
         ZONE_TYPES.forEach(type => {
             const typeLc = type.toLowerCase();
             const createFunc = 'create' + type;
@@ -478,7 +484,7 @@ export const FactoryWorld = function() {
 
     /* Used when 'tiles' exists inside areaConf. Usually when restoring a saved
      * game. */
-    this.createZonesFromTile = function(area, areaTileConf, tx, ty) {
+    this.createZonesFromTile = (area: Area, areaTileConf, tx, ty): void => {
         ZONE_TYPES.forEach(type => {
             const typeLc = type.toLowerCase();
             let nZones = 0;
@@ -509,13 +515,13 @@ export const FactoryWorld = function() {
 
     /* Used when creating area from existing levels. Uses id2level lookup table
      * to construct 2-d array of levels.*/
-    this.getAreaLevels = function(conf) {
-        const levels = [];
+    this.getAreaLevels = (conf): Level[][] => {
+        const levels: Level[][] = [];
         if (conf.tiles) {
             conf.tiles.forEach((tileCol) => {
-                const levelCol = [];
+                const levelCol: Level[] = [];
                 tileCol.forEach((tile) => {
-                    const level = this.id2level[tile.level];
+                    const level: Level = this.id2level[tile.level];
                     if (level) {
                         levelCol.push(level);
                     }
@@ -535,7 +541,7 @@ export const FactoryWorld = function() {
         return levels;
     };
 
-    this.createDungeon = function(conf) {
+    this.createDungeon = function(conf): World.Dungeon {
         this._verif.verifyConf('createDungeon', conf,
             ['name', 'nBranches']);
         this.pushScope(conf);
@@ -567,7 +573,7 @@ export const FactoryWorld = function() {
                     conf.connectLevels.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
-                            dungeon.connectSubZones(...conn);
+                            dungeon.connectSubZones(...conn as World.SubZoneConn);
                         }
                         else {
                             RG.err('Factory.World', 'createDungeon',
@@ -587,7 +593,7 @@ export const FactoryWorld = function() {
     };
 
     /* Creates one dungeon branch and all levels inside it. */
-    this.createBranch = function(conf) {
+    this.createBranch = function(conf): World.Branch {
         this._verif.verifyConf('createBranch', conf,
             ['name', 'nLevels']);
         this.pushScope(conf);
@@ -684,7 +690,7 @@ export const FactoryWorld = function() {
 
     /* Returns a level from presetLevels if any exist for the current level
      * number. */
-    this.getFromPresetLevels = function(i, presetLevels) {
+    this.getFromPresetLevels = (i, presetLevels): Level =>  {
         let foundLevel = null;
         if (presetLevels.length > 0) {
             const levelObj = presetLevels.find(lv => lv.nLevel === i);
@@ -704,7 +710,7 @@ export const FactoryWorld = function() {
 
     /* Sets the randomization constraints for the level based on current
      * configuration. */
-    this.setLevelConstraints = function(levelConf) {
+    this.setLevelConstraints = function(levelConf): void {
         const constraint = this.getConf('constraint');
         const constrFact = new Constraints();
         if (constraint) {
@@ -770,7 +776,7 @@ export const FactoryWorld = function() {
         if (isFriendly) {levelConf.friendly = true;}
     };
 
-    this._verifyConstraintKeys = function(constraint) {
+    this._verifyConstraintKeys = function(constraint): void {
         const keys = new Set(['actor', 'item', 'food', 'gold', 'shop',
             'disposition'
         ]);
@@ -783,7 +789,7 @@ export const FactoryWorld = function() {
         });
     };
 
-    this.setAreaLevelConstraints = function(levelConf, aX, aY) {
+    this.setAreaLevelConstraints = function(levelConf, aX, aY): void {
         const key = aX + ',' + aY;
         const constraints = this.getConf('constraint');
         if (constraints && constraints.hasOwnProperty(key)) {
@@ -907,7 +913,7 @@ export const FactoryWorld = function() {
                     conf.connectLevels.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
-                            mountain.connectSubZones(...conn);
+                            mountain.connectSubZones(...conn as World.SubZoneConn);
                         }
                         else {
                             RG.err('Factory.World', 'createMountain',
@@ -1045,7 +1051,7 @@ export const FactoryWorld = function() {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
                             // city.connectSubZones(...conn);
-                            city.abutQuarters(...conn);
+                            city.abutQuarters(...conn as World.SubZoneConn);
                         }
                         else {
                             RG.err('Factory.World', 'createCity',
@@ -1149,7 +1155,7 @@ export const FactoryWorld = function() {
         // Only during restore game
         if (conf.hasOwnProperty('shops')) {
             conf.shops.forEach(shop => {
-                const shopObj = new World.Shop();
+                const shopObj = new World.WorldShop();
                 shopObj.setLevel(this.id2level[shop.level]);
                 shopObj.setCoord(shop.coord);
                 shopObj._isAbandoned = shop.isAbandoned;
