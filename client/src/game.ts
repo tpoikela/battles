@@ -34,6 +34,7 @@ export const GameMain = function() {
     this._enableChunkUnload = false;
     this._chunkManager = null;
     this._eventPool = POOL;
+    POOL.removeAll();
     // this._eventPool = new EventPool();
     // POOL = this._eventPool;
 
@@ -44,6 +45,10 @@ export const GameMain = function() {
     this._master = new GameMaster(this, this._eventPool);
 
     this.globalConf = {};
+
+
+    // } end of constructor
+
     this.setGlobalConf = (conf) => {this.globalConf = conf;};
     this.getGlobalConf = () => this.globalConf;
 
@@ -62,12 +67,12 @@ export const GameMain = function() {
         }
     };
 
-    this.setRNG = function(rng) {
+    this.setRNG = (rng) => {
         this._rng = rng;
         Random.setRNG(this._rng);
     };
 
-    this.playerCommandCallback = function(actor) {
+    this.playerCommandCallback = (actor) => {
         this.visibleCells = actor.getBrain().getSeenCells();
         this._engine.setVisibleArea(this.shownLevel(), this.visibleCells);
     };
@@ -131,7 +136,7 @@ export const GameMain = function() {
     };
 
     /* Debug function for taking over controls of given actor. */
-    this.useAsPlayer = function(actorOrID) {
+    this.useAsPlayer = (actorOrID) => {
         let actor = actorOrID;
         if (Number.isInteger(actorOrID)) {
             actor = RG.ent(actorOrID);
@@ -144,7 +149,7 @@ export const GameMain = function() {
 
     /* Moves player to specified area tile. This is used for debugging purposes
      * mainly. Maybe to be used with quick travel. */
-    this.movePlayer = function(tileX, tileY, levelX = 0, levelY = 0) {
+    this.movePlayer = (tileX, tileY, levelX = 0, levelY = 0) => {
         const player = this.getPlayer();
         const world: World.WorldTop = this.getCurrentWorld();
         const area: World.Area = world.getAreas()[0];
@@ -327,7 +332,7 @@ export const GameMain = function() {
     };
 
     /* Adds a place (dungeon/area) containing several levels.*/
-    this.addPlace = function(place) {
+    this.addPlace = (place) => {
         if (typeof place.getLevels === 'function') {
             const name = place.getName();
             if (!this._places.hasOwnProperty(name) ) {
@@ -383,7 +388,7 @@ export const GameMain = function() {
      * actions are executed after the player action.*/
     this.update = (obj) => {this._engine.update(obj);};
 
-    this.getArea = (index) => {
+    this.getArea = (index: number) => {
         const world = this.getCurrentWorld();
         if (world && typeof world.getAreas === 'function') {
             return world.getAreas()[index];
@@ -414,6 +419,7 @@ export const GameMain = function() {
             const {actor} = args;
             if (actor.isPlayer()) {
                 this._shownLevel = actor.getLevel();
+
                 this.checkIfTileChanged(args);
                 this.checkIfExploredZoneLeft(args);
             }
@@ -426,7 +432,6 @@ export const GameMain = function() {
                 const world = this.getCurrentWorld();
                 if (world && world.getAreas) {
                     const area = world.getAreas()[0];
-                    area.printDebugInfo();
                     const [x, y] = area.findTileXYById(levelID);
                     const fact = new FactoryWorld();
                     fact.setGlobalConf(this.getGlobalConf());
@@ -514,7 +519,8 @@ export const GameMain = function() {
             rng: this._rng.toJSON(),
             charStyles: RG.charStyles,
             cellStyles: RG.cellStyles,
-            actorsKilled: this.actorsKilled
+            actorsKilled: this.actorsKilled,
+            enableChunkUnload: this._enableChunkUnload
         };
 
         if (!this.hasPlaces()) {
