@@ -6,7 +6,7 @@ import {Cell} from '../src/map.cell';
 export interface IContextMenuItemsProps {
   menuItems: any;
   mouseOverCell: Cell;
-  handleRightClick(evt: any, data: any, cell: Cell): void;
+  handleRightClick(evt: React.SyntheticEvent, data: any, cell: Cell): void;
 }
 
 export default class ContextMenuItems extends React.Component {

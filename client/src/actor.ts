@@ -19,6 +19,10 @@ const ACTOR_NO_ACTION = Object.freeze(() => {});
 const EMPTY_ARGS = Object.freeze({});
 const SPEED_COEFF = RG.BASE_SPEED * RG.ACTION_DUR;
 
+export interface StatsData {
+    [key: string]: string | number | [number, number];
+}
+
 export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
     constructor(name) { // {{{2
@@ -120,6 +124,9 @@ Actor.Virtual = VirtualActor;
 
 /* Object representing a game actor who takes actions.  */
 export class SentientActor extends BaseActor {
+
+    public static getFormattedStats: (actor: SentientActor) => StatsData;
+
     constructor(name) { // {{{2
         super(name);
 
@@ -486,3 +493,47 @@ function removePlayerBrainComps(actor) {
     });
 }
 Actor.Sentient = SentientActor;
+
+/* Returns an objected containing stats data for the given actor. */
+SentientActor.getFormattedStats = function(actor): StatsData {
+    const dungeonLevel = actor.getLevel().getLevelNumber();
+    const location = RG.formatLocationName(actor.getLevel());
+
+    let PP = null;
+    if (actor.has('SpellPower')) {
+      PP = actor.get('SpellPower').getPP() + '/'
+      + actor.get('SpellPower').getMaxPP();
+    }
+
+    // Compile final stats information
+    // Add typings
+    const stats: any = {
+      HP: actor.get('Health').getHP() + '/'
+      + actor.get('Health').getMaxHP(),
+      PP,
+
+      Att: [actor.getAttack(), actor.getCombatBonus('getAttack')],
+      Def: [actor.getDefense(), actor.getCombatBonus('getDefense')],
+      Pro: [actor.getProtection(), actor.getCombatBonus('getProtection')],
+
+      Str: [actor.getStrength(), actor.getStatBonus('getStrength')],
+      Agi: [actor.getAgility(), actor.getStatBonus('getAgility')],
+      Acc: [actor.getAccuracy(), actor.getStatBonus('getAccuracy')],
+      Wil: [actor.getWillpower(), actor.getStatBonus('getWillpower')],
+      Per: [actor.getPerception(), actor.getStatBonus('getPerception')],
+      Mag: [actor.getMagic(), actor.getStatBonus('getMagic')],
+
+      Speed: [actor.getSpeed(), actor.getStatBonus('getSpeed')],
+      XP: actor.get('Experience').getExp(),
+      XL: actor.get('Experience').getExpLevel(),
+      DL: dungeonLevel,
+      Loc: location
+    };
+
+    if (actor.has('Hunger')) {
+        stats.E = actor.get('Hunger').getEnergy();
+    }
+
+    return stats;
+}
+

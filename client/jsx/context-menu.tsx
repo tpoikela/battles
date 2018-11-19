@@ -2,10 +2,10 @@
 import React from 'react';
 
 import ContextMenuItems from './context-menu-items';
+import {Cell} from '../src/map.cell';
 
-
-export interface IGameContextMenu {
-  handleRightClick: () => void;
+export interface IGameContextMenuProps {
+  handleRightClick(evt: React.SyntheticEvent, data: any, cell: Cell): void;
   mouseOverCell: Cell;
 }
 
@@ -55,6 +55,8 @@ const allMenuItems = {
 };
 
 export default class GameContextMenu extends React.Component {
+
+  public props: IGameContextMenuProps;
 
   render() {
     return (

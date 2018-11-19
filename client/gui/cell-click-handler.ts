@@ -3,8 +3,11 @@ import RG from '../src/rg';
 import {Path} from '../src/path';
 import {Keys} from '../src/keymap';
 import {Cell} from '../src/map.cell';
+import {PlayerCmdInput} from '../src/brain.player';
 
 const dirToKeyCode = Keys.KeyMap.dirToKeyCode;
+
+type CmdInput = PlayerCmdInput | number;
 
 /* This class handles various actions when player clicks a cell.
  * It creates a key buffer corresponding to the automated command, and then game
@@ -13,7 +16,7 @@ const dirToKeyCode = Keys.KeyMap.dirToKeyCode;
 export default class CellClickHandler {
 
     public _game: any;
-    protected _keyBuffer: number[];
+    protected _keyBuffer: CmdInput[];
 
     constructor(game) {
         this._game = game;
@@ -21,7 +24,7 @@ export default class CellClickHandler {
     }
 
     /* Returns the next keycode or null if buffer is empty. */
-    public getNextCode(): number {
+    public getNextCode(): CmdInput {
         if (this._keyBuffer.length > 0) {
             return this._keyBuffer.shift();
         }
@@ -36,7 +39,7 @@ export default class CellClickHandler {
         return this._keyBuffer.length > 0;
     }
 
-    public setKeys(keys: number[]): void {
+    public setKeys(keys: CmdInput[]): void {
         this._keyBuffer = keys.slice();
     }
 
@@ -109,7 +112,7 @@ export default class CellClickHandler {
         this._keyBuffer.push(cmd);
     }
 
-    public handleUseStairs(x, y) {
+    public handleUseStairs(x, y, cell) {
         const player = this._game.getPlayer();
         this.moveTo(player, x, y);
         this._keyBuffer.push(Keys.KEY.USE_STAIRS_DOWN);

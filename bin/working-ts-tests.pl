@@ -55,7 +55,8 @@ foreach my $file (@files) {
     if ($val != 0) {
         ++$num_failed;
         push(@failed, $file);
-        die("Tests in file $file failed");
+        # die("Tests in file $file failed");
+        print "Tests in file $file failed\n";
     }
 }
 

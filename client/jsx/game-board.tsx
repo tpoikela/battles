@@ -10,15 +10,15 @@ interface IGameBoardProps {
     classRows: string[][];
     endY: number;
     rowClass: string;
-    useRLE: boolean;
+    useRLE?: boolean;
     sizeX: number;
     startX: number;
     startY: number;
-    onCellClick(x: number, y: number): void;
-    onMouseDown(x: number, y: number): void;
-    onMouseOver(x: number, y: number): void;
-    onMouseOverCell(x: number, y: number): void;
-    onMouseUp(x: number, y: number): void;
+    onCellClick?: (x: number, y: number) => void;
+    onMouseDown?: (x: number, y: number) => void;
+    onMouseOver?: (x: number, y: number) => void;
+    onMouseOverCell?: (x: number, y: number) => void;
+    onMouseUp?: (x: number, y: number) => void;
 }
 
 const eventToPosition = (e, elem, props: IGameBoardProps, elemID: string): Coord => {

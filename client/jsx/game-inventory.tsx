@@ -1,41 +1,40 @@
-'use strict';
 
 import * as React from 'react';
+import Modal from 'react-bootstrap-modal';
 import ModalHeader from './modal-header';
 import GameItems from './game-items';
 import GameEquipment from './game-equipment';
+
+import RG from '../src/rg';
+import {KeyCode} from '../gui/keycode';
 import {ItemBase} from '../src/item';
 import {ISelection} from "./game-equip-slot";
+import {Keys} from '../src/keymap';
 
 interface IGameInventoryProps {
-  count: number;
-  doInvCmd(cmd: any): void;
+  // count: number;
+  doInvCmd: (cmd: any) => void;
   eq: any;
   equipSelected: any;
-  handleKeyDown(evt: any): void;
+  handleKeyDown: (evt: any) => void;
   inv: any;
   invMsg: string;
   maxWeight: number;
   msgStyle: string;
   player: any;
-  selectEquipTop(selection: ISelection): void;
-  selectItemTop(item: ItemBase): void;
+  selectEquipTop: (selection: ISelection) => void;
+  selectItemTop: (item: ItemBase) => void;
   selectedItem: any;
-  setInventoryMsg(msg: any): void;
+  setInventoryMsg: (msg: any) => void;
   showInventory: boolean;
-  toggleScreen(type: string): void;
+  toggleScreen: (type: string) => void;
 }
-
 
 interface IGameInventoryState {
     count: string;
     filter: string;
 }
 
-const RG = require('../src/rg');
-const Modal = require('react-bootstrap-modal');
-const KeyCode = require('../gui/keycode');
-const Keys = require('../src/keymap');
 
 /* Component renders the player inventory.*/
 export default class GameInventory extends React.Component {

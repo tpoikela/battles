@@ -53,7 +53,7 @@ export const GameMain = function() {
     this.getPool = () => this._eventPool;
 
     // GUI commands needed for some functions
-    this.setGUICallbacks = (isGUICmd, doGUICmd) => {
+    this.setGUICallbacks = (isGUICmd, doGUICmd: (code) => void) => {
         this._engine.isGUICommand = isGUICmd;
         this._engine.doGUICommand = doGUICmd;
         const player = this.getPlayer();

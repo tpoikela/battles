@@ -174,7 +174,7 @@ export interface IGameEditorProps {
     editorData: any;
     setEditorData: (a: any, b: any) => void;
     toggleEditor: () => void;
-    mapShown: boolean;
+    mapShown?: boolean;
 }
 
 /* Component for game/level editor. */

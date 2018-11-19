@@ -44,6 +44,7 @@ import {WorldConf} from '../data/conf.world';
 import wwork = require('webworkify');
 import {ACTOR_CLASSES} from '../src/actor-class';
 import {SentientActor} from '../src/actor';
+import {ItemBase} from '../src/item';
 
 import {EventPool} from '../src/eventpool';
 import {FactoryGame} from '../src/factory.game';
@@ -168,7 +169,7 @@ export class BattlesTop extends React.Component {
     public gameState: GameStateTop;
     public state: IBattlesTopState;
     public pluginManager: PluginManager;
-    public guiCommands: {[key: string]: (any) => void};
+    public guiCommands: {[key: string]: (args?: any) => void};
     public gameSave: any; // TODO GameSave;
 
     public loadScriptId: string;
@@ -1054,7 +1055,7 @@ export class BattlesTop extends React.Component {
                 {gameValid && !this.state.showEditor &&
                  this.state.showInventory &&
                 <GameInventory
-                    doinvcmd={this.doInvCmd}
+                    doInvCmd={this.doInvCmd}
                     eq={eq}
                     equipSelected={this.state.equipSelected}
                     handleKeyDown={this.handleKeyDown}
@@ -1205,7 +1206,10 @@ export class BattlesTop extends React.Component {
 
     public getOneSelectedCell() {
         if (Array.isArray(this.state.selectedCell)) {
-            return this.state.selectedCell[0];
+            const cells: Cell[] = this.state.selectedCell as Cell[];
+            if (cells.length > 0) {
+                return cells[0];
+            }
         }
         return this.state.selectedCell;
     }
@@ -1259,7 +1263,7 @@ export class BattlesTop extends React.Component {
     }
 
     /* GameInventory should add a callback which updates the GUI (via props) */
-    public doInvCmd(cmd) {
+    public doInvCmd(cmd): void {
         this.game.update(cmd);
     }
 
@@ -1267,7 +1271,7 @@ export class BattlesTop extends React.Component {
     public doGUICommand(code, ...args) {
          if (this.gameState.useModeEnabled) {
             this.gameState.useModeEnabled = false;
-            const item = this.state.selectedItem;
+            const item = this.state.selectedItem as ItemBase;
             if (item !== null) {
 
                 const player = this.game.getPlayer();
@@ -1276,7 +1280,7 @@ export class BattlesTop extends React.Component {
                     this.game.update({
                         cmd: 'use', target: cell, item
                     });
-                    if (item.has('OneShot')) {
+                    if (item!.has('OneShot')) {
                         this.setState({selectedItem: null});
                     }
                 }
@@ -1289,7 +1293,7 @@ export class BattlesTop extends React.Component {
             }
         }
         else if (this.guiCommands.hasOwnProperty(code)) {
-            this.guiCommands[code](...args);
+            this.guiCommands[code]();
         }
         else if (Keys.KeyMap.isGoto(code)) {
             this.GUIGoto(...args as [number, number]);

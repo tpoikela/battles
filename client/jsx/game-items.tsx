@@ -10,7 +10,7 @@ interface IGameItemsProps {
   filter: string;
   inv: Item.Container;
   maxWeight: number;
-  setSelectedItem(item: Item.ItemBase): void;
+  setSelectedItem: (item: Item.ItemBase) => void;
 }
 
 

@@ -7,7 +7,6 @@ interface IPlayerStatsProps {
     player: SentientActor;
 }
 
-
 /* Component which renders the player stats into the left panel. */
 export default class PlayerStats extends React.Component {
 
@@ -19,42 +18,7 @@ export default class PlayerStats extends React.Component {
 
     public render() {
         const player = this.props.player;
-        const dungeonLevel = player.getLevel().getLevelNumber();
-        const location = RG.formatLocationName(player.getLevel());
-
-        let PP = null;
-        if (player.has('SpellPower')) {
-          PP = player.get('SpellPower').getPP() + '/'
-          + player.get('SpellPower').getMaxPP();
-        }
-
-        // Compile final stats information
-        const stats = {
-          HP: player.get('Health').getHP() + '/'
-          + player.get('Health').getMaxHP(),
-          PP,
-
-          Att: [player.getAttack(), player.getCombatBonus('getAttack')],
-          Def: [player.getDefense(), player.getCombatBonus('getDefense')],
-          Pro: [player.getProtection(), player.getCombatBonus('getProtection')],
-
-          Str: [player.getStrength(), player.getStatBonus('getStrength')],
-          Agi: [player.getAgility(), player.getStatBonus('getAgility')],
-          Acc: [player.getAccuracy(), player.getStatBonus('getAccuracy')],
-          Wil: [player.getWillpower(), player.getStatBonus('getWillpower')],
-          Per: [player.getPerception(), player.getStatBonus('getPerception')],
-          Mag: [player.getMagic(), player.getStatBonus('getMagic')],
-
-          Speed: [player.getSpeed(), player.getStatBonus('getSpeed')],
-          XP: player.get('Experience').getExp(),
-          XL: player.get('Experience').getExpLevel(),
-          DL: dungeonLevel,
-          Loc: location
-        };
-
-        if (player.has('Hunger')) {
-            stats.E = player.get('Hunger').getEnergy();
-        }
+        const stats = SentientActor.getFormattedStats(player);
 
         // Create HTML for showing stats
         const statsHTML = [];

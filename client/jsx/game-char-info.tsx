@@ -7,14 +7,22 @@ import * as Component from '../src/component';
 import {SentientActor} from '../src/actor';
 import Modal from 'react-bootstrap-modal';
 
+interface IGameCharInfoState {
+  tabShown: string;
+
+}
+
 interface IGameCharInfoProps {
-  player: SentienActor;
+  player: SentientActor;
   showCharInfo: boolean;
-  toggleScreen: () => void;
+  toggleScreen: (type: string) => void;
 }
 
 export default class GameCharInfo extends React.Component {
+  public static menuTabs: string[];
+
   public props: IGameCharInfoProps;
+  public state: IGameCharInfoState;
 
   constructor(props: IGameCharInfoProps) {
     super(props);
@@ -161,7 +169,8 @@ export default class GameCharInfo extends React.Component {
   public renderEffectsTab(actor) {
     const comps = Object.values(actor.getComponents());
 
-    const compNames = comps.map((c, index) => {
+    // TODO add typings
+    const compNames = comps.map((c: any, index) => {
       const description = Component[c.getType()].description;
       if (description) {
         return (

@@ -5,7 +5,7 @@ import * as Item from '../src/item';
 
 interface IGameItemSlotProps {
   item: Item.ItemBase;
-  setSelectedItem(item: Item.ItemBase): void;
+  setSelectedItem: (item: Item.ItemBase) => void;
 }
 
 /* Component stores one item, renders its description and selects it if

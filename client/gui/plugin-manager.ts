@@ -1,7 +1,22 @@
 /* Contains code for handling plugin loading/removing and status management. */
 
+export interface PluginData {
+    [key: string]: any;
+}
+
 /* Each plugin is associated with an entry which stores the plugin code. */
 export class PluginEntry {
+
+    public _enabled: boolean;
+    public _type: string;
+    public _data: PluginData;
+    public _name: string;
+    public _description: string;
+    public _status: string;
+    public _errorMsg: string;
+
+    public _onLoad: () => void;
+    public _onRemove: () => void;
 
     constructor(json) {
         this._enabled = false;
@@ -72,6 +87,8 @@ export class PluginEntry {
 
 /* Manager contains list of plugins that have been loaded. */
 export default class PluginManager {
+    public _plugins: PluginEntry[];
+    public _errorMsg: string;
 
     constructor() {
         this._plugins = [];

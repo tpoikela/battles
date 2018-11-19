@@ -47,7 +47,7 @@ const chatSelObject = player => {
     };
 };
 
-interface PlayerCmdInput {
+export interface PlayerCmdInput {
     code?: number;
     cmd?: string;
     target?: Cell;
