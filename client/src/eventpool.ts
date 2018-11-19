@@ -193,6 +193,28 @@ export class EventPool  { // {{{2
         }
     }
 
+    public removeAll(): void {
+        if (!this.cannotRemove) {
+            const allListeners: {[key: number]: Listener} = {};
+            const evtKeys = Object.keys(this._listeners);
+            evtKeys.forEach(evt => {
+                const listenersEvt: Listener[] = this._listeners[evt];
+                listenersEvt.forEach(listener => {
+                    allListeners[listener.listenerID] = listener;
+                });
+            });
+
+            Object.values(allListeners).forEach(listener => {
+                this.removeListener(listener);
+            });
+
+        }
+        else {
+            RG.err('EventPool', 'removeAll', 
+                'Cannot remove listeners. cannotRemove is set');
+        }
+    }
+
     /* Returns listeners for the given event. */
     public getListeners(evtName): Listener[] {
         if (this._listeners.hasOwnProperty(evtName)) {
