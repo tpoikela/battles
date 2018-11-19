@@ -5,7 +5,8 @@
 #
 #        USAGE: ./working-ts-tests.pl  
 #
-#  DESCRIPTION: 
+#  DESCRIPTION: Used for running unit tests. Many tests fail when executed
+#  in one batch with mocha, so at the moment they are run using this.
 #
 #      OPTIONS: ---
 # REQUIREMENTS: ---
@@ -22,32 +23,10 @@ use strict;
 use warnings;
 use utf8;
 
-my @files = qw(
-tests/client/src/abilities.spec.ts
-tests/client/src/animation.spec.ts
-tests/client/src/actor.spec.ts
-tests/client/src/actor.spirit.spec.ts
-tests/client/src/brain.communication.spec.ts
-tests/client/src/brain.memory.spec.ts
-tests/client/src/dice.spec.ts
-tests/client/src/entity.spec.ts
-tests/client/src/game-object.spec.ts
-tests/client/src/geometry.spec.ts
-tests/client/src/map.generator.spec.ts
-tests/client/src/map.spec.ts
-tests/client/src/path.spec.ts
-tests/client/src/random.spec.ts
-tests/client/src/rg.eventpool.spec.ts
-tests/client/src/rg.spec.ts
-tests/client/src/template.spec.ts
-tests/client/src/template.level.ts
-tests/client/src/territory.spec.ts
-tests/lib/bsp.spec.ts
-);
-
-@files = glob("tests/client/src/*.ts");
+my @files = glob("tests/client/src/*.ts");
 
 my $num_failed = 0;
+my $num_ok = 0;
 my @failed = ();
 
 foreach my $file (@files) {
@@ -58,8 +37,12 @@ foreach my $file (@files) {
         # die("Tests in file $file failed");
         print "Tests in file $file failed\n";
     }
+    else {
+        ++$num_ok;
+    }
 }
 
+print "$num_ok test files PASSED.\n";
 if ($num_failed > 0) {
     my $failed_tests = join("\n", @failed);
     die "There were $num_failed failed tests. $failed_tests\n";
