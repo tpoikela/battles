@@ -9,7 +9,7 @@ const debug = dbg('bitn:Factory.World');
 import * as Verify from './verify';
 import {ConfStack} from './conf-stack';
 import {World} from './world';
-import {Factory} from './factory';
+import {Factory, FactoryBase} from './factory';
 import {FactoryZone} from './factory.zone';
 import {ObjectShell} from './objectshellparser';
 
@@ -400,7 +400,7 @@ export const FactoryWorld = function() {
         const itemsPerLevel = 7 + xDiff + 2 * yDiff;
         const actorsPerLevel = (yDiff + 1) * 10 + 2 * xDiff + 10;
 
-        const fact = new Factory.Base();
+        const fact = new FactoryBase();
         fact.setParser(parser);
 
         const maxValue = RG.getMaxValue(xDiff, yDiff);

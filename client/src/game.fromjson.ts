@@ -9,7 +9,7 @@ import {GoalsTop} from './goals-top';
 import {Evaluator} from './evaluators';
 import {EvaluatorsBattle} from './evaluators-battle';
 import {Territory} from './territory';
-import GameObject from './game-object';
+import {GameObject} from './game-object';
 import {QuestData} from './quest-gen';
 import {WorldFromJSON} from './world.fromjson';
 import {Level} from './level';
@@ -23,9 +23,22 @@ import {Component} from './component.base';
 import {Item} from './item';
 import {Actor} from './actor';
 import {Brain} from './brain';
+import {BrainPlayer} from './brain.player';
+import {CellMap} from './map';
+import * as Element from './element';
+import {FactoryWorld} from './factory.world';
+import * as World from './world';
+import {Random} from './random';
+import {OverWorld} from './overworld';
+import * as Time from './time';
+
+type AreaTileJSON = World.AreaTileJSON;
+type Stairs = Element.ElementStairs;
 
 const POOL = EventPool.getPool();
-const SentientActor = Actor.SentientActor;
+const SentientActor = Actor.Sentient;
+
+Brain.Player = BrainPlayer;
 
 const OBJ_REF_REMOVED = Symbol();
 const OBJ_REF_NOT_FOUND = null;
@@ -229,11 +242,11 @@ FromJSON.prototype.createGame = function(game, gameJSON) {
     GameObject.ID = gameJSON.gameObjectID;
 
     if (debug.enabled) {
-        this.dbg(`Restored level ID count to ${RG.Map.Level.idCount}`);
+        this.dbg(`Restored GameObject ID count to ${GameObject.ID}`);
     }
 
     if (gameJSON.rng) {
-        const rng = new RG.Random(gameJSON.rng.seed);
+        const rng = new Random(gameJSON.rng.seed);
         rng.setState(gameJSON.rng.state);
         game.setRNG(rng);
     }
@@ -694,11 +707,11 @@ FromJSON.prototype.getItemObjectType = function(item) {
 /* Creates a Map.Level object from a json object. NOTE: This method cannot
 * connect stairs to other levels, but only create the stairs elements. */
 FromJSON.prototype.restoreLevel = function(json) {
-    const level = new RG.Map.Level();
+    const level = new Level();
     level.setID(json.id);
     level.setLevelNumber(json.levelNumber);
 
-    const mapObj = this.createCellList(json.map);
+    const mapObj = this.createCellMap(json.map);
     level.setMap(mapObj);
 
     // Create actors
@@ -755,7 +768,7 @@ FromJSON.prototype.createElement = function(elem) {
         createdElem = this.createUnconnectedStairs(elem);
     }
     else if (type === 'shop') {
-        const shopElem = new RG.Element.Shop();
+        const shopElem = new Element.ElementShop();
         let shopkeeper = null;
         if (!RG.isNullOrUndef([elemJSON.shopkeeper])) {
             shopkeeper = this.id2entity[elemJSON.shopkeeper];
@@ -775,20 +788,20 @@ FromJSON.prototype.createElement = function(elem) {
         createdElem = shopElem;
     }
     else if (type === 'door') {
-        createdElem = new RG.Element.Door(elemJSON.closed);
+        createdElem = new Element.ElementDoor(elemJSON.closed);
     }
     else if (type === 'leverdoor') {
-        createdElem = new RG.Element.LeverDoor(elemJSON.closed);
+        createdElem = new Element.ElementLeverDoor(elemJSON.closed);
     }
     else if (type === 'lever') {
-        createdElem = new RG.Element.Lever();
+        createdElem = new Element.ElementLever();
     }
     else if (type === 'marker') {
-        createdElem = new RG.Element.Marker(elemJSON.char);
+        createdElem = new Element.ElementMarker(elemJSON.char);
         createdElem.setTag(elemJSON.tag);
     }
     else if (type === 'exploration') {
-        const expElem = new RG.Element.Exploration();
+        const expElem = new Element.ElementExploration();
         expElem.setExp(elemJSON.setExp);
         expElem.setMsg(elemJSON.setMsg);
         if (elemJSON.data) {expElem.setData(elemJSON.data);}
@@ -851,15 +864,15 @@ FromJSON.prototype.createUnconnectedStairs = function(elem) {
     const id = elem.obj.srcLevel;
     const stairsId = `${id},${x},${y}`;
     const elemObj = elem.obj;
-    const sObj = new RG.Element.Stairs(elemObj.name);
+    const sObj = new Element.ElementStairs(elemObj.name);
     this.stairsInfo[stairsId] = {targetLevel: elemObj.targetLevel,
         targetStairs: elemObj.targetStairs};
     return sObj;
 };
 
 
-FromJSON.prototype.createCellList = function(map) {
-    const mapObj = new RG.Map.CellList(map.cols, map.rows);
+FromJSON.prototype.createCellMap = function(map): CellMap {
+    const mapObj = new CellMap(map.cols, map.rows);
     map.cells.forEach((col, x) => {
         col.forEach((cell, y) => {
             const baseElem = this.createBaseElem(cell);
@@ -867,7 +880,7 @@ FromJSON.prototype.createCellList = function(map) {
         });
     });
     map.explored.forEach(explXY => {
-        mapObj.getCell(explXY[0], explXY[1]).setExplored(true);
+        mapObj.getCell(explXY[0], explXY[1]).setExplored();
     });
     Object.keys(map.elements).forEach(key => {
         const [x, y] = key.split(',');
@@ -878,7 +891,7 @@ FromJSON.prototype.createCellList = function(map) {
 
 
 FromJSON.prototype.createBaseElem = function(cell) {
-    const type = RG.elemIndexToType[cell];
+    const type = ELEM_MAP.elemIndexToType[cell];
     switch (type) {
         case '#': // wall
         case 'wall': return ELEM.WALL;
@@ -1056,7 +1069,7 @@ FromJSON.prototype.restorePlace = function(place) {
 
 FromJSON.prototype.restoreOverWorld = function(json) {
     const ow = OWMap.fromJSON(json);
-    const coordMap = new RG.OverWorld.CoordMap();
+    const coordMap = new OverWorld.CoordMap();
     for (const p in json.coordMap) {
         if (json.coordMap.hasOwnProperty(p)) {
             coordMap[p] = json.coordMap[p];
@@ -1130,13 +1143,13 @@ FromJSON.prototype.reportMissingLevel = function(connObj) {
 /* Re-schedules the HP/PP regeneration for an actor */
 FromJSON.prototype._addRegenEvents = function(game, actor) {
     // Add HP regeneration
-    const regenPlayer = new RG.Time.RegenEvent(actor,
+    const regenPlayer = new Time.RegenEvent(actor,
         20 * RG.ACTION_DUR);
     game.addEvent(regenPlayer);
 
     // Add PP regeneration (if needed)
     if (actor.has('SpellPower')) {
-        const regenPlayerPP = new RG.Time.RegenPPEvent(actor,
+        const regenPlayerPP = new Time.RegenPPEvent(actor,
             30 * RG.ACTION_DUR);
         game.addEvent(regenPlayerPP);
     }
@@ -1180,7 +1193,7 @@ FromJSON.prototype.getLevelsToRestore = function(gameJSON) {
 
 /* Given a list of JSON World.AreaTiles, creates the objects and level
  * connections, and attaches them to area in current game. */
-FromJSON.prototype.createTiles = function(game, jsonTiles) {
+FromJSON.prototype.createTiles = function(game, jsonTiles: AreaTileJSON[]) {
     const allLevels = game.getLevels();
     this.addLevels(allLevels, 'createTiles');
 
@@ -1204,28 +1217,31 @@ FromJSON.prototype.createTiles = function(game, jsonTiles) {
     // Entity data cannot be restored earlier because not all object refs
     // exist when entities are created
     this.restoreEntityData();
+    this.restoreComponentData();
 
     const area = game.getCurrentWorld().getCurrentArea();
-    const fact = new RG.Factory.World();
+    const fact = new FactoryWorld();
     fact.setId2Level(this.id2level);
     fact.id2entity = this.id2entity;
 
     jsonTiles.forEach(json => {
         const [tx, ty] = [json.x, json.y];
-        const tile = new RG.World.AreaTile(tx, ty, area);
+        const tile = new World.AreaTile(tx, ty, area);
 
         const tileLevel = this.id2level[json.level];
         tile.setLevel(tileLevel);
         game.addLevel(tileLevel);
 
         const jsonCopy = JSON.parse(JSON.stringify(json));
-        area.getTiles()[tx][ty] = tile;
+        // area.getTiles()[tx][ty] = tile;
+        area.setTile(tx, ty, tile);
+        if (tile.getLevel) {
+            console.log(`Area ${area.getID()} FromJSON tile${tx},${ty} has getLevel() now`);
+        }
         tileLevel.setParent(area);
         fact.createZonesFromTile(area, jsonCopy, tx, ty);
         this.restoreSerializedBattles(game, tile);
     });
-
-    // Need to check for battles that should be restored
 
 };
 
@@ -1263,7 +1279,7 @@ FromJSON.prototype.addLevels = function(levels, msg = '', jsonArr = []) {
     });
 };
 
-FromJSON.prototype.connectTileLevels = function(levels, conns) {
+FromJSON.prototype.connectTileLevels = function(levels: Level[], conns: Stairs[] ) {
     conns.forEach(conn => {
         const stairsId = conn.getID();
         const targetLevel = conn.getTargetLevel();

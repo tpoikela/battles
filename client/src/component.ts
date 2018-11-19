@@ -751,6 +751,7 @@ export const ActorClass = function() {
 
 };
 RG.extend2(ActorClass, ComponentBase);
+Component.ActorClass = ActorClass;
 
 ActorClass.prototype.toJSON = function() {
     const json = BaseProto.toJSON.call(this);
@@ -992,7 +993,7 @@ export const Skills = function() {
     };
 };
 RG.extend2(Skills, ComponentBase);
-
+Component.Skills = Skills;
 export const SkillsExp = TransientDataComponent('SkillsExp',
     {skill: '', points: 0});
 
@@ -1022,6 +1023,7 @@ export const InBattle = function() {
     this.updateData = data => {_data = Object.assign(_data || {}, data);};
 };
 RG.extend2(InBattle, ComponentBase);
+Component.InBattle = InBattle;
 
 /* Added to entity once it uses a skill or destroys an opposing actor inside a
  * battle. */
@@ -1036,6 +1038,7 @@ export const BattleExp = function() {
 
 };
 RG.extend2(BattleExp, ComponentBase);
+Component.BattleExp = BattleExp;
 
 /* This component is placed on entities when the battle is over. It signals to
  * the Battle.System that experience should be processed now. After this, the
@@ -1056,6 +1059,7 @@ export const BattleBadge = function() {
     this.isLost = () => _data.status === 'Lost';
 };
 RG.extend2(BattleBadge, ComponentBase);
+Component.BattleBadge = BattleBadge;
 
 /* An order given during battle. Used to give order to player at the moment. */
 export const BattleOrder = DataComponent('BattleOrder', {args: null});
@@ -1085,6 +1089,7 @@ export const Reputation = function() {
     };
 };
 RG.extend2(Reputation, ComponentBase);
+Component.Reputation = Reputation;
 
 /* Component used to pass data between systems. */
 export const Event = TransientDataComponent('Event', {args: null});

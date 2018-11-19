@@ -267,6 +267,7 @@ export function getIDCount() {
 export function setIDCount(idCount) {
     return Component.idCount = idCount;
 }
+Component.setIDCount = setIDCount;
 
 /* Base class for all components. Provides callback hooks, copying and cloning.
  * */

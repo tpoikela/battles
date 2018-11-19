@@ -16,6 +16,7 @@ import {LevelSurroundings} from './level-surroundings';
 import {FactoryItem} from './factory.items';
 import {Placer} from './placer';
 import {Random} from './random';
+import { Geometry } from './geometry';
 
 const RNG = Random.getRNG();
 const Room = ROT.Map.Feature.Room;
@@ -158,7 +159,7 @@ export class CastleGenerator extends LevelGenerator {
     }
 
     addToExtras(level, tile, name) {
-        const bbox = RG.Geometry.convertBbox(tile);
+        const bbox = Geometry.convertBbox(tile);
         const cells = level.getMap().getFreeInBbox(bbox);
         cells.forEach(cell => {
             const [x, y] = cell.getXY();
@@ -205,7 +206,7 @@ export class CastleGenerator extends LevelGenerator {
         // Finally connect lever to its door
         levers.forEach(lever => {
             const [x, y] = lever.getXY();
-            const xyAround = RG.Geometry.getBoxAround(x, y, 1);
+            const xyAround = Geometry.getBoxAround(x, y, 1);
             xyAround.forEach(xy => {
                 const keyXY = xy[0] + ',' + xy[1];
                 if (doorPos[keyXY]) {

@@ -5,9 +5,11 @@ import {Factory} from './factory';
 import {FactoryWorld} from './factory.world';
 import {Entity} from './entity';
 import {Level} from './level';
+import * as Verify from './verify';
 
 import dbg = require('debug');
 const debug = dbg('bitn:WorldFromJSON');
+import * as World from './world';
 
 /* This class converts a serialized world back to World.Top object. It supports
  * unloaded AreaTiles, and does not create them as objects when
@@ -33,7 +35,7 @@ export class WorldFromJSON {
         this.id2level = id2level;
         this.id2entity = id2entity;
         this._conf = new ConfStack();
-        this._verif = new RG.Verify.Conf('WorldFromJSON');
+        this._verif = new Verify.Conf('WorldFromJSON');
         this.worldElemByID = {}; // Stores world elements by ID
         this.createAllZones = true;
         this._IND = 0; // Used for indenting debug messages
@@ -53,7 +55,7 @@ export class WorldFromJSON {
         return null;
     }
 
-    /* Main function to call with a serialized JSON of World.Top. */
+    /* Main function to call with a serialized JSON of WorldTop. */
     createWorld(placeJSON) {
         let world = null;
         if (placeJSON.conf) {
@@ -72,7 +74,7 @@ export class WorldFromJSON {
     }
 
     /* Given a serialized WorldTop in JSON, returns the created
-     * World.Top object. */
+     * WorldTop object. */
     createRestoredWorld(worldJSON) {
         if (!worldJSON.conf) {
             RG.err('WorldFromJSON', 'createRestoredWorld',
@@ -125,7 +127,7 @@ export class WorldFromJSON {
             fact.createAllZones = this.createAllZones;
         }
         this.pushScope(worldJSON);
-        const world = new RG.World.Top(worldJSON.name);
+        const world = new World.WorldTop(worldJSON.name);
         world.setConf(worldJSON);
         for (let i = 0; i < worldJSON.nAreas; i++) {
             const areaJSON = worldJSON.area[i];
@@ -146,7 +148,7 @@ export class WorldFromJSON {
         return world;
     }
 
-    /* Restores World.Area from JSON. */
+    /* Restores WorldArea from JSON. */
     restoreAreaFromJSON(areaJSON) {
         this.verify('restoreAreaFromJSON', areaJSON,
             ['name', 'maxX', 'maxY']);
@@ -155,7 +157,7 @@ export class WorldFromJSON {
         const areaLevels = this.getAreaLevels(areaJSON);
 
         const {name, maxX, maxY, cols, rows} = areaJSON;
-        const area = new RG.World.Area(name, maxX, maxY, cols, rows,
+        const area = new World.Area(name, maxX, maxY, cols, rows,
             areaLevels);
         area.setConf(areaJSON);
         area.setHierName(this.getHierName());

@@ -12,13 +12,13 @@ import {SentientActor} from './actor';
 import {GameMain} from './game';
 import {WorldTop} from './world';
 
-import {EventPool} from '../src/eventpool';
+import {EventPool} from './eventpool';
+import * as Component from './component';
 
 const dbg = require('debug');
 const debug = dbg('bitn:GameMaster');
 
 const POOL = EventPool.getPool();
-
 const RNG = Random.getRNG();
 
 type BattleObj = Battle | BattleJSON;
@@ -36,7 +36,10 @@ export class GameMaster {
     public fact: FactoryBattle;
     public pool: EventPool;
     public battles: {[key: number]: BattleObj[]};
+
+    // Key is level ID of the battle level (NOT parent area level)
     public battlesDone: {[key: number]: boolean};
+
     public hasNotify: boolean;
     public world: WorldTop;
 
@@ -59,18 +62,18 @@ export class GameMaster {
 
     setBattles(battles) {
         this.battles = battles;
-    };
+    }
 
-    setPool(pool) {this.pool = pool;};
-    setGame(game) {this.game = game;};
+    setPool(pool) {this.pool = pool;}
+    setGame(game) {this.game = game;}
 
     setPlayer(player) {
         this.player = player;
-    };
+    }
 
-    setWorld(world) {this.world = world;};
+    setWorld(world) {this.world = world;}
 
-    notify(evtName, args) {
+    notify(evtName: string, args) {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             debug('EVT_LEVEL_CHANGED');
             const {actor} = args;
@@ -105,6 +108,7 @@ export class GameMaster {
             }
             debug('\tPlayer not null. Creating battle');
             const parentLevel = this.player.getLevel();
+            console.log('XXX GAME.MASTER WENT THROUGH HERE');
             this.createBattleIntoAreaTileLevel(parentLevel);
         }
         else if (evtName === RG.EVT_EXPLORED_ZONE_LEFT) {
@@ -177,7 +181,7 @@ export class GameMaster {
             if (battleLevel.getID() === target.getID()) {
                 if (this.actorCanEnter(actor, battleObj)) {
                     // Entered a battle
-                    const comp = new RG.Component.InBattle();
+                    const comp = new Component.InBattle();
                     comp.setData({name: battleObj.getName()});
                     actor.add(comp);
                     // Get army selection object
@@ -234,12 +238,12 @@ export class GameMaster {
 
         // Mark player as deserter, TODO add confirm object
         if (!battle.isOver() && battleData.army) {
-            const badge = new RG.Component.BattleBadge();
+            const badge = new Component.BattleBadge();
             badge.setData({status: 'Fled', name: battle.getName(),
                 army: battleData.army});
             actor.add(badge);
             actor.remove('InBattle');
-            actor.add(new RG.Component.BattleOver());
+            actor.add(new Component.BattleOver());
         }
         else if (!battle.isOver() && !battleData.army) {
             actor.remove('InBattle');
@@ -255,7 +259,7 @@ export class GameMaster {
 
             actors.forEach(actor => {
                 if (!this.actorDesertedBattle(actor, battle)) {
-                    const badge = new RG.Component.BattleBadge();
+                    const badge = new Component.BattleBadge();
                     const battleData = {
                         name: battle.getName(),
                         army: army.getName(),
@@ -266,7 +270,7 @@ export class GameMaster {
                     actor.add(badge);
 
                     actor.remove('InBattle');
-                    actor.add(new RG.Component.BattleOver());
+                    actor.add(new Component.BattleOver());
                 }
             });
         });
@@ -428,7 +432,7 @@ export class GameMaster {
 
     /* Used by the ChunkManager to serialize the battle when player move far
      * enough from the tile. */
-    unloadBattles(tileLevel) {
+    unloadBattles(tileLevel: Level) {
         const id = tileLevel.getID();
         if (this.battles.hasOwnProperty(id)) {
             const battles = this.getBattles(id);

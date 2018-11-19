@@ -328,8 +328,8 @@ Element.Door = ElementDoor;
 /* A door which can be opened using a lever only. */
 export class ElementLeverDoor extends ElementDoor {
 
-    constructor() {
-        super(true);
+    constructor(isClosed = true) {
+        super(isClosed);
         this.setType('leverdoor');
     }
 

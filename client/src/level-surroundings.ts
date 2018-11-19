@@ -6,6 +6,7 @@ import {Geometry} from './geometry';
 import {Random} from './random';
 import {Level} from './level';
 import {MapGenerator} from './map.generator';
+import {ELEM} from '../data/elem-constants';
 
 const RNG = Random.getRNG();
 
@@ -55,7 +56,7 @@ export class LevelSurroundings {
         }
         wallConf.meanWx = RNG.getUniformInt(5, xSize);
         wallConf.meanWy = RNG.getUniformInt(5, ySize);
-        wallConf.wallElem = RG.ELEM.WALL_MOUNT;
+        wallConf.wallElem = ELEM.WALL_MOUNT;
 
         const mapgen = new MapGenerator();
         // mapgen.setGen('empty', colsArea, rowsArea);

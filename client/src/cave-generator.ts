@@ -17,6 +17,8 @@ import * as Element from './element';
 
 const RNG = Random.getRNG();
 
+const ElementMarker = Element.ElementMarker;
+
 export interface Miner {
     x: number;
     y: number;
@@ -156,7 +158,7 @@ export class CaveGenerator extends LevelGenerator {
         points.splice(points.indexOf(endPoint), 1);
         points.forEach(point => {
             const [eX, eY] = point;
-            const pointMarker = new RG.Element.Marker('>');
+            const pointMarker = new ElementMarker('>');
             pointMarker.setTag('end_point');
             level.addElement(pointMarker, eX, eY);
             extras.points.push(point);

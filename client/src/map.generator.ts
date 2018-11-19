@@ -23,6 +23,8 @@ import {MapMountain} from '../../lib/map.mountain';
 import {MapWall} from '../../lib/map.wall';
 import * as Element from './element';
 
+const ElementMarker = Element.ElementMarker;
+
 const RNG = Random.getRNG();
 
 const inRange = function(val, min, max) {
@@ -818,7 +820,7 @@ export class MapGenerator {
         const createLeverMarker = (map, x, y) => {
             map.setBaseElemXY(x, y, MapGenerator.getFloorElem(conf.floorType));
             if (conf.preserveMarkers) {
-                const marker = new RG.Element.Marker('&');
+                const marker = new ElementMarker('&');
                 marker.setTag('lever');
                 map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
             }
@@ -827,7 +829,7 @@ export class MapGenerator {
         const createLeverDoorMarker = (map, x, y) => {
             map.setBaseElemXY(x, y, MapGenerator.getFloorElem(conf.floorType));
             if (conf.preserveMarkers) {
-                const marker = new RG.Element.Marker('|');
+                const marker = new ElementMarker('|');
                 marker.setTag('leverdoor');
                 map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
             }
@@ -836,7 +838,7 @@ export class MapGenerator {
         const createLivingQuarterMarker = (map, x, y) => {
             map.setBaseElemXY(x, y, ELEM.FLOOR_HOUSE);
             if (conf.preserveMarkers) {
-                const marker = new RG.Element.Marker(':');
+                const marker = new ElementMarker(':');
                 marker.setTag('living_quarter');
                 map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
             }

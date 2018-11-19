@@ -1,10 +1,19 @@
 
 import RG from './rg';
 import {FromJSON} from './game.fromjson';
-// import * as World from './world';
+import * as World from './world';
+import {ElementStairs} from './element';
+import {Coord} from './interfaces';
+
+type Stairs = ElementStairs;
+
+type AreaTileObj = World.AreaTileObj;
+type AreaTileJSON = World.AreaTileJSON;
 
 import dbg = require('debug');
 const debug = dbg('bitn:ChunkManager');
+
+debug.enabled = true;
 
 const LOAD = Object.freeze(
     {EMPTY: 'EMPTY', LOADED: 'LOADED', JSON: 'JSON', ON_DISK: 'ON_DISK',
@@ -23,7 +32,7 @@ function printTileConnections(msg, tileToConnect, id = -1) {
                     console.log(`\tTarget ID ${targetLevel} found`);
                 }
                 else {
-                    console.log(`\tMap.Level ${targetLevel.getID()} found`);
+                    console.log(`\tLevel ${targetLevel.getID()} found`);
                 }
             });
         }
@@ -47,7 +56,7 @@ export class ChunkManager {
     public loadDistY: number;
     public onDiskDistX: number;
     public onDiskDistY: number;
-    public area: any;
+    public area: World.Area;
     public game: any;
     public state: ChunkState[][];
 
@@ -83,13 +92,15 @@ export class ChunkManager {
 
     /* Must be called when player enters a new tile. Loads/unloads the tiles
      * based on old & new tile coordinates. */
-    setPlayerTile(px, py, oldX, oldY) {
-        const moveDir = this.getMoveDir(px, py, oldX, oldY);
+    setPlayerTile(px, py, oldX, oldY): void {
+        const moveDir: string = this.getMoveDir(px, py, oldX, oldY);
         if (debug.enabled) {
             debug(`## setPlayerTile START ${oldX},${oldY}->${px},${py}`);
             this.debugPrint();
         }
-        const loadedTiles = [];
+
+        // Will contain only coordinates of serialized tiles to load
+        const loadedTiles: Coord[] = [];
         for (let x = 0; x < this.sizeX; x++) {
             for (let y = 0; y < this.sizeY; y++) {
                 if (this.inLoadRange(px, py, x, y)) {
@@ -112,13 +123,13 @@ export class ChunkManager {
         }
     }
 
-    isLoaded(x, y) {
+    isLoaded(x, y): boolean {
         return this.state[x][y].loadState === LOAD.LOADED;
     }
 
     /* Returns true if given tile (tx,ty) is within load range from
      * player px,py .*/
-    inLoadRange(px, py, tx, ty) {
+    inLoadRange(px, py, tx, ty): boolean {
         for (let x = px - this.loadDistX; x <= px + this.loadDistX; x++) {
             for (let y = py - this.loadDistY; y <= py + this.loadDistY; y++) {
                 if (tx === x && ty === y) {return true;}
@@ -127,12 +138,12 @@ export class ChunkManager {
         return false;
     }
 
-    loadAllTiles() {
+    loadAllTiles(): void {
         this.setLoadStateAll(LOAD.LOADED);
     }
 
     /* Returns number of tiles in given load state. */
-    getNumInState(loadState) {
+    getNumInState(loadState): number {
         let num = 0;
         for (let x = 0; x < this.sizeX; x++) {
             for (let y = 0; y < this.sizeY; y++) {
@@ -145,14 +156,14 @@ export class ChunkManager {
     }
 
     /* Loads the serialized/on-disk tile. */
-    loadTiles(px, py, loadedTilesXY, moveDir) {
-        const areaTiles = this.area.getTiles();
+    loadTiles(px, py, loadedTilesXY: Coord[], moveDir: string): void {
+        const areaTiles: AreaTileObj[][] = this.area.getTiles();
         debug('loadTiles: ' + JSON.stringify(loadedTilesXY));
-        const loadedAreaTiles = loadedTilesXY.map(
-            xy => areaTiles[xy[0]][xy[1]]
+        const areaTileToLoadNow: AreaTileJSON[] = loadedTilesXY.map(
+            xy => (areaTiles[xy[0]][xy[1]] as AreaTileJSON)
         );
 
-        this.createTiles(loadedAreaTiles);
+        this.createTiles(areaTileToLoadNow);
 
         loadedTilesXY.forEach(xy => {
             debug(`ChunkManager load now tile ${xy}`);
@@ -164,7 +175,14 @@ export class ChunkManager {
                 debug(`Rm adjacent conns to ${tx},${ty}`);
                 this.removeAdjacentConnections(areaTiles, px, py, tx, ty);
             }
+
+            // This is correct TODO remove
+            if (xy[0] === 0 && xy[1] === 2) {
+                const tiles = this.area.getTiles();
+                console.log('END OF LOADTILES: ', tiles[0][2]);
+            }
         });
+
     }
 
     // The only case where this is used is when player enters the game, or
@@ -204,7 +222,7 @@ export class ChunkManager {
     }
 
     /* Unloads the tile from memory. */
-    unloadTile(px, py, tx, ty, moveDir) {
+    unloadTile(px, py, tx, ty, moveDir): void {
         debug(`Unloading tile ${tx},${ty}`);
         const areaTiles = this.area.getTiles();
         this.state[tx][ty].loadState = LOAD.LOADED2JSON;
@@ -302,7 +320,7 @@ export class ChunkManager {
         this.state[tx][ty].loadState = LOAD.JSON;
     }
 
-    getLoadState(x, y) {
+    getLoadState(x, y): string {
         return this.state[x][y].loadState;
     }
 
@@ -320,24 +338,26 @@ export class ChunkManager {
         });
     }
 
-    createTiles(tilesJSON) {
+    createTiles(tilesJSON: AreaTileJSON[]): void {
+        const nTiles = tilesJSON.length;
+        debug(`Creating ${nTiles} AreaTiles with FromJSON`);
         const fromJSON = new FromJSON();
         fromJSON.setChunkMode(true);
         fromJSON.createTiles(this.game, tilesJSON);
     }
 
-    addConnections(dir, tileToConnect, newTile) {
+    addConnections(dir, tileToConnect, newTile): void {
         const oppositeDir = this.getOpposite(dir);
-        const addedConns = this.getReplacedConnections(dir, tileToConnect);
-        const newConns = this.getReplacedConnections(oppositeDir, newTile);
+        const addedConns: Stairs[] = this.getReplacedConnections(dir, tileToConnect);
+        const newConns: Stairs[] = this.getReplacedConnections(oppositeDir, newTile);
         const fromJSON = new FromJSON();
-        const conns = addedConns.concat(newConns);
+        const conns: Stairs[] = addedConns.concat(newConns);
         const levels = [tileToConnect.getLevel(), newTile.getLevel()];
         fromJSON.connectTileLevels(levels, conns);
     }
 
-    removeConnections(dir, tile) {
-        const replacedConns = this.getReplacedConnections(dir, tile);
+    removeConnections(dir, tile): void {
+        const replacedConns: Stairs[] = this.getReplacedConnections(dir, tile);
         replacedConns.forEach(conn => {
             const targetConn = conn.getTargetStairs();
 
@@ -351,7 +371,7 @@ export class ChunkManager {
         });
     }
 
-    getReplacedConnections(dir, tile) {
+    getReplacedConnections(dir, tile): Stairs[] {
         const level = tile.getLevel();
         const conns = level.getConnections();
         if (conns.length === 0) {
@@ -387,7 +407,7 @@ export class ChunkManager {
     }
 
     /* Returns the player movement direction. */
-    getMoveDir(px, py, oldX, oldY) {
+    getMoveDir(px, py, oldX, oldY): string {
         let [dx, dy] = [0, 0];
         let moveDir = '';
         if (!RG.isNullOrUndef([oldX, oldY])) {
@@ -407,7 +427,7 @@ export class ChunkManager {
     }
 
     /* Prints the state in concise format. */
-    debugPrint() {
+    debugPrint(): void {
         let result = '';
         for (let y = 0; y < this.sizeY; y++) {
             for (let x = 0; x < this.sizeX; x++) {
@@ -420,8 +440,8 @@ export class ChunkManager {
         result += '\n\tNum on disk: ' + this.getNumInState(LOAD.ON_DISK);
         result += '\n';
 
-        for (let y = 0; y < this.area._sizeY; y++) {
-            for (let x = 0; x < this.area._sizeX; x++) {
+        for (let y = 0; y < this.area.getSizeY(); y++) {
+            for (let x = 0; x < this.area.getSizeX(); x++) {
                 const isCreated = this.area.zonesCreated[x + ',' + y];
                 const val = isCreated ? ' X ' : ' - ';
                 result += `${x},${y}: ` + val + '|';
@@ -432,7 +452,7 @@ export class ChunkManager {
     }
 
     /* Converts current state into a single char. */
-    stateToChar(state) {
+    stateToChar(state: ChunkState): string {
         switch (state.loadState) {
             case LOAD.LOADED: return 'L';
             case LOAD.JSON: return 'J';

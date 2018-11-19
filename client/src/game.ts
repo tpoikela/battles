@@ -5,12 +5,12 @@ import {ChunkManager} from './chunk-manager';
 import {EventPool} from './eventpool';
 import {Engine} from './engine';
 import {GameMaster} from './game.master';
-import GameObject from './game-object';
+import {GameObject} from './game-object';
 import {FactoryWorld} from './factory.world';
-import {World} from './world';
 import {Random} from './random';
 import {Geometry} from './geometry';
 import * as Component from './component';
+import * as World from './world';
 import {getIDCount} from './component.base';
 
 let POOL = EventPool.getPool();
@@ -146,8 +146,8 @@ export const GameMain = function() {
      * mainly. Maybe to be used with quick travel. */
     this.movePlayer = function(tileX, tileY, levelX = 0, levelY = 0) {
         const player = this.getPlayer();
-        const world = this.getCurrentWorld();
-        const area = world.getAreas()[0];
+        const world: World.WorldTop = this.getCurrentWorld();
+        const area: World.Area = world.getAreas()[0];
 
         let tile = null;
         if (this._enableChunkUnload) {
@@ -252,7 +252,7 @@ export const GameMain = function() {
         }
 
         const area = this.getArea(0);
-        if (area && area.hasTiles(areaLevels)) {
+        if (area && (areaLevels.length === 2) && area.hasTiles(areaLevels)) {
             POOL.emitEvent(RG.EVT_TILE_CHANGED,
                 {actor, target, src});
         }
@@ -426,6 +426,7 @@ export const GameMain = function() {
                 const world = this.getCurrentWorld();
                 if (world && world.getAreas) {
                     const area = world.getAreas()[0];
+                    area.printDebugInfo();
                     const [x, y] = area.findTileXYById(levelID);
                     const fact = new FactoryWorld();
                     fact.setGlobalConf(this.getGlobalConf());
