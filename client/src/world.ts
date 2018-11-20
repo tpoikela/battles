@@ -1241,16 +1241,16 @@ export class Area extends WorldBase {
             for (let y = 0; y < this._tiles[x].length; y++) {
                 if (this.tilesLoaded[x][y]) {
                     const currId = this._tiles[x][y].getLevel().getID();
-                    console.log(`Area ${this.getID()} Tile ${x},${y} is loaded (ID: ${currId})`);
                     try {
                         if (currId === id) {
                             return [x, y];
                         }
                     }
                     catch (e) {
-                        console.log(`Area ${this.getID()} ERROR`);
-                        console.log(`Failed to call getLevel for tile ${x},${y}`);
-                        console.log('Tile as JSON: ', this._tiles[x][y]);
+                        let msg = `Area ${this.getID()} ERROR`;
+                        msg += `\nFailed to call getLevel for tile ${x},${y}`;
+                        msg += `Tile as JSON: ', this._tiles[x][y]`;
+                        console.error(msg);
                         throw new Error(e);
                     }
                 }
