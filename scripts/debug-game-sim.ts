@@ -1,14 +1,16 @@
 
 require('babel-register');
 
-const expect = require('chai').expect;
-const fs = require('fs');
+import {expect} from 'chai';
+import fs = require('fs');
 
-const RG = require('../client/src/battles');
-const Keys = require('../client/src/keymap');
-const Evaluator = require('../client/src/evaluators');
-const ROT = require('../lib/rot');
-const UtilsSim = require('./utils-sim');
+import RG from '../client/src/rg';
+import ROT from '../lib/rot';
+
+import {Keys} from '../client/src/keymap';
+import {Evaluator} from '../client/src/evaluators';
+import {UtilsSim} from './utils-sim';
+import {Random} from './client/src/random';
 
 const restKey = {code: Keys.KEY.REST};
 const {VMEDIUM} = UtilsSim;

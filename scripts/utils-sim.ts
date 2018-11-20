@@ -1,8 +1,8 @@
 /* This file contains utility functions/object for game simlation. */
 
-const cmdLineArgs = require('command-line-args');
+import cmdLineArgs = require('command-line-args');
 
-const UtilsSim = {};
+export const UtilsSim: any = {};
 
 UtilsSim.optDefs = [
     {name: 'args', alias: 'a', multiple: true, type: String,
@@ -133,5 +133,3 @@ UtilsSim.VMEDIUM = 50;
 UtilsSim.VHIGH = 50;
 UtilsSim.VALL = 100;
 UtilsSim.VDEBUG = 150;
-
-module.exports = UtilsSim;
