@@ -1,20 +1,14 @@
 /* A script for profiling the game creation with large number of
  * tiles/features.  */
 
-require('babel-register');
-
-const RG = require('../client/src/battles');
-const FromJSON = require('../client/src/game.fromjson');
-const fs = require('fs');
-
-// const RNG = RG.Random.getRNG();
+import * as RG from '../client/src/battles';
+import fs = require('fs');
 
 const seed = process.argv[2] || Date.now();
 RG.Random.reseed(seed);
-// RNG.setSeed(seed);
 console.log('Seed used is', seed);
 
-const factory = new RG.Factory.Game();
+const factory = new RG.FactoryGame();
 const startTime = new Date();
 const jsonTest = true;
 
@@ -52,29 +46,28 @@ levels.forEach(level => {
 
 log('The game has ' + nActors + ' actors.');
 log('The game has ' + nItems + ' items.');
-log('Elements created: ' + RG.elementsCreated);
 
-const area = game.getArea(0);
-const cities = area.getZones('City');
+const area: RG.Area = game.getArea(0);
+const cities: RG.City[] = area.getZones('City') as RG.City[];
 
 log('There are', cities.length, 'cities created in the world');
 
 const areaConf = area.getConf();
 log('In total, found ' + areaConf.nCities + ' cities');
 
-const overworld = game.getOverWorld();
-const terrMap = overworld.terrMap;
+const overworld: RG.OWMap = game.getOverWorld();
+const terrMap: RG.Territory = overworld.getTerrMap();
 
-RG.log('Map printed from perf-create-game.js:\n', overworld.mapToString());
-RG.log('perf-create-game.js:\n', terrMap.mapToString());
+log('Map printed from perf-create-game.js:\n', overworld.mapToString());
+log('perf-create-game.js:\n', terrMap.mapToString());
 
 if (jsonTest) {
     const json = game.toJSON();
     const jsonStr = JSON.stringify(json);
     console.log('JSON length of game is ' + jsonStr.length);
 
-    const fromJSON = new FromJSON();
-    let newGame = new RG.Game.Main();
+    const fromJSON = new RG.FromJSON();
+    let newGame = new RG.GameMain();
     newGame = fromJSON.createGame(newGame, json);
     const newJSON = newGame.toJSON();
     const newJSONStr = JSON.stringify(newJSON);
