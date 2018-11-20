@@ -16,6 +16,9 @@ describe('CastleGenerator', () => {
         const level = castleGen.create(80, 50, conf);
         expect(level).not.to.be.empty;
 
+        const elements = level.getElements();
+        expect(elements.length).to.be.above(0);
+
         const items = level.getItems();
         expect(items.length).to.be.above(5);
     });
