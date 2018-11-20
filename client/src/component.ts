@@ -449,6 +449,7 @@ export const Loot = function(lootEntity) {
     this._lootEntity = lootEntity;
 };
 RG.extend2(Loot, ComponentBase);
+Component.Loot = Loot;
 
 /* Drops the loot to the given cell.*/
 Loot.prototype.dropLoot = function(cell) {
