@@ -1,16 +1,12 @@
 
-require('babel-register');
-
 import {expect} from 'chai';
 import fs = require('fs');
 
-import RG from '../client/src/rg';
+import * as RG from '../client/src/battles';
 import ROT from '../lib/rot';
-
-import {Keys} from '../client/src/keymap';
-import {Evaluator} from '../client/src/evaluators';
 import {UtilsSim} from './utils-sim';
-import {Random} from '../client/src/random';
+
+const Keys = RG.Keys;
 
 const restKey = {code: Keys.KEY.REST};
 const {VMEDIUM} = UtilsSim;
@@ -36,7 +32,7 @@ const gameConf = {
     playerLevel: 'Medium',
     levelSize: 'Medium',
     playerClass: opts.class || RG.ACTOR_CLASSES[0],
-    playerRace: opts.race || RG.ACTOR_RACES[0],
+    playerRace: opts.race || RG.RG.ACTOR_RACES[0],
 
     sqrPerActor: 120,
     sqrPerItem: 120,
@@ -47,14 +43,14 @@ const gameConf = {
     seed: 0
 };
 
-const gameFact = new RG.Factory.Game();
+const gameFact = new RG.FactoryGame();
 let game = null;
-let fromJSON = new RG.Game.FromJSON();
+let fromJSON = new RG.FromJSON();
 
 if (opts.load && opts.file) {
     const buf = fs.readFileSync(opts.file);
     const json = JSON.parse(buf.toString());
-    game = new RG.Game.Main();
+    game = new RG.GameMain();
     game = fromJSON.createGame(game, json);
 }
 else {
@@ -66,7 +62,7 @@ if (!opts.load) {
     // Simulate 1st serialisation in worker thread
     gameJSON = game.toJSON();
 
-    game = new RG.Game.Main();
+    game = new RG.GameMain();
     game = fromJSON.createGame(game, gameJSON);
 }
 
@@ -79,11 +75,11 @@ const fpsArray = [];
 // Used with expect() later
 const saveFunc = (numTurns) => {
     const saveDur = UtilsSim.time(() => {
-        fromJSON = new RG.Game.FromJSON();
+        fromJSON = new RG.FromJSON();
         gameJSON = game.toJSON();
     });
     const restDur = UtilsSim.time(() => {
-        game = new RG.Game.Main();
+        game = new RG.GameMain();
         game = fromJSON.createGame(game, gameJSON);
     });
     const writeDur = UtilsSim.time(() => {
@@ -102,7 +98,8 @@ const saveFunc = (numTurns) => {
 
 const reportFunc = game => {
     const level = game.getLevels()[0];
-    log(`saveFunc RG.POOL listeners: ${RG.POOL.getNumListeners()}`);
+    const POOL = RG.EventPool.getPool();
+    log(`saveFunc RG.POOL listeners: ${POOL.getNumListeners()}`);
     const numActors = level.getActors().length;
     log(`Actors in level: ${numActors}`);
 };
@@ -131,7 +128,8 @@ const saveInterval = opts.save_period || 400;
 let turnOfLastSave = 0;
 let timeSaveFinished = Date.now();
 
-log(`Start RG.POOL listeners: ${RG.POOL.getNumListeners()}`);
+const POOL = RG.EventPool.getPool();
+log(`Start RG.POOL listeners: ${POOL.getNumListeners()}`);
 
 for (let i = 1; i <= numTurns; i++) {
     // expect(updateFunc).not.to.throw(Error);
@@ -170,7 +168,7 @@ if (!isNaN(fpsAvg)) {
     info(VMEDIUM, '\tOverall avg FPS: ' + fpsAvg + ' (from array)');
 }
 
-fromJSON = new RG.Game.FromJSON();
+fromJSON = new RG.FromJSON();
 gameJSON = game.toJSON();
 if (fs && fs.writeFileSync) {
     fs.writeFileSync('results/debug-game.json',
@@ -183,4 +181,4 @@ if (level.getMap().useCache) {
     log('Map cache length is ' + cacheStr.length);
 }
 
-log(Evaluator.hist);
+log(RG.Evaluator.hist);
