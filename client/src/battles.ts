@@ -17,6 +17,7 @@ export {Mixin};
 export * from './geometry';
 export * from './time';
 export * from './template';
+export * from './territory';
 
 import * as Anim from './animation';
 export {Anim};
