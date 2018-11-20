@@ -479,7 +479,7 @@ export class Cell {
     }
 
     /* For debugging to find a given object. */
-    public findObj(filterFunc) {
+    public findObj(filterFunc: (obj: any) => boolean): any[] {
         const result = [];
         Object.keys(this._p).forEach(propType => {
             const props = this._p[propType];

@@ -77,15 +77,15 @@ export class CellMap {
     }
 
     /* Sets a property for the underlying cell.*/
-    setProp(x, y, prop, obj): void {
+    setProp(x, y, prop: string, obj): void {
         this._map[x][y].setProp(prop, obj);
     }
 
-    removeProp(x, y, prop, obj): boolean {
+    removeProp(x, y, prop: string, obj): boolean {
         return this._map[x][y].removeProp(prop, obj);
     }
 
-    moveProp(fromXY, toXY, prop, obj): boolean {
+    moveProp(fromXY, toXY, prop: string, obj): boolean {
         if (this.removeProp(fromXY[0], fromXY[1], prop, obj)) {
             this.setProp(toXY[0], toXY[1], prop, obj);
             return true;
@@ -334,7 +334,7 @@ export class CellMap {
 
     /* Slow find for debugging. Tries to find all objects matching the
      * filterFunc. */
-    findObj(filterFunc): any {
+    findObj(filterFunc: (obj: any) => boolean): any[] {
         let result = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {

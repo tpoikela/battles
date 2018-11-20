@@ -606,7 +606,7 @@ FromJSON.prototype.createSpells = (json, entity) => {
         }
         else {
             RG.err('FromJSON', 'createSpells',
-                `No spell ${spell.new} found in RG.Spell`);
+                `No spell ${spell.new} found in Spell`);
         }
     });
     return entity._spellbook;

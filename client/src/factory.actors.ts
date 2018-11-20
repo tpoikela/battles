@@ -137,7 +137,7 @@ FactoryActor.prototype.createSpell = function(spellName) {
     else {
         const keys = Object.keys(Spell).join('\n\t');
         RG.err('FactoryActor', 'createSpell',
-            `No spell ${spellName} found in RG.Spell: \n\t${keys}`);
+            `No spell ${spellName} found in Spell: \n\t${keys}`);
     }
     return null;
 };

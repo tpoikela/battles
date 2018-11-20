@@ -6,17 +6,16 @@ import EditorTopMenu from './editor-top-menu';
 import EditorGameBoard from './editor-game-board';
 import EditorLevelList from './editor-level-list';
 import SimulationButtons from './simulation-buttons';
-
 import GameMessages from '../jsx/game-messages';
 import LevelSaveLoad from './level-save-load';
-import {Capital} from '../data/capital';
-import {AbandonedFort, abandonedFortConf} from '../data/abandoned-fort';
-import {DwarvenCity, dwarvenCityConf} from '../data/dwarven-city';
-
 import EditorContextMenu from './editor-context-menu';
 import EditorClickHandler from './editor-click-handler';
 
+import RG from '../src/rg';
 import ROT from '../../lib/rot';
+import {Capital} from '../data/capital';
+import {AbandonedFort, abandonedFortConf} from '../data/abandoned-fort';
+import {DwarvenCity, dwarvenCityConf} from '../data/dwarven-city';
 import {MapWall} from '../../lib/map.wall';
 import {DungeonGenerator} from '../src/dungeon-generator';
 import {CaveGenerator} from '../src/cave-generator';
@@ -27,10 +26,7 @@ import {Geometry} from '../src/geometry';
 import {Level} from '../src/level';
 import {Cell} from '../src/map.cell';
 import {CellMap} from '../src/map';
-
 import {Screen} from '../gui/screen';
-
-import RG from '../src/rg';
 import {OWMap} from '../src/overworld.map';
 import {OverWorld} from '../src/overworld';
 import {FactoryWorld} from '../src/factory.world';
@@ -39,6 +35,8 @@ import {ObjectShell} from '../src/objectshellparser';
 import {ZoneBase, SubZoneBase} from '../src/world';
 import {Keys} from '../src/keymap';
 import {GameMain} from '../src/game';
+import {Factory} from '../src/factory';
+import {MapGenerator} from '../src/map.generator';
 
 const KeyMap = Keys.KeyMap;
 
@@ -65,7 +63,7 @@ const boardViews: string[] = [
 ];
 
 /* Returns all cells in a box between cells c1,c2 on the given map. */
-const getSelection = (c0, c1, map) => {
+const getSelection = (c0: Cell, c1: Cell, map: CellMap): Cell[] => {
     const [x0, y0] = [c0.getX(), c0.getY()];
     const [x1, y1] = [c1.getX(), c1.getY()];
     if (x0 === x1 && y0 === y1) {
@@ -341,7 +339,7 @@ export default class GameEditor extends Component {
     return this.state.level.getMap();
   }
 
-  public getCellCurrMap(x, y) {
+  public getCellCurrMap(x, y): Cell | null {
     const map = this.getCurrMap();
     if (map.hasXY(x, y)) {
       return map.getCell(x, y);
@@ -350,33 +348,33 @@ export default class GameEditor extends Component {
   }
 
   /* Handles right clicks of the context menu. */
-  public handleRightClick(evt, data, cell) {
+  public handleRightClick(evt, data, cell): void {
       const [x, y] = cell.getXY();
       this.useClickHandler(x, y, cell, data.type);
   }
 
-  public useClickHandler(x, y, cell, cmd) {
+  public useClickHandler(x, y, cell, cmd): void {
     const clickHandler = new EditorClickHandler(this.state.level);
     if (clickHandler.handleClick(x, y, cell, cmd)) {
       this.setState({level: this.state.level});
     }
   }
 
-  public onMouseOverCell(x, y) {
+  public onMouseOverCell(x, y): void {
     const cell = this.getCellCurrMap(x, y);
     if (cell) {
       this.setState({mouseOverCell: cell});
     }
   }
 
-  public onMouseDown(x, y) {
+  public onMouseDown(x, y): void {
     if (!this.state.selectMode) {
       const cell = this.getCellCurrMap(x, y);
       this.setState({selectMode: true, selectBegin: cell, selectEnd: cell});
     }
   }
 
-  public onMouseUp(x, y) {
+  public onMouseUp(x, y): void {
     if (this.state.selectMode) {
       const cell = this.getCellCurrMap(x, y);
       const stateUpdates: any = {
@@ -390,7 +388,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  public onMouseOver(x, y) {
+  public onMouseOver(x, y): void {
     if (this.state.selectMode) {
       const cell = this.getCellCurrMap(x, y);
       if (cell) {
@@ -409,13 +407,13 @@ export default class GameEditor extends Component {
     document.removeEventListener('keypress', this.handleKeyDown, true);
   }
 
-  public setStateWithLevel(level, obj = {}) {
+  public setStateWithLevel(level: Level, obj = {}) {
     level.getMap()._optimizeForRowAccess();
     this.setState(Object.assign({level}, obj));
   }
 
   /* Returns the first selected cell. */
-  public getFirstSelectedCell() {
+  public getFirstSelectedCell(): Cell | null {
     if (this.state.selectedCell) {
       if (this.state.selectedCell.length > 0) {
         return this.state.selectedCell[0];
@@ -441,7 +439,7 @@ export default class GameEditor extends Component {
         mult = 10;
       }
 
-      let cell = this.getFirstSelectedCell();
+      let cell: Cell = this.getFirstSelectedCell();
       if (this.state.selectMode) {
         cell = this.state.selectEnd;
       }
@@ -656,9 +654,10 @@ export default class GameEditor extends Component {
           for (let ty = 0; ty < this.state.subLevelTileY; ty++) {
             const xSub = x0 + tx * subWidth;
             const ySub = y0 + ty * subHeight;
-            const subLevel = RG.FACT.createLevel(
+            const factLevel = new FactoryLevel();
+            const subLevel = factLevel.createLevel(
               levelType, subWidth, this.state.subLevelY, conf);
-            RG.Geometry.mergeLevels(level, subLevel, xSub, ySub);
+            Geometry.mergeLevels(level, subLevel, xSub, ySub);
           }
         }
       }
@@ -712,7 +711,7 @@ export default class GameEditor extends Component {
       func: (actor) => (actor.danger < 100)
     };
 
-    RG.FACT.setParser(RG.ObjectShell.getParser());
+    RG.FACT.setParser(ObjectShell.getParser());
     RG.FACT.addNRandActors(level, this.parser, conf);
     this.setStateWithLevel(level);
   }
@@ -726,7 +725,7 @@ export default class GameEditor extends Component {
   public getBBoxForInsertion() {
     const c0 = this.state.selectBegin;
     const c1 = this.state.selectEnd;
-    return RG.Geometry.getBoxCornersForCells(c0, c1);
+    return Geometry.getBoxCornersForCells(c0, c1);
   }
 
   public insertElement() {
@@ -734,7 +733,7 @@ export default class GameEditor extends Component {
     this.debugMsg('insertElement: ' + `${ulx}, ${uly}, ${lrx}, ${lry}`);
     const level = this.state.level;
     try {
-      RG.Geometry.insertElements(level, this.state.elementType,
+      Geometry.insertElements(level, this.state.elementType,
         {ulx, uly, lrx, lry});
     }
     catch (e) {
@@ -748,7 +747,7 @@ export default class GameEditor extends Component {
     this.debugMsg('insertActor: ' + `${ulx}, ${uly}, ${lrx}, ${lry}`);
     const level = this.state.level;
     try {
-      RG.Geometry.insertActors(level, this.state.actorName,
+      Geometry.insertActors(level, this.state.actorName,
         {ulx, uly, lrx, lry}, this.parser);
     }
     catch (e) {
@@ -761,7 +760,7 @@ export default class GameEditor extends Component {
     const {ulx, uly, lrx, lry} = this.getBBoxForInsertion();
     const level = this.state.level;
     try {
-      RG.Geometry.insertItems(level, this.state.itemName,
+      Geometry.insertItems(level, this.state.itemName,
         {ulx, uly, lrx, lry}, this.parser);
     }
     catch (e) {
@@ -774,7 +773,7 @@ export default class GameEditor extends Component {
   public invertMap() {
     const level = this.state.level;
     const map = level.getMap();
-    RG.Map.CellList.invertMap(map);
+    CellMap.invertMap(map);
     this.setStateWithLevel(level);
   }
 
@@ -955,16 +954,16 @@ export default class GameEditor extends Component {
   public getLevelConf(value) {
     console.log('getLevelConf with', value);
     if (value === 'town') {
-      return RG.Factory.cityConfBase({});
+      return Factory.cityConfBase({});
     }
     else if (value === 'townwithwall') {
-      return RG.Factory.cityConfBase({});
+      return Factory.cityConfBase({});
     }
     else if (value === 'forest') {
       return {nForests: 5, forestSize: 100, ratio: 0.5, factor: 6};
     }
     else if (value === 'mountain') {
-      return RG.Map.Generator.getOptions('mountain');
+      return MapGenerator.getOptions('mountain');
     }
     else if (value === 'crypt' || value === 'castle') {
       return {
