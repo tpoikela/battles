@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import RG from '../../../client/src/rg';
 import {FactoryGame} from '../../../client/src/factory.game';
 import {OWMap} from '../../../client/src/overworld.map';
+import { OverWorld, CoordMap } from '../../../client/src/overworld';
 
 describe('Factory.Game', () => {
     it('can generate worldConf based on territory map', () => {
@@ -17,7 +18,7 @@ describe('Factory.Game', () => {
             playerX, playerY);
         overworld.setTerrMap(owTerrMap);
 
-        const worldAndConf = RG.OverWorld.createOverWorldLevel(
+        const worldAndConf = OverWorld.createOverWorldLevel(
           overworld, owConf);
         const [worldLevel, worldConf] = worldAndConf;
         expect(worldLevel).to.not.be.empty;
@@ -26,7 +27,7 @@ describe('Factory.Game', () => {
 
         const citiesConf = worldConf.area[0].city;
 
-        const coordMap = new RG.OverWorld.CoordMap();
+        const coordMap = new CoordMap();
         coordMap.setXYMap(10, 10);
 
         const terrMap = overworld.getTerrMap();

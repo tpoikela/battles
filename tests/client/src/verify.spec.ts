@@ -15,15 +15,15 @@ describe('Verify', () => {
     it('can verify inputs args', () => {
         const conf = new Verify.Conf('Test module');
 
-        let func = () => {
+        const func = () => {
             conf.verifyConf('TestFunc', {aaa: 'aaa'}, ['aaa']);
         };
         expect(func).to.not.throw(Error);
 
-        func = () => {
+        const func2 = () => {
             conf.verifyConf('TestFunc', {bbb: 'aaa'}, ['aaa']);
         };
-        expect(func).to.throw(Error);
+        expect(func2).to.throw(Error);
     });
 
     it('can verify reqs ORed with |', () => {

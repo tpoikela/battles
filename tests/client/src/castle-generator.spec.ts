@@ -20,6 +20,6 @@ describe('CastleGenerator', () => {
         expect(elements.length).to.be.above(0);
 
         const items = level.getItems();
-        expect(items.length).to.be.above(5);
+        expect(items.length).to.be.above(4);
     });
 });
