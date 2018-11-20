@@ -2,14 +2,15 @@
 import dbg from 'debug';
 const debug = dbg('bitn:Goal');
 
+
 import RG from './rg';
-import {Random} from './random';
 import * as Component from './component';
-import {Path, CoordXY, PathFunc} from './path';
-import {SentientActor} from './actor';
-import {SpellBase, SpellArgs} from './spell';
 import * as Item from './item';
 import {Brain} from './brain';
+import {Path, CoordXY, PathFunc} from './path';
+import {Random} from './random';
+import {SentientActor} from './actor';
+import {SpellBase, SpellArgs} from './spell';
 
 const RNG = Random.getRNG();
 export const Goal: any = {};
