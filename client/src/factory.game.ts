@@ -6,7 +6,7 @@ import * as Time from './time';
 import * as Verify from './verify';
 import * as World from './world';
 import {ActorClass} from './actor-class';
-import {Actors} from '../data/actors';
+import {ActorsData} from '../data/actors';
 import {DebugGame} from '../data/debug-game';
 import {Disposition} from './disposition';
 import {Entity} from './entity';
@@ -21,11 +21,12 @@ import {Geometry} from './geometry';
 import {Builder} from './builder';
 import {OWMap, OWMapConf} from './overworld.map';
 import {ObjectShell} from './objectshellparser';
-import {OverWorld} from './overworld';
+import {OverWorld, CoordMap} from './overworld';
 import {Random} from './random';
 import {TerritoryMap} from '../data/territory-map';
 import {Territory} from './territory';
 import {WorldConf} from './world.creator';
+import {Level} from './level';
 
 const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
@@ -39,7 +40,7 @@ const confPlayerStats = {
 };
 
 /* Object for creating the top-level game object. GUI should only use this
- * factory when creating a new game. For restoring a game, see RG.Game.Save.
+ * factory when creating a new game. For restoring a game, see GameSave.
  */
 export const FactoryGame = function() {
     FactoryBase.call(this);
@@ -241,12 +242,10 @@ FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
     this.progress('DONE');
 
     this.progress('Splitting Overworld Level Map into AreaTiles...');
-    RG.Map.Level.idCount = 0;
     const splitLevels = Builder.splitLevel(worldLevel, owConf);
     this.progress('DONE');
 
     this.progress('Creating and connectting World.Area tiles...');
-    RG.Map.Level.idCount = 1000;
     const worldArea = new World.Area('Ravendark', owConf.nLevelsX,
         owConf.nLevelsY, 100, 100, splitLevels);
     worldArea.connectTiles();
@@ -353,7 +352,7 @@ FactoryGame.prototype.createTerritoryMap = function(
  * constraints.
  */
 FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
-    const uniqueActors = Actors.filter(shell => shell.base === 'UniqueBase');
+    const uniqueActors = ActorsData.filter(shell => shell.base === 'UniqueBase');
     const uniqueCreated = {};
     let uniquesAdded = 0;
 
@@ -522,11 +521,11 @@ FactoryGame.prototype.createAreaLevelConstraints = function(
  * tile that AreaTile, and returns them as array. */
 FactoryGame.prototype.getConstrWeightsForAreaXY = function(aX, aY, terrMap) {
     const terrMapXY = terrMap.getMap();
-    const coordMap = new RG.OverWorld.CoordMap({xMap: 10, yMap: 10});
+    const coordMap = new CoordMap({xMap: 10, yMap: 10});
 
     const bbox = coordMap.getOWTileBboxFromAreaTileXY(aX, aY);
-    const cells = RG.Geometry.getCellsInBbox(terrMapXY, bbox);
-    const hist = RG.Geometry.histArrayVals(cells);
+    const cells = Geometry.getCellsInBbox(terrMapXY, bbox);
+    const hist = Geometry.histArrayVals(cells);
     let types = Object.keys(hist);
     types = types.filter(type => (type !== '#' && type !== '.'));
 
@@ -608,7 +607,7 @@ FactoryGame.prototype.createPresetLevels = function(arr) {
         const level = fromJSON.restoreLevel(item.level);
         // Need to reset level + actors IDs for this game
         if (level.getID() < RG.LEVEL_ID_ADD) {
-            level.setID(RG.Map.Level.createLevelID());
+            level.setID(Level.createLevelID());
         }
         level.getActors().forEach(actor => {
             if (actor.getID() < RG.ENTITY_ID_ADD) {

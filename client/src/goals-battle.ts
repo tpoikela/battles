@@ -5,6 +5,7 @@ import RG from './rg';
 import {Goal, GoalBase} from './goals';
 import {Evaluator} from './evaluators';
 import {SentientActor} from './actor';
+import * as Component from './component';
 
 const {GOAL_ACTIVE, GOAL_COMPLETED} = Goal;
 
@@ -26,7 +27,7 @@ export const orderWithGoal = (actor, obj) => {
         }
     }
     else {
-        const orderComp = new RG.Component.BattleOrder();
+        const orderComp = new Component.BattleOrder();
         const args = {
             srcActor: obj.src
         };

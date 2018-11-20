@@ -7,6 +7,7 @@ import {EventPool} from '../eventpool';
 import {SystemEffects} from './system.effects';
 import {SystemQuest} from './system.quest';
 import * as Component from '../component';
+import {Brain} from '../brain';
 
 const POOL = EventPool.getPool();
 
@@ -131,7 +132,7 @@ export class SystemBaseAction extends SystemBase {
         const level = ent.getLevel();
         const cell = ent.getCell();
         // Check if any actors should follow the player
-        const actorsAround = RG.Brain.getActorsAround(ent);
+        const actorsAround = Brain.getActorsAround(ent);
 
         if (level.useStairs(ent)) {
             if (ent.isPlayer()) {ent.getBrain().addMark();}
@@ -151,7 +152,7 @@ export class SystemBaseAction extends SystemBase {
 
             // Moves the surrounding actors to new location as well
             if (actorsAround.length > 0) {
-                const cells = RG.Brain.getBoxOfFreeCellsAround(ent, 1);
+                const cells = Brain.getBoxOfFreeCellsAround(ent, 1);
 
                 while (actorsAround.length > 0 && cells.length > 0) {
                     const nextActor = actorsAround.pop();

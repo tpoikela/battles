@@ -375,7 +375,7 @@ FromJSON.prototype.createComponent = function(name, compJSON) {
         msg += ` compJSON: ${JSON.stringify(compJSON)}`;
         RG.err('Game.FromJSON', 'createComponent', msg);
     }
-    // TODO remove error check, change to RG.Component.create(name)
+    // TODO remove error check, change to Component.create(name)
     const newCompObj = new Component[name]();
     for (const setFunc in compJSON) {
         if (typeof newCompObj[setFunc] === 'function') {

@@ -6,6 +6,7 @@ import * as Brain from './brain';
 import * as ObjectShell from './objectshellparser';
 import {ActorMods} from '../data/actor-mods';
 import {Spell} from './spell';
+import * as Component from './component';
 
 import dbg = require('debug');
 const debug = dbg('bitn:FactoryActor');
@@ -21,7 +22,7 @@ const initCombatant = (comb, obj) => {
 
     let combatComp = null;
     if (!comb.has('Combat')) {
-        combatComp = new RG.Component.Combat();
+        combatComp = new Component.Combat();
         comb.add(combatComp);
     }
     else {

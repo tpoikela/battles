@@ -4,6 +4,8 @@ import RG from './rg';
 import {Goal} from './goals';
 import {Random} from './random';
 import {Cell} from './map.cell';
+import {Brain} from './brain';
+import * as Component from './component';
 
 const {
     GOAL_ACTIVE,
@@ -45,7 +47,7 @@ export class GoalSearchHouse extends Goal.Base {
             // Get out of the house
             if (actorCell.hasDoor()) {
                 // Get out finally
-                const cells = RG.Brain.getCellsAroundActor(this.actor);
+                const cells = Brain.getCellsAroundActor(this.actor);
                 let chosenCell = null;
                 cells.forEach(cell => {
                     if (cell.getBaseElem().getType() !== 'floorhouse') {
@@ -153,7 +155,7 @@ export class GoalThief extends Goal.Base {
         if (itemToSell) {
             const shopElem = actorCell.getPropType('shop')[0];
             // const price = shopElem.getItemPriceForSelling(itemToSell);
-            const trans = new RG.Component.Transaction();
+            const trans = new Component.Transaction();
             trans.setArgs({item: itemToSell, seller: this.actor,
                 shop: shopElem, buyer: shopElem.getShopkeeper(),
                 count: itemToSell.getCount()});

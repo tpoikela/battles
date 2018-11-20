@@ -15,6 +15,7 @@ import {Level} from './level';
 import {Cell} from './map.cell';
 import {SentientActor} from './actor';
 import {FactoryLevel} from './factory.level';
+import * as Component from './component';
 
 type Coord = [number, number];
 
@@ -1136,12 +1137,10 @@ export class Area extends WorldBase {
     }
 
     public setLoaded(x, y): void {
-        console.log(`Area ${this.getID()} setLoaded ${x},${y}`);
         this.tilesLoaded[x][y] = true;
     }   
 
     public setUnloaded(x, y): void {
-        console.log(`Area ${this.getID()} setUnloaded UNLOAD ${x},${y}`);
         this.tilesLoaded[x][y] = false;
     }
 
@@ -1256,7 +1255,6 @@ export class Area extends WorldBase {
                 }
             }
         }
-        console.log('Returning null for ID ' + id);
         this.printLevelIDs();
         return null;
     }
@@ -1397,7 +1395,6 @@ export class Area extends WorldBase {
             }
 
         });
-        console.log('Found level IDs', allIDs);
     }
 
     public printDebugInfo(): void {
@@ -1997,7 +1994,7 @@ export class WorldShop {
                 if (items) {
                     items.forEach(item => {
                         if (!item.has('Unpaid')) {
-                            item.add(new RG.Component.Unpaid());
+                            item.add(new Component.Unpaid());
                         }
                     });
                 }
@@ -2024,7 +2021,7 @@ export class WorldShop {
             const cell = this._level.getMap().getCell(xy[0], xy[1]);
             if (!cell.hasItems()) {
                 if (nItem < newItems.length) {
-                    newItems[nItem].add(new RG.Component.Unpaid());
+                    newItems[nItem].add(new Component.Unpaid());
                     this._level.addItem(newItems[nItem], xy[0], xy[1]);
                     ++nItem;
                 }

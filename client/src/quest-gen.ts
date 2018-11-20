@@ -1274,7 +1274,6 @@ export class QuestPopulate {
             questGiver.add(giverComp);
             this.addUniqueName(questGiver);
             this.questGivers.set(questData, questGiver);
-            console.log('QuestGiver will be ' + questGiver.getName());
         }
 
     }
