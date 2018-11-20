@@ -113,15 +113,15 @@ UtilsSim.Log = function(opts) {
 UtilsSim.getTimeStamp = function() {
     const date = new Date();
     const yyyy = date.getFullYear();
-    let mm = date.getMonth();
+    let mm: any = date.getMonth();
     if (mm < 10) {mm = '0' + mm;}
-    let dd = date.getDay();
+    let dd: any = date.getDay();
     if (dd < 10) {dd = '0' + dd;}
-    let hh = date.getHours();
+    let hh: any = date.getHours();
     if (hh < 10) {hh = '0' + hh;}
-    let MM = date.getMinutes();
+    let MM: any = date.getMinutes();
     if (MM < 10) {MM = '0' + MM;}
-    let ss = date.getSeconds();
+    let ss: any = date.getSeconds();
     if (ss < 10) {ss = '0' + ss;}
     return `${yyyy}-${mm}-${dd}-${hh}-${MM}-${ss}`;
 };
