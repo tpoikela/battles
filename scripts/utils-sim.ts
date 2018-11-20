@@ -58,8 +58,8 @@ UtilsSim.time = function(cb) {
     return end - start;
 };
 
-UtilsSim.getDefaults = function(opt) {
-    const obj = Object.assign({}, opt);
+UtilsSim.getDefaults = function(opt: any) {
+    const obj: any = Object.assign({}, opt);
     obj.name = obj.name || 'Player';
     obj.maxturns = obj.maxturns || 1000;
     obj.framePeriod = obj.frame_period || 1;
