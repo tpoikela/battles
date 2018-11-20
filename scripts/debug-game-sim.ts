@@ -10,7 +10,7 @@ import ROT from '../lib/rot';
 import {Keys} from '../client/src/keymap';
 import {Evaluator} from '../client/src/evaluators';
 import {UtilsSim} from './utils-sim';
-import {Random} from './client/src/random';
+import {Random} from '../client/src/random';
 
 const restKey = {code: Keys.KEY.REST};
 const {VMEDIUM} = UtilsSim;
@@ -166,7 +166,7 @@ const fpsAvg = fpsArray.reduce((acc, val) => acc + val, 0) / fpsArray.length;
 
 const fps = numTurns / (durGame / 1000);
 info(VMEDIUM, 'Overall avg FPS: ' + fps);
-if (!Number.isNaN(fpsAvg)) {
+if (!isNaN(fpsAvg)) {
     info(VMEDIUM, '\tOverall avg FPS: ' + fpsAvg + ' (from array)');
 }
 
