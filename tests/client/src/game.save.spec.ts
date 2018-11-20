@@ -1,17 +1,24 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const RGTest = require('../../roguetest');
+import {expect} from 'chai';
+import RG from '../../../client/src/rg';
+import {RGTest} from '../../roguetest';
+import { SentientActor } from '../../../client/src/actor';
+import { GameSave, GameMain } from '../../../client/src/game';
+import { FromJSON } from '../../../client/src/game.fromjson';
+import { FactoryLevel } from '../../../client/src/factory.level';
+import * as Item from '../../../client/src/item';
 
-const LocalStorage = require('node-localstorage').LocalStorage;
+import Storage = require('node-localstorage');
+const LocalStorage = Storage.LocalStorage;
 
 describe('Game.Save how saving works', () => {
 
     // TODO add to RGTest
     const setupPlayerWithLevel = name => {
-        const level = RG.FACT.createLevel('arena', 10, 10);
+        const levelFact = new FactoryLevel();
+        const level = levelFact.createLevel('arena', 10, 10);
         level.setLevelNumber(3);
-        const player = new RG.Actor.Rogue(name);
+        const player = new SentientActor(name);
         player.setType('player');
         player.setIsPlayer(true);
         level.addActor(player, 3, 3);
@@ -23,14 +30,14 @@ describe('Game.Save how saving works', () => {
 
     beforeEach(() => {
         localStorage = new LocalStorage('./battles_local_storage');
-        gameSave = new RG.Game.Save();
+        gameSave = new GameSave();
         gameSave.setStorage(localStorage);
 
     });
 
     it('Saves/restores player properly', () => {
         const setup = setupPlayerWithLevel('Player1');
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         game.addLevel(setup.level);
 
         const player = setup.player;
@@ -39,9 +46,9 @@ describe('Game.Save how saving works', () => {
         gameSave.savePlayer(game);
 
         const json = game.toJSON();
-        const fromJSON = new RG.Game.FromJSON();
+        const fromJSON = new FromJSON();
 
-        let restGame = new RG.Game.Main();
+        let restGame = new GameMain();
         restGame = fromJSON.createGame(restGame, json);
         const restPlayer = restGame.getPlayer();
         expect(restPlayer, 'Player restored OK').to.exist;
@@ -64,23 +71,23 @@ describe('Game.Save how saving works', () => {
     });
 
     it('Saves/restores inventory properly', () => {
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         const setup = setupPlayerWithLevel('Player1');
         const player = setup.player;
         const invEq = player.getInvEq();
 
         // Test first with simple food
-        const food = new RG.Item.Food('Habanero');
+        const food = new Item.Food('Habanero');
         invEq.addItem(food);
 
         game.addLevel(setup.level);
         game.addPlayer(player);
 
         let json = game.toJSON();
-        let fromJSON = new RG.Game.FromJSON();
+        let fromJSON = new FromJSON();
         gameSave.savePlayer(game);
         let restGame = null;
-        restGame = new RG.Game.Main();
+        restGame = new GameMain();
         restGame = fromJSON.createGame(restGame, json);
 
         let restPlayer = restGame.getPlayer();
@@ -89,22 +96,22 @@ describe('Game.Save how saving works', () => {
         expect(invItems[0].equals(food)).to.equal(true);
 
         // Create a new weapon
-        const weapon = new RG.Item.Weapon('Sword');
+        const weapon = new Item.Weapon('Sword');
         weapon.setAttack(10);
         weapon.setDamageDie('3d3+5');
         weapon.setCount(2);
 
         // Add it, save player and then restore
-        gameSave = new RG.Game.Save();
+        gameSave = new GameSave();
         gameSave.setStorage(localStorage);
 
         invEq.addItem(weapon);
 
         json = game.toJSON();
-        fromJSON = new RG.Game.FromJSON();
+        fromJSON = new FromJSON();
         gameSave.savePlayer(game);
 
-        restGame = new RG.Game.Main();
+        restGame = new GameMain();
         restGame = fromJSON.createGame(restGame, json);
         restPlayer = restGame.getPlayer();
         invItems = restPlayer.getInvEq().getInventory().getItems();
@@ -114,11 +121,11 @@ describe('Game.Save how saving works', () => {
         expect(sword.equals(weapon)).to.equal(true);
         expect(sword.getCount()).to.equal(2);
 
-        const armour = new RG.Item.Armour('Plate mail');
+        const armour = new Item.Armour('Plate mail');
         armour.setDefense(11);
         invEq.addItem(armour);
 
-        gameSave = new RG.Game.Save();
+        gameSave = new GameSave();
         gameSave.setStorage(localStorage);
 
         gameSave.savePlayer(game);
@@ -129,14 +136,14 @@ describe('Game.Save how saving works', () => {
     });
 
     it('Saves/restores and equips equipment correctly', () => {
-        const game = new RG.Game.Main();
+        const game = new GameMain();
         const setup = setupPlayerWithLevel('HeroPlayer');
         const player = setup.player;
         const invEq = player.getInvEq();
         game.addLevel(setup.level);
         game.addPlayer(player);
 
-        const weapon = new RG.Item.Weapon('Sword');
+        const weapon = new Item.Weapon('Sword');
         weapon.setDefense(15);
         weapon.setAttack(1);
         weapon.setWeight(2.5);
@@ -145,10 +152,10 @@ describe('Game.Save how saving works', () => {
         expect(invEq.equipItem(weapon)).to.equal(true);
 
         // Empty spirit gem
-        const emptygem = new RG.Item.SpiritGem('Wolf gem');
+        const emptygem = new Item.SpiritGem('Wolf gem');
         invEq.addItem(emptygem);
 
-        const gemWithSpirit = new RG.Item.SpiritGem('Used gem');
+        const gemWithSpirit = new Item.SpiritGem('Used gem');
         const spirit = RGTest.createSpirit('Wolf spirit');
         spirit.get('Stats').setStrength(11);
         gemWithSpirit.setSpirit(spirit);
