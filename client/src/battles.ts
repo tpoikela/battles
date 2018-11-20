@@ -5,6 +5,7 @@ import RG from './rg';
 export {RG};
 export * from './verify';
 
+export * from './keymap';
 export * from './eventpool';
 
 // No deps to RG.SubElems
@@ -40,6 +41,9 @@ export * from './inv';
 export * from './actor';
 export * from './element';
 
+export * from './evaluators';
+export * from './evaluators-battle';
+
 export * from './map.cell';
 export * from './map';
 export * from './map.generator';
@@ -54,10 +58,17 @@ export * from './world';
 export * from '../data/effects';
 export * from './objectshellparser';
 
+export * from './menu';
+export * from './actor-class';
+
 export * from './game';
+export * from './factory.level';
+export * from './factory.actors';
+export * from './factory.items';
 export * from './factory';
-export * from './factory.world';
+export * from './factory.battle';
 export * from './factory.zone';
+export * from './factory.world';
 
 export * from '../data/name-gen';
 export * from '../data/level-gen';
