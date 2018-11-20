@@ -66,6 +66,7 @@ export * from './overworld.map';
 export * from './overworld';
 
 export * from './game.fromjson';
+export * from './gamesave';
 export * from './chunk-manager';
 
 export * from './factory.game';
