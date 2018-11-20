@@ -257,8 +257,8 @@ export class BattlesTop extends React.Component {
         this.listener = new ProxyListener(this.notify);
         this.multiHandler = new MultiKeyHandler();
 
-        this.savedPlayerList = this.gameSave.getPlayersAsList();
         this.gameSave.setStorage(window.localStorage);
+        this.savedPlayerList = this.gameSave.getPlayersAsList();
 
         this.state = {
             animation: null,
