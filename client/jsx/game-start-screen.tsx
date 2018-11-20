@@ -31,6 +31,7 @@ interface IGameStartScreenProps {
 import RG from '../src/rg';
 import Modal from 'react-bootstrap-modal';
 import {Texts} from '../data/texts';
+import {ACTOR_CLASSES} from '../src/actor-class';
 
 const config = require('../../public/config.js');
 
@@ -197,7 +198,7 @@ export default class GameStartScreen extends React.Component {
               <DropdownSelect
                 callback={this.props.setPlayerClass}
                 currValue={this.props.settings.playerClass}
-                options={RG.ACTOR_CLASSES}
+                options={ACTOR_CLASSES}
                 titleName='Player class'
               />
               <DropdownSelect
