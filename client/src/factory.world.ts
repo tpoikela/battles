@@ -451,7 +451,6 @@ export const FactoryWorld = function() {
 
     this.createZonesFromArea = (area: Area, conf, tx = -1, ty = -1): void => {
         this.debug(`createZonesFromArea ${tx}, ${ty}`);
-        area.printDebugInfo();
         ZONE_TYPES.forEach(type => {
             const typeLc = type.toLowerCase();
             const createFunc = 'create' + type;
