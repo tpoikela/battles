@@ -152,7 +152,8 @@ describe('ChunkManager', function() {
         expect(manager).to.exist;
 
         const playerLevel = player.getLevel();
-        RG.POOL.emitEvent(RG.EVT_TILE_CHANGED, {actor: player,
+        const POOL = EventPool.getPool();
+        POOL.emitEvent(RG.EVT_TILE_CHANGED, {actor: player,
             target: playerLevel});
 
         const playerPos = game.getPlayerOwPos();
@@ -176,7 +177,7 @@ describe('ChunkManager', function() {
         });
     });
 
-    it.only('prevents loading of the full world after restore', () => {
+    it('prevents loading of the full world after restore', () => {
         const tile00 = area.getTiles()[0][0];
         tile00.getLevel().addActor(player, 1, 1);
         game.addPlayer(player);
