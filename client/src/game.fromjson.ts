@@ -31,6 +31,7 @@ import * as World from './world';
 import {Random} from './random';
 import {OverWorld} from './overworld';
 import * as Time from './time';
+import { BrainSpawner } from './brain.virtual';
 
 type AreaTileJSON = World.AreaTileJSON;
 type Stairs = Element.ElementStairs;
@@ -39,6 +40,7 @@ const POOL = EventPool.getPool();
 const SentientActor = Actor.Sentient;
 
 Brain.Player = BrainPlayer;
+Brain.Spawner = BrainSpawner;
 
 const OBJ_REF_REMOVED = Symbol();
 const OBJ_REF_NOT_FOUND = null;
