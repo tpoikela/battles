@@ -5,7 +5,7 @@ import RG from './rg';
 import {Constraints} from './constraints';
 import {BrainBase} from './brain';
 import {Constraint} from './interfaces';
-import { ObjectShell } from './objectshellparser';
+import {ObjectShell} from './objectshellparser';
 
 const spawnProb = 0.10;
 
