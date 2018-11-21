@@ -6,7 +6,7 @@ import * as Mixin from './mixin';
 import * as Component from './component';
 import {compsToJSON} from './component.base';
 
-import {BrainGoalOriented} from './brain';
+import {BrainBase, BrainGoalOriented} from './brain';
 import {BrainVirtual} from './brain.virtual';
 import {BrainPlayer} from './brain.player';
 
@@ -25,7 +25,9 @@ export interface StatsData {
 
 export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
-    constructor(name) { // {{{2
+    protected _brain: BrainBase;
+
+    constructor(name: string) {
         super({propType: RG.TYPE_ACTOR, type: null});
         const named = new Component.Named();
         named.setName(name);
@@ -75,7 +77,8 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         }
 
         if (this._brain.hasOwnProperty('energy')) {
-            action.energy = this._brain.energy;
+            const bp = this._brain as unknown;
+            action.energy = (bp as BrainPlayer).energy;
         }
         action.actor = this;
         return action;
@@ -127,6 +130,12 @@ export class SentientActor extends BaseActor {
 
     public static getFormattedStats: (actor: SentientActor) => StatsData;
 
+    protected _invEq: Inventory;
+    protected _maxWeight: number;
+    protected _actorClass: any;
+    protected _spellbook?: any;
+    protected _actualBrain?: any;
+
     constructor(name) { // {{{2
         super(name);
 
@@ -166,8 +175,12 @@ export class SentientActor extends BaseActor {
     public addEnemyType(type) {
         this._brain.getMemory().addEnemyType(type);
     }
-    public addEnemy(actor) {this._brain.addEnemy(actor);}
-    public addFriend(actor) {this._brain.addFriend(actor);}
+    public addEnemy(actor) {
+        (this._brain as BrainGoalOriented).addEnemy(actor);
+    }
+    public addFriend(actor) {
+        (this._brain as BrainGoalOriented).addFriend(actor);
+    }
 
     public isEnemy(actor) {
         return this._brain.getMemory().isEnemy(actor);
