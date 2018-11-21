@@ -346,3 +346,15 @@ export class Equipment {
     }
 }
 
+export interface Equipment {
+    getAccuracy(): number;
+    getAgility(): number;
+    getAttack(): number;
+    getDefense(): number;
+    getMagic(): number;
+    getPerception(): number;
+    getProtection(): number;
+    getSpeed(): number;
+    getStrength(): number;
+    getWillpower(): number;
+}
