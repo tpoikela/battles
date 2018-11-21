@@ -467,7 +467,7 @@ export class QuestData {
     }
 
     getCurrentLocation(): Level {
-        const location = this.getCurrentLocation() as Level;
+        const location = this.getCurrent('location') as Level;
         if (location) {return location;}
         RG.err('QuestGen', 'getCurrentLocation',
             'No location found');
@@ -1012,7 +1012,7 @@ export class QuestPopulate {
 
     /* Returns an actor from the given array, who is suitable as quest target
      * or quest giver. */
-    getActorForQuests(actors: SentientActor[]): SentientActor {
+    getActorForQuests(actors: SentientActor[]): Entity {
         let actor = RNG.arrayGetRand(actors);
         let numTries = 20;
         let createNew = false;
@@ -1200,7 +1200,7 @@ export class QuestPopulate {
     }
 
     /* Returns a level from a new zone (which is not 'zone' arg). */
-    getNewLocation(zone, areaTile) {
+    getNewLocation(zone, areaTile): Level {
         let zones = areaTile.getZones();
         zones = zones.filter(zone => zone.getType() !== 'battlezone');
 
@@ -1215,7 +1215,7 @@ export class QuestPopulate {
         return RNG.arrayGetRand(newZone.getLevels());
     }
 
-    getNewExploreLocation(zone, areaTile) {
+    getNewExploreLocation(zone, areaTile): Level | null {
         const dungeons = areaTile.getZones('Dungeon');
         const mountains = areaTile.getZones('Mountain');
         const allZones = dungeons.concat(mountains);
@@ -1249,7 +1249,7 @@ export class QuestPopulate {
         return exploreElem;
     }
 
-    addQuestComponents(zone) {
+    addQuestComponents(zone): void {
         // Sub-quests must be mapped first, so that quest givers can be obtained
         // for parent quetsts
         for (let i = this.questList.length - 1; i >= 0; i--) {
@@ -1300,7 +1300,10 @@ export class QuestPopulate {
 
             questGiver.add(giverComp);
             this.addUniqueName(questGiver);
-            this.questGivers.set(questData, questGiver);
+
+            // TODO fix typings
+            const giver = questGiver as unknown;
+            this.questGivers.set(questData, giver as SentientActor);
         }
 
     }
