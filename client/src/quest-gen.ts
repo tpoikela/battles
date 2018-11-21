@@ -16,6 +16,8 @@ import {EventPool} from '../src/eventpool';
 import {SentientActor} from './actor';
 import * as Item from './item';
 import * as Component from './component';
+import {Entity} from './entity';
+import {Level} from './level';
 
 const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
@@ -28,20 +30,20 @@ export class Task {
     public name: string;
     public taskType: string;
 
-    constructor(taskType) {
+    constructor(taskType: string) {
         this.stepType = 'Task';
         this.name = '';
         this.taskType = taskType;
     }
 
-    isTask() {return true;}
-    isQuest() {return false;}
+    isTask(): boolean {return true;}
+    isQuest(): boolean {return false;}
 
-    getName() {
+    getName(): string {
         return this.name;
     }
 
-    getTaskType() {
+    getTaskType(): string {
         return this.taskType;
     }
 }
@@ -80,18 +82,19 @@ export class Quest {
         }
     }
 
-    setName(name) {this.name = name;}
-    getName() {return this.name;}
-    setMotive(motive) {this.motive = motive;}
-    getMotive() {return this.motive;}
-    isTask() {return false;}
-    isQuest() {return true;}
+    setName(name): void {this.name = name;}
+    getName(): string {return this.name;}
+    setMotive(motive: string): void {this.motive = motive;}
+    getMotive(): string {return this.motive;}
+    isTask(): boolean {return false;}
+    isQuest(): boolean {return true;}
 
-    getTasks() {
-        return this.steps.filter(step => step.isTask());
+    getTasks(): Task[] {
+        const result = this.steps.filter(step => step.isTask());
+        return result as Task[];
     }
 
-    addStep(step) {
+    addStep(step: QuestStep): void {
         if (Array.isArray(step)) {
             this.steps = this.steps.concat(step);
         }
@@ -100,7 +103,7 @@ export class Quest {
         }
     }
 
-    numQuests() {
+    numQuests(): number {
         let sum = 1;
         this.steps.forEach(step => {
             if (step.isQuest && step.isQuest()) {
@@ -111,16 +114,16 @@ export class Quest {
     }
 
     /* Returns the number of immediate tasks. */
-    numTasks() {
+    numTasks(): number {
         const numSubquests = this.numQuests() - 1;
         return this.steps.length - numSubquests;
     }
 
-    getSteps() {
+    getSteps(): QuestStep[] {
         return this.steps.slice();
     }
 
-    numSteps() {
+    numSteps(): number {
         return this.steps.length;
     }
 }
@@ -154,8 +157,8 @@ export class QuestGen {
     public static rules: any;
     public static defaultConfig: {[key: string]: any};
 
-    public stack: any[];
-    public currQuest: any; // Check this
+    public stack: Quest[];
+    public currQuest: Quest;
     public ruleHist: any; // TODO fix typings
     public startRule: string;
 
@@ -164,7 +167,7 @@ export class QuestGen {
     }
 
     /* Can be used for creating quest grammar/rules from a string in BNF format. */
-    static parse(grammar) {
+    static parse(grammar: string) {
         const ast = prettybnf.parse(grammar);
         const rules = {};
         ast.productions.forEach(prod => {
@@ -180,7 +183,8 @@ export class QuestGen {
         this.startRule = 'QUEST';
     }
 
-    genQuestWithMotive(conf: QuestGenConf = {}) {
+    /* Generates a quest with specific questgiver motive. */
+    genQuestWithMotive(conf: QuestGenConf = {}): Quest {
         const {motive} = conf;
         const questRules = conf.rules || QuestGen.rules;
         const [nameRule] = chooseRandomRule(questRules[motive]);
@@ -189,7 +193,7 @@ export class QuestGen {
         const newConf = Object.assign({}, conf);
         newConf.rules = questRules;
         newConf.startRule = questType;
-        const quest = this.genQuestWithConf({startRule: questType,
+        const quest: Quest = this.genQuestWithConf({startRule: questType,
             rules: questRules});
 
         quest.setName(questType);
@@ -200,7 +204,7 @@ export class QuestGen {
     /* Main function you want to call. Generates a random quest based on given conf
      * or default conf.
      */
-    genQuestWithConf(conf: QuestGenConf = {}) {
+    genQuestWithConf(conf: QuestGenConf = {}): Quest {
         if (conf.debug) {debug.enabled = true;}
         const questRules = conf.rules || QuestGen.rules;
         const startRule = conf.startRule || 'QUEST';
@@ -229,7 +233,7 @@ export class QuestGen {
         return this.currQuest;
     }
 
-    genQuestWithName(name) {
+    genQuestWithName(name: string): Quest {
         const quest = new Quest(name);
         const taskGoto = new Task('<goto>already_there');
         quest.addStep(taskGoto);
@@ -337,12 +341,25 @@ QuestGen.defaultConfig = {
 // QUESTDATA for storing quest mapping information
 //---------------------------------------------------------------------------
 
+/* Used when target creation is deferred until all tasks are mapped. */
+interface QuestObjSurrogate {
+    createTarget: string; // Factory function to call
+    args?: any[];
+}
+
+type QuestTargetObj = Entity | QuestObjSurrogate;
+
+interface QuestPathObj {
+    type: string;
+    target: QuestTargetObj;
+}
+
 export class QuestData {
     public static mapStepToType: {[key: string]: string};
 
     // TODO fix typings
-    public _stacks: {[key: string]: any};
-    public path: any[];
+    public _stacks: {[key: string]: QuestTargetObj[]};
+    public path: QuestPathObj[];
     public _ptr: {[key: string]: any};
 
     constructor() {
@@ -352,9 +369,9 @@ export class QuestData {
     }
 
     /* Adds one target for the quest. */
-    addTarget(targetType, obj) {
+    addTarget(targetType: string, obj: QuestTargetObj): void {
         if (!RG.isEntity(obj)) {
-            if (!obj.createTarget) {
+            if (!(obj as QuestObjSurrogate).createTarget) {
                 const json = JSON.stringify(obj);
                 RG.err('QuestData', 'addTarget',
                     `Only entities can be added. Got: ${json}`);
@@ -374,7 +391,7 @@ export class QuestData {
         }
     }
 
-    replaceTarget(key, oldTarget, newTarget) {
+    replaceTarget(key: string, oldTarget: QuestTargetObj, newTarget: Entity): boolean {
         const objList = this._stacks[key];
         let index = objList.indexOf(oldTarget);
         if (index >= 0) {
@@ -382,8 +399,8 @@ export class QuestData {
             index = this.path.findIndex(obj => obj.target === oldTarget);
             if (index >= 0) {
                 const oldTargetObj = this.path[index];
-                const newTargetObj = {
-                    target: newTarget, targetType: oldTargetObj.type};
+                const newTargetObj: QuestPathObj = {
+                    target: newTarget, type: oldTargetObj.type};
                 this.path.splice(index, 1, newTargetObj);
             }
             else {
@@ -395,21 +412,21 @@ export class QuestData {
         return false;
     }
 
-    numSteps() {
+    numSteps(): number {
         const num = this.path.length;
         return num;
     }
 
-    keys() {
+    keys(): string[] {
         const keys = Object.keys(this._stacks);
         return keys;
     }
 
-    getPathTypes() {
+    getPathTypes(): string[] {
         return this.path.map(pair => pair.type);
     }
 
-    getPathTargets() {
+    getPathTargets(): QuestTargetObj[] {
         return this.path.map(pair => pair.target);
     }
 
@@ -449,6 +466,13 @@ export class QuestData {
         return null;
     }
 
+    getCurrentLocation(): Level {
+        const location = this.getCurrentLocation() as Level;
+        if (location) {return location;}
+        RG.err('QuestGen', 'getCurrentLocation',
+            'No location found');
+    }
+
     /* Returns human-readable description of the quest. */
     getDescr() {
         // this.resetIter();
@@ -468,7 +492,7 @@ export class QuestData {
         this.path.forEach(step => {
             const refType = QuestData.mapStepToType[step.type];
             if (refType) {
-                if (step.target.getID) {
+                if ((step.target as Entity).getID) {
                     const pathData = {
                         type: step.type,
                         target: RG.getObjRef(refType, step.target)
@@ -638,7 +662,7 @@ export class QuestPopulate {
         for (let i = 0; i < numQuests; i++) {
             for (let n = 0; n < this.maxTriesPerZone; n++) {
                 const questGen = new QuestGen();
-                const quest = questGen.genQuestWithConf(this.conf);
+                const quest: Quest = questGen.genQuestWithConf(this.conf);
                 this.resetData();
                 if (this.mapQuestToResources(quest, zone, areaTile)) {
                     this.addQuestComponents(zone);
@@ -675,7 +699,7 @@ export class QuestPopulate {
 
         let ok = true;
         quest.getSteps().forEach(step => {
-            const currLoc = this.currQuest.getCurrent('location');
+            const currLoc = this.currQuest.getCurrentLocation() as Level;
             if (step.isQuest()) {
                 // Recursive call for sub-quests, check the current
                 // location for the quest
@@ -820,7 +844,7 @@ export class QuestPopulate {
             }
             case 'give': {
                 // FInd previous item in the quest data, and assign task
-                const level = this.currQuest.getCurrent('location');
+                const level = this.currQuest.getCurrentLocation();
                 const actorToGive = this.getActorForQuests(level.getActors());
                 if (actorToGive) {
                     this.currQuest.addTarget('give', actorToGive);
@@ -988,7 +1012,7 @@ export class QuestPopulate {
 
     /* Returns an actor from the given array, who is suitable as quest target
      * or quest giver. */
-    getActorForQuests(actors) {
+    getActorForQuests(actors: SentientActor[]): SentientActor {
         let actor = RNG.arrayGetRand(actors);
         let numTries = 20;
         let createNew = false;
@@ -1007,7 +1031,7 @@ export class QuestPopulate {
     }
 
     getActorToKill() {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         let actors = location.getActors();
         actors = actors.filter(a => !a.isPlayer() &&
             a.hasNone(['QuestGiver', 'QuestTarget'])
@@ -1017,26 +1041,26 @@ export class QuestPopulate {
     }
 
     getActorForReport() {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         return this.getActorForQuests(actors);
     }
 
     getActorToSpy() {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         return this.getActorForQuests(actors);
     }
 
     /* Extracts an actor from current location. */
     getActorToListen() {
-        const level = this.currQuest.getCurrent('location');
+        const level = this.currQuest.getCurrentLocation();
         const actorToListen = this.getActorForQuests(level.getActors());
         return actorToListen;
     }
 
     getActorToEscort() {
-        const level = this.currQuest.getCurrent('location');
+        const level = this.currQuest.getCurrentLocation();
         const actorToEscort = this.getActorForQuests(level.getActors());
         return actorToEscort;
     }
@@ -1049,7 +1073,7 @@ export class QuestPopulate {
     }
 
     getAlreadyOwnedItem() {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         const player = actors.find(a => a.isPlayer && a.isPlayer());
         if (player) {
@@ -1060,7 +1084,7 @@ export class QuestPopulate {
     }
 
     getItemToSteal() {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         const item = new Item.ItemBase('Quest trophy');
 
         if (!Placer.addEntityToCellType(item, location, c => c.hasHouse())) {
@@ -1072,7 +1096,7 @@ export class QuestPopulate {
     }
 
     getItemToGather() {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         const item = new Item.ItemBase('Quest item to gather');
 
         if (!Placer.addEntityToCellType(item, location, c => c.isPassable())) {
@@ -1084,7 +1108,7 @@ export class QuestPopulate {
     }
 
     getReadTarget(zone, areaTile) {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         return {
             createTarget: 'createBook', args: [location, zone, areaTile]
         };
@@ -1093,7 +1117,7 @@ export class QuestPopulate {
     getItemToUse() {
         // TODO this cannot create the item directly because if further
         // resource mapping fails, we need to delete the created item
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         const items = location.getItems();
         const useItems = items.filter(item => item.hasOwnProperty('useItem'));
         if (useItems.length > 0) {
@@ -1114,7 +1138,7 @@ export class QuestPopulate {
 
     /* Finds a target to repair. */
     getRepairTarget() {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
         const elemsToRepair = elems.filter(e => (
             e.getType() === 'door'
@@ -1126,7 +1150,7 @@ export class QuestPopulate {
     }
 
     getEntityToDamage() {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
         const doors = elems.filter(elem => elem.getType() === 'door');
         if (doors) {
@@ -1141,7 +1165,7 @@ export class QuestPopulate {
     }
 
     getEntityToDefend() {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         if (actors.length > 0) {
             return RNG.arrayGetRand(actors);
@@ -1150,13 +1174,13 @@ export class QuestPopulate {
     }
 
     getActorToCapture() {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         return this.getActorForQuests(actors);
     }
 
     getItemToExchange() {
-        const location = this.currQuest.getCurrent('location');
+        const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
         const shops = elems.filter(elem => elem.getType() === 'shop');
         RNG.shuffle(shops);
@@ -1229,16 +1253,19 @@ export class QuestPopulate {
         // Sub-quests must be mapped first, so that quest givers can be obtained
         // for parent quetsts
         for (let i = this.questList.length - 1; i >= 0; i--) {
-            const questData = this.questList[i];
+            const questData: QuestData = this.questList[i];
             questData.resetIter();
 
             questData.keys().forEach(key => {
                 if (QuestPopulate.supportedKeys.has(key)) {
-                    let target = questData.next(key);
+                    let target: QuestTargetObj = questData.next(key);
                     while (target) {
                         // Custom create function can be given such as createBattle
                         // or createBook, which must return the target
-                        if (target.createTarget) {
+                        if (isEntity(target)) {
+                            this.setAsQuestTarget(key, target);
+                        }
+                        else if (target.createTarget) {
                             const {createTarget, args} = target;
                             if (typeof this[createTarget] !== 'function') {
                                 RG.err('QuestPopulate', 'addQuestComponents',
@@ -1254,7 +1281,7 @@ export class QuestPopulate {
                             }
                         }
                         else {
-                            this.setAsQuestTarget(key, target);
+                            // this.setAsQuestTarget(key, target);
                         }
                         target = questData.next(key);
                     }
@@ -1266,7 +1293,7 @@ export class QuestPopulate {
             });
 
             // Grab random actor and make it the quest giver
-            const level = RNG.arrayGetRand(zone.getLevels());
+            const level: Level = RNG.arrayGetRand(zone.getLevels());
             const questGiver = this.getActorForQuests(level.getActors());
             const giverComp = new Component.QuestGiver(questData.getDescr());
             this.addTargetsToGiver(giverComp, questData);
@@ -1278,7 +1305,7 @@ export class QuestPopulate {
 
     }
 
-    addTargetsToGiver(giverComp, questData) {
+    addTargetsToGiver(giverComp, questData): void {
         const questID = giverComp.getQuestID();
         this.dbg('addTargetsToGiver now, ID ' + questID);
 
@@ -1302,14 +1329,14 @@ export class QuestPopulate {
         --this.IND;
     }
 
-    _checkTargetValidity(target) {
+    _checkTargetValidity(target: Entity): void {
         if (!RG.isEntity(target)) {
             const msg = 'Non-Entity given: ' + JSON.stringify(target);
             RG.err('QuestPopulate', '_checkTargetValidity', msg);
         }
     }
 
-    setAsQuestTarget(key, target) {
+    setAsQuestTarget(key: string, target: Entity): void {
         if (!target) {
             const msg = `Null/undef target with key |${key}|`;
             RG.err('QuestPopulate', 'setAsQuestTarget', msg);
@@ -1516,3 +1543,10 @@ if (runningAsNodeScript) {
     console.log(JSON.stringify(questGen.ruleHist));
 }
 */
+
+function isEntity(obj: any): obj is Entity {
+    if ((<Entity>obj).comps && (<Entity>obj).compsByType && (<Entity>obj).add && (<Entity>obj).get) {
+        return true;
+    }
+    return false;
+};
