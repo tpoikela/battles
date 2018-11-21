@@ -9,7 +9,7 @@ import {BaseActor, SentientActor} from './actor';
 import {Random} from './random';
 import * as Item from './item';
 import * as Component from './component';
-import {Brain} from './brain';
+import {Brain, BrainGoalOriented} from './brain';
 import {Geometry} from './geometry';
 
 const RNG = Random.getRNG();
@@ -377,6 +377,7 @@ class MarkList {
         this._marks = {};
     }
 
+
     /* Adds a mark to current actor's location, and adds a tag, which
      * can be shown in the mark list. */
     addMark(tag?: string) {
@@ -499,7 +500,7 @@ export class BrainPlayer {
 
     public  _actor: SentientActor;
     public energy: number; // Consumed energy per action
-    private _type: string;
+    public _type: string;
     private _memory: MemoryPlayer;
 
     public _guiCallbacks: {[key: string]: (number) => void};
@@ -562,6 +563,9 @@ export class BrainPlayer {
         };
     }
 
+    getType() {return this._type;}
+    public setType(type) {}
+
     getActor() {
         return this._actor;
     }
@@ -586,7 +590,6 @@ export class BrainPlayer {
         }
     }
 
-    getType() {return this._type;}
 
     isRunModeEnabled() {return this._runModeEnabled;}
 
@@ -1220,7 +1223,8 @@ export class BrainPlayer {
         cells.forEach(cell => {
             if (cell.hasActors()) {
                 const target = cell.getActors()[0];
-                if (target && target.getBrain().getGoal) {
+                const brain = target.getBrain() as BrainGoalOriented;
+                if (target && brain.getGoal) {
                     switch (orderType) {
                         case 'Follow': this.giveFollowOrder(target); break;
                         case 'Forget': this.forgetOrders(target); break;
