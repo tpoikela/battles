@@ -6,7 +6,7 @@ import * as GoalsTop from './goals-top';
 import {Memory} from './brain.memory';
 import {Random} from './random';
 import * as Component from './component';
-import {BaseActor} from './actor';
+import {BaseActor, SentientActor} from './actor';
 import {CellMap} from './map';
 
 // Dummy callback to return, if the actor's action provides a state
@@ -214,7 +214,7 @@ export class BrainBase {
 
     public getMemory() {return NO_MEMORY;}
 
-    public decideNextAction() {
+    public decideNextAction(obj?: any) {
         RG.err('BrainBase', 'decideNextAction',
             'Not implemented. Do in derived class');
     }
@@ -242,9 +242,9 @@ Brain.NonSentient = BrainNonSentient;
 /* Brain is used by the AI to perform and decide on actions. Brain returns
  * actionable callbacks but doesn't know Action objects.  */
 export class BrainSentient {
-    protected _actor: BaseActor;
+    public _actor: BaseActor;
+    public _type: string;
     protected _explored: {[key: string]: boolean};
-    protected _type: string;
     protected _memory: Memory;
     protected _cache: {[key: string]: any[]};
 
@@ -396,7 +396,7 @@ export class BrainSentient {
         const cell = this._actor.getCell();
         if (cell.hasItems()) {
             const topItem = cell.getItems()[0];
-            return this._actor.getInvEq().canCarryItem(topItem);
+            return (this._actor as SentientActor).getInvEq().canCarryItem(topItem);
         }
         return false;
     }
@@ -585,7 +585,7 @@ export class BrainArcher extends BrainSentient {
         const y = enemy.getY();
         const actorX = this._actor.getX();
         const actorY = this._actor.getY();
-        const miss = this._actor.getInvEq().getEquipment().getItem('missile');
+        const miss = (this._actor as SentientActor).getInvEq().getEquipment().getItem('missile');
         if (miss) {
             const range = RG.getMissileRange(this._actor, miss);
             const getDist = shortestDist(x, y, actorX, actorY);
@@ -603,8 +603,8 @@ export class BrainArcher extends BrainSentient {
         const y = enemy.getY();
         const mComp = new Component.Missile(this._actor);
 
-        const invEq = this._actor.getInvEq();
-        const missile = invEq.unequipAndGetItem('missile', 1);
+        const invEq = (this._actor as SentientActor).getInvEq();
+        const missile = invEq.unequipAndGetItem('missile', 1, 0);
         mComp.setTargetXY(x, y);
         mComp.setDamage(RG.getMissileDamage(this._actor, missile));
         mComp.setAttack(RG.getMissileAttack(this._actor, missile));
