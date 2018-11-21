@@ -44,7 +44,7 @@ export class Entity extends GameObject {
     public comps: any;
     public compsByType: any;
 
-    constructor() {
+    constructor(...args: any[]) {
         super();
         // Stores the comps by ID, used for serialisation
         this.comps = {};
@@ -101,6 +101,10 @@ export class Entity extends GameObject {
                 }
             }
         }
+    }
+
+    public equals(rhs: Entity): boolean {
+        return this.getID() === rhs.getID();
     }
 
     /* Gets component with given name. If entity has multiple of them, returns
@@ -210,6 +214,18 @@ export class Entity extends GameObject {
 
     public getComponents() {
         return this.comps;
+    }
+
+    public copy(rhs: any): void {
+        throw new Error('copy() not implemented in Entity');
+    }
+
+    public clone(): any {
+        throw new Error('clone() not implemented in Entity');
+    }
+
+    public toJSON(): any {
+        throw new Error('toJSON() not implemented in Entity');
     }
 
 }
