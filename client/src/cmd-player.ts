@@ -8,6 +8,8 @@ import * as Component from './component/component';
 
 type BrainPlayer = import('./brain/brain.player').BrainPlayer;
 type SentientActor = import ('./actor').SentientActor;
+type ItemAmmo = import('./item').Ammo;
+type MissileWeapon = import('./item').MissileWeapon;
 
 export const Cmd: any = {};
 
@@ -77,14 +79,15 @@ export class CmdMissile extends CmdBase {
                 // Check for missile weapon for ammunition
                 if (missile.has('Ammo')) {
                     const missWeapon = invEq.getEquipment()
-                        .getEquipped('missileweapon');
+                        .getEquipped('missileweapon') as unknown;
                     if (missWeapon === null) {
                         const msg = 'No missile weapon equipped.';
                         return this.brain.cmdNotPossible(msg);
                     }
                     else { // Check ammo/weapon compatibility
-                        const ammoType = missile.getAmmoType();
-                        const weaponType = missWeapon.getWeaponType();
+                        const ammo = missile as unknown;
+                        const ammoType = (ammo as ItemAmmo).getAmmoType();
+                        const weaponType = (missWeapon as MissileWeapon).getWeaponType();
                         if (this._actor.has('MixedShot')) {
                             const re = /bow/;
                             if (!re.test(ammoType) || !re.test(weaponType)) {
