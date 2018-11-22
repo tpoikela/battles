@@ -2,6 +2,7 @@
 import RG from './rg';
 import {Entity} from './entity';
 import * as Mixin from './mixin';
+import {TCoord} from './interfaces';
 
 import * as Component from './component/component';
 import {compsToJSON} from './component/component.base';
@@ -13,6 +14,9 @@ import {Inventory} from './inv';
 import * as Time from './time';
 
 type ActionCallback = Time.ActionCallback;
+type Level = import('./level').Level;
+type ItemArmour = import('./item').Armour;
+type Cell = import('./map.cell').Cell;
 
 export const Actor: any = {};
 
@@ -24,7 +28,7 @@ export interface StatsData {
     [key: string]: string | number | [number, number];
 }
 
-export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
+export class BaseActor extends Entity {
 
     protected _brain: BrainBase;
 
@@ -34,6 +38,33 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         named.setName(name);
         this.add(named);
         this.add(new Component.Action());
+        this.add(new Component.Location());
+        this.add(new Component.Typed('BaseActor', RG.TYPE_ACTOR));
+    }
+
+    public getType() {return this.get('Typed').getObjType();}
+    public setType(type) {return this.get('Typed').setObjType(type);}
+    public getPropType() {return this.get('Typed').getPropType();}
+    public setPropType(type) {return this.get('Typed').setPropType(type);}
+
+    public getCell(): Cell | null {
+        return this.get('Location').getCell();
+    }
+    public isLocated(): boolean {
+        return this.get('Location').isLocated();
+    }
+    public unsetLevel(): void {
+        this.get('Location').unsetLevel();
+    }
+    public setLevel(level): void {
+        return this.get('Location').setLevel(level);
+    }
+    public getLevel() {return this.get('Location').getLevel();}
+    public getX(): number {return this.get('Location').getX();}
+    public getY(): number {return this.get('Location').getY();}
+    public getXY(): TCoord {return this.get('Location').getXY();}
+    public setXY(x, y): void {
+        this.get('Location').setXY(x, y);
     }
 
     /* Returns true if actor is a player.*/
@@ -222,7 +253,8 @@ export class SentientActor extends BaseActor {
         const shield = this._invEq.getEquipment().getEquipped('shield');
         let bonus = 0;
         if (shield) {
-            bonus = shield.getDefense();
+            const armour = shield as unknown;
+            bonus = (armour as ItemArmour).getDefense();
             if (this.has('Skills')) {
                 bonus += this.get('Skills').getLevel('Shields');
             }
