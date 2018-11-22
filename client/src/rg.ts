@@ -8,6 +8,9 @@ RG.gameTitle = 'Battles in the North (BitN)';
 
 // Can be set to true for testing, when error conditions are checked
 RG.suppressErrorMessages = false;
+RG.suppressLogs = false;
+RG.suppressWarningMessages = false;
+RG.suppressDiagnosticMessages = false;
 
 RG.cellRenderVisible = ['actors', 'items', 'elements'];
 RG.cellRenderAlways = ['items', 'elements'];
@@ -287,7 +290,7 @@ RG.debug = function(obj, msg) {
 };
 
 RG.err = function(obj, fun, msg) {
-    if (!this.suppressErrorMessages) {
+    if (!RG.suppressErrorMessages) {
         const formattedMsg = `[ERROR]: ${obj} ${fun} -> |${msg}|`;
         console.error(formattedMsg);
         throw new Error(formattedMsg);
@@ -295,14 +298,14 @@ RG.err = function(obj, fun, msg) {
 };
 
 RG.warn = function(obj, fun, msg) {
-    if (!this.suppressWarningMessages) {
+    if (!RG.suppressWarningMessages) {
         const formattedMsg = `[WARN]: ${obj} ${fun} -> |${msg}|`;
         console.error(formattedMsg);
     }
 };
 
 RG.diag = function(obj) {
-    if (!this.suppressDiagnosticMessages) {
+    if (!RG.suppressDiagnosticMessages) {
         // Supposed to show the filename (of the caller)
         // With bundling, this does not work very well
         const split = new Error().stack.split('at ');
@@ -315,7 +318,7 @@ RG.diag = function(obj) {
 };
 
 RG.log = function(...args) {
-    if (!this.suppressLogs) {
+    if (!RG.suppressLogs) {
         console.log('[INFO]:', ...args);
     }
 };
