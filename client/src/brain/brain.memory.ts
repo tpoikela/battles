@@ -1,12 +1,15 @@
 
 import RG from '../rg';
+import {ICoordXY} from '../interfaces';
 
-const MEM_NO_ACTORS = Object.freeze([]);
+type BaseActor = import('../actor').BaseActor;
+
+const MEM_NO_ACTORS: BaseActor[] = [];
 
 interface ActorsMap {
-    enemies?: any[];
-    friends?: any[];
-    seen?: {[key: string]: any};
+    enemies?: BaseActor[];
+    friends?: BaseActor[];
+    seen?: {[key: string]: ICoordXY};
 }
 
 const NOT_ATTACKED = null;
@@ -17,7 +20,7 @@ export class Memory {
 
     protected _actors: ActorsMap;
     protected _enemyTypes: {[key: string]: true};
-    protected _communications: any[];
+    protected _communications: BaseActor[];
     protected _lastAttackedID: number;
 
     constructor() {
@@ -29,19 +32,19 @@ export class Memory {
     }
 
     /* Adds a generic enemy type. */
-    addEnemyType(type): void {
+    addEnemyType(type: string): void {
         this._enemyTypes[type] = true;
     }
 
     /* Removes a generic enemy type. */
-    removeEnemyType(type): void {
+    removeEnemyType(type: string): void {
         if (this._enemyTypes[type]) {
             delete this._enemyTypes[type];
         }
     }
 
     /* Checks if given actor is an enemy. */
-    isEnemy(actor): boolean {
+    isEnemy(actor: BaseActor): boolean {
         if (this._actors.hasOwnProperty('enemies')) {
             const index = this._actors.enemies.indexOf(actor);
             if (index >= 0) {return true;}
@@ -59,7 +62,7 @@ export class Memory {
     }
 
     /* Checks if actor is a friend. */
-    isFriend(actor) {
+    isFriend(actor: BaseActor): boolean {
         if (this._actors.hasOwnProperty('friends')) {
             const index = this._actors.friends.indexOf(actor);
             return index >= 0;
@@ -68,7 +71,7 @@ export class Memory {
     }
 
     /* Adds an actor friend. */
-    addFriend(actor) {
+    addFriend(actor: BaseActor): void {
         if (this.isEnemy(actor)) {
             this.removeEnemy(actor);
         }
@@ -80,20 +83,20 @@ export class Memory {
         }
     }
 
-    addEnemySeenCell(actor) {
+    addEnemySeenCell(actor: BaseActor): void {
         if (!this._actors.seen) {this._actors.seen = {};}
         this._actors.seen[actor.getID()] = {x: actor.getX(), y: actor.getY(),
             level: actor.getLevel().getID()};
     }
 
-    hasSeen(actor) {
+    hasSeen(actor: BaseActor): boolean {
         if (this._actors.seen && this._actors.seen[actor.getID()]) {
             return true;
         }
         return false;
     }
 
-    getLastSeen(actor) {
+    getLastSeen(actor: BaseActor): ICoordXY | null {
         if (this._actors.seen[actor.getID()]) {
             return this._actors.seen[actor.getID()];
         }
@@ -101,7 +104,7 @@ export class Memory {
     }
 
     /* Adds given actor as (personal) enemy. */
-    addEnemy(actor) {
+    addEnemy(actor: BaseActor): void {
         if (!RG.isActor(actor)) {
             const json = JSON.stringify(actor);
             RG.err('Memory', 'addEnemy',
@@ -121,7 +124,7 @@ export class Memory {
         }
     }
 
-    removeEnemy(actor) {
+    removeEnemy(actor: BaseActor): void {
         if (this._actors.hasOwnProperty('enemies')) {
             const index = this._actors.enemies.indexOf(actor);
             if (index >= 0) {
@@ -130,7 +133,7 @@ export class Memory {
         }
     }
 
-    removeFriend(actor) {
+    removeFriend(actor: BaseActor): void {
         if (this._actors.hasOwnProperty('friends')) {
             const index = this._actors.friends.indexOf(actor);
             if (index >= 0) {
@@ -139,39 +142,39 @@ export class Memory {
         }
     }
 
-    getEnemies() {
+    getEnemyActors(): BaseActor[] {
         return this._actors.enemies || MEM_NO_ACTORS;
     }
 
-    getFriends() {
+    getFriendActors(): BaseActor[] {
         return this._actors.friends || MEM_NO_ACTORS;
     }
 
     /* Copies memory (mainly friends/enemies) from one actor. Used when another
      * actor is summoned to copy summoner's enemies. */
-    copyMemoryFrom(actor) {
-        const memory = actor.getBrain().getMemory();
-        const enemies = memory.getEnemies().slice();
+    copyMemoryFrom(actor: BaseActor): void {
+        const memory: Memory = actor.getBrain().getMemory();
+        const enemies = memory.getEnemyActors().slice();
         this._actors.enemies = enemies;
-        const friends = memory.getFriends().slice();
+        const friends = memory.getFriendActors().slice();
         this._actors.friends = friends;
         this._enemyTypes = Object.assign({}, memory._enemyTypes);
     }
 
     /* Adds a communication with given actor. */
-    addCommunicationWith(actor) {
+    addCommunicationWith(actor: BaseActor): void {
         if (!this.hasCommunicatedWith(actor)) {
             this._communications.push(actor);
         }
     }
 
-    wasLastAttacked(actor) {
+    wasLastAttacked(actor: BaseActor): boolean {
         return this._lastAttackedID === actor.getID();
     }
 
     /* Sets last attacked actor. This is used to prevent actor from switching
      * target between attacks (which is ineffective to kill anything). */
-    setLastAttacked(actor) {
+    setLastAttacked(actor: BaseActor): void {
         if (actor) {
             this._lastAttackedID = actor.getID();
         }
