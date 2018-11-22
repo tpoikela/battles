@@ -108,7 +108,6 @@ export class GameMaster {
             }
             debug('\tPlayer not null. Creating battle');
             const parentLevel = this.player.getLevel();
-            console.log('XXX GAME.MASTER WENT THROUGH HERE');
             this.createBattleIntoAreaTileLevel(parentLevel);
         }
         else if (evtName === RG.EVT_EXPLORED_ZONE_LEFT) {
