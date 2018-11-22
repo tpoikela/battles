@@ -2,7 +2,7 @@
 import * as React from 'react';
 import GameRow from './game-row';
 
-import {Coord} from '../src/interfaces';
+import {TCoord} from '../src/interfaces';
 
 interface IGameBoardProps {
     boardClassName: string;
@@ -21,7 +21,7 @@ interface IGameBoardProps {
     onMouseUp?: (x: number, y: number) => void;
 }
 
-const eventToPosition = (e, elem, props: IGameBoardProps, elemID: string): Coord => {
+const eventToPosition = (e, elem, props: IGameBoardProps, elemID: string): TCoord => {
     // Where the mouse was clicked
     const x = e.clientX;
     const y = e.clientY;
