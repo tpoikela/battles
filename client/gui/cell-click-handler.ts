@@ -3,7 +3,7 @@ import RG from '../src/rg';
 import {Path} from '../src/path';
 import {Keys} from '../src/keymap';
 import {Cell} from '../src/map.cell';
-import {PlayerCmdInput} from '../src/brain.player';
+import {PlayerCmdInput} from '../src/brain/brain.player';
 
 const dirToKeyCode = Keys.KeyMap.dirToKeyCode;
 
