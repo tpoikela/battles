@@ -1,10 +1,12 @@
 /* Contains code for handling actor equipment. */
 import RG from './rg';
 
+type ItemBase = import('./item').ItemBase;
+
 export class EquipSlot {
 
     public _type: string;
-    public _item: any;
+    public _item: ItemBase;
     public _hasItem: boolean;
     public _unequipped: any;
     public _stacked: boolean;
@@ -25,20 +27,20 @@ export class EquipSlot {
         return this._stacked;
     }
 
-    getUnequipped() {return this._unequipped;}
+    getUnequipped(): ItemBase | null {return this._unequipped;}
 
     /* Returns the equipped item for this slot.*/
-    getItem() {
+    getItem(): ItemBase | null {
         if (this._hasItem) {return this._item;}
         return null;
     }
 
-    hasItem() {
+    hasItem(): boolean {
         return this._hasItem;
     }
 
     /* Equips given item to first available place in slot.*/
-    equipItem(item) {
+    equipItem(item): boolean {
         if (this.canEquip(item)) {
             if (!this._stacked || !this._hasItem) {
                 item.setOwner(this);
@@ -54,7 +56,7 @@ export class EquipSlot {
     }
 
     /* Unequips N items from the slot. */
-    unequipItem(n) {
+    unequipItem(n): boolean {
         if (this._hasItem) {
             if (!this._stacked) {
                 this._hasItem = false;
