@@ -8,7 +8,7 @@ import {Goal} from '../../../client/src/goals';
 import {Evaluator} from '../../../client/src/evaluators';
 import {chaiBattles} from '../../helpers/chai-battles';
 import {System} from '../../../client/src/system';
-import {Brain} from '../../../client/src/brain';
+import {Brain, BrainGoalOriented} from '../../../client/src/brain';
 import {SentientActor} from '../../../client/src/actor';
 import {ELEM} from '../../../client/data/elem-constants';
 import * as Component from '../../../client/src/component';
@@ -96,7 +96,8 @@ describe('Actor Goal', () => {
         RGUnitTests.moveEntityTo(commander, 2, 2);
         RGUnitTests.moveEntityTo(soldier, 3, 3);
 
-        const topGoal = soldier.getBrain().getGoal();
+        const brain = soldier.getBrain() as BrainGoalOriented;
+        const topGoal = brain.getGoal();
         topGoal.removeEvaluators();
         const ordersGoal = new Goal.Orders(soldier);
         ordersGoal.addSubGoal(new Goal.FollowPath(soldier, [10, 10]));
@@ -154,7 +155,8 @@ describe('Actor Goal', () => {
         RGUnitTests.wrapIntoLevel([guardian]);
         RGUnitTests.moveEntityTo(guardian, 4, 4);
 
-        const topGoal = guardian.getBrain().getGoal();
+        const brain = guardian.getBrain() as BrainGoalOriented;
+        const topGoal = brain.getGoal();
         // topGoal.removeEvaluators();
 
         const guardEval = new Evaluator.Guard(3.0, [2, 2]);
@@ -178,7 +180,8 @@ describe('Actor Goal', () => {
         RGUnitTests.moveEntityTo(injured, 6, 6);
         RGUnitTests.moveEntityTo(enemy, 4, 4);
 
-        const topGoal = injured.getBrain().getGoal();
+        const brain = injured.getBrain() as BrainGoalOriented;
+        const topGoal = brain.getGoal();
 
         let action = injured.nextAction();
         expect(action).to.be.an.instanceof(Time.Action);
