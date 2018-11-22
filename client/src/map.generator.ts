@@ -501,13 +501,11 @@ export class MapGenerator {
         return {map};
     }
 
-    addLakes(map, conf, bbox: BBox) {
+    addLakes(map: CellMap, conf, bbox: BBox): void {
         const cols = bbox.lrx - bbox.ulx;
         const rows = bbox.lry - bbox.uly;
         this.setGen('lakes', cols, rows);
         const lakeMap = this.createLakes(conf).map;
-
-        console.log('addLakes bbox to add is ', bbox);
 
         RG.forEach2D(lakeMap._map, (x, y) => {
             const nX = x + bbox.ulx;
@@ -530,7 +528,7 @@ export class MapGenerator {
     }
 
     createWall(cols, rows, conf) {
-        const map = new CellMap(cols, rows);
+        const map: CellMap = new CellMap(cols, rows);
         const wallElem = conf.wallElem || ELEM.WALL;
         this._mapGen = new MapWall(cols, rows, conf);
         this._mapGen.create((x, y, val) => {
@@ -576,7 +574,7 @@ export class MapGenerator {
     }
 
     /* Creates a zig-zagging road across the level from south to north. */
-    createMountainPath(map, conf) {
+    createMountainPath(map: CellMap, conf) {
         const paths = [];
         const nTurns = conf.nRoadTurns || 10;
         let yPerTurn = Math.floor(map.rows / nTurns);
