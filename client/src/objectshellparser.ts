@@ -5,8 +5,8 @@ import {ActorsData, adjustActorValues} from '../data/actors';
 import * as Actor from './actor';
 import * as Item from './item';
 import {Effects} from '../data/effects';
-// import {Brain} from './brain';
-import * as Brain from './brain';
+import {Brain} from './brain';
+// import * as Brain from './brain';
 import {Random} from './random';
 import {ElementBase} from './element';
 import * as Component from './component';
@@ -688,10 +688,11 @@ Creator.prototype.createBrain = function(actor, brainName) {
     if (Brain[brainName]) {
         return new Brain[brainName](actor);
     }
-    let msg = `Warning. No brain type |${brainName}| found`;
-    msg += 'Using the default Brain.Sentient instead.';
-    console.warn(msg);
-    return new Brain.BrainSentient(actor);
+    const msg = `ERROR. No brain type |${brainName}| found`;
+    // msg += 'Using the default Brain.Sentient instead.';
+    //console.warn(msg);
+    RG.err('Creator', 'createBrain', msg);
+    // return new Brain.BrainSentient(actor);
 };
 
 
