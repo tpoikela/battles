@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import {SentientActor} from  '../../../client/src/actor';
 import * as Element from  '../../../client/src/element';
 import {Item} from '../../../client/src/item';
-import {Level} from '../../../client/src/level';
+import {Level, LevelExtras} from '../../../client/src/level';
 import {FactoryLevel} from '../../../client/src/factory.level';
 
 const Actor = SentientActor;
@@ -130,6 +130,20 @@ describe('Map.Level', () => {
         const json = level1.toJSON();
         expect(json.id).to.equal(level1.getID());
         expect(json.levelNumber).to.equal(level1.getLevelNumber());
+    });
+
+    it('can contain almost arbitrary extra info for procgen', () => {
+        const level1 = factLevel.createLevel('arena', 30, 35);
+        const extras: LevelExtras = {
+            extraBool: true,
+            extrasNum: 1234,
+            extraString: 'location',
+            extraArr: [1, "a", 'c'],
+            extraObj: {
+                nestedObj: {a: 1, b: 2, c: 3}
+            },
+        };
+        level1.setExtras(extras);
     });
 
 });

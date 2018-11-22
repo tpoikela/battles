@@ -1,7 +1,6 @@
 
 import RG from '../../../client/src/rg';
 import { expect } from 'chai';
-import {Memory} from '../../../client/src/brain.memory';
 import * as Brain from '../../../client/src/brain';
 import * as Component from '../../../client/src/component';
 import {FactoryActor} from '../../../client/src/factory.actors';
@@ -9,6 +8,8 @@ import {FactoryLevel} from '../../../client/src/factory.level';
 import {SystemCommunication} from '../../../client/src/system/system.communication';
 
 const BrainSentient = Brain.BrainSentient;
+
+const Memory = Brain.Memory;
 
 /* Updates given systems in given order.*/
 const updateSystems = systems => {

@@ -4,7 +4,7 @@ import RG from '../../../client/src/rg';
 import {Entity}  from '../../../client/src/entity';
 import * as Component from '../../../client/src/component';
 import {TagComponent, DataComponent, NO_SERIALISATION
-} from '../../../client/src/component.base';
+} from '../../../client/src/component/component.base';
 import {SentientActor} from '../../../client/src/actor';
 import { FactoryActor } from "../../../client/src/factory.actors";
 

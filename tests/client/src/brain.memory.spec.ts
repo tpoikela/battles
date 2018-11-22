@@ -2,7 +2,7 @@
 import { expect } from 'chai';
 
 import RG from '../../../client/src/rg';
-import {Memory} from '../../../client/src/brain.memory';
+import {Memory} from '../../../client/src/brain/brain.memory';
 import {SentientActor} from '../../../client/src/actor';
 import {Level} from '../../../client/src/level';
 import {FactoryLevel} from '../../../client/src/factory.level';

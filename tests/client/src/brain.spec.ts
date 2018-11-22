@@ -10,9 +10,8 @@ import {Keys} from '../../../client/src/keymap';
 import {Path} from '../../../client/src/path';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {SentientActor} from '../../../client/src/actor';
-import {Brain} from '../../../client/src/brain';
+import * as BrainTop from '../../../client/src/brain';
 import * as Item from '../../../client/src/item';
-import {BrainPlayer} from '../../../client/src/brain.player';
 import {SystemMovement} from '../../../client/src/system/system.movement';
 import {SystemBaseAction} from '../../../client/src/system/system.base-action';
 import {Cell} from '../../../client/src/map.cell';
@@ -27,10 +26,13 @@ import {EventPool} from '../../../client/src/eventpool';
 
 const {KEY} = Keys;
 
+const Brain = BrainTop.Brain;
+const BrainPlayer = BrainTop.BrainPlayer;
+
 const expect = chai.expect;
 chai.use(chaiBattles);
 
-const BrainSentient = Brain.Sentient;
+const BrainSentient = Brain.BrainSentient;
 const ElementBase = Element.ElementBase;
 
 describe('BrainPlayer', () => {
@@ -47,11 +49,11 @@ describe('BrainPlayer', () => {
         human = new SentientActor('Human friend');
 
         demon.setType('demon');
-        demon.setBrain(new Brain.GoalOriented(demon));
+        demon.setBrain(new Brain.BrainGoalOriented(demon));
         demon.addEnemy(player);
 
         human.setType('human');
-        human.setBrain(new Brain.GoalOriented(human));
+        human.setBrain(new Brain.BrainGoalOriented(human));
         player.setIsPlayer(true);
         level.addActor(player, 1, 1);
         level.addActor(demon, 1, 2);
@@ -249,21 +251,22 @@ describe('BrainPlayer', () => {
         RGUnitTests.moveEntityTo(orc, 1, 1);
         RGUnitTests.moveEntityTo(goblin, 3, 3);
 
-        const brain = player.getBrain();
+        const brain = player.getBrain() as BrainTop.BrainPlayer;
         expect(brain.hasTargetSelected()).to.be.false;
         brain.decideNextAction({code: KEY.TARGET});
         expect(brain.hasTargetSelected()).to.be.true;
 
-        const targetCell = brain.getTarget();
+        let targetCell = brain.getTarget() as Cell;
         const firstID = targetCell.getFirstActor().getID();
         brain.decideNextAction({code: KEY.NEXT});
 
-        const selectedCell = brain.getTarget();
+        const selectedCell = brain.getTarget() as Cell;
         const nextID = selectedCell.getFirstActor().getID();
         expect(firstID).to.not.equal(nextID);
 
         brain.decideNextAction({code: KEY.NEXT});
-        const thirdID = brain.getTarget().getFirstActor().getID();
+        targetCell = brain.getTarget() as Cell;
+        const thirdID = targetCell.getFirstActor().getID();
         expect(firstID).to.equal(thirdID);
 
         for (let i = 0; i < 20; i++) {
@@ -400,7 +403,7 @@ describe('Brain.Human', () => {
     });
 });
 
-describe('Brain.Archer', () => {
+describe('Brain.GoalOriented', () => {
     it('can do ranged attacks on enemies', () => {
         const missSystem = new System.Missile(['Missile']);
         const player = new SentientActor('player');
@@ -413,7 +416,7 @@ describe('Brain.Archer', () => {
         const bow = new Item.MissileWeapon('bow');
         RGTest.equipItems(archer, [arrow, bow]);
 
-        archer.getBrain().addEnemy(player);
+        (archer.getBrain() as BrainTop.BrainSentient).addEnemy(player);
 
         const level = RGUnitTests.wrapIntoLevel([player, archer]);
         RGUnitTests.moveEntityTo(player, 2, 2);
