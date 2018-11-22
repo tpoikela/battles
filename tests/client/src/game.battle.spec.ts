@@ -49,7 +49,7 @@ describe('Game.Battle', function() {
             factions: ['undead', 'dwarf']
         };
         const battle = new FactoryBattle().createBattle(areaLevel, conf);
-        battle.getLevel().setParent(areaLevel);
+        battle.getLevel().setParent(battle);
         game.addBattle(battle, -1, true);
 
         const armies = battle.getArmies();
