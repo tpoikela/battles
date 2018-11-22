@@ -8,6 +8,7 @@ import * as Actor from '../../../client/src/actor';
 import * as Item from '../../../client/src/item';
 import {Keys} from '../../../client/src/keymap';
 import {chaiBattles} from '../../helpers/chai-battles';
+import {BrainPlayer} from '../../../client/src/brain/brain.player';
 
 chai.use(chaiBattles as any);
 
@@ -39,7 +40,7 @@ describe('Abilities', () => {
         const sharpener = new Ability.Sharpener();
         abilities.addAbility(sharpener);
 
-        const brain = actor.getBrain();
+        const brain = actor.getBrain() as BrainPlayer;
         brain.decideNextAction({code: KeyMap.KEY.ABILITY});
 
         expect(brain.isMenuShown()).to.equal(true);
