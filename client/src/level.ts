@@ -352,8 +352,8 @@ export class Level extends Entity {
             }
         }
         else {
-            RG.nullOrUndefError('Map.Level: addActor', 'arg |x|', x);
-            RG.nullOrUndefError('Map.Level: addActor', 'arg |y|', y);
+            RG.nullOrUndefError('Level: addActor', 'arg |x|', x);
+            RG.nullOrUndefError('Level: addActor', 'arg |y|', y);
             return false;
         }
     }
