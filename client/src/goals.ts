@@ -12,6 +12,8 @@ import {SentientActor} from './actor';
 import {SpellBase, SpellArgs} from './spell';
 import {TCoord} from './interfaces';
 
+type Memory = import('./brain').Memory;
+
 const RNG = Random.getRNG();
 export const Goal: any = {};
 Goal.ACTOR_FILTER = '';
@@ -1388,8 +1390,8 @@ export class GoalCommunicate extends GoalBase {
 
     public communicateEnemies() {
         const brain = this.actor.getBrain();
-        const memory = brain.getMemory();
-        const enemies = memory.getEnemies();
+        const memory: Memory = brain.getMemory();
+        const enemies = memory.getEnemyActors();
         const seenCells = brain.getSeenCells();
         const friendCell = brain.findFriendCell(seenCells);
         const friendActor = friendCell.getActors()[0];
