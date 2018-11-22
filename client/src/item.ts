@@ -25,7 +25,7 @@ export class ItemBase extends Entity {
     public isOwnable: boolean;
     public useArgs: any;
     public isUsable: boolean;
-    protected _owner: SentientActor;
+    protected _owner: SentientActor | ItemBase;
     private _name: string;
 
     constructor(name) {
@@ -38,8 +38,6 @@ export class ItemBase extends Entity {
         this.add(new Component.Item());
         this.add(new Component.Physical());
     }
-
-    public isSamePos(obj) {return this._owner.isSamePos(obj);}
 
     public setOwner(owner) {
         if (RG.isNullOrUndef([owner])) {
@@ -54,8 +52,8 @@ export class ItemBase extends Entity {
      * inside inventory. */
     public getTopOwner() {
         let owner = this._owner;
-        while (owner.getOwner) {
-            owner = owner.getOwner();
+        while ((owner as ItemBase).getOwner) {
+            owner = (owner as ItemBase).getOwner();
         }
         return owner;
     }
@@ -459,7 +457,7 @@ export class Potion extends ItemBase {
                 const pt = die.roll();
                 if (target.has('Health')) {
                     target.get('Health').addHP(pt);
-                    const owner = this.getOwner().getOwner();
+                    const owner = (this.getOwner() as ItemBase).getOwner();
                     const useItemComp = new Component.UseItem();
                     useItemComp.setTarget(target);
                     useItemComp.setItem(this);
@@ -825,7 +823,7 @@ export class SpiritGem extends ItemBase {
 
     /* Used for capturing the spirits inside the gem.*/
     public useItem(obj): boolean {
-        const binder = this.getOwner().getOwner();
+        const binder = (this.getOwner() as ItemBase).getOwner();
         if (binder) {
             const bindComp = new Component.SpiritBind();
             bindComp.setTarget(obj.target);
