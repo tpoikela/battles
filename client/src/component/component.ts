@@ -8,6 +8,7 @@ import {EventPool} from '../eventpool';
 import {Entity} from '../entity';
 import {Dice} from '../dice';
 import {Geometry} from '../geometry';
+import {TCoord} from '../interfaces';
 
 const POOL = EventPool.getPool();
 
@@ -23,6 +24,7 @@ const BaseProto = ComponentBase.prototype;
 
 const NO_TYPE = Object.freeze('');
 
+type Cell = import('../map.cell').Cell;
 
 /* Action component is added to all schedulable acting entities.*/
 export const Action = UniqueTransientDataComponent('Action',
@@ -56,6 +58,49 @@ Action.prototype.disable = function() {
     }
 };
 
+export const Location = UniqueDataComponent('Location', {
+    x: -1, y: -1, level: null});
+
+Location.prototype.getXY = function(): TCoord {return [this.x, this.y];}
+Location.prototype.setXY = function(x, y): void {
+    this.x = x;
+    this.y = y;
+}
+
+Location.prototype.unsetLevel = function() {
+    if (this.level) {
+        this.level = null;
+    }
+    else {
+        RG.err('Location', 'unsetLevel',
+            'Trying to unset already null level.');
+    }
+}
+
+/* Returns true if object is located at a position on a level.*/
+Location.prototype.isLocated = function() {
+    return (this.x >= 0) && (this.y >= 0)
+        && (this.level !== null);
+}
+
+/* Returns true if object is located at a position on a level.*/
+Location.prototype.getCell = function(): Cell | null {
+    if (this.level) {
+        return this.level.getMap().getCell(this.x, this.y);
+    }
+    return null;
+}
+
+Location.prototype.toJSON = function() {
+    const obj: any = {
+        setType: this.getType(), setID: this.getID(),
+        setX: this.x, setY: this.y
+    };
+    if (this.level) {
+        obj.setLevel = RG.getObjRef('entity', this.level);
+    }
+    return obj;
+}
 
 export const Typed = UniqueDataComponent('Typed', {
     objType: NO_TYPE, propType: NO_TYPE
