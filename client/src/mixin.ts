@@ -114,14 +114,6 @@ export const Locatable = superclass => class extends superclass {
             && (this._level !== null);
     }
 
-    /* Returns true if locatables are in same position.*/
-    public isSamePos(obj: Locatable) {
-        if (this._x !== obj.getX()) {return false;}
-        if (this._y !== obj.getY()) {return false;}
-        if (this._level !== obj.getLevel()) {return false;}
-        return true;
-    }
-
 };
 
 /* Mixin for objects requiring a damage roll. */
@@ -285,7 +277,7 @@ export const Damage =superclass => class extends Defense(superclass) {
     public setAttackRange(range) {this._range = range;}
     public getAttackRange() {return this._range;}
 
-    public rollDamage() {
+    public rollDamage(): number {
         if (this.hasOwnProperty('getWeapon')) {
             const weapon = this.getWeapon();
             if (!RG.isNullOrUndef([weapon])) {
@@ -295,9 +287,9 @@ export const Damage =superclass => class extends Defense(superclass) {
         return this._damageDie.roll();
     }
 
-    public getDamageDie() {return this._damageDie;}
+    public getDamageDie(): Dice {return this._damageDie;}
 
-    public setDamageDie(dStr) {
+    public setDamageDie(dStr: string | Dice): void {
         if (typeof dStr === 'string') {
             this._damageDie = Dice.create(dStr);
         }
@@ -306,14 +298,14 @@ export const Damage =superclass => class extends Defense(superclass) {
         }
     }
 
-    public copy(rhs) {
+    public copy(rhs): void {
         super.copy(rhs);
         this.setAttackRange(rhs.getAttackRange());
         const die = rhs.getDamageDie().clone();
         this.setDamageDie(die);
     }
 
-    public equals(rhs) {
+    public equals(rhs): boolean {
         let res = super.equals(rhs);
         if (res) {
             res = this.getDamageDie().equals(rhs.getDamageDie());
@@ -322,7 +314,7 @@ export const Damage =superclass => class extends Defense(superclass) {
         return res;
     }
 
-    public toString() {
+    public toString(): string {
         let msg = super.toString();
         msg += 'Dmg: ' + this.getDamageDie().toString();
         msg += ', R:' + this.getAttackRange();
