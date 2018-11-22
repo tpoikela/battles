@@ -72,12 +72,12 @@ export class MemoryPlayer extends Memory {
     }
 
     /* Sets the last attacked actor. */
-    setLastAttacked(actor): void {
-        if (Number.isInteger(actor)) {
-            this._lastAttackedID = actor;
+    setLastAttacked(actor: BaseActor | number): void {
+        if (Number.isInteger(actor as number)) {
+            this._lastAttackedID = actor as number;
         }
         else if (actor) {
-            this._lastAttackedID = actor.getID();
+            this._lastAttackedID = (actor as BaseActor).getID();
         }
     }
 
@@ -91,7 +91,7 @@ export class MemoryPlayer extends Memory {
     }
 
     /* Returns true if the given actor is enemy of player. */
-    isEnemy(actor): boolean {
+    isEnemy(actor: BaseActor): boolean {
         if (actor.isPlayer()) {
             return false; // Needed for MindControl
         }
