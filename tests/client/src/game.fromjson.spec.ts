@@ -24,6 +24,7 @@ import {RGUnitTests} from '../../rg.unit-tests';
 import {GameObject} from '../../../client/src/game-object';
 import {ObjectShell} from '../../../client/src/objectshellparser';
 import * as World from '../../../client/src/world';
+import { Entity } from '../../../client/src/entity';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
