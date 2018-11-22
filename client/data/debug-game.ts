@@ -10,8 +10,7 @@ import * as Item from '../src/item';
 import * as Time from '../src/time';
 import {Ability} from '../src/abilities';
 import {ActorsData} from './actors';
-import {Brain} from '../src/brain';
-import {BrainSpawner} from '../src/brain.virtual';
+import {BrainSpawner} from '../src/brain/brain.virtual';
 import {Battle, Army} from '../src/game.battle';
 import {CityGenerator} from '../src/city-generator';
 import {EquipSlot} from '../src/equipment';
@@ -20,7 +19,7 @@ import {MapGenerator} from '../src/map.generator';
 import {Random} from '../src/random';
 import {Spell} from '../src/spell';
 import {Texts} from '../data/texts';
-import {VirtualActor} from '../src/actor';
+import {VirtualActor} from '../src/actor.virtual';
 import {ELEM} from '../data/elem-constants';
 
 import {Quest, QuestPopulate} from '../src/quest-gen';
@@ -424,7 +423,6 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
         {hp: 100, att: 10, def: 10});
     summoner.setType('summoner');
     summoner.get('Experience').setExpLevel(10);
-    summoner.setBrain(new Brain.Summoner(summoner));
     lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
 
     const townLevel = this.createLastBattle(game, {cols: 80, rows: 60});
