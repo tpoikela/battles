@@ -7,7 +7,8 @@ import {ELEM_MAP} from '../data/elem-constants';
 
 const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 
-type PropsType = Element.ElementBase | Item.ItemBase | BaseActor;
+type ItemBase = Item.ItemBase;
+type PropsType = Element.ElementBase | ItemBase | BaseActor;
 type Door = Element.ElementDoor;
 type LeverDoor = Element.ElementLeverDoor;
 type Stairs = Element.ElementStairs;
@@ -120,7 +121,9 @@ export class Cell {
     }
 
     public hasItems() {return this.hasProp(TYPE_ITEM);}
-    public getItems() {return this.getProp(TYPE_ITEM);}
+    public getItems(): ItemBase[] {
+        return (this.getProp(TYPE_ITEM) as ItemBase[]);
+    }
 
     /* Checks if this cell has a marker with given tag. */
     public hasMarker(tag) {
