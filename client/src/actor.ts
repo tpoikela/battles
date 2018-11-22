@@ -42,26 +42,26 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
     }
 
     public isEnemy(actor: BaseActor): boolean {return false;}
-    public addEnemy(actor: BaseActor) {/* No implementation here */}
-    public addEnemyType(type: string) {/* No implementation here */}
+    public addEnemy(actor: BaseActor): void {/* No implementation here */}
+    public addEnemyType(type: string): void {/* No implementation here */}
 
-    public setName(name) {this.get('Named').setName(name);}
-    public getName() {
+    public setName(name: string) {this.get('Named').setName(name);}
+    public getName(): string {
         return this.get('Named').getFullName();
     }
 
     public getBrain(): BrainBase {return this._brain;}
 
-    public setBrain(brain: BrainBase) {
+    public setBrain(brain: BrainBase): void {
         this._brain = brain;
         this._brain.setActor(this);
     }
 
-    public getSpeed() {
+    public getSpeed(): number {
         return RG.BASE_SPEED;
     }
 
-    public getEquipProtection() {return 0;}
+    public getEquipProtection(): number {return 0;}
 
     /* Returns the next action for this actor.*/
     public nextAction(obj?): Time.Action | null {
@@ -161,21 +161,21 @@ export class SentientActor extends BaseActor {
     // Brain-related methods
     //---------------------------------
 
-    public addEnemyType(type) {
+    public addEnemyType(type: string): void {
         this._brain.getMemory().addEnemyType(type);
     }
-    public addEnemy(actor) {
+    public addEnemy(actor: BaseActor): void {
         (this._brain as BrainGoalOriented).addEnemy(actor);
     }
-    public addFriend(actor) {
+    public addFriend(actor: BaseActor): void {
         (this._brain as BrainGoalOriented).addFriend(actor);
     }
 
-    public isEnemy(actor) {
+    public isEnemy(actor: BaseActor): boolean {
         return this._brain.getMemory().isEnemy(actor);
     }
 
-    public isFriend(actor) {
+    public isFriend(actor: BaseActor): boolean {
         return this._brain.getMemory().isFriend(actor);
     }
 
