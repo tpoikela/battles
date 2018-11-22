@@ -77,7 +77,7 @@ describe('How actors communicate with each other', () => {
 
         const comComp = new Component.Communication();
         comComp.addMsg({src: hunter1, type: 'Enemies',
-            enemies: mem1.getEnemies()});
+            enemies: mem1.getEnemyActors()});
         expect(comSys.entities.hasOwnProperty(hunter2.getID())).to.equal(false);
         hunter2.add(comComp);
         expect(comSys.entities.hasOwnProperty(hunter2.getID())).to.equal(true);

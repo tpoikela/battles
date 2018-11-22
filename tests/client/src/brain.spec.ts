@@ -384,6 +384,7 @@ describe('Brain.Human', () => {
 
         const demon = new SentientActor('demon');
         demon.setType('demon');
+        human.addEnemy(demon);
 
         const factLevel = new FactoryLevel();
         const level = factLevel.createLevel('arena', 10, 10);
@@ -391,11 +392,14 @@ describe('Brain.Human', () => {
         level.addActor(human2, 1, 1);
         level.addActor(demon, 3, 3);
 
+        expect(human2.isEnemy(demon)).to.equal(false);
+
         const action = human.nextAction();
         action.doAction();
         expect(human2.has('Communication')).to.be.true;
         commSystem.update();
         expect(human2.has('Communication')).to.be.false;
+        expect(human2.isEnemy(demon)).to.equal(true);
     });
 });
 

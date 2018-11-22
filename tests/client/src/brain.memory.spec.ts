@@ -18,8 +18,8 @@ describe('Brain.Memory', () => {
         const friend0 = new SentientActor('friend0');
         mem.addFriend(friend0);
 
-        expect(mem.getEnemies().length).to.equal(1);
-        expect(mem.getFriends().length).to.equal(1);
+        expect(mem.getEnemyActors().length).to.equal(1);
+        expect(mem.getFriendActors().length).to.equal(1);
 
         expect(mem.isFriend(friend0)).to.equal(true);
         expect(mem.isEnemy(friend0)).to.equal(false);
