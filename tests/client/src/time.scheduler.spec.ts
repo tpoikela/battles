@@ -15,10 +15,10 @@ describe('Time.Scheduler', () => {
     it('Repeats the same actor indefinitely', () => {
         const sch = new Time.Scheduler();
         const actor = new Actor('actor');
-        let actorID = actor.id;
+        let actorID = actor.getID();
 
         const player = new Actor('player');
-        const playerID = player.id;
+        const playerID = player.getID();
         const falseActor = new Actor('falseActor');
 
         const playerAction = new Action(15, () => {});
@@ -28,8 +28,8 @@ describe('Time.Scheduler', () => {
         player.setIsPlayer(true);
         expect(player.isPlayer()).to.equal(true);
 
-        actor.id = 1234;
-        actorID = actor.id;
+        actor.setID(1234);
+        actorID = actor.getID();
 
         sch.add(actor, true, 0);
         sch.add(player, true, 1);
@@ -37,31 +37,31 @@ describe('Time.Scheduler', () => {
         // t = 0
         let nextActor = sch.next();
         sch.setAction(action);
-        expect(nextActor.id).to.equal(actorID);
+        expect(nextActor.getID()).to.equal(actorID);
 
         // t = 1
         nextActor = sch.next();
         sch.setAction(playerAction);
-        expect(nextActor.id).to.equal(playerID);
+        expect(nextActor.getID()).to.equal(playerID);
         expect(nextActor.isPlayer()).to.equal(true);
 
         // t = 16
         nextActor = sch.next();
         sch.setAction(playerAction);
-        expect(nextActor.id).to.equal(playerID);
+        expect(nextActor.getID()).to.equal(playerID);
         expect(nextActor.isPlayer()).to.equal(true);
         expect(sch.remove(actor)).to.equal(true);
 
         // t = 31
         nextActor = sch.next();
         sch.setAction(playerAction);
-        expect(nextActor.id).to.equal(playerID);
+        expect(nextActor.getID()).to.equal(playerID);
         expect(nextActor.isPlayer()).to.equal(true);
 
         sch.add(actor, true, 0);
         nextActor = sch.next();
         sch.setAction(action);
-        expect(nextActor.id).to.equal(1234);
+        expect(nextActor.getID()).to.equal(1234);
         expect(nextActor.isPlayer()).to.equal(false);
         expect(sch.remove(player)).to.equal(true);
 
