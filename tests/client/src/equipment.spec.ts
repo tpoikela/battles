@@ -101,14 +101,14 @@ describe('Equipment', () => {
         let eqItems = eq.getItems();
         invEq.addItem(shield);
         invEq.equipItem(shield);
-        invEq.unequipItem('shield');
+        invEq.unequipItem('shield', 1, 0);
         expect(eqItems).to.have.length(0);
 
         expect(invEq.equipItem(shield)).to.be.true;
         eqItems = eq.getItems();
 
         expect(eq.getItems()).to.have.length(1);
-        invEq.unequipItem('shield', 1);
+        invEq.unequipItem('shield', 1, 0);
         expect(eq.getItems()).to.have.length(0);
         invEq.equipItem(shield);
         expect(eq.getItems()).to.have.length(1);
