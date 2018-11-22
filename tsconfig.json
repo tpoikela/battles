@@ -2,10 +2,9 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "allowJs": true,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "jsx": "react",
     "module": "commonjs",
-    "noImplicitAny": false,
     "strictNullChecks": false,
     "outDir": "build",
     "sourceMap": true,
