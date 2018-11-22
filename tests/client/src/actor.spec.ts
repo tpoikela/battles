@@ -33,8 +33,8 @@ describe('Rogue.Actor', () => {
 
         expect(actor.getXY()).to.deep.equal([2, 10]);
 
-        expect(actor.isAtXY(2, 10)).to.equal(true);
-        expect(actor.isAtXY(5, 11)).to.equal(false);
+        expect(actor.getXY()).to.deep.equal([2, 10]);
+        expect(actor.getXY()).not.to.deep.equal([5, 11]);
     });
 
     it('can be a player actor', () => {
