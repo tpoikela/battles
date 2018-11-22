@@ -15,10 +15,15 @@ import * as Element from './element';
 
 import {BBox} from './geometry';
 
+type Level = import('./level').Level;
+type SentientActor = import('./actor').SentientActor;
+type Stairs = Element.ElementStairs;
+const ElementStairs = Element.ElementStairs;
+
 const RNG = Random.getRNG();
 
-const FACTIONS = ['human', 'dwarf', 'dogfolk', 'wolfclan', 'goblin',
-    'catfolk', 'bearfolk', 'wildling', 'undead'];
+const FACTIONS = ['avianfolk', 'human', 'dwarf', 'dogfolk', 'wolfclan',
+    'goblin', 'catfolk', 'bearfolk', 'wildling', 'undead'];
 
 export interface BattleConf {
     cols?: number;
@@ -45,7 +50,7 @@ export class FactoryBattle {
 
     /* Creates one battle into the level. TODO: Decide how to modify difficulty
      * etc. */
-    createBattle(parentLevel, conf: BattleConf = {}) {
+    createBattle(parentLevel, conf: BattleConf = {}): Battle {
         const cols = conf.cols || 80;
         const rows = conf.rows || 40;
 
@@ -71,7 +76,7 @@ export class FactoryBattle {
         }
 
         // Generate all armies based on constraints
-        const armies = [];
+        const armies: Army[] = [];
         for (let i = 0; i < numArmies; i++) {
             const army = this.createArmy(battle, facts[i], conf);
 
@@ -113,7 +118,7 @@ export class FactoryBattle {
 
         if (parentLevel) {
             // Add connecting stairs between battle and area
-            const stairsArea = new Element.ElementStairs('battle', parentLevel);
+            const stairsArea = new ElementStairs('battle', parentLevel);
             const map = parentLevel.getMap();
 
             // TODO randomize this position
@@ -135,7 +140,7 @@ export class FactoryBattle {
 
             World.addExitsToEdge(battleLevel);
 
-            const battleExits = battleLevel.getConnections();
+            const battleExits: Stairs[] = battleLevel.getConnections();
             stairsArea.connect(battleExits[0]);
             for (let i = 1; i < battleExits.length; i++) {
                 battleExits[i].setTargetLevel(parentLevel);
@@ -146,7 +151,7 @@ export class FactoryBattle {
         return battle;
     }
 
-    getFactions(conf) {
+    getFactions(conf): string[] {
         let fact1 = null;
         let fact2 = null;
         if (conf.factions) {
@@ -163,7 +168,7 @@ export class FactoryBattle {
     }
 
     /* Creates an army of specified faction. */
-    createArmy(battle, faction, conf) {
+    createArmy(battle: Battle, faction: string, conf): Army {
         const parser = ObjectShell.getParser();
         const armySize = conf.armySize || 20;
         const maxDanger = conf.danger || 5;
@@ -210,7 +215,7 @@ export class FactoryBattle {
         return army;
     }
 
-    makeArmiesAsEnemies(armies) {
+    makeArmiesAsEnemies(armies: Army[]): void {
         // Make army actors into each others enemies
         armies.forEach(army1 => {
             armies.forEach(army2 => {
@@ -236,7 +241,7 @@ export class FactoryBattle {
         });
     }
 
-    createBattleLevel(cols, rows, conf) {
+    createBattleLevel(cols, rows, conf): Level {
         const levelType = conf.levelType || 'forest';
         const forestConf = RG.getForestConf(cols, rows);
         const battleLevel = FactoryLevel.createLevel(levelType, cols, rows,
@@ -244,14 +249,13 @@ export class FactoryBattle {
         return battleLevel;
     }
 
-    addCommanderAbilities(actor) {
+    addCommanderAbilities(actor: SentientActor): void {
         const brain = new Brain.BrainGoalOriented(actor);
         const topGoal = new GoalsTop.ThinkCommander(actor);
         actor.setBrain(brain);
         brain.setGoal(topGoal);
         actor.add(new Component.Commander());
         actor.setFOVRange(10);
-        return actor;
     }
 }
 
