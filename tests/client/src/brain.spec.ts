@@ -10,7 +10,7 @@ import {Keys} from '../../../client/src/keymap';
 import {Path} from '../../../client/src/path';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {SentientActor} from '../../../client/src/actor';
-import * as BrainTop from '../../../client/src/brain';
+import {Brain, BrainPlayer, BrainSentient} from '../../../client/src/brain';
 import * as Item from '../../../client/src/item';
 import {SystemMovement} from '../../../client/src/system/system.movement';
 import {SystemBaseAction} from '../../../client/src/system/system.base-action';
@@ -26,13 +26,9 @@ import {EventPool} from '../../../client/src/eventpool';
 
 const {KEY} = Keys;
 
-const Brain = BrainTop.Brain;
-const BrainPlayer = BrainTop.BrainPlayer;
-
 const expect = chai.expect;
 chai.use(chaiBattles);
 
-const BrainSentient = Brain.BrainSentient;
 const ElementBase = Element.ElementBase;
 
 describe('BrainPlayer', () => {
@@ -49,11 +45,11 @@ describe('BrainPlayer', () => {
         human = new SentientActor('Human friend');
 
         demon.setType('demon');
-        demon.setBrain(new Brain.BrainGoalOriented(demon));
+        demon.setBrain(new Brain.GoalOriented(demon));
         demon.addEnemy(player);
 
         human.setType('human');
-        human.setBrain(new Brain.BrainGoalOriented(human));
+        human.setBrain(new Brain.GoalOriented(human));
         player.setIsPlayer(true);
         level.addActor(player, 1, 1);
         level.addActor(demon, 1, 2);
@@ -251,7 +247,7 @@ describe('BrainPlayer', () => {
         RGUnitTests.moveEntityTo(orc, 1, 1);
         RGUnitTests.moveEntityTo(goblin, 3, 3);
 
-        const brain = player.getBrain() as BrainTop.BrainPlayer;
+        const brain = player.getBrain() as BrainPlayer;
         expect(brain.hasTargetSelected()).to.be.false;
         brain.decideNextAction({code: KEY.TARGET});
         expect(brain.hasTargetSelected()).to.be.true;
@@ -416,7 +412,7 @@ describe('Brain.GoalOriented', () => {
         const bow = new Item.MissileWeapon('bow');
         RGTest.equipItems(archer, [arrow, bow]);
 
-        (archer.getBrain() as BrainTop.BrainSentient).addEnemy(player);
+        (archer.getBrain() as BrainSentient).addEnemy(player);
 
         const level = RGUnitTests.wrapIntoLevel([player, archer]);
         RGUnitTests.moveEntityTo(player, 2, 2);
