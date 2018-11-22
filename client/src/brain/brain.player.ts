@@ -1,16 +1,21 @@
 
-import RG from './rg';
-import {Menu, SelectionObject} from './menu';
-import {Keys} from './keymap';
-import {Cell} from './map.cell';
-import * as GoalsBattle from './goals-battle';
-import * as Cmd from './cmd-player';
-import {BaseActor, SentientActor} from './actor';
-import {Random} from './random';
-import * as Item from './item';
-import * as Component from './component';
-import {Brain, BrainGoalOriented} from './brain';
-import {Geometry} from './geometry';
+import RG from '../rg';
+import {Menu, SelectionObject} from '../menu';
+import {Keys} from '../keymap';
+import {Cell} from '../map.cell';
+import * as GoalsBattle from '../goals-battle';
+import * as Cmd from '../cmd-player';
+import * as Component from '../component/component';
+import {BaseActor, SentientActor} from '../actor';
+import {Random} from '../random';
+import {Geometry} from '../geometry';
+
+import {BrainBase} from './brain.base';
+import {Brain} from './brain';
+import {Memory} from './brain.memory';
+
+type BrainGoalOriented = import('./brain.goaloriented').BrainGoalOriented;
+type ItemBase = import('../item').ItemBase;
 
 const RNG = Random.getRNG();
 const KeyMap = Keys.KeyMap;
@@ -56,12 +61,12 @@ export interface PlayerCmdInput {
 }
 
 /* Memory object for the player .*/
-export class MemoryPlayer {
+export class MemoryPlayer extends Memory {
     
-    private _lastAttackedID: number;
     private _player: SentientActor;
 
     constructor(player) {
+        super();
         this._lastAttackedID = null;
         this._player = player;
     }
@@ -194,10 +199,10 @@ class TargetingFSM {
         }
     }
 
-    setSelectedCells(cells): void {
+    setSelectedCells(cells: Cell | Cell[]): void {
         if (cells) {
             if (!Array.isArray(cells)) {
-                const cell = cells;
+                const cell = cells as Cell;
                 this.selectedCells = [cell];
                 if (this.isTargeting()) {
                     const actor = this.getActor();
@@ -211,7 +216,7 @@ class TargetingFSM {
                 }
             }
             else {
-                this.selectedCells = cells;
+                this.selectedCells = cells as Cell[];
             }
         }
     }
@@ -496,7 +501,7 @@ const CACHE_INVALID = null;
 
 /* This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
-export class BrainPlayer {
+export class BrainPlayer extends BrainBase {
 
     public  _actor: SentientActor;
     public energy: number; // Consumed energy per action
@@ -524,7 +529,7 @@ export class BrainPlayer {
     private _statBoosts: {[key: string]: {[key: string]: number}};
 
     constructor(actor: SentientActor) {
-        this._actor = actor;
+        super(actor);
         this._guiCallbacks = {}; // For attaching GUI callbacks
         this._type = 'Player';
         this._memory = new MemoryPlayer(actor);
@@ -760,7 +765,7 @@ export class BrainPlayer {
     }
 
 
-    getSeenCells() {
+    getSeenCells(): Cell[] {
         if (this._cache.seen === CACHE_INVALID) {
             let cells = this._actor.getLevel().exploreCells(this._actor);
             if (this._actor.has('Telepathy')) {
@@ -799,12 +804,12 @@ export class BrainPlayer {
 
 
     /* Sets the selection object (for chats/trainers/etc) */
-    setSelectionObject(obj) {
+    setSelectionObject(obj): void {
         this._wantSelection = true;
         this._selectionObject = obj;
     }
 
-    selectionDone() {
+    selectionDone(): void {
         this._wantSelection = false;
         this._selectionObject = null;
     }
@@ -1218,7 +1223,7 @@ export class BrainPlayer {
         this._actor.add(jumpCmp);
     }
 
-    giveOrder(orderType) {
+    giveOrder(orderType): void {
         const cells = this.getTarget() as Cell[];
         cells.forEach(cell => {
             if (cell.hasActors()) {
@@ -1279,7 +1284,7 @@ export class BrainPlayer {
         }
     }
 
-    giveOrderPickup(target) {
+    giveOrderPickup(target: BaseActor): void {
         const item = this.getItemInSight();
         const name = target.getName();
         if (item) {
@@ -1293,13 +1298,13 @@ export class BrainPlayer {
         }
     }
 
-    getOrderBias() {
+    getOrderBias(): number {
         if (this._actor.has('Leader')) {return 1.0;}
         if (this._actor.has('Commander')) {return 1.5;}
         return 0.7;
     }
 
-    useAbility() {
+    useAbility(): void {
         if (this._actor.has('Abilities')) {
             const menu = this._actor.get('Abilities').createMenu();
             this.setSelectionObject(menu);
@@ -1310,12 +1315,12 @@ export class BrainPlayer {
     }
 
 
-    addMark(tag) {
+    addMark(tag?: string): void {
         this._markList.addMark(tag);
     }
 
     /* Returns one item in sight, or null if no items are seen. */
-    getItemInSight() {
+    getItemInSight(): ItemBase {
         const seenCells = this.getSeenCells();
         const itemCells = seenCells.filter(cell => cell.hasItems());
         if (itemCells.length > 0) {
@@ -1357,7 +1362,7 @@ export class BrainPlayer {
         this._fsm.nextTarget();
     }
 
-    getTargetList() {
+    getTargetList(): Cell[] {
         return this._fsm.getTargetList();
     }
 
@@ -1370,7 +1375,7 @@ export class BrainPlayer {
     }
 
     /* Returns the current selected cell for targeting. */
-    getTarget() {
+    getTarget(): Cell | Cell[] {
         return this._fsm.getTarget();
     }
 
@@ -1388,11 +1393,11 @@ export class BrainPlayer {
     }
 
     /* Picks either last attacked actor, or the first found. */
-    getCellIndexToTarget(cells) {
+    getCellIndexToTarget(cells): number {
         return this._fsm.getCellIndexToTarget(cells);
     }
 
-    setSelectedCells(cells) {
+    setSelectedCells(cells: Cell[]): void {
         if (!cells) {
             this.cancelTargeting();
         }

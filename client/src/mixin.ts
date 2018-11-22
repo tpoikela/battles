@@ -1,5 +1,6 @@
 import RG from './rg';
 import {Dice} from './dice';
+import {TCoord} from './interfaces';
 
 export const Mixin: any = {};
 
@@ -10,8 +11,6 @@ Mixin.Base = Base;
 interface MixinArgs {
     [key: string]: any;
 }
-
-type Coord = [number, number];
 
 /* A mixin used for typed objects. */
 export const Typed = superclass => class extends superclass {
@@ -46,7 +45,7 @@ export const Typed = superclass => class extends superclass {
 export interface Locatable {
     getX: () => number;
     getY: () => number;
-    getXY: () => Coord;
+    getXY: () => TCoord;
     getLevel: () => any; // Add typings
 }
 
@@ -73,7 +72,7 @@ export const Locatable = superclass => class extends superclass {
         return x === this._x && y === this._y;
     }
 
-    public getXY(): Coord {
+    public getXY(): TCoord {
         return [this._x, this._y];
     }
 

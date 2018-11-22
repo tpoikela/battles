@@ -36,10 +36,14 @@ export * from './goals';
 export * from './goals-battle';
 export * from './goals-top';
 
+// export * from './brain.base';
 export * from './brain';
-export * from './brain.memory';
+// export * from './brain.memory';
+// export * from './brain.virtual';
+// export * from './brain.player';
 export * from './inv';
 export * from './actor';
+export * from './actor.virtual';
 export * from './element';
 
 export * from './evaluators';

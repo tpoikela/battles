@@ -6,19 +6,18 @@
 import RG from './rg';
 import {Geometry} from './geometry';
 import {Random} from './random';
+import {TCoord} from './interfaces';
 
 const RNG = Random.getRNG();
 const EMPTY = '.';
 const FULL = '#';
 const FILL_ALL = -1;
 
-type Coord = [number, number];
-
 interface TerrData {
     char: string;
-    open: {[key: string]: Coord};
-    closed: {[key: string]: Coord};
-    occupied: {[key: string]: Coord};
+    open: {[key: string]: TCoord};
+    closed: {[key: string]: TCoord};
+    occupied: {[key: string]: TCoord};
     currPos: number;
     maxNumPos: number;
     startX: number[];
@@ -26,7 +25,7 @@ interface TerrData {
     startSize: number;
     numOccupied?: number;
     numPos?: number;
-    areas?: {[key: string]: Coord[]};
+    areas?: {[key: string]: TCoord[]};
 }
 
 interface RivalData {
@@ -52,9 +51,9 @@ export class Territory {
     // Internal state of the generator
     public rivals: RivalData[];
     public currRivals: RivalData[];
-    public empty: {[key: string]: Coord};
-    public occupied: {[key: string]: Coord};
-    public occupiedBy: {[key: string]: Coord[]};
+    public empty: {[key: string]: TCoord};
+    public occupied: {[key: string]: TCoord};
+    public occupiedBy: {[key: string]: TCoord[]};
     public numEmpty: number;
     public numCells: number;
 

@@ -9,6 +9,8 @@ import {Level} from './level';
 import {Cell} from './map.cell';
 import {BaseActor, SentientActor} from './actor';
 
+type BrainPlayer = import('./brain/brain.player').BrainPlayer;
+
 export interface Action {
     doAction: () => void;
 }
@@ -102,7 +104,8 @@ export class Engine {
     isMenuShown(): boolean {
         if (this.nextActor.isPlayer()) {
             const actor = this.nextActor as SentientActor;
-            return actor.getBrain().isMenuShown();
+            const brain = actor.getBrain() as BrainPlayer;
+            return brain.isMenuShown();
         }
         return false;
     }

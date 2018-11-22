@@ -206,6 +206,7 @@ export class Battle {
         this._level = level;
         this._level.setParent(this);
     };
+
     getLevel() {
         return this._level;
     }

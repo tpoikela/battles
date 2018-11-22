@@ -4,9 +4,10 @@
 
 import RG from './rg';
 import {Path} from './path';
-import {SentientActor} from './actor';
-import {BrainPlayer} from './brain.player';
-import * as Component from './component';
+import * as Component from './component/component';
+
+type BrainPlayer = import('./brain/brain.player').BrainPlayer;
+type SentientActor = import ('./actor').SentientActor;
 
 export const Cmd: any = {};
 
@@ -70,7 +71,7 @@ export class CmdMissile extends CmdBase {
         for (let i = 0; i < fireRate; i++) {
 
             // TODO changes to fire more than 1 missile
-            const missile = invEq.unequipAndGetItem('missile', 1);
+            const missile = invEq.unequipAndGetItem('missile', 1, 0);
             if (!RG.isNullOrUndef([missile])) {
 
                 // Check for missile weapon for ammunition

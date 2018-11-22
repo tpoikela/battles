@@ -3,7 +3,7 @@ import RG from './rg';
 import {FromJSON} from './game.fromjson';
 import * as World from './world';
 import {ElementStairs} from './element';
-import {Coord} from './interfaces';
+import {TCoord} from './interfaces';
 
 type Stairs = ElementStairs;
 
@@ -98,7 +98,7 @@ export class ChunkManager {
         }
 
         // Will contain only coordinates of serialized tiles to load
-        const loadedTiles: Coord[] = [];
+        const loadedTiles: TCoord[] = [];
         for (let x = 0; x < this.sizeX; x++) {
             for (let y = 0; y < this.sizeY; y++) {
                 if (this.inLoadRange(px, py, x, y)) {
@@ -154,7 +154,7 @@ export class ChunkManager {
     }
 
     /* Loads the serialized/on-disk tile. */
-    loadTiles(px, py, loadedTilesXY: Coord[], moveDir: string): void {
+    loadTiles(px, py, loadedTilesXY: TCoord[], moveDir: string): void {
         const areaTiles: AreaTileObj[][] = this.area.getTiles();
         debug('loadTiles: ' + JSON.stringify(loadedTilesXY));
         const areaTileToLoadNow: AreaTileJSON[] = loadedTilesXY.map(

@@ -4,7 +4,7 @@ import RG from './rg';
 import {ElementMarker, ElementDoor} from './element';
 import {Level} from './level';
 
-import {Coord} from './interfaces';
+import {TCoord} from './interfaces';
 
 export abstract class LevelGenerator {
     public shouldRemoveMarkers: boolean;
@@ -15,7 +15,7 @@ export abstract class LevelGenerator {
 
     abstract create(cols, rows, conf): Level;
 
-    addStartAndEndPoint(level: Level, start: Coord, end: Coord): void {
+    addStartAndEndPoint(level: Level, start: TCoord, end: TCoord): void {
         if (start) {
             const [sX, sY] = start;
             const startPointElem = new ElementMarker('<');

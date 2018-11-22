@@ -16,8 +16,7 @@ import {Cell} from './map.cell';
 import {SentientActor} from './actor';
 import {FactoryLevel} from './factory.level';
 import * as Component from './component';
-
-type Coord = [number, number];
+import {TCoord} from './interfaces';
 
 const POOL: EventPool = EventPool.getPool();
 
@@ -520,7 +519,7 @@ export class ZoneBase extends WorldBase {
         this.tileY = y;
     }
 
-    public getTileXY(): Coord {
+    public getTileXY(): TCoord {
         return [this.tileX, this.tileY];
     }
 
@@ -1235,7 +1234,7 @@ export class Area extends WorldBase {
     }
 
     /* Returns tile X,Y which has the level with given ID. */
-    public findTileXYById(id): Coord | null {
+    public findTileXYById(id): TCoord | null {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
                 if (this.tilesLoaded[x][y]) {
@@ -1398,9 +1397,9 @@ export class Area extends WorldBase {
     }
 
     public printDebugInfo(): void {
-        const tilesJSON: Coord[] = [];
-        const loadedTiles: Coord[] = [];
-        const tilesOther: Coord[] = [];
+        const tilesJSON: TCoord[] = [];
+        const loadedTiles: TCoord[] = [];
+        const tilesOther: TCoord[] = [];
         this.forEachTile((x, y, tile) => {
             if ((tile as AreaTileJSON).isJSON) {tilesJSON.push([x, y]);}
             else if (this.tilesLoaded[x][y]) {loadedTiles.push([x, y]);}
@@ -1906,7 +1905,7 @@ export class WorldShop {
 
     private _shopkeeper: SentientActor;
     private _level: Level;
-    private _coord: Coord[];
+    private _coord: TCoord[];
     public _isAbandoned: boolean;
 
     constructor() {
@@ -1923,7 +1922,7 @@ export class WorldShop {
         this._level = level;
     }
 
-    public setCoord(coord: Coord[]): void {
+    public setCoord(coord: TCoord[]): void {
         this._coord = coord;
     }
 

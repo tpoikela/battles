@@ -3,15 +3,16 @@ import RG from './rg';
 import {Entity} from './entity';
 import * as Mixin from './mixin';
 
-import * as Component from './component';
-import {compsToJSON} from './component.base';
+import * as Component from './component/component';
+import {compsToJSON} from './component/component.base';
 
 import {BrainBase, BrainGoalOriented} from './brain';
-import {BrainVirtual} from './brain.virtual';
-import {BrainPlayer} from './brain.player';
+import {BrainPlayer} from './brain/brain.player';
 
 import {Inventory} from './inv';
 import * as Time from './time';
+
+type ActionCallback = Time.ActionCallback;
 
 export const Actor: any = {};
 
@@ -40,8 +41,8 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         return this.has('Player') || this.has('PlayerControlled');
     }
 
-    public isEnemy(actor) {return false;}
-    public addEnemy(actor) {/* No implementation here */}
+    public isEnemy(actor: BaseActor): boolean {return false;}
+    public addEnemy(actor: BaseActor) {/* No implementation here */}
     public addEnemyType(type: string) {/* No implementation here */}
 
     public setName(name) {this.get('Named').setName(name);}
@@ -49,9 +50,9 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         return this.get('Named').getFullName();
     }
 
-    public getBrain() {return this._brain;}
+    public getBrain(): BrainBase {return this._brain;}
 
-    public setBrain(brain) {
+    public setBrain(brain: BrainBase) {
         this._brain = brain;
         this._brain.setActor(this);
     }
@@ -63,9 +64,9 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
     public getEquipProtection() {return 0;}
 
     /* Returns the next action for this actor.*/
-    public nextAction(obj?) {
+    public nextAction(obj?): Time.Action | null {
         // Use actor brain to determine the action
-        const cb = this._brain.decideNextAction(obj);
+        const cb: ActionCallback = this._brain.decideNextAction(obj);
         let action = null;
 
         if (cb !== null) {
@@ -112,18 +113,6 @@ export class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
 }
 Actor.Base = BaseActor;
 
-/* Virtual actor can be used to spawn more entities or for AI-like effects
- * inside a level. */
-export class VirtualActor extends BaseActor {
-
-    constructor(name) { // {{{2
-        super(name);
-        this._brain = new BrainVirtual(this);
-    }
-
-
-}
-Actor.Virtual = VirtualActor;
 
 /* Object representing a game actor who takes actions.  */
 export class SentientActor extends BaseActor {
@@ -135,6 +124,7 @@ export class SentientActor extends BaseActor {
     protected _actorClass: any;
     protected _spellbook?: any;
     protected _actualBrain?: any;
+    protected _brain: BrainGoalOriented | BrainPlayer;
 
     constructor(name) { // {{{2
         super(name);
@@ -156,7 +146,6 @@ export class SentientActor extends BaseActor {
         perception.setFOVRange(RG.NPC_FOV_RANGE);
         this.add(perception);
     }
-
 
     public getFOVRange() {
         let range = this.get('Perception').getFOVRange();
@@ -550,3 +539,9 @@ SentientActor.getFormattedStats = function(actor): StatsData {
     return stats;
 }
 
+export function isSentient(target: BaseActor): target is SentientActor {
+    if (target) {
+        const brain = target.getBrain() as BrainGoalOriented;
+        return (typeof brain.getGoal === 'function');
+    }
+}

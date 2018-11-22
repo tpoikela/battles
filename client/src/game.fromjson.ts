@@ -19,11 +19,9 @@ import {Dice} from './dice';
 import {Spell} from './spell';
 import {ELEM, ELEM_MAP} from '../data/elem-constants';
 import {ObjectShell} from './objectshellparser';
-import {Component} from './component.base';
+import {Component} from './component';
 import {Item} from './item';
 import {Actor} from './actor';
-import {Brain} from './brain';
-import {BrainPlayer} from './brain.player';
 import {CellMap} from './map';
 import * as Element from './element';
 import {FactoryWorld} from './factory.world';
@@ -31,7 +29,10 @@ import * as World from './world';
 import {Random} from './random';
 import {OverWorld} from './overworld';
 import * as Time from './time';
-import { BrainSpawner } from './brain.virtual';
+
+import {Brain} from './brain';
+import {BrainPlayer} from './brain/brain.player';
+import { BrainSpawner } from './brain/brain.virtual';
 
 type AreaTileJSON = World.AreaTileJSON;
 type Stairs = Element.ElementStairs;

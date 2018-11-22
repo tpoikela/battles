@@ -7,19 +7,25 @@ const POOL = EventPool.getPool();
 
 export const Time = {};
 
-/* Models an action. Each action has a duration and a callback.  */
-export const Action = function(dur, cb) {
-    this._duration = dur;
-    this._cb = cb; // Action callback
-    this._energy = 0;
-};
+export type ActionCallback = () => void;
 
-Action.prototype.setEnergy = function(en) {this._energy = en;};
-Action.prototype.getEnergy = function() {return this._energy;};
-Action.prototype.getDuration = function() {return this._duration;};
-Action.prototype.doAction = function() {
-    this._cb();
-};
+/* Models an action. Each action has a duration and a callback.  */
+export class Action {
+    private _duration: number;
+    private _cb: ActionCallback;
+    private _energy: number;
+
+    constructor(dur, cb) {
+        this._duration = dur;
+        this._cb = cb; // Action callback
+        this._energy = 0;
+    }
+
+    setEnergy(en) {this._energy = en;};
+    getEnergy() {return this._energy;};
+    getDuration() {return this._duration;};
+    doAction() {this._cb();};
+}
 
 //---------------------------------------------------------------------------
 // GAME EVENTS

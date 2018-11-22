@@ -25,7 +25,6 @@
  */
 import RG from './rg';
 import {Keys} from './keymap';
-import {create, ComponentBase} from './component.base';
 import * as Component from './component';
 import {Random} from './random';
 import {SentientActor} from './actor';
@@ -34,11 +33,13 @@ import {ObjectShell} from './objectshellparser';
 import {Brain} from './brain';
 import {Geometry} from './geometry';
 import {Path} from './path';
+import {TCoord} from './interfaces';
 
 const RNG = Random.getRNG();
 const {KeyMap} = Keys;
 
-type Coord = [number, number];
+const create = Component.create;
+type ComponentBase = Component.ComponentBase;
 
 // const NO_SELECTION_NEEDED = () => {};
 
@@ -250,9 +251,9 @@ export interface SpellArgs {
     damage?: number;
     damageType?: string;
     destroyItem?: boolean;
-    dir?: Coord;
-    from?: Coord;
-    to?: Coord;
+    dir?: TCoord;
+    from?: TCoord;
+    to?: TCoord;
     postCallback?: () => void;
     range?: number;
     removeComp?: SpellRemoveComp;

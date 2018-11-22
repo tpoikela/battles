@@ -6,6 +6,7 @@ import RG from './rg';
 import {TemplateLevel} from './template.level';
 import {Houses5x5} from '../data/tiles.houses';
 import {Random} from './random';
+import {TCoord} from './interfaces';
 
 const RNG = Random.getRNG();
 
@@ -13,11 +14,9 @@ const WALL = '#';
 const FLOOR = ':';
 const DOOR = '+';
 
-type Coord = [number, number];
-
 export class House {
 
-    public coord: {[key: string]: Coord[]};
+    public coord: {[key: string]: TCoord[]};
     public map: any[][];
     public x: number;
     public y: number;
@@ -26,9 +25,9 @@ export class House {
     public w: number;
     public numFloor: number;
     public h: number;
-    public door: Coord;
-    public floor: Coord[];
-    public walls: Coord[];
+    public door: TCoord;
+    public floor: TCoord[];
+    public walls: TCoord[];
 
     constructor(map) {
         this.coord = {};

@@ -3,8 +3,7 @@
 
 import RG from './rg';
 import ROT from '../../lib/rot';
-
-type Coord = [number, number];
+import {TCoord} from './interfaces';
 
 export const Keys: any = {};
 
@@ -101,7 +100,7 @@ Keys.KeyMap = {
 
     /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
-    getDiff(code: number, x: number, y: number): Coord | null {
+    getDiff(code: number, x: number, y: number): TCoord | null {
         if (this.moveKeyMap.hasOwnProperty(code)) {
             const diff = ROT.DIRS[8][this.moveKeyMap[code]];
             const newX = x + diff[0];

@@ -1,15 +1,13 @@
 
-import RG from './rg';
-import * as Ability from './abilities';
+import RG from '../rg';
 
-import * as Mixin from './mixin';
-import {ChatTrainer, ChatQuest} from './chat';
+import * as Mixin from '../mixin';
+import {ChatTrainer, ChatQuest} from '../chat';
 import {ComponentBase, Component} from './component.base';
-import {EventPool} from './eventpool';
-import {Entity} from './entity';
-import {Dice} from './dice';
-import {Geometry} from './geometry';
-import {Brain} from './brain';
+import {EventPool} from '../eventpool';
+import {Entity} from '../entity';
+import {Dice} from '../dice';
+import {Geometry} from '../geometry';
 
 const POOL = EventPool.getPool();
 
@@ -25,7 +23,6 @@ const BaseProto = ComponentBase.prototype;
 
 const NO_TYPE = Object.freeze('');
 
-export * from './component.base';
 
 /* Action component is added to all schedulable acting entities.*/
 export const Action = UniqueTransientDataComponent('Action',
@@ -578,49 +575,6 @@ Named.prototype.getFullName = function() {
         return `${this.uniqueName}, ${this.name}`;
     }
     return this.name;
-};
-
-/* MindControl component allows another actor to control the mind-controlled
- * actor. */
-export const MindControl = function() {
-    ComponentBase.call(this, 'MindControl');
-
-    let _src = null;
-    let _brainTarget = null;
-    this.getSource = () => _src;
-    this.setSource = src => {_src = src;};
-
-    const _addCb = () => {
-        const ent = this.getEntity();
-        _brainTarget = ent.getBrain();
-        if (this.getSource().isPlayer()) {
-            ent.setPlayerCtrl(true);
-        }
-        else {
-            ent.setBrain(new Brain.MindControl(ent));
-        }
-    };
-
-    const _removeCb = () => {
-        if (this.getSource().isPlayer()) {
-            this.getEntity().setPlayerCtrl(false);
-        }
-        this.getEntity().setBrain(_brainTarget);
-    };
-
-    this.addCallback('onAdd', _addCb);
-    this.addCallback('onRemove', _removeCb);
-
-};
-RG.extend2(MindControl, ComponentBase);
-Component.MindControl = MindControl;
-
-MindControl.prototype.toJSON = function() {
-    const obj = ComponentBase.prototype.toJSON.call(this);
-    if (RG.isActorActive(this.getSource())) {
-        obj.setSource = RG.getObjRef('entity', this.getSource());
-    }
-    return obj;
 };
 
 /* Poison component which damages the entity.*/
@@ -1279,42 +1233,6 @@ GameInfo.prototype.addZoneType = function(type) {
     this.data = data;
 };
 
-/* Abilities which stores the separate (non-spell) abilities of actor. */
-export const Abilities = UniqueDataComponent('Abilities', {});
-
-Abilities.prototype._init = function() {
-    const _addCb = () => {
-        const abilities = new Ability.Abilities(this.getEntity());
-        // This is mainly used if component is restored
-        if (Array.isArray(this.abilities)) {
-            this.abilities.forEach(name => {
-                const abil = new Ability[name]();
-                abilities.addAbility(abil);
-            });
-        }
-        this.abilities = abilities;
-        this.removeCallbacks('onAdd');
-    };
-    this.addCallback('onAdd', _addCb);
-};
-
-Abilities.prototype.setAbilities = function(abils) {
-    this.abilities = abils;
-};
-
-Abilities.prototype.createMenu = function() {
-    return this.abilities.getMenu();
-};
-
-Abilities.prototype.addAbility = function(ability) {
-    this.abilities.addAbility(ability);
-};
-
-Abilities.prototype.toJSON = function() {
-    const json = ComponentBase.prototype.toJSON.call(this);
-    json.setAbilities = this.abilities.toJSON();
-    return json;
-};
 
 //---------------------------------------------------------------------------
 // TIME-related components

@@ -1,10 +1,9 @@
 
 import RG from './rg';
 import {Random} from './random';
+import {TCoord} from './interfaces';
 
 const RNG = Random.getRNG();
-
-type Coord = [number, number];
 
 export interface BBox {
     ulx: number;
@@ -28,9 +27,9 @@ export const Geometry: any = {
 
     /* Returns all coord in a box around x0,y0 within distance d. Last arg can
      * be used to include the coordinate itself in the result. */
-    getBoxAround: function(x0, y0, d, incSelf = false): Coord[] {
+    getBoxAround: function(x0, y0, d, incSelf = false): TCoord[] {
         verifyInt([x0, y0]);
-        const res: Coord[] = [];
+        const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
                 if (x !== x0 || y !== y0) {
@@ -42,9 +41,9 @@ export const Geometry: any = {
         return res;
     },
 
-    getCrossAround: function(x0, y0, d, incSelf = false): Coord[] {
+    getCrossAround: function(x0, y0, d, incSelf = false): TCoord[] {
         verifyInt([x0, y0, d]);
-        const res: Coord[] = [];
+        const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
                 if (x === x0 || y === y0) {
@@ -59,9 +58,9 @@ export const Geometry: any = {
 
     },
 
-    getDiagCross: function(x0, y0, d, incSelf = false): Coord[] {
+    getDiagCross: function(x0, y0, d, incSelf = false): TCoord[] {
         verifyInt([x0, y0, d]);
-        const res: Coord[] = [];
+        const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
                 const dX = x - x0;
@@ -75,9 +74,9 @@ export const Geometry: any = {
         return res;
     },
 
-    getCrossCaveConn: function(x0, y0, d, incSelf = false): Coord[] {
+    getCrossCaveConn: function(x0, y0, d, incSelf = false): TCoord[] {
         verifyInt([x0, y0, d]);
-        const res: Coord[] = [];
+        const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
                 if (x === x0 || y === y0) {
@@ -93,9 +92,9 @@ export const Geometry: any = {
 
     /* Returns a box of coordinates given starting point and end points
      * (inclusive). */
-    getBox: function(x0, y0, maxX, maxY): Coord[] {
+    getBox: function(x0, y0, maxX, maxY): TCoord[] {
         verifyInt([x0, y0, maxX, maxY]);
-        const res: Coord[] = [];
+        const res: TCoord[] = [];
         for (let x = x0; x <= maxX; x++) {
             for (let y = y0; y <= maxY; y++) {
                 res.push([x, y]);
@@ -119,12 +118,12 @@ export const Geometry: any = {
         }
     },
 
-    getCoordBbox: function(bbox: BBox): Coord[] {
+    getCoordBbox: function(bbox: BBox): TCoord[] {
         const {ulx, uly, lrx, lry} = bbox;
         return this.getBox(ulx, uly, lrx, lry);
     },
 
-    getBorderForBbox: function(bbox: BBox): Coord[] {
+    getBorderForBbox: function(bbox: BBox): TCoord[] {
         const {ulx, uly, lrx, lry} = bbox;
         return this.getHollowBox(ulx, uly, lrx, lry);
     },
@@ -132,7 +131,7 @@ export const Geometry: any = {
     getCellsInBbox: function(map2D: any[][], bbox: BBox) {
         const coord = this.getCoordBbox(bbox);
         const result = [];
-        coord.forEach((xy: Coord) => {
+        coord.forEach((xy: TCoord) => {
             result.push(map2D[xy[0]][xy[1]]);
         });
         return result;
@@ -150,7 +149,7 @@ export const Geometry: any = {
     },
 
     /* Converts a direction into bbox based on cols, rows. */
-    dirToBbox: function(cols: number, rows: number, dir: Coord): BBox {
+    dirToBbox: function(cols: number, rows: number, dir: TCoord): BBox {
         const colsDiv = Math.round(cols / 3);
         const rowsDiv = Math.round(rows / 3);
         const cBbox = {ulx: colsDiv, uly: rowsDiv,
@@ -205,7 +204,7 @@ export const Geometry: any = {
         const highY = y0 + size;
         const lowY = y0 - size;
 
-        const coord: Coord[] = [[x0, y0]];
+        const coord: TCoord[] = [[x0, y0]];
         const diamond = {
             N: [midX, highY],
             S: [midX, lowY],
@@ -550,7 +549,7 @@ export const Geometry: any = {
     /* Returns all coordinates within straight line between two points. Returns
      * empty array if there is no line. Straight means all cardinal directions.
      */
-    getStraightLine: function(x0, y0, x1, y1, incEnds = true): Coord[] {
+    getStraightLine: function(x0, y0, x1, y1, incEnds = true): TCoord[] {
         if (this.isLine(x0, y0, x1, y1)) {
             const res = [];
             const dX = x1 === x0 ? 0 : (x1 - x0) / Math.abs(x1 - x0);
@@ -580,7 +579,7 @@ export const Geometry: any = {
     * https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS
     *   /FOURTH_EDITION/PROGRAMS/bresenham.c
     */
-    getBresenham: function(x1, y1, x2, y2): Coord[] {
+    getBresenham: function(x1, y1, x2, y2): TCoord[] {
         let dx, dy, i, e;
         let incx, incy, inc1, inc2;
         let x, y;

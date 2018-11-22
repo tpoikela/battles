@@ -1,11 +1,11 @@
 
 /* This file contains Brain objects for virtual actors such as spawners. */
 
-import RG from './rg';
-import {Constraints} from './constraints';
-import {BrainBase} from './brain';
-import {Constraint} from './interfaces';
-import {ObjectShell} from './objectshellparser';
+import RG from '../rg';
+import {Constraints} from '../constraints';
+import {BrainBase} from './brain.base';
+import {IConstraint} from '../interfaces';
+import {ObjectShell} from '../objectshellparser';
 
 const spawnProb = 0.10;
 
@@ -21,7 +21,7 @@ export class BrainVirtual extends BrainBase {
 /* Brain object used by Spawner virtual actors. */
 export class BrainSpawner extends BrainVirtual {
 
-    public constraint: Constraint;
+    public constraint: IConstraint;
     protected _constraintFunc: (shell) => boolean;
 
     constructor(actor) {
@@ -32,7 +32,7 @@ export class BrainSpawner extends BrainVirtual {
     }
 
 
-    public setConstraint(constraint: Constraint) {
+    public setConstraint(constraint: IConstraint) {
         this.constraint = constraint;
         this._constraintFunc = new Constraints().getConstraints(constraint);
     }

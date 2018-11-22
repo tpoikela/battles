@@ -1,12 +1,17 @@
 
 import RG from './rg';
 import {Entity} from './entity';
-import * as Component from './component';
-import {compsToJSON} from './component.base';
+import {Pickup} from './component/component';
+import {compsToJSON} from './component/component.base';
 import {Random} from './random';
 import {EventPool} from './eventpool';
 import * as Mixin from './mixin';
 import {ELEM} from '../data/elem-constants';
+
+import {TCoord} from './interfaces';
+type ZoneBase = import('./world').ZoneBase;
+type SubZoneBase = import('./world').SubZoneBase;
+type Battle = import('./game.battle').Battle;
 
 const POOL = EventPool.getPool();
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
@@ -26,7 +31,7 @@ export class LevelCallback {
         this.cbType = type;
     }
 
-    execute() {
+    execute(): void {
         RG.gameMsg(this.msg);
     }
 
@@ -42,10 +47,24 @@ export class LevelCallback {
     }
 }
 
-export interface LevelExtras {
-    [key: string]: any;
+type LevelParent = Battle | SubZoneBase;
+
+type LevelExtraType = number | string | boolean | {[key: string]: LevelExtraType | LevelExtraType[]};
+
+export interface House {
+    door: TCoord;
 }
 
+interface Extras {
+    [key: string]: LevelExtraType | LevelExtraType[];
+}
+
+export type LevelExtras = Extras & {
+    startPoint?: TCoord;
+    houses?: House[];
+    /* connectEdges?: boolean;
+    isCollapsed?: boolean;*/
+}
 
 /* Object for the game levels. Contains map, actors and items.  */
 // const Level = function() {
@@ -93,19 +112,19 @@ export class Level extends Entity {
 
     setLevelNumber(no) {this._levelNo = no;}
 
-    getLevelNumber() {
+    getLevelNumber(): number {
         return this._levelNo;
     }
 
-    getParent() {
+    getParent(): SubZoneBase {
         return this._parent;
     }
 
-    getParentZone() {
+    getParentZone(): ZoneBase {
         const subZoneParent = this.getParent();
         if (subZoneParent) {
-            if (subZoneParent.getParent) {
-                return subZoneParent.getParent();
+            if ((subZoneParent as SubZoneBase).getParent) {
+                return subZoneParent.getParent() as ZoneBase;
             }
             RG.err('Level', 'getParentZone',
                 `No getParent() in ${JSON.stringify(subZoneParent)}`);
@@ -113,7 +132,7 @@ export class Level extends Entity {
         return null;
     }
 
-    setParent(parent) {
+    setParent(parent: LevelParent): void {
         if (!RG.isNullOrUndef([parent])) {
             this._parent = parent;
         }
@@ -295,7 +314,7 @@ export class Level extends Entity {
     }
 
     pickupItem(actor) {
-        const pickup = new Component.Pickup();
+        const pickup = new Pickup();
         actor.add(pickup);
     }
 
@@ -487,8 +506,8 @@ export class Level extends Entity {
             Object.keys(this._extras).length > 0;
     }
 
-    addExtras(key, value) {
-        if (!this._extras) {this._extras = {};}
+    addExtras(key: string, value: any): void {
+        if (!this._extras) {this._extras = {} as LevelExtras;}
         this._extras[key] = value;
     }
 

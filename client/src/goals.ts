@@ -2,7 +2,6 @@
 import dbg from 'debug';
 const debug = dbg('bitn:Goal');
 
-
 import RG from './rg';
 import * as Component from './component';
 import * as Item from './item';
@@ -11,6 +10,7 @@ import {Path, CoordXY, PathFunc} from './path';
 import {Random} from './random';
 import {SentientActor} from './actor';
 import {SpellBase, SpellArgs} from './spell';
+import {TCoord} from './interfaces';
 
 const RNG = Random.getRNG();
 export const Goal: any = {};
@@ -46,8 +46,6 @@ const {
 } = Goal;
 
 let IND = 0;
-
-type Coord = [number, number];
 
 //---------------------------------------------------------------------------
 /* Base class for all actor goals. */
@@ -292,7 +290,7 @@ Goal.Base = GoalBase;
 export class GoalFollowPath extends GoalBase {
 
     public path: CoordXY[];
-    public xy: Coord;
+    public xy: TCoord;
 
     constructor(actor, xy) {
         super(actor);
@@ -379,7 +377,7 @@ function getNextCoord(actor, dir) {
  */
 export class GoalMoveUntilEnemy extends GoalBase {
 
-    public dir: Coord;
+    public dir: TCoord;
     public timeout: number;
 
     constructor(actor, dir) {
@@ -517,7 +515,7 @@ export class GoalGuard extends GoalBase {
     public x: number;
     public y: number;
 
-    constructor(actor, xy: Coord, dist = 1) {
+    constructor(actor, xy: TCoord, dist = 1) {
         super(actor);
         this.setType('GoalGuard');
         this.dist = dist;
@@ -564,8 +562,8 @@ Goal.Guard = GoalGuard;
 //---------------------------------------------------------------------------
 export class GoalPatrol extends GoalBase {
 
-    public coords: Coord[];
-    public currTarget: Coord;
+    public coords: TCoord[];
+    public currTarget: TCoord;
     public currIndex: number;
     public patrolDist: number;
 
@@ -679,7 +677,7 @@ export class GoalAttackActor extends GoalBase {
                     const newName = actor.getName();
                     RG.log(`${name}:: Recomp target ${old} -> ${newName}`);
                 }
-                this.targetActor = actor;
+                this.targetActor = actor as SentientActor;
                 brain.getMemory().setLastAttacked(actor);
                 this.selectSubGoal();
             }
@@ -825,7 +823,7 @@ export class GoalShootActor extends GoalBase {
         const [eX, eY] = this.targetActor.getXY();
         const mComp = new Component.Missile(this.actor);
         const invEq = this.actor.getInvEq();
-        const shotItem = invEq.unequipAndGetItem('missile', 1);
+        const shotItem = invEq.unequipAndGetItem('missile', 1, 0);
 
         if (!shotItem) {
             return;

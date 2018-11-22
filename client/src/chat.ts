@@ -4,9 +4,10 @@
 import RG from './rg';
 import {Keys} from './keymap';
 import * as Menu from './menu';
-import {SentientActor} from './actor';
 import * as Item from './item';
-import * as Component from './component';
+import * as Component from './component/component';
+
+type SentientActor = import('./actor').SentientActor;
 
 export const Chat: any = {};
 const stats = RG.STATS;

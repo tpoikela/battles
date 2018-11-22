@@ -4,9 +4,10 @@ import {Entity} from  '../entity';
 import {SystemBase} from './system.base';
 import {SentientActor} from '../actor';
 import {Cell} from '../map.cell';
-import {create} from '../component.base';
 import * as Component from '../component';
 import * as Element from '../element';
+
+type BrainPlayer = import('../brain/brain.player').BrainPlayer;
 
 import dbg = require('debug');
 const debug = dbg('bitn:System.Movement');
@@ -266,7 +267,7 @@ export class SystemMovement extends SystemBase {
             if (applyBonus) {
                 bonuses.mods.forEach(mod => {
                     if (Number.isInteger(mod.value)) {
-                        const targetComp = create(mod.targetComp);
+                        const targetComp = Component.create(mod.targetComp);
                         targetComp[mod.targetFunc](mod.value);
                         targetComp.setTag(newType);
                         ent.add(targetComp);
@@ -276,7 +277,7 @@ export class SystemMovement extends SystemBase {
                         if (srcComp) {
                             let bonus = srcComp[mod.srcFunc]();
                             bonus = Math.round(mod.value * bonus);
-                            const targetComp = create(mod.targetComp);
+                            const targetComp = Component.create(mod.targetComp);
                             targetComp[mod.targetFunc](bonus);
                             targetComp.setTag(newType);
                             ent.add(targetComp);
@@ -347,7 +348,10 @@ export class SystemMovement extends SystemBase {
                 msg = `${ent.getName()} has explored zone thoroughly.`;
             }
             RG.gameInfo({cell, msg});
-            if (ent.isPlayer()) {ent.getBrain().addMark();}
+            if (ent.isPlayer()) {
+                const brain = ent.getBrain() as BrainPlayer;
+                brain.addMark();
+            }
         }
     }
     /* Reports an error if an entity could not be removed. */

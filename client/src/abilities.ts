@@ -2,8 +2,9 @@
 import RG from './rg';
 import {Random} from './random';
 import * as Menu from './menu';
-import * as Component from './component';
-import {SentientActor} from './actor';
+import * as Component from './component/component';
+
+type SentientActor = import('./actor').SentientActor;
 
 const RNG = Random.getRNG();
 

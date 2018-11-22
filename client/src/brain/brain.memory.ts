@@ -1,5 +1,5 @@
 
-import RG from './rg';
+import RG from '../rg';
 
 const MEM_NO_ACTORS = Object.freeze([]);
 
@@ -9,16 +9,16 @@ interface ActorsMap {
     seen?: {[key: string]: any};
 }
 
-const NOT_ATTACKED = -1;
+const NOT_ATTACKED = null;
 
 /* Memory is used by the actor to hold information about enemies, items etc.
  * It's a separate object from decision-making brain.*/
 export class Memory {
 
-    private _actors: ActorsMap;
-    private _enemyTypes: {[key: string]: true};
-    private _communications: any[];
-    private _lastAttackedID: number;
+    protected _actors: ActorsMap;
+    protected _enemyTypes: {[key: string]: true};
+    protected _communications: any[];
+    protected _lastAttackedID: number;
 
     constructor() {
         this._actors = {};
@@ -29,31 +29,27 @@ export class Memory {
     }
 
     /* Adds a generic enemy type. */
-    addEnemyType(type) {
+    addEnemyType(type): void {
         this._enemyTypes[type] = true;
     }
 
     /* Removes a generic enemy type. */
-    removeEnemyType(type) {
+    removeEnemyType(type): void {
         if (this._enemyTypes[type]) {
             delete this._enemyTypes[type];
         }
     }
 
     /* Checks if given actor is an enemy. */
-    isEnemy(actor) {
+    isEnemy(actor): boolean {
         if (this._actors.hasOwnProperty('enemies')) {
             const index = this._actors.enemies.indexOf(actor);
             if (index >= 0) {return true;}
         }
+        // Friend overrides generic enemy type
         if (!this.isFriend(actor)) {
             if (this._enemyTypes[actor.getType()]) {
                 return true;
-            }
-            if (!actor.isPlayer) {
-                const json = JSON.stringify(actor);
-                RG.err('Memory', 'isEnemy',
-                    'Actor has not isPlayer() ' + json);
             }
             if (actor.isPlayer()) {
                 return this._enemyTypes.player;

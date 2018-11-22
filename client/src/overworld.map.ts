@@ -8,6 +8,7 @@ import dbg = require('debug');
 const debug = dbg('bitn:OW');
 
 import RG from './rg';
+import {TCoord} from './interfaces';
 
 import {CellMap} from './map';
 import {Geometry} from './geometry';
@@ -19,10 +20,6 @@ import {Territory} from './territory';
 import {ElementMarker} from './element';
 
 const getRNG = Random.getRNG;
-
-// export const OW: any = {};
-
-type Coord = [number, number];
 
 export interface OWMapConf {
     yFirst?: boolean;
@@ -64,7 +61,7 @@ export class OWMap {
     public _hWalls: OWWall[];
     public _vWalls: OWWall[];
 
-    public _features: {[key: string]: Coord[]};
+    public _features: {[key: string]: TCoord[]};
     public _featureData: {[key: string]: FeatData[]};
     public _featuresByXY: {[key: string]: string[]};
 

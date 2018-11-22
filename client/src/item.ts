@@ -1,13 +1,14 @@
 
 import RG from './rg';
-import * as Comp from './component.base';
-import * as Component from './component';
+import {compsToJSON} from './component/component.base';
+import * as Component from './component/component';
 import * as Mixin from './mixin';
-import * as Actor from './actor';
 import {Entity} from './entity';
 import {EventPool} from '../src/eventpool';
 import {Dice} from './dice';
-import {Coord} from './interfaces';
+import {TCoord} from './interfaces';
+
+type SentientActor = import('./actor').SentientActor;
 
 const POOL = EventPool.getPool();
 
@@ -24,7 +25,7 @@ export class ItemBase extends Entity {
     public isOwnable: boolean;
     public useArgs: any;
     public isUsable: boolean;
-    protected _owner: Actor.SentientActor;
+    protected _owner: SentientActor;
     private _name: string;
 
     constructor(name) {
@@ -72,7 +73,7 @@ export class ItemBase extends Entity {
         return null;
     }
 
-    public getXY(): Coord {
+    public getXY(): TCoord {
         if (this._owner) {return this._owner.getXY();}
         return null;
     }
@@ -169,7 +170,7 @@ export class ItemBase extends Entity {
             setType: this.getType(),
             isUsable: this.isUsable
         };
-        json.components = Comp.compsToJSON(this);
+        json.components = compsToJSON(this);
         return json;
     }
 
@@ -795,7 +796,7 @@ Item.GoldCoin = GoldCoin;
 //-------------------------------------------
 export class SpiritGem extends ItemBase {
 
-    private _spirit: Actor.SentientActor;
+    private _spirit: SentientActor;
     private _hasSpirit: boolean;
 
     constructor(name) {

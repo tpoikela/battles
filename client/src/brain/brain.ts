@@ -1,20 +1,20 @@
 
-import RG from './rg';
-import {Geometry} from './geometry';
-import {Evaluator} from './evaluators';
-import * as GoalsTop from './goals-top';
+import RG from '../rg';
+import * as Component from '../component';
+import {BaseActor, SentientActor} from '../actor';
+import {CellMap} from '../map';
+import {Cell} from '../map.cell';
+import {Geometry} from '../geometry';
+import {BrainBase} from './brain.base';
 import {Memory} from './brain.memory';
-import {Random} from './random';
-import * as Component from './component';
-import {BaseActor, SentientActor} from './actor';
-import {CellMap} from './map';
+import {Random} from '../random';
+
+type ActionCallback = import('../time').ActionCallback;
 
 // Dummy callback to return, if the actor's action provides a state
 // changing action without callback.
-const ACTION_ALREADY_DONE = Object.freeze(() => {});
-const NO_ACTION_TAKEN = Object.freeze(() => {});
-
-const NO_MEMORY = null;
+export const ACTION_ALREADY_DONE = Object.freeze(() => {});
+export const NO_ACTION_TAKEN = Object.freeze(() => {});
 
 const RNG = Random.getRNG();
 
@@ -33,7 +33,7 @@ function shortestDist(eX, eY, aX, aY) {
 
 /* Returns a list of cells around the actor. The distance d can be specified.
 * For example, d=1 gives 3x3 region, d=2 5x5 region, d=3 7x7 ... */
-Brain.getCellsAroundActor = (actor, d = 1) => {
+Brain.getCellsAroundActor = (actor, d = 1): Cell[] => {
     const map: CellMap = actor.getLevel().getMap();
     const x = actor.getX();
     const y = actor.getY();
@@ -196,36 +196,6 @@ Brain.getTelepathyCells = function(actor) {
 // BRAIN BASE
 //-----------------
 
-/* Base class for actor brains. */
-export class BrainBase {
-
-    public _actor: BaseActor;
-    public _type: string;
-
-    constructor(actor) {
-        this._actor = actor;
-        this._type = null;
-    }
-
-    public setActor(actor: BaseActor) {this._actor = actor;}
-    public getActor(): BaseActor {return this._actor;}
-    public getType() {return this._type;}
-    public setType(type) {this._type = type;}
-
-    public getMemory() {return NO_MEMORY;}
-
-    public decideNextAction(obj?: any) {
-        RG.err('BrainBase', 'decideNextAction',
-            'Not implemented. Do in derived class');
-    }
-
-    public toJSON() {
-        return {
-            type: this._type
-        };
-    }
-}
-Brain.Base = BrainBase;
 
 export class BrainNonSentient extends BrainBase {
     constructor(actor) {
@@ -233,7 +203,7 @@ export class BrainNonSentient extends BrainBase {
         this.setType('NonSentient');
     }
 
-    public decideNextAction() {
+    public decideNextAction(obj?: any): ActionCallback | null {
         return NO_ACTION_TAKEN;
     }
 }
@@ -241,28 +211,19 @@ Brain.NonSentient = BrainNonSentient;
 
 /* Brain is used by the AI to perform and decide on actions. Brain returns
  * actionable callbacks but doesn't know Action objects.  */
-export class BrainSentient {
-    public _actor: BaseActor;
-    public _type: string;
+export class BrainSentient extends BrainBase {
     protected _explored: {[key: string]: boolean};
     protected _memory: Memory;
     protected _cache: {[key: string]: any[]};
 
     constructor(actor) {
-        if (RG.isNullOrUndef([actor])) {
-            RG.err('BrainSentient', 'constructor',
-                'Actor must not be null.');
-        }
-
-        this._actor = actor; // Owner of the brain
+        super(actor);
         this._explored = {}; // Memory of explored cells
-        this._type = 'Rogue';
+        this._type = 'Sentient';
         this._memory = new Memory();
-
         this._cache = {
             seen: null
         };
-
         // this._passableCallback = this._passableCallback.bind(this);
     }
 
@@ -299,11 +260,11 @@ export class BrainSentient {
     }
 
     /* Main function for retrieving the actionable callback. */
-    public decideNextAction() {
+    public decideNextAction(): ActionCallback | null {
         this._cache.seen = null;
         RG.err('BrainSentient', 'decideNextAction',
             'Not implemented in this class');
-        // return BTree.startBehavTree(Models.Rogue.tree, this._actor)[0];
+        return null;
     }
 
     // Returns cells seen by this actor
@@ -350,7 +311,7 @@ export class BrainSentient {
     }
 
     /* Given a list of cells, returns a cell with an enemy in it or null.*/
-    public findEnemyCell(seenCells) {
+    public findEnemyCell(seenCells: Cell[]): Cell {
         const enemyCells = [];
         const cells = Brain.findCellsWithActors(this._actor, seenCells);
         for (let i = 0; i < cells.length; i++) {
@@ -392,7 +353,7 @@ export class BrainSentient {
         };
     }
 
-    public canPickupItem() {
+    public canPickupItem(): boolean {
         const cell = this._actor.getCell();
         if (cell.hasItems()) {
             const topItem = cell.getItems()[0];
@@ -460,7 +421,7 @@ export class BrainSentient {
     }
 
     /* Returns all friends that are visible to the brain's actor. */
-    public getSeenFriends() {
+    public getSeenFriends(): BaseActor[] {
         const friends = [];
         const memory = this.getMemory();
         const seenCells = this.getSeenCells();
@@ -613,204 +574,15 @@ export class BrainArcher extends BrainSentient {
         return ACTION_ALREADY_DONE;
     }
 
-    public decideNextAction() {
+    public decideNextAction(): ActionCallback | null {
         this._cache.seen = null;
         // return BTree.startBehavTree(Models.Archer.tree, this._actor)[0];
         RG.err('BrainArcher', 'decideNextAction', 'Not supported anymore');
+        return null;
     }
 }
 
 RG.extend2(BrainArcher, BrainSentient);
 Brain.Archer = BrainArcher;
 
-/* Brain object for testing goal-based actors. */
-export class BrainGoalOriented extends BrainSentient {
-    protected goal: GoalsTop.GoalTop;
 
-    constructor(actor) {
-        super(actor);
-        this.setType('GoalOriented');
-        this.goal = new GoalsTop.ThinkBasic(actor);
-    }
-
-    public getGoal(): GoalsTop.GoalTop {return this.goal;}
-    public setGoal(goal) {this.goal = goal;}
-
-    /* Must return function. */
-    public decideNextAction() {
-        this._cache.seen = null;
-        this.goal.process();
-        this._cache.seen = null;
-        return ACTION_ALREADY_DONE;
-    }
-
-    public toJSON() {
-        const json: any = super.toJSON();
-        json.goal = this.goal.toJSON();
-        return json;
-    }
-}
-Brain.GoalOriented = BrainGoalOriented;
-
-/* Brain object for spellcasting actors. This model focuses on aggressive
- * spellcasting intended to harm opponents. */
-export class BrainSpellCaster extends BrainGoalOriented {
-    constructor(actor) {
-        super(actor);
-        this.setType('SpellCaster');
-        this.goal = new GoalsTop.ThinkSpellcaster(actor);
-        this.goal.setBias({CastSpell: 2.0, AttackActor: 0.7});
-        this.goal.getEvaluator('CastSpell').setCastingProbability(0.8);
-    }
-
-    public decideNextAction() {
-        this._cache.seen = null;
-        this.goal.process();
-        this._cache.seen = null;
-        return ACTION_ALREADY_DONE;
-    }
-}
-Brain.SpellCaster = BrainSpellCaster;
-
-
-export class BrainExplorer extends BrainGoalOriented {
-    constructor(actor) {
-        super(actor);
-        this.setType('Explorer');
-        this.goal.removeEvaluators();
-        this.goal.addEvaluator(new Evaluator.Explore());
-    }
-}
-Brain.Explorer = BrainExplorer;
-
-export class BrainSpirit extends BrainGoalOriented {
-    constructor(actor) {
-        super(actor);
-        this.setType('Spirit');
-        this.goal.removeEvaluators();
-        this.goal.addEvaluator(new Evaluator.Explore());
-    }
-}
-Brain.Spirit = BrainSpirit;
-
-export class BrainThief extends BrainGoalOriented {
-    constructor(actor) {
-        super(actor);
-        this.setType('Thief');
-        this.goal.addEvaluator(new Evaluator.Thief(1.2));
-        this.goal.setBias({Thief: 1.2, AttackActor: 0.7});
-    }
-}
-Brain.Thief = BrainThief;
-
-/* Brain-object for animals. */
-export class BrainAnimal extends BrainGoalOriented {
-    constructor(actor) {
-        super(actor);
-        this.setType('Animal');
-        this.goal = new GoalsTop.ThinkBasic(actor);
-        this._memory.addEnemyType('player');
-        this._memory.addEnemyType('human');
-        this.getGoal = () => this.goal;
-        this.setGoal = goal => {this.goal = goal;};
-    }
-
-    /* Must return function. */
-    public decideNextAction() {
-        this._cache.seen = null;
-        this.goal.process();
-        this._cache.seen = null;
-        return ACTION_ALREADY_DONE;
-    }
-}
-Brain.Animal = BrainAnimal;
-
-/* Brain object for testing goal-based actors. */
-export class BrainCommander extends BrainGoalOriented {
-    constructor(actor) {
-        super(actor);
-        this.setType('Commander');
-        this.goal = new GoalsTop.ThinkCommander(actor);
-    }
-
-    /* Must return function. */
-    public decideNextAction() {
-        this._cache.seen = null;
-        this.goal.process();
-        this._cache.seen = null;
-        return ACTION_ALREADY_DONE;
-    }
-}
-Brain.Commander = BrainCommander;
-
-/* Simple brain used by the non-moving flame elements. They emit damage
- * components in the cells they are located in. */
-export class BrainFlame extends BrainSentient {
-    constructor(actor) {
-        super(actor);
-        this.setType('Flame');
-    }
-
-    public decideNextAction() {
-        const cell = this._actor.getCell();
-        const actors = cell.getActors();
-        actors.forEach(actor => {
-            const damaging = this.getActor().get('Damaging');
-            if (damaging) {
-                const flameComp = new Component.Flame();
-                flameComp.setSource(this._actor);
-                flameComp.setDamageType(damaging.getDamageType());
-                actor.add(flameComp);
-            }
-        });
-        return ACTION_ALREADY_DONE;
-    }
-}
-Brain.Flame = BrainFlame;
-
-/* Brain for non-sentient clouds. Same as Flame, except moves first
- * randomly and then emits the damage. */
-export class BrainCloud extends BrainFlame {
-    public chanceToMove: number;
-
-    constructor(actor) {
-        super(actor);
-        this.setType('Cloud');
-        this.chanceToMove = 0.2;
-    }
-
-    public decideNextAction() {
-        if (RNG.getUniform() <= this.chanceToMove) {
-            const dir = RNG.getRandDir();
-            const [newX, newY] = RG.newXYFromDir(dir, this._actor);
-            const level = this._actor.getLevel();
-            const map = level.getMap();
-            if (map.hasXY(newX, newY)) {
-                const movComp = new Component.Movement(newX, newY, level);
-                this._actor.add(movComp);
-            }
-        }
-        return super.decideNextAction.call(this);
-    }
-}
-Brain.Cloud = BrainCloud;
-
-/* This brain switched for player-controlled actors when MindControl
- * is cast on them. It acts as "paralysis" at the moment. */
-export class BrainMindControl extends BrainGoalOriented {
-    constructor(actor) {
-        super(actor);
-        this.setType('MindControl');
-        this.goal = new GoalsTop.ThinkBasic(actor);
-
-        this.getGoal = () => this.goal;
-        this.setGoal = goal => {this.goal = goal;};
-    }
-
-    public decideNextAction() {
-        // At the moment does nothing, it could attack the
-        // enemies of the source of MindControl
-        return ACTION_ALREADY_DONE;
-    }
-}
-Brain.MindControl = BrainMindControl;

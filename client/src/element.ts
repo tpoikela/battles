@@ -6,8 +6,8 @@
 import RG from './rg';
 import {Entity} from './entity';
 import * as Mixin from './mixin';
-import * as Component from './component';
-import {compsToJSON} from './component.base';
+import * as Component from './component/component';
+import {compsToJSON} from './component/component.base';
 
 export interface ElementJSON {
     id: number;

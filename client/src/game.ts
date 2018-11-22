@@ -11,7 +11,6 @@ import {Random} from './random';
 import {Geometry} from './geometry';
 import * as Component from './component';
 import * as World from './world';
-import {getIDCount} from './component.base';
 
 let POOL = EventPool.getPool();
 
@@ -514,7 +513,7 @@ export const GameMain = function() {
             engine: {},
             gameMaster: this._master.toJSON(),
             gameObjectID: GameObject.ID,
-            lastComponentID: getIDCount(),
+            lastComponentID: Component.getIDCount(),
             globalConf: this.globalConf,
             rng: this._rng.toJSON(),
             charStyles: RG.charStyles,

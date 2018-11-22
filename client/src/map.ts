@@ -3,17 +3,16 @@ import ROT from '../../lib/rot';
 import RG from './rg';
 import {Cell, CellJSON} from './map.cell';
 import {ElementBase, ElementWall, ElementMarker} from './element';
+import {TCoord} from './interfaces';
 
 const FLOOR = new ElementBase('floor');
 const WALL = new ElementWall('wall');
-
-type Coord = [number, number];
 
 export interface CellMapJSON {
     cols: number;
     rows: number;
     cells: CellJSON[];
-    explored: Coord[];
+    explored: TCoord[];
     elements: any[];
 }
 
@@ -371,7 +370,7 @@ export class CellMap {
         return result;
     }
 
-    setBaseElems(coord: Coord[], elem: ElementBase): void {
+    setBaseElems(coord: TCoord[], elem: ElementBase): void {
         coord.forEach(xy => {
             this._map[xy[0]][xy[1]].setBaseElem(elem);
         });

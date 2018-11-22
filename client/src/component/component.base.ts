@@ -1,6 +1,6 @@
 
-import RG from './rg';
-import './utils';
+import RG from '../rg';
+import '../utils';
 
 export const Component: any = {};
 Component.createdCompDecls = {};

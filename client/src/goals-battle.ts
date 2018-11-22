@@ -4,8 +4,10 @@
 import RG from './rg';
 import {Goal, GoalBase} from './goals';
 import {Evaluator} from './evaluators';
-import {SentientActor} from './actor';
+import {BaseActor, SentientActor, isSentient} from './actor';
 import * as Component from './component';
+
+type BrainGoalOriented = import('./brain').BrainGoalOriented;
 
 const {GOAL_ACTIVE, GOAL_COMPLETED} = Goal;
 
@@ -37,32 +39,35 @@ export const orderWithGoal = (actor, obj) => {
 };
 GoalsBattle.orderWithGoal = orderWithGoal;
 
-export const injectOrderEval = (target, goal, args) => {
-    const orderEval = new Evaluator.Orders(args.bias);
-    orderEval.setArgs({srcActor: args.src, goal});
-    const topGoal = target.getBrain().getGoal();
-    topGoal.clearOrders();
-    topGoal.giveOrders(orderEval);
+export const injectOrderEval = (target: SentientActor, goal: GoalBase, args) => {
+    if (isSentient(target)) {
+        const orderEval = new Evaluator.Orders(args.bias);
+        orderEval.setArgs({srcActor: args.src, goal});
+        const brain = target.getBrain() as BrainGoalOriented;
+        const topGoal = brain.getGoal();
+        topGoal.clearOrders();
+        topGoal.giveOrders(orderEval);
+    }
 };
 
-export const giveFollowOrder = (target, args) => {
-    if (target && target.getBrain().getGoal) {
+export const giveFollowOrder = (target: BaseActor, args) => {
+    if (isSentient(target)) {
         const goal = new Goal.Follow(target, args.src);
         injectOrderEval(target, goal, args);
     }
 };
 GoalsBattle.giveFollowOrder = giveFollowOrder;
 
-export const giveAttackOrder = (target, args) => {
-    if (target && target.getBrain().getGoal) {
+export const giveAttackOrder = (target: BaseActor, args) => {
+    if (isSentient(target)) {
         const goal = new Goal.AttackActor(target, args.enemy);
         injectOrderEval(target, goal, args);
     }
 };
 GoalsBattle.giveAttackOrder = giveAttackOrder;
 
-export const givePickupOrder = (target, args) => {
-    if (target && target.getBrain().getGoal) {
+export const givePickupOrder = (target: BaseActor, args) => {
+    if (isSentient(target)) {
         const goal = new Goal.GetItem(target, args.item);
         injectOrderEval(target, goal, args);
     }
@@ -70,12 +75,13 @@ export const givePickupOrder = (target, args) => {
 GoalsBattle.givePickupOrder = givePickupOrder;
 
 /* Clears the given orders from non-enemy actor. */
-export const giveClearOrders = (target, args) => {
-    if (target && target.getBrain().getGoal) {
+export const giveClearOrders = (target: BaseActor, args) => {
+    if (isSentient(target)) {
         const {src} = args;
         if (!target.isEnemy(src)) {
-            const goal = target.getBrain().getGoal();
-            goal.clearOrders();
+            const brain = target.getBrain() as BrainGoalOriented;
+            const topGoal = brain.getGoal();
+            topGoal.clearOrders();
         }
     }
 };
@@ -340,7 +346,7 @@ export class GoalEngageEnemy extends GoalBase {
             orderWithGoal(actor, {src: this.actor, bias: 2.0, goal});
         });
 
-        this.enemy = enemies[0];
+        this.enemy = enemies[0] as SentientActor;
         const goal = new Goal.AttackActor(this.actor, enemies[0]);
         this.addSubGoal(goal);
 
@@ -381,5 +387,3 @@ export class GoalRetreat extends GoalBase {
 
 }
 GoalsBattle.Retreat = GoalRetreat;
-
-export default GoalsBattle;

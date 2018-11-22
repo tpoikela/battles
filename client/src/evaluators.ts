@@ -11,8 +11,7 @@ import {SentientActor} from './actor';
 import {Random} from './random';
 import {SpellArgs} from './spell';
 import {Brain} from './brain';
-
-type Coord = [number, number];
+import {TCoord} from './interfaces';
 
 Goal.Thief = GoalThief;
 
@@ -190,7 +189,7 @@ Evaluator.hist.Flee = 0;
 /* Evaluator to check if actor should guard between given points. */
 export class EvaluatorPatrol extends EvaluatorBase {
 
-    public coords: Coord[];
+    public coords: TCoord[];
 
     constructor(actorBias, coord = []) {
         super(actorBias);

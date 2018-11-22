@@ -4,11 +4,13 @@ import RG from './rg';
 import {CellMap} from './map';
 import * as Element from './element';
 
-export const MapASCII = function(text, objMapper) {
-    const lines = MapASCII.getTextArray(text);
+type TextInput = string | string[];
+
+export const MapASCII = function(text: TextInput, objMapper: any) {
+    const lines: string[] = MapASCII.getTextArray(text);
     const numRows = lines.length;
-    const numCols = lines[0].length;
-    const mapObj = new RG.Map.CellList(numCols, numRows);
+    const numCols = lines[0].split('').length;
+    const mapObj = new CellMap(numCols, numRows);
 
     lines.forEach((line, y) => {
         const chars = line.split('');
@@ -17,7 +19,7 @@ export const MapASCII = function(text, objMapper) {
                 const baseElem = objMapper.getBaseElem(x, y, char);
                 mapObj.setBaseElemXY(x, y, baseElem);
                 const objs = objMapper.getObjects(x, y, char);
-                objs.forEach(obj => {
+                objs.forEach((obj: any) => {
                     mapObj.setProp(x, y, obj.getPropType(), obj);
                 });
             }
@@ -39,10 +41,10 @@ MapASCII.prototype.getMap = function() {
 const mapStartRe = new RegExp('^MAP\s*$');
 const mapEndRe = new RegExp('^ENDMAP\s*$');
 
-MapASCII.extractMap = function(text) {
+MapASCII.extractMap = function(text: TextInput) {
     const lines = MapASCII.getTextArray(text);
     let mapFound = false;
-    const result = [];
+    const result: string[] = [];
     lines.forEach(line => {
         if (mapFound) {
             result.push(line);
@@ -57,7 +59,7 @@ MapASCII.extractMap = function(text) {
     return result;
 };
 
-MapASCII.getTextArray = function(text) {
+MapASCII.getTextArray = function(text: TextInput): string[] {
     let lines = text;
     if (!Array.isArray(lines)) {
         lines = lines.split('\n');
@@ -69,7 +71,9 @@ MapASCII.DefaultMapper = function() {
 
 };
 
-MapASCII.DefaultMapper.prototype.getBaseElem = function(x, y, char) {
+MapASCII.DefaultMapper.prototype.getBaseElem = function(
+    x: number, y: number, char: string) 
+{
     switch (char) {
         case '.': return RG.ELEM.FLOOR;
         case '+': return RG.ELEM.FLOOR;
@@ -84,7 +88,9 @@ MapASCII.DefaultMapper.prototype.getBaseElem = function(x, y, char) {
     return RG.ELEM.FLOOR;
 };
 
-MapASCII.DefaultMapper.prototype.getObjects = function(x, y, char) {
+MapASCII.DefaultMapper.prototype.getObjects = function(
+    x: number, y: number, char: string) 
+{
     const res = [];
     switch (char) {
         case '+': res.push(new RG.Element.Door(true)); break;

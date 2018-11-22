@@ -1,8 +1,8 @@
 
 import RG from './rg';
-import {Constraint} from './interfaces';
+import {IConstraint} from './interfaces';
 
-type ConstraintArg = Constraint | Constraint[];
+type ConstraintArg = IConstraint | IConstraint[];
 
 /* This class creates constraint functions from config objects. A single
  * constrains is defined by the following object:

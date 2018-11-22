@@ -5,7 +5,7 @@
  * a file containing particular type.
  */
 
-export type Coord = [number, number];
+export type TCoord = [number, number];
 
 export interface SubZoneConf {
     name: string;
@@ -34,14 +34,14 @@ export interface AreaConnection {
     stairs: StairsSpec;
 }
 
-export interface Constraint {
+export interface IConstraint {
     op: string;
     prop: string;
     value: any;
 }
 
 export interface ConstraintMap {
-    actor?: Constraint;
+    actor?: IConstraint;
 }
 
 export interface ZoneConf {
