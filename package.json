@@ -122,7 +122,7 @@
     "electron": "electron .",
     "hooks": "perl bin/deploy_hooks",
     "start": "python -m SimpleHTTPServer",
-    "test": "mocha --compilers js:babel-core/register --recursive tests/client/src",
+    "test": "mocha -r ts-node/register 'tests/client/**/*.spec.ts'",
     "test:ts": "mocha -r ts-node/register 'tests/client/**/*.spec.ts'",
     "test:tsx": "mocha -r ts-node/register 'tests/client/**/*.spec.tsx'",
     "test:functional": "mocha --compilers js:babel-core/register tests/client/functional/*.js",
