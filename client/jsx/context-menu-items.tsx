@@ -66,7 +66,6 @@ export default class ContextMenuItems extends React.Component {
 
         items.push(
           <MenuItem
-            className='context-menu-divider'
             divider={true}
             key={'divider-' + queryFunc}
           />
