@@ -6,6 +6,7 @@ import {Keys} from './keymap';
 import * as Menu from './menu';
 import * as Item from './item';
 import * as Component from './component/component';
+import {BrainPlayer} from './brain/brain.player';
 
 type SentientActor = import('./actor').SentientActor;
 
@@ -350,8 +351,8 @@ export class ChatWizard extends ChatBase {
     setRuneSelectionObject() {
         // Create a list of possible runes to charge up
         const selObj = {};
-
-        this.chatter.setSelectionObject(selObj);
+        const brain = this.chatter.getBrain() as BrainPlayer;
+        brain.setSelectionObject(selObj);
     }
 
 }
