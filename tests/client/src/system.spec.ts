@@ -23,6 +23,7 @@ import {ObjectShell} from '../../../client/src/objectshellparser';
 import {Dice} from '../../../client/src/dice';
 import {FromJSON} from '../../../client/src/game.fromjson';
 import {Spell} from '../../../client/src/spell';
+import {BrainPlayer} from '../../../client/src/brain/brain.player';
 
 const Stairs = Element.ElementStairs;
 const expect = chai.expect;
@@ -472,12 +473,12 @@ describe('System.Chat', () => {
 
         updateSystems([chatSys]);
 
-        const brain = chatter.getBrain();
-        expect(brain._wantSelection).to.equal(true);
+        const brain = chatter.getBrain() as BrainPlayer;
+        expect(brain.isMenuShown()).to.equal(true);
         expect(chatter).not.to.have.component('Chat');
 
         const actionCb = brain.decideNextAction({code: ROT.VK_0});
-        expect(brain._wantSelection).to.equal(false);
+        expect(brain.isMenuShown()).to.equal(false);
 
         actionCb();
 
