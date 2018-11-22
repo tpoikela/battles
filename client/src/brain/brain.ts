@@ -196,7 +196,6 @@ Brain.getTelepathyCells = function(actor) {
 // BRAIN BASE
 //-----------------
 
-
 export class BrainNonSentient extends BrainBase {
     constructor(actor) {
         super(actor);
@@ -581,8 +580,6 @@ export class BrainArcher extends BrainSentient {
         return null;
     }
 }
-
-RG.extend2(BrainArcher, BrainSentient);
 Brain.Archer = BrainArcher;
 
 
