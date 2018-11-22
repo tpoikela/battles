@@ -10,7 +10,7 @@
     "sourceMap": true,
     "target": "ES6",
     "moduleResolution": "node",
-    "lib": ["es2015", "es2017", "dom"],
+    "lib": ["webworker", "es2015", "es2017", "dom"],
     "typeRoots": [
         "./node_modules/@types",
         "./typings"
