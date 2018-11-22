@@ -2,7 +2,7 @@
  * The action depends heavily on the context. */
 
 import RG from '../src/rg';
-import {Brain} from '../src/brain';
+import {Brain} from '../src/brain/brain';
 import {Keys} from '../src/keymap';
 import {SentientActor} from '../src/actor';
 
