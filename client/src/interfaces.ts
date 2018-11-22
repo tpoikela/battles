@@ -5,7 +5,15 @@
  * a file containing particular type.
  */
 
+type Level = import('./level').Level;
+
 export type TCoord = [number, number];
+
+export type ICoordXY = {
+    x: number;
+    y: number;
+    level?: Level;
+};
 
 export interface SubZoneConf {
     name: string;
