@@ -42,7 +42,8 @@ import md5 = require('js-md5');
 import {Screen} from '../gui/screen';
 import {Persist} from '../src/persist';
 import {WorldConf} from '../data/conf.world';
-import wwork = require('webworkify');
+import * as workerPath from 'file-loader?name=[name].js!./../util/worker-create-game';
+
 import {ACTOR_CLASSES} from '../src/actor-class';
 import {SentientActor} from '../src/actor';
 import {ItemBase} from '../src/item';
@@ -558,7 +559,8 @@ export class BattlesTop extends React.Component {
             this.gameConf.seed = new Date().getTime();
         }
 
-        if (false && this.canUseWorker()) {
+        // if (false && this.canUseWorker()) {
+        if (this.canUseWorker()) {
             this.showScreen('CreateScreen');
             this.createGameWorker();
         }
@@ -578,7 +580,7 @@ export class BattlesTop extends React.Component {
      * GUI updates. */
     public createGameWorker() {
         /* eslint global-require: 0 */
-        const worker = wwork(require('../util/worker-create-game'));
+        const worker = new Worker(workerPath);
         worker.onmessage = (e) => {
             if (e.data.progress) {
                 this.progress(e.data.progress);
