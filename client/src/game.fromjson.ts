@@ -461,8 +461,8 @@ FromJSON.prototype.getCompValue = function(
     }
     else {
         const jsonStr = JSON.stringify(compJSON);
-        let msg = `valueToSet ${valueToSet}. setFunc ${setFunc} `;
-        msg += `Comp ${name}, json: ${jsonStr}`;
+        let msg = `valueToSet |${valueToSet}|. setFunc |${setFunc}|`;
+        msg += `Comp |${compJSON.setType}|, json: ${jsonStr}`;
         RG.err('FromJSON', 'addCompsToEntity', msg);
     }
     return null; // Getting here means serious error
