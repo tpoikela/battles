@@ -70,13 +70,13 @@ RGTest.getMeAWizard = function(conf: any = {}) {
     const brain = new Brain.SpellCaster(wizard);
     wizard.setBrain(brain);
 
-    wizard._spellbook = new Spell.SpellBook(wizard);
+    wizard.setBook(new Spell.SpellBook(wizard));
     const actorFact = new FactoryActor();
     const spell = actorFact.createSpell('FrostBolt');
     spell.setPower(conf.power || 11);
     spell.setRange(conf.range || 7);
     spell.setDice('damage', Dice.create([1, 2, 3]));
-    wizard._spellbook.addSpell(spell);
+    wizard.getBook().addSpell(spell);
 
     // Adjust evaluators and casting probability
     RGTest.ensureSpellCast(wizard);
