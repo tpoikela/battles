@@ -4,6 +4,7 @@ import RG from '../rg';
 type ActionCallback = import('../time').ActionCallback;
 type BaseActor = import('../actor').BaseActor;
 type Cell = import('../map.cell').Cell;
+type Memory = import('./brain.memory').Memory;
 
 const NO_MEMORY = null;
 
@@ -22,12 +23,12 @@ export class BrainBase {
         this._type = null;
     }
 
-    public setActor(actor: BaseActor) {this._actor = actor;}
+    public setActor(actor: BaseActor): void {this._actor = actor;}
     public getActor(): BaseActor {return this._actor;}
-    public getType() {return this._type;}
-    public setType(type) {this._type = type;}
+    public getType(): string {return this._type;}
+    public setType(type: string): void {this._type = type;}
 
-    public getMemory() {return NO_MEMORY;}
+    public getMemory(): Memory {return NO_MEMORY;}
     public getSeenCells(): Cell[] {return [];}
     public findEnemyCell(seenCells: Cell[]): Cell {return null;}
     public findFriendCell(seenCells: Cell[]): Cell {return null;}
