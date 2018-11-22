@@ -8,6 +8,7 @@ import * as Element from  '../../../client/src/element';
 import {Item} from '../../../client/src/item';
 import {Level, LevelExtras} from '../../../client/src/level';
 import {FactoryLevel} from '../../../client/src/factory.level';
+import {Cell} from '../../../client/src/map.cell';
 
 const Actor = SentientActor;
 const ItemBase = Item.ItemBase;
@@ -17,7 +18,7 @@ const Door = Element.ElementDoor;
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
-describe('Map.Level', () => {
+describe('Level', () => {
 
     let factLevel = null;
 
@@ -38,11 +39,13 @@ describe('Map.Level', () => {
         const level1 = factLevel.createLevel('arena', 20, 20);
         expect(level1.getMap()).to.not.be.empty;
 
-        const freeCell = level1.getFreeRandCell();
+        const freeCell: Cell = level1.getFreeRandCell();
         expect(freeCell).to.not.be.empty;
 
-        const emptyCell = level1.getEmptyRandCell();
+        const emptyCell: Cell = level1.getEmptyRandCell();
         expect(emptyCell).to.not.be.empty;
+        expect(emptyCell.isPassable()).to.equal(true);
+        expect(emptyCell.isPassableByAir()).to.equal(true);
     });
 
     it('has actors', () => {
@@ -59,7 +62,7 @@ describe('Map.Level', () => {
         expect(actors).to.have.length(0);
     });
 
-    it('has items', () => {
+    it('can have items added and removed from it', () => {
         const level1 = factLevel.createLevel('arena', 20, 20);
         const item1 = new ItemBase('item1');
         const item2 = new ItemBase('item2');
@@ -71,9 +74,10 @@ describe('Map.Level', () => {
         expect(items[0]).to.equal(item1);
 
         expect(level1.removeItem(item1, 2, 2)).to.be.true;
-        RG.suppressErrorMessages = true;
-        expect(level1.removeItem(item1, 2, 2)).to.be.false;
-        RG.suppressErrorMessages = false;
+        const funcThatThrows = () => {
+            level1.removeItem(item1, 2, 2);
+        };
+        expect(funcThatThrows).to.throw(Error);
 
         items = level1.getItems();
         expect(items).to.have.length(1);

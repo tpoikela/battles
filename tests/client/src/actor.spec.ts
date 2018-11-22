@@ -42,10 +42,11 @@ describe('Rogue.Actor', () => {
         actor.setIsPlayer(true);
         expect(actor.isPlayer()).to.equal(true);
 
-        RG.suppressErrorMessages = true;
-        actor.setIsPlayer(false);
+        const funcThatThrows = () => {
+            actor.setIsPlayer(false);
+        };
+        expect(funcThatThrows).to.throw(Error);
         expect(actor.isPlayer()).to.equal(true);
-        RG.suppressErrorMessages = false;
 
         actor.setName('renamed');
         expect(actor.getName()).to.equal('renamed');
@@ -96,7 +97,7 @@ describe('Rogue.Actor', () => {
 
         const meat = new Item.Food('meat');
         actor.getInvEq().addItem(meat);
-        expect(actor.getInvEq().unequipItem('hand', 1)).to.be.true;
+        expect(actor.getInvEq().unequipItem('hand', 1, 0)).to.be.true;
         expect(actor.getInvEq().equipItem(meat)).to.be.true;
 
         const dmgFood = actor.getDamage();

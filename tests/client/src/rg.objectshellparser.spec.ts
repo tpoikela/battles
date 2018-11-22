@@ -398,9 +398,7 @@ describe('ObjectShellParser.parseShellData()', () => {
         expect(healPotion.useArgs).to.have.property('hp');
         expect(healPotion.useArgs.hp).to.equal('3d4');
 
-        RG.suppressErrorMessages = true;
         healPotion.useItem({});
-        RG.suppressErrorMessages = false;
 
         const venom = parser.createActualObj('items', 'Potion of venom');
         expect(venom).to.have.property('useItem');
@@ -522,13 +520,20 @@ describe('ObjectShellParser.parseShellData()', () => {
 
     it('It should detect invalid object shells', () => {
         const parser = new Parser();
-        RG.suppressErrorMessages = true;
-        const noObj = parser.createActualObj('items', 'Void Item');
+
+        let noObj = null;
+        let funcThatThrows = () => {
+            noObj = parser.createActualObj('items', 'Void Item');
+        };
         expect(noObj).to.be.null;
-        RG.suppressErrorMessages = true;
+        expect(funcThatThrows).to.throw(Error);
 
         const invalidShell = {xxx: 'xxx', noname: 'noname'};
-        expect(parser.validShellGiven(invalidShell)).to.be.false;
+
+        funcThatThrows = () => {
+            parser.validShellGiven(invalidShell);
+        };
+        expect(funcThatThrows).to.throw(Error);
     });
 
 }); // describe ObjectShell.Parser

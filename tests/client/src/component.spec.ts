@@ -23,10 +23,11 @@ describe('Component.Base', () => {
         expect(comp.getEntity().getID()).to.equal(entity.getID());
 
         // Try to override the entity
-        RG.suppressErrorMessages = true;
-        comp.setEntity(entity2);
+        const funcThatThrows = () => {
+            comp.setEntity(entity2);
+        };
+        expect(funcThatThrows).to.throw(Error);
         expect(comp.getEntity().getID()).to.equal(entity.getID());
-        RG.suppressErrorMessages = false;
 
         comp.setEntity(null);
         expect(comp.getEntity()).to.be.null;
@@ -71,15 +72,18 @@ describe('Component.Base', () => {
 
         comp.addCallback('onAdd', callbackAdd);
         comp.addCallback('onRemove', callbackRemove);
-        RG.suppressErrorMessages = true;
-        comp.addCallback('onIllegal', callbackIllegal);
-        RG.suppressErrorMessages = false;
+
+        const funcThatThrows = () => {
+            comp.addCallback('onIllegal', callbackIllegal);
+        };
+        expect(funcThatThrows).to.throw(Error);
 
         expect(calledIllegal).to.be.false;
 
         expect(calledAdd).to.be.false;
         entity.add(comp);
         expect(calledAdd).to.be.true;
+        expect(calledIllegal).to.be.false;
         expect(entity.has('Base')).to.equal(true);
 
         const baseComp = entity.get('Base');

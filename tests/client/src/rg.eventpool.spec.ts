@@ -90,10 +90,10 @@ describe('EventPool', () => {
 
     it('Sends notification to listener', () => {
         const empty = {};
-
-        RG.suppressErrorMessages = true;
-        pool.listenEvent('TestEvent', empty);
-        RG.suppressErrorMessages = false;
+        const funcThatThrows = () => {
+            pool.listenEvent('TestEvent', empty);
+        };
+        expect(funcThatThrows).to.throw(Error);
 
         emitter.emit('TestEvent', {data: 'abcd'});
 
@@ -105,7 +105,6 @@ describe('EventPool', () => {
         expect(listener.notified).to.equal(false);
         emitter.emit('RandomEvent', {data: 'abcd'});
 
-        // Works also with symbols
         const evtCustom = 'EVT_CUSTOM';
         const symListener = new Listener(evtCustom);
         pool.listenEvent(symListener.eventName, symListener);
