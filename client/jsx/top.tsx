@@ -42,7 +42,11 @@ import md5 = require('js-md5');
 import {Screen} from '../gui/screen';
 import {Persist} from '../src/persist';
 import {WorldConf} from '../data/conf.world';
-import * as workerPath from 'file-loader?name=[name].js!./../util/worker-create-game';
+
+//import * as workerPath from 'file-loader?name=[name].js!./../util/worker-create-game';
+// import Worker from 'worker-loader!../util/create-game-worker';
+// import Worker = require('worker-loader!../util/create-game-worker');
+import {MyWorkerImport} from '../util';
 
 import {ACTOR_CLASSES} from '../src/actor-class';
 import {SentientActor} from '../src/actor';
@@ -580,19 +584,23 @@ export class BattlesTop extends React.Component {
      * GUI updates. */
     public createGameWorker() {
         /* eslint global-require: 0 */
-        const worker = new Worker(workerPath);
+        const worker = new MyWorkerImport();
         worker.onmessage = (e) => {
-            if (e.data.progress) {
-                this.progress(e.data.progress);
+            const msg = e.data;
+            if (msg.progress) {
+                this.progress(msg.progress);
             }
-            else {
-                const gameJSON = JSON.parse(e.data);
+            else if (msg.ready) {
+                const gameJSON = JSON.parse(msg.data);
                 const fromJSON = new FromJSON();
                 let game = new GameMain();
                 game = fromJSON.createGame(game, gameJSON);
 
                 this.game = game;
                 this.initBeforeNewGame();
+            }
+            else if (msg.error) {
+                throw new Error(msg.error);
             }
         };
         worker.postMessage([this.gameConf]);
