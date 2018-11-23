@@ -2,6 +2,9 @@
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+//----------------------
+// BASE SETTINGS
+//----------------------
 const config = {
     entry: ['./client/jsx/app.tsx'],
 
@@ -71,5 +74,12 @@ const config = {
         fs: 'empty'
     }
 };
+
+//----------------------
+// PRODUCTION SETTINGS
+//----------------------
+if (process.env.NODE_ENV === 'production') {
+    config.mode = 'production';
+}
 
 module.exports = config;
