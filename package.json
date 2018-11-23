@@ -36,7 +36,8 @@
     "sass": "^1.15.1",
     "uglify-es": "^3.3.9",
     "vinyl-source-stream": "^1.1.0",
-    "webworkify": "^1.5.0"
+    "webworkify": "^1.5.0",
+    "worker-loader": "^2.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.3",
