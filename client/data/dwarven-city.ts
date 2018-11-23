@@ -4,6 +4,11 @@ import {FactoryLevel} from '../src/factory.level';
 import {Castle} from '../data/tiles.castle';
 import {Placer} from '../src/placer';
 import {Level} from '../src/level';
+import {ElementStairs} from '../src/element';
+import {MapGenerator} from '../src/map.generator';
+import {Geometry} from '../src/geometry';
+import {ELEM} from './elem-constants';
+import {ObjectShell} from '../src/objectshellparser';
 
 const dwarvenCityConf = {
   outerColsRatio: 0.45,
@@ -63,7 +68,7 @@ export class DwarvenCity {
 
       const tiledLevels = [mainFortLevel, entrFortLevel, passageLevel];
 
-      RG.Geometry.tileLevels(mainLevel, tiledLevels, tileConf);
+      Geometry.tileLevels(mainLevel, tiledLevels, tileConf);
 
       // Bounding box for fort levels
       const bbox = {
@@ -93,7 +98,7 @@ export class DwarvenCity {
       const fortConf = {
           startRoomFunc: Castle.startFuncFourGates
       };
-      const mapGen = new RG.Map.Generator();
+      const mapGen = new MapGenerator();
 
       const mainFort = mapGen.createCastleWall(cols, rows, fortConf);
 
@@ -101,12 +106,12 @@ export class DwarvenCity {
       const castleRows = rows - 4 * 7;
       const innerCastle = mapGen.createCastle(castleCols, castleRows,
         {roomCount: -1, nGates: 2});
-      const castleLevel = new RG.Map.Level(10, 10);
+      const castleLevel = new Level();
       castleLevel.setMap(innerCastle.map);
-      RG.Geometry.mergeMapBaseElems(mainFort.map,
+      Geometry.mergeMapBaseElems(mainFort.map,
           innerCastle.map, 3 * 7, 2 * 7);
 
-      const mainFortLevel = new RG.Map.Level(10, 10);
+      const mainFortLevel = new Level();
       mainFortLevel.setMap(mainFort.map);
 
       const mainFortWest = mapGen.createCastle(7 * 7, 5 * 7,
@@ -118,21 +123,21 @@ export class DwarvenCity {
             roomCount: -1, genParams: [1, 1, 1, 1]}
       );
 
-      const mainFortWestLevel = new RG.Map.Level(10, 10);
+      const mainFortWestLevel = new Level();
       mainFortWestLevel.setMap(mainFortWest.map);
-      const mainFortEastLevel = new RG.Map.Level(10, 10);
+      const mainFortEastLevel = new Level();
       mainFortEastLevel.setMap(mainFortEast.map);
 
       const mainFortLevels = [mainFortWestLevel, mainFortLevel,
         mainFortEastLevel];
 
-      const wrapConf = {centerY: true, baseElem: RG.ELEM.WALL};
-      return RG.Geometry.wrapAsLevel(mainFortLevels, wrapConf);
+      const wrapConf = {centerY: true, baseElem: ELEM.WALL};
+      return Geometry.wrapAsLevel(mainFortLevels, wrapConf);
     }
 
     /* Returns the first entrance fort. */
     createEntryFortLevel(cols, rows) {
-      const mapGen = new RG.Map.Generator();
+      const mapGen = new MapGenerator();
       const outerFortConf = {
           startRoomFunc: Castle.startFuncFourGates
       };
@@ -144,9 +149,9 @@ export class DwarvenCity {
       const castleRows = rows - 6 * 7;
       const innerCastle = mapGen.createCastle(castleCols, castleRows,
         {nGates: 2, roomCount: -1});
-      const castleLevel = new RG.Map.Level(10, 10);
+      const castleLevel = new Level();
       castleLevel.setMap(innerCastle.map);
-      RG.Geometry.mergeMapBaseElems(outerFort.map, innerCastle.map,
+      Geometry.mergeMapBaseElems(outerFort.map, innerCastle.map,
           3 * 7, 3 * 7);
 
       const smallFortWest = mapGen.createCastleWall(3 * 7, 3 * 7,
@@ -156,24 +161,24 @@ export class DwarvenCity {
         {startRoomFunc: Castle.startRoomFuncWest}
       );
 
-      const entryFortLevel = new RG.Map.Level(10, 10);
+      const entryFortLevel = new Level();
       entryFortLevel.setMap(outerFort.map);
 
-      const fortWestLevel = new RG.Map.Level(10, 10);
+      const fortWestLevel = new Level();
       fortWestLevel.setMap(smallFortWest.map);
-      const fortEastLevel = new RG.Map.Level(10, 10);
+      const fortEastLevel = new Level();
       fortEastLevel.setMap(smallFortEast.map);
 
       const subLevels = [fortWestLevel, entryFortLevel, fortEastLevel];
-      const wrapConf = {centerY: true, baseElem: RG.ELEM.WALL};
-      return RG.Geometry.wrapAsLevel(subLevels, wrapConf);
+      const wrapConf = {centerY: true, baseElem: ELEM.WALL};
+      return Geometry.wrapAsLevel(subLevels, wrapConf);
 
     }
 
     /* Adds actors and items into the level using bbox as constraint.
      * This guarantees that everything's placed inside the fort. */
     addItemsAndActors(level, bbox) {
-      const parser = RG.ObjectShell.getParser();
+      const parser = ObjectShell.getParser();
       const freeCells = level.getMap().getFreeInBbox(bbox);
 
       const actorConf = {
@@ -201,7 +206,7 @@ export class DwarvenCity {
 
     addStairsToLevel(cols, rows, level) {
         const midX = Math.floor(cols / 2);
-        const stairsNorth = new RG.Element.Stairs('stairsUp', level);
+        const stairsNorth = new ElementStairs('stairsUp', level);
         level.addStairs(stairsNorth, midX, 0);
         const stairsSouth = new RG.Element.Stairs('stairsUp', level);
         level.addStairs(stairsSouth, midX, rows - 1);

@@ -17,8 +17,10 @@ interface LevelObj {
 /* Factory for creating levels by specifying their name. */
 export class LevelFactory {
 
+    public static levels: {[key: string]: (...args: any[]) => Level | LevelObj[]};
+
     public fact: any;
-    public createFunc: {[key: string]: (...args) => Level | LevelObj[]};
+    public createFunc: {[key: string]: (...args: any[]) => Level | LevelObj[]};
 
     constructor(fact) {
         this.fact = fact;
@@ -30,7 +32,22 @@ export class LevelFactory {
     }
 
     create(name, args: LevelArgs): Level | LevelObj[] {
-        switch (name) {
+        if (LevelFactory.levels.hasOwnProperty(name)) {
+            return LevelFactory.levels[name](...args);
+        }
+        else if (this.createFunc.hasOwnProperty(name)) {
+            return this.createFunc[name](...args);
+        }
+        else if (this.fact) {
+            return this.fact.createLevel(name, ...args);
+        }
+        else {
+            RG.err('LevelFactory', 'create',
+                'No factory/factory function given. Name: ' + name);
+        }
+        return null;
+
+        /* switch (name) {
             case 'Capital': return new Capital(...args).getLevel();
             case 'DwarvenCity': return new DwarvenCity(...args).getLevel();
             case 'AbandonedFort': return new AbandonedFort(...args).getLevel();
@@ -49,6 +66,14 @@ export class LevelFactory {
                 return null;
             }
         }
+        */
     }
 
 }
+
+LevelFactory.levels = {
+    Capital: (...args) => new Capital(...args as LevelArgs).getLevel(),
+    DwarvenCity: (...args) => new DwarvenCity(...args as LevelArgs).getLevel(),
+    AbandonedFort: (...args) => new AbandonedFort(...args as LevelArgs).getLevel(),
+    BlackTower: (...args) => new BlackTower(...args as LevelArgs).getLevels()
+};

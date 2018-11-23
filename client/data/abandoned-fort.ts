@@ -1,6 +1,7 @@
 /* Contains code to generate the abandoned fort. */
 
 import RG from '../src/rg';
+import {FactoryBase} from '../src/factory';
 import {FactoryItem} from '../src/factory.items';
 import {FactoryLevel} from '../src/factory.level';
 import {ObjectShell} from '../src/objectshellparser';
@@ -9,6 +10,8 @@ import {Builder} from '../src/builder';
 import {Level} from '../src/level';
 import * as Element from '../src/element';
 import {Castle} from '../data/tiles.castle';
+import {MapGenerator} from '../src/map.generator';
+import {Geometry} from '../src/geometry';
 
 const TILE_SIZE = 7;
 
@@ -48,7 +51,7 @@ export class AbandonedFort {
     const mainLevel = this.createLevel('mountain', cols, rows, mountConf);
     const mainMap = mainLevel.getMap();
 
-    const mapGen = new RG.Map.Generator();
+    const mapGen = new MapGenerator();
     const outerWallConf = {
         startRoomFunc: Castle.startRoomFuncWest
     };
@@ -59,20 +62,20 @@ export class AbandonedFort {
 
     const outerX = Math.round(outerStartXRatio * cols);
     const outerY = Math.round(rows / 2 - outerWall.map.rows / 2);
-    RG.Geometry.mergeMapBaseElems(mainMap, outerWall.map, outerX, outerY);
+    Geometry.mergeMapBaseElems(mainMap, outerWall.map, outerX, outerY);
 
     const wallCols = Math.floor(cols / 2);
     const mountWall = this.createLevel('wall', wallCols, rows,
       mainWallOpts);
     const wallX = cols - mountWall.getMap().cols;
     const wallY = 0;
-    RG.Map.Generator.addRandomSnow(mountWall.getMap(), 0.3);
-    RG.Geometry.mergeLevels(mainLevel, mountWall, wallX, wallY);
+    MapGenerator.addRandomSnow(mountWall.getMap(), 0.3);
+    Geometry.mergeLevels(mainLevel, mountWall, wallX, wallY);
 
     const castle = this.getCastleLevel(rows, cols, conf);
     const castleX = cols - castle.getMap().cols;
     const castleY = Math.round((rows - castle.getMap().rows) / 2);
-    RG.Geometry.mergeLevels(mainLevel, castle, castleX, castleY);
+    Geometry.mergeLevels(mainLevel, castle, castleX, castleY);
 
     // Add stairs for entrance and exit
     const midY = Math.floor(rows / 2);
@@ -118,7 +121,9 @@ export class AbandonedFort {
         func: actor => fortActors.hasOwnProperty(actor.name),
         maxDanger: 10
     };
-    RG.FACT.addNRandActors(mainLevel, parser, actorConf);
+
+    const fact = new FactoryBase();
+    fact.addNRandActors(mainLevel, parser, actorConf);
 
     this.createPathToFort(mainLevel, castleX);
 
