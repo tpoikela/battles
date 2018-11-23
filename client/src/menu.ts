@@ -51,29 +51,44 @@ type VoidFunc = () => void;
 interface MenuCallObj {
     funcToCall: VoidFunc;
 }
-type MenuItem = MenuBase | VoidFunc | [string, any] | MenuCallObj;
+type MenuPair = [string, any];
+type MenuItem = MenuBase | VoidFunc | MenuPair | MenuCallObj;
 
 interface MenuTable {
     [key: string]: MenuItem;
 }
 
-const createMenuTable = function(args): MenuTable {
+type MenuFunction = (args: any) => void;
+
+interface MenuArgObj {
+    key: number; // Key code to select this specific item
+    menu?: MenuBase;
+    func?: MenuFunction;
+    funcToCall?: MenuFunction;
+}
+
+type MenuArgArray = [string, MenuFunction];
+
+type MenuArg = MenuArgObj | MenuArgArray;
+
+const createMenuTable = function(args: MenuArg[]): MenuTable {
     const table = {};
     args.forEach((item, i) => {
         const index = Keys.menuIndices[i];
-        if (item.key) {
-            const index = Keys.codeToIndex(item.key);
-            if (item.menu) {
-                table[index] = item.menu;
+        if ((item as MenuArgObj).key) {
+            const itemObj = item as MenuArgObj;
+            const index = Keys.codeToIndex(itemObj.key);
+            if (itemObj.menu) {
+                table[index] = itemObj.menu;
             }
-            else if (item.func) {
-                table[index] = item.func;
+            else if (itemObj.func) {
+                table[index] = itemObj.func;
             }
-            else if (item.funcToCall) {
-                table[index] = {funcToCall: item.funcToCall};
+            else if (itemObj.funcToCall) {
+                table[index] = {funcToCall: itemObj.funcToCall};
             }
         }
-        else if (item.length === 2) {
+        else if ((item as MenuArgArray).length === 2) {
             table[index] = item;
         }
         else {
@@ -85,11 +100,11 @@ const createMenuTable = function(args): MenuTable {
     return table;
 };
 
-Menu.isSelectionDone = function(selection) {
+Menu.isSelectionDone = function(selection): boolean {
     return typeof selection === 'function';
 };
 
-Menu.isMenuItem = function(selection) {
+Menu.isMenuItem = function(selection): boolean {
     return selection && typeof selection === 'object';
 };
 
@@ -107,7 +122,7 @@ export class MenuBase {
     protected _showMenu: boolean;
     public callback: (any) => void;
 
-    constructor(args = []) {
+    constructor(args: MenuArg[] = []) {
         this.table = createMenuTable(args);
         this.msg = '';
         this.pre = [];
@@ -115,35 +130,31 @@ export class MenuBase {
         this._showMenu = true;
 
         this.parent = null; // Parent menu for this object
-
-
     }
 
-    setName(name: string) {
+    setName(name: string): void {
         this.name = name;
     }
 
-    setMsg(msg: string) {
+    setMsg(msg: string): void {
         this.msg = msg;
     }
 
-    showMsg() {
+    showMsg(): void {
         if (this.msg.length > 0) {
             RG.gameMsg(this.msg);
         }
     }
 
-
     setParent(parent: MenuBase | null) {
         this.parent = parent;
     }
 
-    getParent() {
+    getParent(): MenuBase | null {
         return this.parent;
     }
 
-
-    addItem(code, item) {
+    addItem(code: number, item) {
         const index = Keys.codeToIndex(code);
         this.table[index] = item;
     }
@@ -165,7 +176,7 @@ export class MenuBase {
         return obj;
     }
 
-    addPost(item) {
+    addPost(item: string | string[]): void {
         if (Array.isArray(item)) {
             this.post = this.post.concat(item);
         }
@@ -174,7 +185,7 @@ export class MenuBase {
         }
     }
 
-    addPre(item) {
+    addPre(item: string | string[]): void {
         if (Array.isArray(item)) {
             this.pre = this.pre.concat(item);
         }
@@ -183,8 +194,24 @@ export class MenuBase {
         }
     }
 
-    dbg(...args) {
+    dbg(...args): void {
         console.log(`MENU ${this.name}`, ...args);
+    }
+
+    select(code) {
+        const selectIndex = Keys.codeToIndex(code);
+        if (this.table.hasOwnProperty(selectIndex)) {
+            const selection = this.table[selectIndex];
+            if ((selection as MenuPair).length === 2) {
+                return selection[1];
+            }
+            else if ((selection as MenuCallObj).funcToCall) {
+                return (selection as MenuCallObj).funcToCall;
+            }
+            else {
+                return selection;
+            }
+        }
     }
 }
 
@@ -274,9 +301,6 @@ export class MenuSelectCell extends MenuBase {
             this._enableSelectAll = args.enableSelectAll;
         }
         this._showMenu = false;
-
-
-
     }
 
     enableSelectAll() {
