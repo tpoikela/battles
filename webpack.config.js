@@ -10,16 +10,19 @@ const config = {
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'build'),
+
+        // Needed for webworker to bundle correct paths
         publicPath: '/build/'
     },
 
     devtool: 'source-map',
 
     devServer: {
-        hot: true,
+        hot: false,
         // inline: true,
         port: 3030,
-        contentBase: path.join(__dirname, 'build'),
+        // index.html will be server from here
+        contentBase: path.join(__dirname, './'),
         watchContentBase: true
     },
 
@@ -34,7 +37,6 @@ const config = {
                 loader: 'worker-loader',
                 options: {
                     publicPath: path.resolve(__dirname, 'build')
-                    // name: 'create-game-worker.js'
                 }
             },
             {test: /\.json$/, loader: 'json-loader',
