@@ -28,7 +28,7 @@ describe('How items are typed, physical entities', () => {
     });
 
     it('Has weight and size', () => {
-        const item = new Item.ItemBase('TestItem');
+        const item = new Item.Base('TestItem');
         expect(item.has('Physical')).to.equal(true);
 
         item.setWeight(3.0);
@@ -64,7 +64,7 @@ describe('How items are typed, physical entities', () => {
     });
 
     it('can be cloned with components', () => {
-        const item = new Item.ItemBase('some item');
+        const item = new Item.Base('some item');
         const stats = new Component.Stats();
         stats.setAccuracy(10);
         item.add(stats);
@@ -89,9 +89,9 @@ describe('How items are typed, physical entities', () => {
 
 describe('How items are stacked', () => {
     it('Adds two items to create a count of 2', () => {
-        const item1 = new Item.ItemBase('Test item');
+        const item1 = new Item.Base('Test item');
         item1.setType('test');
-        const item2 = new Item.ItemBase('Test item');
+        const item2 = new Item.Base('Test item');
         item2.setType('test');
         expect(RG.addStackedItems(item1, item2)).to.equal(true);
         expect(item1.getCount()).to.equal(2);
@@ -113,17 +113,17 @@ describe('How items are stacked', () => {
 
 describe('How stackes are broken into multiple items', () => {
     it('Splits item stack into two items', () => {
-        const itemStack = new Item.ItemBase('Arrow');
+        const itemStack = new Item.Base('Arrow');
         itemStack.setType('missile');
         itemStack.setCount(2);
         const arrow = RG.removeStackedItems(itemStack, 1);
         itemStack.setType('missile');
         expect(arrow.getName()).to.equal('Arrow');
 
-        const hugeStack = new Item.ItemBase('Gold coin');
+        const hugeStack = new Item.Base('Gold coin');
         hugeStack.setType('gold');
         hugeStack.setCount(10000);
-        const newStack = new Item.ItemBase('Gold coin');
+        const newStack = new Item.Base('Gold coin');
         newStack.setType('gold');
         newStack.setCount(100);
 
@@ -137,14 +137,14 @@ describe('How stackes are broken into multiple items', () => {
         expect(newStack.getCount()).to.equal(1100);
         expect(hugeStack.getCount()).to.equal(9000);
 
-        const testStack = new Item.ItemBase('test item');
+        const testStack = new Item.Base('test item');
         testStack.setType('test');
         const stack = RG.removeStackedItems(testStack, 1);
         expect(stack).to.equal(testStack);
         expect(testStack.getCount()).to.equal(1);
         expect(stack.getCount()).to.equal(1);
 
-        const two = new Item.ItemBase('test item');
+        const two = new Item.Base('test item');
         two.setType('test');
         two.setCount(5);
         const rmvTwo = RG.removeStackedItems(two, 5);

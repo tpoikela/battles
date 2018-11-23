@@ -11,7 +11,7 @@ import {FactoryLevel} from '../../../client/src/factory.level';
 import {Cell} from '../../../client/src/map.cell';
 
 const Actor = SentientActor;
-const ItemBase = Item.ItemBase;
+const ItemBase = Item.Base;
 
 const Stairs = Element.ElementStairs;
 const Door = Element.ElementDoor;
