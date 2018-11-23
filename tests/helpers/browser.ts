@@ -4,7 +4,7 @@
  * components.
  * */
 
-import 'babel-polyfill';
+//import 'babel-polyfill';
 
 import { JSDOM } from 'jsdom';
 import indexedDB from 'fake-indexeddb';
@@ -26,18 +26,18 @@ const dom = new JSDOM(`
     url: 'http://localhost'
 });
 
-global.window = dom.window;
-global.document = dom.window.document;
-global.navigator = global.window.navigator;
+(global as any).window = dom.window;
+(global as any).document = dom.window.document;
+(global as any).navigator = (global as any).window.navigator;
 
-Object.keys(global.window).forEach(property => {
+Object.keys((global as any).window).forEach(property => {
   if (typeof global[property] === 'undefined') {
-    global[property] = global.window[property];
+    global[property] = (global as any).window[property];
   }
 });
 
-if (!global.requestAnimationFrame) {
+if (!(global as any).requestAnimationFrame) {
   requestAnimFrame(global); // polyfill
 }
 
-global.window.indexedDB = indexedDB;
+(global as any).window.indexedDB = indexedDB;
