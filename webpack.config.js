@@ -28,6 +28,14 @@ const config = {
 
     module: {
         rules: [
+            {
+                test: /\.worker\.(js|ts)$/,
+                loader: 'worker-loader',
+                options: {
+                    publicPath: path.resolve(__dirname, 'build')
+                    // name: 'create-game-worker.js'
+                }
+            },
             {test: /\.json$/, loader: 'json-loader',
                 type: 'javascript/auto'
             },
@@ -47,7 +55,7 @@ const config = {
     plugins: [
         new ExtractTextPlugin({
             allChunks: true,
-            filename: 'main.css'
+            filename: 'style.css'
         })
     ],
 
