@@ -15,7 +15,7 @@ export class GameObject {
 
     public static ID: number;
 
-    public static deserialize(input, namespace, seenObjs = {}) {
+    public static deserialize(input, namespace, seenObjs = {}): any {
         const obj = new namespace[input.$proto]();
         for (const key in input) {
             if (input.hasOwnProperty(key)) {
@@ -54,8 +54,8 @@ export class GameObject {
         this.$objID = GameObject.ID++;
     }
 
-    getID() {return this.$objID;}
-    setID(id) {this.$objID = id;}
+    getID(): number {return this.$objID;}
+    setID(id: number): void {this.$objID = id;}
 
     getObjRef(): ObjRef {
         return {
@@ -85,26 +85,26 @@ export class GameObject {
     }
     */
 
-    static deref(objRef: ObjRef) {
+    static deref(objRef: ObjRef): any {
         if (objRef) {
             return objRef.value;
         }
         return NULL_OBJECT;
     }
 
-    static createObjectID() {
+    static createObjectID(): number {
         return GameObject.ID++;
     }
 
-    static getProtoName(obj) {
+    static getProtoName(obj: any): string {
         return Object.getPrototypeOf(obj).constructor.name;
     }
 
-    static isPrimitive(obj) {
+    static isPrimitive(obj): boolean {
         return typeof obj !== 'object';
     }
 
-    static serialize(obj) {
+    static serialize(obj: any): any {
         if (GameObject.isPrimitive(obj)) {
             return obj;
         }
