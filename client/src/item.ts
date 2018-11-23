@@ -173,7 +173,7 @@ export class ItemBase extends Entity {
     }
 
 }
-Item.ItemBase = ItemBase;
+Item.Base = ItemBase;
 
 //----------------
 /* RGItemFood */
