@@ -201,6 +201,7 @@ RGTest.MsgCatcher = function() {
         }
 
         if (hasMatch) {
+            ++this.numCaught;
             if (this.printMsg) {console.log('\tMsg: |' + msg + '|');}
             if (cell) {
                 if (this.printMsg) {
@@ -209,7 +210,6 @@ RGTest.MsgCatcher = function() {
                 const key = cell.getKeyXY();
                 if (!this.caught[key]) {this.caught[key] = [];}
                 this.caught[key].push(msg);
-                ++this.numCaught;
             }
         }
     };
