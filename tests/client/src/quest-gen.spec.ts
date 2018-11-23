@@ -111,7 +111,6 @@ describe('QuestPopulate', () => {
         let hasGiver = false;
         let hasTarget = false;
         actors.forEach(actor => {
-            console.log('Checking actor', actor.getName());
             if (actor.has('QuestTarget')) {hasTarget = true;}
             if (actor.has('QuestGiver')) {hasGiver = true;}
         });
