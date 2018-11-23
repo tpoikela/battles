@@ -7,25 +7,17 @@
     "@types/node": "^10.12.10",
     "@types/react": "^16.7.7",
     "@types/react-dom": "^16.0.10",
-    "babel-preset-es2015": "^6.22.0",
-    "babel-preset-react": "^6.22.0",
     "blanket": "^1.2.3",
     "command-line-args": "^5.0.2",
     "csstype": "^2.5.7",
     "eslint": "^4.19.1",
     "file-loader": "^2.0.0",
     "file-saver": "^1.3.8",
-    "gulp": "^3.9.1",
-    "gulp-cached": "^1.1.1",
-    "gulp-nodemon": "^2.4.1",
-    "gulp-notify": "^3.0.0",
-    "gulp-sass": "^3.2.1",
     "js-md5": "^0.6.0",
     "linewrap": "^0.2.1",
     "localforage": "^1.7.3",
     "marked": "^0.3.19",
     "prettybnf": "^0.1.3",
-    "prop-types": "^15.6.2",
     "react": "^16.6.3",
     "react-bootstrap": "^0.31.3",
     "react-bootstrap-modal": "^4.2.0",
@@ -35,21 +27,14 @@
     "react-test-renderer": "^16.6.3",
     "sass": "^1.15.1",
     "uglify-es": "^3.3.9",
-    "vinyl-source-stream": "^1.1.0",
     "webworkify": "^1.5.0",
     "worker-loader": "^2.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.3",
+    "@types/chai-enzyme": "^0.6.5",
     "@types/mocha": "^5.2.5",
     "awesome-typescript-loader": "^5.2.1",
-    "babel-cli": "^6.26.0",
-    "babel-eslint": "^7.2.3",
-    "babel-plugin-istanbul": "^4.1.6",
-    "babel-register": "^6.26.0",
-    "babelify": "^7.3.0",
-    "browserify": "^16.2.0",
-    "browserify-incremental": "^3.1.1",
     "chai": "~3.5.0",
     "chai-enzyme": "^1.0.0-beta.1",
     "coveralls": "^2.12.0",
@@ -83,7 +68,6 @@
     "tslint-consistent-codestyle": "^1.14.1",
     "typescript": "^3.1.6",
     "uglify-js": "git+https://github.com/mishoo/UglifyJS2.git#harmony",
-    "uglifyify": "^5.0.1",
     "uglifyjs-webpack-plugin": "^2.0.1",
     "webpack": "^4.26.0",
     "webpack-cli": "^3.1.2",
@@ -104,6 +88,12 @@
       "**/rot.js",
       "tests"
     ],
+    "extension": [
+      ".ts"
+    ],
+    "include": [
+      "client/src/*.ts"
+    ],
     "reporter": [
       "text-summary",
       "lcov"
@@ -113,8 +103,6 @@
   "scripts": {
     "build": "npm run build:sass && npm run build:production",
     "build:production": "npm run create-config-prod && NODE_ENV=production webpack",
-    "build:production:debug": "npm run create-config-prod && NODE_ENV=production ./browserify --debug ./client/jsx/app.jsx --extension .jsx -t babelify -t uglifyify | uglifyjs --mangle --compress --source-map -o ./build/bundle.js",
-    "build:inc": "npm run create-config-prod && NODE_ENV=production browserifyinc --cachefile br-cache-prod.json --debug ./client/jsx/app.jsx --extension .jsx -t babelify -t uglifyify | uglifyjs --mangle --compress --source-map -o ./build/bundle.js",
     "build:sass": "sass scss/style.scss --style compressed > build/style.css",
     "clean": "bin/clean.sh",
     "create-config-prod": "cp -n client/config/production.js public/config.js",
@@ -128,7 +116,7 @@
     "start": "python -m SimpleHTTPServer",
     "test": "mocha -r ts-node/register 'tests/client/**/*.spec.ts'",
     "test:watch": "mocha --watch -r ts-node/register 'tests/client/**/*.spec.ts'",
-    "test:tsx": "mocha -r ts-node/register --require tests/helpers/browser.js 'tests/client/**/*.spec.tsx'",
+    "test:tsx": "mocha -r ts-node/register --require tests/helpers/browser.ts 'tests/client/**/*.spec.tsx'",
     "test:jsx": "NODE_ENV=test mocha --require tests/helpers/browser.js --compilers .:babel-core/register tests/client/jsx/*.jsx"
   },
   "license": "MIT",
