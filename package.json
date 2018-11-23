@@ -84,9 +84,10 @@
     "typescript": "^3.1.6",
     "uglify-js": "git+https://github.com/mishoo/UglifyJS2.git#harmony",
     "uglifyify": "^5.0.1",
+    "uglifyjs-webpack-plugin": "^2.0.1",
     "webpack": "^4.26.0",
     "webpack-cli": "^3.1.2",
-    "webpack-devserver": "0.0.6"
+    "webpack-dev-server": "^3.1.10"
   },
   "engines": {
     "node": ">= 7.0"
@@ -111,7 +112,7 @@
   },
   "scripts": {
     "build": "npm run build:sass && npm run build:production",
-    "build:production": "bin/build_production.sh",
+    "build:production": "npm run create-config-prod && NODE_ENV=production webpack",
     "build:production:debug": "npm run create-config-prod && NODE_ENV=production ./browserify --debug ./client/jsx/app.jsx --extension .jsx -t babelify -t uglifyify | uglifyjs --mangle --compress --source-map -o ./build/bundle.js",
     "build:inc": "npm run create-config-prod && NODE_ENV=production browserifyinc --cachefile br-cache-prod.json --debug ./client/jsx/app.jsx --extension .jsx -t babelify -t uglifyify | uglifyjs --mangle --compress --source-map -o ./build/bundle.js",
     "build:sass": "sass scss/style.scss --style compressed > build/style.css",
@@ -120,16 +121,15 @@
     "create-config-devel": "cp -n client/config/devel.js public/config.js",
     "coverage": "perl bin/cov_test.pl",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
+    "dev": "webpack-dev-server",
     "electron": "electron .",
     "hooks": "perl bin/deploy_hooks",
+    "minimize": "uglifyjs --mangle --compress ./build/*.js",
     "start": "python -m SimpleHTTPServer",
     "test": "mocha -r ts-node/register 'tests/client/**/*.spec.ts'",
     "test:watch": "mocha --watch -r ts-node/register 'tests/client/**/*.spec.ts'",
-    "test:tsx": "mocha -r ts-node/register 'tests/client/**/*.spec.tsx'",
-    "test:functional": "mocha --compilers js:babel-core/register tests/client/functional/*.js",
-    "test:gui": "mocha --compilers js:babel-core/register --recursive tests/client/gui",
-    "test:jsx": "NODE_ENV=test mocha --require tests/helpers/browser.js --compilers .:babel-core/register tests/client/jsx/*.jsx",
-    "test:all": "npm run test && npm run test:gui && npm run test:functional && npm run test:jsx"
+    "test:tsx": "mocha -r ts-node/register --require tests/helpers/browser.js 'tests/client/**/*.spec.tsx'",
+    "test:jsx": "NODE_ENV=test mocha --require tests/helpers/browser.js --compilers .:babel-core/register tests/client/jsx/*.jsx"
   },
   "license": "MIT",
   "bugs": {
