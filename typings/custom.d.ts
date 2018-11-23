@@ -10,4 +10,12 @@ declare module "*.json" {
     export default value;
 }
 
+// typings for webworker
+declare module "worker-loader!*" {
+  class WebpackWorker extends Worker {
+    constructor();
+  }
+
+  export default WebpackWorker;
+}
 
