@@ -57,8 +57,7 @@ Factory.cityConfBase = conf => {
 
 /* Factory object for creating actors. */
 
-/* Factory object for creating some commonly used objects. Because this is a
-* global object RG.FACT, no state should be used. */
+/* Factory object for creating some commonly used objects. */
 export const FactoryBase = function() {
     this._verif = new Verify.Conf('FactoryBase');
     this._actorFact = new FactoryActor();
