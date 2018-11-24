@@ -189,7 +189,7 @@ RG.removeCharStyle = function(prop, type): void {
     if (this.charStyles.hasOwnProperty(prop)) {
         delete this.charStyles[prop][type];
     }
-}
+};
 
 RG.getChar = function(prop, name, state = null): string {
     if (this.charStyles.hasOwnProperty(prop)) {
@@ -1863,7 +1863,7 @@ export class MessageHandler { // {{{2
         POOL.listenEvent(RG.EVT_MSG, this);
     }
 
-    notify(evtName, msg): void {
+    public notify(evtName, msg): void {
         if (evtName === RG.EVT_MSG) {
             if (msg.hasOwnProperty('msg')) {
                 const msgObj: IMessage = {msg: msg.msg, style: 'prim', count: 1};
@@ -1886,21 +1886,21 @@ export class MessageHandler { // {{{2
                 this._hasNew = true;
             }
         }
-    };
+    }
 
-    hasNew() {return this._hasNew;}
+    public hasNew(): boolean {return this._hasNew;}
 
-    getMessages(): IMessage[] {
+    public getMessages(): IMessage[] {
         this._hasNew = false;
         if (this._messages.length > 0) {return this._messages;}
         else if (this._prevMessages.length > 0) {return this._prevMessages;}
         else {return [];}
     }
 
-    clear(): void {
+    public clear(): void {
         if (this._messages.length > 0) {this._prevMessages = this._messages.slice();}
         this._messages = [];
-    };
+    }
 
 }
 RG.MessageHandler = MessageHandler;
