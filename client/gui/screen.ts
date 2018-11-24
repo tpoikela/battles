@@ -61,7 +61,7 @@ const getClassesAndChars = function(seen, cells, selCell) {
 };
 
 const getClassesAndCharsWithRLE = function(
-    seen, cells, selCell, anim, styles: Styles = {}) {
+    seen, cells, selCell, anim?, styles: Styles = {}) {
     let prevChar = null;
     let prevClass = null;
     let charRL = 0;
@@ -373,7 +373,7 @@ export class Screen {
         this.render(playX, playY, map, ALL_VISIBLE);
     }
 
-    renderWithRLE(playX, playY, map, visibleCells, anim) {
+    renderWithRLE(playX, playY, map, visibleCells, anim?) {
         this._initRender(playX, playY, map);
         let yCount = 0;
         for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
