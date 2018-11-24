@@ -83,7 +83,7 @@ describe('ObjectShell.Parser', () => {
         cell.setProp('actors', player);
         cell.setExplored(true);
 
-        expect(RG.getCellChar(cell)).to.equal('X');
+        expect(RG.getCellChar(cell)).to.match(/[@X]/);
 
         const randWolf = parser.createRandomActor({danger: 3});
         expect(randWolf !== null).to.equal(true);
