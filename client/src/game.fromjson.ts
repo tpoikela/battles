@@ -1236,11 +1236,7 @@ FromJSON.prototype.createTiles = function(game, jsonTiles: AreaTileJSON[]) {
         game.addLevel(tileLevel);
 
         const jsonCopy = JSON.parse(JSON.stringify(json));
-        // area.getTiles()[tx][ty] = tile;
         area.setTile(tx, ty, tile);
-        if (tile.getLevel) {
-            console.log(`Area ${area.getID()} FromJSON tile${tx},${ty} has getLevel() now`);
-        }
         tileLevel.setParent(area);
         fact.createZonesFromTile(area, jsonCopy, tx, ty);
         this.restoreSerializedBattles(game, tile);
