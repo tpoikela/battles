@@ -21,7 +21,7 @@ const pileOfWood = {
 };
 
 /* 3. Define a system to handle woodcutting. */
-const WoodcutSystem = RG.System.DefineSystem('Woodcut');
+const WoodcutSystem = RG.System.defineSystem('Woodcut');
 
 WoodcutSystem.prototype.updateEntity = function(ent) {
     if (ent.has('UseItem')) {
@@ -72,7 +72,7 @@ pluginData = {
     },
     onRemove: () => {
         RG.System.Manager.removeSystem('Woodcut');
-        RG.System.UndefineSystem('Woodcut');
+        RG.System.undefineSystem('Woodcut');
         RG.Component.undefineComponent('Maggots');
     }
 };
