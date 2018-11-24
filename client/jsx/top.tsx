@@ -22,7 +22,7 @@ import GameContextMenu from './context-menu';
 import {ContextMenuTrigger} from 'react-contextmenu';
 
 import GameStats, {VIEW_MAP, VIEW_PLAYER} from './game-stats';
-import PluginManager from '../gui/plugin-manager';
+import {PluginManager} from '../gui/plugin-manager';
 
 import dbg = require('debug');
 const debug = dbg('bitn:top');
@@ -43,9 +43,6 @@ import {Screen} from '../gui/screen';
 import {Persist} from '../src/persist';
 import {WorldConf} from '../data/conf.world';
 
-//import * as workerPath from 'file-loader?name=[name].js!./../util/worker-create-game';
-// import Worker from 'worker-loader!../util/create-game-worker';
-// import Worker = require('worker-loader!../util/create-game-worker');
 import {MyWorkerImport} from '../util';
 
 import {ACTOR_CLASSES} from '../src/actor-class';
@@ -55,11 +52,11 @@ import {ItemBase} from '../src/item';
 import {EventPool} from '../src/eventpool';
 import {FactoryGame} from '../src/factory.game';
 import {FromJSON} from '../src/game.fromjson';
-import { IMessage } from "../src/rg";
+import {IMessage} from '../src/rg';
 const POOL = EventPool.getPool();
 
 const INV_SCREEN = 'Inventory';
-(window as any).RG = RG;
+// (window as any).RG = RG;
 
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
@@ -751,7 +748,7 @@ export class BattlesTop extends React.Component {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                const text = reader.result;
+                const text = reader.result.toString();
                 this.pluginManager.loadScript(text);
                 this.updatePluginList();
             };
