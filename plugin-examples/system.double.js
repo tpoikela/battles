@@ -1,7 +1,7 @@
 /* This is an example how to add a System plugin into the game. To load the
  * plugin, open game in browser, then select Game->Load script from top menu.*/
 
-const DoubleSystem = RG.System.DefineSystem('Double');
+const DoubleSystem = RG.System.defineSystem('Double');
 
 DoubleSystem.prototype.updateEntity = function(ent) {
     if (ent.has('Damage')) {
@@ -34,6 +34,6 @@ pluginData = {
     // Called when plugin is deleted/disabled
     onRemove: () => {
         RG.System.Manager.removeSystem('Double');
-        RG.System.UndefineSystem('Double');
+        RG.System.undefineSystem('Double');
     }
 };
