@@ -47,14 +47,18 @@ describe('PluginManager', () => {
             expect(plugins).to.have.length(1);
 
             const plugin = plugins[0];
+            const plugName = plugin.getName();
 
-            plugin.enable();
+            manager.enablePlugin(plugName);
             expect(plugin.isEnabled()).to.equal(true);
+            expect(manager.getError()).to.equal('');
 
-            plugin.disable();
+            manager.disablePlugin(plugName);
             expect(plugin.isEnabled()).to.equal(false);
+            expect(manager.getError()).to.equal('');
 
             manager.deletePlugin(plugin.getName());
+            expect(manager.getError()).to.equal('');
 
             plugins = manager.getPlugins();
             expect(plugins).to.have.length(0);
@@ -71,14 +75,16 @@ describe('PluginManager', () => {
         manager.readJSON(jsonPlugin);
 
         manager.enableAll();
+        expect(manager.getError()).to.equal('');
         const json = manager.toJSON();
         manager.disableAll();
+        expect(manager.getError()).to.equal('');
         // TODO
         //
         const newPm = PluginManager.fromJSON(json);
 
         const plugins = newPm.getPlugins();
-        expect(plugins).to.have.length(1);
+        expect(plugins).to.have.length(2);
     });
 
 });
