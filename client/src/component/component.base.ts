@@ -429,7 +429,7 @@ export interface ComponentBase {
 }
 
 /* Factory function that should be used instead of new Component[varName]. */
-export const create = function(compName, ...args) {
+export const create = function(compName: string, ...args) {
     if (Component[compName]) {
         return new Component[compName](...args);
     }
@@ -439,10 +439,9 @@ export const create = function(compName, ...args) {
 };
 Component.create = create;
 
-export const defineComponent = function(name, args) {
+export const defineComponent = function(name: string, args) {
     if (!Component.hasOwnProperty(name)) {
         const CompDecl = DataComponent(name, args);
-        // Component[name] = CompDecl;
         return CompDecl;
     }
     RG.err('Component', 'defineComponent',
@@ -451,7 +450,8 @@ export const defineComponent = function(name, args) {
 };
 Component.defineComponent = defineComponent;
 
-export const undefineComponent = function(name) {
-    delete Component[name];
+export const undefineComponent = function(type) {
+    delete Component.createdCompDecls[type];
+    delete Component[type];
 };
 Component.undefineComponent = undefineComponent;
