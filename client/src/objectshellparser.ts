@@ -121,7 +121,7 @@ export const Creator = function(db, dbNoRandom) {
                 }
                 else {
                     RG.err('Creator', 'createComponent',
-                        'Component |' + type + "| doesn't exist.");
+                        'Component |' + type + '| does not exist.');
                 }
         }
         return null;
@@ -412,8 +412,8 @@ export const Creator = function(db, dbNoRandom) {
                 }
                 break; // Unreachable
             case RG.TYPE_ELEM: {
-                const type = obj.type || obj.name;
-                return new ElementBase(obj.name, type);
+                const usedType = obj.type || obj.name;
+                return new ElementBase(obj.name, usedType);
             }
             default: break;
         }
@@ -495,7 +495,7 @@ export const Creator = function(db, dbNoRandom) {
         const json = 'compData ' + JSON.stringify(compData);
         RG.err('ObjectShellParser', 'addCompToObj',
            `Comp: ${compName} no func ${fname}, ${json}`);
-    }
+    };
 
     /* This function makes a pile of mess if used on non-entities. */
     this.addComponents = (shell, entity) => {
@@ -1138,7 +1138,7 @@ export const Parser = function() {
     this.createActualObj = function(categ, name) {
         if (!this.dbExists(categ, name)) {
             RG.err('Parser', 'createActualObj',
-                'Categ: ' + categ + ' Name: ' + name + " doesn't exist.");
+                `Categ: ${categ} Name: ${name} doesn't exist.`);
             return null;
         }
         return this._creator.createActualObj(categ, name);
