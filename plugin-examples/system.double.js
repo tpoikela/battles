@@ -28,12 +28,12 @@ pluginData = {
             create: createSystem,
             comps: ['Damage']
         };
-        RG.System.Manager.addSystemBefore(system, 'Damage');
+        RG.SystemManager.addSystemBefore(system, 'Damage');
     },
 
     // Called when plugin is deleted/disabled
     onRemove: () => {
-        RG.System.Manager.removeSystem('Double');
+        RG.SystemManager.removeSystem('Double');
         RG.System.undefineSystem('Double');
     }
 };

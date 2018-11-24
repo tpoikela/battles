@@ -65,13 +65,15 @@ pluginData = {
     onLoad: () => {
         const system = {
             name: 'Woodcut',
-            create: createSystem,
-            comps: ['UseItem']
+            create: createSystem, // Factory method to call to create it
+            comps: ['UseItem'] // Comps that are listened to
         };
-        RG.System.Manager.addSystemBefore(system, 'BaseAction');
+        // As BaseAction also consumes UseItem comps, add this system before
+        // BaseAction.
+        RG.SystemManager.addSystemBefore(system, 'BaseAction');
     },
     onRemove: () => {
-        RG.System.Manager.removeSystem('Woodcut');
+        RG.SystemManager.removeSystem('Woodcut');
         RG.System.undefineSystem('Woodcut');
         RG.Component.undefineComponent('Maggots');
     }
