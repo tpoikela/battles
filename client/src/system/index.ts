@@ -103,26 +103,27 @@ System.TimeEffects = SystemTimeEffects;
 
 /* Defines a new system declaration. Can be used in plugins to define new
  * systems easily without boilerplate code. */
-System.DefineSystem = function(sysName) {
+System.defineSystem = function(sysName) {
     const nameCaps = sysName.toUpperCase();
     RG.SYS[nameCaps] = Symbol();
 
-    const SystemDecl = function(compTypes, ...argsList) {
-        System.Base.call(this, RG.SYS[nameCaps], compTypes);
+    const SystemDecl = class extends SystemBase {
+        private _init?(compTypes: string[], ...args: any[]): void;
 
-        // User can define _init function if complex initialisation required
-        if (this._init && typeof this._init === 'function') {
-            this._init(compTypes, ...argsList);
+        constructor(compTypes, ...argsList) {
+            super(RG.SYS[nameCaps], compTypes);
+            if (this._init && typeof this._init === 'function') {
+                this._init(compTypes, ...argsList);
+            }
         }
     };
-    RG.extend2(SystemDecl, System.Base);
 
     System[sysName] = SystemDecl;
     return SystemDecl;
 };
 
 /* Undefines a system declaration. Can be used as cleanup for DefineSystem. */
-System.UndefineSystem = function(sysName) {
+System.undefineSystem = function(sysName) {
     const nameCaps = sysName.toUpperCase();
     delete RG.SYS[nameCaps];
     delete System[sysName];
