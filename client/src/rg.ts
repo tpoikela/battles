@@ -159,7 +159,7 @@ RG.getCellChar = function(cell) {
 /* Adds a CSS class for given prop and type. For example, "actors", "wolf",
  * "cell-actor-wolf" uses CSS class .cell-actor-wolf to style cells with
  * wolves in them. */
-RG.addCellStyle = function(prop, type, className) {
+RG.addCellStyle = function(prop, type, className): void {
     if (this.cellStyles.hasOwnProperty(prop)) {
         this.cellStyles[prop][type] = className;
     }
@@ -168,9 +168,15 @@ RG.addCellStyle = function(prop, type, className) {
     }
 };
 
+RG.removeCellStyle = function(prop, type): void {
+    if (this.cellStyles.hasOwnProperty(prop)) {
+        delete this.cellStyles[prop][type];
+    }
+};
+
 /* Adds a char to render for given prop and type. Example: "actors",
  * "wolf", "w" renders 'w' for cells containing wolves.*/
-RG.addCharStyle = function(prop, type, charName) {
+RG.addCharStyle = function(prop, type, charName): void {
     if (this.charStyles.hasOwnProperty(prop)) {
         this.charStyles[prop][type] = charName;
     }
@@ -179,7 +185,13 @@ RG.addCharStyle = function(prop, type, charName) {
     }
 };
 
-RG.getChar = function(prop, name, state = null) {
+RG.removeCharStyle = function(prop, type): void {
+    if (this.charStyles.hasOwnProperty(prop)) {
+        delete this.charStyles[prop][type];
+    }
+}
+
+RG.getChar = function(prop, name, state = null): string {
     if (this.charStyles.hasOwnProperty(prop)) {
         if (state) {
             return this.charStyles[prop][name][state];
@@ -189,7 +201,7 @@ RG.getChar = function(prop, name, state = null) {
     return 'X';
 };
 
-RG.getCssClass = function(prop, name, state = null) {
+RG.getCssClass = function(prop, name, state = null): string {
     if (this.cellStyles.hasOwnProperty(prop)) {
         if (state) {
             return this.cellStyles[prop][name][state];
