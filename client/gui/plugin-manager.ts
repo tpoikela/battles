@@ -44,7 +44,7 @@ export class PluginEntry {
         return (/ERROR/).test(this._status);
     }
 
-    public getErrorMsg() {
+    public getError(): string {
         return this._errorMsg;
     }
 
@@ -59,6 +59,7 @@ export class PluginEntry {
                 catch (e) {
                     this._errorMsg = e.message;
                     this._status = 'UNLOAD ERROR';
+                    throw new Error(`${this._name}: ${e.message}`);
                 }
             }
             this._enabled = false;
@@ -76,6 +77,7 @@ export class PluginEntry {
                 catch (e) {
                     this._errorMsg = e.message;
                     this._status = 'LOAD ERROR';
+                    throw new Error(`${this._name}: ${e.message}`);
                 }
             }
             this._enabled = true;
@@ -221,16 +223,26 @@ export class PluginManager {
         const index = this._plugins.findIndex(p => p.getName() === name);
         if (index >= 0) {
             this._plugins[index].disable();
+            if (this._plugins[index].hasError()) {
+                this._errorMsg = this._plugins[index].getError();
+            }
             this._plugins.splice(index, 1);
         }
     }
 
     public disablePlugin(name: string): void {
         const plugin: PluginData = this.findPlugin(name);
+        this._errorMsg = '';
         if (plugin) {
             this.setGlobalRefs();
             plugin.disable();
+            if (plugin.hasError()) {
+                this._errorMsg = plugin.getError();
+            }
             this.unsetGlobalRefs();
+        }
+        else {
+            this._errorMsg = 'Could not find plugin ' + name;
         }
     }
 
@@ -239,22 +251,33 @@ export class PluginManager {
         if (plugin) {
             this.setGlobalRefs();
             plugin.enable();
+            if (plugin.hasError()) {
+                this._errorMsg = plugin.getError();
+            }
             this.unsetGlobalRefs();
         }
     }
 
     public enableAll(): void {
+        this._errorMsg = '';
         this.setGlobalRefs();
         this._plugins.forEach(plugin => {
             plugin.enable();
+            if (plugin.hasError()) {
+                this._errorMsg += plugin.getError() + '\n';
+            }
         });
         this.unsetGlobalRefs();
     }
 
     public disableAll(): void {
+        this._errorMsg = '';
         this.setGlobalRefs();
         this._plugins.forEach(plugin => {
             plugin.disable();
+            if (plugin.hasError()) {
+                this._errorMsg += plugin.getError() + '\n';
+            }
         });
         this.unsetGlobalRefs();
     }
