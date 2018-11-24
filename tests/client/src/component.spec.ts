@@ -9,8 +9,21 @@ import {SentientActor} from '../../../client/src/actor';
 import { FactoryActor } from "../../../client/src/factory.actors";
 
 const ComponentBase = Component.ComponentBase;
+const CompDefs = Component.Component;
 
-describe('Component.Base', () => {
+describe('Component', () => {
+    it('has functions to define/undefine components', () => {
+        const Triple = Component.defineComponent('TripleStrike', {power: 3});
+        const tripleComp = new Triple();
+        expect(tripleComp.getPower()).to.equal(3);
+        expect(CompDefs).to.have.property('TripleStrike');
+
+        Component.undefineComponent('TripleStrike');
+        expect(CompDefs).to.not.have.property('TripleStrike');
+    });
+});
+
+describe('ComponentBase', () => {
 
     it('has exactly one related entity', () => {
         const entity = new Entity();
