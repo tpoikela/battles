@@ -1766,3 +1766,21 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.SummonUndeadUnicorns());
     book.addSpell(new Spell.Telepathy());
 };
+
+Spell.defineSpell = function(name: string, superclass: any) {
+    const SpellDecl = class extends superclass {
+        private _init?(...args: any[]): void;
+        constructor(...args: any[]) {
+            super(name, 0);
+            if (this._init && typeof this._init === 'function') {
+                this._init(...args);
+            }
+        }
+    }
+    Spell[name] = SpellDecl;
+    return SpellDecl;
+};
+
+Spell.undefineSpell = function(name: string) {
+    delete Spell[name];
+};
