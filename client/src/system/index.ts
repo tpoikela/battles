@@ -103,7 +103,7 @@ System.TimeEffects = SystemTimeEffects;
 
 /* Defines a new system declaration. Can be used in plugins to define new
  * systems easily without boilerplate code. */
-System.defineSystem = function(sysName) {
+System.defineSystem = function(sysName: string): any {
     const nameCaps = sysName.toUpperCase();
     RG.SYS[nameCaps] = Symbol();
 
@@ -122,8 +122,8 @@ System.defineSystem = function(sysName) {
     return SystemDecl;
 };
 
-/* Undefines a system declaration. Can be used as cleanup for DefineSystem. */
-System.undefineSystem = function(sysName) {
+/* Undefines a system declaration. Can be used as cleanup for defineSystem. */
+System.undefineSystem = function(sysName: string): void {
     const nameCaps = sysName.toUpperCase();
     delete RG.SYS[nameCaps];
     delete System[sysName];
