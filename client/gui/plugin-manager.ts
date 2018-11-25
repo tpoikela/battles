@@ -2,12 +2,17 @@
 
 import RG from '../src/rg';
 import {ObjectShell} from '../src/objectshellparser';
+import {expect} from 'chai';
 
 import * as AllCode from '../src/battles';
 
 export interface PluginData {
     [key: string]: any;
 }
+
+const PLUGIN_TYPES = [
+    'plugin', 'items', 'actors', 'elements', 'system', 'spell'
+];
 
 /* Each plugin is associated with an entry which stores the plugin code. */
 export class PluginEntry {
@@ -23,6 +28,7 @@ export class PluginEntry {
 
     public _onLoad: () => void;
     public _onRemove: () => void;
+    public _test: (expect:any) => void;
 
     constructor(json) {
         this._enabled = false;
@@ -33,6 +39,7 @@ export class PluginEntry {
         this._fileType = json.fileType;
         this._status = 'UNLOADED';
         this._errorMsg = '';
+        this._test = json.test;
 
         this._onLoad = json.onLoad;
         this._onRemove = json.onRemove;
@@ -94,6 +101,12 @@ export class PluginEntry {
 
     public isEnabled() {
         return this._enabled;
+    }
+
+    public runTest(): void {
+        if (this._test) {
+            this._test(expect);
+        }
     }
 
     public toJSON() {
@@ -327,8 +340,8 @@ export class PluginManager {
     protected parseShellsOnRead = (entry: PluginEntry): void => {
         const data = entry.getData();
         const type = entry.getType();
-        const types = [RG.TYPE_ACTOR, RG.TYPE_ITEM, RG.TYPE_ELEM];
-        types.forEach(propType => {
+        const propTypes = [RG.TYPE_ACTOR, RG.TYPE_ITEM, RG.TYPE_ELEM];
+        propTypes.forEach(propType => {
             if (type === propType) {
                 const parser = ObjectShell.getParser();
                 parser.parseShellCateg(propType, data);
@@ -337,16 +350,13 @@ export class PluginManager {
     }
 
     protected validateType(pluginData): void {
-        const types = [
-            'plugin', 'items', 'actors', 'elements', 'system'
-        ];
         if (!pluginData.type) {
             throw new Error('pluginData must have type specified');
         }
-        const index = types.indexOf(pluginData.type);
+        const index = PLUGIN_TYPES.indexOf(pluginData.type);
         if (index < 0) {
             let msg = 'type must be any of the following: ';
-            msg += JSON.stringify(types);
+            msg += JSON.stringify(PLUGIN_TYPES);
             msg += ` but got |${pluginData.type}|`;
             throw new Error(msg);
         }
