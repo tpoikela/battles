@@ -66,14 +66,14 @@ if (!opts.load) {
     game = fromJSON.createGame(game, gameJSON);
 }
 
-const durTimes = {
+const durTimes: {[key: string]: number} = {
     save: 0, write: 0, rest: 0, total: 0
 };
-const timeId = UtilsSim.getTimeStamp();
-const fpsArray = [];
+const timeId: number = UtilsSim.getTimeStamp();
+const fpsArray: number[] = [];
 
 // Used with expect() later
-const saveFunc = (numTurns) => {
+const saveFunc = (nTurns) => {
     const saveDur = UtilsSim.time(() => {
         fromJSON = new RG.FromJSON();
         gameJSON = game.toJSON();
@@ -84,7 +84,7 @@ const saveFunc = (numTurns) => {
     });
     const writeDur = UtilsSim.time(() => {
         const {playerName} = gameConf;
-        const tag = `${playerName}-${numTurns}-${timeId}`;
+        const tag = `${playerName}-${nTurns}-${timeId}`;
         const fName = `results/debug-game-${tag}.json`;
         if (fs && fs.writeFileSync) {
             fs.writeFileSync(fName, JSON.stringify(gameJSON));
@@ -96,18 +96,18 @@ const saveFunc = (numTurns) => {
     durTimes.total += saveDur + restDur + writeDur;
 };
 
-const reportFunc = game => {
-    const level = game.getLevels()[0];
-    const POOL = RG.EventPool.getPool();
-    log(`saveFunc RG.POOL listeners: ${POOL.getNumListeners()}`);
-    const numActors = level.getActors().length;
+const reportFunc = (currGame) => {
+    const currLevel = currGame.getLevels()[0];
+    const pool = RG.EventPool.getPool();
+    log(`saveFunc RG.POOL listeners: ${pool.getNumListeners()}`);
+    const numActors = currLevel.getActors().length;
     log(`Actors in level: ${numActors}`);
 };
 
 const updateFunc = () => {
     if (game.isGameOver()) {
-        const level = game.getLevels()[0];
-        const nActors = level.getActors().length;
+        const currLevel = game.getLevels()[0];
+        const nActors = currLevel.getActors().length;
         game.simulate(nActors);
     }
     else {
@@ -162,8 +162,8 @@ log('Execution took ' + durGame + ' ms');
 
 const fpsAvg = fpsArray.reduce((acc, val) => acc + val, 0) / fpsArray.length;
 
-const fps = numTurns / (durGame / 1000);
-info(VMEDIUM, 'Overall avg FPS: ' + fps);
+const finalFps = numTurns / (durGame / 1000);
+info(VMEDIUM, 'Overall avg FPS: ' + finalFps);
 if (!isNaN(fpsAvg)) {
     info(VMEDIUM, '\tOverall avg FPS: ' + fpsAvg + ' (from array)');
 }
