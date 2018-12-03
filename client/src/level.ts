@@ -31,15 +31,15 @@ export class LevelCallback {
         this.cbType = type;
     }
 
-    execute(): void {
+    public execute(): void {
         RG.gameMsg(this.msg);
     }
 
-    getCbType() {
+    public getCbType() {
         return this.cbType;
     }
 
-    toJSON() {
+    public toJSON() {
         return {
             cbType: this.getCbType(),
             msg: this.msg
@@ -64,7 +64,7 @@ export type LevelExtras = Extras & {
     houses?: House[];
     /* connectEdges?: boolean;
     isCollapsed?: boolean;*/
-}
+};
 
 /* Object for the game levels. Contains map, actors and items.  */
 // const Level = function() {
@@ -110,17 +110,17 @@ export class Level extends Entity {
 
     }
 
-    setLevelNumber(no) {this._levelNo = no;}
+    public setLevelNumber(no) {this._levelNo = no;}
 
-    getLevelNumber(): number {
+    public getLevelNumber(): number {
         return this._levelNo;
     }
 
-    getParent(): SubZoneBase {
+    public getParent(): SubZoneBase {
         return this._parent;
     }
 
-    getParentZone(): ZoneBase {
+    public getParentZone(): ZoneBase {
         const subZoneParent = this.getParent();
         if (subZoneParent) {
             if ((subZoneParent as SubZoneBase).getParent) {
@@ -132,7 +132,7 @@ export class Level extends Entity {
         return null;
     }
 
-    setParent(parent: LevelParent): void {
+    public setParent(parent: LevelParent): void {
         if (!RG.isNullOrUndef([parent])) {
             this._parent = parent;
         }
@@ -142,12 +142,12 @@ export class Level extends Entity {
         }
     }
 
-    getActors() {return this._p.actors;}
-    getItems() {return this._p.items;}
-    getElements() {return this._p.elements;}
+    public getActors() {return this._p.actors;}
+    public getItems() {return this._p.items;}
+    public getElements() {return this._p.elements;}
 
     /* Returns all stairs elements. */
-    getStairs() {
+    public getStairs() {
         const res = [];
         this._p.elements.forEach(elem => {
             if (this._isStairs(elem)) {
@@ -157,7 +157,7 @@ export class Level extends Entity {
         return res;
     }
 
-    getPassages() {
+    public getPassages() {
         const res = [];
         this._p.elements.forEach(elem => {
             if (elem.getName() === 'passage') {
@@ -167,7 +167,7 @@ export class Level extends Entity {
         return res;
     }
 
-    getConnections() {
+    public getConnections() {
         const conn = [];
         this._p.elements.forEach(elem => {
             if (elem.getType() === 'connection') {
@@ -177,15 +177,15 @@ export class Level extends Entity {
         return conn;
     }
 
-    _isStairs(elem) {
+    public _isStairs(elem) {
         return (/stairs(Down|Up)/).test(elem.getName());
     }
 
-    setMap(map) {this._map = map;}
-    getMap() {return this._map;}
+    public setMap(map) {this._map = map;}
+    public getMap() {return this._map;}
 
     /* Given a level, returns stairs which lead to that level.*/
-    getStairsToLevel(level) {
+    public getStairsToLevel(level) {
         if (RG.isNullOrUndef([level])) {
             RG.err('Map.Level', 'getStairs', 'arg |level| required.');
         }
@@ -202,7 +202,7 @@ export class Level extends Entity {
     //---------------------------------------------------------------------
     // GENERIC ADD METHOD
     //---------------------------------------------------------------------
-    addToRandomCell(obj) {
+    public addToRandomCell(obj) {
         const cell = this.getFreeRandCell();
         switch (obj.getPropType()) {
             case RG.TYPE_ITEM:
@@ -218,7 +218,7 @@ export class Level extends Entity {
     //---------------------------------------------------------------------
 
     /* Adds stairs for this level.*/
-    addStairs(stairs, x, y) {
+    public addStairs(stairs, x, y) {
         if (!RG.isNullOrUndef([x, y])) {
             if (this._map.hasXY(x, y)) {
               stairs.setSrcLevel(this);
@@ -228,7 +228,7 @@ export class Level extends Entity {
             }
             else {
               const msg = `x,y ${x},${y} out of map bounds.`;
-                RG.err('Map.Level', 'addStairs',
+              RG.err('Map.Level', 'addStairs',
                   `${msg}: cols ${this._map.cols}, rows: ${this._map.rows}`);
             }
         }
@@ -240,7 +240,7 @@ export class Level extends Entity {
     }
 
     /* Uses stairs for given actor if it's on top of the stairs.*/
-    useStairs(actor) {
+    public useStairs(actor) {
         const cell = this._map.getCell(actor.getX(), actor.getY());
         if (cell.hasConnection()) {
             const connection = cell.getConnection();
@@ -255,7 +255,7 @@ export class Level extends Entity {
     }
 
     /* Adds one element into the level. */
-    addElement(elem, x, y) {
+    public addElement(elem, x, y) {
         if (elem.getType() === 'connection') {
             return this.addStairs(elem, x, y);
         }
@@ -271,11 +271,11 @@ export class Level extends Entity {
         return this._addPropToLevelXY(RG.TYPE_ELEM, elem, xCell, yCell);
     }
 
-    removeElement(elem, x, y) {
+    public removeElement(elem, x, y) {
         return this._removePropFromLevelXY(RG.TYPE_ELEM, elem, x, y);
     }
 
-    addEntity(ent, x, y) {
+    public addEntity(ent, x, y) {
         if (ent.getPropType) {
             const type = ent.getPropType();
             if (type === RG.TYPE_ACTOR) {
@@ -300,7 +300,7 @@ export class Level extends Entity {
     //---------------------------------------------------------------------
 
     /* Adds one item to the given location on the level.*/
-    addItem(item, x, y) {
+    public addItem(item, x, y) {
         if (!RG.isNullOrUndef([x, y])) {
             return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
         }
@@ -309,17 +309,17 @@ export class Level extends Entity {
     }
 
     /* Removes an item from the level in x,y position.*/
-    removeItem(item, x, y) {
+    public removeItem(item, x, y) {
         return this._removePropFromLevelXY(RG.TYPE_ITEM, item, x, y);
     }
 
-    pickupItem(actor) {
+    public pickupItem(actor) {
         const pickup = new Pickup();
         actor.add(pickup);
     }
 
     /* Moves the given object to x,y. */
-    moveActorTo(obj, x, y) {
+    public moveActorTo(obj, x, y) {
         // Note that source level may be different than this level
         const level = obj.getLevel();
         const [oX, oY] = [obj.getX(), obj.getY()];
@@ -337,7 +337,7 @@ export class Level extends Entity {
     /* Adds an actor to the level. If x,y is given, tries to add there. If not,
      * finds first free cells and adds there. Returns true on success.
      */
-    addActor(actor, x, y) {
+    public addActor(actor, x, y) {
         RG.debug(this, 'addActor called with x,y ' + x + ', ' + y);
         if (!RG.isNullOrUndef([x, y])) {
             if (this._map.hasXY(x, y)) {
@@ -361,7 +361,7 @@ export class Level extends Entity {
     /* Using this method, actor can be added to a free cell without knowing the
      * exact x,y coordinates. This is not random, such that top-left (0,0) is
      * always preferred. */
-    addActorToFreeCell(actor) {
+    public addActorToFreeCell(actor) {
         RG.debug(this, 'Adding actor to free slot');
         const freeCells = this._map.getFree();
         if (freeCells.length > 0) {
@@ -381,7 +381,7 @@ export class Level extends Entity {
 
     /* Adds a prop 'obj' to level location x,y. Returns true on success,
      * false on failure.*/
-    _addPropToLevelXY(propType, obj, x, y) {
+    public _addPropToLevelXY(propType, obj, x, y) {
         if (this._p.hasOwnProperty(propType)) {
             this._p[propType].push(obj);
             if (!obj.isOwnable) {
@@ -401,7 +401,7 @@ export class Level extends Entity {
     }
 
     /* Adds virtual prop not associated with x,y position or a cell. */
-    addVirtualProp(propType, obj) {
+    public addVirtualProp(propType, obj) {
         if (this._p.hasOwnProperty(propType)) {
             this._p[propType].push(obj);
             obj.setLevel(this);
@@ -418,7 +418,7 @@ export class Level extends Entity {
 
     /* Removes a prop 'obj' to level location x,y. Returns true on success,
      * false on failure.*/
-    _removePropFromLevelXY(propType, obj, x, y) {
+    public _removePropFromLevelXY(propType, obj, x, y) {
         if (this._p.hasOwnProperty(propType)) {
             const index = this._p[propType].indexOf(obj);
 
@@ -446,7 +446,7 @@ export class Level extends Entity {
     }
 
     /* Removes a virtual property (virtual prop has no x,y position). */
-    removeVirtualProp(propType, obj) {
+    public removeVirtualProp(propType, obj) {
         if (this._p.hasOwnProperty(propType)) {
             const index = this._p[propType].indexOf(obj);
             if (index >= 0) {
@@ -460,7 +460,7 @@ export class Level extends Entity {
     }
 
     /* Removes given actor from level. Returns true if successful.*/
-    removeActor(actor) {
+    public removeActor(actor) {
         const index = this._p.actors.indexOf(actor);
         const x = actor.getX();
         const y = actor.getY();
@@ -476,7 +476,7 @@ export class Level extends Entity {
     /* Explores the level from given actor's viewpoint. Sets new cells as
      * explored. There's no exploration tracking per actor. This is mainly called
      * from Brain.Player, as it marks cells as explored. */
-    exploreCells(actor) {
+    public exploreCells(actor) {
         const visibleCells = this._map.getVisibleCells(actor);
         for (let i = 0; i < visibleCells.length; i++) {
             visibleCells[i].setExplored();
@@ -485,35 +485,35 @@ export class Level extends Entity {
     }
 
     /* Returns all explored cells in the map.*/
-    getExploredCells() {
+    public getExploredCells() {
         return this._map.getExploredCells();
     }
 
     /* Can be used to add additional data to the level. Currently, this is used in
      * level generation only, and extras are not serialized/stored persistently.
      * */
-    setExtras(extras) {
+    public setExtras(extras) {
         this._extras = extras;
     }
 
-    getExtras() {
+    public getExtras() {
         if (!this._extras) {this._extras = {};}
         return this._extras;
     }
 
-    hasExtras() {
+    public hasExtras() {
         return !RG.isNullOrUndef([this._extras]) &&
             Object.keys(this._extras).length > 0;
     }
 
-    addExtras(key: string, value: any): void {
+    public addExtras(key: string, value: any): void {
         if (!this._extras) {this._extras = {} as LevelExtras;}
         this._extras[key] = value;
     }
 
     /* Returns the bounding box of the level (upper-left and lower-right
      * coordinates). */
-    getBbox() {
+    public getBbox() {
         return {
             ulx: 0, uly: 0,
             lrx: this.getMap().cols - 1,
@@ -521,36 +521,36 @@ export class Level extends Entity {
         };
     }
 
-    getColsRows() {
+    public getColsRows() {
         return [
             this.getMap().cols,
             this.getMap().rows
         ];
     }
 
-    setOnEnter(cb) {
+    public setOnEnter(cb) {
         this._callbacks.OnEnter = cb;
     }
 
-    setOnFirstEnter(cb) {
+    public setOnFirstEnter(cb) {
         this._callbacks.OnFirstEnter = cb;
     }
 
-    setOnExit(cb) {
+    public setOnExit(cb) {
         this._callbacks.OnExit = cb;
     }
 
-    setOnFirstExit(cb) {
+    public setOnFirstExit(cb) {
         this._callbacks.OnFirstExit = cb;
     }
 
-    onEnter() {
+    public onEnter() {
         if (this._callbacks.hasOwnProperty('OnEnter')) {
             this._callbacks.OnEnter(this);
         }
     }
 
-    onFirstEnter() {
+    public onFirstEnter() {
         if (!this._cbState.onFirstEnterDone) {
             if (this._callbacks.hasOwnProperty('OnFirstEnter')) {
                 this._callbacks.OnFirstEnter(this);
@@ -559,13 +559,13 @@ export class Level extends Entity {
         }
     }
 
-    onExit() {
+    public onExit() {
         if (this._callbacks.hasOwnProperty('OnExit')) {
             this._callbacks.OnExit(this);
         }
     }
 
-    onFirstExit() {
+    public onFirstExit() {
         if (!this._cbState.onFirstExitDone) {
             if (this._callbacks.hasOwnProperty('OnFirstExit')) {
                 this._callbacks.OnFirstExit(this);
@@ -575,7 +575,7 @@ export class Level extends Entity {
     }
 
     /* Return random free cell on a given level.*/
-    getFreeRandCell() {
+    public getFreeRandCell() {
         const freeCells = this.getMap().getFree();
         if (freeCells.length > 0) {
             const index = RNG.randIndex(freeCells);
@@ -585,7 +585,7 @@ export class Level extends Entity {
     }
 
     /* Returns random empty cells, or null if cannot find any.*/
-    getEmptyRandCell() {
+    public getEmptyRandCell() {
         const emptyCells = this.getMap().getEmptyCells();
         if (emptyCells.length > 0) {
             const index = RNG.randIndex(emptyCells);
@@ -594,7 +594,7 @@ export class Level extends Entity {
         return null;
     }
 
-    _getFreeCellXY() {
+    public _getFreeCellXY() {
         const freeCells = this._map.getFree();
         if (freeCells.length > 0) {
             const xCell = freeCells[0].getX();
@@ -604,12 +604,12 @@ export class Level extends Entity {
         return [null, null];
     }
 
-    debugPrintInASCII() {
+    public debugPrintInASCII() {
         this.getMap().debugPrintInASCII();
     }
 
     /* Removes all elements matching the given function. */
-    removeElements(filter) {
+    public removeElements(filter) {
         const toRemove = this._p.elements.filter(filter);
         toRemove.forEach(elem => {
           const eX = (elem as Mixin.Locatable).getX();
@@ -618,12 +618,12 @@ export class Level extends Entity {
         });
     }
 
-    getCell(x, y) {
+    public getCell(x, y) {
         return this._map.getCell(x, y);
     }
 
     /* Serializes the level object. */
-    toJSON() {
+    public toJSON() {
         const obj: any = {
             isJSON: true,
             id: this.getID(),
@@ -653,6 +653,17 @@ export class Level extends Entity {
                     y: prop.getY(),
                     obj: prop.toJSON()
                 };
+
+                // For debug only, can be removed
+                if (propType === TYPE_ACTOR) {
+                    console.log('Saving actor at ', propObj.x, propObj.y);
+                    const compLoc = prop.get('Location');
+                    console.log('\tSaving comp as ', compLoc.getXY());
+                    if (propObj.x === -1 || propObj.y === -1) {
+                        console.log('Got -1 for ', prop.getName());
+                    }
+                }
+
                 // Avoid storing player twice (stored in Game.Main already)
                 if (!propType === RG.TYPE_ACTOR) {
                     obj[propType].push(propObj);
