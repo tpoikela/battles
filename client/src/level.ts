@@ -654,16 +654,6 @@ export class Level extends Entity {
                     obj: prop.toJSON()
                 };
 
-                // For debug only, can be removed
-                if (propType === TYPE_ACTOR) {
-                    console.log('Saving actor at ', propObj.x, propObj.y);
-                    const compLoc = prop.get('Location');
-                    console.log('\tSaving comp as ', compLoc.getXY());
-                    if (propObj.x === -1 || propObj.y === -1) {
-                        console.log('Got -1 for ', prop.getName());
-                    }
-                }
-
                 // Avoid storing player twice (stored in Game.Main already)
                 if (!propType === RG.TYPE_ACTOR) {
                     obj[propType].push(propObj);
