@@ -61,11 +61,11 @@ Action.prototype.disable = function() {
 export const Location = UniqueDataComponent('Location', {
     x: -1, y: -1, level: null});
 
-Location.prototype.getXY = function(): TCoord {return [this.x, this.y];}
+Location.prototype.getXY = function(): TCoord {return [this.x, this.y];};
 Location.prototype.setXY = function(x, y): void {
     this.x = x;
     this.y = y;
-}
+};
 
 Location.prototype.unsetLevel = function() {
     if (this.level) {
@@ -75,13 +75,13 @@ Location.prototype.unsetLevel = function() {
         RG.err('Location', 'unsetLevel',
             'Trying to unset already null level.');
     }
-}
+};
 
 /* Returns true if object is located at a position on a level.*/
 Location.prototype.isLocated = function() {
     return (this.x >= 0) && (this.y >= 0)
         && (this.level !== null);
-}
+};
 
 /* Returns true if object is located at a position on a level.*/
 Location.prototype.getCell = function(): Cell | null {
@@ -89,7 +89,7 @@ Location.prototype.getCell = function(): Cell | null {
         return this.level.getMap().getCell(this.x, this.y);
     }
     return null;
-}
+};
 
 Location.prototype.toJSON = function() {
     const obj: any = {
@@ -100,7 +100,7 @@ Location.prototype.toJSON = function() {
         obj.setLevel = RG.getObjRef('entity', this.level);
     }
     return obj;
-}
+};
 
 export const Typed = UniqueDataComponent('Typed', {
     objType: NO_TYPE, propType: NO_TYPE
@@ -852,12 +852,9 @@ SpellPower.prototype.canCast = function(spellPP) {
 
 /* PowerDrain component which is cancels a SpellCast and adds spell power to
  * holder of PowerDrain. */
-export const PowerDrain = function() {
-    ComponentBase.call(this, 'PowerDrain');
-
-    this.drainDist = 5;
-};
-RG.extend2(PowerDrain, ComponentBase);
+export const PowerDrain = DataComponent('PowerDrain', {
+    drainDist: 5
+});
 PowerDrain.description =
     'Counters any spell cast near you, gives you power and then disappears';
 
