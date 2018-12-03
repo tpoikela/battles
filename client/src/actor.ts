@@ -569,7 +569,7 @@ SentientActor.getFormattedStats = function(actor): StatsData {
     }
 
     return stats;
-}
+};
 
 export function isSentient(target: BaseActor): target is SentientActor {
     if (target) {
