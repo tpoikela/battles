@@ -36,6 +36,7 @@ import { BrainSpawner } from './brain/brain.virtual';
 
 type AreaTileJSON = World.AreaTileJSON;
 type Stairs = Element.ElementStairs;
+type ElementBase = Element.ElementBase;
 
 const POOL = EventPool.getPool();
 const SentientActor = Actor.Sentient;
@@ -414,7 +415,7 @@ FromJSON.prototype.getCompValue = function(
     if (!RG.isNullOrUndef([valueToSet])) {
         if (Array.isArray(valueToSet)) {
             // For array, call this function recursively
-            if (valueToSet['$objRefArray']) {
+            if ((valueToSet as any).$objRefArray) {
                 this.compsWithMissingRefs[compJSON.setID] = comp;
                 return valueToSet;
             }
@@ -520,8 +521,8 @@ FromJSON.prototype.createBrain = function(brainJSON, ent) {
         const memObj = brainObj.getMemory();
         const memJSON = brainJSON.memory;
         if (memJSON) {
-            memJSON.enemyTypes.forEach(type => {
-                brainObj.addEnemyType(type);
+            memJSON.enemyTypes.forEach(enemyType => {
+                brainObj.addEnemyType(enemyType);
             });
 
             if (memJSON.lastAttackedID) {
@@ -721,7 +722,7 @@ FromJSON.prototype.restoreLevel = function(json) {
     json.actors.forEach(actor => {
         const actorObj = this.createActor(actor.obj);
         if (actorObj !== null) {
-            if (!RG.isNullOrUndef([actor.x, actor.y])) {
+            if (!this.isVirtual(actor)) {
                 level.addActor(actorObj, actor.x, actor.y);
             }
             else {
@@ -762,8 +763,12 @@ FromJSON.prototype.restoreLevel = function(json) {
     return level;
 };
 
+FromJSON.prototype.isVirtual = function(actorJSON): boolean {
+    return (actorJSON.x === -1 && actorJSON.y === -1);
+};
+
 /* Creates elements such as stairs, doors and shop. */
-FromJSON.prototype.createElement = function(elem) {
+FromJSON.prototype.createElement = function(elem): ElementBase {
     const elemJSON = elem.obj;
     const type = elemJSON.type;
     let createdElem = null;
@@ -1111,7 +1116,7 @@ FromJSON.prototype.restoreComponent = function(json, comp) {
     Object.keys(json).forEach(setFunc => {
         const valueToSet = json[setFunc];
         if (Array.isArray(valueToSet)) {
-            if (valueToSet['$objRefArray']) {
+            if ((valueToSet as any).$objRefArray) {
                 const arr = [];
                 valueToSet.forEach(objRef => {
                     if (objRef.$objRef) {
@@ -1326,7 +1331,7 @@ FromJSON.prototype.restoreChunkManager = function(game, gameJSON) {
 
 // 'Integrity' check that correct number of levels restored
 // TODO does not work/check anything with the new world architecture
-FromJSON.prototype.checkNumOfLevels = function(game, gameJSON) {
+FromJSON.prototype.checkNumOfLevels = function(game, gameJSON): void {
     const nLevels = game.getLevels().length;
     if (gameJSON.levels) {
         if (nLevels !== gameJSON.levels.length) {
@@ -1341,8 +1346,8 @@ FromJSON.prototype.checkNumOfLevels = function(game, gameJSON) {
  * found. */
 FromJSON.prototype.getLevelOrFatal = function(id, funcName) {
     if (!Number.isInteger(id)) {
-        const msg = `ID must be number. Got ${id}`;
-        RG.err('Game.FromJSON', funcName, msg);
+        const errMsg = `ID must be number. Got ${id}`;
+        RG.err('Game.FromJSON', funcName, errMsg);
     }
     if (this.id2level.hasOwnProperty(id)) {
         return this.id2level[id];
