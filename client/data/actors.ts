@@ -2,7 +2,7 @@
 /* eslint comma-dangle: 0 */
 
 import RG from '../src/rg';
-import ShellUtils, {meleeHitDamage} from './shell-utils';
+import ShellUtils, {meleeHitDamage, color} from './shell-utils';
 // const Colors = require('./colors');
 
 const defaultBrain = 'GoalOriented';
@@ -55,8 +55,8 @@ export interface ActorShell {
     willpower?: number;
 
     // TODO more complex typings
-    onHit?: any
-    onAttackHit?: any
+    onHit?: any;
+    onAttackHit?: any;
     addComp?: any;
     poison?: any;
     equip?: any[];
@@ -1472,6 +1472,3 @@ function BypassComp(value) {
     return {comp: 'BypassProtection', func: {setChance: value}};
 }
 
-function color(fg, bg) {
-    return {fg, bg};
-}
