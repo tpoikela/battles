@@ -2,31 +2,31 @@
 /* eslint comma-dangle: 0 */
 import RG from '../src/rg';
 import Colors from './colors';
-import ShellUtils, {meleeHitDamage} from './shell-utils';
+import ShellUtils, {meleeHitDamage, color} from './shell-utils';
 
 const scaleAll = 1.0;
 
 /* Function to scale the item values. For fine-tuning the game balance. */
 function value(type: string | number, val?) {
-    let value = 0;
+    let retVal = 0;
     if (typeof type === 'string') {
         switch (type) {
-            case 'leather': value = 1.0 * val; break;
-            case 'chain': value = 1.0 * val; break;
-            case 'steel': value = 1.0 * val; break;
-            case 'permaice': value = 1.5 * val; break;
-            case 'ruby': value = 1.5 * val; break;
-            case 'magic': value = 1.5 * val; break;
-            case 'void': value = 1.75 * val; break;
-            case 'gem': value = 1.0 * val; break;
-            default: value = val;
+            case 'leather': retVal = 1.0 * val; break;
+            case 'chain': retVal = 1.0 * val; break;
+            case 'steel': retVal = 1.0 * val; break;
+            case 'permaice': retVal = 1.5 * val; break;
+            case 'ruby': retVal = 1.5 * val; break;
+            case 'magic': retVal = 1.5 * val; break;
+            case 'void': retVal = 1.75 * val; break;
+            case 'gem': retVal = 1.0 * val; break;
+            default: retVal = val;
         }
     }
     else if (Number.isInteger(type)) {
-        // If called as ie value(100)
-        value = type;
+        // If called as ie retVal(100)
+        retVal = type;
     }
-    return Math.floor(scaleAll * value);
+    return Math.floor(scaleAll * retVal);
 }
 
 interface AddCompSpec {
@@ -40,10 +40,24 @@ interface ColorSpec {
     bg?: string;
 }
 
+interface HealUseSpec {
+    hp: number | string;
+}
+
+interface CureUseSpec {
+    effect: string;
+}
+
+interface PoisonUseSpec {
+    duration: string;
+    damage: string;
+    prob: string;
+}
+
 interface UseSpec {
-    heal?: any;
-    cure?: any;
-    poison?: any;
+    heal?: HealUseSpec;
+    cure?: CureUseSpec;
+    poison?: PoisonUseSpec;
     stun?: any;
     modifyCompValue?: any;
     addEntity?: any;
@@ -1073,6 +1087,10 @@ const Items: ObjectShell[] = [
         name: 'Berries', base: 'FoodBase', energy: 1700, value: value(30)
     },
     {
+        name: 'Cabbage', base: 'FoodBase', energy: 700, value: value(10),
+        color: color('green', 'black')
+    },
+    {
         name: 'Potatoes', base: 'FoodBase', energy: 1200, value: value(20)
     },
     {
@@ -1084,6 +1102,9 @@ const Items: ObjectShell[] = [
     {
         name: 'Beef', base: 'FoodBase', energy: 1000, value: value(20),
         weight: 0.4
+    },
+    {
+        name: 'Rye bread', base: 'FoodBase', energy: 2000, value: value(30)
     },
     {
         name: 'Ration', base: 'FoodBase', energy: 2000, value: value(40),
