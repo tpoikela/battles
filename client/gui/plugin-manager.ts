@@ -28,7 +28,7 @@ export class PluginEntry {
 
     public _onLoad: () => void;
     public _onRemove: () => void;
-    public _test: (expect:any) => void;
+    public _test: (expect: any) => void;
 
     constructor(json) {
         this._enabled = false;
@@ -308,7 +308,6 @@ export class PluginManager {
     protected setGlobalRefs(): void {
         if (typeof window !== 'undefined') {
             if (!(window as any).RG) {
-                console.log('SETTING GLOBAL REFS');
                 this._globalRefsWereSet = true;
                 (window as any).RG = AllCode;
             }
