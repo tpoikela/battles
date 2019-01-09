@@ -27,7 +27,8 @@ pluginData = {
     }
 };
 
-// Test section is optional
+// Test section is optional, and can be executed with script
+// bin/test-plugin.js -f <filename>
 pluginData.test = (expect) => {
     const voidBolt = new VoidBolt();
     expect(voidBolt.getPower()).to.equal(15);
