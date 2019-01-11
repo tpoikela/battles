@@ -19,7 +19,7 @@ export default class GameTopMenu extends React.Component {
       this.handleSelect = this.handleSelect.bind(this);
     }
 
-    handleSelect(eventKey) {
+    public handleSelect(eventKey) {
       const split = eventKey.split('#');
       const cmd = split.shift();
       // console.log('eventKey: ' + eventKey);
@@ -27,7 +27,7 @@ export default class GameTopMenu extends React.Component {
       this.props.menuCallback(cmd, split);
     }
 
-    render() {
+    public render() {
       return (
       <div className='game-top-menu'>
         <Nav activeKey='1' bsStyle='tabs' onSelect={this.handleSelect}>
@@ -37,6 +37,7 @@ export default class GameTopMenu extends React.Component {
             <MenuItem eventKey='saveGame#saveGame'>Save</MenuItem>
             <MenuItem eventKey='importJSON'>Import JSON</MenuItem>
             <MenuItem eventKey='game-export'>Export JSON</MenuItem>
+            <MenuItem eventKey='setPlayerDriver'>Load bot</MenuItem>
           </NavDropdown>
           <NavDropdown eventKey='view' id='dropdown-view' title='View' >
             <MenuItem eventKey='setViewSize#+#X'>Viewport +X</MenuItem>
