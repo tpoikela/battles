@@ -24,16 +24,7 @@ const Room = ROT.Map.Feature.Room;
 /* This class is used to generate different dungeon levels. */
 export class CastleGenerator extends LevelGenerator {
 
-    public addDoors: boolean;
-    public shouldRemoveMarkers: boolean;
-
-    constructor() {
-        super();
-        this.addDoors = true;
-        this.shouldRemoveMarkers = true;
-    }
-
-    static getOptions() {
+    public static getOptions() {
         return {
             addItems: true,
             roomCount: -1,
@@ -51,14 +42,25 @@ export class CastleGenerator extends LevelGenerator {
         };
     }
 
+    public addDoors: boolean;
+    public shouldRemoveMarkers: boolean;
+    public nItemsAdded: number;
+
+    constructor() {
+        super();
+        this.addDoors = true;
+        this.shouldRemoveMarkers = true;
+        this.nItemsAdded = 0;
+    }
+
     /* Returns a fully populated castle-level. */
-    create(cols, rows, conf) {
+    public create(cols, rows, conf): Level {
         let castleLevel = this.createLevel(cols, rows, conf);
         conf.preserveMarkers = false;
         this.removeMarkers(castleLevel, conf);
 
         if (conf.addItems) {
-            this.addItemsToCastle(castleLevel, conf);
+            this.nItemsAdded = this.addItemsToCastle(castleLevel, conf);
         }
 
         if (conf.cellsAround) {
@@ -70,7 +72,7 @@ export class CastleGenerator extends LevelGenerator {
     }
 
     /* Returns a castle level without populating it. */
-    createLevel(cols, rows, conf) {
+    public createLevel(cols, rows, conf): Level {
         const levelConf = Object.assign({
             dungeonType: 'castle',
             preserveMarkers: true,
@@ -95,8 +97,9 @@ export class CastleGenerator extends LevelGenerator {
         return level;
     }
 
-    addItemsToCastle(level, conf) {
+    public addItemsToCastle(level, conf): number {
         // Storerooms contain better loot
+        let nAdded = 0;
         const extras = level.getExtras();
         const storerooms = extras.storeroom;
         const {maxValue} = conf;
@@ -108,8 +111,9 @@ export class CastleGenerator extends LevelGenerator {
         };
         const factItem = new FactoryItem();
         storerooms.forEach(room => {
-            const items = factItem.generateItems(itemConf);
-            Placer.addPropsToRoom(level, room, items);
+            const itemsPlaced = factItem.generateItems(itemConf);
+            Placer.addPropsToRoom(level, room, itemsPlaced);
+            nAdded += itemsPlaced.length;
         });
 
         // One of the storerooms can contain gold as well
@@ -118,6 +122,7 @@ export class CastleGenerator extends LevelGenerator {
             const wealth = RNG.getUniformInt(1, 6);
             const goldItems = factItem.generateGold({nGold: 5, nLevel: wealth});
             Placer.addPropsToRoom(level, goldRoom, goldItems);
+            nAdded += goldItems.length;
         }
 
         const normalRooms = extras.room;
@@ -126,10 +131,12 @@ export class CastleGenerator extends LevelGenerator {
         items.forEach(item => {
             const room = RNG.arrayGetRand(normalRooms);
             Placer.addPropsToRoom(level, room, [item]);
+            nAdded += 1;
         });
+        return nAdded;
     }
 
-    addMarkersFromTiles(level, tiles) {
+    public addMarkersFromTiles(level, tiles) {
         const extras = {
             corridor: [],
             entrance: [],
@@ -158,7 +165,7 @@ export class CastleGenerator extends LevelGenerator {
         });
     }
 
-    addToExtras(level, tile, name) {
+    public addToExtras(level, tile, name) {
         const bbox = Geometry.convertBbox(tile);
         const cells = level.getMap().getFreeInBbox(bbox);
         cells.forEach(cell => {
@@ -173,7 +180,7 @@ export class CastleGenerator extends LevelGenerator {
     }
 
     /* Links (and first creates) levers and lever doors based on markers. */
-    createDoorsAndLevers(level) {
+    public createDoorsAndLevers(level) {
         const map = level.getMap();
         const cells = map.getCells();
         const doorPos = {};
@@ -224,7 +231,7 @@ export class CastleGenerator extends LevelGenerator {
 
     }
 
-    populateStoreRooms(level, conf) {
+    public populateStoreRooms(level, conf) {
         const dungPopul = new DungeonPopulate();
         if (conf.actorFunc) {
             dungPopul.setActorFunc(conf.actorFunc);
@@ -239,7 +246,7 @@ export class CastleGenerator extends LevelGenerator {
         }
     }
 
-    createCastleSurroundings(level, conf) {
+    public createCastleSurroundings(level, conf) {
         const levelSurround = new LevelSurroundings();
         return levelSurround.surround(level, conf);
     }
