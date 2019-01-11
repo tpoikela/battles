@@ -55,7 +55,7 @@ import {FromJSON} from '../src/game.fromjson';
 import {IMessage} from '../src/rg';
 const POOL = EventPool.getPool();
 
-import {PlayerDriver} from '../../tests/helpers/player-driver';
+import {DriverBase, PlayerDriver} from '../../tests/helpers/player-driver';
 
 const INV_SCREEN = 'Inventory';
 // (window as any).RG = RG;
@@ -196,7 +196,7 @@ export class BattlesTop extends React.Component {
     public listener: ProxyListener;
     public multiHandler: MultiKeyHandler;
     public savedPlayerList: SentientActor[];
-    public clickHandler: CellClickHandler;
+    public playerDriver: DriverBase;
     public nextCode: number;
     public animationID: number;
 
@@ -714,17 +714,17 @@ export class BattlesTop extends React.Component {
     }
 
     public useClickHandler(x, y, cell, cmd) {
-        this.clickHandler = new CellClickHandler(this.game);
-        this.clickHandler.handleClick(x, y, cell, cmd);
+        this.playerDriver = new CellClickHandler(null, this.game);
+        this.playerDriver.handleClick(x, y, cell, cmd);
 
-        if (this.clickHandler.hasKeys()) {
+        if (this.playerDriver.hasKeys()) {
             this.setAutoMode();
         }
     }
 
     /* When listening events, component gets notification via this
      * method.*/
-    public notify(evtName, obj) {
+    public notify(evtName, obj): void {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             const actor = obj.actor;
             if (actor.isPlayer()) {
@@ -733,12 +733,12 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    public importJSON() {
+    public importJSON(): void {
         const fInput = document.querySelector(this.levelInputId);
         (fInput  as HTMLInputElement).click();
     }
 
-    public loadScript() {
+    public loadScript(): void {
         const fInput = document.querySelector(this.loadScriptId);
         (fInput as HTMLInputElement).click();
     }
@@ -800,9 +800,9 @@ export class BattlesTop extends React.Component {
                 const player = this.game.getPlayer();
                 const keySeq = this.multiHandler.getKeys(player);
                 if (keySeq && keySeq.length > 0) {
-                    this.clickHandler = new CellClickHandler(this.game);
-                    this.clickHandler.setKeys(keySeq);
-                    if (this.clickHandler.hasKeys()) {
+                    this.playerDriver = new CellClickHandler(null, this.game);
+                    this.playerDriver.setKeys(keySeq);
+                    if (this.playerDriver.hasKeys()) {
                         this.setAutoMode();
                     }
                 }
@@ -812,9 +812,9 @@ export class BattlesTop extends React.Component {
 
     public setPlayerDriver(): void {
         const player = this.game.getPlayer();
-        this.clickHandler = new PlayerDriver(player);
+        this.playerDriver = new PlayerDriver(player, this.game);
         player.remove('Hunger');
-        // this.clickHandler.screenPeriod = -1;
+        // this.playerDriver.screenPeriod = -1;
         this.ctrlMode = 'AUTOMATIC';
         this.finishAutoOnSight = false;
     }
@@ -822,7 +822,7 @@ export class BattlesTop extends React.Component {
     /* Returns the next key, either from player or from click handler. */
     public getNextCode() {
         if (this.ctrlMode === 'AUTOMATIC') {
-            const nextCode = this.clickHandler.getNextCode();
+            const nextCode = this.playerDriver.getNextCode();
             if (nextCode) {
                 return nextCode;
             }
@@ -840,8 +840,8 @@ export class BattlesTop extends React.Component {
      * Usually this happens when auto-mode command fails or if enemy is
      * seen. */
     public checkIfAutoModeDone() {
-        if (this.clickHandler) {
-            if (!this.clickHandler.hasKeys()) {
+        if (this.playerDriver) {
+            if (!this.playerDriver.hasKeys()) {
                 this.ctrlMode = 'MANUAL';
             }
             else if (this.finishAutoOnSight) {
@@ -863,7 +863,7 @@ export class BattlesTop extends React.Component {
                     if (enemyTooClose) {
                         RG.gameMsg('You spot an enemy');
                         this.ctrlMode = 'MANUAL';
-                        this.clickHandler.reset();
+                        this.playerDriver.reset();
                     }
                 }
             }
