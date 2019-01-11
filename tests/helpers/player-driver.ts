@@ -4,28 +4,36 @@
  * statements.
  */
 
-const RG = require('../../client/src/rg');
-const Path = require('../../client/src/path');
-const Screen = require('../../client/gui/screen');
-const Keys = require('../../client/src/keymap');
+import RG from '../../client/src/rg';
+import {Path} from '../../client/src/path';
+import {Screen} from '../../client/gui/screen';
+import {Keys} from '../../client/src/keymap';
+import {EventPool} from '../../client/src/eventpool';
+import {Brain} from '../../client/src/brain';
+import {Random} from '../../client/src/random';
 
-const {KEY} = Keys;
+import {Cell} from '../../client/src/map.cell';
+import {SentientActor} from '../../client/src/actor';
 
-const shortestPath = Path.getShortestPath;
+const RNG = Random.getRNG();
+const {KEY, KeyMap} = Keys;
+const {getShortestPath} = Path;
 
-const debug = require('debug')('bitn:PlayerDriver');
+import dbg = require('debug');
+const debug = dbg('bitn:PlayerDriver');
 
 const MOVE_DIRS = [-1, 0, 1];
 const LINE = '='.repeat(78);
+const POOL = EventPool.getPool();
 
 /* This object can be used to simulate player actions in the world. It has 2
  * main uses:
  *  1. An AI to play the game and simulate player actions to find bugs
  *  2. A driver to automate some player actions like path-finding
  * */
-const PlayerDriver = function(player) {
+export const PlayerDriver = function(player?: SentientActor) {
 
-    let _player = player;
+    this._player = player;
     this.action = '';
     this.enemy = null;
 
@@ -55,20 +63,37 @@ const PlayerDriver = function(player) {
     this.hpLow = 0.3;
 
     this.nTurns = 0;
-    this.screenPeriod = 1;
+    this.screenPeriod = 10000;
 
-    this.setPlayer = player => {_player = player;};
+    this.setPlayer = pl => {this._player = pl;};
 
     /* Used by the path-finding algorith. */
     const _passableCallback = (x, y) => {
-        const map = _player.getLevel().getMap();
+        const map = this._player.getLevel().getMap();
         let res = map.isPassable(x, y);
 
         // Actor cell must be always passable, otherwise no path found
         if (!res) {
-            res = (x === _player.getX()) && (y === _player.getY());
+            res = (x === this._player.getX()) && (y === this._player.getY());
         }
         return res;
+    };
+
+    /* Required for the player driver. */
+    this.getNextCode = () => {
+        const cmdOrCode = this.nextCmd();
+        if (cmdOrCode.code) {return cmdOrCode.code;}
+        else {return cmdOrCode;}
+    };
+
+    this.hasKeys = (): boolean => true;
+
+    this.reset = (): void => {
+        this.state.usePassage = false;
+        this.state.useStairs = false;
+        this.state.exitZone = false;
+        this.state.path = [];
+
     };
 
     // Returns the next command given to game.update().
@@ -81,11 +106,11 @@ const PlayerDriver = function(player) {
         this.action = '';
 
         // Record current x,y as visited
-        const [pX, pY] = _player.getXY();
-        const level = _player.getLevel();
+        const [pX, pY] = this._player.getXY();
+        const level = this._player.getLevel();
         this.addVisited(level, pX, pY);
 
-        const visible = _player.getLevel().getMap().getVisibleCells(_player);
+        const visible = this._player.getLevel().getMap().getVisibleCells(this._player);
         this.printTurnInfo(visible);
 
         this.checkForSelection();
@@ -109,7 +134,7 @@ const PlayerDriver = function(player) {
     };
 
     this.checkForSelection = () => {
-        const brain = _player.getBrain();
+        const brain = this._player.getBrain();
         if (brain.isMenuShown()) {
             this.action = 'selection';
         }
@@ -118,13 +143,13 @@ const PlayerDriver = function(player) {
     /* Checks for surrounding enemies and whether to attack or not. Checks also
      * for requirement to rest and gain health. */
     this.checkForEnemies = () => {
-        const brain = _player.getBrain();
-        const around = RG.Brain.getCellsAroundActor(_player);
+        const brain = this._player.getBrain();
+        const around = Brain.getCellsAroundActor(this._player);
         const actorsAround = around.map(cell => cell.getFirstActor());
         this.enemy = null;
         actorsAround.forEach(actor => {
             if (this.enemy === null) {
-                if (actor && actor.isEnemy(_player)) {
+                if (actor && actor.isEnemy(this._player)) {
                     this.enemy = actor;
                     if (this.hasEnoughHealth()) {
                         this.action = 'attack';
@@ -145,8 +170,8 @@ const PlayerDriver = function(player) {
     };
 
     this.tryExploringAround = visible => {
-        const map = _player.getLevel().getMap();
-        const pCell = _player.getCell();
+        const map = this._player.getLevel().getMap();
+        const pCell = this._player.getCell();
         const [pX, pY] = [pCell.getX(), pCell.getY()];
         --this.state.exploreTurns;
         if (this.state.exploreTurns === 0) {
@@ -166,7 +191,7 @@ const PlayerDriver = function(player) {
                 this.setState({useStairs: true}, 'new Stairs seen');
                 this.state.exploreTurns = this.maxExploreTurns;
             }
-            // _player not at the top of area tile yet
+            // this._player not at the top of area tile yet
             else if (!this.movingToConnect() && nY >= 0) {
                 const nCell = map.getCell(nX, nY);
                 if (nCell.isPassable() && !this.cellVisited(nCell)) {
@@ -198,14 +223,14 @@ const PlayerDriver = function(player) {
         }
     };
 
-    this.tryToSetPathToCell = cells => {
-        const [pX, pY] = _player.getXY();
+    this.tryToSetPathToCell = (cells: Cell[]): void => {
+        const [pX, pY] = this._player.getXY();
         this.state.path = [];
         cells.forEach(pCell => {
             if (this.state.path.length === 0) {
                 const [cX, cY] = [pCell.getX(), pCell.getY()];
                 this.debug(`>> Looking for shortest path to cell ${cX},${cY}`);
-                const path = shortestPath(pX, pY, cX, cY, _passableCallback);
+                const path = getShortestPath(pX, pY, cX, cY, _passableCallback);
                 if (path.length > 1) {
                     this.debug('Found a non-zero path');
                     this.state.path = path;
@@ -218,7 +243,7 @@ const PlayerDriver = function(player) {
 
     /* Tries to find a path to from current direction. */
     this.findPathToMove = (visible, acceptVisited = false) => {
-        const [pX, pY] = _player.getXY();
+        const [pX, pY] = this._player.getXY();
         const northCells = visible.filter(cell => (
             cell.getY() < pY && cell.isPassable()
             && (acceptVisited || !this.cellVisited(cell))
@@ -280,7 +305,7 @@ const PlayerDriver = function(player) {
     };
 
     this.cellVisited = cell => {
-        const id = _player.getLevel().getID();
+        const id = this._player.getLevel().getID();
         if (this.state.visited.hasOwnProperty(id)) {
             const [x, y] = [cell.getX(), cell.getY()];
             return this.state.visited[id].hasOwnProperty(x + ',' + y);
@@ -288,20 +313,20 @@ const PlayerDriver = function(player) {
         return false;
     };
 
-    /* Adds a visited cell for the _player. */
+    /* Adds a visited cell for the this._player. */
     this.addVisited = (level, x, y) => {
         const id = level.getID();
         if (!this.state.visited.hasOwnProperty(id)) {
             this.state.visited[id] = {};
         }
-        const cell = _player.getCell();
+        const cell = this._player.getCell();
         this.state.visited[id][x + ',' + y] = {
             x, y, hasPassage: cell.hasPassage()
         };
     };
 
     this.hasEnoughHealth = function() {
-        const health = _player.get('Health');
+        const health = this._player.get('Health');
         const maxHP = health.getMaxHP();
         const hp = health.getHP();
         if (hp > Math.round(this.hpLow * maxHP)) {
@@ -310,8 +335,8 @@ const PlayerDriver = function(player) {
         return false;
     };
 
-    this.shouldRest = function() {
-        const health = _player.get('Health');
+    this.shouldRest = function(): boolean {
+        const health = this._player.get('Health');
         const maxHP = health.getMaxHP();
         const hp = health.getHP();
         return hp < maxHP;
@@ -319,9 +344,9 @@ const PlayerDriver = function(player) {
 
     /* Tries to find unvisited stairs from visible cells and calculate a path
      * there. */
-    this.newStairsSeen = visible => {
-        const levelID = _player.getLevel().getID();
-        const cellStairs = visible.find(cell => {
+    this.newStairsSeen = (visible: Cell[]): boolean => {
+        const levelID = this._player.getLevel().getID();
+        const cellStairs: Cell = visible.find(cell => {
             const [x, y] = [cell.getX(), cell.getY()];
             if (!this.state.visitedStairs.hasOwnProperty(levelID)) {
                 return cell.hasStairs();
@@ -341,11 +366,11 @@ const PlayerDriver = function(player) {
         return false;
     };
 
-    this.tryToFindPassage = (visible, moveAfter = true) => {
-        // const level = _player.getLevel();
+    this.tryToFindPassage = (visible: Cell[], moveAfter = true): void => {
+        // const level = this._player.getLevel();
         // const maxY = level.getMap().rows - 1;
         this.debug('> Looking for north passage cells');
-        const passageCells = visible.filter(cell => (
+        const passageCells: Cell[] = visible.filter(cell => (
             cell.hasPassage() && cell.getY() === 0
             && !this.passageVisited(cell)
         ));
@@ -427,11 +452,11 @@ const PlayerDriver = function(player) {
 
     };
 
-    this.findVisitedCells = func => {
-        const map = _player.getLevel().getMap();
-        const id = _player.getLevel().getID();
+    this.findVisitedCells = (func) => {
+        const map = this._player.getLevel().getMap();
+        const id = this._player.getLevel().getID();
         const cellObjs = Object.values(this.state.visited[id]);
-        const cells = cellObjs.map(obj => map.getCell(obj.x, obj.y));
+        const cells = cellObjs.map((obj: any) => map.getCell(obj.x, obj.y));
         return cells.filter(func);
     };
 
@@ -439,20 +464,20 @@ const PlayerDriver = function(player) {
     this.getPlayerCmd = () => {
         const enemy = this.enemy;
         let keycodeOrCmd = null;
-        const map = _player.getLevel().getMap();
-        const [pX, pY] = _player.getXY();
+        const map = this._player.getLevel().getMap();
+        const [pX, pY] = this._player.getXY();
         if (this.action === 'attack') {
             const [eX, eY] = [enemy.getX(), enemy.getY()];
             const dX = eX - pX;
             const dY = eY - pY;
-            const code = RG.KeyMap.dirToKeyCode(dX, dY);
+            const code = KeyMap.dirToKeyCode(dX, dY);
             keycodeOrCmd = {code};
         }
         else if (this.action === 'pickup') {
             keycodeOrCmd = {code: KEY.PICKUP};
         }
         else if (this.action === 'flee') {
-            const pCell = _player.getCell();
+            const pCell = this._player.getCell();
             if (pCell.hasPassage()) {
                 keycodeOrCmd = {code: KEY.USE_STAIRS_DOWN};
             }
@@ -463,37 +488,40 @@ const PlayerDriver = function(player) {
                 const dY = -1 * (eY - pY);
                 const newX = pX + dX;
                 const newY = pY + dY;
+
                 if (map.isPassable(newX, newY)) {
-                    const code = RG.KeyMap.dirToKeyCode(dX, dY);
+                    const code = KeyMap.dirToKeyCode(dX, dY);
                     this.debug(`flee to dx,dy ${dX},${dY}`);
                     keycodeOrCmd = {code};
                 }
                 else { // Pick a random direction
                     this.debug('Pick random direction for fleeing');
-                    let randX = RG.RAND.arrayGetRand(MOVE_DIRS);
-                    let randY = RG.RAND.arrayGetRand(MOVE_DIRS);
+
+                    let randX = RNG.arrayGetRand(MOVE_DIRS);
+                    let randY = RNG.arrayGetRand(MOVE_DIRS);
                     const maxTries = 20;
                     let tries = 0;
+
                     while (!map.isPassable(pX + randX, pY + randY)) {
-                        randX = RG.RAND.arrayGetRand(MOVE_DIRS);
-                        randY = RG.RAND.arrayGetRand(MOVE_DIRS);
+                        randX = RNG.arrayGetRand(MOVE_DIRS);
+                        randY = RNG.arrayGetRand(MOVE_DIRS);
                         ++tries;
                         if (tries >= maxTries) {break;}
                     }
 
                     if (map.isPassable(randX, randY)) {
                         this.debug(`flee rand dir to dx,dy ${randX},${randY}`);
-                        const code = RG.KeyMap.dirToKeyCode(randX, randY);
+                        const code = KeyMap.dirToKeyCode(randX, randY);
                         keycodeOrCmd = {code};
                     }
                     else {
                         // can't escape, just attack
-                        const [eX, eY] = [enemy.getX(), enemy.getY()];
+                        const [aeX, aeY] = [enemy.getX(), enemy.getY()];
                         const eName = enemy.getName();
-                        this.debug(`No escape! Attack ${eName} @${eX},${eY}`);
-                        const dX = eX - pX;
-                        const dY = eY - pY;
-                        const code = RG.KeyMap.dirToKeyCode(dX, dY);
+                        this.debug(`No escape! Attack ${eName} @${aeX},${aeY}`);
+                        const attdX = aeX - pX;
+                        const attdY = aeY - pY;
+                        const code = KeyMap.dirToKeyCode(attdX, attdY);
                         keycodeOrCmd = {code};
                     }
                 }
@@ -512,7 +540,7 @@ const PlayerDriver = function(player) {
             const dX = x - pX;
             const dY = y - pY;
             this.debug(`Taking action path ${x},${y}, dX,dY ${dX},${dY}`);
-            const code = RG.KeyMap.dirToKeyCode(dX, dY);
+            const code = KeyMap.dirToKeyCode(dX, dY);
             keycodeOrCmd = {code};
             if (this.state.path.length === 0) {
                 this.debug('PlayerDriver finished a path');
@@ -535,10 +563,10 @@ const PlayerDriver = function(player) {
 
 
     this.printTurnInfo = visible => {
-        const [pX, pY] = _player.getXY();
-        const level = _player.getLevel();
+        const [pX, pY] = this._player.getXY();
+        const level = this._player.getLevel();
         const map = level.getMap();
-        const hp = _player.get('Health').getHP();
+        const hp = this._player.get('Health').getHP();
 
         const pos = `@${pX},${pY} ID: ${level.getID()}`;
         if (debug.enabled) {
@@ -555,7 +583,7 @@ const PlayerDriver = function(player) {
 
     };
 
-    this.addUsedStairs = cell => {
+    this.addUsedStairs = (cell: Cell) => {
         if (this.state.exitZone) {
             this.state.stairsStack.pop();
             this.debug('POP: stairsStack is now ', this.state.stairsStack);
@@ -567,7 +595,7 @@ const PlayerDriver = function(player) {
         const targetStairs = stairs.getTargetStairs();
         const targetLevel = stairs.getTargetLevel();
         const targetID = targetLevel.getID();
-        const id = _player.getLevel().getID();
+        const id = this._player.getLevel().getID();
         if (!this.state.visitedStairs.hasOwnProperty(id)) {
             this.state.visitedStairs[id] = {};
         }
@@ -601,7 +629,7 @@ const PlayerDriver = function(player) {
             const stairsXY = this.getStairsMRU();
             const x = stairsXY[1];
             const y = stairsXY[2];
-            const cell = _player.getLevel().getMap().getCell(x, y);
+            const cell = this._player.getLevel().getMap().getCell(x, y);
             this.tryToSetPathToCell([cell]);
             if (this.state.path.length > 0) {
                 this.action = 'path';
@@ -679,7 +707,7 @@ const PlayerDriver = function(player) {
             }
         }
     };
-    RG.POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
+    POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
 
 };
 
@@ -690,5 +718,3 @@ PlayerDriver.fromJSON = function(json) {
     });
     return driver;
 };
-
-module.exports = PlayerDriver;
