@@ -6,7 +6,7 @@ const DIRS = [-1, 0, 1];
 const DIRS_NO_ZERO = [-1, 1];
 
 export interface RandWeights {
-    [key:string]: number;
+    [key: string]: number;
 }
 
 /* A OO wrapper around ROT.RNG. Adds method for serialisation. */
