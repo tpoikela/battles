@@ -968,7 +968,7 @@ export class GoalExplore extends GoalBase {
         }
     }
 
-    public changeDir(dir) {
+    public changeDir(dir): number {
         switch (dir) {
             case 0: return RNG.arrayGetRand([-1, 1]);
             case 1: return 0;
