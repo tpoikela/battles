@@ -312,7 +312,6 @@ Spell.SpellBook.prototype.equals = function(rhs) {
         equals = equals && spell.equals(rhsSpells[i]);
         if (!equals) {
             console.log('NOT EQUALS ANYMORE');
-
         }
     });
     return equals;
@@ -375,8 +374,8 @@ SpellBase.prototype.getCaster = function() {
 SpellBase.prototype.setName = function(name) {
     const nameSplit = name.split(/\s+/);
     const capNames = [];
-    nameSplit.forEach(name => {
-        capNames.push(name.capitalize());
+    nameSplit.forEach(sName => {
+        capNames.push(sName.capitalize());
     });
     this._new = capNames.join('');
 };
@@ -387,6 +386,12 @@ SpellBase.prototype.getName = function() {
 
 SpellBase.prototype.getPower = function() {
     return this._power;
+};
+
+SpellBase.prototype.canCast = function() {
+    const spellPower = this._caster.get('SpellPower');
+    const pp = spellPower.getPP();
+    return pp >= this.getCastingPower();
 };
 
 /* Returns power required to cast this spell. The value is affected by
@@ -492,6 +497,10 @@ SpellBase.prototype.setDice = function(name, dice) {
 
 SpellBase.prototype.getDice = function(name) {
     return this._dice[name];
+};
+
+SpellBase.prototype.hasDice = function(name) {
+    return this._dice.hasOwnProperty(name);
 };
 
 SpellBase.prototype.rollDice = function(name) {
