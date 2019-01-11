@@ -90,8 +90,8 @@ Path.getActorToActorPath = function(map, x0, y0, x1, y1): CoordXY[] {
     };
 
     // Terminate search immediately if source is completely blocked
-    if (isSourceBlocked(x0, y0, map, passableCb)) {return 
-        NO_PATH as CoordXY[];
+    if (isSourceBlocked(x0, y0, map, passableCb)) {
+        return NO_PATH as CoordXY[];
     }
 
     const finder = new ROT.Path.AStar(x1, y1, passableCb);
