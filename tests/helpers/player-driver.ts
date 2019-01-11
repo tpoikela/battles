@@ -9,11 +9,14 @@ import {Path} from '../../client/src/path';
 import {Screen} from '../../client/gui/screen';
 import {Keys} from '../../client/src/keymap';
 import {EventPool} from '../../client/src/eventpool';
-import {Brain} from '../../client/src/brain';
+import {Brain, BrainPlayer} from '../../client/src/brain';
 import {Random} from '../../client/src/random';
 
 import {Cell} from '../../client/src/map.cell';
 import {SentientActor} from '../../client/src/actor';
+
+import {CmdInput} from '../../client/src/interfaces';
+type Stairs = import('../../client/src/element').ElementStairs;
 
 const RNG = Random.getRNG();
 const {KEY, KeyMap} = Keys;
@@ -26,75 +29,124 @@ const MOVE_DIRS = [-1, 0, 1];
 const LINE = '='.repeat(78);
 const POOL = EventPool.getPool();
 
+/* Base class for player drivers. A driver can be attached to the player actor
+*  and the driver will act as an AI controlling the player. */
+export class DriverBase {
+
+    public player: SentientActor;
+    protected _game: any;
+    protected _keyBuffer: CmdInput[];
+
+    constructor(player?: SentientActor, game?: any) {
+        this.player = player;
+        this._game = game;
+    }
+
+    public setKeys(keys: CmdInput[]): void {
+        this._keyBuffer = keys.slice();
+    }
+
+    public handleClick(x: number, y: number, cell: Cell, cmd): void {
+        // Do nothing
+    }
+
+    public reset(): void {
+        this._keyBuffer = [];
+    }
+
+    public hasKeys(): boolean {
+        return this._keyBuffer.length > 0;
+    }
+
+    /* Returns the next keycode or null if buffer is empty. */
+    public getNextCode(): CmdInput {
+        if (this._keyBuffer.length > 0) {
+            return this._keyBuffer.shift();
+        }
+        return null;
+    }
+
+}
+
 /* This object can be used to simulate player actions in the world. It has 2
  * main uses:
  *  1. An AI to play the game and simulate player actions to find bugs
  *  2. A driver to automate some player actions like path-finding
  * */
-export const PlayerDriver = function(player?: SentientActor) {
+export class PlayerDriver extends DriverBase {
 
-    this._player = player;
-    this.action = '';
-    this.enemy = null;
+    public static fromJSON: (json: any) => any;
 
-    this.cmds = []; // Stores each command executed
-    this.actions = ['']; // Stores each action taken
-    this.screen = new Screen(30, 14);
+    public action: string;
+    public enemy: SentientActor;
+    public cmds: CmdInput[];
+    public actions: string[];
+    public screen: any;
+    public cache: any;
+    public state: any;
+    public maxExploreTurns: number;
+    public hpLow: number;
+    public nTurns: number;
+    public screenPeriod: number;
+    public hasNotify: boolean;
 
-    this.cache = {
-    };
+    constructor(player?: SentientActor, game?: any) {
+        super(player, game);
+        this.action = '';
+        this.enemy = null;
 
-    // State contains variables that need to be stored
-    this.state = {
-        exploreTurns: 0,
-        usePassage: false,
-        useStairs: false,
-        exitZone: false,
-        path: [],
-        stairsStack: [],
-        tilesVisited: {},
-        visitedStairs: {},
-        visited: {} // cell: id,x,y
-    };
+        this.cmds = []; // Stores each command executed
+        this.actions = ['']; // Stores each action taken
+        this.screen = new Screen(30, 14);
 
-    // To keep track of stairs used for returning
-    this.maxExploreTurns = 500; // Turns to spend in one level
+        this.cache = {
+        };
 
-    this.hpLow = 0.3;
+        // State contains variables that need to be stored
+        this.state = {
+            exploreTurns: 0,
+            usePassage: false,
+            useStairs: false,
+            exitZone: false,
+            path: [],
+            stairsStack: [],
+            tilesVisited: {},
+            visitedStairs: {},
+            visited: {} // cell: id,x,y
+        };
 
-    this.nTurns = 0;
-    this.screenPeriod = 10000;
+        // To keep track of stairs used for returning
+        this.maxExploreTurns = 500; // Turns to spend in one level
 
-    this.setPlayer = pl => {this._player = pl;};
+        this.hpLow = 0.3;
 
-    /* Used by the path-finding algorith. */
-    const _passableCallback = (x, y) => {
-        const map = this._player.getLevel().getMap();
-        let res = map.isPassable(x, y);
+        this.nTurns = 0;
+        this.screenPeriod = 10000;
 
-        // Actor cell must be always passable, otherwise no path found
-        if (!res) {
-            res = (x === this._player.getX()) && (y === this._player.getY());
-        }
-        return res;
-    };
+        this._passableCallback = this._passableCallback.bind(this);
+
+        this.hasNotify = true;
+        POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
+    }
+
+    public setPlayer(pl): void {this.player = pl;}
 
     /* Required for the player driver. */
-    this.getNextCode = () => {
+    public getNextCode() {
         const cmdOrCode = this.nextCmd();
         if (cmdOrCode.code) {return cmdOrCode.code;}
         else {return cmdOrCode;}
-    };
+    }
 
-    this.hasKeys = (): boolean => true;
+    public hasKeys(): boolean {return true;}
 
-    this.reset = (): void => {
+    public reset(): void {
         this.state.usePassage = false;
         this.state.useStairs = false;
         this.state.exitZone = false;
         this.state.path = [];
 
-    };
+    }
 
     // Returns the next command given to game.update().
     // Few simple guidelines:
@@ -102,15 +154,15 @@ export const PlayerDriver = function(player?: SentientActor) {
     //   2. Prefer going to north always if possible
     //   3. If any passages in sight, and level not visited, go there
     //      - Start a counter. When that expires, go back up.
-    this.nextCmd = () => {
+    public nextCmd() {
         this.action = '';
 
         // Record current x,y as visited
-        const [pX, pY] = this._player.getXY();
-        const level = this._player.getLevel();
+        const [pX, pY] = this.player.getXY();
+        const level = this.player.getLevel();
         this.addVisited(level, pX, pY);
 
-        const visible = this._player.getLevel().getMap().getVisibleCells(this._player);
+        const visible = this.player.getLevel().getMap().getVisibleCells(this.player);
         this.printTurnInfo(visible);
 
         this.checkForSelection();
@@ -123,33 +175,35 @@ export const PlayerDriver = function(player?: SentientActor) {
         let keycodeOrCmd = this.getPlayerCmd();
         if (!keycodeOrCmd) {keycodeOrCmd = {code: KEY.REST};}
 
-        const cmdJson = JSON.stringify(keycodeOrCmd);
-        const msg = `action: |${this.action}|, cmd: ${cmdJson}`;
-        this.debug('>>> PlayerDriver ' + msg);
+        if (debug.enabled) {
+            const cmdJson = JSON.stringify(keycodeOrCmd);
+            const msg = `action: |${this.action}|, cmd: ${cmdJson}`;
+            this.debug('>>> PlayerDriver ' + msg);
+        }
 
         ++this.nTurns;
         this.cmds.push(keycodeOrCmd);
         this.actions.push(this.action);
         return keycodeOrCmd;
-    };
+    }
 
-    this.checkForSelection = () => {
-        const brain = this._player.getBrain();
+    public checkForSelection(): void {
+        const brain = this.player.getBrain() as BrainPlayer;
         if (brain.isMenuShown()) {
             this.action = 'selection';
         }
-    };
+    }
 
     /* Checks for surrounding enemies and whether to attack or not. Checks also
      * for requirement to rest and gain health. */
-    this.checkForEnemies = () => {
-        const brain = this._player.getBrain();
-        const around = Brain.getCellsAroundActor(this._player);
+    public checkForEnemies(): void {
+        const brain = this.player.getBrain() as BrainPlayer;
+        const around = Brain.getCellsAroundActor(this.player);
         const actorsAround = around.map(cell => cell.getFirstActor());
         this.enemy = null;
         actorsAround.forEach(actor => {
             if (this.enemy === null) {
-                if (actor && actor.isEnemy(this._player)) {
+                if (actor && actor.isEnemy(this.player)) {
                     this.enemy = actor;
                     if (this.hasEnoughHealth()) {
                         this.action = 'attack';
@@ -167,11 +221,11 @@ export const PlayerDriver = function(player?: SentientActor) {
         if (this.action === '' && this.shouldRest()) {
             this.action = 'rest';
         }
-    };
+    }
 
-    this.tryExploringAround = visible => {
-        const map = this._player.getLevel().getMap();
-        const pCell = this._player.getCell();
+    public tryExploringAround(visible: Cell[]): void {
+        const map = this.player.getLevel().getMap();
+        const pCell = this.player.getCell();
         const [pX, pY] = [pCell.getX(), pCell.getY()];
         --this.state.exploreTurns;
         if (this.state.exploreTurns === 0) {
@@ -191,7 +245,7 @@ export const PlayerDriver = function(player?: SentientActor) {
                 this.setState({useStairs: true}, 'new Stairs seen');
                 this.state.exploreTurns = this.maxExploreTurns;
             }
-            // this._player not at the top of area tile yet
+            // this.player not at the top of area tile yet
             else if (!this.movingToConnect() && nY >= 0) {
                 const nCell = map.getCell(nX, nY);
                 if (nCell.isPassable() && !this.cellVisited(nCell)) {
@@ -221,16 +275,17 @@ export const PlayerDriver = function(player?: SentientActor) {
         else { // Move using pre-computed path
             this.action = 'path';
         }
-    };
+    }
 
-    this.tryToSetPathToCell = (cells: Cell[]): void => {
-        const [pX, pY] = this._player.getXY();
+    public tryToSetPathToCell(cells: Cell[]): void {
+        const [pX, pY] = this.player.getXY();
         this.state.path = [];
         cells.forEach(pCell => {
             if (this.state.path.length === 0) {
                 const [cX, cY] = [pCell.getX(), pCell.getY()];
                 this.debug(`>> Looking for shortest path to cell ${cX},${cY}`);
-                const path = getShortestPath(pX, pY, cX, cY, _passableCallback);
+                const path = getShortestPath(pX, pY, cX, cY,
+                                             this._passableCallback);
                 if (path.length > 1) {
                     this.debug('Found a non-zero path');
                     this.state.path = path;
@@ -239,11 +294,11 @@ export const PlayerDriver = function(player?: SentientActor) {
                 }
             }
         });
-    };
+    }
 
     /* Tries to find a path to from current direction. */
-    this.findPathToMove = (visible, acceptVisited = false) => {
-        const [pX, pY] = this._player.getXY();
+    public findPathToMove(visible, acceptVisited = false) {
+        const [pX, pY] = this.player.getXY();
         const northCells = visible.filter(cell => (
             cell.getY() < pY && cell.isPassable()
             && (acceptVisited || !this.cellVisited(cell))
@@ -298,54 +353,54 @@ export const PlayerDriver = function(player?: SentientActor) {
                 }
             }
         }
-    };
+    }
 
-    this.levelVisited = level => {
+    public levelVisited(level): boolean {
         return this.state.visited.hasOwnProperty(level.getID());
-    };
+    }
 
-    this.cellVisited = cell => {
-        const id = this._player.getLevel().getID();
+    public cellVisited(cell: Cell): boolean {
+        const id = this.player.getLevel().getID();
         if (this.state.visited.hasOwnProperty(id)) {
             const [x, y] = [cell.getX(), cell.getY()];
             return this.state.visited[id].hasOwnProperty(x + ',' + y);
         }
         return false;
-    };
+    }
 
-    /* Adds a visited cell for the this._player. */
-    this.addVisited = (level, x, y) => {
+    /* Adds a visited cell for the this.player. */
+    public addVisited(level, x, y): void {
         const id = level.getID();
         if (!this.state.visited.hasOwnProperty(id)) {
             this.state.visited[id] = {};
         }
-        const cell = this._player.getCell();
+        const cell = this.player.getCell();
         this.state.visited[id][x + ',' + y] = {
             x, y, hasPassage: cell.hasPassage()
         };
-    };
+    }
 
-    this.hasEnoughHealth = function() {
-        const health = this._player.get('Health');
+    public hasEnoughHealth(): boolean {
+        const health = this.player.get('Health');
         const maxHP = health.getMaxHP();
         const hp = health.getHP();
         if (hp > Math.round(this.hpLow * maxHP)) {
             return true;
         }
         return false;
-    };
+    }
 
-    this.shouldRest = function(): boolean {
-        const health = this._player.get('Health');
+    public shouldRest(): boolean {
+        const health = this.player.get('Health');
         const maxHP = health.getMaxHP();
         const hp = health.getHP();
         return hp < maxHP;
-    };
+    }
 
     /* Tries to find unvisited stairs from visible cells and calculate a path
      * there. */
-    this.newStairsSeen = (visible: Cell[]): boolean => {
-        const levelID = this._player.getLevel().getID();
+    public newStairsSeen(visible: Cell[]): boolean {
+        const levelID = this.player.getLevel().getID();
         const cellStairs: Cell = visible.find(cell => {
             const [x, y] = [cell.getX(), cell.getY()];
             if (!this.state.visitedStairs.hasOwnProperty(levelID)) {
@@ -364,10 +419,10 @@ export const PlayerDriver = function(player?: SentientActor) {
             }
         }
         return false;
-    };
+    }
 
-    this.tryToFindPassage = (visible: Cell[], moveAfter = true): void => {
-        // const level = this._player.getLevel();
+    public tryToFindPassage(visible: Cell[], moveAfter = true): void {
+        // const level = this.player.getLevel();
         // const maxY = level.getMap().rows - 1;
         this.debug('> Looking for north passage cells');
         const passageCells: Cell[] = visible.filter(cell => (
@@ -410,15 +465,15 @@ export const PlayerDriver = function(player?: SentientActor) {
                 }
             }
         }
-    };
+    }
 
-    this.passageVisited = cell => {
+    public passageVisited(cell: Cell): boolean {
         const passage = cell.getPassage();
         const target = passage.getTargetLevel();
         return this.levelVisited(target);
-    };
+    }
 
-    this.findAlreadySeenPassage = () => {
+    public findAlreadySeenPassage(): void {
         this.debug('Looking at remembered passages');
 
         // const cellData = Object.values(this.state.visited[id]);
@@ -450,22 +505,22 @@ export const PlayerDriver = function(player?: SentientActor) {
             }
         }
 
-    };
+    }
 
-    this.findVisitedCells = (func) => {
-        const map = this._player.getLevel().getMap();
-        const id = this._player.getLevel().getID();
+    public findVisitedCells(func): Cell[] {
+        const map = this.player.getLevel().getMap();
+        const id = this.player.getLevel().getID();
         const cellObjs = Object.values(this.state.visited[id]);
         const cells = cellObjs.map((obj: any) => map.getCell(obj.x, obj.y));
         return cells.filter(func);
-    };
+    }
 
     /* Returns the command (or code) give to game.update(). */
-    this.getPlayerCmd = () => {
+    public getPlayerCmd() {
         const enemy = this.enemy;
         let keycodeOrCmd = null;
-        const map = this._player.getLevel().getMap();
-        const [pX, pY] = this._player.getXY();
+        const map = this.player.getLevel().getMap();
+        const [pX, pY] = this.player.getXY();
         if (this.action === 'attack') {
             const [eX, eY] = [enemy.getX(), enemy.getY()];
             const dX = eX - pX;
@@ -477,7 +532,7 @@ export const PlayerDriver = function(player?: SentientActor) {
             keycodeOrCmd = {code: KEY.PICKUP};
         }
         else if (this.action === 'flee') {
-            const pCell = this._player.getCell();
+            const pCell = this.player.getCell();
             if (pCell.hasPassage()) {
                 keycodeOrCmd = {code: KEY.USE_STAIRS_DOWN};
             }
@@ -555,18 +610,18 @@ export const PlayerDriver = function(player?: SentientActor) {
         }
 
         return keycodeOrCmd;
-    };
+    }
 
-    this.getLastAction = () => {
+    public getLastAction() {
         return this.actions[this.actions.length - 1];
-    };
+    }
 
 
-    this.printTurnInfo = visible => {
-        const [pX, pY] = this._player.getXY();
-        const level = this._player.getLevel();
+    public printTurnInfo(visible: Cell[]): void {
+        const [pX, pY] = this.player.getXY();
+        const level = this.player.getLevel();
         const map = level.getMap();
-        const hp = this._player.get('Health').getHP();
+        const hp = this.player.get('Health').getHP();
 
         const pos = `@${pX},${pY} ID: ${level.getID()}`;
         if (debug.enabled) {
@@ -581,9 +636,9 @@ export const PlayerDriver = function(player?: SentientActor) {
             console.log('='.repeat(78) + '\n');
         }
 
-    };
+    }
 
-    this.addUsedStairs = (cell: Cell) => {
+    public addUsedStairs(cell: Cell): void {
         if (this.state.exitZone) {
             this.state.stairsStack.pop();
             this.debug('POP: stairsStack is now ', this.state.stairsStack);
@@ -595,7 +650,7 @@ export const PlayerDriver = function(player?: SentientActor) {
         const targetStairs = stairs.getTargetStairs();
         const targetLevel = stairs.getTargetLevel();
         const targetID = targetLevel.getID();
-        const id = this._player.getLevel().getID();
+        const id = this.player.getLevel().getID();
         if (!this.state.visitedStairs.hasOwnProperty(id)) {
             this.state.visitedStairs[id] = {};
         }
@@ -612,24 +667,24 @@ export const PlayerDriver = function(player?: SentientActor) {
         // Prevent immediate return
         this.state.visitedStairs[targetID][tx + ',' + ty] = [targetID, tx, ty];
 
-    };
+    }
 
-    this.movingToConnect = () => (
-        this.state.useStairs || this.state.usePassage
-    );
+    public movingToConnect(): boolean {
+        return (this.state.useStairs || this.state.usePassage);
+    }
 
-    this.getStairsMRU = () => {
+    public getStairsMRU(): Stairs {
         const lastN = this.state.stairsStack.length - 1;
         return this.state.stairsStack[lastN];
-    };
+    }
 
     /* Checks if actor has explored a level long enough. */
-    this.shouldReturnBackUp = () => {
+    public shouldReturnBackUp(): boolean {
         if (this.state.stairsStack.length > 0 && this.state.exploreTurns <= 0) {
             const stairsXY = this.getStairsMRU();
             const x = stairsXY[1];
             const y = stairsXY[2];
-            const cell = this._player.getLevel().getMap().getCell(x, y);
+            const cell = this.player.getLevel().getMap().getCell(x, y);
             this.tryToSetPathToCell([cell]);
             if (this.state.path.length > 0) {
                 this.action = 'path';
@@ -643,28 +698,28 @@ export const PlayerDriver = function(player?: SentientActor) {
         }
         return false;
 
-    };
+    }
 
     /* Can be used to serialize the driver object. */
-    this.toJSON = () => {
+    public toJSON(): any {
         return {
             cmds: this.cmds,
             actions: this.actions,
             nTurns: this.nTurns,
             state: this.state
         };
-    };
+    }
 
-    this.debug = (msg, obj = null) => {
+    public debug(msg, obj = null): void {
         if (debug.enabled) {
             const pre = `T${this.nTurns}: `;
             let post = '';
             if (obj) {post = '\n' + JSON.stringify(obj);}
             debug(`${pre}${msg}${post}`);
         }
-    };
+    }
 
-    this.setState = (obj, msg = null) => {
+    public setState(obj, msg = null): void {
         if (msg && debug.enabled) {
             const str = JSON.stringify(obj);
             this.debug(`setState with ${str} |${msg}|`);
@@ -673,18 +728,18 @@ export const PlayerDriver = function(player?: SentientActor) {
             this.state[key] = obj[key];
         });
 
-    };
+    }
 
-    this.levelExploredEnough = visible => {
+    public levelExploredEnough(visible: Cell[]): boolean {
         const exploreDone = this.state.exploreTurns <= 0;
         return (
             exploreDone && !this.movingToConnect() &&
             this.newStairsSeen(visible)
         );
-    };
+    }
 
     /* Returns true if player should pick up item from this cell. */
-    this.shouldPickupFromCell = pCell => {
+    public shouldPickupFromCell(pCell: Cell): boolean {
         if (pCell.hasItems()) {
             const items = pCell.getItems();
             if (items[0].getType() !== RG.ITEM_CORPSE) {
@@ -692,13 +747,12 @@ export const PlayerDriver = function(player?: SentientActor) {
             }
         }
         return false;
-    };
+    }
 
-    this.hasNotify = true;
-    this.notify = (evtName, args) => {
+    public notify(evtName, args): void {
         if (evtName === RG.EVT_TILE_CHANGED) {
             const {actor, target} = args;
-            if (actor === player) {
+            if (actor === this.player) {
                 const id = target.getID();
                 if (!this.state.tilesVisited[id]) {
                     this.state.tilesVisited[id] = 0;
@@ -706,10 +760,21 @@ export const PlayerDriver = function(player?: SentientActor) {
                 this.state.tilesVisited[id] += 1;
             }
         }
-    };
-    POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
+    }
 
-};
+    /* Used by the path-finding algorith. */
+    private _passableCallback(x, y): boolean {
+        const map = this.player.getLevel().getMap();
+        let res = map.isPassable(x, y);
+
+        // Actor cell must be always passable, otherwise no path found
+        if (!res) {
+            res = (x === this.player.getX()) && (y === this.player.getY());
+        }
+        return res;
+    }
+
+}
 
 PlayerDriver.fromJSON = function(json) {
     const driver = new PlayerDriver();
