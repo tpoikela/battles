@@ -5,6 +5,7 @@
  */
 
 import RG from '../../client/src/rg';
+import ROT from '../../lib/rot';
 import {Path} from '../../client/src/path';
 import {Screen} from '../../client/gui/screen';
 import {Keys} from '../../client/src/keymap';
@@ -15,7 +16,7 @@ import {Random} from '../../client/src/random';
 import {Cell} from '../../client/src/map.cell';
 import {SentientActor} from '../../client/src/actor';
 
-import {CmdInput} from '../../client/src/interfaces';
+import {CmdInput, PlayerCmdInput} from '../../client/src/interfaces';
 type Stairs = import('../../client/src/element').ElementStairs;
 
 const RNG = Random.getRNG();
@@ -24,6 +25,8 @@ const {getShortestPath} = Path;
 
 import dbg = require('debug');
 const debug = dbg('bitn:PlayerDriver');
+
+debug.enabled = true;
 
 const MOVE_DIRS = [-1, 0, 1];
 const LINE = '='.repeat(78);
@@ -40,6 +43,7 @@ export class DriverBase {
     constructor(player?: SentientActor, game?: any) {
         this.player = player;
         this._game = game;
+        this._keyBuffer = [];
     }
 
     public setKeys(keys: CmdInput[]): void {
@@ -82,10 +86,11 @@ export class PlayerDriver extends DriverBase {
     public cmds: CmdInput[];
     public actions: string[];
     public screen: any;
-    public cache: any;
-    public state: any;
+    public state: {[key: string]: any};
     public maxExploreTurns: number;
     public hpLow: number;
+    public ppRestLimit: number;
+    public hpRestLimit: number;
     public nTurns: number;
     public screenPeriod: number;
     public hasNotify: boolean;
@@ -98,9 +103,6 @@ export class PlayerDriver extends DriverBase {
         this.cmds = []; // Stores each command executed
         this.actions = ['']; // Stores each action taken
         this.screen = new Screen(30, 14);
-
-        this.cache = {
-        };
 
         // State contains variables that need to be stored
         this.state = {
@@ -119,6 +121,8 @@ export class PlayerDriver extends DriverBase {
         this.maxExploreTurns = 500; // Turns to spend in one level
 
         this.hpLow = 0.3;
+        this.ppRestLimit = 1.0;
+        this.hpRestLimit = 1.0;
 
         this.nTurns = 0;
         this.screenPeriod = 10000;
@@ -133,8 +137,13 @@ export class PlayerDriver extends DriverBase {
 
     /* Required for the player driver. */
     public getNextCode() {
-        const cmdOrCode = this.nextCmd();
-        if (cmdOrCode.code) {return cmdOrCode.code;}
+        let cmdOrCode = super.getNextCode();
+        if (cmdOrCode === null) {
+            cmdOrCode = this.nextCmd();
+        }
+        if ((cmdOrCode as PlayerCmdInput).code) {
+            return (cmdOrCode as PlayerCmdInput).code;
+        }
         else {return cmdOrCode;}
     }
 
@@ -145,7 +154,6 @@ export class PlayerDriver extends DriverBase {
         this.state.useStairs = false;
         this.state.exitZone = false;
         this.state.path = [];
-
     }
 
     // Returns the next command given to game.update().
@@ -228,9 +236,6 @@ export class PlayerDriver extends DriverBase {
         const pCell = this.player.getCell();
         const [pX, pY] = [pCell.getX(), pCell.getY()];
         --this.state.exploreTurns;
-        if (this.state.exploreTurns === 0) {
-            console.log('ZERO EXPLORE TURNS NOW');
-        }
 
         if (this.state.path.length === 0) {
             const nX = pX;
@@ -252,6 +257,7 @@ export class PlayerDriver extends DriverBase {
                     this.action = 'move north';
                 }
                 else { // Try to find more complex path to north
+                    console.log('Trying to find a path to move');
                     this.findPathToMove(visible);
                 }
             }
@@ -297,59 +303,74 @@ export class PlayerDriver extends DriverBase {
     }
 
     /* Tries to find a path to from current direction. */
-    public findPathToMove(visible, acceptVisited = false) {
+    public findPathToMove(visible: Cell[], acceptVisited = false) {
         const [pX, pY] = this.player.getXY();
-        const northCells = visible.filter(cell => (
-            cell.getY() < pY && cell.isPassable()
-            && (acceptVisited || !this.cellVisited(cell))
-        ));
+
+        let passable = visible.filter(cell => cell.isPassable());
+        const doors = visible.filter(cell => cell.hasDoor());
+
+        if (!acceptVisited) {
+            passable = passable.filter(cell => (
+                !this.cellVisited(cell)
+            ));
+        }
+
+        const cells = {
+            north: passable.filter(cell => cell.getY() < pY),
+            south: passable.filter(cell => cell.getY() > pY),
+            east: passable.filter(cell => cell.getX() > pX),
+            west: passable.filter(cell => cell.getX() < pX),
+            doors
+        };
+
         let ind = '';
         if (acceptVisited) {ind = '>>>>';}
-        this.tryToSetPathToCell(northCells);
-        this.debug(ind + '> Looking path to North');
-        if (this.state.path.length > 0) {this.action = 'path';}
-        else {
-            const westCells = visible.filter(cell => (
-                cell.getX() < pX && cell.isPassable()
-                && (acceptVisited || !this.cellVisited(cell))
-            ));
-            this.tryToSetPathToCell(westCells);
-            this.debug(ind + '>> Looking path to west');
-            if (this.state.path.length > 0) {this.action = 'path';}
+
+        let dirOrder = ['north', 'west', 'east', 'south'];
+        if (acceptVisited) {
+            // Shuffle direction if doing 2nd pass with visited cells
+            // Avoids taking stuck and repeating same path forever
+            dirOrder = RNG.shuffle(dirOrder);
+            console.log('Shuffled order is now', dirOrder);
+        }
+
+        let arrInd = '>';
+        dirOrder.forEach(dir => {
+            if (this.state.path.length === 0) {
+                this.debug(ind + arrInd + ' Looking path to ' + dir);
+                this.tryToSetPathToCell(cells[dir]);
+                if (this.state.path.length > 0) {
+                    this.action = 'path';
+                    return;
+                }
+                arrInd += '>';
+            }
+        });
+
+        if (this.action === '') {
+            this.tryToSetPathToCell(cells.doors);
+        }
+
+        if (this.action === '') {
+            if (acceptVisited) {
+                // Last-ditch effort to do something
+                console.log('We are screwed, no path found');
+                this.debug('We are screwed');
+            }
             else {
-                const eastCells = visible.filter(cell => (
-                    cell.getX() > pX && cell.isPassable()
-                    && (acceptVisited || !this.cellVisited(cell))
-                ));
-                this.tryToSetPathToCell(eastCells);
-                this.debug(ind + '>>> Looking path to east');
-                if (this.state.path.length > 0) {this.action = 'path';}
+                // Still some hope left
+                this.debug(ind + '>>>> Looking passage out');
+                this.tryToFindPassage(visible, false);
+                if (this.state.path.length === 0) {
+                    this.debug(ind + '>>>>> Looking visited cells now');
+                    this.findAlreadySeenPassage();
+                    if (this.state.path.length === 0) {
+                        console.log('Trying now from visited cells');
+                        this.findPathToMove(visible, true);
+                    }
+                }
                 else {
-                    const southCells = visible.filter(cell => (
-                        cell.getY() > pY && cell.isPassable()
-                        && (acceptVisited || !this.cellVisited(cell))
-                    ));
-                    this.tryToSetPathToCell(southCells);
-                    this.debug(ind + '>>> Looking path to south east');
-                    if (this.state.path.length > 0) {this.action = 'path';}
-                    else if (acceptVisited) {
-                        this.debug('We are screwed');
-                    }
-                    else {
-                        // Still some hope left
-                        this.debug(ind + '>>>> Looking passage out');
-                        this.tryToFindPassage(visible, false);
-                        if (this.state.path.length === 0) {
-                            this.debug(ind + '>>>>> Looking visited cells now');
-                            this.findAlreadySeenPassage();
-                            if (this.state.path.length === 0) {
-                                this.findPathToMove(visible, true);
-                            }
-                        }
-                        else {
-                            this.action = 'path';
-                        }
-                    }
+                    this.action = 'path';
                 }
             }
         }
@@ -391,10 +412,16 @@ export class PlayerDriver extends DriverBase {
     }
 
     public shouldRest(): boolean {
+        if (this.player.has('SpellPower')) {
+            const spellPower = this.player.get('SpellPower');
+            const pp = spellPower.getPP();
+            const maxPP = spellPower.getMaxPP();
+            return pp < (this.ppRestLimit * maxPP);
+        }
         const health = this.player.get('Health');
         const maxHP = health.getMaxHP();
         const hp = health.getHP();
-        return hp < maxHP;
+        return hp < (this.hpRestLimit * maxHP);
     }
 
     /* Tries to find unvisited stairs from visible cells and calculate a path
@@ -422,8 +449,6 @@ export class PlayerDriver extends DriverBase {
     }
 
     public tryToFindPassage(visible: Cell[], moveAfter = true): void {
-        // const level = this.player.getLevel();
-        // const maxY = level.getMap().rows - 1;
         this.debug('> Looking for north passage cells');
         const passageCells: Cell[] = visible.filter(cell => (
             cell.hasPassage() && cell.getY() === 0
@@ -476,16 +501,13 @@ export class PlayerDriver extends DriverBase {
     public findAlreadySeenPassage(): void {
         this.debug('Looking at remembered passages');
 
-        // const cellData = Object.values(this.state.visited[id]);
         const newPassages = this.findVisitedCells(cell => (
             cell.hasPassage() && !this.passageVisited(cell)
         ));
 
-        /* const newPassages = cells.filter(cell => (
-            cell.hasPassage() && !this.passageVisited(cell)
-        ));*/
         this.debug('Looking at non-visited passages');
         this.tryToSetPathToCell(newPassages);
+
         if (this.state.path.length > 0) {
             this.setState({usePassage: true}, 'already seen passage');
             this.action = 'path';
@@ -526,7 +548,15 @@ export class PlayerDriver extends DriverBase {
             const dX = eX - pX;
             const dY = eY - pY;
             const code = KeyMap.dirToKeyCode(dX, dY);
-            keycodeOrCmd = {code};
+
+            if (this.canCastSpell()) {
+                keycodeOrCmd = {code: KEY.POWER};
+                const spellCode = this.getCodeForSpell();
+                this._keyBuffer = [spellCode, code];
+            }
+            else {
+                keycodeOrCmd = {code};
+            }
         }
         else if (this.action === 'pickup') {
             keycodeOrCmd = {code: KEY.PICKUP};
@@ -589,6 +619,11 @@ export class PlayerDriver extends DriverBase {
             keycodeOrCmd = {code: KEY.USE_STAIRS_DOWN};
         }
         else if (this.action === 'path') {
+            if (this.state.path.length === 0) {
+                RG.err('PlayerDriver', 'getPlayerCmd',
+                       'Tried to shift coord from 0 length path');
+            }
+
             let {x, y} = this.state.path.shift();
             x = parseInt(x, 10);
             y = parseInt(y, 10);
@@ -608,11 +643,10 @@ export class PlayerDriver extends DriverBase {
             // Always choose the first option
             keycodeOrCmd = {code: Keys.selectIndexToCode(0)};
         }
-
         return keycodeOrCmd;
     }
 
-    public getLastAction() {
+    public getLastAction(): string {
         return this.actions[this.actions.length - 1];
     }
 
@@ -642,7 +676,7 @@ export class PlayerDriver extends DriverBase {
         if (this.state.exitZone) {
             this.state.stairsStack.pop();
             this.debug('POP: stairsStack is now ', this.state.stairsStack);
-            this.setState({exitZone: false}, 'addUserStairs');
+            this.setState({exitZone: false}, 'addUsedStairs');
             return;
         }
 
@@ -650,13 +684,13 @@ export class PlayerDriver extends DriverBase {
         const targetStairs = stairs.getTargetStairs();
         const targetLevel = stairs.getTargetLevel();
         const targetID = targetLevel.getID();
-        const id = this.player.getLevel().getID();
-        if (!this.state.visitedStairs.hasOwnProperty(id)) {
-            this.state.visitedStairs[id] = {};
+        const levelID = this.player.getLevel().getID();
+        if (!this.state.visitedStairs.hasOwnProperty(levelID)) {
+            this.state.visitedStairs[levelID] = {};
         }
 
         const [sx, sy] = [stairs.getX(), stairs.getY()];
-        this.state.visitedStairs[id][sx + ',' + sy] = [sx, sy];
+        this.state.visitedStairs[levelID][sx + ',' + sy] = [sx, sy];
 
         const [tx, ty] = [targetStairs.getX(), targetStairs.getY()];
         this.state.stairsStack.push([targetID, tx, ty]);
@@ -666,13 +700,13 @@ export class PlayerDriver extends DriverBase {
         }
         // Prevent immediate return
         this.state.visitedStairs[targetID][tx + ',' + ty] = [targetID, tx, ty];
-
     }
 
     public movingToConnect(): boolean {
         return (this.state.useStairs || this.state.usePassage);
     }
 
+    /* Returns most recently used stairs from the stack. */
     public getStairsMRU(): Stairs {
         const lastN = this.state.stairsStack.length - 1;
         return this.state.stairsStack[lastN];
@@ -771,7 +805,52 @@ export class PlayerDriver extends DriverBase {
         if (!res) {
             res = (x === this.player.getX()) && (y === this.player.getY());
         }
+        if (!res) {
+            if (map.hasXY(x, y)) {
+                const cell = map.getCell(x, y);
+                res = cell.hasDoor();
+            }
+        }
         return res;
+    }
+
+    private canCastSpell(): boolean {
+        const spellPower = this.player.get('SpellPower');
+        if (spellPower) {
+            const book = this.player.getBook();
+            const spell = book.getSpells()[0];
+            return spell.canCast();
+        }
+        return false;
+    }
+
+    /* Returns the keyCode for a spell that will be cast. */
+    private getCodeForSpell(): number {
+        const book = this.player.getBook();
+        const spells = book.getSpells();
+        const dmgIndices = {};
+        let totalPower = 0;
+        spells.forEach((spell, i) => {
+            if (spell.hasDice('damage')) {
+                if (spell.canCast()) {
+                    const castPower = spell.getCastingPower();
+                    totalPower += castPower;
+                    dmgIndices[i] = castPower;
+                }
+            }
+        });
+
+        // Create spell weights inversely proportional to the
+        // casting power of each
+        const keys = Object.keys(dmgIndices);
+        keys.forEach(key => {
+            dmgIndices[key] = totalPower - dmgIndices[key];
+        });
+
+        let index = RNG.getWeighted(dmgIndices);
+        index = parseInt(index, 10);
+        const menuIndex = Keys.menuIndices[index];
+        return Keys.selectIndexToCode(menuIndex);
     }
 
 }
