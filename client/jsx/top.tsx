@@ -55,6 +55,8 @@ import {FromJSON} from '../src/game.fromjson';
 import {IMessage} from '../src/rg';
 const POOL = EventPool.getPool();
 
+import {PlayerDriver} from '../../tests/helpers/player-driver';
+
 const INV_SCREEN = 'Inventory';
 // (window as any).RG = RG;
 
@@ -808,6 +810,15 @@ export class BattlesTop extends React.Component {
         }
     }
 
+    public setPlayerDriver(): void {
+        const player = this.game.getPlayer();
+        this.clickHandler = new PlayerDriver(player);
+        player.remove('Hunger');
+        // this.clickHandler.screenPeriod = -1;
+        this.ctrlMode = 'AUTOMATIC';
+        this.finishAutoOnSight = false;
+    }
+
     /* Returns the next key, either from player or from click handler. */
     public getNextCode() {
         if (this.ctrlMode === 'AUTOMATIC') {
@@ -833,7 +844,7 @@ export class BattlesTop extends React.Component {
             if (!this.clickHandler.hasKeys()) {
                 this.ctrlMode = 'MANUAL';
             }
-            else {
+            else if (this.finishAutoOnSight) {
                 const [pX, pY] = this.game.getPlayer().getXY();
                 const enemies = RG.findEnemyCellForActor(this.game.getPlayer(),
                     this.gameState.visibleCells);
@@ -842,7 +853,7 @@ export class BattlesTop extends React.Component {
                     enemies.forEach(enemy => {
                         const [eX, eY] = enemy.getXY();
                         const [dX, dY] = RG.dXdYAbs([pX, pY], [eX, eY]);
-                        if (this.finishAutoOnSight || dX < this.finishAutoDist
+                        if (dX < this.finishAutoDist
                             || dY < this.finishAutoDist) {
                             enemyTooClose = true;
                         }
