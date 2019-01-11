@@ -52,42 +52,42 @@ export class ElementBase extends Mixin.Typed(Entity) {
         this._name = name;
     }
 
-    getName() {return this._name;}
-    setName(name) {this._name = name;}
+    public getName() {return this._name;}
+    public setName(name) {this._name = name;}
 
-    isWall() {
+    public isWall() {
         return wallRegexp.test(this.getType());
     }
 
-    isObstacle() {
+    public isObstacle() {
         return obstacleRegexp.test(this.getType());
     }
 
-    isPassable() {
+    public isPassable() {
         return !this.has('Impassable');
     }
 
-    isPassableByAir() {
+    public isPassableByAir() {
         if (this.has('Impassable')) {
             return this.get('Impassable').canFlyOver;
         }
         return true;
     }
 
-    isSpellPassable() {
+    public isSpellPassable() {
         if (this.has('Impassable')) {
             return this.get('Impassable').spellPasses;
         }
         return true;
     }
 
-    lightPasses() {
+    public lightPasses() {
         return !this.has('Opaque');
     }
 
     /* Should be enough for stateless elements.
      * Does not work for doors or stairs etc. */
-    toJSON(): ElementJSON {
+    public toJSON(): ElementJSON {
         const components = compsToJSON(this);
         const obj = {
             id: this.getID(),
@@ -129,14 +129,14 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
     }
 
     /* Returns true if the stairs are connected. */
-    isConnected() {
+    public isConnected(): boolean {
         return !RG.isNullOrUndef([
             this._srcLevel, this._targetLevel, this._targetLevel
         ]);
     }
 
     /* Sets the source level for the stairs. */
-    setSrcLevel(src) {
+    public setSrcLevel(src): void {
         if (!RG.isNullOrUndef([src])) {
             this._srcLevel = src;
         }
@@ -146,10 +146,10 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
         }
     }
 
-    getSrcLevel() {return this._srcLevel;}
+    public getSrcLevel() {return this._srcLevel;}
 
     /* Sets the target level for the stairs. */
-    setTargetLevel(target) {
+    public setTargetLevel(target) {
         if (!RG.isNullOrUndef([target])) {
             this._targetLevel = target;
         }
@@ -159,12 +159,12 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
         }
     }
 
-    getTargetLevel() {return this._targetLevel;}
+    public getTargetLevel() {return this._targetLevel;}
 
     /* Sets target stairs for this object. Also sets the level if target
      * stairs
      * have one specified. */
-    setTargetStairs(stairs) {
+    public setTargetStairs(stairs) {
         if (!RG.isNullOrUndef([stairs])) {
             this._targetStairs = stairs;
             const targetLevel = stairs.getSrcLevel();
@@ -178,12 +178,12 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
         }
     }
 
-    getTargetStairs() {return this._targetStairs;}
+    public getTargetStairs() {return this._targetStairs;}
 
 
     /* Returns unique ID for the stairs.
      * Unique ID can be formed by levelID,x,y. */
-    getID() {
+    public getID() {
         const x = this.getX();
         const y = this.getY();
         const id = this._srcLevel.getID();
@@ -192,7 +192,7 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
 
     /* Connects to stairs together. Creates multiple connections if given array
      * of stairs. */
-    connect(stairs, index = 0) {
+    public connect(stairs, index = 0) {
         if (Array.isArray(stairs)) {
             stairs.forEach(ss => {
                 ss.setTargetStairs(this);
@@ -209,10 +209,10 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
         }
     }
 
-    isDown() {return (/stairsDown/).test(this.getName());}
+    public isDown() {return (/stairsDown/).test(this.getName());}
 
     /* Target actor uses the stairs to move to their target.*/
-    useStairs(actor) {
+    public useStairs(actor) {
         if (!RG.isNullOrUndef([this._targetStairs, this._targetLevel])) {
             const newX = this._targetStairs.getX();
             const newY = this._targetStairs.getY();
@@ -228,12 +228,12 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
     /* Sets target level/stairs using a connection object. This is useful when
      * target is known but does not exist (due to target level not being
      * loaded).*/
-    setConnObj(connObj) {
+    public setConnObj(connObj) {
         this._targetStairs = connObj.targetStairs;
         this._targetLevel = connObj.targetLevel;
     }
 
-    getConnObj() {
+    public getConnObj() {
         return {
             targetStairs: {
                 x: this.getTargetStairs().getX(),
@@ -244,7 +244,7 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
     }
 
     /* Serializes the Stairs object. */
-    toJSON() {
+    public toJSON() {
         const json: any = {
             name: this.getName(),
             type: this.getType()
@@ -293,29 +293,29 @@ export class ElementDoor extends Mixin.Locatable(ElementBase) {
     }
 
     /* Checks if door can be manually opened. */
-    canToggle() {return true;}
+    public canToggle() {return true;}
 
-    isOpen() {
+    public isOpen() {
         return !this._closed;
     }
 
-    isClosed() {
+    public isClosed() {
         return this._closed;
     }
 
-    openDoor() {
+    public openDoor() {
         this._closed = false;
         this.remove('Opaque');
         this.remove('Impassable');
     }
 
-    closeDoor() {
+    public closeDoor() {
         this._closed = true;
         this.add(this._opaque);
         this.add(this._impassable);
     }
 
-    toJSON() {
+    public toJSON() {
         return {
             id: this.getID(),
             type: 'door',
@@ -333,14 +333,14 @@ export class ElementLeverDoor extends ElementDoor {
         this.setType('leverdoor');
     }
 
-    canToggle() {return false;}
+    public canToggle() {return false;}
 
-    onUse() {
+    public onUse() {
         if (this.isOpen()) {this.closeDoor();}
         else {this.openDoor();}
     }
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.type = 'leverdoor';
         return json;
@@ -358,15 +358,15 @@ export class ElementLever extends Mixin.Locatable(ElementBase) {
         this._targets = [];
     }
 
-    getTargets() {
+    public getTargets() {
         return this._targets;
     }
 
-    addTarget(target) {
+    public addTarget(target) {
         this._targets.push(target);
     }
 
-    onUse(actor) {
+    public onUse(actor) {
         this._targets.forEach(target => {
             if (target.onUse) {
                 target.onUse(actor);
@@ -374,7 +374,7 @@ export class ElementLever extends Mixin.Locatable(ElementBase) {
         });
     }
 
-    toJSON() {
+    public toJSON() {
         return {
             id: this.getID(),
             type: 'lever',
@@ -394,17 +394,17 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
         this._isAbandoned = true;
     }
 
-    isAbandoned() {
+    public isAbandoned() {
         return this._isAbandoned;
     }
 
-    reclaim(actor) {
+    public reclaim(actor) {
         this._shopkeeper = actor;
         this._isAbandoned = false;
     }
 
     /* Returns the price in gold coins for item in the cell.*/
-    getItemPriceForBuying(item) {
+    public getItemPriceForBuying(item) {
         if (item.has('Unpaid')) {
             const value = item.getValue();
             const goldWeight = RG.valueToGoldWeight(value);
@@ -424,7 +424,7 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
     }
 
     /* Returns the price for selling the item. */
-    getItemPriceForSelling(item) {
+    public getItemPriceForSelling(item) {
         const value = item.getValue();
         const goldWeight = RG.valueToGoldWeight(value);
         let ncoins = RG.getGoldInCoins(goldWeight);
@@ -433,13 +433,13 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
         return ncoins;
     }
 
-    abandonShop() {
+    public abandonShop() {
         this._shopkeeper = null;
         this._isAbandoned = true;
     }
 
     /* Sets the shopkeeper.*/
-    setShopkeeper(keeper) {
+    public setShopkeeper(keeper) {
         if (!RG.isNullOrUndef([keeper])) {
             this._shopkeeper = keeper;
             this._isAbandoned = false;
@@ -451,12 +451,12 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
     }
 
     /* Returns the shopkeeper.*/
-    getShopkeeper() {
+    public getShopkeeper() {
         return this._shopkeeper;
     }
 
     /* Sets the cost factors for selling and buying. .*/
-    setCostFactor(buy, sell) {
+    public setCostFactor(buy, sell) {
         if (!RG.isNullOrUndef([buy, sell])) {
             this._costFactorShopSells = sell;
             this._costFactorShopBuys = buy;
@@ -468,16 +468,16 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
     }
 
     /* Returns the cost factor for selling. .*/
-    getCostFactorSell() {
+    public getCostFactorSell() {
         return this._costFactorShopSells;
     }
 
     /* Returns the cost factor for buying. .*/
-    getCostFactorBuy() {
+    public getCostFactorBuy() {
         return this._costFactorShopBuys;
     }
 
-    toJSON() {
+    public toJSON() {
         let shopkeeperID = null;
         if (this._shopkeeper) {
             shopkeeperID = this._shopkeeper.getID();
@@ -505,22 +505,22 @@ export class ElementExploration extends Mixin.Locatable(ElementBase) {
         this.msg = '';
     }
 
-    setData(data) {
+    public setData(data) {
         this.data = data;
     }
 
-    addData(key, val) {
+    public addData(key, val) {
         this.data[key] = val;
     }
 
-    getData() {return this.data;}
+    public getData() {return this.data;}
 
-    hasData() {
+    public hasData() {
         if (this.data) {return true;}
         return false;
     }
 
-    setExp(exp) {
+    public setExp(exp) {
         if (Number.isInteger(exp)) {
             this.exp = exp;
         }
@@ -530,19 +530,19 @@ export class ElementExploration extends Mixin.Locatable(ElementBase) {
         }
     }
 
-    getExp() {
+    public getExp() {
         return this.exp;
     }
 
-    setMsg(msg) {
+    public setMsg(msg) {
         this.msg = msg;
     }
 
-    getMsg() {
+    public getMsg() {
         return this.msg;
     }
 
-    toJSON() {
+    public toJSON() {
         const json: any = {
             type: this.getType(),
             setMsg: this.getMsg(),
@@ -576,16 +576,16 @@ export class ElementMarker extends Mixin.Locatable(ElementBase) {
         this.className = false; // Uses default cell-element-marker
     }
 
-    getClassName() {return this.className;}
-    setClassName(name) {this.className = name;}
+    public getClassName() {return this.className;}
+    public setClassName(name) {this.className = name;}
 
-    getChar() {return this.char;}
-    setChar(char) {this.char = char;}
+    public getChar() {return this.char;}
+    public setChar(char) {this.char = char;}
 
-    setTag(tag) {this.tag = tag;}
-    getTag() {return this.tag;}
+    public setTag(tag) {this.tag = tag;}
+    public getTag() {return this.tag;}
 
-    toJSON() {
+    public toJSON() {
         const json = super.toJSON();
         json.char = this.char;
         json.tag = this.tag;
