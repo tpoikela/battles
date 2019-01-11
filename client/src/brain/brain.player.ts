@@ -14,6 +14,8 @@ import {BrainBase} from './brain.base';
 import {Brain} from './brain';
 import {Memory} from './brain.memory';
 
+import {PlayerCmdInput} from '../interfaces';
+
 type BrainGoalOriented = import('./brain.goaloriented').BrainGoalOriented;
 type ItemBase = import('../item').ItemBase;
 
@@ -52,17 +54,10 @@ const chatSelObject = player => {
     };
 };
 
-export interface PlayerCmdInput {
-    code?: number;
-    cmd?: string;
-    target?: Cell;
-    item?: any; // TODO add correct type
-    count?: number;
-}
 
 /* Memory object for the player .*/
 export class MemoryPlayer extends Memory {
-    
+
     private _player: SentientActor;
 
     constructor(player) {
@@ -72,7 +67,7 @@ export class MemoryPlayer extends Memory {
     }
 
     /* Sets the last attacked actor. */
-    setLastAttacked(actor: BaseActor | number): void {
+    public setLastAttacked(actor: BaseActor | number): void {
         if (Number.isInteger(actor as number)) {
             this._lastAttackedID = actor as number;
         }
@@ -81,17 +76,17 @@ export class MemoryPlayer extends Memory {
         }
     }
 
-    getLastAttacked(): number {
+    public getLastAttacked(): number {
         return this._lastAttackedID;
     }
 
     /* Returns true if the actor was the last attacked one. */
-    wasLastAttacked(actor: SentientActor): boolean {
+    public wasLastAttacked(actor: SentientActor): boolean {
         return this._lastAttackedID === actor.getID();
     }
 
     /* Returns true if the given actor is enemy of player. */
-    isEnemy(actor: BaseActor): boolean {
+    public isEnemy(actor: BaseActor): boolean {
         if (actor.isPlayer()) {
             return false; // Needed for MindControl
         }
@@ -99,7 +94,7 @@ export class MemoryPlayer extends Memory {
         return actor.getBrain().getMemory().isEnemy(this._player);
     }
 
-    toJSON() {
+    public toJSON() {
         const json: any = {};
         if (!RG.isNullOrUndef([this._lastAttackedID])) {
             json.setLastAttacked = this._lastAttackedID;
@@ -132,19 +127,19 @@ class TargetingFSM {
         this._state = S_IDLE;
     }
 
-    getActor(): SentientActor {
+    public getActor(): SentientActor {
         return this._brain._actor;
     }
 
-    isTargeting(): boolean {
+    public isTargeting(): boolean {
         return this._state === S_TARGETING;
     }
 
-    isLooking(): boolean {
+    public isLooking(): boolean {
         return this._state === S_LOOKING;
     }
 
-    nextTarget(): void {
+    public nextTarget(): void {
         if (this.hasTargets()) {
             ++this.targetIndex;
             if (this.targetIndex >= this._targetList.length) {
@@ -154,30 +149,30 @@ class TargetingFSM {
         }
     }
 
-    startLooking(): void {
+    public startLooking(): void {
         this._state = S_LOOKING;
     }
 
-    stopLooking(): void {
+    public stopLooking(): void {
         this._state = S_IDLE;
         this.selectedCells = null;
     }
 
-    startTargeting(): void {
+    public startTargeting(): void {
         this._state = S_TARGETING;
         this._targetList = this.getTargetList();
         this.targetIndex = this.getCellIndexToTarget(this._targetList);
         this.setSelectedCells(this._targetList[this.targetIndex]);
     }
 
-    cancelTargeting(): void {
+    public cancelTargeting(): void {
         this._targetList = [];
         this._state = S_IDLE;
         this.selectedCells = null;
         this.targetIndex = -1;
     }
 
-    getTargetList(): Cell[] {
+    public getTargetList(): Cell[] {
         const mapXY = {};
         const visibleCells = this._brain.getSeenCells();
         const actor = this._brain._actor;
@@ -189,7 +184,7 @@ class TargetingFSM {
         return Object.values(mapXY);
     }
 
-    prevTarget(): void {
+    public prevTarget(): void {
         if (this.hasTargets()) {
             --this.targetIndex;
             if (this.targetIndex < 0) {
@@ -199,7 +194,7 @@ class TargetingFSM {
         }
     }
 
-    setSelectedCells(cells: Cell | Cell[]): void {
+    public setSelectedCells(cells: Cell | Cell[]): void {
         if (cells) {
             if (!Array.isArray(cells)) {
                 const cell = cells as Cell;
@@ -221,11 +216,11 @@ class TargetingFSM {
         }
     }
 
-    getSelectedCells(): Cell[] {
+    public getSelectedCells(): Cell[] {
         return this.selectedCells;
     }
 
-    getTarget(): Cell | Cell[] {
+    public getTarget(): Cell | Cell[] {
         if (this.isLooking() || this.isTargeting()) {
             if (this.selectedCells && this.selectedCells.length > 0) {
                 return this.selectedCells[0];
@@ -234,14 +229,14 @@ class TargetingFSM {
         return this.selectedCells;
     }
 
-    getTargetCell(): Cell | null {
+    public getTargetCell(): Cell | null {
         if (this.selectedCells.length > 0) {
             return this.selectedCells[0];
         }
         return null;
     }
 
-    getCellIndexToTarget(cells): number {
+    public getCellIndexToTarget(cells): number {
         const memory = this._brain.getMemory();
         const lastID = memory.getLastAttacked();
         for (let i = 0; i < cells.length; i++) {
@@ -255,7 +250,7 @@ class TargetingFSM {
         return 0;
     }
 
-    selectCell(code?: number): void {
+    public selectCell(code?: number): void {
         const actor = this._brain._actor;
         const visibleCells = this._brain.getSeenCells();
         if (RG.isNullOrUndef([code])) {
@@ -275,11 +270,11 @@ class TargetingFSM {
                 this.setSelectedCells(map.getCell(newX, newY));
             }
             if (this.isLooking()) {
-                const cell: Cell = this.getTarget() as Cell;
-                const index = visibleCells.indexOf(cell);
+                const tcell: Cell = this.getTarget() as Cell;
+                const index = visibleCells.indexOf(tcell);
                 let msg = 'You cannot see there.';
                 if (index >= 0) {
-                    const names = cell.getPropNames();
+                    const names = tcell.getPropNames();
                     msg = '';
                     names.forEach(name => {
                         msg += `You see ${name} `;
@@ -294,7 +289,7 @@ class TargetingFSM {
     }
 
     /* Returns true if a player has target selected. */
-    hasTargetSelected(): boolean {
+    public hasTargetSelected(): boolean {
         if (this.selectedCells) {
             return true;
         }
@@ -304,11 +299,11 @@ class TargetingFSM {
         return false;
     }
 
-    hasTargets() {
+    public hasTargets() {
         return this._targetList.length > 0;
     }
 
-    processKey(code: number) {
+    public processKey(code: number) {
         if (KeyMap.isTargetMode(code)) {
             if (this.isTargeting()) {
                 const cell = this.getTarget();
@@ -341,7 +336,7 @@ class TargetingFSM {
     }
 
     /* Returns true if chosen target is within attack range. */
-    isTargetInRange(): boolean {
+    public isTargetInRange(): boolean {
         const cell = this.getTarget() as Cell;
         const actor = this._brain._actor;
         if (cell && cell.getX) {
@@ -385,7 +380,7 @@ class MarkList {
 
     /* Adds a mark to current actor's location, and adds a tag, which
      * can be shown in the mark list. */
-    addMark(tag?: string) {
+    public addMark(tag?: string) {
         const [x, y] = this._actor.getXY();
         const level = this._actor.getLevel();
         const id = level.getID();
@@ -399,7 +394,7 @@ class MarkList {
     }
 
     /* Should return a menu object with all possible marks shown. */
-    getMenu() {
+    public getMenu() {
         const id = this._actor.getLevel().getID();
         const markList = this._marks[id] || [];
         const selectMenuArgs = markList.map(mark => {
@@ -415,9 +410,10 @@ class MarkList {
         });
 
         const deleteMenuArgs = markList.map(mark => {
-            const {x, y, id} = mark;
+            const {x, y} = mark;
+            const markID = mark.id;
             const listMsg = this.getMarkListMsg(mark);
-            const boundFunc = this.deleteMark.bind(this, id, x, y);
+            const boundFunc = this.deleteMark.bind(this, markID, x, y);
             return [listMsg, boundFunc];
         });
 
@@ -432,7 +428,7 @@ class MarkList {
     }
 
     /* Deletes a mark from the mark list. */
-    deleteMark(id, x, y) {
+    public deleteMark(id, x, y) {
         if (this._marks[id]) {
             const index = this._marks[id].findIndex(obj => (
                 obj.id === id && obj.x === x && obj.y === y
@@ -443,7 +439,7 @@ class MarkList {
         }
     }
 
-    getMark(selectCode) {
+    public getMark(selectCode) {
         const index = Keys.codeToIndex(selectCode);
         if (this._marks.length <= index) {
             return this._marks[index];
@@ -451,7 +447,7 @@ class MarkList {
         return null;
     }
 
-    getMarkListMsg(mark) {
+    public getMarkListMsg(mark) {
         const {x, y} = mark;
         let listMsg = `${x}, ${y}`;
         if (mark.tag) {listMsg += ` ${mark.tag}`;}
@@ -479,7 +475,7 @@ class MarkList {
         return listMsg;
     }
 
-    markExists(id, x, y) {
+    public markExists(id, x, y) {
         const markList = this._marks[id];
         const index = markList.findIndex(m => (
             m.x === x && m.y === y
@@ -487,11 +483,11 @@ class MarkList {
         return index >= 0;
     }
 
-    toJSON() {
+    public toJSON() {
         return this._marks;
     }
 
-    fromJSON(json) {
+    public fromJSON(json) {
         this._marks = json;
     }
 
@@ -506,9 +502,9 @@ export class BrainPlayer extends BrainBase {
     public  _actor: SentientActor;
     public energy: number; // Consumed energy per action
     public _type: string;
-    private _memory: MemoryPlayer;
 
     public _guiCallbacks: {[key: string]: (number) => void};
+    private _memory: MemoryPlayer;
 
     private _confirmCallback = null;
     private _wantConfirm: boolean;
@@ -568,27 +564,27 @@ export class BrainPlayer extends BrainBase {
         };
     }
 
-    getType() {return this._type;}
+    public getType() {return this._type;}
     public setType(type) {}
 
-    getActor() {
+    public getActor() {
         return this._actor;
     }
 
-    setActor(actor) {
+    public setActor(actor) {
         this._actor = actor;
     }
 
     /* For given code, adds a GUI callback. When this keycode is given, a GUI
      * callback is called instead. */
-    addGUICallback(code, callback) {
+    public addGUICallback(code, callback) {
         this._guiCallbacks[code] = callback;
     }
 
-    getMemory() {return this._memory;}
+    public getMemory() {return this._memory;}
 
     /* Restores the base speed after run-mode.*/
-    _restoreBaseSpeed() {
+    public _restoreBaseSpeed() {
         this._runModeEnabled = false;
         if (this._actor.has('StatsMods')) {
             this._actor.get('StatsMods').setSpeed(0);
@@ -596,16 +592,16 @@ export class BrainPlayer extends BrainBase {
     }
 
 
-    isRunModeEnabled() {return this._runModeEnabled;}
+    public isRunModeEnabled() {return this._runModeEnabled;}
 
-    cmdNotPossible(msg) {
+    public cmdNotPossible(msg) {
         this.energy = 0;
         RG.gameWarn(msg);
         return ACTION_ZERO_ENERGY;
     }
 
     /* Returns true if a menu should be shown by the GUI. */
-    isMenuShown(): boolean {
+    public isMenuShown(): boolean {
         if (this._selectionObject) {
             return this._selectionObject.showMenu();
         }
@@ -613,7 +609,7 @@ export class BrainPlayer extends BrainBase {
     }
 
     /* Returns the menu which should be shown. */
-    getMenu() {
+    public getMenu() {
         if (this._selectionObject) {
             if (this._selectionObject.showMenu()) {
                 return this._selectionObject.getMenu();
@@ -623,16 +619,16 @@ export class BrainPlayer extends BrainBase {
     }
 
     /* Returned for keypresses when no action is taken.*/
-    noAction() {
+    public noAction() {
         this.energy = 0;
         return ACTION_ZERO_ENERGY;
     }
 
     /* Returns current fighting mode.*/
-    getFightMode(): number {return this._fightMode;}
+    public getFightMode(): number {return this._fightMode;}
 
     /* Toggle between walking/running modes.*/
-    toggleRunMode(): void {
+    public toggleRunMode(): void {
         if (this._runModeEnabled) {
             this._restoreBaseSpeed();
         }
@@ -645,7 +641,7 @@ export class BrainPlayer extends BrainBase {
     }
 
     /* Toggles between different fighting modes.*/
-    toggleFightMode(): void {
+    public toggleFightMode(): void {
         this._fightMode += 1;
         if (this._fightMode >= RG.FMODES.length) {
           this._fightMode = RG.FMODE_NORMAL;
@@ -654,7 +650,7 @@ export class BrainPlayer extends BrainBase {
 
     /* Creates the callback for buying an item, and sets up the confirmation
      * request from player.*/
-    _createBuyConfirmCallback(currCell): void {
+    public _createBuyConfirmCallback(currCell): void {
         const topItem = currCell.getProp('items')[0];
         const shopElem = currCell.getPropType('shop')[0];
         const nCoins = shopElem.getItemPriceForBuying(topItem);
@@ -669,12 +665,12 @@ export class BrainPlayer extends BrainBase {
         this._confirmEnergy = 0;
         this._wantConfirm = true;
         this._confirmCallback = buyItemCallback;
-        RG.gameMsg("Press 'y' to buy " + topItem.getName() + ' for ' +
+        RG.gameMsg('Press \'y\' to buy ' + topItem.getName() + ' for ' +
             nCoins + ' gold coins');
     }
 
     /* Sets the stats for attack for special modes.*/
-    _setAttackStats(): void {
+    public _setAttackStats(): void {
         const stats = this._actor.get('Stats');
         const combat = this._actor.get('Combat');
         let speedBoost = 0;
@@ -700,7 +696,7 @@ export class BrainPlayer extends BrainBase {
 
     /* Handles a complex command.
     * TODO remove if/else and use a dispatch table.*/
-    handleCommand(obj) {
+    public handleCommand(obj) {
         this._restoreBaseSpeed();
         switch (obj.cmd) {
             case 'attack': return new Cmd.CmdAttack(this).execute(obj);
@@ -717,7 +713,7 @@ export class BrainPlayer extends BrainBase {
     }
 
     /* Returns all stats to their nominal values.*/
-    resetBoosts(): void {
+    public resetBoosts(): void {
         this.energy = 1;
         for (const compName in this._statBoosts) {
             if (compName) {
@@ -736,7 +732,7 @@ export class BrainPlayer extends BrainBase {
 
     /* Tries to open/close a door nearby the player. TODO: Handle multiple
      * doors. */
-    tryToToggleDoor() {
+    public tryToToggleDoor() {
         const cellsAround = Brain.getCellsAroundActor(this._actor);
         const doorCells = cellsAround.filter(c => c.hasDoor());
         if (doorCells.length === 1) {
@@ -751,7 +747,7 @@ export class BrainPlayer extends BrainBase {
         return this.cmdNotPossible('There are no doors to open or close');
     }
 
-    openDoorFromCell(doorCell) {
+    public openDoorFromCell(doorCell) {
         if (doorCell) {
             const door = doorCell.getPropType('door')[0];
             if (door) {
@@ -765,7 +761,7 @@ export class BrainPlayer extends BrainBase {
     }
 
 
-    getSeenCells(): Cell[] {
+    public getSeenCells(): Cell[] {
         if (this._cache.seen === CACHE_INVALID) {
             let cells = this._actor.getLevel().exploreCells(this._actor);
             if (this._actor.has('Telepathy')) {
@@ -788,7 +784,7 @@ export class BrainPlayer extends BrainBase {
     }
 
 
-    getTargetActor(): BaseActor | null {
+    public getTargetActor(): BaseActor | null {
         const targetCells = this.getTarget();
         if (Array.isArray(targetCells)) {
             const cells = targetCells as Cell[];
@@ -804,19 +800,19 @@ export class BrainPlayer extends BrainBase {
 
 
     /* Sets the selection object (for chats/trainers/etc) */
-    setSelectionObject(obj): void {
+    public setSelectionObject(obj): void {
         this._wantSelection = true;
         this._selectionObject = obj;
     }
 
-    selectionDone(): void {
+    public selectionDone(): void {
         this._wantSelection = false;
         this._selectionObject = null;
     }
 
     /* Main function which returns next action as function. TODO: Refactor into
      * something bearable. It's 150 lines now! */
-    decideNextAction(obj: PlayerCmdInput) {
+    public decideNextAction(obj: PlayerCmdInput) {
       this._cache.seen = CACHE_INVALID;
 
       // Workaround at the moment, because some commands are GUI-driven
@@ -1012,12 +1008,12 @@ export class BrainPlayer extends BrainBase {
       return this.noAction();
     }
 
-    hasPowers() {
+    public hasPowers() {
         return !!this._actor.getBook();
     }
 
     /* Called when Y/N choice required from player. */
-    processConfirm(code) {
+    public processConfirm(code) {
         this._wantConfirm = false;
         if (KeyMap.isConfirmYes(code)) {
           this.energy = this._confirmEnergy;
@@ -1028,7 +1024,7 @@ export class BrainPlayer extends BrainBase {
         return this.noAction();
     }
 
-    processMenuSelection(code) {
+    public processMenuSelection(code) {
         // if (this._selectionObject) {
         if (Menu.isMenuItem(this._selectionObject)) {
           if (this._selectionObject.showMsg) {
@@ -1056,14 +1052,14 @@ export class BrainPlayer extends BrainBase {
     }
 
     /* Executes the move command/attack command for the player. */
-    moveCmd(level, currMap, x, y) {
+    public moveCmd(level, currMap, x, y) {
         if (!currMap.hasXY(x, y)) {
           if (this._actor.getCell().hasPassage()) {
               const cb = () => {
                   const stairsComp = new Component.UseStairs();
                   this._actor.add(stairsComp);
               };
-              const msg = "Press 'y' to move to another area";
+              const msg = 'Press \'y\' to move to another area';
               this.setWantConfirm(RG.energy.MOVE, cb, msg);
               return this.noAction();
           }
@@ -1114,7 +1110,7 @@ export class BrainPlayer extends BrainBase {
         }
     }
 
-    moveToCell(x, y, level) {
+    public moveToCell(x, y, level) {
         if (this._runModeEnabled) {this.energy = RG.energy.RUN;}
         else {
           this.resetBoosts();
@@ -1127,14 +1123,14 @@ export class BrainPlayer extends BrainBase {
         };
     }
 
-    setWantConfirm(energy, callback, msg) {
+    public setWantConfirm(energy, callback, msg) {
         this._confirmEnergy = energy;
         this._wantConfirm = true;
         this._confirmCallback = callback;
         if (msg) {RG.gameMsg(msg);}
     }
 
-    issueOrderCmd() {
+    public issueOrderCmd() {
         const orderMenuArgs = [
             ['Follow me', this.giveOrder.bind(this, 'Follow')],
             ['Attack enemy', this.giveOrder.bind(this, 'Attack')],
@@ -1157,7 +1153,7 @@ export class BrainPlayer extends BrainBase {
         this.selectCell();
     }
 
-    lookCmd() {
+    public lookCmd() {
         const cellMenuArgs = [
             // When key is pressed, calls func
             {key: Keys.KEY.SELECT,
@@ -1172,14 +1168,14 @@ export class BrainPlayer extends BrainBase {
         this.selectCell();
     }
 
-    giveCmd() {
+    public giveCmd() {
         const menu = new Menu.SelectDir();
         menu.setCallback(this.giveCallback.bind(this));
         this.setSelectionObject(menu);
         RG.gameMsg('Please select direction to giving an item:');
     }
 
-    giveCallback(dXdY) {
+    public giveCallback(dXdY) {
         const [tX, tY] = RG.newXYFromDir(dXdY, this._actor);
         const cell = this._actor.getLevel().getMap().getCell(tX, tY);
         if (cell.hasActors()) {
@@ -1200,21 +1196,21 @@ export class BrainPlayer extends BrainBase {
         }
     }
 
-    giveItemToActor(item, actor) {
+    public giveItemToActor(item, actor) {
         const giveComp = new Component.Give();
         giveComp.setGiveTarget(actor);
         giveComp.setItem(item);
         this._actor.add(giveComp);
     }
 
-    jumpCmd() {
+    public jumpCmd() {
         const menu = new Menu.SelectDir();
         menu.setCallback(this.jumpCallback.bind(this));
         this.setSelectionObject(menu);
         RG.gameMsg('Please select direction to jump');
     }
 
-    jumpCallback(dXdY) {
+    public jumpCallback(dXdY) {
         this.energy = RG.energy.JUMP;
         const [x, y] = dXdY;
         const jumpCmp = new Component.Jump();
@@ -1223,7 +1219,7 @@ export class BrainPlayer extends BrainBase {
         this._actor.add(jumpCmp);
     }
 
-    giveOrder(orderType): void {
+    public giveOrder(orderType): void {
         const cells = this.getTarget() as Cell[];
         cells.forEach(cell => {
             if (cell.hasActors()) {
@@ -1246,20 +1242,20 @@ export class BrainPlayer extends BrainBase {
         this.setSelectedCells(null);
     }
 
-    giveFollowOrder(target) {
+    public giveFollowOrder(target) {
         const name = target.getName();
         const args = {bias: 0.7, src: this._actor};
         GoalsBattle.giveFollowOrder(target, args);
         RG.gameMsg(`You tell ${name} to follow you`);
     }
 
-    forgetOrders(target) {
+    public forgetOrders(target) {
         const args = {bias: 0.7, src: this._actor};
         GoalsBattle.giveClearOrders(target, args);
         RG.gameMsg(`You tell ${name} to forget your orders`);
     }
 
-    giveOrderAttack(target) {
+    public giveOrderAttack(target) {
         const visibleCells = this.getSeenCells();
         const cells = RG.findEnemyCellForActor(
             this._actor, visibleCells);
@@ -1284,7 +1280,7 @@ export class BrainPlayer extends BrainBase {
         }
     }
 
-    giveOrderPickup(target: BaseActor): void {
+    public giveOrderPickup(target: BaseActor): void {
         const item = this.getItemInSight();
         const name = target.getName();
         if (item) {
@@ -1298,13 +1294,13 @@ export class BrainPlayer extends BrainBase {
         }
     }
 
-    getOrderBias(): number {
+    public getOrderBias(): number {
         if (this._actor.has('Leader')) {return 1.0;}
         if (this._actor.has('Commander')) {return 1.5;}
         return 0.7;
     }
 
-    useAbility(): void {
+    public useAbility(): void {
         if (this._actor.has('Abilities')) {
             const menu = this._actor.get('Abilities').createMenu();
             this.setSelectionObject(menu);
@@ -1315,12 +1311,12 @@ export class BrainPlayer extends BrainBase {
     }
 
 
-    addMark(tag?: string): void {
+    public addMark(tag?: string): void {
         this._markList.addMark(tag);
     }
 
     /* Returns one item in sight, or null if no items are seen. */
-    getItemInSight(): ItemBase {
+    public getItemInSight(): ItemBase {
         const seenCells = this.getSeenCells();
         const itemCells = seenCells.filter(cell => cell.hasItems());
         if (itemCells.length > 0) {
@@ -1330,7 +1326,7 @@ export class BrainPlayer extends BrainBase {
         return null;
     }
 
-    toJSON() {
+    public toJSON() {
         return {
             type: this.getType(),
             memory: this._memory.toJSON(),
@@ -1340,8 +1336,8 @@ export class BrainPlayer extends BrainBase {
 
     /* Required for various functions. Does nothing for the player.*/
     /* eslint-disable class-methods-use-this */
-    addEnemy() {}
-    addFriend() {}
+    public addEnemy() {}
+    public addFriend() {}
     /* eslint-enable class-methods-use-this */
 
     //--------------------------------------
@@ -1349,55 +1345,55 @@ export class BrainPlayer extends BrainBase {
     //--------------------------------------
 
     /* Returns true if a player has target selected. */
-    hasTargetSelected() {
+    public hasTargetSelected() {
         return this._fsm.hasTargetSelected();
     }
 
-    startTargeting() {
+    public startTargeting() {
         this._fsm.startTargeting();
     }
 
     /* Moves to the next target. */
-    nextTarget() {
+    public nextTarget() {
         this._fsm.nextTarget();
     }
 
-    getTargetList(): Cell[] {
+    public getTargetList(): Cell[] {
         return this._fsm.getTargetList();
     }
 
-    getSelectedCells() {
+    public getSelectedCells() {
         return this._fsm.getSelectedCells();
     }
 
-    prevTarget() {
+    public prevTarget() {
         this._fsm.prevTarget();
     }
 
     /* Returns the current selected cell for targeting. */
-    getTarget(): Cell | Cell[] {
+    public getTarget(): Cell | Cell[] {
         return this._fsm.getTarget();
     }
 
     /* Returns true if chosen target is within attack range. */
-    isTargetInRange() {
+    public isTargetInRange() {
         return this._fsm.isTargetInRange();
     }
 
-    cancelTargeting() {
+    public cancelTargeting() {
         this._fsm.cancelTargeting();
     }
 
-    isTargeting() {
+    public isTargeting() {
         return this._fsm.isTargeting();
     }
 
     /* Picks either last attacked actor, or the first found. */
-    getCellIndexToTarget(cells): number {
+    public getCellIndexToTarget(cells): number {
         return this._fsm.getCellIndexToTarget(cells);
     }
 
-    setSelectedCells(cells: Cell[]): void {
+    public setSelectedCells(cells: Cell[]): void {
         if (!cells) {
             this.cancelTargeting();
         }
@@ -1406,11 +1402,11 @@ export class BrainPlayer extends BrainBase {
         }
     }
 
-    selectCell(code?: number) {
+    public selectCell(code?: number) {
         this._fsm.selectCell(code);
     }
 
-    showSelectedCellInfo() {
+    public showSelectedCellInfo() {
         // const cell = this.getTarget();
         // TODO show more info about the cell
         this._fsm.stopLooking();

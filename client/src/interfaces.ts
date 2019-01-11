@@ -5,15 +5,26 @@
  * a file containing particular type.
  */
 
+type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
 
 export type TCoord = [number, number];
 
-export type ICoordXY = {
+export interface ICoordXY {
     x: number;
     y: number;
     level?: Level;
-};
+}
+
+/* Used to pass player input (keys/mouse) to the game */
+export interface PlayerCmdInput {
+    code?: number;
+    cmd?: string;
+    target?: Cell;
+    item?: any; // TODO add correct type
+    count?: number;
+}
+export type CmdInput = PlayerCmdInput | number;
 
 export interface SubZoneConf {
     name: string;
@@ -76,7 +87,7 @@ export interface DungeonConf extends ZoneConf {
     dungeonX?: number;
     dungeonY?: number;
     dungeonType?: string;
-};
+}
 
 export interface QuarterConf extends SubZoneConf {
     [key: string]: any;
@@ -85,7 +96,7 @@ export interface QuarterConf extends SubZoneConf {
 export interface CityConf extends ZoneConf {
     nQuarters: number;
     quarter: QuarterConf[];
-};
+}
 
 export interface FaceConf extends SubZoneConf {
     [key: string]: any;
@@ -94,4 +105,4 @@ export interface FaceConf extends SubZoneConf {
 export interface MountainConf extends ZoneConf {
     nFaces: number;
     face: FaceConf[];
-};
+}
