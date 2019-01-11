@@ -3,45 +3,27 @@ import RG from '../src/rg';
 import {Path} from '../src/path';
 import {Keys} from '../src/keymap';
 import {Cell} from '../src/map.cell';
-import {PlayerCmdInput} from '../src/brain/brain.player';
+import {CmdInput} from '../src/interfaces';
+import {DriverBase} from '../../tests/helpers/player-driver';
 
 const dirToKeyCode = Keys.KeyMap.dirToKeyCode;
 
-type CmdInput = PlayerCmdInput | number;
 
 /* This class handles various actions when player clicks a cell.
  * It creates a key buffer corresponding to the automated command, and then game
  * loop can request these keys.
  * */
-export default class CellClickHandler {
+export default class CellClickHandler extends DriverBase {
 
     public _game: any;
     protected _keyBuffer: CmdInput[];
 
-    constructor(game) {
+    constructor(player?, game?) {
+        super(player, game);
         this._game = game;
         this._keyBuffer = []; // Stores keys for the pending command
     }
 
-    /* Returns the next keycode or null if buffer is empty. */
-    public getNextCode(): CmdInput {
-        if (this._keyBuffer.length > 0) {
-            return this._keyBuffer.shift();
-        }
-        return null;
-    }
-
-    public reset(): void {
-        this._keyBuffer = [];
-    }
-
-    public hasKeys(): boolean {
-        return this._keyBuffer.length > 0;
-    }
-
-    public setKeys(keys: CmdInput[]): void {
-        this._keyBuffer = keys.slice();
-    }
 
     public handleClick(x: number, y: number, cell: Cell, cmd) {
         // Don't react to click if there are already keys
