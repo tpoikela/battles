@@ -4,12 +4,12 @@ import RG from './rg';
 import {EventPool} from './eventpool';
 import {SentientActor} from './actor';
 import {Level} from './level';
+import {ELEM} from '../data/elem-constants';
 
 import dbg = require('debug');
 const debug = dbg('bitn:game.battle');
 
 const POOL = EventPool.getPool();
-
 
 export interface ArmyJSON {
     name: string;
@@ -29,12 +29,13 @@ export interface BattleJSON {
 /* Army is a collection of actors associated with a battle. This is useful for
  *  battle commanders to have access to their full army. */
 export class Army {
+
+    public hasNotify: boolean;
     private _name: string;
     private _actors: SentientActor[]; // All actors inside this army
     private _battle: Battle;
     private _casualties: number;
     private _defeatThreshold: number;
-    public hasNotify: boolean;
 
     constructor(name) {
         this._name = name;
@@ -47,44 +48,44 @@ export class Army {
         POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
     }
 
-    getName() {
+    public getName(): string {
         return this._name;
     }
 
-    setDefeatThreshold(numActors) {
+    public setDefeatThreshold(numActors) {
         this._defeatThreshold = numActors;
     }
 
         /* Default defeat is when all actors have been eliminated.*/
-    isDefeated() {
+    public isDefeated() {
         if (this._actors.length <= this._defeatThreshold) {
             return true;
         }
         return false;
     }
 
-    setBattle(battle) {this._battle = battle;};
+    public setBattle(battle) {this._battle = battle;}
 
-    getBattle() {
+    public getBattle() {
         return this._battle;
     }
 
-    getCasualties() {
+    public getCasualties() {
         return this._casualties;
     }
 
-    getActors() {
+    public getActors() {
         return this._actors.slice();
     }
 
-    hasActor(actor) {
-        const id = actor.getID();
+    public hasActor(sought) {
+        const id = sought.getID();
         const index = this._actors.findIndex(actor => actor.getID() === id);
         return index >= 0;
     }
 
         /* Tries to add an actor and returns true if success.*/
-    addActor(actor) {
+    public addActor(actor) {
         if (!this.hasActor(actor)) {
             this._actors.push(actor);
             return true;
@@ -97,7 +98,7 @@ export class Army {
     }
 
         /* Removes an actor from the army.*/
-    removeActor(actor) {
+    public removeActor(actor) {
         const index = this._actors.findIndex(
             a => a.getID() === actor.getID()
         );
@@ -108,31 +109,33 @@ export class Army {
         else {
             return false;
         }
-    };
+    }
 
-    removeAllActors() {this._actors = [];};
+    public removeAllActors() {this._actors = [];}
 
         /* Monitor killed actors and remove them from the army.*/
-    notify(evtName, msg) {
+    public notify(evtName, msg) {
         if (evtName === RG.EVT_ACTOR_KILLED) {
             debug(`${this._name} got EVT_ACTOR_KILLED`);
             const actor = msg.actor;
             if (this.hasActor(actor)) {
                 if (!this.removeActor(actor)) {
                     const bName = this.getBattle().getName();
-                    let msg = 'Battle: ' + bName;
-                    msg += "Couldn't remove the actor " + actor.getName();
-                    RG.err('Game.Army', 'notify', msg);
+                    let newMsg = 'Battle: ' + bName;
+                    newMsg += 'Couldn\'t remove the actor ' + actor.getName();
+                    RG.err('Game.Army', 'notify', newMsg);
                 }
                 else {
                     ++this._casualties;
                     const bName = this.getBattle().getName();
-                    let msg = `Battle: ${bName}, Army ${this._name}`;
-                    msg += ` Actor: ${actor.getID()}`;
-                    debug(`\tCasualties: ${this._casualties} ${msg}`);
+                    let newMsg = `Battle: ${bName}, Army ${this._name}`;
+                    newMsg += ` Actor: ${actor.getID()}`;
+
+                    debug(`\tCasualties: ${this._casualties} ${newMsg}`);
                     const armyObj = {
                         type: 'Actor killed', army: this
                     };
+
                     debug(`${this._name} emit EVT_ARMY_EVENT`);
                     POOL.emitEvent(RG.EVT_ARMY_EVENT, armyObj);
                     if (this._actors.length === 0) {
@@ -143,10 +146,10 @@ export class Army {
                 }
             }
         }
-    };
+    }
 
 
-    toJSON(): ArmyJSON {
+    public toJSON(): ArmyJSON {
         return {
             name: this._name,
             actors: this._actors.map(actor => actor.getID()),
@@ -159,11 +162,13 @@ export class Army {
  */
 export class Battle {
 
+
+    public hasNotify: boolean;
+    public finished: boolean;
+
     private _name: string;
     private _armies: Army[]; // All actors inside this army
     private _level: Level;
-    public hasNotify: boolean;
-    public finished: boolean;
     private _stats: {[key: string]: number};
 
     constructor(name) {
@@ -183,42 +188,40 @@ export class Battle {
         POOL.listenEvent(RG.EVT_ARMY_EVENT, this);
     }
 
-    getType() {
+    public getType() {
         return 'battle';
     }
 
-    getArmies() {
+    public getArmies() {
         return this._armies.slice();
     }
 
-    setArmies(armies) {
+    public setArmies(armies) {
         this._armies = armies;
         this._armies.forEach(army => {
             army.setBattle(this);
         });
     }
 
-    getName() {
+    public getName() {
         return this._name;
     }
 
-    setLevel(level) {
+    public setLevel(level) {
         this._level = level;
         this._level.setParent(this);
-    };
-
-    getLevel() {
+    }
+    public getLevel() {
         return this._level;
     }
 
-    getStats() {
+    public getStats() {
         return this._stats;
     }
 
-    setStats(stats) {this._stats = stats;};
-
+    public setStats(stats) {this._stats = stats;}
     /* Adds an army to given x,y location.*/
-    addArmy(army, x, y, conf) {
+    public addArmy(army, x, y, conf) {
         const horizontal = conf.horizontal ? true : false;
         const numRows = conf.numRows > 0 ? conf.numRows : 1;
 
@@ -257,11 +260,11 @@ export class Battle {
 
     /* Adds actor to the battle level. Changes underlying base element if actor
      * would get stuck otherwise. */
-    addActor(actor, x, y) {
+    public addActor(actor, x, y) {
         const cell = this._level.getMap().getCell(x, y);
         // TODO workaround for mountain level
         if (!cell.isPassable()) {
-            cell.setBaseElem(RG.ELEM.FLOOR);
+            cell.setBaseElem(ELEM.FLOOR);
         }
         if (!this._level.addActor(actor, x, y)) {
             RG.err('Game.Battle', 'addActor',
@@ -269,13 +272,13 @@ export class Battle {
         }
     }
 
-    armyInThisBattle(army) {
+    public armyInThisBattle(army) {
         const index = this._armies.indexOf(army);
         return index >= 0;
     }
 
     /* Returns true if the battle is over.*/
-    isOver() {
+    public isOver() {
         if (this._armies.length > 1) {
             let numArmies = 0;
             this._armies.forEach(army => {
@@ -293,7 +296,7 @@ export class Battle {
         return false;
     }
 
-    notify(evtName, msg) {
+    public notify(evtName, msg) {
         if (evtName === RG.EVT_ARMY_EVENT) {
             const bName = this.getName();
             debug(`${bName} got EVT_ARMY_EVENT`);
@@ -313,7 +316,7 @@ export class Battle {
     }
 
     /* Serialies the object into JSON. */
-    toJSON(): BattleJSON {
+    public toJSON(): BattleJSON {
         return {
             isJSON: true,
             name: this._name,
@@ -324,7 +327,7 @@ export class Battle {
         };
     }
 
-    removeListeners() {
+    public removeListeners() {
         this._armies.forEach(army => {
             POOL.removeListener(army);
         });
