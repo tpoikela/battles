@@ -1074,6 +1074,9 @@ export class BrainPlayer extends BrainBase {
         if (currMap.isPassable(x, y)) {
           return this.moveToCell(x, y, level);
         }
+        else if (currMap.getCell(x, y).hasDoor()) {
+          return this.tryToToggleDoor();
+        }
         else if (currMap.getCell(x, y).hasActors()) {
           this._restoreBaseSpeed();
           const target = getAttackTarget(currMap, x, y);
