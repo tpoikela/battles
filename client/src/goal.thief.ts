@@ -27,7 +27,7 @@ export class GoalSearchHouse extends Goal.Base {
         this.searchTime = RNG.getUniformInt(20, 40);
     }
 
-    activate() {
+    public activate() {
         this.status = GOAL_ACTIVE;
         const seenCells = this.actor.getBrain().getSeenCells();
         if (!this.floorCells || this.floorCells.length === 0) {
@@ -77,7 +77,7 @@ export class GoalSearchHouse extends Goal.Base {
         }
     }
 
-    process() {
+    public process() {
         this.activateIfInactive();
         --this.searchTime;
         if (this.hasSubGoals()) {
@@ -108,12 +108,12 @@ export class GoalThief extends Goal.Base {
         this.shops = {}; // Stores known shop location
     }
 
-    activate() {
+    public activate() {
         this.status = GOAL_ACTIVE;
         this.chooseThiefTask();
     }
 
-    process() {
+    public process() {
         this.activateIfInactive();
         --this.shopCooldown;
         --this.doorCooldown;
@@ -135,7 +135,7 @@ export class GoalThief extends Goal.Base {
         return this.status;
     }
 
-    isInActiveShop() {
+    public isInActiveShop() {
         const cell = this.actor.getCell();
         if (cell.hasShop()) {
             const shop = cell.getShop();
@@ -147,7 +147,7 @@ export class GoalThief extends Goal.Base {
         return false;
     }
 
-    tryToSellItem() {
+    public tryToSellItem() {
         const inventory = this.actor.getInvEq().getInventory();
         const itemToSell = RNG.arrayGetRand(inventory.getItems());
         const actorCell = this.actor.getCell();
@@ -167,7 +167,7 @@ export class GoalThief extends Goal.Base {
         }
     }
 
-    tryToGoToShopCell() {
+    public tryToGoToShopCell() {
         let nextGoal = null;
         const knownShopCells = Object.values(this.shops);
         if (knownShopCells.length > 0) {
@@ -187,7 +187,7 @@ export class GoalThief extends Goal.Base {
         return nextGoal;
     }
 
-    chooseThiefTask() {
+    public chooseThiefTask() {
         const inventory = this.actor.getInvEq().getInventory();
         const hasItems = !inventory.isEmpty();
         let nextGoal = null;
@@ -242,7 +242,7 @@ export class GoalThief extends Goal.Base {
     }
 
     /* Callback given to Goal.Explore for each x,y explored. */
-    exploreCallback(x, y) {
+    public exploreCallback(x, y) {
         const map = this.actor.getLevel().getMap();
         if (map.hasXY(x, y)) {
             const cell = map.getCell(x, y);
@@ -252,7 +252,7 @@ export class GoalThief extends Goal.Base {
         }
     }
 
-    thiefSeesHouse() {
+    public thiefSeesHouse() {
         const seenCells = this.actor.getBrain().getSeenCells();
         const floorCells = seenCells.filter(c => (
             c.getBaseElem().getType() === 'floorhouse'
