@@ -5,13 +5,20 @@ import fs = require('fs');
 import * as RG from '../client/src/battles';
 import ROT from '../lib/rot';
 import {UtilsSim} from './utils-sim';
+import {PlayerDriver} from '../tests/helpers/player-driver';
+
+type CmdInput = import('../client/src/interfaces').CmdInput;
 
 const Keys = RG.Keys;
 
-const restKey = {code: Keys.KEY.REST};
+const restKey: CmdInput = {code: Keys.KEY.REST};
 const {VMEDIUM} = UtilsSim;
 
 const RNG = RG.Random.getRNG();
+
+UtilsSim.addArg({
+    name: 'driver', type: Boolean, descr: 'Use advanced driver for player'
+});
 const opts = UtilsSim.getOpts();
 
 if (UtilsSim.useBrowser()) {
@@ -43,27 +50,31 @@ const gameConf = {
     seed: 0
 };
 
+const playerDriver = new PlayerDriver();
 const gameFact = new RG.FactoryGame();
 let game = null;
-let fromJSON = new RG.FromJSON();
 
 if (opts.load && opts.file) {
     const buf = fs.readFileSync(opts.file);
     const json = JSON.parse(buf.toString());
-    game = new RG.GameMain();
-    game = fromJSON.createGame(game, json);
+    game = restoreGame(json, playerDriver);
 }
 else {
     game = gameFact.createNewGame(gameConf);
+    playerDriver.setGame(game);
+    playerDriver.setPlayer(game.getPlayer());
 }
 
 let gameJSON = {};
 if (!opts.load) {
     // Simulate 1st serialisation in worker thread
+    console.log('Verify cache before serialisation');
+    RG.verifyLevelCache(game.getLevels()[0]);
     gameJSON = game.toJSON();
 
-    game = new RG.GameMain();
-    game = fromJSON.createGame(game, gameJSON);
+    game = restoreGame(gameJSON, playerDriver);
+    console.log('Verify cache after serialisation');
+    RG.verifyLevelCache(game.getLevels()[0]);
 }
 
 const durTimes: {[key: string]: number} = {
@@ -75,12 +86,10 @@ const fpsArray: number[] = [];
 // Used with expect() later
 const saveFunc = (nTurns) => {
     const saveDur = UtilsSim.time(() => {
-        fromJSON = new RG.FromJSON();
         gameJSON = game.toJSON();
     });
     const restDur = UtilsSim.time(() => {
-        game = new RG.GameMain();
-        game = fromJSON.createGame(game, gameJSON);
+        game = restoreGame(gameJSON, playerDriver);
     });
     const writeDur = UtilsSim.time(() => {
         const {playerName} = gameConf;
@@ -111,7 +120,14 @@ const updateFunc = () => {
         game.simulate(nActors);
     }
     else {
-        game.update(restKey);
+        let nextKey: any = restKey;
+        if (playerDriver) {
+            nextKey = playerDriver.getNextCode();
+            if (Number.isInteger(nextKey)) {
+                nextKey = {code: nextKey};
+            }
+        }
+        game.update(nextKey);
     }
 };
 
@@ -131,13 +147,14 @@ let timeSaveFinished = Date.now();
 const POOL = RG.EventPool.getPool();
 log(`Start RG.POOL listeners: ${POOL.getNumListeners()}`);
 
+
 for (let i = 1; i <= numTurns; i++) {
     // expect(updateFunc).not.to.throw(Error);
     updateFunc();
 
-    if (i === 10) {
+    /* if (i === 10) {
         expect(simulSpellOn1stTurn).not.to.throw(Error);
-    }
+    }*/
     if (i % saveInterval === 0) {
         const timeNow = Date.now();
         const dur = timeNow - timeSaveFinished;
@@ -168,7 +185,6 @@ if (!isNaN(fpsAvg)) {
     info(VMEDIUM, '\tOverall avg FPS: ' + fpsAvg + ' (from array)');
 }
 
-fromJSON = new RG.FromJSON();
 gameJSON = game.toJSON();
 if (fs && fs.writeFileSync) {
     fs.writeFileSync('results/debug-game.json',
@@ -182,3 +198,16 @@ if (level.getMap().useCache) {
 }
 
 log(RG.Evaluator.hist);
+
+
+function restoreGame(json, driver) {
+    const fromJSON = new RG.FromJSON();
+    let newGame = new RG.GameMain();
+    newGame = fromJSON.createGame(newGame, json);
+    if (driver) {
+        driver.setGame(newGame);
+        driver.setPlayer(newGame.getPlayer());
+    }
+    return newGame;
+}
+
