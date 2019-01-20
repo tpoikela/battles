@@ -1,6 +1,9 @@
 
 import RG from './rg';
 
+type Level = import('./level').Level;
+type Cell = import('./map.cell').Cell;
+
 interface IConfData {
     [key: string]: any;
 }
@@ -151,5 +154,62 @@ export function traverseObj(obj: any, failFast?: boolean, maxStack = 30) {
         const msg = allErrors.join('\n');
         throw new Error(msg);
     }
+}
+
+/* Checks that cell items match the level cache of items. */
+export function verifyLevelCache(level: Level) {
+    const items = level.getItems();
+    const map = level.getMap();
+    const cells: Cell[] = map.getCells();
+
+    const cellItems = {};
+    cells.forEach((cell: Cell) => {
+        if (cell.hasItems()) {
+            const cItems = cell.getItems();
+            cItems.forEach(item => {
+                cellItems[item.getID()] = item;
+            });
+        }
+    });
+
+    const levelItems = {};
+    items.forEach(item => {
+        levelItems[item.getID()] = item;
+    });
+
+    const nCellItems = Object.keys(cellItems).length;
+    const nLevelItems = Object.keys(levelItems).length;
+    if (nLevelItems !== nCellItems) {
+        let msg = `nCellItems: ${nCellItems}`;
+        msg += `, nLevelItems: ${nLevelItems}`;
+        console.error('Mismatch in cell/level item length:', msg);
+    }
+
+    const inCellsButNotLevel = [];
+    Object.keys(cellItems).forEach(id => {
+        if (levelItems.hasOwnProperty(id)) {
+            delete levelItems[id];
+        }
+        else {
+            inCellsButNotLevel.push(cellItems[id]);
+        }
+    });
+
+    const inLevelButNotCells = [];
+    Object.keys(levelItems).forEach(id => {
+        if (cellItems.hasOwnProperty(id)) {
+            delete cellItems[id];
+        }
+        else {
+            inLevelButNotCells.push(levelItems[id]);
+        }
+    });
+
+    inCellsButNotLevel.forEach(item => {
+        console.error('\tIn cells but NOT level: ', item.getName());
+    });
+    inLevelButNotCells.forEach(item => {
+        console.error('\tIn level but NOT cells: ', item.getName());
+    });
 }
 
