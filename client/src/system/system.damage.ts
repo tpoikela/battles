@@ -81,8 +81,16 @@ export class SystemDamage extends SystemBase {
         if (!damageSrc) {
             damageSrc = dmgComp.getSource();
         }
-        if (damageSrc && damageSrc.has('Created')) {
+
+        if (damageSrc && damageSrc.has && damageSrc.has('Created')) {
             damageSrc = damageSrc.get('Created').getCreator();
+        }
+        else {
+            if (damageSrc && !damageSrc.has) {
+                console.log('Warning. No damageSrc.has():', damageSrc);
+                RG.err('System.Damage', '_getUltimateDmgSource',
+                   'No damageSrc.has()');
+            }
         }
         return damageSrc;
     }
@@ -221,6 +229,12 @@ export class SystemDamage extends SystemBase {
     /* Returns true if the hit bypasses defender's protection completely. */
     public bypassProtection(ent, src) {
         const bypassChance = RNG.getUniform();
+        if (src && !src.has) {
+            console.log('src is not entity:', src);
+            console.log('With entity:', ent);
+            RG.err('System.Damage', 'bypassProtection', 'No src.has()');
+        }
+
         if (src && src.has('BypassProtection')) {
             return bypassChance <= src.get('BypassProtection').getChance();
         }
