@@ -25,6 +25,10 @@ UtilsSim.optDefs = [
     {name: 'verbosity', alias: 'v', type: String, descr: 'Verbosity level' }
 ];
 
+UtilsSim.addArg = function(arg) {
+    UtilsSim.optDefs.push(arg);
+};
+
 /* Lazy method for getting options. Call this directly if you want to parse the
  * standard args for simulation. */
 UtilsSim.getOpts = function(exitOnHelp = true) {
