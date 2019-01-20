@@ -5,6 +5,7 @@ import {Pickup} from './component/component';
 import {compsToJSON} from './component/component.base';
 import {Random} from './random';
 import {EventPool} from './eventpool';
+import {verifyLevelCache} from './verify';
 import * as Mixin from './mixin';
 import {ELEM} from '../data/elem-constants';
 
@@ -301,6 +302,7 @@ export class Level extends Entity {
 
     /* Adds one item to the given location on the level.*/
     public addItem(item, x, y) {
+        verifyLevelCache(this);
         if (!RG.isNullOrUndef([x, y])) {
             return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
         }
@@ -310,7 +312,9 @@ export class Level extends Entity {
 
     /* Removes an item from the level in x,y position.*/
     public removeItem(item, x, y) {
-        return this._removePropFromLevelXY(RG.TYPE_ITEM, item, x, y);
+        const res = this._removePropFromLevelXY(RG.TYPE_ITEM, item, x, y);
+        verifyLevelCache(this);
+        return res;
     }
 
     public pickupItem(actor) {
