@@ -495,13 +495,19 @@ Component.Loot = Loot;
 
 /* Drops the loot to the given cell.*/
 Loot.prototype.dropLoot = function(cell) {
+    const level = this.getEntity().getLevel();
     if (this._lootEntity.getPropType) {
         const propType = this._lootEntity.getPropType();
         if (propType === 'elements') {
             this.setElemToCell(cell);
         }
+        else if (propType === RG.TYPE_ITEM) {
+            level.addItem(this._lootEntity, cell.getX(), cell.getY());
+            // cell.setProp(propType, this._lootEntity);
+        }
         else {
-            cell.setProp(propType, this._lootEntity);
+            RG.err('Component.Loot', 'dropLoot',
+               'Unsupported propType for entity: ' + propType);
         }
     }
     else {
