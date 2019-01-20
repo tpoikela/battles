@@ -46,6 +46,10 @@ export class DriverBase {
         this._keyBuffer = [];
     }
 
+    public setGame(game: any): void {
+        this._game = game;
+    }
+
     public setKeys(keys: CmdInput[]): void {
         this._keyBuffer = keys.slice();
     }
@@ -136,7 +140,7 @@ export class PlayerDriver extends DriverBase {
     public setPlayer(pl): void {this.player = pl;}
 
     /* Required for the player driver. */
-    public getNextCode() {
+    public getNextCode(): CmdInput {
         let cmdOrCode = super.getNextCode();
         if (cmdOrCode === null) {
             cmdOrCode = this.nextCmd();
