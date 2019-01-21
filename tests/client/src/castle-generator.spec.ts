@@ -13,7 +13,6 @@ describe('CastleGenerator', () => {
 
     it('can create castle levels with default config', () => {
         const conf = CastleGenerator.getOptions();
-        console.log('CastleGEn conf is', JSON.stringify(conf));
         const level = castleGen.create(80, 50, conf);
         expect(level).not.to.be.empty;
 
