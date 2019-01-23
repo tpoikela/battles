@@ -1,6 +1,6 @@
 
 import RG from '../rg';
-import {Entity} from  '../entity';
+import {Entity} from '../entity';
 import {SystemBase} from './system.base';
 import {SentientActor} from '../actor';
 import {Cell} from '../map.cell';
@@ -22,10 +22,6 @@ interface MoveBonuses {
 
 /* This system handles all entity movement.*/
 export class SystemMovement extends SystemBase {
-
-
-
-
 
     public climbRe: RegExp;
     public somethingSpecial: string[];
