@@ -1,16 +1,10 @@
 
 import RG from './rg';
 import {Random} from './random';
-import {TCoord} from './interfaces';
+import {TCoord, BBox} from './interfaces';
 
 const RNG = Random.getRNG();
 
-export interface BBox {
-    ulx: number;
-    uly: number;
-    lrx: number;
-    lry: number;
-}
 
 export interface BBoxOld {
     llx: number;
