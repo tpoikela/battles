@@ -70,6 +70,16 @@
 }
 
 .cell-element-snow {
+    background-color: darken($snow-white, 10%);
+    color: $black;
+};
+
+.cell-element-light-snow {
+    background-color: darken($snow-white, 10%);
+    color: $black;
+};
+
+.cell-element-deep-snow {
     background-color: $snow-white;
     color: $black;
 };
@@ -112,9 +122,19 @@
     color: $blue;
 };
 
+.cell-element-frozen-water {
+    background-color: $snow-white;
+    color: $blue;
+};
+
 .cell-element-tree {
     @include green-elem;
 };
+
+.cell-element-snow-tree {
+    background-color: $snow-white;
+    color: $gray;
+}
 
 .cell-element-grass {
     @include green-elem;
