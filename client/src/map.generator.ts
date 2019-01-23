@@ -13,7 +13,7 @@ import {TemplateLevel} from './template.level';
 import {Crypt} from '../data/tiles.crypt';
 import {Castle} from '../data/tiles.castle';
 import {HouseGenerator} from './houses';
-import {Geometry, BBox} from './geometry';
+import {Geometry} from './geometry';
 import {ELEM} from '../data/elem-constants';
 import {Random} from './random';
 
@@ -22,6 +22,7 @@ import {MapMiner} from '../../lib/map.miner';
 import {MapMountain} from '../../lib/map.mountain';
 import {MapWall} from '../../lib/map.wall';
 import * as Element from './element';
+import {BBox, TCoord} from './interfaces';
 
 const ElementMarker = Element.ElementMarker;
 
@@ -54,6 +55,16 @@ export interface MapConf {
 interface MapObj {
     map: CellMap;
     tiles?: any;
+    paths?: any[];
+    mapGen?: any;
+    houses?: any[];
+    unused?: any[];
+}
+
+interface HouseObj extends BBox {
+    walls: TCoord[];
+    floor: TCoord[];
+    door: TCoord;
 }
 
 /* Returns true if given coordinates are in allowed area. */
@@ -93,6 +104,85 @@ export class MapGenerator {
         }
     }
 
+    /* Given 2-d ascii map, and mapping from ascii to Element, constructs the
+     * map of base elements, and returns it. */
+    public static fromAsciiMap(asciiMap, asciiToElem) {
+        const cols = asciiMap.length;
+        const rows = asciiMap[0].length;
+        const map = new CellMap(cols, rows);
+        for (let x = 0; x < cols; x++) {
+            for (let y = 0; y < rows; y++) {
+                const char = asciiMap[x][y];
+                if (char === '+') {
+                    const marker = new Element.ElementMarker('+');
+                    marker.setTag('door');
+                    // door.setXY(x, y);
+                    map.setBaseElemXY(x, y, asciiToElem['.']);
+                    map.setElemXY(x, y, marker);
+                }
+                else if (asciiToElem.hasOwnProperty(char)) {
+                    const value = asciiToElem[char];
+                    if (typeof value !== 'function') {
+                        map.setBaseElemXY(x, y, value);
+                    }
+                    else {
+                        value(map, x, y);
+                    }
+                }
+            }
+        }
+        return {
+            map
+        };
+    }
+
+    public static getWallElem(wallType): Element.ElementWall {
+        switch (wallType) {
+            case 'wallcave': return ELEM.WALL_CAVE;
+            case 'wallcastle': return ELEM.WALL_CASTLE;
+            case 'wallcrypt': return ELEM.WALL_CRYPT;
+            case 'wallice': return ELEM.WALL_ICE;
+            case 'wallwooden': return ELEM.WALL_WOODEN;
+            default: return ELEM.WALL;
+        }
+    }
+
+    public static getFloorElem(floorType): Element.ElementBase {
+        switch (floorType) {
+            case 'floorcave': return ELEM.FLOOR_CAVE;
+            case 'floorcastle': return ELEM.FLOOR_CASTLE;
+            case 'floorcrypt': return ELEM.FLOOR_CRYPT;
+            case 'floorice': return ELEM.FLOOR_ICE;
+            case 'floorwooden': return ELEM.FLOOR_WOODEN;
+            default: return ELEM.FLOOR;
+        }
+    }
+
+    public static createSplashes(cols, rows, conf) {
+        const elem = conf.elem || ELEM.WATER;
+        const map = new CellMap(cols, rows);
+        const mapGen = new MapForest(cols, rows, conf);
+        mapGen.create((x, y, val) => {
+            map.setBaseElemXY(x, y, ELEM.FLOOR);
+            if (val === 1) {
+                map.setBaseElemXY(x, y, elem);
+            }
+        });
+        return {map};
+    }
+
+    /* Returns a clone of the requested level options. */
+    public static getOptions(value) {
+        if (MapGenerator.options[value]) {
+            return Object.assign({}, MapGenerator.options[value]);
+        }
+        else {
+            RG.warn('MapGenerator', 'getOptions',
+                `Unknown map type ${value}`);
+        }
+        return {};
+    }
+
     public cols: number;
     public rows: number;
     private _mapGen: any;
@@ -107,7 +197,7 @@ export class MapGenerator {
         this._wall = 1;
     }
 
-    createEmptyMap() {
+    public createEmptyMap() {
         const map = new CellMap(this.cols, this.rows);
         const obj = {map};
         return obj;
@@ -115,7 +205,7 @@ export class MapGenerator {
 
     /* Returns an object containing randomized map + all special features
      * based on initialized generator settings. */
-    getMap(conf: MapConf = {}) {
+    public getMap(conf: MapConf = {}) {
         const obj: any = {};
         if (typeof this._mapGen === 'function') {
             obj.map = this._mapGen();
@@ -143,7 +233,7 @@ export class MapGenerator {
 
     /* Creates "ruins" type level with open outer edges and inner
      * "fortress" with some tunnels. */
-    createRuins(cols, rows, conf = {}) {
+    public createRuins(cols, rows, conf = {}) {
         let ruinsConf = {born: [4, 5, 6, 7, 8],
             survive: [2, 3, 4, 5], connected: true};
         ruinsConf = Object.assign(ruinsConf, conf);
@@ -156,7 +246,7 @@ export class MapGenerator {
     }
 
     /* Creates a cellular type dungeon and makes all areas connected.*/
-    createCellular(cols, rows) {
+    public createCellular(cols, rows) {
         const map = new ROT.Map.Cellular(cols, rows,
             {connected: true});
         map.randomize(0.52);
@@ -166,14 +256,14 @@ export class MapGenerator {
         return map;
     }
 
-    createRooms(cols, rows) {
+    public createRooms(cols, rows) {
         const map = new ROT.Map.Digger(cols, rows,
             {roomWidth: [5, 20], dugPercentage: 0.7});
         return map;
     }
 
     /* Creates a town level of size cols X rows. */
-    createTown(cols, rows, conf) {
+    public createTown(cols, rows, conf) {
         const maxTriesHouse = 100;
         const doors = {};
         const wallsHalos = {};
@@ -250,7 +340,7 @@ export class MapGenerator {
         return {map, houses};
     }
 
-    createTownBSP(cols, rows, conf) {
+    public createTownBSP(cols, rows, conf) {
         const maxHouseX = conf.maxHouseX || 100;
         const maxHouseY = conf.maxHouseY || 100;
 
@@ -340,7 +430,7 @@ export class MapGenerator {
         return {map, houses, unused: freeLeaves};
     }
 
-    placeHouse(house, map, x, y) {
+    public placeHouse(house, map, x, y) {
         const coord = house.coord;
         const keys = Object.keys(coord);
         keys.forEach(elemChar => {
@@ -369,8 +459,9 @@ export class MapGenerator {
     /* Creates a house into a given map to a location x0,y0 with given
      * dimensions. Existing doors and walls must be passed to prevent
      * overlapping.*/
-    createHouse(map, x0, y0, xDim, yDim, doors, wallsHalos, freeCoord, wallType) {
-
+    public createHouse(
+        map, x0, y0, xDim, yDim, doors, wallsHalos, freeCoord, wallType
+    ): HouseObj {
         const maxX = x0 + xDim;
         const maxY = y0 + yDim;
 
@@ -472,7 +563,7 @@ export class MapGenerator {
      * using trees. Ratio is conversion ratio of walls to trees. For example,
      * 0.5 on average replaces half the walls with tree, and removes rest of
      * the walls. */
-    createForest(conf) {
+    public createForest(conf) {
         const map = new CellMap(this.cols, this.rows);
         const ratio = conf.ratio;
         this._mapGen = new MapForest(this.cols, this.rows, conf);
@@ -489,7 +580,7 @@ export class MapGenerator {
         return {map};
     }
 
-    createLakes(conf) {
+    public createLakes(conf) {
         const map = new CellMap(this.cols, this.rows);
         this._mapGen = new MapForest(this.cols, this.rows, conf);
         this._mapGen.create((x, y, val) => {
@@ -501,7 +592,7 @@ export class MapGenerator {
         return {map};
     }
 
-    addLakes(map: CellMap, conf, bbox: BBox): void {
+    public addLakes(map: CellMap, conf, bbox: BBox): void {
         const cols = bbox.lrx - bbox.ulx;
         const rows = bbox.lry - bbox.uly;
         this.setGen('lakes', cols, rows);
@@ -527,7 +618,7 @@ export class MapGenerator {
         });
     }
 
-    createWall(cols, rows, conf) {
+    public createWall(cols, rows, conf) {
         const map: CellMap = new CellMap(cols, rows);
         const wallElem = conf.wallElem || ELEM.WALL;
         this._mapGen = new MapWall(cols, rows, conf);
@@ -539,7 +630,7 @@ export class MapGenerator {
         return {map};
     }
 
-    createMountain(cols, rows, conf) {
+    public createMountain(cols, rows, conf): MapObj {
         const map = new CellMap(cols, rows);
         if (!conf) {
             conf = MapGenerator.getOptions('mountain');
@@ -574,7 +665,7 @@ export class MapGenerator {
     }
 
     /* Creates a zig-zagging road across the level from south to north. */
-    createMountainPath(map: CellMap, conf) {
+    public createMountainPath(map: CellMap, conf) {
         const paths = [];
         const nTurns = conf.nRoadTurns || 10;
         let yPerTurn = Math.floor(map.rows / nTurns);
@@ -660,7 +751,7 @@ export class MapGenerator {
     }
 
     /* Creates a mountain summit. */
-    createSummit(cols, rows, conf) {
+    public createSummit(cols, rows, conf): MapObj {
         const map = new CellMap(cols, rows, ELEM.SKY);
 
         const ratio = conf.ratio || 0.3;
@@ -692,7 +783,7 @@ export class MapGenerator {
     }
 
     /* Creates a single cave level. */
-    createCave(cols, rows, conf) {
+    public createCave(cols, rows, conf): MapObj {
         this._mapGen = new MapMiner(cols, rows, conf);
         const map = new CellMap(cols, rows);
         const wallElem = conf.wallElem || ELEM.WALL_CAVE;
@@ -709,7 +800,7 @@ export class MapGenerator {
     }
 
     /* Creates a single crypt level. */
-    createCryptNew(cols, rows, conf: MapConf = {}) {
+    public createCryptNew(cols, rows, conf: MapConf = {}): MapObj {
         const tilesX = conf.tilesX || 12;
         const tilesY = conf.tilesY || 7;
         const level = new TemplateLevel(tilesX, tilesY);
@@ -732,7 +823,7 @@ export class MapGenerator {
     }
 
     /* Creates a castle map using Template.Level and castle tiles. */
-    createCastle(cols, rows, conf: MapConf = {}) {
+    public createCastle(cols, rows, conf: MapConf = {}): MapObj {
         const genParams = conf.genParams || [1, 1, 1, 1];
         const tileSizeX = 5 + genParams[0] + genParams[1];
         const tileSizeY = 5 + genParams[2] + genParams[3];
@@ -782,7 +873,7 @@ export class MapGenerator {
 
     /* Constructs only outer castle wall. Can be used for fortified cities etc.
      * */
-    createCastleWall(cols, rows, conf: MapConf = {}) {
+    public createCastleWall(cols, rows, conf: MapConf = {}): MapObj {
         const tilesX = conf.tilesX || Math.ceil(cols / 7);
         const tilesY = conf.tilesY || Math.ceil(rows / 7);
 
@@ -814,7 +905,7 @@ export class MapGenerator {
 
     /* Creates the actual castle Map.CellList after ascii has been generated from
      * the template. */
-    createCastleMapObj(level, conf) {
+    public createCastleMapObj(level, conf): MapObj {
         const createLeverMarker = (map, x, y) => {
             map.setBaseElemXY(x, y, MapGenerator.getFloorElem(conf.floorType));
             if (conf.preserveMarkers) {
@@ -854,7 +945,7 @@ export class MapGenerator {
         return mapObj;
     }
 
-    createTownWithWall(cols, rows, conf: MapConf = {}) {
+    public createTownWithWall(cols, rows, conf: MapConf = {}): MapObj {
         const tileSize = 7;
         const tilesX = Math.ceil(cols / tileSize);
         const tilesY = Math.ceil(rows / tileSize);
@@ -908,7 +999,7 @@ export class MapGenerator {
         };
     }
 
-    createArctic(cols, rows, conf: MapConf = {}) {
+    public createArctic(cols, rows, conf: MapConf = {}): MapObj {
         const snowRatio = conf.snowRatio || 1.0;
         this.setGen('empty', cols, rows);
         const map = new CellMap(cols, rows);
@@ -917,7 +1008,7 @@ export class MapGenerator {
     }
 
     /* Sets the generator for room generation.*/
-    setGen(type, cols, rows) {
+    public setGen(type, cols, rows): void {
         this.cols = cols;
         this.rows = rows;
         type = type.toLowerCase();
@@ -953,85 +1044,6 @@ export class MapGenerator {
             default: RG.err('MapGen',
                 'setGen', 'this._mapGen type ' + type + ' is unknown');
         }
-    }
-
-    /* Given 2-d ascii map, and mapping from ascii to Element, constructs the
-     * map of base elements, and returns it. */
-    static fromAsciiMap(asciiMap, asciiToElem) {
-        const cols = asciiMap.length;
-        const rows = asciiMap[0].length;
-        const map = new CellMap(cols, rows);
-        for (let x = 0; x < cols; x++) {
-            for (let y = 0; y < rows; y++) {
-                const char = asciiMap[x][y];
-                if (char === '+') {
-                    const marker = new Element.ElementMarker('+');
-                    marker.setTag('door');
-                    // door.setXY(x, y);
-                    map.setBaseElemXY(x, y, asciiToElem['.']);
-                    map.setElemXY(x, y, marker);
-                }
-                else if (asciiToElem.hasOwnProperty(char)) {
-                    const value = asciiToElem[char];
-                    if (typeof value !== 'function') {
-                        map.setBaseElemXY(x, y, value);
-                    }
-                    else {
-                        value(map, x, y);
-                    }
-                }
-            }
-        }
-        return {
-            map
-        };
-    }
-
-    static getWallElem(wallType): Element.ElementWall {
-        switch (wallType) {
-            case 'wallcave': return ELEM.WALL_CAVE;
-            case 'wallcastle': return ELEM.WALL_CASTLE;
-            case 'wallcrypt': return ELEM.WALL_CRYPT;
-            case 'wallice': return ELEM.WALL_ICE;
-            case 'wallwooden': return ELEM.WALL_WOODEN;
-            default: return ELEM.WALL;
-        }
-    }
-
-    static getFloorElem(floorType): Element.ElementBase {
-        switch (floorType) {
-            case 'floorcave': return ELEM.FLOOR_CAVE;
-            case 'floorcastle': return ELEM.FLOOR_CASTLE;
-            case 'floorcrypt': return ELEM.FLOOR_CRYPT;
-            case 'floorice': return ELEM.FLOOR_ICE;
-            case 'floorwooden': return ELEM.FLOOR_WOODEN;
-            default: return ELEM.FLOOR;
-        }
-    }
-
-    static createSplashes(cols, rows, conf) {
-        const elem = conf.elem || ELEM.WATER;
-        const map = new CellMap(cols, rows);
-        const mapGen = new MapForest(cols, rows, conf);
-        mapGen.create((x, y, val) => {
-            map.setBaseElemXY(x, y, ELEM.FLOOR);
-            if (val === 1) {
-                map.setBaseElemXY(x, y, elem);
-            }
-        });
-        return {map};
-    }
-
-    /* Returns a clone of the requested level options. */
-    static getOptions(value) {
-        if (MapGenerator.options[value]) {
-            return Object.assign({}, MapGenerator.options[value]);
-        }
-        else {
-            RG.warn('MapGenerator', 'getOptions',
-                `Unknown map type ${value}`);
-        }
-        return {};
     }
 }
 
