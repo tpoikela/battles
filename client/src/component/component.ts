@@ -1669,3 +1669,15 @@ QuestTargetEvent.prototype.setTargetComp = function(target) {
     RG.assertType(target, 'QuestTarget');
     this.targetComp = target;
 };
+
+//---------------------
+// Weather components
+//---------------------
+export const Weather = DataComponent('Weather', {
+    weatherType: 'clear'
+});
+
+export const WeatherEffect = TransientDataComponent('WeatherEffect', {
+    effectType: 'clear'
+});
+
