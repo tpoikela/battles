@@ -20,7 +20,7 @@ type Cell = import('./map.cell').Cell;
 
 export const Actor: any = {};
 
-const ACTOR_NO_ACTION = Object.freeze(() => {});
+export const ACTOR_NO_ACTION = Object.freeze(() => {});
 const EMPTY_ARGS = Object.freeze({});
 const SPEED_COEFF = RG.BASE_SPEED * RG.ACTION_DUR;
 
