@@ -494,5 +494,9 @@ export class Cell {
         });
         return result;
     }
+
+    public isOutdoors(): boolean {
+        return !this._baseElem.has('Indoor');
+    }
 } // }}} Map.Cell
 
