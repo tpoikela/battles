@@ -25,6 +25,7 @@ import * as Element from './element';
 import {BBox, TCoord} from './interfaces';
 
 const ElementMarker = Element.ElementMarker;
+type ElementBase = Element.ElementBase;
 
 const RNG = Random.getRNG();
 
@@ -92,14 +93,24 @@ export class MapGenerator {
 
     public static options: {[key: string]: any};
 
+    // Maps snow fall to different elements
+    public static snowElemMap: {[key: string]: ElementBase};
+
     /* Decorates the given map with snow. ratio is used to control how much
      * snow to put. */
-    public static addRandomSnow(map, ratio) {
-        const freeCells = map.getFree();
+    public static addRandomSnow(map: CellMap, ratio: number): void {
+        const freeCells = map.getFree().filter(c => c.isOutdoors());
+
         for (let i = 0; i < freeCells.length; i++) {
             const addSnow = RNG.getUniform();
+            const cell = freeCells[i];
             if (addSnow <= ratio) {
-                freeCells[i].setBaseElem(ELEM.SNOW);
+                const baseType = cell.getBaseElem().getType();
+                let snowElem = MapGenerator.snowElemMap.default;
+                if (MapGenerator.snowElemMap[baseType]) {
+                    snowElem = MapGenerator.snowElemMap[baseType];
+                }
+                freeCells[i].setBaseElem(snowElem);
             }
         }
     }
@@ -1057,4 +1068,17 @@ MapGenerator.options.mountain = Object.freeze({
     nRoadTurns: 8,
     snowRatio: 0.0
 });
+
+MapGenerator.snowElemMap = {
+    'default': ELEM.SNOW_LIGHT,
+    'light snow': ELEM.SNOW,
+    'snow': ELEM.SNOW_DEEP,
+    'tree': ELEM.TREE_SNOW,
+    'snow-covered tree': ELEM.TREE_SNOW,
+    'water': ELEM.WATER_FROZEN,
+    'frozen water': ELEM.WATER_FROZEN,
+    'grass': ELEM.GRASS_SNOW,
+    'snowy grass': ELEM.GRASS_SNOW,
+    'deep snow': ELEM.SNOW_DEEP,
+};
 
