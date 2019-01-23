@@ -14,21 +14,25 @@ ELEM.BRIDGE = Object.freeze(parser.createElement('bridge'));
 ELEM.CHASM = Object.freeze(parser.createElement('chasm'));
 
 ELEM.GRASS = Object.freeze(parser.createElement('grass'));
+ELEM.GRASS_SNOW = Object.freeze(parser.createElement('snowy grass'));
 ELEM.HIGH_ROCK = Object.freeze(parser.createElement('highrock'));
 ELEM.LAVA = Object.freeze(parser.createElement('lava'));
 ELEM.PATH = Object.freeze(parser.createElement('path'));
 ELEM.ROAD = Object.freeze(parser.createElement('road'));
 ELEM.SKY = Object.freeze(parser.createElement('sky'));
 ELEM.SNOW = Object.freeze(parser.createElement('snow'));
+ELEM.SNOW_DEEP = Object.freeze(parser.createElement('deep snow'));
+ELEM.SNOW_LIGHT = Object.freeze(parser.createElement('light snow'));
 ELEM.STONE = Object.freeze(parser.createElement('stone'));
 ELEM.TREE = Object.freeze(parser.createElement('tree'));
+ELEM.TREE_SNOW = Object.freeze(parser.createElement('snow-covered tree'));
 
-ELEM.FLOOR = Object.freeze(new ElementBase('floor'));
-ELEM.FLOOR_CASTLE = Object.freeze(new ElementBase('floorcastle'));
-ELEM.FLOOR_CAVE = Object.freeze(new ElementBase('floorcave'));
-ELEM.FLOOR_CRYPT = Object.freeze(new ElementBase('floorcrypt'));
-ELEM.FLOOR_HOUSE = Object.freeze(new ElementBase('floorhouse'));
-ELEM.FLOOR_WOODEN = Object.freeze(new ElementBase('floorwooden'));
+ELEM.FLOOR = Object.freeze(parser.createElement('floor'));
+ELEM.FLOOR_CASTLE = Object.freeze(parser.createElement('floorcastle'));
+ELEM.FLOOR_CAVE = Object.freeze(parser.createElement('floorcave'));
+ELEM.FLOOR_CRYPT = Object.freeze(parser.createElement('floorcrypt'));
+ELEM.FLOOR_HOUSE = Object.freeze(parser.createElement('floorhouse'));
+ELEM.FLOOR_WOODEN = Object.freeze(parser.createElement('floorwooden'));
 
 ELEM.WALL = Object.freeze(new ElementWall('wall'));
 ELEM.WALL_CASTLE = Object.freeze(new ElementWall('wallcastle'));
@@ -40,6 +44,7 @@ ELEM.WALL_MOUNT = Object.freeze(new ElementWall('wallmount'));
 
 // ELEM.WATER = Object.freeze(new Element.Water());
 ELEM.WATER = Object.freeze(parser.createElement('water'));
+ELEM.WATER_FROZEN = Object.freeze(parser.createElement('frozen water'));
 ELEM.FORT = Object.freeze(parser.createElement('fort'));
 
 export const ELEM_MAP: any = {};

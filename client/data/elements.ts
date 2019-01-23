@@ -17,6 +17,10 @@ const Elements = [
         char: '"'
     },
     {
+        name: 'snowy grass', className: 'cell-element-snowy-grass',
+        char: '"'
+    },
+    {
         name: 'highrock', className: 'cell-element-highrock',
         char: '^', addComp: ['Impassable', 'Opaque']
     },
@@ -26,23 +30,28 @@ const Elements = [
     },
     {
         name: 'floorcastle', className: 'cell-element-floor-castle',
-        char: '.'
+        char: '.',
+        addComp: ['Indoor']
     },
     {
         name: 'floorcave', className: 'cell-element-floor-cave',
-        char: '.'
+        char: '.',
+        addComp: ['Indoor']
     },
     {
         name: 'floorcrypt', className: 'cell-element-floor-crypt',
-        char: '.'
+        char: '.',
+        addComp: ['Indoor']
     },
     {
         name: 'floorhouse', className: 'cell-element-floor-house',
-        char: '.'
+        char: '.',
+        addComp: ['Indoor']
     },
     {
         name: 'floorwooden', className: 'cell-element-floor-wooden',
-        char: '.'
+        char: '.',
+        addComp: ['Indoor']
     },
     {
         name: 'fort', className: 'cell-element-fort',
@@ -65,7 +74,15 @@ const Elements = [
         char: '~', addComp: ['Impassable']
     },
     {
+        name: 'light snow', className: 'cell-element-light-snow',
+        char: '.',
+    },
+    {
         name: 'snow', className: 'cell-element-snow',
+        char: '.',
+    },
+    {
+        name: 'deep snow', className: 'cell-element-deep-snow',
         char: '.',
     },
     {
@@ -77,7 +94,16 @@ const Elements = [
         char: 'T', addComp: ['Opaque']
     },
     {
+        name: 'snow-covered tree', className: 'cell-element-snow-tree',
+        char: 'T', addComp: ['Opaque']
+    },
+    {
         name: 'water', className: 'cell-element-water',
+        char: '~',
+        // addComp: {name: 'Terrain', setters: {setDifficulty: 5}}
+    },
+    {
+        name: 'frozen water', className: 'cell-element-frozen-water',
         char: '~',
         // addComp: {name: 'Terrain', setters: {setDifficulty: 5}}
     },
