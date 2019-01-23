@@ -16,6 +16,14 @@ export interface ICoordXY {
     level?: Level;
 }
 
+/* Defines a bounding box of coordinates. */
+export interface BBox {
+    ulx: number;
+    uly: number;
+    lrx: number;
+    lry: number;
+}
+
 /* Used to pass player input (keys/mouse) to the game */
 export interface PlayerCmdInput {
     code?: number;
