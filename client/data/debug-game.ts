@@ -19,7 +19,7 @@ import {MapGenerator} from '../src/map.generator';
 import {Random} from '../src/random';
 import {Spell} from '../src/spell';
 import {Texts} from '../data/texts';
-import {VirtualActor} from '../src/actor.virtual';
+import {VirtualActor, WeatherActor} from '../src/actor.virtual';
 import {ELEM} from '../data/elem-constants';
 
 import {Quest, QuestPopulate} from '../src/quest-gen';
@@ -311,6 +311,13 @@ DebugGame.prototype.createArena = function(obj, game, player) {
         level.moveActorTo(target, pX, pY + 1 + i);
         target.get('Stats').setSpeed(10);
     });
+
+    // Test the weather system here
+    const weatherComp = new Component.Weather();
+    weatherComp.setWeatherType('snowStorm');
+    level.add(weatherComp);
+    const weatherActor = new WeatherActor('Weather actor');
+    level.addVirtualProp(RG.TYPE_ACTOR, weatherActor);
 
     return game;
 };
