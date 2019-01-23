@@ -101,6 +101,10 @@ import {SystemTimeEffects} from './system.time-effects';
 export {SystemTimeEffects} from './system.time-effects';
 System.TimeEffects = SystemTimeEffects;
 
+import {SystemWeather} from './system.weather';
+export {SystemWeather} from './system.weather';
+System.Weather = SystemWeather;
+
 /* Defines a new system declaration. Can be used in plugins to define new
  * systems easily without boilerplate code. */
 System.defineSystem = function(sysName: string): any {
@@ -108,7 +112,6 @@ System.defineSystem = function(sysName: string): any {
     RG.SYS[nameCaps] = Symbol();
 
     const SystemDecl = class extends SystemBase {
-        private _init?(compTypes: string[], ...args: any[]): void;
 
         constructor(compTypes, ...argsList) {
             super(RG.SYS[nameCaps], compTypes);
@@ -116,6 +119,8 @@ System.defineSystem = function(sysName: string): any {
                 this._init(compTypes, ...argsList);
             }
         }
+
+        private _init?(compTypes: string[], ...args: any[]): void;
     };
 
     System[sysName] = SystemDecl;

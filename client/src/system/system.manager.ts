@@ -135,7 +135,8 @@ SystemManager.systemOrder = [
     'AreaEffects', 'Disability', 'SpiritBind', 'BaseAction',
     'Equip', 'Attack', 'Chat', 'Shop', 'SpellCast', 'SpellEffect',
     'Missile', 'Movement', 'Effects', 'Animation', 'Damage', 'Battle',
-    'Skills', 'Quest', 'ExpPoints', 'Communication', 'Events'
+    'Skills', 'Quest', 'ExpPoints', 'Communication', 'Events',
+    'Weather'
 ];
 
 
@@ -168,5 +169,6 @@ SystemManager.systems = {
     Animation: ['Animation'],
     ExpPoints: ['ExpPoints', 'Experience'],
     Communication: ['Communication'],
-    Quest: ['GiveQuest', 'QuestCompleted', 'QuestTargetEvent']
+    Quest: ['GiveQuest', 'QuestCompleted', 'QuestTargetEvent'],
+    Weather: ['WeatherEffect']
 };
