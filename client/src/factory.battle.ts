@@ -13,7 +13,7 @@ import * as Component from './component';
 import * as GoalsTop from './goals-top';
 import * as Element from './element';
 
-import {BBox} from './geometry';
+import {BBox} from './interfaces';
 
 type Level = import('./level').Level;
 type SentientActor = import('./actor').SentientActor;
@@ -50,7 +50,7 @@ export class FactoryBattle {
 
     /* Creates one battle into the level. TODO: Decide how to modify difficulty
      * etc. */
-    createBattle(parentLevel, conf: BattleConf = {}): Battle {
+    public createBattle(parentLevel, conf: BattleConf = {}): Battle {
         const cols = conf.cols || 80;
         const rows = conf.rows || 40;
 
@@ -151,7 +151,7 @@ export class FactoryBattle {
         return battle;
     }
 
-    getFactions(conf): string[] {
+    public getFactions(conf): string[] {
         let fact1 = null;
         let fact2 = null;
         if (conf.factions) {
@@ -168,7 +168,7 @@ export class FactoryBattle {
     }
 
     /* Creates an army of specified faction. */
-    createArmy(battle: Battle, faction: string, conf): Army {
+    public createArmy(battle: Battle, faction: string, conf): Army {
         const parser = ObjectShell.getParser();
         const armySize = conf.armySize || 20;
         const maxDanger = conf.danger || 5;
@@ -215,7 +215,7 @@ export class FactoryBattle {
         return army;
     }
 
-    makeArmiesAsEnemies(armies: Army[]): void {
+    public makeArmiesAsEnemies(armies: Army[]): void {
         // Make army actors into each others enemies
         armies.forEach(army1 => {
             armies.forEach(army2 => {
@@ -241,7 +241,7 @@ export class FactoryBattle {
         });
     }
 
-    createBattleLevel(cols, rows, conf): Level {
+    public createBattleLevel(cols, rows, conf): Level {
         const levelType = conf.levelType || 'forest';
         const forestConf = RG.getForestConf(cols, rows);
         const battleLevel = FactoryLevel.createLevel(levelType, cols, rows,
@@ -249,7 +249,7 @@ export class FactoryBattle {
         return battleLevel;
     }
 
-    addCommanderAbilities(actor: SentientActor): void {
+    public addCommanderAbilities(actor: SentientActor): void {
         const brain = new Brain.BrainGoalOriented(actor);
         const topGoal = new GoalsTop.ThinkCommander(actor);
         actor.setBrain(brain);
