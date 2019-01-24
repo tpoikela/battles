@@ -846,7 +846,8 @@ FromJSON.prototype.createActor = function(json) {
             msg = 'No json.new given. JSON obj: ' + jsonStr;
         }
         else {
-            msg = `${json.new} not in RG.Actor. JSON obj: ` + jsonStr;
+            const keys = Object.keys(Actor);
+            msg = `${json.new} not in RG.Actor: ${keys}. JSON obj: ` + jsonStr;
         }
         RG.err('Game.FromJSON', 'createActor', msg);
     }
