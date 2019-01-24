@@ -95,6 +95,7 @@ export class MapGenerator {
 
     // Maps snow fall to different elements
     public static snowElemMap: {[key: string]: ElementBase};
+    public static snowMeltMap: {[key: string]: ElementBase};
 
     /* Decorates the given map with snow. ratio is used to control how much
      * snow to put. */
@@ -1070,7 +1071,7 @@ MapGenerator.options.mountain = Object.freeze({
 });
 
 MapGenerator.snowElemMap = {
-    'default': ELEM.SNOW_LIGHT,
+    'floor': ELEM.SNOW_LIGHT,
     'light snow': ELEM.SNOW,
     'snow': ELEM.SNOW_DEEP,
     'tree': ELEM.TREE_SNOW,
@@ -1080,5 +1081,14 @@ MapGenerator.snowElemMap = {
     'grass': ELEM.GRASS_SNOW,
     'snowy grass': ELEM.GRASS_SNOW,
     'deep snow': ELEM.SNOW_DEEP,
+};
+
+MapGenerator.snowMeltMap = {
+    'light snow': ELEM.FLOOR,
+    'snow': ELEM.SNOW_LIGHT,
+    'snow-covered tree': ELEM.TREE,
+    'frozen water': ELEM.WATER,
+    'snowy grass': ELEM.GRASS,
+    'deep snow': ELEM.SNOW,
 };
 
