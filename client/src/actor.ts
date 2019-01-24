@@ -358,7 +358,7 @@ export class SentientActor extends BaseActor {
         };
 
         if (obj.type === null) {
-            RG.err('Actor.Rogue', 'toJSON',
+            RG.err('Actor.Sentient', 'toJSON',
                 `Type null for ${JSON.stringify(obj)}`);
         }
 
