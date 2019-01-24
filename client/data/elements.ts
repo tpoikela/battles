@@ -18,7 +18,7 @@ const Elements = [
     },
     {
         name: 'snowy grass', className: 'cell-element-snowy-grass',
-        char: '"'
+        char: '"', addComp: ['Snowy']
     },
     {
         name: 'highrock', className: 'cell-element-highrock',
@@ -75,15 +75,15 @@ const Elements = [
     },
     {
         name: 'light snow', className: 'cell-element-light-snow',
-        char: '.',
+        char: '.', addComp: ['Snowy']
     },
     {
         name: 'snow', className: 'cell-element-snow',
-        char: '.',
+        char: '.', addComp: ['Snowy']
     },
     {
         name: 'deep snow', className: 'cell-element-deep-snow',
-        char: '.',
+        char: '.', addComp: ['Snowy']
     },
     {
         name: 'stone', className: 'cell-element-stone',
@@ -95,7 +95,7 @@ const Elements = [
     },
     {
         name: 'snow-covered tree', className: 'cell-element-snow-tree',
-        char: 'T', addComp: ['Opaque']
+        char: 'T', addComp: ['Opaque', 'Snowy']
     },
     {
         name: 'water', className: 'cell-element-water',
@@ -104,7 +104,7 @@ const Elements = [
     },
     {
         name: 'frozen water', className: 'cell-element-frozen-water',
-        char: '~',
+        char: '~', addComp: ['Snowy']
         // addComp: {name: 'Terrain', setters: {setDifficulty: 5}}
     },
 
