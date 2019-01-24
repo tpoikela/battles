@@ -1683,3 +1683,7 @@ export const WeatherEffect = TransientDataComponent('WeatherEffect', {
 
 /* Added to elements that are indoors. */
 export const Indoor = UniqueTagComponent('Indoor');
+
+/* Added to elements having some snow. */
+export const Snowy = UniqueTagComponent('Snowy');
+
