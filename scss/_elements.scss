@@ -8,6 +8,11 @@
     color: $tree-color;
 }
 
+@mixin frozen-elem {
+    background-color: $snow-white;
+    color: $gray;
+}
+
 .cell-elements {
     background-color: $purple;
     color: $white;
@@ -132,12 +137,15 @@
 };
 
 .cell-element-snow-tree {
-    background-color: $snow-white;
-    color: $gray;
+    @include frozen-elem;
 }
 
 .cell-element-grass {
     @include green-elem;
+};
+
+.cell-element-snowy-grass {
+    @include frozen-elem;
 };
 
 .cell-element-stone {
