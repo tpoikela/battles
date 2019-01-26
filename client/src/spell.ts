@@ -242,8 +242,7 @@ interface SpellAddComp {
     comp: ComponentBase;
 }
 
-interface SpellRemoveComp {
-}
+type SpellRemoveComp = string[];
 
 export interface SpellArgs {
     addComp?: SpellAddComp;
@@ -271,7 +270,7 @@ const getDirSpellArgs = function(spell, args): SpellArgs {
     const obj = {
         from: src.getXY(),
         dir: args.dir,
-        spell: spell,
+        spell,
         src: args.src
     };
     return obj;
@@ -802,9 +801,9 @@ Spell.BoltBase = function(name, power) {
         if (lineXY.length > 1) {
             const dX = lineXY[1][0] - lineXY[0][0];
             const dY = lineXY[1][1] - lineXY[0][1];
-            const args = {dir: [dX, dY]};
+            const newArgs = {dir: [dX, dY]};
             if (typeof cb === 'function') {
-                cb(actor, args);
+                cb(actor, newArgs);
             }
             else {
                 RG.err('Spell.BoltBase', 'aiShouldCastSpell',
@@ -1062,9 +1061,9 @@ Spell.SummonBase = function(name, power) {
                 while (nPlaced < nActors) {
                     const [x, y] = RNG.arrayGetRand(coord);
                     if (map.hasXY(x, y)) {
-                        const cell = map.getCell(x, y);
-                        if (cell.isFree()) {
-                            this._createAndAddActor(cell, args);
+                        const newCell = map.getCell(x, y);
+                        if (newCell.isFree()) {
+                            this._createAndAddActor(newCell, args);
                             ++nPlaced;
                         }
                     }
@@ -1131,9 +1130,9 @@ Spell.SummonBase = function(name, power) {
             minion.addFriend(caster);
             caster.addFriend(minion);
 
-            const name = caster.getName();
+            const casterName = caster.getName();
             const summonName = minion.getName();
-            const msg = `${name} summons ${summonName}!`;
+            const msg = `${casterName} summons ${summonName}!`;
             RG.gameMsg({cell, msg});
             if (typeof this.postSummonCallback === 'function') {
                 this.postSummonCallback(cell, args, minion);
@@ -1528,8 +1527,8 @@ Spell.AreaBase = function(name, power) {
         spellComp.setArgs(obj);
         args.src.add(spellComp);
 
-        const name = args.src.getName();
-        const msg = `Huge ${this.getName()} emanates from ${name}`;
+        const srcName = args.src.getName();
+        const msg = `Huge ${this.getName()} emanates from ${srcName}`;
         RG.gameMsg({msg, cell: args.src.getCell()});
     };
 
@@ -1778,14 +1777,14 @@ Spell.addAllSpells = book => {
 
 Spell.defineSpell = function(name: string, superclass: any) {
     const SpellDecl = class extends superclass {
-        private _init?(...args: any[]): void;
         constructor(...args: any[]) {
             super(name, 0);
             if (this._init && typeof this._init === 'function') {
                 this._init(...args);
             }
         }
-    }
+        private _init?(...args: any[]): void;
+    };
     Spell[name] = SpellDecl;
     return SpellDecl;
 };
