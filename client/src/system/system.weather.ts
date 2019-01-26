@@ -8,6 +8,8 @@ import {Random} from '../random';
 
 const RNG = Random.getRNG();
 
+/* Handles WeatherEffect components and has handler functions for
+ * different types of weather effects. */
 export class SystemWeather extends SystemBase {
 
     private _effTable: {[key: string]: (ent, comp) => void};
@@ -23,7 +25,6 @@ export class SystemWeather extends SystemBase {
 
     public updateEntity(ent): void {
         if (ent.has('WeatherEffect')) {
-            console.log('Updating WeatherEffect');
             const eff = ent.get('WeatherEffect');
             const effName = eff.getEffectType();
             if (this._effTable[effName]) {
@@ -39,8 +40,9 @@ export class SystemWeather extends SystemBase {
         MapGenerator.addRandomSnow(map, 0.1);
     }
 
+    /* Melts down the snow located in the level with the entity. */
     protected handleMeltSnow(ent, comp): void {
-        const ratio = 0.05;
+        const ratio = 0.10;
         const map = ent.getLevel().getMap();
         const snowCells = map.getFree().filter(c => c.getBaseElem().has('Snowy'));
         snowCells.forEach(cell => {
