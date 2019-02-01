@@ -811,9 +811,14 @@ FromJSON.prototype.createElement = function(elem): ElementBase {
     else if (type === 'exploration') {
         const expElem = new Element.ElementExploration();
         expElem.setExp(elemJSON.setExp);
-        expElem.setMsg(elemJSON.setMsg);
+        // expElem.setMsg(elemJSON.setMsg);
         if (elemJSON.data) {expElem.setData(elemJSON.data);}
         createdElem = expElem;
+    }
+
+    // Finally, restore messages (if any)
+    if (elemJSON.msg) {
+        createdElem.setMsg(elemJSON.msg);
     }
 
     if (createdElem) {
