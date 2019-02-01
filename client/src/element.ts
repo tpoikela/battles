@@ -21,6 +21,8 @@ export const Element: any = {};
 const wallRegexp = /wall/;
 const obstacleRegexp = /(?:highrock|water|chasm|wall)/;
 
+type StringMap = {[key: string]: string};
+
 Element.canJumpOver = type => {
     return !(wallRegexp.test(type) || (/highrock/).test(type));
 };
@@ -50,50 +52,63 @@ export class ElementBase extends Mixin.Typed(Entity) {
         super({propType: RG.TYPE_ELEM, type});
         RG.elementsCreated += 1; // Used for debugging only
         this._name = name;
+        this.msg = {};
     }
 
-    public getName() {return this._name;}
-    public setName(name) {this._name = name;}
+    public getName(): string {return this._name;}
+    public setName(name: string) {this._name = name;}
 
-    public isWall() {
+    public isWall(): boolean {
         return wallRegexp.test(this.getType());
     }
 
-    public isObstacle() {
+    public isObstacle(): boolean {
         return obstacleRegexp.test(this.getType());
     }
 
-    public isPassable() {
+    public isPassable(): boolean {
         return !this.has('Impassable');
     }
 
-    public isPassableByAir() {
+    public isPassableByAir(): boolean {
         if (this.has('Impassable')) {
             return this.get('Impassable').canFlyOver;
         }
         return true;
     }
 
-    public isSpellPassable() {
+    public isSpellPassable(): boolean {
         if (this.has('Impassable')) {
             return this.get('Impassable').spellPasses;
         }
         return true;
     }
 
-    public lightPasses() {
+    public lightPasses(): boolean {
         return !this.has('Opaque');
+    }
+
+    public setMsg(msg: StringMap): void {
+        this.msg = msg;
+    }
+
+    public getMsg(msgType: string): string {
+        return this.msg[msgType];
+    }
+
+    public hasMsg(msgType: string): boolean {
+        return this.msg.hasOwnProperty(msgType);
     }
 
     /* Should be enough for stateless elements.
      * Does not work for doors or stairs etc. */
     public toJSON(): ElementJSON {
         const components = compsToJSON(this);
-        const obj = {
+        const obj: any = {
             id: this.getID(),
             name: this.getName(),
             type: this.getType(),
-            components
+            msg: this.msg
         };
         if (components) {
             obj.components = components;
@@ -316,11 +331,14 @@ export class ElementDoor extends Mixin.Locatable(ElementBase) {
     }
 
     public toJSON() {
-        return {
+        const json: any = super.toJSON();
+        json.closed = this._closed;
+        return json;
+        /* return {
             id: this.getID(),
             type: 'door',
             closed: this._closed
-        };
+        };*/
     }
 }
 Element.Door = ElementDoor;
@@ -502,25 +520,24 @@ export class ElementExploration extends Mixin.Locatable(ElementBase) {
     constructor() {
         super('exploration');
         this.exp = 0;
-        this.msg = '';
     }
 
-    public setData(data) {
+    public setData(data): void {
         this.data = data;
     }
 
-    public addData(key, val) {
+    public addData(key, val): void {
         this.data[key] = val;
     }
 
     public getData() {return this.data;}
 
-    public hasData() {
+    public hasData(): boolean {
         if (this.data) {return true;}
         return false;
     }
 
-    public setExp(exp) {
+    public setExp(exp): void {
         if (Number.isInteger(exp)) {
             this.exp = exp;
         }
@@ -534,18 +551,10 @@ export class ElementExploration extends Mixin.Locatable(ElementBase) {
         return this.exp;
     }
 
-    public setMsg(msg) {
-        this.msg = msg;
-    }
-
-    public getMsg() {
-        return this.msg;
-    }
 
     public toJSON() {
         const json: any = {
             type: this.getType(),
-            setMsg: this.getMsg(),
             setExp: this.getExp()
         };
         if (this.hasData()) {
