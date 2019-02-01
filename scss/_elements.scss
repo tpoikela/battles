@@ -74,17 +74,35 @@
     color: $white;
 }
 
-.cell-element-snow {
+.cell-element-light-snow {
+    background-color: darken($snow-white, 10%);
+    color: darken($snow-white, 10%);
+    // color: $black;
+};
+
+.cell-element-light-snow-tracks {
     background-color: darken($snow-white, 10%);
     color: $black;
 };
 
-.cell-element-light-snow {
+.cell-element-snow {
+    background-color: darken($snow-white, 10%);
+    color: darken($snow-white, 10%);
+    // color: $black;
+};
+
+.cell-element-snow-tracks {
     background-color: darken($snow-white, 10%);
     color: $black;
 };
 
 .cell-element-deep-snow {
+    background-color: $snow-white;
+    color: $snow-white;
+    // color: $black;
+};
+
+.cell-element-deep-snow-tracks {
     background-color: $snow-white;
     color: $black;
 };
