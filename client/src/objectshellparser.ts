@@ -91,7 +91,8 @@ export const Creator = function(db, dbNoRandom) {
             }
         },
         elements: {
-            type: 'setType'
+            type: 'setType',
+            msg: 'setMsg'
         }
     };
 
