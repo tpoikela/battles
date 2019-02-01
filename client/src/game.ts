@@ -9,6 +9,7 @@ import {GameObject} from './game-object';
 import {FactoryWorld} from './factory.world';
 import {Random} from './random';
 import {Geometry} from './geometry';
+import {WorldSimulation} from './world.simulation';
 import * as Component from './component';
 import * as World from './world';
 
@@ -42,6 +43,9 @@ export const GameMain = function() {
     this._rng = new Random();
     this._engine = new Engine(this._eventPool);
     this._master = new GameMaster(this, this._eventPool);
+
+    this._worldSim = new WorldSimulation();
+    this._engine.addRegularUpdate(this._worldSim);
 
     this.globalConf = {};
 
@@ -419,6 +423,11 @@ export const GameMain = function() {
             if (actor.isPlayer()) {
                 this._shownLevel = actor.getLevel();
 
+                this._worldSim.setLevel(this._shownLevel);
+                if (this._overworld) {
+                    this._worldSim.setOwPos(this.getPlayerOwPos());
+                }
+
                 this.checkIfTileChanged(args);
                 this.checkIfExploredZoneLeft(args);
             }
@@ -505,6 +514,7 @@ export const GameMain = function() {
     this.getOverWorld = () => this._overworld;
     this.setOverWorld = (ow) => {
       this._overworld = ow;
+      this._worldSim.setOverWorld(ow);
     };
 
     /* Serializes the game object into JSON. */
@@ -702,7 +712,6 @@ export const GameMain = function() {
 
 }; // }}} GameMain
 
-
 /* Describes a condition when the player has won the game. 1st version pretty
  * much checks if given actor is killed. */
 export class WinCondition {
@@ -710,7 +719,7 @@ export class WinCondition {
     private _name: string;
     private description: string; // Shown when condition filled
 
-    private _condIncomplete = {};
+    private _condIncomplete: {[key: string]: any[]};
     private _condFilled: {[key: string]: boolean};
     private pool: EventPool;
     private _isTrue: boolean;
