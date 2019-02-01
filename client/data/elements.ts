@@ -6,7 +6,10 @@
 const Elements = [
     {
         name: 'bridge', className: 'cell-element-bridge',
-        char: '='
+        char: '=',
+        msg: {
+            onEnter: 'You are standing on a bridge.'
+        }
     },
     {
         name: 'chasm', className: 'cell-element-chasm',
@@ -14,11 +17,17 @@ const Elements = [
     },
     {
         name: 'grass', className: 'cell-element-grass',
-        char: '"'
+        char: '"',
+        msg: {
+            onEnter: 'You see some grass.'
+        }
     },
     {
         name: 'snowy grass', className: 'cell-element-snowy-grass',
-        char: '"', addComp: ['Snowy']
+        char: '"', addComp: ['Snowy'],
+        msg: {
+            onEnter: 'You see some snow-covered grass.'
+        }
     },
     {
         name: 'highrock', className: 'cell-element-highrock',
@@ -68,6 +77,9 @@ const Elements = [
     {
         name: 'road', className: 'cell-element-road',
         char: '.',
+        msg: {
+            onEnter: 'You tread lightly on the road.'
+        }
     },
     {
         name: 'sky', className: 'cell-element-sky',
@@ -75,15 +87,47 @@ const Elements = [
     },
     {
         name: 'light snow', className: 'cell-element-light-snow',
-        char: '.', addComp: ['Snowy']
+        char: '.', addComp: ['Snowy'],
+        msg: {
+            onEnter: 'A thin layer of snow is on the ground'
+        }
+    },
+    {
+        name: 'light snow with tracks',
+        className: 'cell-element-light-snow-tracks',
+        char: '.', addComp: ['Snowy'],
+        msg: {
+            onEnter: 'Someone has traversed this thin crust of snow'
+        }
     },
     {
         name: 'snow', className: 'cell-element-snow',
-        char: '.', addComp: ['Snowy']
+        char: '.', addComp: ['Snowy'],
+        msg: {
+            onEnter: 'Ground is covered with snow.'
+        }
+    },
+    {
+        name: 'snow with tracks', className: 'cell-element-snow-tracks',
+        char: '.', addComp: ['Snowy'],
+        msg: {
+            onEnter: 'Someone has left their tracks on snow'
+        }
     },
     {
         name: 'deep snow', className: 'cell-element-deep-snow',
-        char: '.', addComp: ['Snowy']
+        char: '.', addComp: ['Snowy'],
+        msg: {
+            onEnter: 'Snow is deep and difficult to traverse here'
+        }
+    },
+    {
+        name: 'deep snow with tracks',
+        className: 'cell-element-deep-snow-tracks',
+        char: '.', addComp: ['Snowy'],
+        msg: {
+            onEnter: 'Snow is deep, but there are some tracks here'
+        }
     },
     {
         name: 'stone', className: 'cell-element-stone',
@@ -91,20 +135,32 @@ const Elements = [
     },
     {
         name: 'tree', className: 'cell-element-tree',
-        char: 'T', addComp: ['Opaque']
+        char: 'T', addComp: ['Opaque'],
+        msg: {
+            onEnter: 'There is a tree here.'
+        }
     },
     {
         name: 'snow-covered tree', className: 'cell-element-snow-tree',
-        char: 'T', addComp: ['Opaque', 'Snowy']
+        char: 'T', addComp: ['Opaque', 'Snowy'],
+        msg: {
+            onEnter: 'There is a snow-covered tree here.'
+        }
     },
     {
         name: 'water', className: 'cell-element-water',
         char: '~',
+        msg: {
+            onEnter: 'Water slows you down'
+        }
         // addComp: {name: 'Terrain', setters: {setDifficulty: 5}}
     },
     {
         name: 'frozen water', className: 'cell-element-frozen-water',
-        char: '~', addComp: ['Snowy']
+        char: '~', addComp: ['Snowy'],
+        msg: {
+            onEnter: 'There is some ice here'
+        }
         // addComp: {name: 'Terrain', setters: {setDifficulty: 5}}
     },
 
