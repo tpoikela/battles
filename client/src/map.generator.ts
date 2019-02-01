@@ -1073,7 +1073,9 @@ MapGenerator.options.mountain = Object.freeze({
 MapGenerator.snowElemMap = {
     'floor': ELEM.SNOW_LIGHT,
     'light snow': ELEM.SNOW,
+    'light snow with tracks': ELEM.SNOW,
     'snow': ELEM.SNOW_DEEP,
+    'snow with tracks': ELEM.SNOW,
     'tree': ELEM.TREE_SNOW,
     'snow-covered tree': ELEM.TREE_SNOW,
     'water': ELEM.WATER_FROZEN,
@@ -1081,14 +1083,18 @@ MapGenerator.snowElemMap = {
     'grass': ELEM.GRASS_SNOW,
     'snowy grass': ELEM.GRASS_SNOW,
     'deep snow': ELEM.SNOW_DEEP,
+    'deep snow with tracks': ELEM.SNOW_DEEP,
 };
 
 MapGenerator.snowMeltMap = {
     'light snow': ELEM.FLOOR,
+    'light snow with tracks': ELEM.FLOOR,
     'snow': ELEM.SNOW_LIGHT,
+    'snow with tracks': ELEM.SNOW_LIGHT,
     'snow-covered tree': ELEM.TREE,
     'frozen water': ELEM.WATER,
     'snowy grass': ELEM.GRASS,
     'deep snow': ELEM.SNOW,
+    'deep snow with tracks': ELEM.SNOW,
 };
 
