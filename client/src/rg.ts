@@ -786,6 +786,27 @@ RG.DIR = {
 RG.DIR_NSEW = [RG.DIR.N, RG.DIR.S, RG.DIR.E, RG.DIR.W];
 RG.DIR_DIAG = [RG.DIR.NE, RG.DIR.SE, RG.DIR.NW, RG.DIR.SW];
 
+RG.SEASON = {
+    AUTUMN: 'AUTUMN',
+    AUTUMN_WINTER: 'AUTUMN_WINTER',
+    WINTER: 'WINTER',
+    WINTER_SPRING: 'WINTER_SPRING',
+    SPRING: 'SPRING',
+    SPRING_SUMMER: 'SPRING_SUMMER',
+    SUMMER: 'SUMMER',
+    SUMMER_AUTUMN: 'SUMMER_AUTUMN',
+};
+
+RG.DAY = {
+    DAWN: 'DAWN',
+    MORNING: 'MORNING',
+    NOON: 'NOON',
+    AFTERNOON: 'AFTERNOON',
+    EVENING: 'EVENING',
+    DUSK: 'DUSK',
+    NIGHT: 'NIGHT'
+};
+
 /* Converts a direction (N, S, ...) to 2-d vector. If already,
  * a vector, returns it. */
 RG.dirTodXdY = function(dir) {
