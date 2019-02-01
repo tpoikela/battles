@@ -64,6 +64,18 @@ describe('Game.FromJSON', function() {
         expect(arrow.equals(newArrow)).to.equal(true);
     });
 
+    it('converts a Door element to JSON and back', () => {
+        const door = new Element.ElementDoor(true);
+        door.setMsg({onEnter: 'There is an open door here'});
+        const json = door.toJSON();
+        const newDoor = fromJSON.createElement({obj: json});
+        expect(door.getMsg('onEnter')).to.not.be.empty;
+        expect(newDoor.getMsg('onEnter')).to.not.be.empty;
+        expect(door.getMsg('onEnter')).to.equal(newDoor.getMsg('onEnter'));
+        expect(door.isOpen()).to.equal(newDoor.isOpen());
+        expect(newDoor.getType()).to.equal('door');
+    });
+
     it('Converts level.map JSON back to CellMap', () => {
         const level = factLevel.createLevel('arena', 20, 20);
         const json = level.toJSON();
