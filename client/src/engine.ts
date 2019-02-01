@@ -25,6 +25,10 @@ interface EngineCache {
     visibleValid: boolean;
 }
 
+export interface UpdateObj {
+    update(): void;
+}
+
 type SystemAnimation = System.SystemAnimation;
 
 /* Game engine which handles turn scheduling, systems updates and in-game
@@ -98,7 +102,7 @@ export class Engine {
         return this._msg.hasNew();
     }
 
-    clearMessages() {this._msg.clear();}
+    clearMessages(): void {this._msg.clear();}
 
     /* Returns true if the menu is shown instead of the level. */
     isMenuShown(): boolean {
@@ -115,7 +119,7 @@ export class Engine {
         return this.currPlayer;
     }
 
-    setPlayer(player: SentientActor) {
+    setPlayer(player: SentientActor): void {
         this.currPlayer = player;
     }
 
@@ -123,11 +127,11 @@ export class Engine {
     // MANAGING ACTIVE LEVELS
     //--------------------------------------------------------------
 
-    numActiveLevels() {
+    numActiveLevels(): number {
         return this._activeLevels.length;
     }
 
-    hasLevel(level) {
+    hasLevel(level: Level): boolean {
         return this._levelMap.hasOwnProperty(level.getID());
     }
 
@@ -137,11 +141,11 @@ export class Engine {
 
     // Not a useless function, re-assigned in Game.Main, but needed
     // here for testing Engine without Game.Main
-    isGameOver() {
+    isGameOver(): boolean {
         return false;
     }
 
-    isActiveLevel(level) {
+    isActiveLevel(level): boolean {
         const index = this._activeLevels.indexOf(level.getID());
         return index >= 0;
     }
@@ -199,9 +203,17 @@ export class Engine {
 
     /* Adds a TimeSystem into the engine. Each system can be updated with given
      * intervals instead of every turn or loop.*/
-    addTimeSystem(name, obj) {
+    addTimeSystem(name, obj): void {
         // Must schedule the system to activate it
         const updateEvent = new Time.GameEvent(100,
+            obj.update.bind(obj), true, 0);
+        this.addEvent(updateEvent);
+    }
+
+    /* Can schedule any object to be updated on certain periodic interval. */
+    addRegularUpdate(obj: UpdateObj, interval = 100): void {
+        // Must schedule the system to activate it
+        const updateEvent = new Time.GameEvent(interval,
             obj.update.bind(obj), true, 0);
         this.addEvent(updateEvent);
     }
@@ -231,7 +243,7 @@ export class Engine {
 
     /* Updates the loop by executing one player command, then looping until
      * next player command.*/
-    updateGameLoop(obj) {
+    updateGameLoop(obj): void {
         this.playerCommand(obj);
         this.currPlayer = this.nextActor as SentientActor;
         this.nextActor = this.getNextActor();
