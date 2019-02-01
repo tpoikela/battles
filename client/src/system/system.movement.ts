@@ -6,6 +6,7 @@ import {SentientActor} from '../actor';
 import {Cell} from '../map.cell';
 import * as Component from '../component';
 import * as Element from '../element';
+import {ELEM} from '../../data/elem-constants';
 
 type BrainPlayer = import('../brain/brain.player').BrainPlayer;
 
@@ -19,6 +20,21 @@ const {addSkillsExp} = SystemBase;
 interface MoveBonuses {
     [key: string]: any;
 }
+
+const snowTracksMap = {
+    'light snow': ELEM.SNOW_LIGHT_TRACKS,
+    'snow': ELEM.SNOW_TRACKS,
+    'deep snow': ELEM.SNOW_DEEP_TRACKS,
+};
+
+// Used to map an element type to another to re-use logic of that type
+const elemTypeMap = {
+    'deep snow': 'snow',
+    'deep snow with tracks': 'snow',
+    'light snow': 'snow',
+    'light snow with tracks': 'snow',
+    'snow with tracks': 'snow',
+};
 
 /* This system handles all entity movement.*/
 export class SystemMovement extends SystemBase {
@@ -175,22 +191,13 @@ export class SystemMovement extends SystemBase {
             }
         }
 
-        const baseType = newCell.getBaseElem().getType();
-        let baseMsg = '';
-        switch (baseType) {
-            case 'bridge': baseMsg = 'You are standing on a bridge.'; break;
-            case 'grass': baseMsg = 'You see some grass.'; break;
-            case 'road': baseMsg = 'You tread lightly on the road.'; break;
-            case 'snow': baseMsg = 'Ground is covered with snow.'; break;
-            case 'tree': baseMsg = 'There is a tree here.'; break;
-            default: break;
-        }
-        if (baseMsg.length > 0) {
-            RG.gameMsg(baseMsg);
+        const newBaseElem = newCell.getBaseElem();
+        if (newBaseElem.hasMsg('onEnter')) {
+            RG.gameMsg(newBaseElem.getMsg('onEnter'));
         }
     }
 
-    public updateEntity(ent) {
+    public updateEntity(ent): void {
         const movComp = ent.get('Movement');
         const [x, y] = movComp.getXY();
 
@@ -226,6 +233,14 @@ export class SystemMovement extends SystemBase {
                     }
                     this.checkMessageEmits(prevCell, cell);
                 }
+
+                const baseElem = cell.getBaseElem();
+                if (baseElem.has('Snowy')) {
+                    const baseType = baseElem.getType();
+                    if (snowTracksMap[baseType]) {
+                        cell.setBaseElem(snowTracksMap[baseType]);
+                    }
+                }
             }
             else {
                 this._moveError(ent);
@@ -236,12 +251,19 @@ export class SystemMovement extends SystemBase {
         }
         ent.remove(movComp);
     }
+
     /* Checks if cell type has changed, and if some penalties/bonuses must be
      * applied to the moved entity. */
-    public checkForStatsMods(ent, prevCell, newCell) {
-        const [prevType, newType] = [prevCell.getBaseElem().getType(),
+    public checkForStatsMods(ent, prevCell, newCell): void {
+        let [prevType, newType] = [prevCell.getBaseElem().getType(),
             newCell.getBaseElem().getType()
         ];
+        if (elemTypeMap[prevType]) {
+            prevType = elemTypeMap[prevType];
+        }
+        if (elemTypeMap[newType]) {
+            newType = elemTypeMap[newType];
+        }
 
         // No cell type change, no need to check the modifiers
         if (prevType === newType) {return;}
@@ -303,7 +325,7 @@ export class SystemMovement extends SystemBase {
     }
 
     /* Checks movements like climbing. */
-    private _checkSpecialMovement(ent: SentientActor, cell: Cell) {
+    private _checkSpecialMovement(ent: SentientActor, cell: Cell): boolean {
         const elemType = cell.getBaseElem().getType();
         if (this.climbRe.test(elemType) && ent.has('Climber')) {
             const msg = `${ent.getName()} climbs the rocky terrain`;
@@ -312,9 +334,10 @@ export class SystemMovement extends SystemBase {
         }
         return false;
     }
+
     /* When player enters exploration element cell, function processes this. At
     *  the moment, this gives only exp to player. */
-    private _processExploreElem(ent: SentientActor, cell: Cell) {
+    private _processExploreElem(ent: SentientActor, cell: Cell): void {
         const level = ent.getLevel();
         const [x, y] = [cell.getX(), cell.getY()];
         const expElemU = cell.getPropType('exploration')[0] as unknown;
@@ -339,8 +362,8 @@ export class SystemMovement extends SystemBase {
                 ent.get('GameInfo').addZone(levelParent.getID());
             }
 
-            let msg = expElem.getMsg();
-            if (msg.length === 0) {
+            let msg = expElem.getMsg('onEnter');
+            if (!msg || msg.length === 0) {
                 msg = `${ent.getName()} has explored zone thoroughly.`;
             }
             RG.gameInfo({cell, msg});
@@ -350,8 +373,9 @@ export class SystemMovement extends SystemBase {
             }
         }
     }
+
     /* Reports an error if an entity could not be removed. */
-    private _moveError(ent) {
+    private _moveError(ent): void {
         const [xOld, yOld] = ent.getXY();
         const level = ent.getLevel();
         const map = level.getMap();
@@ -366,7 +390,7 @@ export class SystemMovement extends SystemBase {
 
 
     /* If removal of moved entity fails, tries to diagnose the error. */
-    private _diagnoseRemovePropError(xTry, yTry, map, ent) {
+    private _diagnoseRemovePropError(xTry, yTry, map, ent): void {
         const propType = ent.getPropType();
         let xFound = -1;
         let yFound = -1;
