@@ -131,7 +131,11 @@ export class OWMap {
         return numWalls;
     }
 
-    getBiome(x, y) {
+    getBiomeMap(): {[key: string]: string} {
+        return this._biomeMap;
+    }
+
+    getBiome(x, y): string {
         const key = x + ',' + y;
         if (this._biomeMap.hasOwnProperty(key)) {
             return this._biomeMap[x + ',' + y];
@@ -151,23 +155,23 @@ export class OWMap {
         return this._baseMap[xy[0]][xy[1]];
     }
 
-    numHWalls() {
+    numHWalls(): number {
         return this._hWalls.length;
     }
 
-    numVWalls() {
+    numVWalls(): number {
         return this._vWalls.length;
     }
 
-    getHWalls() {
+    getHWalls(): OWWall[] {
         return this._hWalls;
     }
 
-    getVWalls() {
+    getVWalls(): OWWall[] {
         return this._vWalls;
     }
 
-    setMap(map) {
+    setMap(map): void {
         const sizeX = map.length;
         this._baseMap = map;
         for (let x = 0; x < sizeX; x++) {
@@ -175,7 +179,7 @@ export class OWMap {
         }
     }
 
-    setTerrMap(terrMap: Territory) {
+    setTerrMap(terrMap: Territory): void {
         this._terrMap = terrMap;
     }
 
@@ -188,17 +192,17 @@ export class OWMap {
         this._biomeMap[key] = biomeType;
     }
 
-    addVWall(wall) {
+    addVWall(wall): void {
         wall.type = 'vertical';
         this._vWalls.push(wall);
     }
 
-    addHWall(wall) {
+    addHWall(wall): void {
         wall.type = 'horizontal';
         this._hWalls.push(wall);
     }
 
-    addFeature(xy, type) {
+    addFeature(xy: TCoord, type: string): void {
         const keyXY = xy[0] + ',' + xy[1];
         if (!this._features.hasOwnProperty(type)) {
             this._features[type] = [];
@@ -210,7 +214,7 @@ export class OWMap {
         this._featuresByXY[keyXY].push(type);
     }
 
-    addFeatureData(xy, data: FeatData) {
+    addFeatureData(xy: TCoord, data: FeatData) {
         const keyXY = xy[0] + ',' + xy[1];
         if (!this._featureData.hasOwnProperty(keyXY)) {
             this._featureData[keyXY] = [];
@@ -218,44 +222,44 @@ export class OWMap {
         this._featureData[keyXY].push(data);
     }
 
-    getFeaturesByType(type) {
+    getFeaturesByType(type: string): TCoord[] {
         if (!this._features.hasOwnProperty(type)) {
             return [];
         }
         return this._features[type];
     }
 
-    getFeaturesByXY(xy) {
+    getFeaturesByXY(xy: TCoord): string[] {
         const keyXY = xy[0] + ',' + xy[1];
         return this._featuresByXY[keyXY];
     }
 
-    addSubLevel(xy, level) {
+    addSubLevel(xy: TCoord, level: Level): void {
         this._subLevels[xy[0]][xy[1]] = level;
     }
 
-    getSubLevel(xy) {
+    getSubLevel(xy: TCoord): Level {
         return this._subLevels[xy[0]][xy[1]];
     }
 
-    clearSubLevels() {
+    clearSubLevels(): void {
         this._subLevels = [];
     }
 
-    getSubLevelsWithFeature(type) {
+    getSubLevelsWithFeature(type: string): Level[] {
         const featXY = this.getFeaturesByType(type);
         return featXY.map(xy => this.getSubLevel(xy));
     }
 
-    getAreaXY() {
+    getAreaXY(): number {
         return this.getSizeX() * this.getSizeY();
     }
 
-    getSizeX() {
+    getSizeX(): number {
         return this._baseMap.length;
     }
 
-    getSizeY() {
+    getSizeY(): number {
         if (this._baseMap[0].length > 0) {
             return this._baseMap[0].length;
         }
@@ -266,15 +270,15 @@ export class OWMap {
         }
     }
 
-    setExplored(xy) {
+    setExplored(xy: TCoord): void {
         this._explored[xy[0] + ',' + xy[1]] = true;
     }
 
-    isExplored(xy) {
+    isExplored(xy: TCoord): boolean {
         return this._explored[xy[0] + ',' + xy[1]];
     }
 
-    toJSON() {
+    toJSON(): any {
         const json: any = {
             baseMap: this._baseMap,
             biomeMap: this._biomeMap,
