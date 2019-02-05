@@ -9,6 +9,7 @@ import {MapGenerator} from '../src/map.generator';
 import {Geometry} from '../src/geometry';
 import {ELEM} from './elem-constants';
 import {ObjectShell} from '../src/objectshellparser';
+import {LevelUtils} from '../src/level-utils';
 
 const dwarvenCityConf = {
   outerColsRatio: 0.45,
@@ -132,7 +133,7 @@ export class DwarvenCity {
         mainFortEastLevel];
 
       const wrapConf = {centerY: true, baseElem: ELEM.WALL};
-      return Geometry.wrapAsLevel(mainFortLevels, wrapConf);
+      return LevelUtils.wrapAsLevel(mainFortLevels, wrapConf);
     }
 
     /* Returns the first entrance fort. */
