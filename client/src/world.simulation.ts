@@ -8,19 +8,23 @@
 import {SeasonManager} from './season-manager';
 import {DayManager} from './day-manager';
 import * as Component from './component/component';
+import {EventPool} from './eventpool';
 
 type OWMap = import('./overworld.map').OWMap;
 type Level = import('./level').Level;
 
 export class WorldSimulation {
 
-    protected seasonMan: SeasonManager;
-    protected dayMan: DayManager;
-    protected currLevel: Level;
+    public static fromJSON: (json: any) => WorldSimulation;
 
-    constructor() {
-        this.dayMan = new DayManager();
-        this.seasonMan = new SeasonManager();
+    public seasonMan: SeasonManager;
+    public dayMan: DayManager;
+    protected currLevel: Level;
+	protected pool: EventPool;
+
+    constructor(pool?: EventPool) {
+        this.dayMan = new DayManager(pool);
+        this.seasonMan = new SeasonManager(pool);
     }
 
     public setLevel(level: Level): void {
@@ -93,8 +97,27 @@ export class WorldSimulation {
         return false;
     }
 
+    public setPool(pool: EventPool): void {
+        this.dayMan.setPool(pool);
+        this.seasonMan.setPool(pool);
+    }
+
     public setOverWorld(ow: OWMap): void {
         this.seasonMan.setBiomeMap(ow.getBiomeMap());
     }
 
+    public toJSON(): any {
+        return {
+            dayManager: this.dayMan.toJSON(),
+            seasonManager: this.seasonMan.toJSON()
+        };
+    }
+
+}
+
+WorldSimulation.fromJSON = function(json: any): WorldSimulation {
+    const ws = new WorldSimulation();
+    ws.dayMan = DayManager.fromJSON(json.dayManager);
+    ws.seasonMan = SeasonManager.fromJSON(json.seasonManager);
+    return ws;
 }
