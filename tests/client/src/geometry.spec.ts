@@ -7,6 +7,7 @@ import * as Element from '../../../client/src/element';
 import * as Item from '../../../client/src/item';
 import {SentientActor} from '../../../client/src/actor';
 import {ObjectShell} from '../../../client/src/objectshellparser';
+import {LevelUtils} from '../../../client/src/level-utils';
 
 describe('Geometry', () => {
 
@@ -177,6 +178,26 @@ describe('Geometry', () => {
 
         expect(floorFill.length).to.equal(dungFloorCells.length);
 
+    });
+
+    it('can wrap multiple levels as one', () => {
+        const levels = [
+            factLevel.createLevel('empty', 10, 20),
+            factLevel.createLevel('empty', 20, 30),
+            factLevel.createLevel('empty', 30, 20)
+        ];
+
+        const conf: any = {centerY: true};
+        const superLevel = LevelUtils.wrapAsLevel(levels, conf);
+        expect(superLevel).to.not.be.empty;
+        expect(superLevel.getMap().cols).to.equal(60);
+        expect(superLevel.getMap().rows).to.equal(30);
+
+        conf.centerX = true;
+        conf.centerY = false;
+        const superLevel2 = LevelUtils.wrapAsLevel(levels, conf);
+        expect(superLevel2.getMap().cols).to.equal(30);
+        expect(superLevel2.getMap().rows).to.equal(70);
     });
 
 });
