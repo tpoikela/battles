@@ -14,13 +14,13 @@ import {GameMain} from '../client/src/game';
 import {Random} from '../client/src/random';
 import {FactoryLevel} from '../client/src/factory.level';
 import {SentientActor} from '../client/src/actor';
-import { EventPool } from '../client/src/eventpool';
+import {EventPool} from '../client/src/eventpool';
 import {Brain} from '../client/src/brain';
+import {Spell} from '../client/src/spell';
+import {FactoryActor} from '../client/src/factory.actors';
+import {Dice} from '../client/src/dice';
 import * as Item from '../client/src/item';
 import * as Component from '../client/src/component';
-import {Spell} from '../client/src/spell';
-import { FactoryActor } from '../client/src/factory.actors';
-import { Dice } from '../client/src/dice';
 
 export const RGTest: any = {};
 
