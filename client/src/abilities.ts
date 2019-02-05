@@ -51,7 +51,7 @@ export class Self extends AbilityBase {
         super('Self');
     }
 
-    getMenuItem(): MenuItem {
+    public getMenuItem(): MenuItem {
         return [
             this.getName(),
             this.activate.bind(this)
@@ -66,7 +66,7 @@ export class Camouflage extends AbilityBase {
         super('Camouflage');
     }
 
-    activate() {
+    public activate() {
         const actor = this.actor;
         actor.add(new Component.Camouflage());
     }
@@ -98,14 +98,14 @@ export class Item extends AbilityBase {
         super(name);
     }
 
-    activate(item) {
+    public activate(item) {
         const json = JSON.stringify(item);
         RG.err('Ability.Item', 'activate',
             'Not impl. in base class. Called with: ' + json);
-    };
+    }
 
     /* Constructs a table of items to select from. */
-    getMenuItem(): MenuItem {
+    public getMenuItem(): MenuItem {
         const items = this.actor.getInvEq().getInventory().getItems();
         const itemMenuItems = items.map(item => (
             [
@@ -125,7 +125,6 @@ export class Item extends AbilityBase {
 Ability.Item = Item;
 
 
-
 /* This ability can be used to sharpen weapons. */
 export class Sharpener extends Ability.Item {
 
@@ -133,7 +132,7 @@ export class Sharpener extends Ability.Item {
         super('Sharpener');
     }
 
-    activate(item) {
+    public activate(item) {
         const name = item.getName();
         if (!item.has('Sharpened')) {
             if (item.getDamageDie) {
