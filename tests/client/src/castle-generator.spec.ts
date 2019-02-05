@@ -20,6 +20,7 @@ describe('CastleGenerator', () => {
         expect(elements.length).to.be.above(0);
 
         const items = level.getItems();
+        console.log(items);
         expect(items.length).to.be.above(4);
 
         expect(castleGen.nItemsAdded).to.be.above(2);

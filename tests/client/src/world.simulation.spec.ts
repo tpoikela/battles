@@ -4,31 +4,70 @@ import RG from '../../../client/src/rg';
 import {WorldSimulation} from '../../../client/src/world.simulation';
 import {DayManager} from '../../../client/src/day-manager';
 import {SeasonManager} from '../../../client/src/season-manager';
+import {EventPool} from '../../../client/src/eventpool';
 
+class Listener {
+
+    public hasNotify: boolean;
+    protected notified: boolean;
+
+    constructor() {
+        this.hasNotify = true;
+        this.notified = false;
+    }
+
+    notify(evt: any): void {
+        this.notified = true;
+    }
+
+    reset(): void {
+        this.notified = false;
+    }
+}
 
 describe('DayManager', () => {
 
+    let pool = null;
+    let listener = null;
+    beforeEach(() => {
+        pool = new EventPool();
+        listener = new Listener();
+    });
+
     it('keeps track of phases of day', () => {
-        const dayMan = new DayManager();
+        pool.listenEvent(RG.EVT_DAY_PHASE_CHANGED, listener);
+        const dayMan = new DayManager(pool);
         const startPhase = dayMan.getCurrPhase();
         while (!dayMan.phaseChanged()) {
             dayMan.update();
         }
         const newPhase = dayMan.getCurrPhase();
         expect(newPhase).to.not.equal(startPhase);
+        expect(listener.notified).to.be.true;
+        listener.reset();
+        expect(listener.notified).to.be.false;
+
+        pool.removeListener(listener);
+        pool.listenEvent(RG.EVT_DAY_CHANGED, listener);
 
         while (!dayMan.dayChanged()) {
             dayMan.update();
         }
         const firstPhase = dayMan.getCurrPhase();
         expect(firstPhase).to.equal(RG.DAY.DAWN);
+        expect(listener.notified).to.be.true;
     });
 
 });
 
 describe('SeasonManager', () => {
+    let pool = null;
+    beforeEach(() => {
+        pool = new EventPool();
+    });
+
     it('it keeps track of season, weather and month', () => {
-        const seasonMan = new SeasonManager();
+        const seasonMan = new SeasonManager(pool);
         const startSeason = seasonMan.getSeason();
         while (!seasonMan.monthChanged()) {
             seasonMan.update();
@@ -49,8 +88,13 @@ describe('SeasonManager', () => {
 });
 
 describe('WorldSimulation', () => {
+    let pool = null;
+    beforeEach(() => {
+        pool = new EventPool();
+    });
+
     it('updates the world state on specific intervals', () => {
-        const wsim = new WorldSimulation();
+        const wsim = new WorldSimulation(pool);
         wsim.update();
 
         const startSeason = wsim.getSeason();
