@@ -1,5 +1,6 @@
 /* Manages time of day. */
 import RG from './rg';
+import {EventPool} from './eventpool';
 
 const phasesOfDay = {
     DAWN: {dur: 1.0, visibility: -1},
@@ -13,18 +14,22 @@ const phasesOfDay = {
 
 export class DayManager {
 
-    protected _currPhase: string;
-    protected _currPhaseLeft: number;
-    protected _updateRate: number;
-    protected _dayChanged: boolean;
-    protected _phaseChanged: boolean;
+    public static fromJSON: (json: any) => DayManager;
 
-    constructor() {
+    public _currPhase: string;
+    public _currPhaseLeft: number;
+    public _updateRate: number;
+    public _dayChanged: boolean;
+    public _phaseChanged: boolean;
+    public pool: EventPool;
+
+    constructor(pool?: EventPool) {
         this._currPhase = RG.DAY.MORNING;
         this._currPhaseLeft = phasesOfDay[this._currPhase].dur;
         this._updateRate = 0.05;
         this._dayChanged = false;
         this._phaseChanged = false;
+        this.pool = pool;
     }
 
     public setUpdateRate(rate: number): void {
@@ -61,10 +66,43 @@ export class DayManager {
         let nextIndex = currIndex + 1;
         if (nextIndex >= phases.length) {
             nextIndex = 0;
+            this.pool.emitEvent(RG.EVT_DAY_CHANGED, {
+                prevPhase: this._currPhase,
+                nextPhase: phases[nextIndex]
+            });
             this._dayChanged = true;
         }
+        this.pool.emitEvent(RG.EVT_DAY_PHASE_CHANGED, {
+            prevPhase: this._currPhase,
+            nextPhase: phases[nextIndex]
+        });
         this._currPhase = phases[nextIndex];
         this._currPhaseLeft = phasesOfDay[this._currPhase].dur;
     }
 
+    public toJSON(): any {
+        return {
+            currPhase: this._currPhase,
+            currPhaseLeft: this._currPhaseLeft,
+            updateRate: this._updateRate,
+            dayChanged: this._dayChanged,
+            phaseChanged: this._phaseChanged
+        };
+    }
+
+    public setPool(pool: EventPool): void {
+        this.pool = pool;
+    }
+
 }
+
+DayManager.fromJSON = function(json: any): DayManager {
+    const dayMan = new DayManager();
+    dayMan._currPhase = json.currPhase;
+    dayMan._currPhaseLeft = json.currPhaseLef;
+    dayMan._updateRate = json.updateRate;
+    dayMan._dayChanged = json.dayChanged;
+    dayMan._phaseChanged = json.phaseChanged;
+    return dayMan;
+}
+
