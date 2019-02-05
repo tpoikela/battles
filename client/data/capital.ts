@@ -18,7 +18,7 @@ export class Capital {
 
   public level: Level;
 
-  constructor(cols, rows, conf: any = {}) { // TODO add typings
+  constructor(cols: number, rows: number, conf: any = {}) { // TODO add typings
     if (RG.isNullOrUndef([cols, rows])) {
         RG.err('Capital', 'constructor',
             'Use new Capital(cols, rows, conf?)');
@@ -38,7 +38,7 @@ export class Capital {
       wallOpts.meanWx = Math.floor(0.9 * cols / 2);
     }
     const factLevel = new FactoryLevel();
-    const mainLevel = factLevel.createLevel('wall', cols, rows, wallOpts);
+    const mainLevel: Level = factLevel.createLevel('wall', cols, rows, wallOpts);
     const mainMap = mainLevel.getMap();
 
     // Not exact position, but give proportions for sub-levels
@@ -75,7 +75,6 @@ export class Capital {
       subLevels.push(level);
 
     }
-
 
     // Calculate position and tile sub-levels into main level
     const y0 = Math.floor(subLevelPos[0] * cols);
@@ -142,15 +141,15 @@ export class Capital {
     this.level = mainLevel;
   }
 
-  setConfig() {
+  setConfig(): void {
 
   }
 
-  buildLevel() {
+  buildLevel(): void {
 
   }
 
-  getLevel() {
+  getLevel(): Level {
     return this.level;
   }
 
