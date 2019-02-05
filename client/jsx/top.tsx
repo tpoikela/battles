@@ -433,7 +433,6 @@ export class BattlesTop extends React.Component {
         this.resetGameState();
         if (this.game !== null) {
             delete this.game;
-            RG.FACT = new RG.Factory.Base();
         }
         // Prepare game configuration
         const conf = Object.assign({}, this.gameConf);
@@ -511,7 +510,6 @@ export class BattlesTop extends React.Component {
         this.resetGameState();
         if (this.game !== null) {
             delete this.game;
-            RG.FACT = new RG.Factory.Base();
         }
         this.game = game;
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
@@ -555,7 +553,6 @@ export class BattlesTop extends React.Component {
         this.resetGameState();
         if (this.game !== null) {
             delete this.game;
-            RG.FACT = new RG.Factory.Base();
         }
 
         if (this.state.seedName === '') {
