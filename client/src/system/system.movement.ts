@@ -9,6 +9,7 @@ import * as Element from '../element';
 import {ELEM} from '../../data/elem-constants';
 
 type BrainPlayer = import('../brain/brain.player').BrainPlayer;
+type Level = import('../level').Level;
 
 import dbg = require('debug');
 const debug = dbg('bitn:System.Movement');
@@ -17,8 +18,22 @@ type ElementExploration = Element.ElementExploration;
 
 const {addSkillsExp} = SystemBase;
 
+
+interface PenaltyObj {
+    value: number;
+    srcComp: string;
+    srcFunc: string;
+    targetComp: string;
+    targetFunc: string;
+}
+
+interface ElementMoveData {
+    dontApplyTo?: string[];
+    mods: PenaltyObj[];
+}
+
 interface MoveBonuses {
-    [key: string]: any;
+    [key: string]: ElementMoveData;
 }
 
 const snowTracksMap = {
@@ -84,14 +99,14 @@ export class SystemMovement extends SystemBase {
         };
     }
 
-    public speedPenalty(scale) {
+    public speedPenalty(scale): PenaltyObj {
         return {
             value: -scale, srcComp: 'Stats', srcFunc: 'getSpeed',
             targetComp: 'StatsMods', targetFunc: 'setSpeed'
         };
     }
 
-    public defensePenalty(scale) {
+    public defensePenalty(scale): PenaltyObj {
         return {
             value: -scale, srcComp: 'Combat', srcFunc: 'getDefense',
             targetComp: 'CombatMods', targetFunc: 'setDefense'
@@ -100,7 +115,7 @@ export class SystemMovement extends SystemBase {
 
     /* If player moved to the square, checks if any messages must
      * be emitted. */
-    public checkMessageEmits(prevCell: Cell, newCell: Cell) {
+    public checkMessageEmits(prevCell: Cell, newCell: Cell): void {
         if (newCell.hasProp(RG.TYPE_ELEM)) {
             if (newCell.hasStairs()) {
                 const stairs = newCell.getStairs();
@@ -338,7 +353,7 @@ export class SystemMovement extends SystemBase {
     /* When player enters exploration element cell, function processes this. At
     *  the moment, this gives only exp to player. */
     private _processExploreElem(ent: SentientActor, cell: Cell): void {
-        const level = ent.getLevel();
+        const level: Level = ent.getLevel();
         const [x, y] = [cell.getX(), cell.getY()];
         const expElemU = cell.getPropType('exploration')[0] as unknown;
         const expElem = expElemU as ElementExploration;
