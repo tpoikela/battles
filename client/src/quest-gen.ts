@@ -23,6 +23,10 @@ const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
 const questGrammar = QuestGrammar.grammar;
 
+type ItemBase = Item.ItemBase;
+
+import {ElementBase} from './element';
+
 /* A task represents a part of a quest. */
 export class Task {
 
@@ -36,14 +40,14 @@ export class Task {
         this.taskType = taskType;
     }
 
-    isTask(): boolean {return true;}
-    isQuest(): boolean {return false;}
+    public isTask(): boolean {return true;}
+    public isQuest(): boolean {return false;}
 
-    getName(): string {
+    public getName(): string {
         return this.name;
     }
 
-    getTaskType(): string {
+    public getTaskType(): string {
         return this.taskType;
     }
 }
@@ -82,19 +86,19 @@ export class Quest {
         }
     }
 
-    setName(name): void {this.name = name;}
-    getName(): string {return this.name;}
-    setMotive(motive: string): void {this.motive = motive;}
-    getMotive(): string {return this.motive;}
-    isTask(): boolean {return false;}
-    isQuest(): boolean {return true;}
+    public setName(name): void {this.name = name;}
+    public getName(): string {return this.name;}
+    public setMotive(motive: string): void {this.motive = motive;}
+    public getMotive(): string {return this.motive;}
+    public isTask(): boolean {return false;}
+    public isQuest(): boolean {return true;}
 
-    getTasks(): Task[] {
+    public getTasks(): Task[] {
         const result = this.steps.filter(step => step.isTask());
         return result as Task[];
     }
 
-    addStep(step: QuestStep): void {
+    public addStep(step: QuestStep): void {
         if (Array.isArray(step)) {
             this.steps = this.steps.concat(step);
         }
@@ -103,7 +107,7 @@ export class Quest {
         }
     }
 
-    numQuests(): number {
+    public numQuests(): number {
         let sum = 1;
         this.steps.forEach(step => {
             if (step.isQuest && step.isQuest()) {
@@ -114,16 +118,16 @@ export class Quest {
     }
 
     /* Returns the number of immediate tasks. */
-    numTasks(): number {
+    public numTasks(): number {
         const numSubquests = this.numQuests() - 1;
         return this.steps.length - numSubquests;
     }
 
-    getSteps(): QuestStep[] {
+    public getSteps(): QuestStep[] {
         return this.steps.slice();
     }
 
-    numSteps(): number {
+    public numSteps(): number {
         return this.steps.length;
     }
 }
@@ -157,6 +161,16 @@ export class QuestGen {
     public static rules: any;
     public static defaultConfig: {[key: string]: any};
 
+    /* Can be used for creating quest grammar/rules from a string in BNF format. */
+    public static parse(grammar: string) {
+        const ast = prettybnf.parse(grammar);
+        const rules = {};
+        ast.productions.forEach(prod => {
+            rules[prod.lhs.text] = prod.rhs.map(extract.bind(null, 'terms'));
+        });
+        return rules;
+    }
+
     public stack: Quest[];
     public currQuest: Quest;
     public ruleHist: any; // TODO fix typings
@@ -166,17 +180,7 @@ export class QuestGen {
         this._init();
     }
 
-    /* Can be used for creating quest grammar/rules from a string in BNF format. */
-    static parse(grammar: string) {
-        const ast = prettybnf.parse(grammar);
-        const rules = {};
-        ast.productions.forEach(prod => {
-            rules[prod.lhs.text] = prod.rhs.map(extract.bind(null, 'terms'));
-        });
-        return rules;
-    }
-
-    _init() {
+    public _init() {
         this.stack = []; // Stack for quests
         this.currQuest = null;
         this.ruleHist = {};
@@ -184,7 +188,7 @@ export class QuestGen {
     }
 
     /* Generates a quest with specific questgiver motive. */
-    genQuestWithMotive(conf: QuestGenConf = {}): Quest {
+    public genQuestWithMotive(conf: QuestGenConf = {}): Quest {
         const {motive} = conf;
         const questRules = conf.rules || QuestGen.rules;
         const [nameRule] = chooseRandomRule(questRules[motive]);
@@ -204,7 +208,7 @@ export class QuestGen {
     /* Main function you want to call. Generates a random quest based on given conf
      * or default conf.
      */
-    genQuestWithConf(conf: QuestGenConf = {}): Quest {
+    public genQuestWithConf(conf: QuestGenConf = {}): Quest {
         if (conf.debug) {debug.enabled = true;}
         const questRules = conf.rules || QuestGen.rules;
         const startRule = conf.startRule || 'QUEST';
@@ -233,7 +237,7 @@ export class QuestGen {
         return this.currQuest;
     }
 
-    genQuestWithName(name: string): Quest {
+    public genQuestWithName(name: string): Quest {
         const quest = new Quest(name);
         const taskGoto = new Task('<goto>already_there');
         quest.addStep(taskGoto);
@@ -242,7 +246,7 @@ export class QuestGen {
         return quest;
     }
 
-    _questMeetsReqs(quest, conf) {
+    public _questMeetsReqs(quest, conf) {
         let ok = true;
 
         // Check if quest min/max length is met
@@ -266,7 +270,7 @@ export class QuestGen {
         return ok;
     }
 
-    generateQuest(rules, rule) {
+    public generateQuest(rules, rule) {
         if (!this.ruleHist[rule]) {this.ruleHist[rule] = 1;}
         else {this.ruleHist[rule] += 1;}
         debug(`generateQuest with rule |${rule}|`);
@@ -291,7 +295,7 @@ export class QuestGen {
         return randRule;
     }
 
-    generateTerm(rules, term) {
+    public generateTerm(rules, term) {
         if (!term.text) {
             const json = JSON.stringify(rules);
             throw new Error(`Null/undef term.text with rules| ${json}|`);
@@ -309,7 +313,7 @@ export class QuestGen {
         return this.generateQuest(rules, term.text);
     }
 
-    _checkIfQuestOver(rule) {
+    public _checkIfQuestOver(rule) {
         if (rule === this.startRule || rule === 'QUEST') {
             debug('Finishing current quest');
             const qLen = this.stack.length;
@@ -369,7 +373,7 @@ export class QuestData {
     }
 
     /* Adds one target for the quest. */
-    addTarget(targetType: string, obj: QuestTargetObj): void {
+    public addTarget(targetType: string, obj: QuestTargetObj): void {
         if (!RG.isEntity(obj)) {
             if (!(obj as QuestObjSurrogate).createTarget) {
                 const json = JSON.stringify(obj);
@@ -391,7 +395,7 @@ export class QuestData {
         }
     }
 
-    replaceTarget(key: string, oldTarget: QuestTargetObj, newTarget: Entity): boolean {
+    public replaceTarget(key: string, oldTarget: QuestTargetObj, newTarget: Entity): boolean {
         const objList = this._stacks[key];
         let index = objList.indexOf(oldTarget);
         if (index >= 0) {
@@ -412,25 +416,25 @@ export class QuestData {
         return false;
     }
 
-    numSteps(): number {
+    public numSteps(): number {
         const num = this.path.length;
         return num;
     }
 
-    keys(): string[] {
+    public keys(): string[] {
         const keys = Object.keys(this._stacks);
         return keys;
     }
 
-    getPathTypes(): string[] {
+    public getPathTypes(): string[] {
         return this.path.map(pair => pair.type);
     }
 
-    getPathTargets(): QuestTargetObj[] {
+    public getPathTargets(): QuestTargetObj[] {
         return this.path.map(pair => pair.target);
     }
 
-    pop(targetType) {
+    public pop(targetType) {
         if (this._stacks[targetType]) {
             return this._stacks[targetType].pop();
         }
@@ -438,13 +442,13 @@ export class QuestData {
     }
 
     /* Reset iterators of the quest data. */
-    resetIter() {
+    public resetIter() {
         this.keys().forEach(targetType => {
             this._ptr[targetType] = 0;
         });
     }
 
-    next(targetType) {
+    public next(targetType) {
         if (this._stacks[targetType]) {
             if (!this._ptr.hasOwnProperty(targetType)) {
                 this._ptr[targetType] = 0;
@@ -458,7 +462,7 @@ export class QuestData {
         return null;
     }
 
-    getCurrent(targetType) {
+    public getCurrent(targetType) {
         if (this._stacks[targetType]) {
             const stack = this._stacks[targetType];
             return stack[stack.length - 1];
@@ -466,7 +470,7 @@ export class QuestData {
         return null;
     }
 
-    getCurrentLocation(): Level {
+    public getCurrentLocation(): Level {
         const location = this.getCurrent('location') as Level;
         if (location) {return location;}
         RG.err('QuestGen', 'getCurrentLocation',
@@ -474,7 +478,7 @@ export class QuestData {
     }
 
     /* Returns human-readable description of the quest. */
-    getDescr() {
+    public getDescr() {
         // this.resetIter();
         let res = '';
         this.path.forEach(pair => {
@@ -487,7 +491,7 @@ export class QuestData {
         return res;
     }
 
-    toJSON() {
+    public toJSON() {
         const path: any = [];
         this.path.forEach(step => {
             const refType = QuestData.mapStepToType[step.type];
@@ -551,6 +555,14 @@ QuestData.mapStepToType = {
 // OBJECT QUEST-POPULATE
 //---------------------------------------------------------------------------
 
+interface CleanupItem {
+    location: Level;
+    item?: ItemBase;
+    actor?: SentientActor;
+    element?: ElementBase;
+    tag?: string;
+}
+
 export class QuestPopulate {
 
     public static supportedKeys: Set<string>;
@@ -564,7 +576,7 @@ export class QuestPopulate {
     public debug: boolean;
 
     private questData: {[key: string]: any}; // TODO
-    private _cleanup: any[]; // TODO
+    private _cleanup: CleanupItem[]; // TODO
     private flags: {[key: string]: boolean};
     private currQuest: QuestData | null;
     private _data: {[key: string]: any[]};
@@ -599,7 +611,7 @@ export class QuestPopulate {
         this.debug = debug.enabled;
     }
 
-    resetData() {
+    public resetData() {
         this.questData = {quests: []};
         this._cleanup = [];
         this.flags = {
@@ -626,14 +638,14 @@ export class QuestPopulate {
         this.questGivers = new Map();
     }
 
-    setDebug(val) {
+    public setDebug(val) {
         this.debug = val;
         debug.enabled = val;
     }
 
     /* Returns previous item of given type. Type refers to actor/item/place/element.
      * */
-    getPrevType(type) {
+    public getPrevType(type) {
         if (this._data.hasOwnProperty(type)) {
             const n = this._data[type].length;
             return this._data[type][n - 1];
@@ -643,7 +655,7 @@ export class QuestPopulate {
 
     /* Creates quests for given tile x,y in area in world. Returns the number
      * of quests successfully created. */
-    createQuests(world, area, x, y) {
+    public createQuests(world, area, x, y) {
         const areaTile = area.getTileXY(x, y);
         const cities = areaTile.getZones('City');
         let numCreated = 0;
@@ -656,7 +668,7 @@ export class QuestPopulate {
     /* Creates quests for given zone located in the areaTile. Returns the number
      * of quests correctly created.
      */
-    createQuestsForZone(zone, areaTile) {
+    public createQuestsForZone(zone, areaTile) {
         const numQuests = this.conf.numQuestsPerZone || 1;
         let numCreated = 0;
         for (let i = 0; i < numQuests; i++) {
@@ -677,7 +689,7 @@ export class QuestPopulate {
     /* Tries to map a quest to world resources. Returns false if does not succeed.
      * Can happen due to missing actors, levels or items etc. Mapping failure
      * should not be an error. */
-    mapQuestToResources(quest, zone, areaTile) {
+    public mapQuestToResources(quest, zone, areaTile) {
         ++this.IND;
         const newQuest = new QuestData();
 
@@ -733,14 +745,14 @@ export class QuestPopulate {
         return true;
     }
 
-    pushQuestCrossRef(key, data) {
+    public pushQuestCrossRef(key, data) {
         if (!this._questCrossRefs.has(key)) {
             this._questCrossRefs.set(key, []);
         }
         this._questCrossRefs.get(key).push(data);
     }
 
-    popQuestCrossRef(key) {
+    public popQuestCrossRef(key) {
         if (this._questCrossRefs.has(key)) {
             const arr = this._questCrossRefs.get(key);
             if (arr.length > 0) {
@@ -756,7 +768,7 @@ export class QuestPopulate {
 
     /* Maps a single task to resources. Prev. or next step may also affect mapping.
      * */
-    mapTask(quest, task, zone, areaTile) {
+    public mapTask(quest, task, zone, areaTile) {
         ++this.IND;
         const taskType = task.getTaskType();
         let ok = false;
@@ -1012,7 +1024,7 @@ export class QuestPopulate {
 
     /* Returns an actor from the given array, who is suitable as quest target
      * or quest giver. */
-    getActorForQuests(actors: SentientActor[]): Entity {
+    public getActorForQuests(actors: SentientActor[]): Entity {
         let actor = RNG.arrayGetRand(actors);
         let numTries = 20;
         let createNew = false;
@@ -1030,7 +1042,7 @@ export class QuestPopulate {
         return actor;
     }
 
-    getActorToKill() {
+    public getActorToKill() {
         const location = this.currQuest.getCurrentLocation();
         let actors = location.getActors();
         actors = actors.filter(a => !a.isPlayer() &&
@@ -1040,39 +1052,39 @@ export class QuestPopulate {
         return RNG.arrayGetRand(actors);
     }
 
-    getActorForReport() {
+    public getActorForReport() {
         const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         return this.getActorForQuests(actors);
     }
 
-    getActorToSpy() {
+    public getActorToSpy() {
         const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         return this.getActorForQuests(actors);
     }
 
     /* Extracts an actor from current location. */
-    getActorToListen() {
+    public getActorToListen() {
         const level = this.currQuest.getCurrentLocation();
         const actorToListen = this.getActorForQuests(level.getActors());
         return actorToListen;
     }
 
-    getActorToEscort() {
+    public getActorToEscort() {
         const level = this.currQuest.getCurrentLocation();
         const actorToEscort = this.getActorForQuests(level.getActors());
         return actorToEscort;
     }
 
-    dbg(msg) {
+    public dbg(msg) {
         if (this.debug) {
             const ind = '=='.repeat(this.IND);
             debug(ind + msg);
         }
     }
 
-    getAlreadyOwnedItem() {
+    public getAlreadyOwnedItem() {
         const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         const player = actors.find(a => a.isPlayer && a.isPlayer());
@@ -1083,7 +1095,7 @@ export class QuestPopulate {
         return null;
     }
 
-    getItemToSteal() {
+    public getItemToSteal() {
         const location = this.currQuest.getCurrentLocation();
         const item = new Item.ItemBase('Quest trophy');
 
@@ -1091,11 +1103,11 @@ export class QuestPopulate {
             return null;
         }
 
-        this._cleanup.push({location, item});
+        this._cleanup.push({location, item, tag: 'getItemToSteal'});
         return item;
     }
 
-    getItemToGather() {
+    public getItemToGather() {
         const location = this.currQuest.getCurrentLocation();
         const item = new Item.ItemBase('Quest item to gather');
 
@@ -1103,18 +1115,18 @@ export class QuestPopulate {
             return null;
         }
 
-        this._cleanup.push({location, item});
+        this._cleanup.push({location, item, tag: 'getItemToGather'});
         return item;
     }
 
-    getReadTarget(zone, areaTile) {
+    public getReadTarget(zone, areaTile) {
         const location = this.currQuest.getCurrentLocation();
         return {
             createTarget: 'createBook', args: [location, zone, areaTile]
         };
     }
 
-    getItemToUse() {
+    public getItemToUse(): ItemBase | null {
         // TODO this cannot create the item directly because if further
         // resource mapping fails, we need to delete the created item
         const location = this.currQuest.getCurrentLocation();
@@ -1125,19 +1137,19 @@ export class QuestPopulate {
         }
 
         const parser = ObjectShell.getParser();
-        const item = parser.createRandomItem(item => item.use);
-        if (!Placer.addEntityToCellType(item, location, c => c.isPassable())) {
+        const itemToPlace = parser.createRandomItem(item => item.use);
+        if (!Placer.addEntityToCellType(itemToPlace, location, c => c.isPassable())) {
             return null;
         }
-        if (item) {
-            this._cleanup.push({location, item});
-            return item;
+        if (itemToPlace) {
+            this._cleanup.push({location, item: itemToPlace, tag: 'getItemToUse'});
+            return itemToPlace;
         }
         return null;
     }
 
     /* Finds a target to repair. */
-    getRepairTarget() {
+    public getRepairTarget() {
         const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
         const elemsToRepair = elems.filter(e => (
@@ -1149,7 +1161,7 @@ export class QuestPopulate {
         return null;
     }
 
-    getEntityToDamage() {
+    public getEntityToDamage() {
         const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
         const doors = elems.filter(elem => elem.getType() === 'door');
@@ -1164,7 +1176,7 @@ export class QuestPopulate {
         return null;
     }
 
-    getEntityToDefend() {
+    public getEntityToDefend() {
         const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         if (actors.length > 0) {
@@ -1173,13 +1185,13 @@ export class QuestPopulate {
         return null;
     }
 
-    getActorToCapture() {
+    public getActorToCapture() {
         const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         return this.getActorForQuests(actors);
     }
 
-    getItemToExchange() {
+    public getItemToExchange() {
         const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
         const shops = elems.filter(elem => elem.getType() === 'shop');
@@ -1200,9 +1212,9 @@ export class QuestPopulate {
     }
 
     /* Returns a level from a new zone (which is not 'zone' arg). */
-    getNewLocation(zone, areaTile): Level {
+    public getNewLocation(zone, areaTile): Level {
         let zones = areaTile.getZones();
-        zones = zones.filter(zone => zone.getType() !== 'battlezone');
+        zones = zones.filter(zz => zz.getType() !== 'battlezone');
 
         let newZone = RNG.arrayGetRand(zones);
         if (zones.length > 1) {
@@ -1215,7 +1227,7 @@ export class QuestPopulate {
         return RNG.arrayGetRand(newZone.getLevels());
     }
 
-    getNewExploreLocation(zone, areaTile): Level | null {
+    public getNewExploreLocation(zone, areaTile): Level | null {
         const dungeons = areaTile.getZones('Dungeon');
         const mountains = areaTile.getZones('Mountain');
         const allZones = dungeons.concat(mountains);
@@ -1236,7 +1248,7 @@ export class QuestPopulate {
         return null;
     }
 
-    getExploreTarget() {
+    public getExploreTarget() {
         const zone = this.getPrevType('zone');
         const levels = zone.getLevels();
         let exploreElem = null;
@@ -1249,7 +1261,7 @@ export class QuestPopulate {
         return exploreElem;
     }
 
-    addQuestComponents(zone): void {
+    public addQuestComponents(zone): void {
         // Sub-quests must be mapped first, so that quest givers can be obtained
         // for parent quetsts
         for (let i = this.questList.length - 1; i >= 0; i--) {
@@ -1308,7 +1320,7 @@ export class QuestPopulate {
 
     }
 
-    addTargetsToGiver(giverComp, questData): void {
+    public addTargetsToGiver(giverComp, questData): void {
         const questID = giverComp.getQuestID();
         this.dbg('addTargetsToGiver now, ID ' + questID);
 
@@ -1332,14 +1344,14 @@ export class QuestPopulate {
         --this.IND;
     }
 
-    _checkTargetValidity(target: Entity): void {
+    public _checkTargetValidity(target: Entity): void {
         if (!RG.isEntity(target)) {
             const msg = 'Non-Entity given: ' + JSON.stringify(target);
             RG.err('QuestPopulate', '_checkTargetValidity', msg);
         }
     }
 
-    setAsQuestTarget(key: string, target: Entity): void {
+    public setAsQuestTarget(key: string, target: Entity): void {
         if (!target) {
             const msg = `Null/undef target with key |${key}|`;
             RG.err('QuestPopulate', 'setAsQuestTarget', msg);
@@ -1365,12 +1377,12 @@ export class QuestPopulate {
         }
     }
 
-    handleRepair(target) {
+    public handleRepair(target) {
         target.add(Component.create('Broken'));
     }
 
     /* Adds some info to listen to for the target actor. */
-    handleListen(target) {
+    public handleListen(target) {
         const questInfo = Component.create('QuestInfo');
         questInfo.setQuestion('Can you tell me something to report?');
         questInfo.setInfo('Generate something to report');
@@ -1379,7 +1391,7 @@ export class QuestPopulate {
         target.add(questInfo);
     }
 
-    handleReport(target) {
+    public handleReport(target) {
         const questReport = Component.create('QuestReport');
         const listenTarget = this.popQuestCrossRef(target);
         if (listenTarget) {
@@ -1388,7 +1400,7 @@ export class QuestPopulate {
         target.add(questReport);
     }
 
-    handleSubQuest(target) {
+    public handleSubQuest(target): void {
         const qTarget = target.get('QuestTarget');
         const giverComp = target.get('QuestGiver');
         if (qTarget && giverComp) {
@@ -1402,7 +1414,7 @@ export class QuestPopulate {
     }
 
     /* Adds a unique name to the given target entity (uses Named comp). */
-    addUniqueName(target) {
+    public addUniqueName(target): void {
         if (!target.has('Named')) {
             const namedComp = Component.create('Named');
             if (target.getName) {
@@ -1415,15 +1427,17 @@ export class QuestPopulate {
             named.setUniqueName(Names.getActorName());
         }
         else if (RG.isItem(target)) {
+            // TODO add proper random name generation
             named.setUniqueName('Quest item ' + RNG.getUniformInt(0, 1000000));
         }
     }
 
-    createBattle(target, zone, areaTile) {
+    public createBattle(target, zone, areaTile) {
         const battleZones = areaTile.getZones('BattleZone');
         if (battleZones.length > 0) {
-            const zone = RNG.arrayGetRand(battleZones);
-            const level = zone.getLevels()[0];
+            const battleZone = RNG.arrayGetRand(battleZones);
+            // BattleZone has only 1 level at the moment
+            const level = battleZone.getLevels()[0];
             return level;
         }
         else {
@@ -1446,7 +1460,7 @@ export class QuestPopulate {
         return null;
     }
 
-    createBook(target, level) {
+    public createBook(target, level) {
         const book = new Item.Book(Names.getBookName());
         const location = this.popQuestCrossRef(target);
         if (location) {
@@ -1467,13 +1481,13 @@ export class QuestPopulate {
         return null;
     }
 
-    createSubQuestTarget(target) {
+    public createSubQuestTarget(target): SentientActor {
         const {subQuest} = target;
         const giver = this.questGivers.get(subQuest);
         return giver;
     }
 
-    cleanUpFailedQuest() {
+    public cleanUpFailedQuest(): void {
         this._cleanup.forEach(cleanupObj => {
             const {location} = cleanupObj;
             if (cleanupObj.item) {
@@ -1482,16 +1496,18 @@ export class QuestPopulate {
                     location.removeItem(cleanupObj.item, x, y);
                 }
                 catch (e) {
+                    const {tag} = cleanupObj;
                     const name = cleanupObj.item.getName();
                     let msg = `Failed to cleanup item ${name} @ ${x},${y}`;
-                    msg += 'Items at loc: ' + JSON.stringify(location.getItems());
+                    msg += '\nTag specified: ' + tag;
                     msg += e.message;
+                    msg += '\nItems at loc: ' + JSON.stringify(location.getItems());
                     RG.err('QuestPopulate', 'cleanUpFailedQuest', msg);
                 }
             }
             else if (cleanupObj.actor) {
                 const [x, y] = cleanupObj.actor.getXY();
-                location.removeActor(cleanupObj.actor, x, y);
+                location.removeActor(cleanupObj.actor);
             }
             else if (cleanupObj.element) {
                 const [x, y] = cleanupObj.element.getXY();
@@ -1548,8 +1564,8 @@ if (runningAsNodeScript) {
 */
 
 function isEntity(obj: any): obj is Entity {
-    if ((<Entity>obj).comps && (<Entity>obj).compsByType && (<Entity>obj).add && (<Entity>obj).get) {
+    if ((obj as Entity).comps && (obj as Entity).compsByType && (obj as Entity).add && (obj as Entity).get) {
         return true;
     }
     return false;
-};
+}
