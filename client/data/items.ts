@@ -7,7 +7,7 @@ import ShellUtils, {meleeHitDamage, color} from './shell-utils';
 const scaleAll = 1.0;
 
 /* Function to scale the item values. For fine-tuning the game balance. */
-function value(type: string | number, val?) {
+function value(type: string | number, val?): number {
     let retVal = 0;
     if (typeof type === 'string') {
         switch (type) {
