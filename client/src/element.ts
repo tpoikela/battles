@@ -566,6 +566,14 @@ export class ElementExploration extends Mixin.Locatable(ElementBase) {
 }
 Element.Exploration = ElementExploration;
 
+export class ElementWeb extends Mixin.Locatable(ElementBase) {
+
+    constructor() {
+        super('web');
+    }
+
+}
+
 /* Used in proc gen to denote places for actors, items and other elements. For
 * example, different places for stairs can be set, and then one chosen. */
 export class ElementPlaceholder extends Mixin.Locatable(ElementBase) {
