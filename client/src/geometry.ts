@@ -13,8 +13,17 @@ export interface BBoxOld {
 }
 
 type Cell = import('./map.cell').Cell;
+type Level = import('./level').Level;
 
 type BBoxType = BBox | BBoxOld;
+
+interface Diamond {
+    N: number[];
+    S: number[];
+    E: number[];
+    W: number[];
+    coord: TCoord[];
+}
 
 /* Contains generic 2D geometric functions for square/rectangle/triangle
  * generation and level manipulation. */
@@ -192,7 +201,7 @@ export const Geometry: any = {
         return res;
     },
 
-    getHollowDiamond(x0: number, y0: number, size: number) {
+    getHollowDiamond(x0: number, y0: number, size: number): Diamond {
         verifyInt([x0, y0, size]);
         const RightX = x0 + 2 * size;
         const midX = x0 + size;
@@ -236,7 +245,7 @@ export const Geometry: any = {
 
     /* Returns true if given coordinate is one of the corners defined by the
      * box. */
-    isCorner(x, y, ulx, uly, lrx, lry) {
+    isCorner(x, y, ulx, uly, lrx, lry): boolean {
         if (x === ulx || x === lrx) {
             return y === uly || y === lry;
         }
@@ -245,7 +254,7 @@ export const Geometry: any = {
 
     /* Removes all xy-pairs from the first array that are contained also in the
      * 2nd one. Returns number of elements removed. */
-    removeMatching(modified, toBeRemoved) {
+    removeMatching(modified, toBeRemoved): number {
         let nFound = 0;
         if (Array.isArray(modified)) {
             toBeRemoved.forEach(xy => {
@@ -277,7 +286,7 @@ export const Geometry: any = {
      * side-by-side and aligned based on the conf. 'alignRight' will be
      * implemented when needed.
      */
-    tileLevels(l1, levels, conf) {
+    tileLevels(l1: Level, levels: Level[], conf): void {
       const {x, y} = conf;
       let currX = x;
       let currY = y;
@@ -306,35 +315,9 @@ export const Geometry: any = {
       }
     },
 
-    /* Wraps given array of levels into new super level. */
-    wrapAsLevel(levels, conf) {
-      const maxCallback = (acc, curr) => Math.max(acc, curr);
-      const levelCols = levels.map(l => l.getMap().cols);
-      const levelRows = levels.map(l => l.getMap().rows);
-      const level = new RG.Map.Level();
-      let map = null;
-
-      const baseElem = conf.baseElem || RG.ELEM.FLOOR;
-      if (conf.centerY) {
-        const rowsMax = levelRows.reduce(maxCallback);
-        const colsTotal = levelCols.reduce((sum, value) => sum + value, 0);
-        map = new RG.Map.CellList(colsTotal, rowsMax, baseElem);
-        level.setMap(map);
-        this.tileLevels(level, levels, {centerY: true, x: 0, y: 0});
-      }
-      else if (conf.centerX) {
-        const rowsTotal = levelRows.reduce((sum, value) => sum + value, 0);
-        const colsMax = levelCols.reduce(maxCallback);
-        map = new RG.Map.CellList(colsMax, rowsTotal, baseElem);
-        level.setMap(map);
-        this.tileLevels(level, levels, {centerX: true, x: 0, y: 0});
-      }
-      return level;
-    },
-
     /* Does a full Map.Level merge from l2 to l1.
     * Actors, items and elements included. l1 will be the merged level. */
-    mergeLevels(l1, l2, startX, startY) {
+    mergeLevels(l1: Level, l2: Level, startX, startY): void {
         const m1 = l1.getMap();
         const m2 = l2.getMap();
 
@@ -387,7 +370,7 @@ export const Geometry: any = {
     },
 
     /* Merges m2 into m1 starting from x,y in m1. Does not move items/actors. */
-    mergeMapBaseElems(m1, m2, startX, startY) {
+    mergeMapBaseElems(m1, m2, startX, startY): void {
         if (m1.cols < m2.cols) {
             const got = `m1: ${m1.cols} m2: ${m2.cols}`;
             RG.err('Geometry', 'mergeMapBaseElems',
@@ -410,7 +393,7 @@ export const Geometry: any = {
         }
     },
 
-    mergeMaps(m1, m2, startX, startY, mergeCb = (c1, c2) => true) {
+    mergeMaps(m1, m2, startX, startY, mergeCb = (c1, c2) => true): void {
         const endX = startX + m2.cols - 1;
         const endY = startY + m2.rows - 1;
         for (let x = startX; x <= endX; x++) {
