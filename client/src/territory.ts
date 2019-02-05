@@ -44,6 +44,15 @@ interface TerrDataMap {
 
 export class Territory {
 
+    /* To-deserialize the territory. */
+    public static fromJSON(json): Territory {
+        const terrMap = new Territory(0, 0, {});
+        Object.keys(json).forEach(key => {
+            terrMap[key] = json[key];
+        });
+        return terrMap;
+    }
+
     public map: string[][];
     public cols: number;
     public rows: number;
@@ -66,7 +75,8 @@ export class Territory {
     public maxNumPos: number;
     public startSize: number;
     public maxFillRatio: number;
-    // By default, use only 4 directions
+
+    // By default, use only 4 directions to advance rivals
     public dirs: string[];
 
     constructor(cols, rows, conf = {}) {
@@ -92,6 +102,7 @@ export class Territory {
         this.maxNumPos = 1; // How many start positions each rival has
         this.startSize = 1; // How many squares each rival gets on 1st move
         this.maxFillRatio = 1.0;
+
         // By default, use only 4 directions
         this.dirs = RG.DIR_NSEW.concat(RG.DIR_DIAG);
 
@@ -104,6 +115,7 @@ export class Territory {
             }
         });
 
+        // Initialize an empty territory map
         for (let i = 0; i < cols; i++) {
             this.map[i] = new Array(rows);
             for (let j = 0; j < rows; j++) {
@@ -112,36 +124,36 @@ export class Territory {
         }
     }
 
-    setRNG(rng) {
+    public setRNG(rng) {
         this.rng = rng;
     }
 
-    getMap() {
+    public getMap(): string[][] {
         return this.map;
     }
 
-    getData(): TerrDataMap {
+    public getData(): TerrDataMap {
         return this.terrData;
     }
 
-    getRivalData(name: string): TerrData | null {
+    public getRivalData(name: string): TerrData | null {
         if (this.terrData[name]) {return this.terrData[name];}
         return null;
     }
 
-    _markEmpty(x, y) {
+    public _markEmpty(x, y): void {
         this.map[x][y] = EMPTY;
         this.empty[x + ',' + y] = [x, y];
         ++this.numEmpty;
     }
 
-    hasRival(xy) {
+    public hasRival(xy: TCoord): boolean {
         return !this.isEmpty(xy) &&
             !this.isFull(xy);
     }
 
     /* Gets the rival name of x,y cell. */
-    getRival(xy) {
+    public getRival(xy) {
         const [x, y] = xy;
         const char = this.map[x][y];
         return this.getName(char);
@@ -151,7 +163,7 @@ export class Territory {
      * marks all cells in this.map as empty which have '.' in map,
      * and all cells full, which have '#' in given map.
      */
-    useMap(map, cellInfo) {
+    public useMap(map, cellInfo) {
         this.numEmpty = 0;
         for (let x = 0; x < map.length; x++) {
             for (let y = 0; y < map[0].length; y++) {
@@ -166,11 +178,11 @@ export class Territory {
         }
     }
 
-    addRival(data: RivalData) {
+    public addRival(data: RivalData) {
         this._initRival(data);
     }
 
-    generate(maxTurns = FILL_ALL) {
+    public generate(maxTurns = FILL_ALL): void {
         this.currRivals = this.rivals.slice();
         this.rng.shuffle(this.currRivals);
         let numTurnsTaken = 0;
@@ -210,19 +222,37 @@ export class Territory {
         }
     }
 
+    /* Updates the territory map by simulating one turn per rival. */
+    public update(): void {
+        this.currRivals = this.rivals.slice();
+        this.rng.shuffle(this.currRivals);
+        this.currRivals.forEach((rival: RivalData) => {
+            const {name} = rival;
+            const xy = this.getRandOpenXY(name);
+            const emptyXY = this.getEmptyAdjacentXY(xy);
+            if (emptyXY) {
+                this._addOccupied(name, emptyXY);
+            }
+            else {
+                this._closeCell(name, xy);
+            }
+        });
+        this.currRivals = [];
+    }
+
     /* Given char representing a rival name on the map, returns name for that
      * rival. */
-    getName(char) {
+    public getName(char) {
         const found = this.rivals.find(rival => rival.char === char);
         if (found) {return found.name;}
         return null;
     }
 
-    getFillRatio() {
+    public getFillRatio() {
         return (this.numCells - this.numEmpty) / this.numCells;
     }
 
-    _hasTurnsLeftToProcess(numTurns, maxTurns) {
+    public _hasTurnsLeftToProcess(numTurns, maxTurns) {
         return (this.hasEmpty()
             && (this.currRivals.length > 0)
             && (numTurns !== maxTurns)
@@ -231,7 +261,7 @@ export class Territory {
     }
 
     /* Returns the starting position for given rival name. */
-    _getStartPosition(name) {
+    public _getStartPosition(name) {
         const contData: TerrData = this.terrData[name];
         const {currPos} = contData;
         const xy = this.getRandEmptyXY();
@@ -263,7 +293,7 @@ export class Territory {
         return xy;
     }
 
-    _addOccupied(name, xy) {
+    public _addOccupied(name, xy) {
         const key = _key(xy);
         this.occupied[key] = xy;
         this.occupiedBy[name].push(xy);
@@ -279,7 +309,7 @@ export class Territory {
         }
     }
 
-    _addStartPosition(name, xy) {
+    public _addStartPosition(name, xy) {
         const contData = this.getRivalData(name);
         const dSize = contData.startSize - 1;
         const startCoord = Geometry.getBoxAround(xy[0], xy[1], dSize, true);
@@ -295,26 +325,26 @@ export class Territory {
         }
     }
 
-    getRandEmptyXY() {
+    public getRandEmptyXY() {
         return this.rng.arrayGetRand(Object.values(this.empty));
     }
 
-    isFull(xy) {
+    public isFull(xy: TCoord): boolean {
         const [x, y] = xy;
         return this.map[x][y] === FULL;
     }
 
-    isEmpty(xy) {
+    public isEmpty(xy: TCoord): boolean {
         const key = _key(xy);
         return this.empty.hasOwnProperty(key);
     }
 
-    getRandOpenXY(name) {
+    public getRandOpenXY(name: string): TCoord {
         const {open} = this.terrData[name];
         return this.rng.arrayGetRand(Object.values(open));
     }
 
-    getEmptyAdjacentXY(xy) {
+    public getEmptyAdjacentXY(xy: TCoord): TCoord {
         const dirs = this.dirs.slice();
         this.rng.shuffle(dirs);
         while (dirs.length > 0) {
@@ -329,22 +359,22 @@ export class Territory {
         return null;
     }
 
-    hasXY(nX, nY) {
+    public hasXY(nX: number, nY: number): boolean {
         return nX >= 0 && nY >= 0 &&
             nX < this.map.length && nY < this.map[0].length;
     }
 
-    _closeCell(name, xy) {
+    public _closeCell(name, xy): void {
         const key = _key(xy);
         this.terrData[name].closed[key] = xy;
         delete this.terrData[name].open[key];
     }
 
-    hasEmpty() {
+    public hasEmpty(): boolean {
         return this.numEmpty > 0;
     }
 
-    mapToString() {
+    public mapToString() {
         const sizeY = this.map[0].length;
         const sizeX = this.map.length;
 
@@ -360,7 +390,7 @@ export class Territory {
     }
 
     /* Histogram of how many cells each contestant occupies. */
-    getAreaProportions() {
+    public getAreaProportions() {
         const hist = {};
         Object.keys(this.occupiedBy).forEach(name => {
             hist[name] = this.occupiedBy[name].length;
@@ -368,7 +398,7 @@ export class Territory {
         return hist;
     }
 
-    _initRival(data: RivalData) {
+    public _initRival(data: RivalData): void {
         this.rivals.push(data);
         const {name, char} = data;
         this.terrData[name] = {
@@ -413,7 +443,7 @@ export class Territory {
     /* Does processing like floodfilling the regions to find continuous areas for
      * different currRivals.
      */
-    postProcessData() {
+    public postProcessData(): void {
         const diag = this.dirs.length > 4 ? true : false;
         const names = Object.keys(this.terrData);
         names.forEach(name => {
@@ -434,7 +464,7 @@ export class Territory {
     }
 
     /* To serialize the territory. */
-    toJSON() {
+    public toJSON() {
         const json = {
             terrData: this.terrData,
             map: this.map,
@@ -448,15 +478,6 @@ export class Territory {
             dirs: this.dirs
         };
         return json;
-    }
-
-    /* To-deserialize the territory. */
-    static fromJSON(json) {
-        const terrMap = new Territory(0, 0, {});
-        Object.keys(json).forEach(key => {
-            terrMap[key] = json[key];
-        });
-        return terrMap;
     }
 }
 
