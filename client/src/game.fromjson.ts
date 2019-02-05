@@ -29,6 +29,7 @@ import * as World from './world';
 import {Random} from './random';
 import {OverWorld} from './overworld';
 import * as Time from './time';
+import {WorldSimulation} from './world.simulation';
 
 import {Brain} from './brain';
 import {BrainPlayer} from './brain/brain.player';
@@ -216,6 +217,10 @@ FromJSON.prototype.createGame = function(game, gameJSON) {
     if (gameJSON.overworld) {
         const overworld = this.restoreOverWorld(gameJSON.overworld);
         game.setOverWorld(overworld);
+    }
+
+    if (gameJSON.worldSim) {
+        game.setWorldSim(this.restoreWorldSim(gameJSON.worldSim));
     }
 
     // Connect levels using this.id2level + this.stairsInfo
@@ -1091,6 +1096,10 @@ FromJSON.prototype.restoreOverWorld = function(json) {
     }
     ow.coordMap = coordMap;
     return ow;
+};
+
+FromJSON.prototype.restoreWorldSim = function(json): WorldSimulation {
+    return WorldSimulation.fromJSON(json);
 };
 
 FromJSON.prototype.restoreEntityData = function() {
