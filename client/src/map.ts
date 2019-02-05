@@ -21,7 +21,7 @@ export interface CellMapJSON {
  * game objects such as actors, items and elements (stairs/traps). */
 export class CellMap {
 
-    public static invertMap(map: CellMap) {
+    public static invertMap(map: CellMap): void {
         for (let x = 0; x < map.cols; x++) {
             for (let y = 0; y < map.rows; y++) {
                 const type = map._map[x][y].getBaseElem().getType();
