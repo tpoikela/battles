@@ -242,7 +242,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'forest wurm', char: 'W', base: 'animal',
         color: color('Green', 'Brown'),
-        attack: 7, defense: 7, protection: 15, damage: '3d10',
+        attack: 12, defense: 7, protection: 15, damage: '3d10',
         hp: 70, danger: 10
     },
 
@@ -251,6 +251,12 @@ export const ActorsData: ActorShell[] = [
         name: 'BeastBase', type: 'beast',
         dontCreate: true,
         enemies: RG.ACTOR_RACES
+    },
+    {
+        name: 'cave dweller', base: 'BeastBase',
+        char: 'C', color: color('Black', 'Red'),
+        attack: 5, defense: 5, protection: 5, damage: '1d10 + 2',
+        hp: 30, danger: 5
     },
     {
         name: 'hezrou', base: 'BeastBase',
