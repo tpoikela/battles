@@ -16,6 +16,9 @@ import {ObjectShell} from './objectshellparser';
 const MIN_ACTORS_ROOM = 2;
 const RNG = Random.getRNG();
 
+import {TCoord} from './interfaces';
+type Level = import('./level').Level;
+
 const popOptions = ['NOTHING', 'LOOT', 'GOLD', 'GUARDIAN', 'ELEMENT', 'CORPSE',
     'TIP'];
 
@@ -170,7 +173,7 @@ export class DungeonPopulate {
         }
     }
 
-    public addPointGuardian(level, point, maxDanger) {
+    public addPointGuardian(level: Level, point: TCoord, maxDanger) {
         const eXY = point;
         if (RG.isNullOrUndef([maxDanger]) || maxDanger < 1) {
             RG.err('DungeonPopulate', 'addPointGuardian',
