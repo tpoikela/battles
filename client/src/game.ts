@@ -13,7 +13,7 @@ import {WorldSimulation} from './world.simulation';
 import * as Component from './component';
 import * as World from './world';
 
-let POOL = EventPool.getPool();
+const POOL = EventPool.getPool();
 
 export const Game: any = {};
 
@@ -44,7 +44,7 @@ export const GameMain = function() {
     this._engine = new Engine(this._eventPool);
     this._master = new GameMaster(this, this._eventPool);
 
-    this._worldSim = new WorldSimulation();
+    this._worldSim = new WorldSimulation(this._eventPool);
     this._engine.addRegularUpdate(this._worldSim);
 
     this.globalConf = {};
@@ -517,6 +517,11 @@ export const GameMain = function() {
       this._worldSim.setOverWorld(ow);
     };
 
+    this.setWorldSim = (ws: WorldSimulation) => {
+        ws.setPool(this._eventPool);
+        this._worldSim = ws;
+    };
+
     /* Serializes the game object into JSON. */
     this.toJSON = () => {
         const obj: any = { // TODO fix typings
@@ -533,6 +538,7 @@ export const GameMain = function() {
         };
 
         if (!this.hasPlaces()) {
+            // Serialize levels directly if there's no world hierarchy
             const levels = [];
             const _levels = this._engine.getLevels();
             _levels.forEach((level) => {
@@ -550,7 +556,6 @@ export const GameMain = function() {
             obj.places = places;
         }
 
-        // TODO places should store their own levels
         const player = this.getPlayer();
         if (player) {
             obj.player = player.toJSON();
@@ -560,6 +565,9 @@ export const GameMain = function() {
         }
         if (this._chunkManager) {
             obj.chunkManager = this._chunkManager.toJSON();
+        }
+        if (this._worldSim) {
+            obj.worldSim = this._worldSim.toJSON();
         }
 
         return obj;
@@ -715,6 +723,7 @@ export const GameMain = function() {
 /* Describes a condition when the player has won the game. 1st version pretty
  * much checks if given actor is killed. */
 export class WinCondition {
+    public hasNotify: boolean;
 
     private _name: string;
     private description: string; // Shown when condition filled
@@ -723,7 +732,6 @@ export class WinCondition {
     private _condFilled: {[key: string]: boolean};
     private pool: EventPool;
     private _isTrue: boolean;
-    public hasNotify: boolean;
     private _notifyCallbacks: {[key: string]: (any) => void};
 
     constructor(name, pool?) {
@@ -740,11 +748,11 @@ export class WinCondition {
         };
     }
 
-    getName() {
+    public getName(): string {
         return this._name;
     }
 
-    setPool(pool: EventPool): void {
+    public setPool(pool: EventPool): void {
         if (pool !== this.pool) {
             if (this.pool.isListener(this)) {
                 this.pool.removeListener(this);
@@ -753,13 +761,13 @@ export class WinCondition {
         this.pool = pool;
     }
 
-    isTrue() {return this._isTrue;}
+    public isTrue() {return this._isTrue;}
 
-    addNotifyCallback(type, func) {
+    public addNotifyCallback(type, func) {
         this._notifyCallbacks[type] = func;
     }
 
-    notify(evtName, args) {
+    public notify(evtName, args) {
         if (this._notifyCallbacks.hasOwnProperty(evtName)) {
             this._notifyCallbacks[evtName](args);
         }
@@ -773,17 +781,17 @@ export class WinCondition {
     }
 
     /* Add an event to listen to for win condition. */
-    _addEvent(type) {
+    public _addEvent(type) {
         this.pool.listenEvent(type, this);
     }
 
-    addActorKilled(actor) {
+    public addActorKilled(actor) {
         this._addEvent(RG.EVT_ACTOR_KILLED);
         this._condIncomplete[RG.EVT_ACTOR_KILLED] = [actor.getID()];
     }
 
     /* Customisable callback fired on condition being true. */
-    onTrue() {
+    public onTrue() {
         let msg = `Condition: ${this._name}, Description: ${this.description}.`;
         msg += 'Congratulations. You have won!';
         RG.gameSuccess(msg);
@@ -791,7 +799,7 @@ export class WinCondition {
     }
 
     // Some default callbacks (if not overwritten)
-    actorKilledCallback(args) {
+    public actorKilledCallback(args) {
         const actor = args.actor;
         const actors = this._condIncomplete[RG.EVT_ACTOR_KILLED];
         if (actors) {
@@ -803,8 +811,8 @@ export class WinCondition {
                 }
             }
         }
-    };
+    }
 
-};
+}
 
 Game.WinCondition = WinCondition;
