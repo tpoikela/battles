@@ -50,7 +50,7 @@ export class LevelCallback {
 
 type LevelParent = Battle | SubZoneBase;
 
-type LevelExtraType = number | string | boolean | {[key: string]: LevelExtraType | LevelExtraType[]};
+export type LevelExtraType = number | string | boolean | {[key: string]: LevelExtraType | LevelExtraType[]};
 
 export interface House {
     door: TCoord;
