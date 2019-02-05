@@ -422,7 +422,7 @@ export const Geometry: any = {
         }
     },
 
-    insertEntity(l1, type, bbox, parser) {
+    insertEntity(l1: Level, type, bbox, parser): void {
         switch (type) {
             case RG.TYPE_ACTOR:
                 this.insertActors(l1, type, bbox, parser);
@@ -455,7 +455,7 @@ export const Geometry: any = {
 
     /* Inserts actors into the given level as rectangle bounded by the
      * coordinates given. Skips non-free cells. */
-    insertActors(l1, actorName, bbox, parser) {
+    insertActors(l1: Level, actorName, bbox, parser) {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
             if (m1.getCell(x, y).isFree()) {
@@ -468,7 +468,7 @@ export const Geometry: any = {
 
     /* Inserts items into the given level as rectangle bounded by the
      * coordinates given. Skips non-free cells. */
-    insertItems(l1, itemName, bbox, parser) {
+    insertItems(l1: Level, itemName, bbox, parser): void {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
             if (m1.getCell(x, y).isFree()) {
@@ -482,7 +482,7 @@ export const Geometry: any = {
     /* Given a list of coordinates (can be any shape), checks if a box xDim *
      * yDim fits anywhere. Returns true if OK, and
      * 'result' will be a list of x,y pairs for the box. */
-    getFreeArea(freeCoord, xDim, yDim, result) {
+    getFreeArea(freeCoord: TCoord[], xDim, yDim, result: TCoord[]): boolean {
         let found = false;
         const left = freeCoord.slice();
         const lookupXY = {};
@@ -518,7 +518,7 @@ export const Geometry: any = {
         return found;
     },
 
-    isLine(x0, y0, x1, y1) {
+    isLine(x0, y0, x1, y1): boolean {
         const isLine = x0 === x1 || y0 === y1
             || Math.abs(x1 - x0) === Math.abs(y1 - y0);
         return isLine;
