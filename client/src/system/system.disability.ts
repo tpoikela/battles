@@ -5,10 +5,17 @@ import {Random} from '../random';
 import {EventPool} from '../eventpool';
 import * as Component from '../component';
 
+import {Cell} from '../map.cell';
+
 const RNG = Random.getRNG();
 
 // Messages emitted for each disability
 const _msg = {
+    Entrapped: {
+        Attack: 'cannot attack while trapped',
+        Movement: 'cannot move while trapped',
+        SpellCast: 'cannot cast spells while trapped'
+    },
     Paralysis: {
         Attack: 'cannot attack under paralysis',
         Movement: 'cannot move under paralysis',
@@ -25,6 +32,10 @@ interface FuncTable {
     [key: string]: (ent) => void;
 }
 
+function removeAttack(ent, msg): void {
+
+}
+
 /* Stun system removes Movement/Attack components from actors to prevent. */
 export class SystemDisability extends SystemBase {
 
@@ -38,6 +49,24 @@ export class SystemDisability extends SystemBase {
 
         // Callbacks to execute for each disability
         this._dispatchTable = {
+            Entrapped: {
+                Attack: ent => {
+                    ent.remove('Attack');
+                    this._emitMsg('Paralysis', 'Attack', ent);
+                },
+                // Entrapped does not directly remove Movement
+                Movement: ent => {
+                    this._handleEntrapped(ent);
+                },
+                SpellCast: ent => {
+                    ent.remove('SpellCast');
+                    this._emitMsg('Entrapped', 'SpellCast', ent);
+                },
+                UseStairs: ent => {
+                    ent.remove('UseStairs');
+                    this._emitMsg('Entrapped', 'UseStairs', ent);
+                }
+            },
             Paralysis: {
                 Attack: ent => {
                     ent.remove('Attack');
@@ -89,7 +118,7 @@ export class SystemDisability extends SystemBase {
         };
 
         // Processing order of the components
-        this._compOrder = ['Paralysis', 'Stun'];
+        this._compOrder = ['Paralysis', 'Entrapped', 'Stun'];
         this._actComp = ['Attack', 'Movement', 'SpellCast'];
     }
 
@@ -111,4 +140,35 @@ export class SystemDisability extends SystemBase {
         const msg = `${entName} ${_msg[comp][actionComp]}`;
         RG.gameMsg({cell, msg});
     }
+
+    public _handleEntrapped(ent): void {
+        const cell: Cell = ent.getCell();
+        const traps = cell.getElements().filter(e => e.has('Entrapping'));
+        let difficulty = 0;
+        traps.forEach(elem => {
+            difficulty += elem.get('Entrapping').getDifficulty();
+        });
+
+        const str = ent.getStrength();
+        const agi = ent.getAgility();
+        const freeProb = (str + agi) / (str + agi + difficulty);
+        if (!RG.isSuccess(freeProb)) {
+            ent.remove('Movement');
+            const msg = `${ent.getName()} is trapped and cannot move!`;
+            RG.gameMsg({cell, msg});
+        }
+        else {
+            const level = ent.getLevel();
+            // Entity is freed, destroy one-shot entraps
+            traps.forEach(elem => {
+                if (elem.get('Entrapping').getDestroyOnMove()) {
+                    level.removeElement(elem, elem.getX(), elem.getY());
+                }
+            });
+            ent.removeAll('Entrapped');
+            const msg = `${ent.getName()} breaks free from traps!`;
+            RG.gameMsg({cell, msg});
+        }
+    }
+
 }
