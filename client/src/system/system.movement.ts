@@ -242,11 +242,19 @@ export class SystemMovement extends SystemBase {
                 ent.setXY(x, y);
 
                 this.checkForStatsMods(ent, prevCell, cell);
+
+                // Emit messages only for the player
                 if (ent.isPlayer && ent.isPlayer()) {
-                    if (cell.hasPropType('exploration')) {
-                        this._processExploreElem((ent as SentientActor), cell);
-                    }
                     this.checkMessageEmits(prevCell, cell);
+                }
+
+                if (cell.hasElements()) {
+                    if (ent.isPlayer && ent.isPlayer()) {
+                        if (cell.hasPropType('exploration')) {
+                            this._processExploreElem((ent as SentientActor), cell);
+                        }
+                    }
+                    this._checkEntrapment(ent, cell);
                 }
 
                 const baseElem = cell.getBaseElem();
@@ -387,6 +395,34 @@ export class SystemMovement extends SystemBase {
                 brain.addMark();
             }
         }
+    }
+
+    /* Checks if entity gets entrapped into the cell. */
+    private _checkEntrapment(ent, cell): void {
+        const elems = cell.getElements();
+        elems.forEach(elem => {
+            if (elem.has('Entrapping')) {
+                if (!ent.has('Entrapped')) {
+                    const diff = elem.get('Entrapping').getDifficulty();
+                    const str = ent.getStrength();
+                    const agi = ent.getAgility();
+                    // TODO use Avoid traps skill also
+                    const avoidProb = (str + agi) / (str + agi + diff);
+                    if (!RG.isSuccess(avoidProb)) {
+                        // TODO check for flying and other options
+                        ent.add(new Component.Entrapped());
+                        let msg = `${ent.getName()} becomes trapped`;
+                        msg += ` by ${elem.getName()}!`;
+                        RG.gameMsg({cell, msg});
+                    }
+                    else {
+                        let msg = `${ent.getName()} avoids getting trapped`;
+                        msg += ` by ${elem.getName()}!`;
+                        RG.gameMsg({cell, msg});
+                    }
+                }
+            }
+        });
     }
 
     /* Reports an error if an entity could not be removed. */
