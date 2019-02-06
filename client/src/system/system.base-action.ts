@@ -13,7 +13,7 @@ const POOL = EventPool.getPool();
 
 const handledComps = [
     'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
-    'Jump', 'Read', 'Give'
+    'Jump', 'Read', 'Rest', 'Give'
 ];
 
 type HandleFunc = (ent) => void;
@@ -36,7 +36,8 @@ export class SystemBaseAction extends SystemBase {
             Read: this._handleRead.bind(this),
             UseElement: this._handleUseElement.bind(this),
             UseItem: this._handleUseItem.bind(this),
-            UseStairs: this._handleUseStairs.bind(this)
+            UseStairs: this._handleUseStairs.bind(this),
+            Rest: this._handleRest.bind(this),
         };
     }
 
@@ -327,6 +328,25 @@ export class SystemBaseAction extends SystemBase {
         }
     }
 
+    private _handleRest(ent): void {
+        const cell = ent.getCell();
+        const baseElem = cell.getBaseElem();
+        // TODO Check if entity is on bed element
+        // and that there are no hostile actors nearby
+        if (baseElem.getType() === 'bed') {
+            const enemies = Brain.getSeenHostiles(ent);
+            if (enemies.length === 0) {
+                const health = ent.get('Health');
+                health.addHP(1);
+                const msg = `${ent.getName()} rests for a while in bed`;
+                RG.gameMsg({cell, msg});
+            }
+            else {
+                const msg = `${ent.getName()} cannot rest with enemies around`;
+                RG.gameMsg({cell, msg});
+            }
+        }
+    }
 
     /* Used to create events in response to specific actions. */
     private _createEventComp(ent, args): void {
