@@ -147,10 +147,10 @@ SystemManager.systemOrder = [
  *    in which factory func must return a System object.
  */
 SystemManager.systems = {
-    Disability: ['Stun', 'Paralysis'],
+    Disability: ['Stun', 'Entrapped', 'Paralysis'],
     SpiritBind: ['SpiritBind'],
     BaseAction: ['Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
-        'Jump', 'Read', 'Give'],
+        'Jump', 'Read', 'Rest', 'Give'],
     Chat: ['Chat'],
     Shop: ['Transaction'],
     Attack: ['Attack'],
