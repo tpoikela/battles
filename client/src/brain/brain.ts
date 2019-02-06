@@ -116,6 +116,12 @@ Brain.getActorsInCells = (seenCells, filterFunc) => {
     return cells;
 };
 
+Brain.getSeenHostiles = (ent) => {
+    const seenCells = ent.getBrain().getSeenCells();
+    const filterFunc = (actor) => actor.isEnemy(ent);
+    return Brain.getActorsInCells(seenCells, filterFunc);
+};
+
 Brain.findCellsWithFriends = (actor, seenCells) => {
     const cells = [];
     for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
