@@ -570,9 +570,52 @@ export class ElementWeb extends Mixin.Locatable(ElementBase) {
 
     constructor() {
         super('web');
+        const entrapComp = new Component.Entrapping();
+        entrapComp.setDestroyOnMove(true);
+        entrapComp.setDifficulty(20);
+        this.add(entrapComp);
+    }
+
+    public setDifficulty(diff: number): void {
+        this.get('Entrapping').setDifficulty(diff);
     }
 
 }
+Element.Web = ElementWeb;
+
+export class ElementSlime extends Mixin.Locatable(ElementBase) {
+
+    constructor() {
+        super('slime');
+        const entrapComp = new Component.Entrapping();
+        entrapComp.setDestroyOnMove(true);
+        entrapComp.setDifficulty(30);
+        this.add(entrapComp);
+    }
+
+    public setDifficulty(diff: number): void {
+        this.get('Entrapping').setDifficulty(diff);
+    }
+
+}
+Element.Slime = ElementSlime;
+
+export class ElementHole extends Mixin.Locatable(ElementBase) {
+
+    constructor() {
+        super('hole');
+        const entrapComp = new Component.Entrapping();
+        entrapComp.setDestroyOnMove(false);
+        entrapComp.setDifficulty(50);
+        this.add(entrapComp);
+    }
+
+    public setDifficulty(diff: number): void {
+        this.get('Entrapping').setDifficulty(diff);
+    }
+
+}
+Element.Hole = ElementHole;
 
 /* Used in proc gen to denote places for actors, items and other elements. For
 * example, different places for stairs can be set, and then one chosen. */
