@@ -12,9 +12,9 @@ import {BrainPlayer} from './brain/brain.player';
 
 import {Inventory} from './inv';
 import * as Time from './time';
+type Level = import('./level').Level;
 
 type ActionCallback = Time.ActionCallback;
-type Level = import('./level').Level;
 type ItemArmour = import('./item').Armour;
 type Cell = import('./map.cell').Cell;
 
@@ -56,10 +56,10 @@ export class BaseActor extends Entity {
     public unsetLevel(): void {
         this.get('Location').unsetLevel();
     }
-    public setLevel(level): void {
+    public setLevel(level: Level): void {
         return this.get('Location').setLevel(level);
     }
-    public getLevel(): Level {return this.get('Location').getLevel();}
+    public getLevel() {return this.get('Location').getLevel();}
     public getX(): number {return this.get('Location').getX();}
     public getY(): number {return this.get('Location').getY();}
     public getXY(): TCoord {return this.get('Location').getXY();}
