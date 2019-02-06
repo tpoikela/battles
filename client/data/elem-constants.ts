@@ -12,6 +12,7 @@ const parser = ObjectShell.getParser();
 // Constant elements which can be used by all levels. freeze()
 // used to prevent any mutations. Note that elements with any state
 // in them should not be shared (unless state is common for all)
+ELEM.BED = frz(parser.createElement('bed'));
 ELEM.BRIDGE = frz(parser.createElement('bridge'));
 ELEM.CHASM = frz(parser.createElement('chasm'));
 
