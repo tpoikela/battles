@@ -1002,6 +1002,7 @@ export class BrainPlayer extends BrainBase {
       }
       else if (cmdType === 'REST') {
         this.energy = RG.energy.REST;
+        this._actor.add(new Component.Rest());
         return ACTION_ALREADY_DONE;
       }
 
