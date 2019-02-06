@@ -820,6 +820,15 @@ FromJSON.prototype.createElement = function(elem): ElementBase {
         if (elemJSON.data) {expElem.setData(elemJSON.data);}
         createdElem = expElem;
     }
+    else if (type === 'web') {
+        createdElem = new Element.ElementWeb();
+    }
+    else if (type === 'slime') {
+        createdElem = new Element.ElementSlime();
+    }
+    else if (type === 'hole') {
+        createdElem = new Element.ElementHole();
+    }
 
     // Finally, restore messages (if any)
     if (elemJSON.msg) {
