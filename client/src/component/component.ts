@@ -1235,6 +1235,8 @@ export const Pickup = TransientTagComponent('Pickup');
 /* Added to an entity reading something. */
 export const Read = TransientDataComponent('Read', {readTarget: null});
 
+export const Rest = TransientTagComponent('Rest');
+
 export const UseElement = TransientDataComponent('UseElement',
     {element: null, useType: ''});
 
@@ -1687,3 +1689,9 @@ export const Indoor = UniqueTagComponent('Indoor');
 /* Added to elements having some snow. */
 export const Snowy = UniqueTagComponent('Snowy');
 
+
+export const Entrapping = UniqueDataComponent('Entrapping', {
+    difficulty: 1, destroyOnMove: false
+});
+
+export const Entrapped = UniqueTagComponent('Entrapped');
