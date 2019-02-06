@@ -319,6 +319,23 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     const weatherActor = new WeatherActor('Weather actor');
     level.addVirtualProp(RG.TYPE_ACTOR, weatherActor);
 
+    // Testing the trap elements such as web
+    const freeCells = level.getMap().getCells(c => c.isFree());
+    for (let i = 0; i < 200; i++) {
+        const cell = RNG.arrayGetRand(freeCells);
+        const [xx, yy] = cell.getXY();
+        level.addElement(new Element.ElementWeb(), xx, yy);
+        if (level.getMap().hasXY(xx + 1, yy + 1)) {
+            level.addElement(new Element.ElementSlime(), xx + 1, yy + 1);
+        }
+    }
+
+    const floorCells = level.getMap().getCells(c => c.hasPropType('floorhouse'));
+    for (let i = 0; i < 40; i++) {
+        const cell = RNG.arrayGetRand(floorCells);
+        cell.setBaseElem(ELEM.BED);
+    }
+
     return game;
 };
 
