@@ -26,6 +26,7 @@
 import RG from './rg';
 import {Keys} from './keymap';
 import * as Component from './component';
+import * as Element from './element';
 import {Random} from './random';
 import {SentientActor} from './actor';
 import {Dice} from './dice';
@@ -920,6 +921,30 @@ Spell.WaterBolt = function() {
 };
 RG.extend2(Spell.WaterBolt, Spell.BoltBase);
 
+
+Spell.SlimeBolt = function() {
+    Spell.BoltBase.call(this, 'SlimeBolt', 10);
+    this.setDice('damage', Dice.create('4d4 + 4'));
+    this.setRange(5);
+    this.damageType = RG.DMG.SLIME;
+    this.stopOnHit = true;
+};
+RG.extend2(Spell.SlimeBolt, Spell.BoltBase);
+
+Spell.SlimeBolt.prototype.onHit = function(actor, src) {
+    const level = actor.getLevel();
+    const cells = Brain.getCellsAroundActor(actor, 1);
+    cells.forEach(cell => {
+        if (cell.isPassable() || cell.hasActors()) {
+            const slime = new Element.ElementSlime();
+            level.addElement(slime, cell.getX(), cell.getY());
+        }
+    });
+    actor.add(new Component.Entrapped());
+    const msg = `Slime is spread around by ${src.getName()}`;
+    RG.gameSuccess({cell: actor.getCell(), msg});
+};
+
 /* Ice shield increase the defense of the caster temporarily. */
 Spell.IceShield = function() {
     SpellBase.call(this, 'Ice shield', 7);
@@ -1764,6 +1789,7 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.RingOfFire());
     book.addSpell(new Spell.RingOfFrost());
     book.addSpell(new Spell.RockStorm());
+    book.addSpell(new Spell.SlimeBolt());
     book.addSpell(new Spell.SpiritForm());
     book.addSpell(new Spell.SummonAirElemental());
     book.addSpell(new Spell.SummonAnimal());
