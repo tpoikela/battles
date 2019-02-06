@@ -50,6 +50,11 @@
     background-color: $floor-house-bg-color;
 }
 
+.cell-element-bed {
+    background-color: $floor-house-bg-color;
+    color: $white;
+}
+
 .cell-element-floor-cave {
     background-color: $floor-bg-color;
 }
@@ -220,6 +225,21 @@
 .cell-element-floor-wooden {
     background-color: 'beige';
     color: 'white';
+}
+
+.cell-element-web {
+    background-color: $floor-bg-color;
+    color: $white;
+}
+
+.cell-element-slime {
+    background-color: $floor-bg-color;
+    color: $slime-color;
+}
+
+.cell-element-hole {
+    background-color: $floor-bg-color;
+    color: $black;
 }
 
 //----------------------
