@@ -400,6 +400,8 @@ export class SystemMovement extends SystemBase {
     /* Checks if entity gets entrapped into the cell. */
     private _checkEntrapment(ent, cell): void {
         const elems = cell.getElements();
+        if (!elems) {return;}
+
         elems.forEach(elem => {
             if (elem.has('Entrapping')) {
                 if (!ent.has('Entrapped')) {
