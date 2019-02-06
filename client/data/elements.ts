@@ -5,6 +5,14 @@
 
 const Elements = [
     {
+        name: 'bed', className: 'cell-element-bed',
+        char: '=',
+        msg: {
+            onEnter: 'There is a bed here for resting'
+        },
+        addComp: ['Indoor']
+    },
+    {
         name: 'bridge', className: 'cell-element-bridge',
         char: '=',
         msg: {
@@ -166,7 +174,21 @@ const Elements = [
 
     //---------------------------------------------------------
     // Presentational-only elements, only rendering info stored
+    // NOTE: Adding anything else here than char/className will
+    //       NOT affect these elements
     //---------------------------------------------------------
+    {
+        dontCreate: true, name: 'web',
+        char: '|', className: 'cell-element-web'
+    },
+    {
+        dontCreate: true, name: 'slime',
+        char: '|', className: 'cell-element-slime'
+    },
+    {
+        dontCreate: true, name: 'hole',
+        char: '^', className: 'cell-element-hole'
+    },
     {
         dontCreate: true, name: 'mountain',
         char: '^', className: 'cell-element-mountain'
