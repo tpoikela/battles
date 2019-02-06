@@ -880,6 +880,7 @@ RG.DMG = {
     PIERCE: 'PIERCE',
     POISON: 'POISON',
     SLASH: 'SLASH',
+    SLIME: 'SLIME',
     VOID: 'VOID',
     WATER: 'WATER'
 };
