@@ -21,6 +21,7 @@ const statusComps = [
     // Comp name, style   , text  , react-key
     ['Coldness', 'primary', 'Cold', 'stat-coldness'],
     ['Ethereal', 'info', 'Ethereal', 'stat-ethereal'],
+    ['Entrapped', 'danger', 'Trapped', 'stat-trapped'],
     ['Flying', 'primary', 'Flying', 'stat-flying'],
     ['Paralysis', 'danger', 'Paralysed', 'stat-paralysis'],
     ['Poison', 'danger', 'Poisoned', 'stat-poison'],
