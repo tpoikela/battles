@@ -5,7 +5,7 @@ import {
     BrainSentient,
     ACTION_ALREADY_DONE
 } from './brain';
-import {Evaluator} from '../evaluators';
+import {Evaluator, EvaluatorCastSpell} from '../evaluators';
 import * as Component from '../component/component';
 import {Random} from '../random';
 
@@ -52,7 +52,8 @@ export class BrainSpellCaster extends BrainGoalOriented {
         this.setType('SpellCaster');
         this.goal = new GoalsTop.ThinkSpellcaster(actor);
         this.goal.setBias({CastSpell: 2.0, AttackActor: 0.7});
-        this.goal.getEvaluator('CastSpell').setCastingProbability(0.8);
+        const spellEval = this.goal.getEvaluator('CastSpell') as EvaluatorCastSpell;
+        spellEval.setCastingProbability(0.8);
     }
 
     public decideNextAction(): ActionCallback | null {
