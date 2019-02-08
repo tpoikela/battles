@@ -1,6 +1,6 @@
 
 import RG from '../rg';
-import {Entity} from  '../entity';
+import {Entity} from '../entity';
 import {SystemBase} from './system.base';
 import {Communication} from '../component';
 import {EventPool} from '../eventpool';
