@@ -18,6 +18,7 @@ const RNG = Random.getRNG();
 
 import {TCoord} from './interfaces';
 type Level = import('./level').Level;
+type House = import('./houses').House;
 
 const popOptions = ['NOTHING', 'LOOT', 'GOLD', 'GUARDIAN', 'ELEMENT', 'CORPSE',
     'TIP'];
@@ -302,15 +303,15 @@ export class DungeonPopulate {
         }
     }
 
-    public createShops(level, conf) {
+    public createShops(level: Level, conf): House[] {
         const extras = level.getExtras();
-        const shopHouses = [];
+        const shopHouses: House[] = [];
         if (extras.hasOwnProperty('houses')) {
             const houses = extras.houses;
 
-            const usedHouses = [];
+            const usedHouses: number[] = [];
             let watchDog = 0;
-            level.shops = [];
+            extras.shops = [];
             for (let n = 0; n < conf.nShops; n++) {
                 const shopObj = new WorldShop();
 
@@ -391,7 +392,7 @@ export class DungeonPopulate {
                 shopObj.setShopkeeper(keeper);
                 shopObj.setLevel(level);
                 shopObj.setCoord(shopCoord);
-                level.shops.push(shopObj);
+                extras.shops.push(shopObj);
             }
         }
         else {
@@ -472,11 +473,12 @@ export class DungeonPopulate {
         return [];
     }
 
-    public populateHouse(level, house, conf) {
+    public populateHouse(level: Level, house: House, conf): void {
         const floorPerActor = 9;
         const numFloor = house.numFloor;
         let numActors = Math.round(numFloor / floorPerActor);
         if (numActors === 0) {numActors = 1;}
+
         for (let i = 0; i < numActors; i++) {
             const actor = this.createActor(conf);
             if (actor.getBrain().getGoal) {
@@ -495,15 +497,15 @@ export class DungeonPopulate {
         const maxDanger = conf.maxDanger || this.maxDanger;
         let actor = null;
         if (maxDanger > 0) {
-            let actorFunc = actor => actor.danger <= maxDanger;
+            let actorFunc = aa => aa.danger <= maxDanger;
             if (this.actorFunc) {
-                actorFunc = actor => (
-                    this.actorFunc(actor) && actor.danger <= maxDanger
+                actorFunc = aa => (
+                    this.actorFunc(aa) && aa.danger <= maxDanger
                 );
             }
             else if (conf.actorFunc) {
-                actorFunc = actor => (
-                    conf.actorFunc(actor) && actor.danger <= maxDanger
+                actorFunc = aa => (
+                    conf.actorFunc(aa) && aa.danger <= maxDanger
                 );
             }
             actor = parser.createRandomActor({func: actorFunc});
