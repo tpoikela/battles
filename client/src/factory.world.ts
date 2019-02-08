@@ -3,7 +3,7 @@ import RG from './rg';
 import {LevelFactory} from '../data/level-factory';
 import {Constraints} from './constraints';
 
-const dbg = require('debug')
+const dbg = require('debug');
 const debug = dbg('bitn:Factory.World');
 
 import * as Verify from './verify';
@@ -51,7 +51,7 @@ interface LevelConf {
     item?: (shell) => boolean;
     itemsPerLevel?: number;
     maxDanger: number;
-    maxValue: number
+    maxValue: number;
     sqrPerActor?: number;
     sqrPerItem?: number;
     nLevel?: number;
@@ -259,10 +259,10 @@ export const FactoryWorld = function() {
         const levelSize = conf.levelSize || 'Medium';
         const sqrPerActor = conf.sqrPerActor || RG.ACTOR_MEDIUM_SQR;
         const globalConf: GlobalConf = {
-            levelSize: levelSize,
+            levelSize,
             dungeonX: levelSizes.dungeon[levelSize].x,
             dungeonY: levelSizes.dungeon[levelSize].y,
-            sqrPerActor: sqrPerActor,
+            sqrPerActor,
             sqrPerItem: conf.sqrPerItem || RG.LOOT_MEDIUM_SQR,
             set: true
         };
@@ -490,7 +490,7 @@ export const FactoryWorld = function() {
             if (Array.isArray(areaTileConf[typeLc])) {
                 nZones = areaTileConf[typeLc].length;
             }
-           this.debug(`\t[${tx}][${ty}]: nZones (${type}) is now ${nZones}`);
+            this.debug(`\t[${tx}][${ty}]: nZones (${type}) is now ${nZones}`);
             for (let i = 0; i < nZones; i++) {
                 const zoneConf = areaTileConf[typeLc][i];
                 const createFunc = 'create' + type;
@@ -844,17 +844,17 @@ export const FactoryWorld = function() {
         const presetLevels = this.getConf('presetLevels');
         if (presetLevels) {
             const names = Object.keys(presetLevels);
-            const foundKey = names.find(item => {
+            const keyFound = names.find(item => {
                 return new RegExp(item + '$').test(hierName);
             });
-            if (foundKey) {
-                return presetLevels[foundKey];
+            if (keyFound) {
+                return presetLevels[keyFound];
             }
         }
 
         // Then check the global preset levels
         const keys = Object.keys(this.presetLevels);
-        let foundKey = keys.find(item => new RegExp(item + '$').test(hierName));
+        const foundKey = keys.find(item => new RegExp(item + '$').test(hierName));
         if (foundKey) {
             return this.presetLevels[foundKey];
         }
@@ -1131,10 +1131,13 @@ export const FactoryWorld = function() {
 
             // Need to add the shops to the quarter
             if (!this.id2levelSet) {
-                if (level.shops) {
-                    level.shops.forEach(shop => {
-                        quarter.addShop(shop);
-                    });
+                if (level.hasExtras()) {
+                    const extras = level.getExtras();
+                    if (Array.isArray(extras.shops)) {
+                        extras.shops.forEach(shop => {
+                            quarter.addShop(shop);
+                        });
+                    }
                 }
             }
             quarter.addLevel(level);
@@ -1311,10 +1314,10 @@ export const FactoryWorld = function() {
 
             // Create stairs for tileLevel and connect them to the zone
             // stairs
-            let name = 'stairsDown'; // Default for dungeon
-            if (zone.getType() === 'city') {name = 'town';}
-            else if (zone.getType() === 'mountain') {name = 'mountain';}
-            const tileStairs = new Stairs(name, tileLevel, zoneLevel);
+            let connName = 'stairsDown'; // Default for dungeon
+            if (zone.getType() === 'city') {connName = 'town';}
+            else if (zone.getType() === 'mountain') {connName = 'mountain';}
+            const tileStairs = new Stairs(connName, tileLevel, zoneLevel);
             tileLevel.addStairs(tileStairs, x, y);
 
             // zoneStairs can be either a single connection or an array of
@@ -1441,7 +1444,7 @@ export const FactoryWorld = function() {
 }; // FactoryWorld
 
 
-/** Creates a connection between an area and a zone such as city, mountain
+/* Creates a connection between an area and a zone such as city, mountain
  * or dungeon. Unless configured, connects the zone entrance to a random
  * location in the area.
  * @param {World.Area} area - Area where zone is located in
