@@ -130,6 +130,11 @@
     color: $brown;
 }
 
+.cell-actor-hyrkh {
+    background-color: $wild-pink;
+    color: $purple;
+}
+
 /* Generates using standard CSS color names for custom elements defined using
  * custom color and bg. Should be
  * used in JSON files when defining colors for custom items, actors and
