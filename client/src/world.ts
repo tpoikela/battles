@@ -638,7 +638,7 @@ export class SubZoneBase extends WorldBase {
     }
 
     public getLevels(): Level[] {
-        return this._levels.slice()
+        return this._levels.slice();
     }
 
     public hasLevel(level: Level): boolean {
@@ -1017,8 +1017,8 @@ export class AreaTile {
             return this.zones[type];
         }
         let zones = [];
-        Object.keys(this.zones).forEach((type: string) => {
-            zones = zones.concat(this.zones[type]);
+        Object.keys(this.zones).forEach((tt: string) => {
+            zones = zones.concat(this.zones[tt]);
         });
         return zones;
     }
@@ -1137,7 +1137,7 @@ export class Area extends WorldBase {
 
     public setLoaded(x, y): void {
         this.tilesLoaded[x][y] = true;
-    }   
+    }
 
     public setUnloaded(x, y): void {
         this.tilesLoaded[x][y] = false;
@@ -1852,9 +1852,9 @@ export class WorldTop extends WorldBase {
         return this._areas[this.currAreaIndex];
     }
 
-    public toJSON() {
+    public toJSON(): any {
         const json = super.toJSON();
-        const area = this._areas.map(area => area.toJSON());
+        const area = this._areas.map(ar => ar.toJSON());
         let createAllZones = true;
         if (this.getConf().hasOwnProperty('createAllZones')) {
             createAllZones = this.getConf().createAllZones;
@@ -1902,11 +1902,11 @@ World.WorldTop = WorldTop;
 
 export class WorldShop {
     public hasNotify: boolean;
+    public _isAbandoned: boolean;
 
     private _shopkeeper: SentientActor;
     private _level: Level;
     private _coord: TCoord[];
-    public _isAbandoned: boolean;
 
     constructor() {
         this._shopkeeper = null;
@@ -1981,7 +1981,7 @@ export class WorldShop {
         return this._level.getMap().getCell(xy[0], xy[1]);
     }
 
-    public reclaimShop(actor) {
+    public reclaimShop(actor): void {
         if (this._isAbandoned) {
             this._isAbandoned = false;
             this.setShopkeeper(actor);
@@ -2002,7 +2002,7 @@ export class WorldShop {
     }
 
     /* Get empty cells of the shop (no items in cells). */
-    public emptyCells() {
+    public emptyCells(): Cell[] {
         const result = [];
         this._coord.forEach(xy => {
             const cell = this._level.getMap().getCell(xy[0], xy[1]);
@@ -2014,7 +2014,7 @@ export class WorldShop {
     }
 
     /* Adds new items to the empty cells of the shop. */
-    public refreshShopItems(newItems) {
+    public refreshShopItems(newItems): void {
         let nItem = 0;
         this._coord.forEach(xy => {
             const cell = this._level.getMap().getCell(xy[0], xy[1]);
