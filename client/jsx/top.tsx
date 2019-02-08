@@ -438,7 +438,7 @@ export class BattlesTop extends React.Component {
         const conf = Object.assign({}, this.gameConf);
         conf.levels = this.state.editorData.levelsToPlay;
 
-        const gameFactory = new RG.Factory.Game();
+        const gameFactory = new FactoryGame();
         this.game = gameFactory.createNewGame(conf);
         this.initBeforeNewGame();
     }
