@@ -3,8 +3,6 @@
 
 import RG from '../src/rg';
 
-const ShellUtils = {};
-
 export const meleeHitDamage = (dmg, dur, dmgType) => {
     return {
         addComp: 'DirectDamage', func: [
@@ -19,5 +17,3 @@ export const meleeHitDamage = (dmg, dur, dmgType) => {
 export const color = function(fg, bg) {
     return {fg, bg};
 };
-
-export default ShellUtils;
