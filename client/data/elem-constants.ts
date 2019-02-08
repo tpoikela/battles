@@ -33,6 +33,8 @@ ELEM.STONE = frz(parser.createElement('stone'));
 ELEM.TREE = frz(parser.createElement('tree'));
 ELEM.TREE_SNOW = frz(parser.createElement('snow-covered tree'));
 
+ELEM.WINDOW = frz(parser.createElement('closed window'));
+
 ELEM.FLOOR = frz(parser.createElement('floor'));
 ELEM.FLOOR_CASTLE = frz(parser.createElement('floorcastle'));
 ELEM.FLOOR_CAVE = frz(parser.createElement('floorcave'));

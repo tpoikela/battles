@@ -524,6 +524,32 @@ export const Geometry: any = {
         return isLine;
     },
 
+    xyInLine(coord: TCoord[]): boolean {
+        for (let i = 1; i < coord.length; i++) {
+            const [xy0, xy1] = [coord[i], coord[i - 1]];
+            const [x0, y0] = xy0;
+            const [x1, y1] = xy1;
+            if (!this.isLine(x0, y0, x1, y1)) {
+                return false;
+            }
+        }
+        return true;
+    },
+
+    /* Returns true if all coordinates in array have same x- or y-coordinates.
+     * */
+    sameXOrY(coord: TCoord[]): boolean {
+        for (let i = 1; i < coord.length; i++) {
+            const [xy0, xy1] = [coord[i], coord[i - 1]];
+            const [x0, y0] = xy0;
+            const [x1, y1] = xy1;
+            if (x0 !== x1 && y0 !== y1) {
+                return false;
+            }
+        }
+        return true;
+    },
+
     /* Returns all coordinates within straight line between two points. Returns
      * empty array if there is no line. Straight means all cardinal directions.
      */

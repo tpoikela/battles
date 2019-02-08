@@ -73,6 +73,7 @@ export class Capital {
             levelConf[i].nHouses = Math.floor(levelCols * levelRows / 500);
             levelConf[i].floorType = 'cave';
             levelConf[i].wallType = 'castle';
+            levelConf[i].addWindows = true;
             const cityGen = new CityGenerator();
 
             const level = cityGen.create(levelCols, levelRows, levelConf[i]);

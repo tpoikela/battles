@@ -171,6 +171,10 @@ const Elements = [
         }
         // addComp: {name: 'Terrain', setters: {setDifficulty: 5}}
     },
+    {
+        name: 'closed window', className: 'cell-element-window',
+        char: '+', addComp: ['Impassable']
+    },
 
     //---------------------------------------------------------
     // Presentational-only elements, only rendering info stored

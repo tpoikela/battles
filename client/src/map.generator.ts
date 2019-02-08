@@ -363,7 +363,9 @@ export class MapGenerator {
                 if (rowsHouse > 10 && rowsHouse % 2 !== 0) {
                     rowsHouse -= 1;
                 }
-                const houseConf = {cols: colsHouse, rows: rowsHouse};
+
+                const houseConf: any = {cols: colsHouse, rows: rowsHouse};
+                houseConf.addWindows = conf.addWindows;
                 const house = houseGen.createHouse(houseConf);
                 if (house) {
                     this.placeHouse(house, map, leaf.x, leaf.y, conf);
@@ -382,6 +384,7 @@ export class MapGenerator {
         const keys = Object.keys(coord);
         const wallElem = MapGenerator.getWallElem(conf.wallType);
         keys.forEach(elemChar => {
+
             if (elemChar === '#') {
                 coord[elemChar].forEach(xy => {
                     const x0 = xy[0] + x;
@@ -398,6 +401,13 @@ export class MapGenerator {
                     const x0 = xy[0] + x;
                     const y0 = xy[1] + y;
                     map.setBaseElemXY(x0, y0, ELEM.FLOOR_HOUSE);
+                });
+            }
+            else if (elemChar === 'windows') {
+                coord[elemChar].forEach(xy => {
+                    const x0 = xy[0] + x;
+                    const y0 = xy[1] + y;
+                    map.setBaseElemXY(x0, y0, ELEM.WINDOW);
                 });
             }
         });

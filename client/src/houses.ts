@@ -6,7 +6,8 @@ import RG from './rg';
 import {TemplateLevel} from './template.level';
 import {Houses5x5} from '../data/tiles.houses';
 import {Random} from './random';
-import {TCoord} from './interfaces';
+import {TCoord, BBox} from './interfaces';
+import {Geometry} from './geometry';
 
 const RNG = Random.getRNG();
 
@@ -62,12 +63,12 @@ export class House {
         this.numFloor = numFloor;
     }
 
-    public getCenter() {
+    public getCenter(): TCoord {
         return [this.cX, this.cY];
     }
 
     /* Returns the bounding box taken by this house. */
-    public getBbox() {
+    public getBbox(): BBox {
         return {
             ulx: this.x, uly: this.y,
             lrx: this.x + this.w - 1,
@@ -104,6 +105,62 @@ export class House {
         this.cX += dX;
         this.cY += dY;
         this.door = [this.door[0] + dX, this.door[1] + dY];
+    }
+
+    public addWindows(nWindows: number): number {
+        this.coord.windows = [];
+        const walls = this.coord[WALL].slice();
+        let nCreated = 0;
+        RNG.shuffle(walls);
+        const wallLut: any = {};
+        walls.forEach(xy => {
+            wallLut[xy[0] + ',' + xy[1]] = true;
+        });
+        this.coord[DOOR].forEach(xy => {
+            wallLut[xy[0] + ',' + xy[1]] = false;
+        });
+
+        for (let i = 0; i < walls.length; i++) {
+            if (nCreated === nWindows) {break;} // We're already done
+            const xy = walls[i];
+            const nFound = [];
+            const box: TCoord[] = Geometry.getBoxAround(xy[0], xy[1], 1);
+            box.forEach((nXY: TCoord) => {
+                if (wallLut[nXY[0] + ',' + nXY[1]]) {
+                    nFound.push(nXY);
+                }
+            });
+
+            // If there are exactly 2 walls adjacent, add a window
+            if (nFound.length === 2 && ((nCreated < nWindows) || nWindows === -1)) {
+                if (this.windowPosOk(xy, nFound)) {
+                    this.coord.windows.push(xy);
+                    wallLut[xy[0] + ',' + xy[1]] = false;
+                    ++nCreated;
+                }
+            }
+        }
+
+        this.coord.windows.forEach(xy => {
+            const index = this.walls.findIndex(sXY => (
+                sXY[0] === xy[0] && sXY[1] === xy[1]
+            ));
+            this.walls.splice(index, 1);
+        });
+        return nCreated;
+    }
+
+    public windowPosOk(xy: TCoord, coord: TCoord[]): boolean {
+        const [x, y] = xy;
+        const [x1, y1] = coord[0];
+        const [x2, y2] = coord[1];
+        if (x === x1) {
+            return Math.abs(y1 - y2) === 2;
+        }
+        else if (y === y1) {
+            return Math.abs(x1 - x2) === 2;
+        }
+        return false;
     }
 }
 
@@ -149,7 +206,13 @@ export class HouseGenerator {
         templ.create();
 
         // RG.printMap(templ.map);
-        return new House(templ.map);
+        const createdHouse = new House(templ.map);
+        if (conf.addWindows) {
+            const nWindows = tilesX * tilesY;
+            createdHouse.addWindows(RNG.getUniformInt(1, nWindows));
+        }
+
+        return createdHouse;
     }
 
     /* Returns the params needed to generate the house, such as number of
