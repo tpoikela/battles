@@ -24,6 +24,7 @@ const RNG = Random.getRNG();
 const questGrammar = QuestGrammar.grammar;
 
 type ItemBase = Item.ItemBase;
+type ItemOrNull = ItemBase | null;
 
 import {ElementBase} from './element';
 
@@ -1042,7 +1043,7 @@ export class QuestPopulate {
         return actor;
     }
 
-    public getActorToKill() {
+    public getActorToKill(): SentientActor {
         const location = this.currQuest.getCurrentLocation();
         let actors = location.getActors();
         actors = actors.filter(a => !a.isPlayer() &&
@@ -1052,39 +1053,40 @@ export class QuestPopulate {
         return RNG.arrayGetRand(actors);
     }
 
-    public getActorForReport() {
+    public getActorForReport(): SentientActor {
         const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
-        return this.getActorForQuests(actors);
+        return this.getActorForQuests(actors) as SentientActor;
     }
 
-    public getActorToSpy() {
+    public getActorToSpy(): SentientActor {
         const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
-        return this.getActorForQuests(actors);
+        return this.getActorForQuests(actors) as SentientActor;
     }
 
     /* Extracts an actor from current location. */
-    public getActorToListen() {
+    public getActorToListen(): SentientActor {
         const level = this.currQuest.getCurrentLocation();
         const actorToListen = this.getActorForQuests(level.getActors());
-        return actorToListen;
+        return actorToListen as SentientActor;
     }
 
-    public getActorToEscort() {
+    public getActorToEscort(): SentientActor {
         const level = this.currQuest.getCurrentLocation();
         const actorToEscort = this.getActorForQuests(level.getActors());
-        return actorToEscort;
+        return actorToEscort as SentientActor;
     }
 
-    public dbg(msg) {
+    public dbg(msg): void {
         if (this.debug) {
             const ind = '=='.repeat(this.IND);
             debug(ind + msg);
         }
     }
 
-    public getAlreadyOwnedItem() {
+    /* Returns an item already in player's possession. */
+    public getAlreadyOwnedItem(): ItemOrNull {
         const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         const player = actors.find(a => a.isPlayer && a.isPlayer());
@@ -1095,9 +1097,9 @@ export class QuestPopulate {
         return null;
     }
 
-    public getItemToSteal() {
+    public getItemToSteal(): ItemOrNull {
         const location = this.currQuest.getCurrentLocation();
-        const item = new Item.ItemBase('Quest trophy');
+        const item = new Item.ItemBase(Names.getItemToStealName());
 
         if (!Placer.addEntityToCellType(item, location, c => c.hasHouse())) {
             return null;
@@ -1107,7 +1109,7 @@ export class QuestPopulate {
         return item;
     }
 
-    public getItemToGather() {
+    public getItemToGather(): ItemOrNull {
         const location = this.currQuest.getCurrentLocation();
         const item = new Item.ItemBase('Quest item to gather');
 
@@ -1119,14 +1121,14 @@ export class QuestPopulate {
         return item;
     }
 
-    public getReadTarget(zone, areaTile) {
+    public getReadTarget(zone, areaTile): QuestObjSurrogate {
         const location = this.currQuest.getCurrentLocation();
         return {
             createTarget: 'createBook', args: [location, zone, areaTile]
         };
     }
 
-    public getItemToUse(): ItemBase | null {
+    public getItemToUse(): ItemOrNull {
         // TODO this cannot create the item directly because if further
         // resource mapping fails, we need to delete the created item
         const location = this.currQuest.getCurrentLocation();
@@ -1377,12 +1379,12 @@ export class QuestPopulate {
         }
     }
 
-    public handleRepair(target) {
+    public handleRepair(target): void {
         target.add(Component.create('Broken'));
     }
 
     /* Adds some info to listen to for the target actor. */
-    public handleListen(target) {
+    public handleListen(target): void {
         const questInfo = Component.create('QuestInfo');
         questInfo.setQuestion('Can you tell me something to report?');
         questInfo.setInfo('Generate something to report');
@@ -1391,7 +1393,7 @@ export class QuestPopulate {
         target.add(questInfo);
     }
 
-    public handleReport(target) {
+    public handleReport(target): void {
         const questReport = Component.create('QuestReport');
         const listenTarget = this.popQuestCrossRef(target);
         if (listenTarget) {
@@ -1428,7 +1430,9 @@ export class QuestPopulate {
         }
         else if (RG.isItem(target)) {
             // TODO add proper random name generation
-            named.setUniqueName('Quest item ' + RNG.getUniformInt(0, 1000000));
+            const itemName = 'Quest item ' + RNG.getUniformInt(0, 1000000);
+            console.log('addUniqueName rand item name ' + itemName);
+            named.setUniqueName(itemName);
         }
     }
 
@@ -1487,8 +1491,10 @@ export class QuestPopulate {
         return giver;
     }
 
+    /* Cleans up already created resources which would've been part of quest.
+     * Quest gen failed for some reason, so we'll clean up the resources. */
     public cleanUpFailedQuest(): void {
-        this._cleanup.forEach(cleanupObj => {
+        this._cleanup.forEach((cleanupObj: CleanupItem) => {
             const {location} = cleanupObj;
             if (cleanupObj.item) {
                 const [x, y] = cleanupObj.item.getXY();
@@ -1499,7 +1505,7 @@ export class QuestPopulate {
                     const {tag} = cleanupObj;
                     const name = cleanupObj.item.getName();
                     let msg = `Failed to cleanup item ${name} @ ${x},${y}`;
-                    msg += '\nTag specified: ' + tag;
+                    if (tag) {msg += '\nTag specified: |' + tag + '|';}
                     msg += e.message;
                     msg += '\nItems at loc: ' + JSON.stringify(location.getItems());
                     RG.err('QuestPopulate', 'cleanUpFailedQuest', msg);
