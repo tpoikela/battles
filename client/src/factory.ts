@@ -10,7 +10,7 @@ import {Placer} from './placer';
 import {FactoryActor} from './factory.actors';
 import {FactoryItem} from './factory.items';
 import {FactoryLevel} from './factory.level';
-import {DungeonPopulate}from './dungeon-populate';
+import {DungeonPopulate} from './dungeon-populate';
 import {EventPool} from '../src/eventpool';
 import {Random} from './random';
 import * as Element from './element';
@@ -39,8 +39,7 @@ export const Factory: any = {};
 Factory.cityConfBase = conf => {
     const userConf = conf || {};
     const obj = {
-        nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5,
-        maxHouseY: 10, nShops: 1,
+        nShops: 1,
         shopFunc: [
             item => item.type === RNG.arrayGetRand(RG.SHOP_TYPES)
         ],
