@@ -76,16 +76,24 @@ export class House {
     }
 
     /* Remove empty rows from the house map. */
-    public trimEmpty() {
+    public trimEmpty(): void {
 
     }
 
     /* Adjusts the house coordinates based on new x,y of the house. */
-    public adjustCoord(x, y) {
+    public adjustCoord(x: number, y: number): void {
         const dX = x - this.x;
         const dY = y - this.y;
-        this.x = x;
-        this.y = y;
+        // this.x = x;
+        // this.y = y;
+        this.moveHouse(dX, dY);
+    }
+
+    /* Same as adjustCoord() but args must be difference in x,y, not a
+     * new absolute location. */
+    public moveHouse(dX: number, dY: number): void {
+        this.x += dX;
+        this.y += dY;
         Object.keys(this.coord).forEach(key => {
             const coord = this.coord[key];
             coord.forEach(xy => {
@@ -107,10 +115,9 @@ export class HouseGenerator {
         // For a 5x5 house tiles
         this.baseSizeX = 2 + 1;
         this.baseSizeY = 2 + 1;
-
     }
 
-    public createHouse(conf) {
+    public createHouse(conf): House {
         const {cols, rows} = conf;
         const {fullHouse} = conf;
         const params = this.getGenParams(cols, rows);
@@ -145,7 +152,7 @@ export class HouseGenerator {
         return new House(templ.map);
     }
 
-    /* Returns the params needed to generate the house such as number of
+    /* Returns the params needed to generate the house, such as number of
      * tiles and generator params. */
     public getGenParams(cols, rows) {
         const sizeX = this.baseSizeX;
