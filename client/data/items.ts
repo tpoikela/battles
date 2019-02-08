@@ -1,8 +1,8 @@
 
 /* eslint comma-dangle: 0 */
 import RG from '../src/rg';
-import Colors from './colors';
-import ShellUtils, {meleeHitDamage, color} from './shell-utils';
+import {Colors} from './colors';
+import {meleeHitDamage, color} from './shell-utils';
 
 const scaleAll = 1.0;
 

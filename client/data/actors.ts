@@ -2,7 +2,7 @@
 /* eslint comma-dangle: 0 */
 
 import RG from '../src/rg';
-import ShellUtils, {meleeHitDamage, color} from './shell-utils';
+import {meleeHitDamage, color} from './shell-utils';
 // const Colors = require('./colors');
 
 const defaultBrain = 'GoalOriented';
@@ -22,8 +22,8 @@ export interface ActorShell {
     actorType?: string;
     base?: string;
     char?: string;
-    'color-fg'?: string;
-    'color-bg'?: string;
+    colorfg?: string;
+    colorbg?: string;
     color?: Color;
     className?: string;
     dontCreate?: boolean;
@@ -115,13 +115,13 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'coyote', char: 'c', base: 'animal',
-        'color-fg': 'Yellow',
+        colorfg: 'Yellow',
         attack: 3, defense: 3, damage: '1d4',
         hp: 12, danger: 2
     },
     {
         name: 'lynx', char: 'f', base: 'animal',
-        'color-fg': 'Orange',
+        colorfg: 'Orange',
         attack: 5, defense: 1, damage: '1d6',
         hp: 12, danger: 3
     },
@@ -171,7 +171,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'dire wolf', char: 'w', base: 'animal',
-        'color-fg': 'Gray',
+        colorfg: 'Gray',
         attack: 6, defense: 2, damage: '1d8 + 2',
         hp: 23, danger: 5
     },
@@ -200,12 +200,12 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'sabretooth tiger', char: 'f', base: 'animal',
         attack: 8, defense: 3, damage: '3d3',
-        'color-fg': 'Red',
+        colorfg: 'Red',
         hp: 25, danger: 5, speed: 110
     },
     {
         name: 'dire bear', char: 'B', base: 'animal',
-        'color-fg': 'Gray',
+        colorfg: 'Gray',
         attack: 8, defense: 5, damage: '4d4',
         hp: 40, danger: 6
     },
@@ -224,7 +224,7 @@ export const ActorsData: ActorShell[] = [
         name: 'dire mammoth', char: 'M', base: 'animal',
         attack: 4, defense: 4, protection: 10, damage: '1d15',
         strength: 35, hp: 50, danger: 9,
-        'color-fg': 'Gray',
+        colorfg: 'Gray',
         addComp: [resistance('ICE', 'MEDIUM')]
     },
     {
@@ -522,7 +522,7 @@ export const ActorsData: ActorShell[] = [
     {
       name: 'bearfolk magistrate', base: 'BearfolkBase',
       damage: '1d10 + 2',
-      'color-fg': 'Purple',
+      colorfg: 'Purple',
       attack: 4, defense: 4, danger: 5, hp: 30,
       equip: ['Leather armour']
     },
@@ -571,13 +571,13 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'zombie', char: 'z', base: 'UndeadBase',
-        'color-fg': 'Brown',
+        colorfg: 'Brown',
         attack: 2, defense: 2, damage: '1d6', danger: 2,
         hp: 12
     },
     {
         name: 'skeleton archer', char: 'z', base: 'UndeadBase',
-        'color-fg': 'Yellow',
+        colorfg: 'Yellow',
         attack: 4, defense: 2, damage: '1d8', danger: 4,
         hp: 15,
         equip: ['Wooden bow', {name: 'Wooden arrow', count: 5}]
@@ -594,13 +594,13 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'skeleton berserker', char: 'z', base: 'UndeadBase',
-        'color-fg': 'Red',
+        colorfg: 'Red',
         attack: 6, defense: 1, damage: '1d10 + 4', danger: 5,
         hp: 15
     },
     {
         name: 'ghoul', char: 'z', base: 'UndeadBase',
-        'color-fg': 'LightGray',
+        colorfg: 'LightGray',
         attack: 3, defense: 3, damage: '1d7 + 2', danger: 5,
         hp: 15, onHit: [{addComp: 'Paralysis', duration: '1d4'}]
     },
@@ -615,7 +615,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'wraith', char: 'Z', base: 'UndeadBase',
-        'color-fg': 'Cyan',
+        colorfg: 'Cyan',
         attack: 5, defense: 5, damage: '2d5 + 2', danger: 6,
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setStrength', value: -1}],
@@ -625,7 +625,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'specter', char: 'Z', base: 'UndeadBase',
-        'color-fg': 'Blue',
+        colorfg: 'Blue',
         attack: 6, defense: 6, damage: '2d5 + 2', danger: 7,
         addComp: 'Flying',
         onHit: [
@@ -651,7 +651,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'ghost lord', char: 'G', base: 'UndeadBase',
-        'color-fg': 'LightGray',
+        colorfg: 'LightGray',
         attack: 7, defense: 7, damage: '2d5 + 2', danger: 8,
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -10}],
@@ -661,7 +661,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'vampire', char: 'V', base: 'UndeadBase',
-        'color-fg': 'Purple',
+        colorfg: 'Purple',
         attack: 6, defense: 6, damage: '3d5 + 2', danger: 9,
         speed: 120,
         onHit: [
@@ -672,21 +672,21 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'undead unicorn', char: 'U', base: 'UndeadBase',
-        'color-fg': 'GhostWhite',
+        colorfg: 'GhostWhite',
         attack: 7, defense: 7, protection: 7, damage: '2d5 + 5', danger: 9,
         speed: 102, hp: 50,
         addComp: [BypassComp(0.25)]
     },
     {
         name: 'necrowyrm', char: 'W', base: 'UndeadBase',
-        'color-fg': 'GhostWhite',
+        colorfg: 'GhostWhite',
         attack: 7, defense: 7, protection: 7, damage: '3d5', danger: 10,
         brain: 'Animal', speed: 107, hp: 50,
         addComp: ['Flying']
     },
     {
         name: 'ghost king', char: 'G', base: 'UndeadBase',
-        'color-fg': 'Yellow',
+        colorfg: 'Yellow',
         attack: 7, defense: 7, damage: '3d5 + 2', danger: 12,
         brain: 'SpellCaster',
         onHit: [
@@ -704,7 +704,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'lich king', char: 'L', base: 'UndeadBase',
-        'color-fg': 'Yellow',
+        colorfg: 'Yellow',
         attack: 8, defense: 8, damage: '2d8 + 2', danger: 17,
         hp: 75, brain: 'SpellCaster',
         spells: ['SummonDead'], maxPP: 75, pp: 75,
@@ -760,7 +760,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'Glacial shaman', char: '@', base: 'WinterBeingBase',
-        'color-fg': 'CadetBlue',
+        colorfg: 'CadetBlue',
         attack: 4, defense: 4, protection: 3, damage: '1d7 + 2',
         type: 'icebeing',
         danger: 5, hp: 25, spells: ['IcyPrison'], maxPP: 22, pp: 21,
@@ -797,20 +797,20 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'Winter demon', type: 'demon', char: '&',
-        'color-fg': 'CadetBlue',
+        colorfg: 'CadetBlue',
         attack: 5, defense: 5, protection: 2, damage: '3d3', range: 1,
         hp: 30, danger: 10, brain: demonBrain, base: 'WinterBeingBase'
     },
     {
         name: 'Harbinger of winter', type: 'demon', char: '@',
-        'color-fg': 'DarkBlue',
+        colorfg: 'DarkBlue',
         attack: 5, defense: 5, protection: 2, damage: '3d3', range: 1,
         hp: 35, danger: 10, brain: 'SpellCaster', base: 'WinterBeingBase',
         spells: ['GraspOfWinter'], maxPP: 30, pp: 30
     },
     {
         name: 'Stormrider', type: 'demon', char: '&',
-        'color-fg': 'DarkBlue',
+        colorfg: 'DarkBlue',
         attack: 6, defense: 6, protection: 3, damage: '4d3', range: 1,
         hp: 40, danger: 12, brain: demonBrain, base: 'WinterBeingBase',
         equip: ['Permaice short sword']
@@ -828,13 +828,13 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'Blizzard beast', type: 'demon', char: 'B',
-        'color-fg': 'CadetBlue',
+        colorfg: 'CadetBlue',
         attack: 7, defense: 6, protection: 8, damage: '3d5+5', range: 1,
         hp: 50, danger: 16, brain: demonBrain, base: 'WinterBeingBase'
     },
     {
         name: 'Ice behemoth', type: 'demon', char: 'B',
-        'color-fg': 'DarkBlue',
+        colorfg: 'DarkBlue',
         attack: 10, defense: 3, protection: 8, damage: '4d5+5', range: 2,
         hp: 65, danger: 16, brain: demonBrain, base: 'WinterBeingBase',
         onHit: [{addComp: 'Coldness'}]
@@ -972,7 +972,7 @@ export const ActorsData: ActorShell[] = [
         name: 'wildling archer', base: 'wildling', char: 'I',
         attack: 3, defense: 3, damage: '1d6', hp: 20, danger: 4,
         equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}],
-        'color-fg': 'Yellow',
+        colorfg: 'Yellow',
         brain: defaultBrain
     },
     {
@@ -986,12 +986,12 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'wildling warlord', base: 'wildling', char: 'I',
         attack: 6, defense: 3, damage: '1d12', hp: 40, danger: 7,
-        'color-fg': 'YellowGreen'
+        colorfg: 'YellowGreen'
     },
     {
         name: 'wildling king', base: 'wildling', char: 'I',
         attack: 8, defense: 5, damage: '1d15', hp: 50, danger: 10,
-        'color-fg': 'Red'
+        colorfg: 'Red'
     },
 
     // CATFOLK
@@ -1037,7 +1037,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'catfolk king', base: 'CatfolkBase',
         attack: 6, defense: 12, damage: '7d3', hp: 40, danger: 10,
-        'color-fg': 'Red'
+        colorfg: 'Red'
     },
 
     // WOLFCLAN
@@ -1178,7 +1178,7 @@ export const ActorsData: ActorShell[] = [
     // HYRKHIANS
     {
       name: 'HyrkhianBase', dontCreate: true, className: 'cell-actor-hyrkh',
-      char: 'y', enemies: ['undead', 'demon', 'animal'],
+      char: 'y', enemies: ['undead', 'demon', 'beast', 'animal'],
       type: 'hyrkhian', brain: defaultBrain
     },
     {

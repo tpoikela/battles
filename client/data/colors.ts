@@ -2,7 +2,7 @@
  * actors, elements and items.
  */
 
-const Colors: any = {};
+export const Colors: any = {};
 
 // Colors.race must be defined as objects {fg: <color1>, bg: <color2>}.
 // See scss/_colors.scss for list of allowed colors
@@ -24,7 +24,7 @@ Colors.race.wildling = {bg: 'Brown'};
 Colors.race.wolfclan = {bg: 'Brown'};
 
 // Role colors must be defined as strings, and given to items/actors as
-// 'color-fg': Colors.role.archer, for example
+// colorfg: Colors.role.archer, for example
 Colors.role = {};
 Colors.role.archer = 'Yellow';
 Colors.role.berserker = 'Pink';
@@ -34,5 +34,3 @@ Colors.role.fighter = 'Blue';
 Colors.role.king = 'Red';
 Colors.role.mage = 'Purple';
 Colors.role.slinger = 'Purple';
-
-export default Colors;
