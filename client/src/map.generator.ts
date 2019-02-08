@@ -12,7 +12,7 @@ import {Builder} from './builder';
 import {TemplateLevel} from './template.level';
 import {Crypt} from '../data/tiles.crypt';
 import {Castle} from '../data/tiles.castle';
-import {HouseGenerator} from './houses';
+import {House, HouseGenerator} from './houses';
 import {Geometry} from './geometry';
 import {ELEM} from '../data/elem-constants';
 import {Random} from './random';
@@ -58,7 +58,7 @@ interface MapObj {
     tiles?: any;
     paths?: any[];
     mapGen?: any;
-    houses?: any[];
+    houses?: House[];
     unused?: any[];
 }
 
@@ -150,10 +150,15 @@ export class MapGenerator {
 
     public static getWallElem(wallType): Element.ElementWall {
         switch (wallType) {
+            case 'cave': return ELEM.WALL_CAVE;
             case 'wallcave': return ELEM.WALL_CAVE;
+            case 'castle': return ELEM.WALL_CASTLE;
             case 'wallcastle': return ELEM.WALL_CASTLE;
+            case 'crypt': return ELEM.WALL_CRYPT;
             case 'wallcrypt': return ELEM.WALL_CRYPT;
+            case 'ice': return ELEM.WALL_ICE;
             case 'wallice': return ELEM.WALL_ICE;
+            case 'wooden': return ELEM.WALL_WOODEN;
             case 'wallwooden': return ELEM.WALL_WOODEN;
             default: return ELEM.WALL;
         }
@@ -161,10 +166,15 @@ export class MapGenerator {
 
     public static getFloorElem(floorType): Element.ElementBase {
         switch (floorType) {
+            case 'cave': // fallthrough
             case 'floorcave': return ELEM.FLOOR_CAVE;
+            case 'castle': // fallthrough
             case 'floorcastle': return ELEM.FLOOR_CASTLE;
+            case 'crypt': // fallthrough
             case 'floorcrypt': return ELEM.FLOOR_CRYPT;
+            case 'ice': // fallthrough
             case 'floorice': return ELEM.FLOOR_ICE;
+            case 'wooden': // fallthrough
             case 'floorwooden': return ELEM.FLOOR_WOODEN;
             default: return ELEM.FLOOR;
         }
@@ -197,6 +207,7 @@ export class MapGenerator {
 
     public cols: number;
     public rows: number;
+    public defaultMapElem: Element.ElementBase;
     private _mapGen: any;
     private _mapType: string | null;
     private _wall: number;
@@ -207,17 +218,18 @@ export class MapGenerator {
         this._mapGen = new ROT.Map.Arena(this.cols, this.rows);
         this._mapType = null;
         this._wall = 1;
+        this.defaultMapElem = ELEM.FLOOR;
     }
 
     public createEmptyMap() {
-        const map = new CellMap(this.cols, this.rows);
+        const map = new CellMap(this.cols, this.rows, this.defaultMapElem);
         const obj = {map};
         return obj;
     }
 
     /* Returns an object containing randomized map + all special features
      * based on initialized generator settings. */
-    public getMap(conf: MapConf = {}) {
+    public getMap(conf: MapConf = {}): MapObj {
         const obj: any = {};
         if (typeof this._mapGen === 'function') {
             obj.map = this._mapGen();
@@ -225,7 +237,7 @@ export class MapGenerator {
         else {
             const wallElem = MapGenerator.getWallElem(conf.wallType);
             const floorElem = MapGenerator.getFloorElem(conf.floorType);
-            const map = new CellMap(this.cols, this.rows);
+            const map = new CellMap(this.cols, this.rows, this.defaultMapElem);
             this._mapGen.create((x, y, val) => {
                 if (val === this._wall) {
                     map.setBaseElemXY(x, y, wallElem);
@@ -274,85 +286,7 @@ export class MapGenerator {
         return map;
     }
 
-    /* Creates a town level of size cols X rows. */
-    public createTown(cols, rows, conf) {
-        const maxTriesHouse = 100;
-        const doors = {};
-        const wallsHalos = {};
-
-        let nHouses = 5;
-        let minX = 5;
-        let maxX = 5;
-        let minY = 5;
-        let maxY = 5;
-
-        if (conf.hasOwnProperty('nHouses')) {nHouses = conf.nHouses;}
-        if (conf.hasOwnProperty('minHouseX')) {minX = conf.minHouseX;}
-        if (conf.hasOwnProperty('minHouseY')) {minY = conf.minHouseY;}
-        if (conf.hasOwnProperty('maxHouseX')) {maxX = conf.maxHouseX;}
-        if (conf.hasOwnProperty('maxHouseY')) {maxY = conf.maxHouseY;}
-
-        const houses = [];
-        const levelType = conf.levelType || 'arena';
-        this.setGen(levelType, cols, rows);
-        const mapObj = this.getMap();
-        const map = mapObj.map;
-
-        const freeCells = map.getFree();
-        const freeCoord = freeCells.map(cell => [cell.getX(), cell.getY()]);
-
-        const getHollowBox = Geometry.getHollowBox;
-        let border = getHollowBox(0, 0, cols - 1, rows - 1);
-        border = border.concat(getHollowBox(1, 1, cols - 2, rows - 2));
-
-        if (!freeCoord.length) {
-          RG.warn('Map.Generator', 'createTown',
-            'No free coordinates');
-        }
-
-        const coordObj = freeCoord.reduce((acc, item) => {
-            acc[item[0] + ',' + item[1]] = item;
-            return acc;
-        }, {});
-
-        Geometry.removeMatching(coordObj, border);
-
-        for (let i = 0; i < nHouses; i++) {
-
-            let houseCreated = null;
-            let tries = 0;
-            const xSize = RNG.getUniformInt(minX, maxX);
-            const ySize = RNG.getUniformInt(minY, maxY);
-
-            const currCoord = Object.values(coordObj);
-            // Select random starting point, try to build house there
-            while (!houseCreated && tries < maxTriesHouse) {
-                const xy = RNG.arrayGetRand(currCoord);
-                const x0 = xy[0];
-                const y0 = xy[1];
-                houseCreated = this.createHouse(
-                    map, x0, y0, xSize, ySize, doors, wallsHalos, coordObj,
-                    conf.wallType);
-                ++tries;
-            }
-
-            if (houseCreated) {
-                houses.push(houseCreated);
-                const {ulx, lrx, uly, lry} = houseCreated;
-                const wallCoord = Geometry.getBox(ulx, uly, lrx, lry);
-                const nFound = Geometry.removeMatching(coordObj, wallCoord);
-                if (!nFound) {
-                    const msg = `in box ${ulx},${uly},${lrx},${lry}`;
-                    RG.warn('Map.Generator', 'createTown',
-                        `No free cells modified for house ${msg}`);
-                }
-            }
-
-        }
-        return {map, houses};
-    }
-
-    public createTownBSP(cols, rows, conf) {
+    public createTownBSP(cols, rows, conf): MapObj {
         const maxHouseX = conf.maxHouseX || 100;
         const maxHouseY = conf.maxHouseY || 100;
 
@@ -381,12 +315,13 @@ export class MapGenerator {
 
         RNG.shuffle(leaves); // Introduce some randomness
 
-        const map = new CellMap(cols, rows);
+        const floorElem = MapGenerator.getFloorElem(conf.floorType);
+        const map = new CellMap(cols, rows, floorElem);
         const freeLeaves = [];
 
         // Now each leaf can be safely used for placing a house in
         // non-colliding manner
-        const houses = [];
+        const houses: House[] = [];
         const houseGen = new HouseGenerator();
         leaves.forEach(leaf => {
             const {w, h} = leaf;
@@ -431,7 +366,7 @@ export class MapGenerator {
                 const houseConf = {cols: colsHouse, rows: rowsHouse};
                 const house = houseGen.createHouse(houseConf);
                 if (house) {
-                    this.placeHouse(house, map, leaf.x, leaf.y);
+                    this.placeHouse(house, map, leaf.x, leaf.y, conf);
                     houses.push(house);
                 }
             }
@@ -442,15 +377,16 @@ export class MapGenerator {
         return {map, houses, unused: freeLeaves};
     }
 
-    public placeHouse(house, map, x, y) {
+    public placeHouse(house: House, map: CellMap, x, y, conf): void {
         const coord = house.coord;
         const keys = Object.keys(coord);
+        const wallElem = MapGenerator.getWallElem(conf.wallType);
         keys.forEach(elemChar => {
             if (elemChar === '#') {
                 coord[elemChar].forEach(xy => {
                     const x0 = xy[0] + x;
                     const y0 = xy[1] + y;
-                    map.setBaseElemXY(x0, y0, ELEM.WALL);
+                    map.setBaseElemXY(x0, y0, wallElem);
                 });
             }
             else if (elemChar === '+') {
@@ -468,115 +404,12 @@ export class MapGenerator {
         house.adjustCoord(x, y);
     }
 
-    /* Creates a house into a given map to a location x0,y0 with given
-     * dimensions. Existing doors and walls must be passed to prevent
-     * overlapping.*/
-    public createHouse(
-        map, x0, y0, xDim, yDim, doors, wallsHalos, freeCoord, wallType
-    ): HouseObj {
-        const maxX = x0 + xDim;
-        const maxY = y0 + yDim;
-
-        if (!freeCoord.hasOwnProperty(maxX + ',' + maxY)) {
-            return null;
-        }
-
-        const wallCoords = [];
-
-        // House doesn't fit on the map
-        if (maxX >= map.cols) {return null;}
-        if (maxY >= map.rows) {return null;}
-
-        const possibleRoom = [];
-        const wallXY = Geometry.getHollowBox(x0, y0, maxX, maxY);
-
-        // Store x,y for house until failed
-        for (let i = 0; i < wallXY.length; i++) {
-            const x = wallXY[i][0];
-            const y = wallXY[i][1];
-            if (map.hasXY(x, y)) {
-                if (wallsHalos.hasOwnProperty(x + ',' + y)) {
-                    return null;
-                }
-                else if (!doors.hasOwnProperty(x + ',' + y)) {
-                    possibleRoom.push([x, y]);
-                    // Exclude map border from door generation
-                    if (!map.isBorderXY(x, y)) {wallCoords.push([x, y]);}
-                }
-            }
-        }
-
-        const floorCoords = [];
-        for (let x = x0 + 1; x < maxX; x++) {
-            for (let y = y0 + 1; y < maxY; y++) {
-                if (freeCoord.hasOwnProperty(x + ',' + y)) {
-                    floorCoords.push([x, y]);
-                }
-                else {
-                    return null;
-                }
-            }
-        }
-
-        const wallElem = MapGenerator.getWallElem(wallType);
-        map.setBaseElems(possibleRoom, wallElem);
-        map.setBaseElems(floorCoords, ELEM.FLOOR_HOUSE);
-
-        // Create the halo, prevents houses being too close to each other
-        const haloX0 = x0 - 1;
-        const haloY0 = y0 - 1;
-        const haloMaxX = maxX + 1;
-        const haloMaxY = maxY + 1;
-        const haloBox = Geometry.getHollowBox(
-            haloX0, haloY0, haloMaxX, haloMaxY);
-        for (let i = 0; i < haloBox.length; i++) {
-            const haloX = haloBox[i][0];
-            const haloY = haloBox[i][1];
-            wallsHalos[haloX + ',' + haloY] = true;
-        }
-
-        // Finally randomly insert the door for the house, excluding corners
-        let doorIndex = RNG.randIndex(wallCoords);
-        let doorX = wallCoords[doorIndex][0];
-        let doorY = wallCoords[doorIndex][1];
-        let watchdog = 1000;
-        while (Geometry.isCorner(doorX, doorY, x0, y0, maxX, maxY)) {
-            doorIndex = RNG.randIndex(wallCoords);
-            doorX = wallCoords[doorIndex][0];
-            doorY = wallCoords[doorIndex][1];
-            --watchdog;
-            if (watchdog === 0) {
-                console.log(`Timed out with len ${wallCoords.length}`);
-                break;
-            }
-        }
-        wallCoords.slice(doorIndex, 1);
-
-        // At the moment, "door" is a hole in the wall
-        map.setBaseElemXY(doorX, doorY, ELEM.FLOOR);
-        doors[doorX + ',' + doorY] = true;
-
-        for (let i = 0; i < wallCoords.length; i++) {
-            const xHalo = wallCoords[i][0];
-            const yHalo = wallCoords[i][1];
-            wallsHalos[xHalo + ',' + yHalo] = true;
-        }
-
-        // Return room object
-        return {
-            ulx: x0, uly: y0, lrx: maxX, lry: maxY,
-            walls: wallCoords,
-            floor: floorCoords,
-            door: [doorX, doorY]
-        };
-    }
-
     /* Creates a forest map. Uses the same RNG but instead of walls, populates
      * using trees. Ratio is conversion ratio of walls to trees. For example,
      * 0.5 on average replaces half the walls with tree, and removes rest of
      * the walls. */
-    public createForest(conf) {
-        const map = new CellMap(this.cols, this.rows);
+    public createForest(conf): MapObj {
+        const map = new CellMap(this.cols, this.rows, this.defaultMapElem);
         const ratio = conf.ratio;
         this._mapGen = new MapForest(this.cols, this.rows, conf);
         this._mapGen.create((x, y, val) => {
@@ -593,7 +426,7 @@ export class MapGenerator {
     }
 
     public createLakes(conf) {
-        const map = new CellMap(this.cols, this.rows);
+        const map = new CellMap(this.cols, this.rows, this.defaultMapElem);
         this._mapGen = new MapForest(this.cols, this.rows, conf);
         this._mapGen.create((x, y, val) => {
             map.setBaseElemXY(x, y, ELEM.FLOOR);
@@ -631,7 +464,7 @@ export class MapGenerator {
     }
 
     public createWall(cols, rows, conf) {
-        const map: CellMap = new CellMap(cols, rows);
+        const map: CellMap = new CellMap(cols, rows, this.defaultMapElem);
         const wallElem = conf.wallElem || ELEM.WALL;
         this._mapGen = new MapWall(cols, rows, conf);
         this._mapGen.create((x, y, val) => {
@@ -643,7 +476,7 @@ export class MapGenerator {
     }
 
     public createMountain(cols, rows, conf): MapObj {
-        const map = new CellMap(cols, rows);
+        const map = new CellMap(cols, rows, this.defaultMapElem);
         if (!conf) {
             conf = MapGenerator.getOptions('mountain');
         }
@@ -797,7 +630,7 @@ export class MapGenerator {
     /* Creates a single cave level. */
     public createCave(cols, rows, conf): MapObj {
         this._mapGen = new MapMiner(cols, rows, conf);
-        const map = new CellMap(cols, rows);
+        const map = new CellMap(cols, rows, this.defaultMapElem);
         const wallElem = conf.wallElem || ELEM.WALL_CAVE;
         const floorElem = conf.floorElem || ELEM.FLOOR_CAVE;
         this._mapGen.create((x, y, val) => {
@@ -906,9 +739,11 @@ export class MapGenerator {
         }
         level.create();
 
+        const wallElem = MapGenerator.getWallElem(conf.wallType);
+        const floorElem = MapGenerator.getFloorElem(conf.floorType);
         const asciiToElem = {
-            '#': ELEM.WALL,
-            '.': ELEM.FLOOR
+            '#': wallElem,
+            '.': floorElem
         };
         const castleMapObj: MapObj = MapGenerator.fromAsciiMap(level.map, asciiToElem);
         castleMapObj.tiles = level.getPlacedData();
@@ -975,24 +810,7 @@ export class MapGenerator {
         // Adjust house coordinates due to map merging
         const houses = townMapObj.houses;
         houses.forEach(house => {
-            if (house.adjustCoord) {
-                house.adjustCoord(tileSize, tileSize);
-            }
-            else {
-                house.ulx += tileSize;
-                house.uly += tileSize;
-                house.lrx += tileSize;
-                house.lry += tileSize;
-                house.walls = house.walls.map(w => {
-                    w[0] += tileSize; w[1] += tileSize;
-                    return w;
-                });
-                house.floor = house.floor.map(f => {
-                    f[0] += tileSize; f[1] += tileSize;
-                    return f;
-                });
-                house.door[0] += tileSize; house.door[1] += tileSize;
-            }
+            house.moveHouse(tileSize, tileSize);
         });
 
         const unused = townMapObj.unused;
@@ -1014,7 +832,7 @@ export class MapGenerator {
     public createArctic(cols, rows, conf: MapConf = {}): MapObj {
         const snowRatio = conf.snowRatio || 1.0;
         this.setGen('empty', cols, rows);
-        const map = new CellMap(cols, rows);
+        const map = new CellMap(cols, rows, this.defaultMapElem);
         MapGenerator.addRandomSnow(map, snowRatio);
         return {map};
     }
@@ -1057,6 +875,7 @@ export class MapGenerator {
                 'setGen', 'this._mapGen type ' + type + ' is unknown');
         }
     }
+
 }
 
 MapGenerator.options = {};
