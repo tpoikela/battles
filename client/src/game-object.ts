@@ -48,63 +48,26 @@ export class GameObject {
         return obj;
     }
 
-    public $objID: number;
-
-    constructor() {
-        this.$objID = GameObject.ID++;
-    }
-
-    getID(): number {return this.$objID;}
-    setID(id: number): void {this.$objID = id;}
-
-    getObjRef(): ObjRef {
-        return {
-            $objRef: {
-                type: 'object',
-                id: this.$objID
-            }
-        };
-    }
-
-    getRefAndVal(): ObjRef {
-        const refObj: ObjRef = this.getObjRef();
-        refObj.value = this;
-        return refObj;
-    }
-
-    /* serialize() {
-        const json = {
-            $proto: GameObject.getProtoName(this)
-        };
-        for (const key in this) {
-            if (this.hasOwnProperty(key)) {
-                json[key] = GameObject.serialize(this[key]);
-            }
-        }
-        return json;
-    }
-    */
-
-    static deref(objRef: ObjRef): any {
+    public static deref(objRef: ObjRef): any {
         if (objRef) {
             return objRef.value;
         }
         return NULL_OBJECT;
     }
 
-    static createObjectID(): number {
+    public static createObjectID(): number {
         return GameObject.ID++;
     }
 
-    static getProtoName(obj: any): string {
+    public static getProtoName(obj: any): string {
         return Object.getPrototypeOf(obj).constructor.name;
     }
 
-    static isPrimitive(obj): boolean {
+    public static isPrimitive(obj): boolean {
         return typeof obj !== 'object';
     }
 
-    static serialize(obj: any): any {
+    public static serialize(obj: any): any {
         if (GameObject.isPrimitive(obj)) {
             return obj;
         }
@@ -128,6 +91,44 @@ export class GameObject {
             return obj;
         }
     }
+
+    public $objID: number;
+
+    constructor() {
+        this.$objID = GameObject.ID++;
+    }
+
+    public getID(): number {return this.$objID;}
+    public setID(id: number): void {this.$objID = id;}
+
+    public getObjRef(): ObjRef {
+        return {
+            $objRef: {
+                type: 'object',
+                id: this.$objID
+            }
+        };
+    }
+
+    public getRefAndVal(): ObjRef {
+        const refObj: ObjRef = this.getObjRef();
+        refObj.value = this;
+        return refObj;
+    }
+
+    /* serialize() {
+        const json = {
+            $proto: GameObject.getProtoName(this)
+        };
+        for (const key in this) {
+            if (this.hasOwnProperty(key)) {
+                json[key] = GameObject.serialize(this[key]);
+            }
+        }
+        return json;
+    }
+    */
+
 }
 
 GameObject.ID = 1;
