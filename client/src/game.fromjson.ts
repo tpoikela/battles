@@ -38,6 +38,7 @@ import { BrainSpawner } from './brain/brain.virtual';
 type AreaTileJSON = World.AreaTileJSON;
 type Stairs = Element.ElementStairs;
 type ElementBase = Element.ElementBase;
+type Cell = import('./map.cell').Cell;
 
 const POOL = EventPool.getPool();
 const SentientActor = Actor.Sentient;
@@ -911,14 +912,14 @@ FromJSON.prototype.createCellMap = function(map): CellMap {
         mapObj.getCell(explXY[0], explXY[1]).setExplored();
     });
     Object.keys(map.elements).forEach(key => {
-        const [x, y] = key.split(',');
+        const [x, y] = RG.key2Num(key);
         mapObj.setElemXY(x, y, this.createBaseElem(map.elements[key]));
     });
     return mapObj;
 };
 
 
-FromJSON.prototype.createBaseElem = function(cell) {
+FromJSON.prototype.createBaseElem = function(cell: string) {
     const type = ELEM_MAP.elemIndexToType[cell];
     switch (type) {
         case '#': // wall
