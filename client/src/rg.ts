@@ -923,6 +923,11 @@ RG.getDmgClassName = function(dmgType) {
     return RG.classNameDMG[dmgType];
 };
 
+RG.key2Num = function(key: string): [number, number] {
+    const [x, y] = key.split(',');
+    return [parseInt(x, 10), parseInt(y, 10)];
+};
+
 RG.isEmpty =value => {
     if (RG.isNullOrUndef([value])) {
         return true;
