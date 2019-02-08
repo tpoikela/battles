@@ -27,11 +27,12 @@ export class LevelFactory {
         this.createFunc = {};
     }
 
-    addFunction(name, createFunc) {
+    public addFunction(name: string, createFunc): void {
         this.createFunc[name] = createFunc;
     }
 
-    create(name, args: LevelArgs): Level | LevelObj[] {
+    public create(name, args: LevelArgs): Level | LevelObj[] {
+        // Check if this is a default level
         if (LevelFactory.levels.hasOwnProperty(name)) {
             return LevelFactory.levels[name](...args);
         }
@@ -46,27 +47,6 @@ export class LevelFactory {
                 'No factory/factory function given. Name: ' + name);
         }
         return null;
-
-        /* switch (name) {
-            case 'Capital': return new Capital(...args).getLevel();
-            case 'DwarvenCity': return new DwarvenCity(...args).getLevel();
-            case 'AbandonedFort': return new AbandonedFort(...args).getLevel();
-            case 'BlackTower': return new BlackTower(...args).getLevels();
-            default: {
-                if (this.createFunc.hasOwnProperty(name)) {
-                    return this.createFunc[name](...args);
-                }
-                if (this.fact) {
-                    return this.fact.createLevel(name, ...args);
-                }
-                else {
-                    RG.err('LevelFactory', 'create',
-                        'No factory/factory function given. Name: ' + name);
-                }
-                return null;
-            }
-        }
-        */
     }
 
 }
