@@ -5,9 +5,14 @@ import {RGTest} from '../../roguetest';
 import {ConfStack} from '../../../client/src/conf-stack';
 import {FactoryWorld} from '../../../client/src/factory.world';
 import {FactoryLevel} from '../../../client/src/factory.level';
-import {ElementStairs} from '../../../client/src/element';
+import * as Element from '../../../client/src/element';
 
 const expectConnected = RGTest.expectConnected;
+
+const ElementStairs = Element.ElementStairs;
+const ElementLever = Element.ElementLever;
+const ElementLeverDoor = Element.ElementLeverDoor;
+const ElementDoor = Element.ElementDoor;
 
 describe('FactoryWorld', function() {
     this.timeout(3000);
@@ -112,7 +117,7 @@ describe('FactoryWorld', function() {
         fact.setGlobalConf({});
         const br = fact.createBranch(brConf);
         expect(br.getName()).to.equal(brConf.name);
-        expect(br.getEntrance()).to.not.be.empty;
+        expect(br.getEntrance()).to.be.an.instanceof(ElementStairs);
 
         const l0 = br.getLevels()[0];
 
@@ -162,7 +167,8 @@ describe('FactoryWorld', function() {
         expect(dungeon.getName()).to.equal('Cave');
         expect(dungeon.getLevels()).to.have.length(6);
         expect(dungeon.getEntrances()).to.have.length(1);
-        expect(dungeon.getEntrances()[0]).not.to.be.empty;
+        expect(dungeon.getEntrances()[0]).to.be.an.instanceof(ElementStairs);
+        // expect(dungeon.getEntrances()[0]).not.to.be.empty;
         expectConnected(branches[0], branches[1], 1);
         expectConnected(branches[1], branches[2], 1);
         expect(branches[0].getParent().getName()).to.equal('Cave');
@@ -193,10 +199,12 @@ describe('FactoryWorld', function() {
 
         const entrB1 = branches[1].getEntrance();
         const entrB2 = branches[2].getEntrance();
-        expect(entrB1).to.exist;
-        expect(entrB1.getTargetStairs()).to.be.null;
-        expect(entrB2).to.exist;
-        expect(entrB2.getTargetStairs()).to.be.null;
+        // expect(entrB1).to.exist;
+        expect(entrB1).to.be.an.instanceof(ElementStairs);
+        expect(entrB1.getTargetStairs()).to.equal(null);
+        //expect(entrB2).to.exist;
+        expect(entrB2).to.be.an.instanceof(ElementStairs);
+        expect(entrB2.getTargetStairs()).to.equal(null);
     });
 
     it('can create cities within areas with given locations', () => {
@@ -298,7 +306,7 @@ describe('FactoryWorld', function() {
         expect(city.getLevels()).to.have.length(3);
 
         const stairs = level.getStairs();
-        stairs.forEach(s => {expect(s.isConnected()).to.be.true;});
+        stairs.forEach(s => {expect(s.isConnected()).to.equal(true);});
 
         const cityLevel = city.getLevels()[0];
         expect(cityLevel.getID()).to.equal(level.getID());
@@ -375,7 +383,7 @@ describe('FactoryWorld', function() {
             branch: [{
                 name: 'Main branch',
                 entranceLevel: 0,
-                nLevels: nLevels,
+                nLevels,
                 createPresetLevels: {
                     new: 'BlackTower',
                     args: [180, 90, {nLevels}]
@@ -432,7 +440,7 @@ describe('FactoryWorld', function() {
         // levels.map(ll => ll.getMap().debugPrintInASCII());
         const actors = lastLevel.getActors();
         const boss = actors.find(actor => actor.getName().match(/Thabba/));
-        expect(boss, 'Boss actor was created/found').to.not.be.empty;
+        expect(boss.getName(), 'Boss actor was created/found').to.be.a('string');
         expect(boss.getName()).to.match(/Son of Ice/i);
 
         const elements0 = l0.getElements();
@@ -442,9 +450,9 @@ describe('FactoryWorld', function() {
         const leverDoor = elements0.find(e => e.getType() === 'leverdoor');
         const door = elements0.find(e => e.getType() === 'door');
 
-        expect(lever).to.not.be.empty;
-        expect(leverDoor).to.not.be.empty;
-        expect(door).to.not.be.empty;
+        expect(lever).to.be.an.instanceof(ElementLever);
+        expect(leverDoor).be.an.instanceof(ElementLeverDoor);
+        expect(door).to.be.an.instanceof(ElementDoor);
 
         const world = fact.createWorld(worldConf);
         const towerZone = world.getZones()[0];
