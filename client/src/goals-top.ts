@@ -2,11 +2,11 @@
 /* This file contains the top-level goals for actors. */
 
 import RG from './rg';
-import {Goal} from './goals';
+import {Goal, GoalStatus} from './goals';
 import {Random} from './random';
 
 // const GoalsBattle = require('./goals-battle');
-import {Evaluator} from './evaluators';
+import {Evaluator, EvaluatorBase} from './evaluators';
 import {EvaluatorsBattle} from './evaluators-battle';
 const debug = require('debug')('bitn:goals-top');
 
@@ -14,7 +14,7 @@ const {
     GOAL_COMPLETED,
     GOAL_INACTIVE,
     GOAL_FAILED
-} = Goal;
+} = GoalStatus;
 
 const RNG = Random.getRNG();
 
@@ -34,23 +34,23 @@ export class GoalTop extends Goal.Base {
         this.evaluators = [];
     }
 
-    removeEvaluators() {
+    public removeEvaluators(): void {
         this.evaluators = [];
     }
 
-    addEvaluator(evaluator) {
+    public addEvaluator(evaluator: EvaluatorBase): void {
         this.evaluators.push(evaluator);
     }
 
-    activate() {
+    public activate(): void {
         this.arbitrate();
     }
 
-    getEvaluator(type) {
+    public getEvaluator(type: string): EvaluatorBase {
         return this.evaluators.find(e => e.getType() === type);
     }
 
-    arbitrate() {
+    public arbitrate(): void {
         this.dbg('arbitrate() started');
         if (this.evaluators.length === 0) {
             RG.err('GoalTop', 'arbitrate',
@@ -77,7 +77,7 @@ export class GoalTop extends Goal.Base {
         this.dbg('arbitrate() finished');
     }
 
-    process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         const status = this.processSubGoals();
         if (status === GOAL_COMPLETED || status === GOAL_FAILED) {
@@ -88,7 +88,7 @@ export class GoalTop extends Goal.Base {
         return status;
     }
 
-    setBias(biases) {
+    public setBias(biases) {
         Object.keys(biases).forEach(bias => {
             const evaluator = this.evaluators.find(e => e.getType() === bias);
             if (evaluator) {
@@ -102,7 +102,7 @@ export class GoalTop extends Goal.Base {
         });
     }
 
-    toJSON() {
+    public toJSON() {
         const evals = [];
         this.evaluators.forEach(ev => {
             // Order difficult to serialize as it can contain reference to any
@@ -143,7 +143,7 @@ export class ThinkBasic extends GoalTop {
         this.updateEvaluators();
     }
 
-    updateEvaluators() {
+    public updateEvaluators() {
         this.removeEvaluators();
         this.evaluators.push(new Evaluator.AttackActor(this.bias.attack));
         this.evaluators.push(new Evaluator.Flee(this.bias.flee));
@@ -152,7 +152,7 @@ export class ThinkBasic extends GoalTop {
 
     /* Can be used to "inject" goals for the actor. The actor uses
      * Evaluator.Orders to check if it will obey the order. */
-    giveOrders(evaluator) {
+    public giveOrders(evaluator) {
         // TODO remove this evaluator after the check
         this.dbg('Received an order!!', evaluator);
         this.addEvaluator(evaluator);
@@ -160,7 +160,7 @@ export class ThinkBasic extends GoalTop {
 
     /* Clears the given orders. Useful if a new order needs to be issued to
      * override the existing one. */
-    clearOrders() {
+    public clearOrders() {
         const orders = this.evaluators.filter(ev => ev.isOrder());
         orders.forEach(order => {
             if (order.goal.isActive()) {
@@ -171,7 +171,7 @@ export class ThinkBasic extends GoalTop {
         });
     }
 
-    addGoal(goal) {
+    public addGoal(goal) {
         const type = goal.getType();
         this.dbg(`addGoal() ${type}`);
         if (!this.isGoalPresent(type)) {
@@ -214,7 +214,7 @@ export class ThinkCommander extends ThinkBasic {
         this.updateEvaluators();
     }
 
-    updateEvaluators() {
+    public updateEvaluators() {
         super.updateEvaluators();
         const winBattleEval = new EvaluatorsBattle.WinBattle(
             this.bias.winBattle);

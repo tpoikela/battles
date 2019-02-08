@@ -2,24 +2,25 @@
 /* This file contains Battle-related goals used by NPC actors. */
 
 import RG from './rg';
-import {Goal, GoalBase} from './goals';
+import {Goal, GoalBase, GoalStatus} from './goals';
 import {Evaluator} from './evaluators';
 import {BaseActor, SentientActor, isSentient} from './actor';
 import * as Component from './component';
 
 type BrainGoalOriented = import('./brain').BrainGoalOriented;
 
-const {GOAL_ACTIVE, GOAL_COMPLETED} = Goal;
+const {GOAL_ACTIVE, GOAL_COMPLETED} = GoalStatus;
 
 export const GoalsBattle: any = {};
 
-export const orderWithGoal = (actor, obj) => {
+export const orderWithGoal = (actor: BaseActor, obj): void => {
     const {bias} = obj;
     const orderEval = new Evaluator.Orders(bias);
     orderEval.setArgs({srcActor: obj.src, goal: obj.goal});
     if (!actor.isPlayer()) {
-        if (typeof actor.getBrain().getGoal === 'function') {
-            const topGoal = actor.getBrain().getGoal();
+        const brain = actor.getBrain() as BrainGoalOriented;
+        if (typeof (brain.getGoal) === 'function') {
+            const topGoal = brain.getGoal();
             topGoal.clearOrders();
             topGoal.giveOrders(orderEval);
         }
@@ -98,7 +99,7 @@ export class GoalWinBattle extends GoalBase {
         this.setType('GoalWinBattle');
     }
 
-    activate() {
+    public activate(): void {
         // If enemy not seen
         const brain = this.actor.getBrain();
         const seenCells = brain.getSeenCells();
@@ -114,7 +115,7 @@ export class GoalWinBattle extends GoalBase {
         this.status = GOAL_ACTIVE;
     }
 
-    process() {
+    public process(): GoalStatus {
         this.dbg('process() begin');
         this.activateIfInactive();
         this.status = this.processSubGoals();
@@ -136,7 +137,7 @@ export class GoalFollowArmy extends GoalBase {
         this.setType('GoalFollowArmy');
     }
 
-    activate() {
+    public activate(): void {
         // TODO
         // 1. Calculate center of mass of army
         // 2. Check distance to the army
@@ -144,7 +145,7 @@ export class GoalFollowArmy extends GoalBase {
         //    - Depends on the style/FOV of commander
     }
 
-    process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         this.status = GOAL_COMPLETED;
         return this.status;
@@ -189,7 +190,7 @@ export class LevelGrid {
         this.yMapHalf = Math.floor(yMap / 2);
     }
 
-    getCenterLevelXY(gridXY) {
+    public getCenterLevelXY(gridXY) {
         const [gridX, gridY] = gridXY;
         const x = gridX * this.xMap + this.xMapHalf;
         const y = gridY * this.yMap + this.yMapHalf;
@@ -198,44 +199,44 @@ export class LevelGrid {
 
     /* Given level x,y coordinates, returns the grid x,y corresponding to
      * this. */
-    getGridXY(levelXY) {
+    public getGridXY(levelXY) {
         const [x, y] = levelXY;
         const gridX = Math.floor(x / this.xMap);
         const gridY = Math.floor(y / this.yMap);
         return [gridX, gridY];
     }
 
-    setDataLevelXY(xy, key, data) {
+    public setDataLevelXY(xy, key, data) {
         const [gridX, gridY] = this.getGridXY(xy);
         this.grid[gridX][gridY][key] = data;
     }
 
-    setDataGridXY(gridXY, key, data) {
+    public setDataGridXY(gridXY, key, data) {
         const [gridX, gridY] = gridXY;
         this.grid[gridX][gridY][key] = data;
     }
 
-    isTrue(gridXY, key) {
+    public isTrue(gridXY, key) {
         const [gridX, gridY] = gridXY;
         return this.grid[gridX][gridY][key] === true;
     }
 
-    hasProp(gridXY, key) {
+    public hasProp(gridXY, key) {
         const [gridX, gridY] = gridXY;
         return this.grid[gridX][gridY].hasOwnProperty(key);
     }
 
-    getDataGridXY(gridXY) {
+    public getDataGridXY(gridXY) {
         const [gridX, gridY] = gridXY;
         return this.grid[gridX][gridY];
     }
 
-    getDataLevelXY(xy) {
+    public getDataLevelXY(xy) {
         const [gridX, gridY] = this.getGridXY(xy);
         return this.grid[gridX][gridY];
     }
 
-    debugPrint() {
+    public debugPrint() {
         for (let y = 0; y < this.gridRows; y++) {
             let row = '||';
             for (let x = 0; x < this.gridCols; x++) {
@@ -269,12 +270,12 @@ export class GoalFindEnemyArmy extends GoalBase {
         this.adjustRate = 50;
     }
 
-    activate() {
+    public activate(): void {
         this.selectDirToMove();
         this.status = GOAL_ACTIVE;
     }
 
-    process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         if (this.adjustRate > 0) {
             --this.adjustRate;
@@ -288,7 +289,7 @@ export class GoalFindEnemyArmy extends GoalBase {
     }
 
     /* Selects the movement direction for the army. */
-    selectDirToMove() {
+    public selectDirToMove(): void {
         const brain = this.actor.getBrain();
 
         const cmdDir = [0, 0];
@@ -332,7 +333,7 @@ export class GoalEngageEnemy extends GoalBase {
         this.setType('GoalEngageEnemy');
     }
 
-    activate() {
+    public activate(): void {
         // const actors = this.actor.brain.getSeenFriends();
         this.dbg('ATTACK ENEMY activate()');
         const brain = this.actor.getBrain();
@@ -342,8 +343,8 @@ export class GoalEngageEnemy extends GoalBase {
 
         const actors = brain.getSeenFriends();
         actors.forEach(actor => {
-            const goal = new Goal.AttackActor(actor, enemies[0]);
-            orderWithGoal(actor, {src: this.actor, bias: 2.0, goal});
+            const orderGoal = new Goal.AttackActor(actor, enemies[0]);
+            orderWithGoal(actor, {src: this.actor, bias: 2.0, goal: orderGoal});
         });
 
         this.enemy = enemies[0] as SentientActor;
@@ -355,7 +356,7 @@ export class GoalEngageEnemy extends GoalBase {
         this.status = GOAL_ACTIVE;
     }
 
-    process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         this.dbg('ATTACK ENEMY process()');
         this.status = this.processSubGoals();
@@ -373,6 +374,15 @@ export class GoalHoldPosition extends GoalBase {
         super(actor);
         this.setType('GoalHoldPosition');
     }
+
+    /*
+    public activate(): void {
+    }
+
+    public process(): GoalStatus {
+        this.activateIfInactive();
+    }
+    */
 
 }
 GoalsBattle.HoldPosition = GoalHoldPosition;

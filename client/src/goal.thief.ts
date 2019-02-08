@@ -1,7 +1,7 @@
 /* Contains code for thief goal. */
 
 import RG from './rg';
-import {Goal} from './goals';
+import {Goal, GoalStatus} from './goals';
 import {Random} from './random';
 import {Cell} from './map.cell';
 import {Brain} from './brain';
@@ -9,7 +9,7 @@ import * as Component from './component';
 
 const {
     GOAL_ACTIVE,
-    GOAL_COMPLETED} = Goal;
+    GOAL_COMPLETED} = GoalStatus;
 const RNG = Random.getRNG();
 
 /* With this Goal, an actor can search a house for interesting features,
@@ -27,7 +27,7 @@ export class GoalSearchHouse extends Goal.Base {
         this.searchTime = RNG.getUniformInt(20, 40);
     }
 
-    public activate() {
+    public activate(): void {
         this.status = GOAL_ACTIVE;
         const seenCells = this.actor.getBrain().getSeenCells();
         if (!this.floorCells || this.floorCells.length === 0) {
@@ -77,7 +77,7 @@ export class GoalSearchHouse extends Goal.Base {
         }
     }
 
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         --this.searchTime;
         if (this.hasSubGoals()) {
@@ -108,12 +108,12 @@ export class GoalThief extends Goal.Base {
         this.shops = {}; // Stores known shop location
     }
 
-    public activate() {
+    public activate(): void {
         this.status = GOAL_ACTIVE;
         this.chooseThiefTask();
     }
 
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         --this.shopCooldown;
         --this.doorCooldown;

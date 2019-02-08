@@ -18,36 +18,31 @@ const RNG = Random.getRNG();
 export const Goal: any = {};
 Goal.ACTOR_FILTER = '';
 
-Goal.GOAL_ACTIVE = 1;
-Goal.GOAL_COMPLETED = 2;
-Goal.GOAL_INACTIVE = 3;
-Goal.GOAL_FAILED = 4;
+type Entity = import('./entity').Entity;
+type Cell = import('./map.cell').Cell;
 
-Goal.Status = {
+Goal.StatusStrings = {
     1: 'GOAL_ACTIVE',
     2: 'GOAL_COMPLETED',
     3: 'GOAL_INACTIVE',
     4: 'GOAL_FAILED'
 };
 
-export const Types = {
-    Normal: Symbol(),
-    Move: Symbol(),
-    Kill: Symbol(),
-    Find: Symbol()
-};
-Goal.Types = Types;
+export enum GoalType {
+    NORMAL = 1, MOVE, KILL, FIND, AGGRESSION
+}
+Goal.Types = GoalType;
 
 const NO_SUB_GOALS = null;
 
-const {
-    GOAL_ACTIVE,
-    GOAL_COMPLETED,
-    GOAL_INACTIVE,
-    GOAL_FAILED
-} = Goal;
+export enum GoalStatus {
+    GOAL_ACTIVE = 1,
+    GOAL_COMPLETED = 2,
+    GOAL_INACTIVE = 3,
+    GOAL_FAILED = 4
+}
 
-let IND = 0;
+let IND = 0; // Used in debug messages
 
 //---------------------------------------------------------------------------
 /* Base class for all actor goals. */
@@ -57,22 +52,22 @@ export class GoalBase {
 
     public subGoals: GoalBase[] | null;
     public actor: SentientActor;
-    public status: string;
+    public status: GoalStatus;
     public type: string;
-    public category: symbol;
     public planBGoal: GoalBase | null;
+    public category: GoalType;
 
     constructor(actor) {
         this.subGoals = NO_SUB_GOALS;
         this.actor = actor;
-        this.status = GOAL_INACTIVE;
+        this.status = GoalStatus.GOAL_INACTIVE;
         this.type = '';
-        this.category = Types.Normal;
+        this.category = GoalType.NORMAL;
 
         this.planBGoal = null; // Can be set for a failed goal
     }
 
-    public dbg(msg) {
+    public dbg(msg: string): void {
         if (debug.enabled) {
             let nameMatch = false;
             if (!Goal.ACTOR_FILTER) {nameMatch = true;}
@@ -91,19 +86,19 @@ export class GoalBase {
         }
     }
 
-    public setCategory(category) {
+    public setCategory(category: GoalType) {
         this.category = category;
     }
 
-    public getCategory() {
+    public getCategory(): GoalType {
         return this.category;
     }
 
-    public setType(type) {
+    public setType(type: string): void {
         this.type = type;
     }
 
-    public getType() {
+    public getType(): string {
         return this.type;
     }
 
@@ -113,28 +108,27 @@ export class GoalBase {
 
     public getPlanB() {return this.planBGoal;}
 
-    public activate() {
+    public activate(): void {
         // This should usually initialize subgoals for composite goal.
         // For atomic goals, can do computation like path-finding, FoV etc
         throw new Error('Pure virtual method');
     }
 
-    public activateIfInactive() {
+    public activateIfInactive(): void {
         if (this.isInactive()) {
             this.dbg('Activating inactive');
             this.activate();
         }
     }
 
-    public reactivateIfFailed() {
+    public reactivateIfFailed(): void {
         if (this.hasFailed()) {
             this.dbg('Re-Activating failed');
-            this.status = GOAL_INACTIVE;
+            this.status = GoalStatus.GOAL_INACTIVE;
         }
     }
 
-    // should return inactive, active, completed, failed
-    public process() {
+    public process(): GoalStatus {
         if (Array.isArray(this.subGoals)) {
             const status = this.subGoals[0].process();
             return status;
@@ -142,20 +136,20 @@ export class GoalBase {
         return this.status;
     }
 
-    public terminate() {
+    public terminate(): void {
         this.dbg('Goal terminated!');
-        this.status = GOAL_COMPLETED;
+        this.status = GoalStatus.GOAL_COMPLETED;
     }
 
-    public handleMsg(obj) {
+    public handleMsg(obj): void {
         if (Array.isArray(this.subGoals)) {
             this.subGoals[this.subGoals.length - 1].handleMsg(obj);
         }
     }
 
-    public processSubGoals() {
+    public processSubGoals(): GoalStatus {
         ++IND;
-        let status = '';
+        let status = GoalStatus.GOAL_FAILED;
         this.dbg('Start processSubGoals()');
 
         if (Array.isArray(this.subGoals)) {
@@ -165,20 +159,20 @@ export class GoalBase {
                 const subGoal = this.subGoals[0];
                 status = subGoal.process();
 
-                if (status === GOAL_COMPLETED && this.subGoals.length > 1) {
+                if (status === GoalStatus.GOAL_COMPLETED && this.subGoals.length > 1) {
                     // This goal has still sub-goals, so keep active
-                    status = GOAL_ACTIVE;
+                    status = GoalStatus.GOAL_ACTIVE;
                 }
-                else if (status === GOAL_FAILED && subGoal.hasPlanB()) {
+                else if (status === GoalStatus.GOAL_FAILED && subGoal.hasPlanB()) {
                     this.subGoals[0] = subGoal.getPlanB();
                     // Need to change the type to prevent evaluation changing
                     this.subGoals[0].setType(subGoal.getType());
-                    status = GOAL_ACTIVE;
+                    status = GoalStatus.GOAL_ACTIVE;
                 }
                 // Else keep the sub-process status
             }
             else {
-                status = GOAL_COMPLETED;
+                status = GoalStatus.GOAL_COMPLETED;
             }
         }
         else {
@@ -195,7 +189,7 @@ export class GoalBase {
         return status;
     }
 
-    public removeFinishedOrFailed() {
+    public removeFinishedOrFailed(): void {
         this.subGoals = this.subGoals.filter(goal => (
             !goal.isCompleted() && !goal.hasFailed()
         ));
@@ -253,19 +247,19 @@ export class GoalBase {
     }
 
     public isInactive() {
-        return this.status === GOAL_INACTIVE;
+        return this.status === GoalStatus.GOAL_INACTIVE;
     }
 
     public isActive() {
-        return this.status === GOAL_ACTIVE;
+        return this.status === GoalStatus.GOAL_ACTIVE;
     }
 
     public hasFailed() {
-        return this.status === GOAL_FAILED;
+        return this.status === GoalStatus.GOAL_FAILED;
     }
 
     public isCompleted() {
-        return this.status === GOAL_COMPLETED;
+        return this.status === GoalStatus.GOAL_COMPLETED;
     }
 
     /* Prevents double addition of same type of goal. Ignores failed/completed
@@ -302,29 +296,29 @@ export class GoalFollowPath extends GoalBase {
     }
 
     /* If activated, will compute actor's path from current location to x,y */
-    public activate() {
+    public activate(): void {
         const [x, y] = this.xy;
         const [aX, aY] = [this.actor.getX(), this.actor.getY()];
         this.dbg(`Calc path ${aX},${aY} -> ${x},${y}`);
         const map = this.actor.getLevel().getMap();
         const path = Path.getShortestActorPath(map, aX, aY, x, y);
         this.path = path;
-        this.status = GOAL_ACTIVE;
+        this.status = GoalStatus.GOAL_ACTIVE;
         this.dbg(`activate() path length: ${this.path.length}`);
     }
 
     /* Should check the next coordinate, and if actor can move to it. */
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         if (this.path.length > 0) {
             return this.followPath();
         }
-        this.dbg('process() ret GOAL_COMPLETED');
-        this.status = GOAL_COMPLETED;
-        return GOAL_COMPLETED;
+        this.dbg('process() ret GoalStatus.GOAL_COMPLETED');
+        this.status = GoalStatus.GOAL_COMPLETED;
+        return GoalStatus.GOAL_COMPLETED;
     }
 
-    public followPath() {
+    public followPath(): GoalStatus {
         const level = this.actor.getLevel();
         const [aX, aY] = this.actor.getXY();
         const {x, y} = this.path[0];
@@ -342,24 +336,24 @@ export class GoalFollowPath extends GoalBase {
                 this.path.shift();
                 if (this.path.length === 0) {
                     this.dbg(`followPath() ret GOAL_COMPL, path ${n}`);
-                    this.status = GOAL_COMPLETED;
-                    return GOAL_COMPLETED;
+                    this.status = GoalStatus.GOAL_COMPLETED;
+                    return GoalStatus.GOAL_COMPLETED;
                 }
-                this.dbg(`followPath() ret GOAL_ACTIVE, path ${n}`);
-                this.status = GOAL_ACTIVE;
-                return GOAL_ACTIVE;
+                this.dbg(`followPath() ret GoalStatus.GOAL_ACTIVE, path ${n}`);
+                this.status = GoalStatus.GOAL_ACTIVE;
+                return GoalStatus.GOAL_ACTIVE;
             }
             else {
-                this.dbg(`followPath() strayed, ret GOAL_FAILED, path ${n}`);
+                this.dbg(`followPath() strayed, ret GoalStatus.GOAL_FAILED, path ${n}`);
                 // Strayed from the path, mark as failed
-                this.status = GOAL_FAILED;
-                return GOAL_FAILED;
+                this.status = GoalStatus.GOAL_FAILED;
+                return GoalStatus.GOAL_FAILED;
             }
         }
         else {
-            this.dbg('followPathl() next NOT passable ret GOAL_FAILED');
-            this.status = GOAL_FAILED;
-            return GOAL_FAILED;
+            this.dbg('followPathl() next NOT passable ret GoalStatus.GOAL_FAILED');
+            this.status = GoalStatus.GOAL_FAILED;
+            return GoalStatus.GOAL_FAILED;
         }
 
     }
@@ -390,7 +384,7 @@ export class GoalMoveUntilEnemy extends GoalBase {
 
     public activate() {
         this.timeout = 100;
-        this.status = GOAL_ACTIVE;
+        this.status = GoalStatus.GOAL_ACTIVE;
     }
 
     public process() {
@@ -407,14 +401,14 @@ export class GoalMoveUntilEnemy extends GoalBase {
             if (debug.enabled) {
                 this.dbg(`Has moved enough. Enemy found @${eX},${eY}`);
             }
-            this.status = GOAL_COMPLETED;
+            this.status = GoalStatus.GOAL_COMPLETED;
         }
         else if (map.hasObstacle(nextX, nextY)) {
-            this.status = GOAL_FAILED;
+            this.status = GoalStatus.GOAL_FAILED;
             if (debug.enabled) {this.dbg('OBSTACLE ENCOUNTERED');}
         }
         else if (this.timeout === 0) {
-            this.status = GOAL_FAILED;
+            this.status = GoalStatus.GOAL_FAILED;
             if (debug.enabled) {this.dbg('TIMEOUT REACHED');}
         }
         else if (map.isPassable(nextX, nextY)) {
@@ -456,7 +450,7 @@ export class GoalGotoActor extends GoalFollowPath {
         const path = this.getPath();
         this.dbg(`activate() path length: ${path.length}`);
         this.path = path;
-        this.status = GOAL_ACTIVE;
+        this.status = GoalStatus.GOAL_ACTIVE;
         this.dbg(`activate() path length: ${this.path.length}`);
     }
 
@@ -478,15 +472,15 @@ export class GoalGotoActor extends GoalFollowPath {
         // Why this branch??
         if (dX > 2 || dY > 2) {
             this.followPath();
-            this.status = GOAL_FAILED;
-            return GOAL_FAILED;
+            this.status = GoalStatus.GOAL_FAILED;
+            return GoalStatus.GOAL_FAILED;
         }
         else if (this.path.length > 0) {
             return this.followPath();
         }
-        this.dbg('process() ret GOAL_COMPLETED');
-        this.status = GOAL_COMPLETED;
-        return GOAL_COMPLETED;
+        this.dbg('process() ret GoalStatus.GOAL_COMPLETED');
+        this.status = GoalStatus.GOAL_COMPLETED;
+        return GoalStatus.GOAL_COMPLETED;
     }
 
 }
@@ -531,7 +525,7 @@ export class GoalGuard extends GoalBase {
         this.checkDistToGuardPoint();
     }
 
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         this.status = this.processSubGoals();
         if (this.subGoals.length > 0) {
@@ -543,9 +537,10 @@ export class GoalGuard extends GoalBase {
         else {
             this.checkDistToGuardPoint();
         }
+        return this.status;
     }
 
-    public checkDistToGuardPoint() {
+    public checkDistToGuardPoint(): void {
         // const [aX, aY] = this.actor.getXY();
         // const map = this.actor.getLevel().getMap();
         const [dX, dY] = RG.dXdYAbs([this.x, this.y], this.actor.getXY());
@@ -626,13 +621,13 @@ export class GoalPatrol extends GoalBase {
         this.currTarget = this.coords[this.currIndex];
         this.addSubGoal(new GoalFollowPath(this.actor, this.currTarget));
         this.dbg(`${this.getType()} next patrol point ${this.currTarget}`);
-        this.status = GOAL_ACTIVE;
+        this.status = GoalStatus.GOAL_ACTIVE;
     }
 
     public recomputePatrolPath() {
         this.addSubGoal(new GoalFollowPath(this.actor, this.currTarget));
         this.dbg(`${this.getType()} recompute to point ${this.currTarget}`);
-        this.status = GOAL_ACTIVE;
+        this.status = GoalStatus.GOAL_ACTIVE;
     }
 
 }
@@ -658,7 +653,7 @@ export class GoalAttackActor extends GoalBase {
         // targetActor.isDead() -> completed
         this.selectSubGoal();
         if (!this.isCompleted()) {
-            this.status = GOAL_ACTIVE;
+            this.status = GoalStatus.GOAL_ACTIVE;
         }
     }
 
@@ -695,7 +690,7 @@ export class GoalAttackActor extends GoalBase {
 
     public terminate() {
         this.dbg('Terminating completed attack actor task');
-        this.status = GOAL_COMPLETED;
+        this.status = GoalStatus.GOAL_COMPLETED;
     }
 
     public canMissileAttack() {
@@ -763,12 +758,12 @@ export class GoalAttackActor extends GoalBase {
 
         if (healthComp.isDead()) {
             this.removeAllSubGoals();
-            this.status = GOAL_COMPLETED;
+            this.status = GoalStatus.GOAL_COMPLETED;
             this.dbg('Enemy is dead. Goal completed');
         }
         else if (!RG.inSameLevel(this.actor, this.targetActor)) {
             this.removeAllSubGoals();
-            this.status = GOAL_COMPLETED;
+            this.status = GoalStatus.GOAL_COMPLETED;
             this.dbg('Enemy not in this level. Goal completed');
         }
     }
@@ -798,12 +793,12 @@ export class GoalHitActor extends GoalBase {
         const attackComp = new Component.Attack({target});
         this.actor.add(attackComp);
         this.dbg(`${this.getType()} added Attack comp`);
-        this.status = GOAL_ACTIVE;
+        this.status = GoalStatus.GOAL_ACTIVE;
     }
 
     public process() {
         this.activateIfInactive();
-        this.status = GOAL_COMPLETED;
+        this.status = GoalStatus.GOAL_COMPLETED;
         return this.status;
     }
 
@@ -837,12 +832,12 @@ export class GoalShootActor extends GoalBase {
         mComp.setRange(RG.getMissileRange(this.actor, shotItem));
         shotItem.add(mComp);
         this.dbg(`${this.getType()} added Missile comp`);
-        this.status = GOAL_ACTIVE;
+        this.status = GoalStatus.GOAL_ACTIVE;
     }
 
     public process() {
         this.activateIfInactive();
-        this.status = GOAL_COMPLETED;
+        this.status = GoalStatus.GOAL_COMPLETED;
         return this.status;
     }
 
@@ -867,7 +862,7 @@ export class GoalExplore extends GoalBase {
     public activate() {
         this.setNewPassableDir();
         this.dbg(`activate Explore dX,dY: ${this.dX},${this.dY}`);
-        this.status = GOAL_ACTIVE;
+        this.status = GoalStatus.GOAL_ACTIVE;
     }
 
     /* Can be used to set the Explore callback called after each turn. */
@@ -925,7 +920,7 @@ export class GoalExplore extends GoalBase {
             this.setNewPassableDir();
         }
         if (this.dur === 0) {
-            this.status = GOAL_COMPLETED;
+            this.status = GoalStatus.GOAL_COMPLETED;
         }
         if (this.exploreCb) {
             this.exploreCb(newX, newY);
@@ -978,7 +973,7 @@ export class GoalExplore extends GoalBase {
     }
 
     public terminate() {
-        this.status = GOAL_COMPLETED;
+        this.status = GoalStatus.GOAL_COMPLETED;
     }
 
 }
@@ -996,10 +991,11 @@ export class GoalFleeFromActor extends GoalBase {
         this.targetActor = targetActor;
     }
 
-    public activate() {
+    public activate(): void {
         const brain = this.actor.getBrain();
         const seenCells = brain.getSeenCells();
         const actorCells = Brain.findCellsWithActors(this.actor, seenCells);
+
         let foundCell = null;
         actorCells.forEach(cell => {
             const actors = cell.getActors();
@@ -1011,8 +1007,8 @@ export class GoalFleeFromActor extends GoalBase {
                 });
             }
         });
+
         if (foundCell) {
-            // const [x, y] = [foundCell.getX(), foundCell.getY()];
             const thisX = this.actor.getX();
             const thisY = this.actor.getY();
             const dXdY = RG.dXdYUnit(this.actor, this.targetActor);
@@ -1021,29 +1017,30 @@ export class GoalFleeFromActor extends GoalBase {
             const level = this.actor.getLevel();
 
             const fleeOptions = [[newX, newY], [thisX, newY], [newX, thisY]];
+            RNG.shuffle(fleeOptions);
             for (let i = 0; i < 3; i++) {
                 const [x, y] = fleeOptions[i];
                 if (level.getMap().isPassable(x, y)) {
                     const movComp = new Component.Movement(x, y, level);
                     this.dbg(`${this.getType()} movComp to ${x},${y}`);
                     this.actor.add(movComp);
-                    this.status = GOAL_COMPLETED;
+                    this.status = GoalStatus.GOAL_COMPLETED;
                     break;
                 }
             }
 
-            if (this.status !== GOAL_COMPLETED) {
-                this.status = GOAL_FAILED;
+            if (this.status !== GoalStatus.GOAL_COMPLETED) {
+                this.status = GoalStatus.GOAL_FAILED;
                 this.planBGoal = new Goal.AttackActor(this.actor,
                     this.targetActor);
             }
         }
         else {
-            this.status = GOAL_FAILED;
+            this.status = GoalStatus.GOAL_FAILED;
         }
     }
 
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         return this.status;
     }
@@ -1065,13 +1062,13 @@ export class GoalCastSpell extends GoalBase {
         this.spellArgs = spellArgs;
     }
 
-    public activate() {
+    public activate(): void {
         const castFunc = this.spell.getCastFunc(this.actor, this.spellArgs);
         castFunc();
-        this.status = GOAL_COMPLETED;
+        this.status = GoalStatus.GOAL_COMPLETED;
     }
 
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         return this.status;
     }
@@ -1092,7 +1089,7 @@ export class GoalFollow extends GoalBase {
 
     public activate() {
         if (this.actor.getBrain().canSeeActor(this.targetActor)) {
-            this.status = GOAL_ACTIVE;
+            this.status = GoalStatus.GOAL_ACTIVE;
         }
     }
 
@@ -1111,7 +1108,7 @@ export class GoalFollow extends GoalBase {
 
             if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
                 // Goal OK, already very close
-                this.status = GOAL_ACTIVE;
+                this.status = GoalStatus.GOAL_ACTIVE;
             } // Simple dXdY movement
             else if (map.isPassable(newX, newY)) {
                 const movComp = new Component.Movement(newX, newY, level);
@@ -1128,16 +1125,16 @@ export class GoalFollow extends GoalBase {
                         this.actor.add(movComp);
                     }
                     else {
-                        this.status = GOAL_FAILED;
+                        this.status = GoalStatus.GOAL_FAILED;
                     }
                 }
                 else { // No path to follow the actor
-                    this.status = GOAL_FAILED;
+                    this.status = GoalStatus.GOAL_FAILED;
                 }
             }
         }
         else {
-            this.status = GOAL_FAILED;
+            this.status = GoalStatus.GOAL_FAILED;
         }
         return this.status;
     }
@@ -1181,7 +1178,7 @@ export class GoalGetItem extends GoalBase {
             if (x === iX && y === iY) {
                 const pickup = new Component.Pickup();
                 this.actor.add(pickup);
-                this.status = GOAL_COMPLETED;
+                this.status = GoalStatus.GOAL_COMPLETED;
             }
             else { // otherwise try to move closer
                 const goal = new GoalFollowPath(this.actor, [iX, iY]);
@@ -1191,7 +1188,7 @@ export class GoalGetItem extends GoalBase {
             }
         }
         else {
-            this.status = GOAL_FAILED;
+            this.status = GoalStatus.GOAL_FAILED;
         }
     }
 
@@ -1216,7 +1213,7 @@ export class GoalOrders extends GoalBase {
     }
 
     public activate() {
-        this.status = GOAL_ACTIVE;
+        this.status = GoalStatus.GOAL_ACTIVE;
     }
 
     public process() {
@@ -1244,7 +1241,7 @@ export class GoalShopkeeper extends GoalBase {
     }
 
     public activate() {
-        this.status = GOAL_ACTIVE;
+        this.status = GoalStatus.GOAL_ACTIVE;
         // If on a shop element, do something
         const cell = this.actor.getCell();
         if (cell.hasShop()) {
@@ -1287,6 +1284,7 @@ export class GoalGoHome extends GoalBase {
     public x: number;
     public y: number;
     public maxDist: number;
+    public timeToFindPath: number;
 
     constructor(actor, x, y, dist) {
         super(actor);
@@ -1295,11 +1293,13 @@ export class GoalGoHome extends GoalBase {
         this.y = y;
         this.maxDist = dist;
         this.subGoals = [];
+        this.timeToFindPath = RNG.getUniformInt(100, 200);
     }
 
-    public activate() {
-        this.status = GOAL_ACTIVE;
+    public activate(): void {
+        this.status = GoalStatus.GOAL_ACTIVE;
         const cell = this.actor.getCell();
+        this.timeToFindPath--;
         if (cell.getBaseElem().getType() === 'floorhouse') {
             if (RG.isSuccess(0.03)) {
                 const comm = new Component.Communication();
@@ -1314,14 +1314,19 @@ export class GoalGoHome extends GoalBase {
         else if (RG.withinRange(this.maxDist, [this.x, this.y], this.actor)) {
             moveToRandomDir(this.actor);
         }
-        else {
+        else if (this.timeToFindPath <= 0) {
             const goal = new GoalFollowPath(this.actor, [this.x, this.y]);
             this.addSubGoal(goal);
             this.status = this.processSubGoals();
+            this.timeToFindPath = RNG.getUniformInt(100, 200);
+        }
+        else {
+            // TODO try to move closer to home in smarter way
+            moveToRandomDir(this.actor);
         }
     }
 
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         this.status = this.processSubGoals();
         return this.status;
@@ -1330,7 +1335,8 @@ export class GoalGoHome extends GoalBase {
 }
 Goal.GoHome = GoalGoHome;
 
-function moveToRandomDir(actor) {
+/* Move the given actor to random direction. */
+function moveToRandomDir(actor: SentientActor): void {
     const level = actor.getLevel();
     const map = level.getMap();
 
@@ -1350,7 +1356,7 @@ function moveToRandomDir(actor) {
 }
 Goal.moveToRandomDir = moveToRandomDir;
 
-function moveActorTo(actor, cell) {
+function moveActorTo(actor: SentientActor, cell: Cell): void {
     const xy = cell.getXY();
     const level = actor.getLevel();
     if (level.getMap().isPassable(xy[0], xy[1])) {
@@ -1361,7 +1367,7 @@ function moveActorTo(actor, cell) {
 Goal.moveActorTo = moveActorTo;
 
 
-/* Class used for monitoring the Goal transitions etc. */
+/* TODO Class used for monitoring the Goal transitions etc. */
 export class GoalMonitor {
     public goal: GoalBase;
 
@@ -1379,16 +1385,16 @@ export class GoalCommunicate extends GoalBase {
         this.setType('GoalCommunicate');
     }
 
-    public activate() {
+    public activate(): void {
         this.communicateEnemies();
     }
 
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
-        return Goal.GOAL_COMPLETED;
+        return GoalStatus.GOAL_COMPLETED;
     }
 
-    public communicateEnemies() {
+    public communicateEnemies(): void {
         const brain = this.actor.getBrain();
         const memory: Memory = brain.getMemory();
         const enemies = memory.getEnemyActors();
@@ -1407,6 +1413,6 @@ export class GoalCommunicate extends GoalBase {
 }
 Goal.Communicate = GoalCommunicate;
 
-function statusToString(status) {
-    return Goal.Status[status];
+function statusToString(status: GoalStatus): string {
+    return Goal.StatusString[status];
 }
