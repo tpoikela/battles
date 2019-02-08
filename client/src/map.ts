@@ -71,20 +71,20 @@ export class CellMap {
     }
 
     /* Returns true if x,y are in the this._map.*/
-    hasXY(x, y): boolean {
+    public hasXY(x: number, y: number): boolean {
         return (x >= 0) && (x < this.cols) && (y >= 0) && (y < this.rows);
     }
 
     /* Sets a property for the underlying cell.*/
-    setProp(x, y, prop: string, obj): void {
+    public setProp(x: number, y: number, prop: string, obj): void {
         this._map[x][y].setProp(prop, obj);
     }
 
-    removeProp(x, y, prop: string, obj): boolean {
+    public removeProp(x, y, prop: string, obj): boolean {
         return this._map[x][y].removeProp(prop, obj);
     }
 
-    moveProp(fromXY, toXY, prop: string, obj): boolean {
+    public moveProp(fromXY, toXY, prop: string, obj): boolean {
         if (this.removeProp(fromXY[0], fromXY[1], prop, obj)) {
             this.setProp(toXY[0], toXY[1], prop, obj);
             return true;
@@ -92,27 +92,27 @@ export class CellMap {
         return false;
     }
 
-    setElemXY(x, y, obj): void {
+    public setElemXY(x: number, y: number, obj): void {
         this.setProp(x, y, RG.TYPE_ELEM, obj);
     }
 
-    setBaseElemXY(x, y, elem: ElementBase) {
+    public setBaseElemXY(x: number, y: number, elem: ElementBase) {
         this._map[x][y].setBaseElem(elem);
     }
 
-    getBaseElemXY(x, y): ElementBase {
+    public getBaseElemXY(x: number, y: number): ElementBase {
         return this._map[x][y].getBaseElem();
     }
 
-    getCell(x, y): Cell {
+    public getCell(x: number, y: number): Cell {
         return this._map[x][y];
     }
 
-    isExplored(x, y): boolean {
+    public isExplored(x: number, y: number): boolean {
         return this._map[x][y].isExplored();
     }
 
-    getBaseElemRow(y): ElementBase[] {
+    public getBaseElemRow(y): ElementBase[] {
         const row = [];
         for (let i = 0; i < this.cols; ++i) {
             row.push(this._map[i][y].getBaseElem());
@@ -120,7 +120,7 @@ export class CellMap {
         return row;
     }
 
-    getCellRow(y): Cell[] {
+    public getCellRow(y): Cell[] {
         const row = [];
         for (let i = 0; i < this.cols; ++i) {
             row.push(this._map[i][y]);
@@ -130,7 +130,7 @@ export class CellMap {
 
     /* Returns all free cells in the this._map. 'free' means that cell can be
     * traversed and is passable. */
-    getFree(): Cell[] {
+    public getFree(): Cell[] {
         const freeCells = [] as Cell[];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
@@ -142,7 +142,7 @@ export class CellMap {
         return freeCells;
     }
 
-    getFreeNotOnEdge() {
+    public getFreeNotOnEdge() {
         const freeCells: Cell[] = this.getFree();
         return freeCells.filter((c: Cell) => (
             c._x > 0 && c._x < (this.cols - 1) &&
@@ -154,7 +154,7 @@ export class CellMap {
     * Range of y-coord can be given, if not, searches all y-coordinates starting
     * from 0.
     */
-    getFirstFreeFromRight(y0 = 0, y1 = this.rows - 1): Cell | null {
+    public getFirstFreeFromRight(y0 = 0, y1 = this.rows - 1): Cell | null {
         for (let x = this.cols - 1; x >= 0; x--) {
             for (let y = y0; y <= y1; y++) {
                 if (this._map[x][y].isFree()) {
@@ -166,7 +166,7 @@ export class CellMap {
     }
 
     /* Returns all free cells in the given bounding box. */
-    getFreeInBbox(bbox): Cell[] {
+    public getFreeInBbox(bbox): Cell[] {
         const freeCells = [];
         for (let x = bbox.ulx; x <= bbox.lrx; x++) {
             for (let y = bbox.uly; y < bbox.lry; y++) {
@@ -180,7 +180,7 @@ export class CellMap {
 
     /* Returns all empty cells. Cell is empty, if it has only the base
      * element, but no props. */
-    getEmptyCells(): Cell[] {
+    public getEmptyCells(): Cell[] {
         const emptyCells: Cell[] = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
@@ -193,28 +193,28 @@ export class CellMap {
     }
 
     /* Returns true if light passes through this cell.*/
-    lightPasses(x, y): boolean {
+    public lightPasses(x, y): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].lightPasses(); // delegate to cell
         }
         return false;
     }
 
-    hasObstacle(x, y): boolean {
+    public hasObstacle(x, y): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].hasObstacle();
         }
         return false;
     }
 
-    isPassable(x, y): boolean {
+    public isPassable(x, y): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].isPassable();
         }
         return false;
     }
 
-    isPassableByAir(x, y): boolean {
+    public isPassableByAir(x, y): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].isPassableByAir();
         }
@@ -222,7 +222,7 @@ export class CellMap {
     }
 
     /* Returns visible cells for given actor.*/
-    getVisibleCells(actor): Cell[] {
+    public getVisibleCells(actor): Cell[] {
         const cells = [];
         const [xA, yA] = actor.getXY();
         const range = actor.getFOVRange();
@@ -243,7 +243,7 @@ export class CellMap {
     }
 
     /* Returns all cells explored by the player.*/
-    getExploredCells(): Cell[] {
+    public getExploredCells(): Cell[] {
         const cells = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
@@ -255,7 +255,7 @@ export class CellMap {
         return cells;
     }
 
-    exploreAll(isExplored = true): void {
+    public exploreAll(isExplored = true): void {
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
                 this._map[x][y]._explored = isExplored;
@@ -264,7 +264,7 @@ export class CellMap {
     }
 
     /* Returns true if x,y is located at this._map border cells.*/
-    isBorderXY(x, y): boolean {
+    public isBorderXY(x, y): boolean {
         if (x === 0) {return true;}
         if (y === 0) {return true;}
         if (x === this.cols - 1) {return true;}
@@ -273,7 +273,7 @@ export class CellMap {
     }
 
     /* Prints the this._map in ASCII. */
-    debugPrintInASCII(): void {
+    public debugPrintInASCII(): void {
         let mapInASCII = '';
         for (let y = 0; y < this.rows; y++) {
             let row = '';
@@ -326,14 +326,14 @@ export class CellMap {
 
     /* Queries a row of cells. _optimizeForRowAccess must be called before this
      * function is used. */
-    getCellRowFast(y): Cell[] {
+    public getCellRowFast(y): Cell[] {
         if (!this._isRowOptimized) {this._optimizeForRowAccess();}
         return this._rowMap[y];
     }
 
     /* Slow find for debugging. Tries to find all objects matching the
      * filterFunc. */
-    findObj(filterFunc: (obj: any) => boolean): any[] {
+    public findObj(filterFunc: (obj: any) => boolean): any[] {
         let result = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
@@ -348,7 +348,7 @@ export class CellMap {
      * OR
      *   cell => cell.getBaseElem().getType() === 'floor'
      */
-    getCells(filter = (cell: Cell) => true): Cell[] {
+    public getCells(filter = (cell: Cell) => true): Cell[] {
         const result = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
@@ -360,7 +360,7 @@ export class CellMap {
         return result;
     }
 
-    getCellsWithCoord(coord): Cell[] {
+    public getCellsWithCoord(coord): Cell[] {
         const result = [];
         coord.forEach(xy => {
             if (this.hasXY(xy[0], xy[1])) {
@@ -370,13 +370,13 @@ export class CellMap {
         return result;
     }
 
-    setBaseElems(coord: TCoord[], elem: ElementBase): void {
+    public setBaseElems(coord: TCoord[], elem: ElementBase): void {
         coord.forEach(xy => {
             this._map[xy[0]][xy[1]].setBaseElem(elem);
         });
     }
 
-    has(xy, query) {
+    public has(xy, query) {
         const [x, y] = xy;
         if (this.hasXY(x, y)) {
             const cell = this.getCell(x, y);
@@ -390,7 +390,7 @@ export class CellMap {
 
     /* Creates another internal representation of the map. This can be used for fast
      * row access. */
-    _optimizeForRowAccess() {
+    public _optimizeForRowAccess() {
         this._rowMap = [];
         for (let y = 0; y < this.rows; y++) {
             this._rowMap[y] = [];
@@ -401,7 +401,7 @@ export class CellMap {
         this._isRowOptimized = true;
     }
 
-    toJSON() {
+    public toJSON() {
         const map = new Array(this.cols);
         const elements = {};
         const explored = [];
@@ -425,7 +425,7 @@ export class CellMap {
         };
     }
 
-    getShortestPathTo(actor, toX, toY) {
+    public getShortestPathTo(actor, toX, toY) {
         const [sX, sY] = actor.getXY();
         let passCb = this.passableCallback.bind(null, sX, sY);
         if (actor.has('Flying')) {
@@ -442,7 +442,7 @@ export class CellMap {
         return path;
     }
 
-    passableCallback(sX, sY, x, y) {
+    public passableCallback(sX, sY, x, y) {
         let res = this.isPassable(x, y);
         if (!res) {
             res = (x === sX) && (y === sY);
@@ -450,7 +450,7 @@ export class CellMap {
         return res;
     }
 
-    passableCallbackFlying(sX, sY, x, y) {
+    public passableCallbackFlying(sX, sY, x, y) {
         let res = this.isPassableByAir(x, y);
         if (!res) {
             res = (x === sX) && (y === sY);
