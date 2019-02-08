@@ -1038,11 +1038,11 @@ export const Parser = function() {
             }
             let {fg, bg} = obj.color;
 
-            if (obj.hasOwnProperty('color-fg')) {
-                fg = obj['color-fg'];
+            if (obj.hasOwnProperty('colorfg')) {
+                fg = obj.colorfg;
             }
-            if (obj.hasOwnProperty('color-bg')) {
-                bg = obj['color-bg'];
+            if (obj.hasOwnProperty('colorbg')) {
+                bg = obj.colorbg;
             }
             if (!fg || !bg) {
                 const json = JSON.stringify(obj.color);
