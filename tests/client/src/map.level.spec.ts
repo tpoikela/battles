@@ -3,12 +3,13 @@
 
 import RG from '../../../client/src/rg';
 import { expect } from 'chai';
-import {SentientActor} from  '../../../client/src/actor';
-import * as Element from  '../../../client/src/element';
+import {SentientActor} from '../../../client/src/actor';
+import * as Element from '../../../client/src/element';
 import {Item} from '../../../client/src/item';
 import {Level, LevelExtras} from '../../../client/src/level';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {Cell} from '../../../client/src/map.cell';
+import {CellMap} from '../../../client/src/map';
 
 const Actor = SentientActor;
 const ItemBase = Item.Base;
@@ -37,13 +38,13 @@ describe('Level', () => {
 
     it('It has a list of map cells', () => {
         const level1 = factLevel.createLevel('arena', 20, 20);
-        expect(level1.getMap()).to.not.be.empty;
+        expect(level1.getMap()).to.be.an.instanceof(CellMap);
 
         const freeCell: Cell = level1.getFreeRandCell();
-        expect(freeCell).to.not.be.empty;
+        expect(freeCell).to.be.an.instanceof(Cell);
 
         const emptyCell: Cell = level1.getEmptyRandCell();
-        expect(emptyCell).to.not.be.empty;
+        expect(emptyCell).to.be.an.instanceof(Cell);
         // expect(emptyCell.isPassable()).to.equal(true);
         expect(emptyCell.isPassableByAir()).to.equal(true);
     });
@@ -142,12 +143,23 @@ describe('Level', () => {
             extraBool: true,
             extrasNum: 1234,
             extraString: 'location',
-            extraArr: [1, "a", 'c'],
+            extraArr: [1, 'a', 'c'],
             extraObj: {
                 nestedObj: {a: 1, b: 2, c: 3}
             },
         };
+
+        const noExtras = level1.getExtras();
+        expect(level1.hasExtras()).to.equal(false);
+        expect(Object.keys(noExtras)).to.have.length(0);
+
         level1.setExtras(extras);
+        expect(level1.hasExtras()).to.equal(true);
+
+        expect(Object.keys(level1.getExtras())).to.have.length(5);
+
+        level1.addExtras('shops', [1, 2, 3, 4]);
+        expect(Object.keys(level1.getExtras())).to.have.length(6);
     });
 
 });
