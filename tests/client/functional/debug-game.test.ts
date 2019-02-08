@@ -2,13 +2,13 @@
 /* This is a test file for debug game, which can be also played
  * quickly in the browser. */
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-const Keys = require('../../../client/src/keymap');
+import { expect } from 'chai';
+import * as RG from '../../../client/src/battles';
+import ROT from '../../../lib/rot';
+import {Keys} from '../../../client/src/keymap';
 const fs = require('fs');
 
 const RNG = RG.Random.getRNG();
-const ROT = require('../../../lib/rot');
 
 const restKey = {code: Keys.KEY.REST};
 
@@ -64,12 +64,12 @@ describe('Debug game simulation with player and actors', function() {
             loadedLevel: null,
             playerName: 'Player'
         };
-        const gameFact = new RG.Factory.Game();
+        const gameFact = new RG.FactoryGame();
         let game = gameFact.createNewGame(gameConf);
 
         // Simulate 1st serialisation in worker thread
         let gameJSON = game.toJSON();
-        let fromJSON = new RG.Game.FromJSON();
+        let fromJSON = new RG.FromJSON();
         game = fromJSON.createGame(gameJSON);
 
         // Used with expect() later
