@@ -10,6 +10,7 @@ import {Cell} from './map.cell';
 import {BaseActor, SentientActor} from './actor';
 
 type BrainPlayer = import('./brain/brain.player').BrainPlayer;
+type Entity = import('./entity').Entity;
 
 export interface Action {
     doAction: () => void;
@@ -94,18 +95,18 @@ export class Engine {
         this._eventPool.listenEvent(RG.EVT_ANIMATION, this);
     }
 
-    getMessages() {
+    public getMessages() {
         return this._msg.getMessages();
     }
 
-    hasNewMessages(): boolean {
+    public hasNewMessages(): boolean {
         return this._msg.hasNew();
     }
 
-    clearMessages(): void {this._msg.clear();}
+    public clearMessages(): void {this._msg.clear();}
 
     /* Returns true if the menu is shown instead of the level. */
-    isMenuShown(): boolean {
+    public isMenuShown(): boolean {
         if (this.nextActor.isPlayer()) {
             const actor = this.nextActor as SentientActor;
             const brain = actor.getBrain() as BrainPlayer;
@@ -115,11 +116,11 @@ export class Engine {
     }
 
 
-    getPlayer(): SentientActor {
+    public getPlayer(): SentientActor {
         return this.currPlayer;
     }
 
-    setPlayer(player: SentientActor): void {
+    public setPlayer(player: SentientActor): void {
         this.currPlayer = player;
     }
 
@@ -127,25 +128,25 @@ export class Engine {
     // MANAGING ACTIVE LEVELS
     //--------------------------------------------------------------
 
-    numActiveLevels(): number {
+    public numActiveLevels(): number {
         return this._activeLevels.length;
     }
 
-    hasLevel(level: Level): boolean {
+    public hasLevel(level: Level): boolean {
         return this._levelMap.hasOwnProperty(level.getID());
     }
 
-    getLevels(): Level[] {
+    public getLevels(): Level[] {
         return Object.values(this._levelMap);
     }
 
     // Not a useless function, re-assigned in Game.Main, but needed
     // here for testing Engine without Game.Main
-    isGameOver(): boolean {
+    public isGameOver(): boolean {
         return false;
     }
 
-    isActiveLevel(level): boolean {
+    public isActiveLevel(level): boolean {
         const index = this._activeLevels.indexOf(level.getID());
         return index >= 0;
     }
@@ -155,16 +156,16 @@ export class Engine {
     //--------------------------------------------------------------
 
 
-    hasAnimation() {
+    public hasAnimation() {
         return this.animation !== null &&
             this.animation.hasFrames();
     }
 
-    finishAnimation() {
+    public finishAnimation() {
         this.animation = null;
     }
 
-    setVisibleArea(level: Level, cells: Cell[]): void {
+    public setVisibleArea(level: Level, cells: Cell[]): void {
         this.visibleLevelID = level.getID();
         this.visibleCells = cells;
         this._cache.visibleCoord = {};
@@ -173,7 +174,7 @@ export class Engine {
 
     /* Returns true if player can see the given animation. In general, true
      * whenever animation contains at least one cell visible to the player. */
-    canPlayerSeeAnimation(animation): boolean {
+    public canPlayerSeeAnimation(animation): boolean {
         if (animation.levelID === this.visibleLevelID) {
 
             // Build the cache if not valid
@@ -191,19 +192,19 @@ export class Engine {
         return false;
     }
 
-    enableAnimations() {
+    public enableAnimations() {
         const sysAnim = this.sysMan.get('Animation') as SystemAnimation;
         sysAnim.enableAnimations();
     }
 
-    disableAnimations() {
+    public disableAnimations() {
         const sysAnim = this.sysMan.get('Animation') as SystemAnimation;
         sysAnim.disableAnimations();
     }
 
     /* Adds a TimeSystem into the engine. Each system can be updated with given
      * intervals instead of every turn or loop.*/
-    addTimeSystem(name, obj): void {
+    public addTimeSystem(name, obj): void {
         // Must schedule the system to activate it
         const updateEvent = new Time.GameEvent(100,
             obj.update.bind(obj), true, 0);
@@ -211,15 +212,15 @@ export class Engine {
     }
 
     /* Can schedule any object to be updated on certain periodic interval. */
-    addRegularUpdate(obj: UpdateObj, interval = 100): void {
+    public addRegularUpdate(obj: UpdateObj, interval = 100): void {
         // Must schedule the system to activate it
         const updateEvent = new Time.GameEvent(interval,
             obj.update.bind(obj), true, 0);
         this.addEvent(updateEvent);
     }
 
-    /* Returns all components (within entities) inside the engine. */
-    getComponents() {
+    /* Returns all component IDs (within entities) inside the engine. */
+    public getComponents(): number[] {
         const entities = this.getEntities();
         let components = [];
         entities.forEach(ent => {
@@ -229,9 +230,9 @@ export class Engine {
         return components;
     }
 
-    /* Returns all entities in the engine. */
-    getEntities() {
-        const levels = this.getLevels();
+    /* Returns all entities in the engine excluding Levels. */
+    public getEntities(): Entity[] {
+        const levels: Level[] = this.getLevels();
         let entities = [];
         levels.forEach(level => {
             entities = entities.concat(level.getActors());
@@ -243,7 +244,7 @@ export class Engine {
 
     /* Updates the loop by executing one player command, then looping until
      * next player command.*/
-    updateGameLoop(obj): void {
+    public updateGameLoop(obj): void {
         this.playerCommand(obj);
         this.currPlayer = this.nextActor as SentientActor;
         this.nextActor = this.getNextActor();
@@ -271,11 +272,11 @@ export class Engine {
 
     }
 
-    updateLoopSystems() {
+    public updateLoopSystems() {
         this.sysMan.updateLoopSystems();
     }
 
-    playerCommand(obj) {
+    public playerCommand(obj) {
         if (this.nextActor.isPlayer() === false) {
             let msg = '';
             if (this.nextActor.hasOwnProperty('isEvent')) {
@@ -295,7 +296,7 @@ export class Engine {
     }
 
     /* Simulates the game without a player.*/
-    simulateGame(nTurns = 1) {
+    public simulateGame(nTurns = 1) {
         for (let i = 0; i < nTurns; i++) {
             this.nextActor = this.getNextActor();
 
@@ -306,14 +307,14 @@ export class Engine {
             }
             else {
                 RG.err('Engine', 'simulateGame',
-                    "Doesn't work with player.");
+                    'Doesn\'t work with player.');
             }
         }
     }
 
     /* Adds one level to the engine. Throws an error if level has already been
      * added. */
-    addLevel(level) {
+    public addLevel(level) {
         const id = level.getID();
         if (!this._levelMap.hasOwnProperty(id)) {
             this._levelMap[level.getID()] = level;
@@ -326,7 +327,7 @@ export class Engine {
 
     /* Removes the given levels from the engine. Throws error if that level
      * has not been added to engine. */
-    removeLevels(levels) {
+    public removeLevels(levels) {
         levels.forEach(level => {
             const id = level.getID();
             if (this._levelMap.hasOwnProperty(id)) {
@@ -352,7 +353,7 @@ export class Engine {
     }
 
     /* Adds an active level. Only these levels are simulated.*/
-    addActiveLevel(level) {
+    public addActiveLevel(level) {
         const levelID = level.getID();
         const index = this._activeLevels.indexOf(levelID);
 
@@ -398,7 +399,7 @@ export class Engine {
         }
     }
 
-    notify(evtName, args) {
+    public notify(evtName, args) {
         if (evtName === RG.EVT_DESTROY_ITEM) {
             const item = args.item;
 
@@ -480,7 +481,7 @@ export class Engine {
 
     /* Main update command. Call this either with cmd to perform, or object
      * containing the pressed keycode. */
-    update(obj) {
+    public update(obj) {
         if (!this.isGameOver()) {
             this.clearMessages();
 
@@ -513,29 +514,29 @@ export class Engine {
     //--------------------------------------------------------------
 
     /* Returns next actor from the scheduling queue.*/
-    getNextActor() {
+    public getNextActor() {
         return this._scheduler.next();
     }
 
     /* Adds an actor to the scheduler. */
-    addActor(actor) {
+    public addActor(actor) {
         this._scheduler.add(actor, true, 0);
     }
 
     /* Removes an actor from a scheduler.*/
-    removeActor(actor) {
+    public removeActor(actor) {
         this._scheduler.remove(actor);
     }
 
     /* Adds an event to the scheduler.*/
-    addEvent(gameEvent) {
+    public addEvent(gameEvent) {
         const repeat = gameEvent.getRepeat();
         const offset = gameEvent.getOffset();
         this._scheduler.add(gameEvent, repeat, offset);
     }
 
     /* Performs one game action.*/
-    doAction(action) {
+    public doAction(action) {
         this._scheduler.setAction(action);
         action.doAction();
         if (action.hasOwnProperty('energy')) {
