@@ -52,9 +52,12 @@ DebugGame.prototype.createArena = function(obj, game, player) {
 
     const cityQuarter = new World.CityQuarter('Debug quarter');
     cityQuarter.addLevel(level);
-    level.shops.forEach(shop => {
+
+    const extras = level.getExtras();
+    extras.shops.forEach(shop => {
         cityQuarter.addShop(shop);
     });
+
     const city = new World.City('Wrapper city for Debug quarter');
     city.addQuarter(cityQuarter);
     city.tileX = 0;
