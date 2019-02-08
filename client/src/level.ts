@@ -9,10 +9,14 @@ import {verifyLevelCache} from './verify';
 import * as Mixin from './mixin';
 import {ELEM} from '../data/elem-constants';
 
+// Import types only
 import {TCoord} from './interfaces';
 type ZoneBase = import('./world').ZoneBase;
 type SubZoneBase = import('./world').SubZoneBase;
 type Battle = import('./game.battle').Battle;
+type Cell = import('./map.cell').Cell;
+type House = import('./houses').House;
+type WorldShop = import('./world').WorldShop;
 
 const POOL = EventPool.getPool();
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
@@ -52,10 +56,6 @@ type LevelParent = Battle | SubZoneBase;
 
 export type LevelExtraType = number | string | boolean | {[key: string]: LevelExtraType | LevelExtraType[]};
 
-export interface House {
-    door: TCoord;
-}
-
 interface Extras {
     [key: string]: LevelExtraType | LevelExtraType[];
 }
@@ -63,6 +63,7 @@ interface Extras {
 export type LevelExtras = Extras & {
     startPoint?: TCoord;
     houses?: House[];
+    shops?: WorldShop[];
     /* connectEdges?: boolean;
     isCollapsed?: boolean;*/
 };
@@ -82,6 +83,7 @@ export class Level extends Entity {
     private _callbacks: {[key: string]: (any) => void};
     private _cbState: {[key: string]: boolean};
 
+    // Non-serializable property used during PCG
     private _extras: LevelExtras;
 
     constructor() {
@@ -301,8 +303,8 @@ export class Level extends Entity {
     //---------------------------------------------------------------------
 
     /* Adds one item to the given location on the level.*/
-    public addItem(item, x, y) {
-        verifyLevelCache(this);
+    public addItem(item, x, y): boolean {
+        // verifyLevelCache(this);
         if (!RG.isNullOrUndef([x, y])) {
             return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
         }
@@ -311,19 +313,19 @@ export class Level extends Entity {
     }
 
     /* Removes an item from the level in x,y position.*/
-    public removeItem(item, x, y) {
+    public removeItem(item, x, y): boolean {
         const res = this._removePropFromLevelXY(RG.TYPE_ITEM, item, x, y);
-        verifyLevelCache(this);
+        // verifyLevelCache(this);
         return res;
     }
 
-    public pickupItem(actor) {
+    public pickupItem(actor): void {
         const pickup = new Pickup();
         actor.add(pickup);
     }
 
     /* Moves the given object to x,y. */
-    public moveActorTo(obj, x, y) {
+    public moveActorTo(obj, x, y): boolean {
         // Note that source level may be different than this level
         const level = obj.getLevel();
         const [oX, oY] = [obj.getX(), obj.getY()];
@@ -341,7 +343,7 @@ export class Level extends Entity {
     /* Adds an actor to the level. If x,y is given, tries to add there. If not,
      * finds first free cells and adds there. Returns true on success.
      */
-    public addActor(actor, x, y) {
+    public addActor(actor, x: number, y: number): boolean {
         RG.debug(this, 'addActor called with x,y ' + x + ', ' + y);
         if (!RG.isNullOrUndef([x, y])) {
             if (this._map.hasXY(x, y)) {
@@ -365,7 +367,7 @@ export class Level extends Entity {
     /* Using this method, actor can be added to a free cell without knowing the
      * exact x,y coordinates. This is not random, such that top-left (0,0) is
      * always preferred. */
-    public addActorToFreeCell(actor) {
+    public addActorToFreeCell(actor): boolean {
         RG.debug(this, 'Adding actor to free slot');
         const freeCells = this._map.getFree();
         if (freeCells.length > 0) {
@@ -385,7 +387,7 @@ export class Level extends Entity {
 
     /* Adds a prop 'obj' to level location x,y. Returns true on success,
      * false on failure.*/
-    public _addPropToLevelXY(propType, obj, x, y) {
+    public _addPropToLevelXY(propType, obj, x, y): boolean {
         if (this._p.hasOwnProperty(propType)) {
             this._p[propType].push(obj);
             if (!obj.isOwnable) {
@@ -405,7 +407,7 @@ export class Level extends Entity {
     }
 
     /* Adds virtual prop not associated with x,y position or a cell. */
-    public addVirtualProp(propType, obj) {
+    public addVirtualProp(propType, obj): boolean {
         if (this._p.hasOwnProperty(propType)) {
             this._p[propType].push(obj);
             obj.setLevel(this);
@@ -422,7 +424,7 @@ export class Level extends Entity {
 
     /* Removes a prop 'obj' to level location x,y. Returns true on success,
      * false on failure.*/
-    public _removePropFromLevelXY(propType, obj, x, y) {
+    public _removePropFromLevelXY(propType, obj, x, y): boolean {
         if (this._p.hasOwnProperty(propType)) {
             const index = this._p[propType].indexOf(obj);
 
@@ -450,7 +452,7 @@ export class Level extends Entity {
     }
 
     /* Removes a virtual property (virtual prop has no x,y position). */
-    public removeVirtualProp(propType, obj) {
+    public removeVirtualProp(propType, obj): boolean {
         if (this._p.hasOwnProperty(propType)) {
             const index = this._p[propType].indexOf(obj);
             if (index >= 0) {
@@ -464,7 +466,7 @@ export class Level extends Entity {
     }
 
     /* Removes given actor from level. Returns true if successful.*/
-    public removeActor(actor) {
+    public removeActor(actor): boolean {
         const index = this._p.actors.indexOf(actor);
         const x = actor.getX();
         const y = actor.getY();
@@ -480,7 +482,7 @@ export class Level extends Entity {
     /* Explores the level from given actor's viewpoint. Sets new cells as
      * explored. There's no exploration tracking per actor. This is mainly called
      * from Brain.Player, as it marks cells as explored. */
-    public exploreCells(actor) {
+    public exploreCells(actor): Cell[] {
         const visibleCells = this._map.getVisibleCells(actor);
         for (let i = 0; i < visibleCells.length; i++) {
             visibleCells[i].setExplored();
@@ -489,23 +491,23 @@ export class Level extends Entity {
     }
 
     /* Returns all explored cells in the map.*/
-    public getExploredCells() {
+    public getExploredCells(): Cell[] {
         return this._map.getExploredCells();
     }
 
     /* Can be used to add additional data to the level. Currently, this is used in
-     * level generation only, and extras are not serialized/stored persistently.
+     * proc gen only, and extras are not serialized/stored persistently.
      * */
-    public setExtras(extras) {
+    public setExtras(extras): void {
         this._extras = extras;
     }
 
-    public getExtras() {
+    public getExtras(): LevelExtras {
         if (!this._extras) {this._extras = {};}
         return this._extras;
     }
 
-    public hasExtras() {
+    public hasExtras(): boolean {
         return !RG.isNullOrUndef([this._extras]) &&
             Object.keys(this._extras).length > 0;
     }
