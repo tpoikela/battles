@@ -109,7 +109,39 @@ Names.actor = {
 };
 
 Names.item = {
+    steal: {
+        adjective: [
+            'emerald', 'exquisite', 'golden', 'silver', 'bronze', 'ruby', 'diamond',
+        ],
+        substantive: [
+            'ring', 'amulet', 'plate', 'vase', 'goblet',
+        ],
+        char: {
+            ring: '=', amulet: '^', plate: '_', vase: ']', goblet: ']'
+        }
+    },
 
+    // TODO item names for quest items that need to be gathered
+    gather: {
+        adjective: [
+        ],
+        substantive: [
+        ]
+    }
+};
+
+Names.getItemToStealName = () => {
+    const names = Names.item.steal;
+    const first = RNG.arrayGetRand(names.adjective);
+    const second = RNG.arrayGetRand(names.substantive);
+    return first.capitalize() + ' ' + second;
+};
+
+Names.getItemToGather = () => {
+    const names = Names.item.gather;
+    const first = RNG.arrayGetRand(names.adjective);
+    const second = RNG.arrayGetRand(names.substantive);
+    return first.capitalize() + ' ' + second;
 };
 
 Names.getVillageType = () => {
