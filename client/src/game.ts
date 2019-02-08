@@ -13,6 +13,8 @@ import {WorldSimulation} from './world.simulation';
 import * as Component from './component';
 import * as World from './world';
 
+type Level = import('./level').Level;
+
 const POOL = EventPool.getPool();
 
 export const Game: any = {};
@@ -21,6 +23,11 @@ export interface PlaceObj {
     place: string;
     x: number;
     y: number;
+}
+
+export interface IPlace {
+    getLevels(): Level[];
+    getName(): string;
 }
 
 /* Top-level main object for the game.  */
@@ -85,8 +92,8 @@ export const GameMain = function() {
     // Re-assign the default Engine '() => false' function
     this._engine.isGameOver = this.isGameOver;
 
-    this.getLevels = () => this._engine.getLevels();
-    this.getComponents = () => this._engine.getComponents();
+    this.getLevels = (): Level[] => this._engine.getLevels();
+    this.getComponents = (): number[] => this._engine.getComponents();
     this.getPlaces = () => this._places;
 
     this.setEnableChunkUnload = (enable = true) => {
@@ -335,7 +342,7 @@ export const GameMain = function() {
     };
 
     /* Adds a place (dungeon/area) containing several levels.*/
-    this.addPlace = (place) => {
+    this.addPlace = (place: IPlace): void => {
         if (typeof place.getLevels === 'function') {
             const name = place.getName();
             if (!this._places.hasOwnProperty(name) ) {
