@@ -143,7 +143,15 @@ export class SystemDisability extends SystemBase {
 
     public _handleEntrapped(ent): void {
         const cell: Cell = ent.getCell();
-        const traps = cell.getElements().filter(e => e.has('Entrapping'));
+        const elems = cell.getElements();
+
+        // Entrapping element was removed somehow, so free the entity
+        if (!elems) {
+            ent.removeAll('Entrapped');
+            return;
+        }
+
+        const traps = elems.filter(e => e.has('Entrapping'));
         let difficulty = 0;
         traps.forEach(elem => {
             difficulty += elem.get('Entrapping').getDifficulty();
