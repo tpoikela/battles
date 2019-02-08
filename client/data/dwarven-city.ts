@@ -83,7 +83,7 @@ export class DwarvenCity {
       this.level = mainLevel;
     }
 
-    adjustToTileSize(number) {
+    public adjustToTileSize(number) {
       while (number % TILE_SIZE !== 0) {
         ++number;
       }
@@ -95,7 +95,7 @@ export class DwarvenCity {
 
     /* Returns the main fort level with created side-castles. Dimensions of the
      * main fort must be given. */
-    createMainFortLevel(cols, rows) {
+    public createMainFortLevel(cols, rows): Level {
       const fortConf = {
           startRoomFunc: Castle.startFuncFourGates
       };
@@ -137,7 +137,7 @@ export class DwarvenCity {
     }
 
     /* Returns the first entrance fort. */
-    createEntryFortLevel(cols, rows) {
+    public createEntryFortLevel(cols, rows): Level {
       const mapGen = new MapGenerator();
       const outerFortConf = {
           startRoomFunc: Castle.startFuncFourGates
@@ -172,13 +172,13 @@ export class DwarvenCity {
 
       const subLevels = [fortWestLevel, entryFortLevel, fortEastLevel];
       const wrapConf = {centerY: true, baseElem: ELEM.WALL};
-      return Geometry.wrapAsLevel(subLevels, wrapConf);
+      return LevelUtils.wrapAsLevel(subLevels, wrapConf);
 
     }
 
     /* Adds actors and items into the level using bbox as constraint.
      * This guarantees that everything's placed inside the fort. */
-    addItemsAndActors(level, bbox) {
+    public addItemsAndActors(level, bbox): void {
       const parser = ObjectShell.getParser();
       const freeCells = level.getMap().getFreeInBbox(bbox);
 
@@ -201,15 +201,15 @@ export class DwarvenCity {
       // Add items, avoid placing anything to "hallways" of castles
     }
 
-    getLevel() {
+    public getLevel(): Level {
       return this.level;
     }
 
-    addStairsToLevel(cols, rows, level) {
+    public addStairsToLevel(cols, rows, level): void {
         const midX = Math.floor(cols / 2);
         const stairsNorth = new ElementStairs('stairsUp', level);
         level.addStairs(stairsNorth, midX, 0);
-        const stairsSouth = new RG.Element.Stairs('stairsUp', level);
+        const stairsSouth = new ElementStairs('stairsUp', level);
         level.addStairs(stairsSouth, midX, rows - 1);
     }
 
