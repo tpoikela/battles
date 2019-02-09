@@ -21,7 +21,9 @@ export const Element: any = {};
 const wallRegexp = /wall/;
 const obstacleRegexp = /(?:highrock|water|chasm|wall)/;
 
-type StringMap = {[key: string]: string};
+interface StringMap {
+    [key: string]: string;
+}
 
 Element.canJumpOver = type => {
     return !(wallRegexp.test(type) || (/highrock/).test(type));
