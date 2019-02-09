@@ -114,3 +114,13 @@ export interface MountainConf extends ZoneConf {
     nFaces: number;
     face: FaceConf[];
 }
+
+export interface AreaConf {
+    name: string;
+    nDungeon?: number;
+    nMountain?: number;
+    nCity?: number;
+    city?: CityConf[];
+    dungeon?: DungeonConf[];
+    mountain: MountainConf[];
+}
