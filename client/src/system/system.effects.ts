@@ -6,11 +6,13 @@ import {Dice} from '../dice';
 import * as Component from '../component';
 import {ELEM} from '../../data/elem-constants';
 import {ObjectShell} from '../objectshellparser';
+import {Element} from '../element';
 
 const handlerTable = {
     AddComp: true,
     ModifyCompValue: true,
     AddEntity: true,
+    AddElement: true,
     ChangeElement: true,
     RemoveComp: true
 };
@@ -175,8 +177,45 @@ export class SystemEffects extends SystemBase {
         }*/
     }
 
+    public handleAddElement(srcEnt, effComp): void {
+        const useArgs = effComp.getArgs();
+        const cell = getTargetCellOrFail(useArgs);
+
+        if (!useArgs.elementName) {
+            RG.err('System.Effects', 'handleAddElement',
+                'No elementName found in useArgs: ' + JSON.stringify(useArgs));
+        }
+
+        let newElem = null;
+        if (Element.hasOwnProperty(useArgs.elementName)) {
+            newElem = new Element[useArgs.elementName]();
+        }
+        else {
+            // Try the ObjectShellParser, usually not what we want
+            // with elements
+            const parser = ObjectShell.getParser();
+            newElem = parser.createEntity(useArgs.elementName);
+        }
+
+        if (newElem) {
+            const [x, y] = [cell.getX(), cell.getY()];
+            const level = srcEnt.getLevel();
+            const existingElems = cell.getPropType(newElem.getType());
+            if (!existingElems || existingElems.length < useArgs.numAllowed) {
+                if (!level.addElement(newElem, x, y)) {
+                    console.error('Failed to add element ' + useArgs.elementName);
+                }
+            }
+        }
+        else {
+            const msg = 'Failed to create elem: ' + JSON.stringify(useArgs);
+            RG.err('System.Effects', 'handleAddElement', msg);
+        }
+
+    }
+
     /* Adds a value to an existing component value. */
-    public handleModifyCompValue(srcEnt, effComp) {
+    public handleModifyCompValue(srcEnt, effComp): void {
         const useArgs = effComp.getArgs();
         const targetEnt = SystemEffects.getEffectTarget(useArgs);
         const compName = getCompName(useArgs, targetEnt);
@@ -209,7 +248,6 @@ export class SystemEffects extends SystemBase {
                     const {duration} = useArgs;
                     fadingComp.setDuration(duration);
                     entity.add(fadingComp);
-
                 }
                 // Add the srcEnt to created entity to track its damage etc
                 // for experience and action monitoring
