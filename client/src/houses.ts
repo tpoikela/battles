@@ -107,6 +107,8 @@ export class House {
         this.door = [this.door[0] + dX, this.door[1] + dY];
     }
 
+    /* Tries to add given number of windows to the house. Returns the number
+     * of windows actually added. */
     public addWindows(nWindows: number): number {
         this.coord.windows = [];
         const walls = this.coord[WALL].slice();
@@ -150,6 +152,7 @@ export class House {
         return nCreated;
     }
 
+    /* Returns true if window position is OK for the wall. */
     public windowPosOk(xy: TCoord, coord: TCoord[]): boolean {
         const [x, y] = xy;
         const [x1, y1] = coord[0];
