@@ -31,6 +31,9 @@ export class SystemChat extends SystemBase {
                 const msg = `You chat with ${actor.getName()} for a while.`;
                 RG.gameMsg({cell: ent.getCell(), msg});
             }
+            if (actor.has('QuestTarget')) {
+                this.addQuestTargetItems(ent, actor, chatObj);
+            }
             this.addQuestSpecificItems(ent, actor, chatObj);
         });
 
@@ -90,6 +93,35 @@ export class SystemChat extends SystemBase {
             return chatObj;
         }
         return null;
+    }
+
+
+    /* Adds additional chat items related to various quest objectives. */
+    public addQuestTargetItems(ent, actor, chatObj): void {
+        const qTarget = actor.get('QuestTarget');
+        const tType = qTarget.getTargetType();
+        if (tType === 'escort') {
+            const qEscort = actor.get('QuestEscortTarget');
+            const escortTo = qEscort.getEscortTo();
+            if (escortTo.getID() !== ent.getLevel().getID()) {
+                chatObj.add({
+                    name: qEscort.getQuestion(),
+                    option: () => {
+                        // TODO Add Escorted by event stuff to help player
+                        // getting the actor to cooperate
+                    }
+                });
+            }
+            else {
+                chatObj.add({
+                    name: 'I have escorted you safely to correct place now',
+                    option: () => {
+                        const args = {src: actor};
+                        SystemQuest.addQuestEvent(ent, qTarget, 'escort', args);
+                    }
+                });
+            }
+        }
     }
 
     public addQuestSpecificItems(ent, actor, chatObj) {
