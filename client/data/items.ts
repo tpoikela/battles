@@ -54,6 +54,11 @@ interface PoisonUseSpec {
     prob: string;
 }
 
+interface AddElementUseSpec {
+    elementName: string;
+    duration?: string;
+}
+
 interface UseSpec {
     heal?: HealUseSpec;
     cure?: CureUseSpec;
@@ -64,6 +69,7 @@ interface UseSpec {
     removeComp?: any;
     addComp?: any;
     modifyStat?: any;
+    addElement?: AddElementUseSpec;
 }
 
 interface ObjectShell {
@@ -1128,6 +1134,10 @@ const Items: ObjectShell[] = [
         char: ']', dontCreate: true
     },
     {
+        name: 'shovel', base: 'tool',
+        use: {addElement: {elementName: 'Hole', numAllowed: 1}}
+    },
+    {
         name: 'trapmaking kit', base: 'tool'
     },
     {
@@ -1203,6 +1213,11 @@ const Items: ObjectShell[] = [
         value: value('rune', 100)
     },
     {
+        name: 'rune of webs', base: 'RuneBase',
+        use: {addElement: {elementName: 'Web', numAllowed: 1}},
+        value: value('rune', 100)
+    },
+    {
         name: 'rune of cold', base: 'RuneBase',
         use: {addComp: {
             name: 'Coldness', duration: '100d5 + 50'
@@ -1232,6 +1247,11 @@ const Items: ObjectShell[] = [
     {
         name: 'rune of tunneling', base: 'RuneBase',
         use: 'digger',
+        value: value('rune', 150)
+    },
+    {
+        name: 'rune of traps', base: 'RuneBase',
+        use: {addElement: {elementName: 'Hole', numAllowed: 1}},
         value: value('rune', 150)
     },
     {
