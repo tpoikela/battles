@@ -34,7 +34,6 @@ const Factory = new FactoryLevel();
 const updateSystems = RGTest.updateSystems;
 
 const factLevel = new FactoryLevel();
-const factActor = new FactoryActor();
 
 describe('System.Hunger', () => {
     it('Subtracts energy from actors with hunger', () => {
@@ -93,7 +92,7 @@ describe('System.Attack', () => {
         human.add(attackComp);
         updateSystems(systems);
 
-        expect(beast).to.be.an.entity;
+        expect(beast).to.be.an.instanceof(Entity);
         expect(beast, 'Beast was dealt damage').to.have.component('Damage');
     });
 
@@ -206,6 +205,7 @@ describe('System.Damage', () => {
         const level = factLevel.createLevel('arena', 20, 20);
 
         const monsterStats = {hp: 5, att: 1, def: 1, prot: 1};
+        const factActor = new FactoryActor();
         const monster = factActor.createActor('TestMonster', monsterStats);
         let hList = monster.getList('Health');
         expect(hList).to.have.length(1);
@@ -237,7 +237,7 @@ describe('System.Damage', () => {
         hList = monster.getList('Health');
         expect(hList).to.have.length(1);
 
-        expect(monster.get('Health').isDead()).to.be.true;
+        expect(monster.get('Health').isDead()).to.equal(true);
         // expect(monster).to.be.dead;
         expect(lootItem.getOwner()).to.equal(lootCell);
         expect(lootCell.hasItems()).to.equal(true);
