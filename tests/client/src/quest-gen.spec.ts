@@ -3,11 +3,12 @@ import 'mocha';
 import { expect } from 'chai';
 
 import RG from '../../../client/src/rg';
-import {Quest, QuestGen, QuestPopulate}
-    from '../../../client/src/quest-gen';
+import {Quest, QuestGen, QuestPopulate} from '../../../client/src/quest-gen';
+import {SentientActor} from '../../../client/src/actor';
 import {FactoryWorld} from '../../../client/src/factory.world';
 import {QuestGrammar} from '../../../client/data/quest-grammar';
 import {RGTest} from '../../roguetest';
+import {AreaConf, DungeonConf} from '../../../client/src/interfaces';
 
 const questGram1 = '<QUEST> ::= "goto" "kill";';
 
@@ -62,14 +63,14 @@ describe('QuestGen', () => {
         expect(quest.numSteps()).to.be.at.least(3);
 
         const {actorMotivations} = QuestGrammar;
-        actorMotivations.forEach(motive => {
-            console.log('Motive:', motive);
-            conf = {motive, maxQuests: 1} as any;
+        actorMotivations.forEach(mot => {
+            console.log('Motive:', mot);
+            conf = {motive: mot, maxQuests: 1} as any;
             quest = questGen.genQuestWithMotive(conf);
 
-            const msg = `Motive ${motive} OK`;
+            const msg = `Motive ${mot} OK`;
             expect(quest.numSteps(), msg).to.be.at.least(1);
-            expect(quest.getMotive()).to.equal(motive);
+            expect(quest.getMotive()).to.equal(mot);
         });
     });
 
@@ -77,7 +78,7 @@ describe('QuestGen', () => {
         const questName = 'Kill_pests';
         const conf = {startRule: questName, maxQuests: 1};
         const quest = questGen.genQuestWithConf(conf);
-        expect(quest).to.not.be.empty;
+        expect(quest).to.be.an.instanceof(Quest);
         expect(quest.numSteps()).to.be.at.least(4);
     });
 
@@ -138,7 +139,7 @@ describe('QuestPopulate', () => {
 
         const level = city.getLevels()[0]; // Only one
         const giver = level.getActors().find(a => a.has('QuestGiver'));
-        expect(giver).to.not.be.empty;
+        expect(giver).to.be.an.instanceof(SentientActor);
         const giverComp = giver.get('QuestGiver');
         const questTargets = giverComp.getQuestTargets();
         expect(questTargets.length).to.equal(6);
@@ -152,8 +153,8 @@ describe('QuestPopulate', () => {
             const area = world.getCurrentArea();
             const tileLevel = area.getTileXY(0, 0).getLevel();
             tileLevel.addActor(player, 2, 2);
+
             const game = RGTest.createGame({place: world, player});
-            expect(game).to.not.be.empty;
             const city = area.getTileXY(0, 0).getZones('City')[0];
             const level0 = city.getLevels()[0];
             level0.addActor(player, 10, 10);
@@ -167,6 +168,36 @@ describe('QuestPopulate', () => {
             // expect(questFunc).to.not.throw(Error);
             expect(numCreated).to.be.at.least(0);
         }
+    });
+
+
+    it('can map escort quest to resources/tasks/subquests', () => {
+        const areaConf: AreaConf = Object.assign({}, RGTest.AreaConf);
+        const dungConf: DungeonConf = {
+            name: 'Fortress of Evil beings', x: 0, y: 0, nBranches: 1,
+            dungeonType: 'fortress', dungeonX: 80, dungeonY: 40,
+            branch: [{name: 'Castle', nLevels: 1, entranceLevel: 0}]
+        };
+        const factWorld = new FactoryWorld();
+        const area = factWorld.createArea(areaConf);
+
+        areaConf.nDungeon = 2;
+        areaConf.dungeon.push(dungConf);
+        const taskList = [
+            // Given in city, map this quest as:
+            // 1. Goto fortress, damage the boss/something
+            // 2. Free the prisoner and escort back to city
+            // 3. Report to quest giver
+            '<goto>goto', 'damage', 'escort', '<goto>goto', 'report'
+        ];
+        const quest = new Quest('Rescue an NPC', taskList);
+
+        const areaTile = area.getTileXY(0, 0);
+        const city = areaTile.getZones('City')[0];
+
+        questPopul.checkImplemented = true;
+        const ok = questPopul.mapQuestToResources(quest, city, areaTile);
+        expect(ok, 'Quest mapped OK').to.equal(true);
     });
 
     it('can map any arbitrary quest to resources/tasks/subquests', () => {
