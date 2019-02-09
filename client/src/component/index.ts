@@ -1,7 +1,7 @@
 
 import {Component} from './component.base';
 export * from './component.base';
-export * from './component'
+export * from './component';
 
 import {MindControl} from './component.mindcontrol';
 export * from './component.mindcontrol';
