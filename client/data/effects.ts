@@ -6,7 +6,7 @@ import * as Component from '../src/component';
 
 interface TargetObj {
     target: any;
-};
+}
 
 interface Setters {
     [key: string]: any;
@@ -327,6 +327,26 @@ const Effects = {
                     entityName: this.useArgs.entityName,
                     effectType: 'AddEntity',
                     duration: this.useArgs.duration
+                };
+                createUseItemComp(this, obj, effArgs);
+                return true;
+            }
+        },
+
+        // Adds an element into a cell. numAllowed indicates how many of these
+        // elements can be piled up into a cell
+        {
+            name: 'addElement',
+            requires: ['elementName'],
+            optional: ['duration', 'numAllowed'],
+            func: function(obj) {
+                const effArgs = {
+                    target: obj,
+                    targetType: ['cell'],
+                    elementName: this.useArgs.elementName,
+                    effectType: 'AddElement',
+                    duration: this.useArgs.duration,
+                    numAllowed: this.useArgs.numAllowed || 1
                 };
                 createUseItemComp(this, obj, effArgs);
                 return true;
