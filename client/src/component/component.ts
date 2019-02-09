@@ -1583,6 +1583,10 @@ QuestTarget.prototype.toJSON = function() {
     return json;
 };
 
+export const QuestEscortTarget = DataComponent('QuestEscortTarget', {
+    escortTo: -1, question: 'Can I help you safely somewhere?'
+});
+
 /* Quest component contains all info related to a single quest. */
 export const Quest = DataComponent('Quest', {
     giver: null, questTargets: null, questID: -1, descr: ''
