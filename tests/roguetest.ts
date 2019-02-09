@@ -30,21 +30,21 @@ RGTest.rng = new Random();
 
 /* Creates a mock-level for unit tests. */
 RGTest.createMockLevel = function(cols, rows) {
-    const level = {cols: cols, rows: rows,
+    const level = {cols, rows,
         map: {
-            getCell: function(x, y) {
-                return { x: x, y: y };
+            getCell(x, y) {
+                return { x, y };
             },
-            hasXY: function() {
+            hasXY(): boolean {
                 return true;
             },
-            isPassable: function(x, y) {
+            isPassable(x, y): boolean {
                 return x > -1 && y > -1;
             }
         },
-        getMap: function() {return this.map;},
+        getMap() {return this.map;},
 
-        addActor: function(actor, x, y) {
+        addActor(actor, x, y): void {
             actor.setXY(x, y);
             actor.setLevel(this);
         }
@@ -387,8 +387,8 @@ RGTest.createTestWorld = function(conf = {}) {
 RGTest.createPlayer = function(items = [], equip = []) {
     const player = new SentientActor('player');
     player.setIsPlayer(true);
-	FactoryItem.addItemsToActor(player, items);
-	FactoryItem.equipItemsToActor(player, equip);
+    FactoryItem.addItemsToActor(player, items);
+    FactoryItem.equipItemsToActor(player, equip);
     return player;
 };
 
