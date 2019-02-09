@@ -3,7 +3,7 @@ import ROT from '../../lib/rot';
 import RG from './rg';
 import {Cell, CellJSON} from './map.cell';
 import {ElementBase, ElementWall, ElementMarker} from './element';
-import {TCoord} from './interfaces';
+import {TCoord, BBox} from './interfaces';
 
 const FLOOR = new ElementBase('floor');
 const WALL = new ElementWall('wall');
@@ -43,7 +43,7 @@ export class CellMap {
     private _isRowOptimized: boolean;
     private _rowMap: Cell[][];
 
-    constructor(cols, rows, baseElem = FLOOR) {
+    constructor(cols: number, rows: number, baseElem = FLOOR) {
         this._map = [];
         this.cols = cols;
         this.rows = rows;
@@ -54,9 +54,7 @@ export class CellMap {
         }
 
         this._map = new Array(this.cols);
-        // Initialize cells with floor
         for (let x = 0; x < this.cols; x++) {
-            // this._map.push([]);
             this._map[x] = new Array(this.rows);
             for (let y = 0; y < this.rows; y++) {
                 this._map[x][y] = new Cell(x, y, baseElem);
@@ -112,7 +110,7 @@ export class CellMap {
         return this._map[x][y].isExplored();
     }
 
-    public getBaseElemRow(y): ElementBase[] {
+    public getBaseElemRow(y: number): ElementBase[] {
         const row = [];
         for (let i = 0; i < this.cols; ++i) {
             row.push(this._map[i][y].getBaseElem());
@@ -120,7 +118,7 @@ export class CellMap {
         return row;
     }
 
-    public getCellRow(y): Cell[] {
+    public getCellRow(y: number): Cell[] {
         const row = [];
         for (let i = 0; i < this.cols; ++i) {
             row.push(this._map[i][y]);
@@ -142,7 +140,7 @@ export class CellMap {
         return freeCells;
     }
 
-    public getFreeNotOnEdge() {
+    public getFreeNotOnEdge(): Cell[] {
         const freeCells: Cell[] = this.getFree();
         return freeCells.filter((c: Cell) => (
             c._x > 0 && c._x < (this.cols - 1) &&
@@ -166,7 +164,7 @@ export class CellMap {
     }
 
     /* Returns all free cells in the given bounding box. */
-    public getFreeInBbox(bbox): Cell[] {
+    public getFreeInBbox(bbox: BBox): Cell[] {
         const freeCells = [];
         for (let x = bbox.ulx; x <= bbox.lrx; x++) {
             for (let y = bbox.uly; y < bbox.lry; y++) {
@@ -193,28 +191,28 @@ export class CellMap {
     }
 
     /* Returns true if light passes through this cell.*/
-    public lightPasses(x, y): boolean {
+    public lightPasses(x: number, y: number): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].lightPasses(); // delegate to cell
         }
         return false;
     }
 
-    public hasObstacle(x, y): boolean {
+    public hasObstacle(x: number, y: number): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].hasObstacle();
         }
         return false;
     }
 
-    public isPassable(x, y): boolean {
+    public isPassable(x: number, y: number): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].isPassable();
         }
         return false;
     }
 
-    public isPassableByAir(x, y): boolean {
+    public isPassableByAir(x: number, y: number): boolean {
         if (this.hasXY(x, y)) {
             return this._map[x][y].isPassableByAir();
         }
@@ -264,7 +262,7 @@ export class CellMap {
     }
 
     /* Returns true if x,y is located at this._map border cells.*/
-    public isBorderXY(x, y): boolean {
+    public isBorderXY(x: number, y: number): boolean {
         if (x === 0) {return true;}
         if (y === 0) {return true;}
         if (x === this.cols - 1) {return true;}
