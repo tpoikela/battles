@@ -99,17 +99,6 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     keeper.getInvEq().addItem(gold);
     level.addActor(keeper, 2, 2);
 
-    /*
-    const shopElem = new RG.Element.Shop();
-    const shopCell = level.getMap().getCell(3, 3);
-    shopCell.setProp('elements', shopElem);
-    const soldItem = this._parser.createActualObj('items',
-        'Ruby glass sword');
-    soldItem.add(new Component.Unpaid());
-    shopCell.setProp('items', soldItem);
-    shopElem.setShopkeeper(keeper);
-    */
-
     const numFree = level.getMap().getFree().length;
     const itemsPerLevel = Math.round(numFree / sqrPerItem);
 
@@ -248,6 +237,11 @@ DebugGame.prototype.createArena = function(obj, game, player) {
 
     player.getInvEq().unequipItem('hand', 1, 0);
     player.getInvEq().equipItem(voidDagger);
+
+    const shovel = parser.createItem('shovel');
+    player.getInvEq().addItem(shovel);
+    const webRune = parser.createItem('rune of webs');
+    player.getInvEq().addItem(webRune);
 
     /* const voidElem = parser.createActor('void elemental');
     level.addActor(voidElem, pX + 1, pY + 1);*/
