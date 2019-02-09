@@ -3,6 +3,7 @@
 import {expect} from 'chai';
 import {House, HouseGenerator} from '../../../client/src/houses';
 import {MapGenerator} from '../../../client/src/map.generator';
+import {CellMap} from '../../../client/src/map';
 
 describe('HouseGenerator', () => {
 
@@ -35,8 +36,8 @@ describe('HouseGenerator', () => {
     it('can be used in town maps', () => {
         const mapGen = new MapGenerator();
         const conf = {};
-        const townMap = mapGen.createTownBSP(160, 100, conf);
-        expect(townMap).to.not.be.empty;
+        const townMap = mapGen.createTownBSP(160, 100, conf).map;
+        expect(townMap).to.be.an.instanceof(CellMap);
         // townMap.map.debugPrintInASCII();
     });
 });
