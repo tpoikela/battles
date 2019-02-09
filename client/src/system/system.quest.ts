@@ -7,6 +7,7 @@ import * as Component from '../component';
 
 const parser = ObjectShell.getParser();
 
+type Entity = import('../entity').Entity;
 type HandleFunc = (ent, qEvent, questComp) => void;
 
 export class SystemQuest extends SystemBase {
@@ -28,6 +29,8 @@ export class SystemQuest extends SystemBase {
 
         this._eventTable = {
             battle: this.onBattleEvent = this.onBattleEvent.bind(this),
+            damage: this.onDamageEvent = this.onDamageEvent.bind(this),
+            escort: this.onEscortEvent = this.onEscortEvent.bind(this),
             get: this.onGetEvent = this.onGetEvent.bind(this),
             give: this.onGiveEvent = this.onGiveEvent.bind(this),
             goto: this.onGotoEvent = this.onGotoEvent.bind(this),
@@ -38,7 +41,7 @@ export class SystemQuest extends SystemBase {
         };
     }
 
-    public updateEntity(ent) {
+    public updateEntity(ent: Entity): void {
         if (ent.has('GiveQuest')) {
             const giveComp = ent.get('GiveQuest');
             this.processGiveQuestComp(ent, giveComp);
@@ -57,7 +60,7 @@ export class SystemQuest extends SystemBase {
     }
 
     /* When a quest is given to an actor, this function processes it. */
-    public processGiveQuestComp(ent, comp) {
+    public processGiveQuestComp(ent, comp): void {
         const giver = comp.getGiver();
         const giverComp = giver.get('QuestGiver');
         if (giverComp.getHasGivenQuest()) {
@@ -104,8 +107,8 @@ export class SystemQuest extends SystemBase {
         questMsg({cell: ent.getCell(), msg});
     }
 
+    /* Processes QuestCompleted event and grants quest rewards. */
     public processComplComp(ent, comp) {
-        console.log('processComplComp');
         const giver = comp.getGiver();
         const questID = giver.get('QuestGiver').getQuestID();
         const quests = ent.getList('Quest');
@@ -130,7 +133,7 @@ export class SystemQuest extends SystemBase {
 
     }
 
-    public giveQuestReward(ent, comp) {
+    public giveQuestReward(ent, comp): void {
         if (comp.hasReward()) {
             if (!comp.getHasGivenReward()) {
                 comp.setHasGivenReward(true);
@@ -199,6 +202,38 @@ export class SystemQuest extends SystemBase {
             msg += 'as a quest objective!';
             questMsg({cell: ent.getCell(), msg});
         }
+    }
+
+    public onDamageEvent(ent, qEvent, questComp): void {
+        const qTarget = qEvent.getTargetComp();
+        const targetEnt = qTarget.getTarget();
+        const questTargets = questComp.getQuestTargets();
+        const targetObj = questTargets.find(obj => obj.id === targetEnt.getID());
+        this.setTargetCompleted(targetObj, questComp);
+        let msg = `${ent.getName()} has finished a quest objective `;
+        msg += `to damage ${targetEnt.getDamage()}`;
+        questMsg({cell: ent.getCell(), msg});
+    }
+
+    /* Processes event when an actor has been escorted back safely. */
+    public onEscortEvent(ent, qEvent, questComp): void {
+        const qTarget = qEvent.getTargetComp();
+        const actor = qTarget.getTarget();
+        const questTargets = questComp.getQuestTargets();
+        const targetObj = questTargets.find(obj => obj.id === actor.getID());
+
+        // TODO add checks that level IDs match, right now done in System.Chat
+        this.setTargetCompleted(targetObj, questComp);
+
+        let placeName = '';
+        const pZone = ent.getLevel().getParentZone();
+        if (pZone) {
+            placeName = ' to ' + pZone.getName();
+        }
+
+        let msg = `${ent.getName()} has escorted ${actor.getName()} `;
+        msg += `safely back${placeName} as a quest objective!`;
+        questMsg({cell: ent.getCell(), msg});
     }
 
     public onGetEvent(ent, qEvent, questComp) {
@@ -328,7 +363,7 @@ export class SystemQuest extends SystemBase {
                 }
             } // Handle other reporting like kill/spy/goto etc
             else if (questComp.isTargetInQuest(targetComp)) {
-                const questTargets = questComp.getQuestTargets();
+                // const questTargets = questComp.getQuestTargets();
                 // Filter out report target
                 const otherTargets = questTargets.filter(obj => (
                     obj.id !== reportTarget.getID()));
