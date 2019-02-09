@@ -256,7 +256,9 @@ export const ActorsData: ActorShell[] = [
         name: 'cave dweller', base: 'BeastBase',
         char: 'C', color: color('Black', 'Red'),
         attack: 5, defense: 5, protection: 5, damage: '1d10 + 2',
-        hp: 30, danger: 5
+        hp: 30, danger: 5,
+        brain: 'SpellCaster', spells: ['SlimeBolt'],
+        maxPP: 18, pp: 18
     },
     {
         name: 'hezrou', base: 'BeastBase',
