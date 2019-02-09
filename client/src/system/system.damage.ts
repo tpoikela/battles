@@ -55,7 +55,6 @@ export class SystemDamage extends SystemBase {
                     ent.get('Loot').dropLoot(entCell);
                 }
                 this._dropInvAndEq(ent);
-
                 this._killActor(damageSrc, ent, dmgComp);
             }
 
@@ -69,11 +68,25 @@ export class SystemDamage extends SystemBase {
                         evtComp.setArgs({type: RG.EVT_ACTOR_DAMAGED,
                             cause: damageSrc});
                         ent.add(evtComp);
+                        if (ent.has('QuestTarget')) {
+                            this.checkForDamagedQuestEvent(ent, damageSrc);
+                        }
                     }
                 }
             }
         }
 
+    }
+
+    public checkForDamagedQuestEvent(ent, player): void {
+        const qTarget = ent.get('QuestTarget');
+        if (qTarget.getTargetType() === 'damage') {
+            const qEvent = new Component.QuestTargetEvent();
+            qEvent.setEventType('damage');
+            qEvent.setArgs({target: ent});
+            qEvent.setTargetComp(ent.get('QuestTarget'));
+            player.add(qEvent);
+        }
     }
 
     public _getUltimateDmgSource(dmgComp) {
