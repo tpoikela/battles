@@ -57,6 +57,7 @@ const POOL = EventPool.getPool();
 
 import {DriverBase, PlayerDriver} from '../../tests/helpers/player-driver';
 
+const {KeyMap} = Keys;
 const INV_SCREEN = 'Inventory';
 // (window as any).RG = RG;
 
@@ -95,9 +96,9 @@ class TopLogic {
   }
 
   public static getAdjacentCell(player, code) {
-    if (RG.KeyMap.inMoveCodeMap(code) || RG.KeyMap.isRest(code)) {
+    if (KeyMap.inMoveCodeMap(code) || KeyMap.isRest(code)) {
       const [x, y] = player.getXY();
-      const diffXY = RG.KeyMap.getDiff(code, x, y);
+      const diffXY = KeyMap.getDiff(code, x, y);
       if (diffXY !== null) {
         return player.getLevel().getMap().getCell(diffXY[0], diffXY[1]);
       }
