@@ -32,7 +32,7 @@ describe('World.Creator', () => {
         const creator = new WorldConf.Creator();
         const conf = creator.createWorldConf({name: 'My World'});
         const area0 = conf.area[0];
-        expect(area0.nCities).to.be.above(0);
+        expect(area0.nCity).to.be.above(0);
 
         const city0 = area0.city[0];
         expect(city0.quarter).to.have.length.above(0);
@@ -42,6 +42,6 @@ describe('World.Creator', () => {
         const creator = new WorldConf.Creator();
         const conf = creator.createWorldConf({name: 'My World'});
         const area0 = conf.area[0];
-        expect(area0.nMountains).to.be.above(0);
+        expect(area0.nMountain).to.be.above(0);
     });
 });

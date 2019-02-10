@@ -47,19 +47,19 @@ describe('System.Quest', () => {
         //---------------------
         // LISTEN-REPORT QUEST
         //---------------------
-		const reportQuestTasks = ['<goto>already_there', 'listen',
-			'<goto>already_there', 'report'];
-		const reportQuest = new Quest('Report info to actor', reportQuestTasks);
-		questPopul.mapQuestToResources(reportQuest, city, null);
-		questPopul.addQuestComponents(city);
+        const reportQuestTasks = ['<goto>already_there', 'listen',
+            '<goto>already_there', 'report'];
+        const reportQuest = new Quest('Report info to actor', reportQuestTasks);
+        questPopul.mapQuestToResources(reportQuest, city, null);
+        questPopul.addQuestComponents(city);
 
         const quester = new SentientActor('hero');
         level.addActor(quester, 1, 1);
-		const actors = level.getActors();
+        const actors = level.getActors();
 
-		let giver = actors.find(actor => actor.has('QuestGiver'));
-		let giverComp = giver.get('QuestGiver');
-		giverComp.setReward({type: 'item', name: 'Ruby glass mace'});
+        let giver = actors.find(actor => actor.has('QuestGiver'));
+        let giverComp = giver.get('QuestGiver');
+        giverComp.setReward({type: 'item', name: 'Ruby glass mace'});
 
         const qTargets = actors.filter(a => a.has('QuestTarget'));
         expect(qTargets).to.have.length(2);
@@ -107,17 +107,17 @@ describe('System.Quest', () => {
         const killQuestTasks = [
             '<goto>already_there', '<kill>kill'
         ];
-		const killQuest = new Quest('Kill an actor', killQuestTasks);
+        const killQuest = new Quest('Kill an actor', killQuestTasks);
         questPopul = new QuestPopulate();
-		questPopul.mapQuestToResources(killQuest, city, null);
-		questPopul.addQuestComponents(city);
+        questPopul.mapQuestToResources(killQuest, city, null);
+        questPopul.addQuestComponents(city);
 
         const killTarget = getQuestTarget('kill', actors);
         expect(killTarget).to.not.be.empty;
 
-		giver = actors.find(actor => actor.has('QuestGiver'));
-		giverComp = giver.get('QuestGiver');
-		giverComp.setReward({type: 'spell', name: 'FrostBolt'});
+        giver = actors.find(actor => actor.has('QuestGiver'));
+        giverComp = giver.get('QuestGiver');
+        giverComp.setReward({type: 'spell', name: 'FrostBolt'});
 
         giveQuest(giver, quester);
         sysQuest.update();
@@ -152,10 +152,10 @@ describe('System.Quest', () => {
 
         const areaTile = area.getTileXY(0, 0);
         questPopul = new QuestPopulate();
-		let ok = questPopul.mapQuestToResources(mainQuest, city, areaTile);
+        let ok = questPopul.mapQuestToResources(mainQuest, city, areaTile);
         expect(ok, 'Quest mapped OK').to.equal(true);
 
-		questPopul.addQuestComponents(city);
+        questPopul.addQuestComponents(city);
 
         const bookToRead = getQuestTarget('read', level.getItems());
         expect(bookToRead).to.not.be.empty;
@@ -220,9 +220,9 @@ describe('System.Quest', () => {
         console.log(getGiveQuest.getSteps());
         questPopul = new QuestPopulate();
         questPopul.setDebug(true);
-		ok = questPopul.mapQuestToResources(getGiveQuest, city, null);
+        ok = questPopul.mapQuestToResources(getGiveQuest, city, null);
         expect(ok, 'Get-Give Quest mapped OK').to.equal(true);
-		questPopul.addQuestComponents(city);
+        questPopul.addQuestComponents(city);
 
         const questGiver = actors.find(a => (
             a.has('QuestGiver')));
