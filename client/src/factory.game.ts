@@ -72,26 +72,21 @@ FactoryGame.prototype.createNewGame = function(conf) {
     const player = this.createPlayerUnlessLoaded(conf);
     this.createPlayerRegenEvents(game, player);
 
-    if (conf.playMode === 'Arena') {
-        return this.createArenaDebugGame(conf, game, player);
-    }
-    else if (conf.playMode === 'Battle') {
-        return this.createDebugBattle(conf, game, player);
-    }
-    else if (conf.playMode === 'Creator') {
-        return this.createWorldWithCreator(conf, game, player);
-    }
-    else if (conf.playMode === 'World') {
-        return this.createFullWorld(conf, game, player);
-    }
-    else if (conf.playMode === 'OverWorld') {
-        return this.createOverWorldGame(conf, game, player);
-    }
-    else if (conf.playMode === 'Dungeon') {
-        return this.createOneDungeonAndBoss(conf, game, player);
-    }
-    else { // Empty game for doing whatever
-        return this.createEmptyGame(conf, game, player);
+    switch (conf.playMode) {
+        case 'Arena':
+            return this.createArenaDebugGame(conf, game, player);
+        case 'Battle':
+            return this.createDebugBattle(conf, game, player);
+        case 'Creator':
+            return this.createWorldWithCreator(conf, game, player);
+        case 'World':
+            return this.createFullWorld(conf, game, player);
+        case 'OverWorld':
+            return this.createOverWorldGame(conf, game, player);
+        case 'Quests':
+            return this.createQuestsDebugGame(conf, game, player);
+        default:
+            return this.createEmptyGame(conf, game, player);
     }
 };
 
@@ -307,8 +302,8 @@ FactoryGame.prototype.progress = function(msg) {
 FactoryGame.prototype.placePlayer = function(player, level) {
     const freeCells = level.getMap().getFree();
     const freeLUT = {};
-    freeCells.forEach(cell => {
-        freeLUT[cell.getKeyXY()] = true;
+    freeCells.forEach(c => {
+        freeLUT[c.getKeyXY()] = true;
     });
 
     let cell = null;
@@ -598,13 +593,13 @@ FactoryGame.prototype.processPresetLevels = function(conf) {
 
 FactoryGame.prototype.createPresetLevels = function(arr) {
     const fromJSON = new FromJSON();
-    return arr.map(item => {
+    return arr.map(presetItem => {
         // Return the item itself if it's already Map.Level
-        if (typeof item.level.getID === 'function') {
-            return item;
+        if (typeof presetItem.level.getID === 'function') {
+            return presetItem;
         }
 
-        const level = fromJSON.restoreLevel(item.level);
+        const level = fromJSON.restoreLevel(presetItem.level);
         // Need to reset level + actors IDs for this game
         if (level.getID() < RG.LEVEL_ID_ADD) {
             level.setID(Level.createLevelID());
@@ -624,7 +619,7 @@ FactoryGame.prototype.createPresetLevels = function(arr) {
         // explored for viewing purposes
         RG.setAllExplored(level, false);
         return {
-            nLevel: item.nLevel,
+            nLevel: presetItem.nLevel,
             level
         };
     });
@@ -633,6 +628,11 @@ FactoryGame.prototype.createPresetLevels = function(arr) {
 /* Can be used to create a short debugging game for testing.*/
 FactoryGame.prototype.createArenaDebugGame = function(obj, game, player) {
     return new DebugGame(this, this._parser).createArena(obj, game, player);
+};
+
+FactoryGame.prototype.createQuestsDebugGame = function(obj, game, player) {
+    const dbgGame = new DebugGame(this, this._parser);
+    return dbgGame.createQuestsDebug(obj, game, player);
 };
 
 FactoryGame.prototype.createDebugBattle = function(obj, game, player) {
