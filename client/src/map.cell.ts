@@ -12,6 +12,7 @@ type PropsType = Element.ElementBase | ItemBase | BaseActor;
 type Door = Element.ElementDoor;
 type LeverDoor = Element.ElementLeverDoor;
 type Stairs = Element.ElementStairs;
+type SentientActor = import('./actor').SentientActor;
 
 interface CellProps {
     [key: string]: PropsType[];
@@ -90,7 +91,7 @@ export class Cell {
     }
 
     /* Queries cell about possible elements. */
-    public hasElements() {
+    public hasElements(): boolean {
         return this.hasProp(TYPE_ELEM);
     }
 
@@ -99,7 +100,7 @@ export class Cell {
     }
 
     /* Returns true if cell has any actors.*/
-    public hasActors() {
+    public hasActors(): boolean {
         return this.hasProp(TYPE_ACTOR);
     }
 
@@ -115,12 +116,17 @@ export class Cell {
         return null;
     }
 
-    public getSentientActors() {
+    public getSentientActors(): SentientActor[] {
         const actors = this.getActors();
-        return actors.filter(actor => !actor.has('NonSentient'));
+        if (actors) {
+            return actors.filter(actor => (
+                !actor.has('NonSentient'))
+            ) as SentientActor[];
+        }
+        return []; // as SentientActor[];
     }
 
-    public hasItems() {return this.hasProp(TYPE_ITEM);}
+    public hasItems(): boolean {return this.hasProp(TYPE_ITEM);}
     public getItems(): ItemBase[] {
         return (this.getProp(TYPE_ITEM) as ItemBase[]);
     }
