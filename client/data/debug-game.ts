@@ -21,13 +21,16 @@ import {Spell} from '../src/spell';
 import {Texts} from '../data/texts';
 import {VirtualActor, WeatherActor} from '../src/actor.virtual';
 import {ELEM} from '../data/elem-constants';
+import * as IF from '../src/interfaces';
 
 import {Quest, QuestPopulate} from '../src/quest-gen';
 
 import {EventPool} from '../src/eventpool';
 import {Factory} from '../src/factory';
 import {FactoryLevel} from '../src/factory.level';
+import {FactoryWorld} from '../src/factory.world';
 import {World} from '../src/world';
+import {WorldCreator} from '../src/world.creator';
 import {WinCondition} from '../src/game';
 
 const POOL = EventPool.getPool();
@@ -333,6 +336,27 @@ DebugGame.prototype.createArena = function(obj, game, player) {
         cell.setBaseElem(ELEM.BED);
     }
 
+    return game;
+};
+
+/* Creates a debugging game for checking that quests work as planned. */
+DebugGame.prototype.createQuestsDebug = function(obj, game, player) {
+    const creator = new WorldCreator();
+    const areaConf = {maxX: 2, maxY: 2};
+    const worldConf: IF.WorldConf = {
+        name: 'Quest test world',
+        nAreas: 1,
+        area: [creator.createSingleAreaConf(0, areaConf)]
+    };
+    const factWorld = new FactoryWorld();
+    const world = factWorld.createWorld(worldConf);
+
+    const level = world.getZones('City')[0].getLevels()[0];
+    const pX = Math.floor(level.getMap().cols / 2);
+    const pY = Math.floor(level.getMap().rows / 2);
+    level.addActor(player, pX, pY);
+    game.addPlace(world);
+    game.addPlayer(player);
     return game;
 };
 
