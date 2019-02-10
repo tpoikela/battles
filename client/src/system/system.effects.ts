@@ -17,7 +17,7 @@ const handlerTable = {
     RemoveComp: true
 };
 
-type HandleFunc = (ent, comp) => void;
+type HandleFunc = (ent, comp) => boolean;
 
 // Can be updated when addEffect() if called
 let handlerNames = Object.keys(handlerTable);
@@ -36,7 +36,7 @@ export class SystemEffects extends SystemBase {
      * @return {boolean}
      * func receives args (srcEnt, effComp).
      */
-    public static addEffect(effName, func) {
+    public static addEffect(effName: string, func: HandleFunc): boolean {
         if (!handlerTable.hasOwnProperty(effName)) {
             const handlerName = 'handle' + effName.capitalize();
             SystemEffects.prototype[handlerName] = func;
@@ -54,7 +54,7 @@ export class SystemEffects extends SystemBase {
     /* Returns the target for the effect. Priority of targets is:
      * 1. actors 2. items 3. elements 4. base element
      */
-    public static getEffectTarget(useArgs) {
+    public static getEffectTarget(useArgs): any {
         const objTarget = useArgs.target;
         if (!objTarget) {
             const msg = 'Possibly missing args for useItem().';
@@ -107,8 +107,9 @@ export class SystemEffects extends SystemBase {
             const effType = effComp.getEffectType();
             if (effType && effType !== '') {
                 if (this._dtable.hasOwnProperty(effType)) {
-                    this._checkMsgEmits(ent, effComp);
-                    this._dtable[effType](ent, effComp);
+                    this._checkStartMsgEmits(ent, effComp);
+                    const ok = this._dtable[effType](ent, effComp);
+                    this._checkEndMsgEmits(ent, effComp, ok);
                 }
                 else {
                     RG.err('SystemEffects', 'updateEntity',
@@ -123,10 +124,23 @@ export class SystemEffects extends SystemBase {
         });
     }
 
-    public _checkMsgEmits(ent, effComp) {
+    public _checkStartMsgEmits(ent, effComp): void {
         const useArgs = effComp.getArgs();
         if (useArgs.startMsg) {
             RG.gameMsg({cell: ent.getCell(), msg: useArgs.startMsg});
+        }
+    }
+
+    public _checkEndMsgEmits(ent, effComp, ok): void {
+        const useArgs = effComp.getArgs();
+        if (useArgs.endMsg) {
+            RG.gameMsg({cell: ent.getCell(), msg: useArgs.endMsg});
+        }
+        if (ok && useArgs.successMsg) {
+            RG.gameMsg({cell: ent.getCell(), msg: useArgs.successMsg});
+        }
+        if (!ok && useArgs.failureMsg) {
+            RG.gameWarning({cell: ent.getCell(), msg: useArgs.failureMsg});
         }
     }
 
@@ -136,7 +150,7 @@ export class SystemEffects extends SystemBase {
 
     /* Handler for effect 'AddComp'. Adds a component to target entity
      * for a given duration. */
-    public handleAddComp(srcEnt, effComp) {
+    public handleAddComp(srcEnt, effComp): boolean {
         const useArgs = effComp.getArgs();
         const targetEnt = SystemEffects.getEffectTarget(useArgs);
         const compName = getCompName(useArgs, targetEnt);
@@ -172,12 +186,11 @@ export class SystemEffects extends SystemBase {
         const expirMsg = useArgs.endMsg;
 
         Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
-        /* if (useArgs.startMsg) {
-            RG.gameMsg({msg: useArgs.startMsg, cell: targetEnt.getCell()});
-        }*/
+        return true;
     }
 
-    public handleAddElement(srcEnt, effComp): void {
+    /* Called when element needs to be added to a cell. */
+    public handleAddElement(srcEnt, effComp): boolean {
         const useArgs = effComp.getArgs();
         const cell = getTargetCellOrFail(useArgs);
 
@@ -204,18 +217,23 @@ export class SystemEffects extends SystemBase {
             if (!existingElems || existingElems.length < useArgs.numAllowed) {
                 if (!level.addElement(newElem, x, y)) {
                     console.error('Failed to add element ' + useArgs.elementName);
+                    return false;
                 }
+                return true;
+            }
+            else {
+                return false;
             }
         }
         else {
             const msg = 'Failed to create elem: ' + JSON.stringify(useArgs);
             RG.err('System.Effects', 'handleAddElement', msg);
         }
-
+        return false;
     }
 
     /* Adds a value to an existing component value. */
-    public handleModifyCompValue(srcEnt, effComp): void {
+    public handleModifyCompValue(srcEnt, effComp): boolean {
         const useArgs = effComp.getArgs();
         const targetEnt = SystemEffects.getEffectTarget(useArgs);
         const compName = getCompName(useArgs, targetEnt);
@@ -227,12 +245,14 @@ export class SystemEffects extends SystemBase {
                 const value = useArgs.value;
                 const numValue = convertValueIfNeeded(value);
                 comp[useArgs.set](currValue + numValue);
+                return true;
             }
         }
+        return false;
     }
 
     /* Adds an entity to target cell. */
-    public handleAddEntity(srcEnt, effComp) {
+    public handleAddEntity(srcEnt, effComp): boolean {
         const useArgs = effComp.getArgs();
         const cell = getTargetCellOrFail(useArgs);
 
@@ -254,21 +274,25 @@ export class SystemEffects extends SystemBase {
                 const createdComp = new Component.Created();
                 createdComp.setCreator(srcEnt);
                 entity.add(createdComp);
+                return true;
             }
         }
+        return false;
     }
 
-    public handleChangeElement(srcEnt, effComp) {
+    public handleChangeElement(srcEnt, effComp): boolean {
         const useArgs = effComp.getArgs();
         const cell = getTargetCellOrFail(useArgs);
         const fromType = useArgs.fromType;
         const toType = useArgs.toType || ELEM.FLOOR;
         if (cell.getBaseElem().getType() === fromType) {
             cell.setBaseElem(toType);
+            return true;
         }
+        return false;
     }
 
-    public handleRemoveComp(srcEnt, effComp) {
+    public handleRemoveComp(srcEnt, effComp): boolean {
         const useArgs = effComp.getArgs();
         const targetEnt = SystemEffects.getEffectTarget(useArgs);
         const compName = getCompName(useArgs, targetEnt);
@@ -280,7 +304,9 @@ export class SystemEffects extends SystemBase {
             else {
                 targetEnt.remove(compName);
             }
+            return true;
         }
+        return false;
     }
 }
 SystemEffects.handlerTable = handlerTable;
