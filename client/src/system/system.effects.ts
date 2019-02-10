@@ -13,6 +13,7 @@ const handlerTable = {
     ModifyCompValue: true,
     AddEntity: true,
     AddElement: true,
+    RemoveElement: true,
     ChangeElement: true,
     RemoveComp: true
 };
@@ -140,7 +141,7 @@ export class SystemEffects extends SystemBase {
             RG.gameMsg({cell: ent.getCell(), msg: useArgs.successMsg});
         }
         if (!ok && useArgs.failureMsg) {
-            RG.gameWarning({cell: ent.getCell(), msg: useArgs.failureMsg});
+            RG.gameWarn({cell: ent.getCell(), msg: useArgs.failureMsg});
         }
     }
 
@@ -199,11 +200,8 @@ export class SystemEffects extends SystemBase {
                 'No elementName found in useArgs: ' + JSON.stringify(useArgs));
         }
 
-        let newElem = null;
-        if (Element.hasOwnProperty(useArgs.elementName)) {
-            newElem = new Element[useArgs.elementName]();
-        }
-        else {
+        let newElem = Element.create(useArgs.elementName);
+        if (!newElem) {
             // Try the ObjectShellParser, usually not what we want
             // with elements
             const parser = ObjectShell.getParser();
@@ -219,6 +217,9 @@ export class SystemEffects extends SystemBase {
                     console.error('Failed to add element ' + useArgs.elementName);
                     return false;
                 }
+                if (typeof newElem.onSystemAdd === 'function') {
+                    newElem.onSystemAdd(cell);
+                }
                 return true;
             }
             else {
@@ -228,6 +229,31 @@ export class SystemEffects extends SystemBase {
         else {
             const msg = 'Failed to create elem: ' + JSON.stringify(useArgs);
             RG.err('System.Effects', 'handleAddElement', msg);
+        }
+        return false;
+    }
+
+    /* Called when element needs to be added to a cell. */
+    public handleRemoveElement(srcEnt, effComp): boolean {
+        const useArgs = effComp.getArgs();
+        const cell = getTargetCellOrFail(useArgs);
+
+        if (!useArgs.elementName) {
+            RG.err('System.Effects', 'handleRemoveElement',
+                'No elementName found in useArgs: ' + JSON.stringify(useArgs));
+        }
+
+        const foundElems = cell.getPropType(useArgs.elementName);
+        if (foundElems.length > 0) {
+            const foundElem = foundElems[0];
+            const [x, y] = [cell.getX(), cell.getY()];
+            const level = srcEnt.getLevel();
+            if (level.removeElement(foundElem, x, y)) {
+                if (typeof foundElem.onSystemRemove === 'function') {
+                    foundElem.onSystemRemove(cell);
+                }
+                return true;
+            }
         }
         return false;
     }

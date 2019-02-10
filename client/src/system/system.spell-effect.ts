@@ -247,7 +247,13 @@ export class SystemSpellEffect extends SystemBase {
         const spell = args.spell;
         const parser = ObjectShell.getParser();
 
-        const spellArrow = parser.createItem(spell.getAmmoName());
+        const ammoName = spell.getAmmoName();
+        if (!ammoName) {
+            RG.err('System.SpellEffect', 'processSpellMissile',
+               `No |ammoName| set for spell ${spell.getName()}`);
+        }
+
+        const spellArrow = parser.createItem(ammoName);
         const mComp = new Component.Missile(args.src);
         mComp.setTargetXY(args.to[0], args.to[1]);
         mComp.destroyItem = true;
