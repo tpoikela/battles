@@ -214,7 +214,7 @@ export default class GameStartScreen extends React.Component {
                 callback={setPlayMode}
                 currValue={this.props.settings.playMode}
                 id='dropdown-select-playmode'
-                options={['OverWorld', 'Arena']}
+                options={['OverWorld', 'Arena', 'Quests']}
                 titleName='Play mode'
               />
             </div>
