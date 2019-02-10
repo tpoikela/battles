@@ -315,7 +315,10 @@ const Effects = {
             }
         },
 
-        // Adds an entity into a cell
+        // Adds an entity into a cell. Use this only if entity is specified
+        // using object shells in data/items.ts, data/actors.ts or
+        // data/elements.ts. If you want to use your own constructor for an
+        // element, then use 'addElement'
         {
             name: 'addEntity',
             requires: ['entityName'],
@@ -346,7 +349,29 @@ const Effects = {
                     elementName: this.useArgs.elementName,
                     effectType: 'AddElement',
                     duration: this.useArgs.duration,
-                    numAllowed: this.useArgs.numAllowed || 1
+                    numAllowed: this.useArgs.numAllowed || 1,
+                    successMsg: this.useArgs.successMsg,
+                    failureMsg: this.useArgs.failureMsg,
+                };
+                createUseItemComp(this, obj, effArgs);
+                return true;
+            }
+        },
+
+        // Removes an element from a cell. Notice that there is no support for
+        // temporal removal (too tricky to implement for now)
+        {
+            name: 'removeElement',
+            requires: ['elementName'],
+            optional: ['successMsg', 'failureMsg'],
+            func: function(obj) {
+                const effArgs = {
+                    target: obj,
+                    targetType: ['cell'],
+                    elementName: this.useArgs.elementName,
+                    effectType: 'RemoveElement',
+                    successMsg: this.useArgs.successMsg,
+                    failureMsg: this.useArgs.failureMsg,
                 };
                 createUseItemComp(this, obj, effArgs);
                 return true;
