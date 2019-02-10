@@ -55,7 +55,7 @@ describe('Spell.SpellBook', () => {
         const menuValues = Object.values(selMenu);
         expect(menuValues.length).to.be.above(15);
 
-        const selectObjSpell = selObj.select(Keys.VK_a);
+        const selectObjSpell = selObj.select(Keys.VK_b);
         expect(selectObjSpell).to.not.be.empty;
 
         if (typeof selectObjSpell === 'function') {
@@ -109,7 +109,7 @@ describe('Spell.SpellBook', () => {
         const wizard2 = new SentientActor('wizard2');
         const fromJSON = new FromJSON();
         const newBook = fromJSON.createSpells({spellbook: bookJSON}, wizard2);
-        expect(newBook.equals(book)).to.be.true;
+        expect(newBook.equals(book)).to.equal(true);
     });
 
     it('can cast all spells successfully', () => {
