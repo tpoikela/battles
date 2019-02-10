@@ -186,7 +186,7 @@ WorldConf.setDistFromStart = (featConf, areaConf) => {
 };
 
 /* Create object for player position. */
-WorldConf.getPlayerStart = (firstArea, conf) => {
+WorldConf.getPlayerStart = (firstArea: IF.AreaConf, conf): IF.PlayerStart => {
     const maxY = firstArea.maxY - 1;
     const midX = Math.floor(firstArea.maxX / 2);
     return {
@@ -196,7 +196,7 @@ WorldConf.getPlayerStart = (firstArea, conf) => {
 };
 
 /* Given areaConf, return x,y position where the feature can be added. */
-WorldConf.getXYInArea = areaConf => ({
+WorldConf.getXYInArea = (areaConf: IF.AreaConf): IF.ICoordXY => ({
     x: getUniformInt(0, areaConf.maxX - 1),
     y: getUniformInt(0, areaConf.maxY - 1)
 });
@@ -251,7 +251,7 @@ WorldConf.getNumLevels = type /* , featConf, conf */ => {
 
 /* Scales the number of features based on the corresponding value in conf.
  * */
-WorldConf.scaleNumFeatures = (type, conf) => {
+WorldConf.scaleNumFeatures = (type, conf): number => {
     switch (type) {
         case 'dungeon': {
             return featureScaleCoeff[conf.excavation];
@@ -270,7 +270,7 @@ WorldConf.scaleNumFeatures = (type, conf) => {
 
 /* Given feature type (dungeon, city, mountain), returns
 * the number of features that should be generated. */
-WorldConf.getNumFeatures = (type, areaConf, conf) => {
+WorldConf.getNumFeatures = (type: string, areaConf, conf): number => {
     let nFeatures = (areaConf.maxX + 1) * (areaConf.maxY + 1);
     nFeatures = Math.ceil(nFeatures * WorldConf.scaleNumFeatures(type, conf));
     // TODO based on type/conf, adjust the number
@@ -283,7 +283,7 @@ WorldConf.getNumFeatures = (type, areaConf, conf) => {
 //------------------
 
 /* Creates configuration for all dungeons based on the (area)conf. */
-WorldConf.createDungeonsConf = (areaConf, conf) => {
+WorldConf.createDungeonsConf = (areaConf, conf): IF.DungeonConf[] => {
     const nDungeons = WorldConf.getNumFeatures('dungeon', areaConf, conf);
     const dungeons = [];
     for (let i = 0; i < nDungeons; i++) {
@@ -295,8 +295,8 @@ WorldConf.createDungeonsConf = (areaConf, conf) => {
 
 
 /* Creates conf for a single dungeon. */
-WorldConf.createSingleDungeonConf = (areaConf, conf) => {
-    const xy = WorldConf.getXYInArea(areaConf);
+WorldConf.createSingleDungeonConf = (areaConf, conf): IF.DungeonConf => {
+    const xy: IF.ICoordXY = WorldConf.getXYInArea(areaConf);
     const dungeonConf = Object.assign({}, areaConf);
     dungeonConf.x = xy.x;
     dungeonConf.y = xy.y;
@@ -319,7 +319,7 @@ WorldConf.createSingleDungeonConf = (areaConf, conf) => {
 
 /* Creates branches config for dungeon. This include entrance and branch
  * connections. */
-WorldConf.createBranchesConf = (dungeonConf, conf) => {
+WorldConf.createBranchesConf = (dungeonConf, conf): IF.BranchConf[] => {
     const nBranches = WorldConf.getNumBranches(dungeonConf, conf);
     const branches = [];
     for (let i = 0; i < nBranches; i++) {
@@ -334,7 +334,7 @@ WorldConf.createBranchesConf = (dungeonConf, conf) => {
     return branches;
 };
 
-WorldConf.createSingleBranchConf = () => {
+WorldConf.createSingleBranchConf = (): IF.BranchConf => {
     const nLevels = WorldConf.getNumLevels('dungeon');
     return {
         dungeonX: 80,
@@ -354,7 +354,7 @@ WorldConf.createSingleBranchConf = () => {
 //---------------------
 
 /* THis function decide on the structure of quarter, nHouses, shops etc. */
-WorldConf.createSingleQuarterConf = () => {
+WorldConf.createSingleQuarterConf = (): IF.QuarterConf => {
     const nLevels = WorldConf.getNumLevels('city');
     return {
         nLevels,
@@ -366,7 +366,7 @@ WorldConf.createSingleQuarterConf = () => {
 // MOUNTAINS
 //------------
 
-WorldConf.createSingleFaceConf = () => {
+WorldConf.createSingleFaceConf = (): IF.FaceConf => {
     const nLevels = WorldConf.getNumLevels('mountain');
     return {
         x: 100,
@@ -381,7 +381,14 @@ WorldConf.createSingleFaceConf = () => {
  * NOTE: To keep the code shorter, 'conf' refers always to the global
  * configuration. It's always the last param for each function.
  */
-WorldConf.Creator = function() {
+export class WorldCreator {
+
+    protected nCreated: {[key: string]: number};
+    protected rand: Random;
+
+    constructor() {
+        this.nCreated = {};
+    }
 
 
     // Assumptions: Increase difficulty the more player travels from starting
@@ -390,7 +397,7 @@ WorldConf.Creator = function() {
 
     /* Main function. You should call this to get a full configuration to create
      * the world. This conf should be given to Factory.World. */
-    this.createWorldConf = function(conf) {
+    public createWorldConf(conf): IF.WorldConf {
         if (!conf.name) {
             RG.err('Creator', 'createWorldConf',
                 'conf.name must be specified.');
@@ -414,13 +421,13 @@ WorldConf.Creator = function() {
             area: areas,
             playerStart
         };
-    };
+    }
 
     //---------------
     // AREAS
     //---------------
 
-    this.createAreasConf = function(conf) {
+    public createAreasConf(conf): IF.AreaConf[] {
         const nAreas = worldSizeToNum[conf.worldSize];
         const areas = [];
         for (let i = 0; i < nAreas; i++) {
@@ -428,14 +435,14 @@ WorldConf.Creator = function() {
             areas.push(areaConf);
         }
         return areas;
-    };
+    }
 
     /* Creates configuration for single area. Assume player starts at areaNum ==
      * 0, and adjust difficulty accordingly. */
-    this.createSingleAreaConf = function(areaNum, conf) {
+    public createSingleAreaConf(areaNum, conf): IF.AreaConf {
         const areaSize = areaSizeToXY[conf.areaSize];
-        const maxX = areaSize.x;
-        const maxY = areaSize.y;
+        const maxX = conf.maxX || areaSize.x;
+        const maxY = conf.maxY || areaSize.y;
 
         // Need to pass this info other functions to determine number of
         // features and difficulty
@@ -452,21 +459,21 @@ WorldConf.Creator = function() {
             name: this.getName('area'),
             maxX,
             maxY,
-            nDungeons: dungeons.length,
-            nCities: cities.length,
-            nMountains: mountains.length,
+            nDungeon: dungeons.length,
+            nCity: cities.length,
+            nMountain: mountains.length,
             dungeon: dungeons,
             city: cities,
             mountain: mountains
         };
-    };
+    }
 
 
     //---------------
     // CITIES
     //---------------
 
-    this.createCitiesConf = function(areaConf, conf) {
+    public createCitiesConf(areaConf, conf): IF.CityConf[] {
         const nCities = WorldConf.getNumFeatures('city', areaConf, conf);
         const cities = [];
         for (let i = 0; i < nCities; i++) {
@@ -474,9 +481,9 @@ WorldConf.Creator = function() {
             cities.push(city);
         }
         return cities;
-    };
+    }
 
-    this.createSingleCityConf = function(areaConf, conf) {
+    public createSingleCityConf(areaConf, conf): IF.CityConf {
         const xy = WorldConf.getXYInArea(areaConf);
         const cityConf = Object.assign({}, areaConf);
         cityConf.x = xy.x;
@@ -496,10 +503,10 @@ WorldConf.Creator = function() {
         };
         if (connect) {obj.connectLevels = connect;}
         return obj;
-    };
+    }
 
     /* Creates the config for quarters of single city. */
-    this.createQuartersConf = (cityConf, conf) => {
+    public createQuartersConf(cityConf, conf): IF.QuarterConf[] {
         const nQuarters = WorldConf.getNumQuarters(cityConf, conf);
         const quarters = [];
         for (let i = 0; i < nQuarters; i++) {
@@ -510,14 +517,14 @@ WorldConf.Creator = function() {
             quarters.push(quarter);
         }
         return quarters;
-    };
+    }
 
 
     //---------------
     // MOUNTAINS
     //---------------
 
-    this.createMountainsConf = function(areaConf, conf) {
+    public createMountainsConf(areaConf, conf): IF.MountainConf[] {
         const nMountains = WorldConf.getNumFeatures('mountain', areaConf, conf);
         const mountains = [];
         for (let i = 0; i < nMountains; i++) {
@@ -525,9 +532,9 @@ WorldConf.Creator = function() {
             mountains.push(mountain);
         }
         return mountains;
-    };
+    }
 
-    this.createSingleMountainConf = function(areaConf, conf) {
+    public createSingleMountainConf(areaConf, conf): IF.MountainConf {
         const xy = WorldConf.getXYInArea(areaConf);
         const mountConf = Object.assign({}, areaConf);
         mountConf.x = xy.x;
@@ -547,9 +554,9 @@ WorldConf.Creator = function() {
         };
         if (connect) {obj.connectLevels = connect;}
         return obj;
-    };
+    }
 
-    this.createFacesConf = (mountConf, conf) => {
+    public createFacesConf(mountConf, conf): IF.FaceConf[] {
         const nFaces = WorldConf.getNumFaces(mountConf, conf);
         const faces = [];
         for (let i = 0; i < nFaces; i++) {
@@ -562,20 +569,21 @@ WorldConf.Creator = function() {
             }
         }
         return faces;
-    };
+    }
 
     //----------------------------
     // NAME GEN FUNCTIONS
     // For debugging, names are stupid for now
     //----------------------------
 
-    this.nCreated = {};
-    this.getName = function(type) {
+    public getName(type: string): string {
         if (!this.nCreated.hasOwnProperty(type)) {
             this.nCreated[type] = 0;
         }
         this.nCreated[type] += 1;
         return `${type} ${this.nCreated[type]}`;
-    };
+    }
 
-};
+}
+
+WorldConf.Creator = WorldCreator;
