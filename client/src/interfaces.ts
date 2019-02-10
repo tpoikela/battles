@@ -123,4 +123,19 @@ export interface AreaConf {
     city?: CityConf[];
     dungeon?: DungeonConf[];
     mountain: MountainConf[];
+    maxX: number;
+    maxY: number;
+}
+
+export interface PlayerStart {
+    place: string;
+    x: number;
+    y: number;
+}
+
+export interface WorldConf {
+    name: string;
+    nAreas: number;
+    area: AreaConf[];
+    playerStart?: PlayerStart;
 }
