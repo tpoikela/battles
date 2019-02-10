@@ -1329,8 +1329,6 @@ RG.extend2(Spell.PowerDrain, SpellBase);
 Spell.Missile = function(name, power) {
     Spell.Ranged.call(this, name, power);
     this.ammoName = '';
-
-
 };
 RG.extend2(Spell.Missile, Spell.Ranged);
 
@@ -1413,7 +1411,7 @@ Spell.IceArrow = function() {
     Spell.Missile.call(this, 'IceArrow', 16);
     this.setRange(9);
     this.damageType = RG.DMG.ICE;
-    this.ammoName = 'Lightning arrow';
+    this.ammoName = 'Ice arrow';
 };
 RG.extend2(Spell.IceArrow, Spell.Missile);
 
@@ -1462,6 +1460,37 @@ Spell.PoisonArrow.prototype.cast = function(args) {
 Spell.PoisonArrow.prototype.onHit = function(actor) {
     const src = this._caster;
     addPoisonEffect(actor, src);
+};
+
+/* A magic arrow which entangles the target in webs. */
+Spell.ArrowOfWebs = function() {
+    Spell.Missile.call(this, 'ArrowOfWebs', 10);
+    this.setRange(7);
+    this.setDice('damage', Dice.create('1d6 + 2'));
+    this.damageType = RG.DMG.PIERCE;
+    this.ammoName = 'Arrow of webs';
+};
+RG.extend2(Spell.ArrowOfWebs, Spell.Missile);
+
+Spell.ArrowOfWebs.prototype.cast = function(args) {
+    Spell.Missile.prototype.cast.call(this, args);
+    const missComp = args.src.get('SpellMissile');
+    missComp.onHit = this.onHit.bind(this);
+};
+
+Spell.ArrowOfWebs.prototype.onHit = function(actor) {
+    const src = this._caster;
+    // TODO create a web effect, add more webs for
+    // powerful casters
+    const effArgs = {
+        target: {target: actor.getCell()},
+        targetType: ['cell'],
+        elementName: 'Web', effectType: 'AddElement',
+        numAllowed: 1
+    };
+    const effComp = new Component.Effects(effArgs);
+    // effComp.setEffectType('AddElement');
+    src.add(effComp);
 };
 
 //------------------------------------------------------
@@ -1764,6 +1793,7 @@ RG.extend2(Spell.ForceField, SpellBase);
 
 /* Used for testing the spells. Adds all spells to given SpellBook. */
 Spell.addAllSpells = book => {
+    book.addSpell(new Spell.ArrowOfWebs());
     book.addSpell(new Spell.Blizzard());
     book.addSpell(new Spell.CrossBolt());
     book.addSpell(new Spell.DispelMagic());
