@@ -59,6 +59,11 @@ interface AddElementUseSpec {
     duration?: string;
 }
 
+interface RemoveElementUseSpec {
+    elementName: string;
+    duration?: string;
+}
+
 interface UseSpec {
     heal?: HealUseSpec;
     cure?: CureUseSpec;
@@ -70,6 +75,7 @@ interface UseSpec {
     addComp?: any;
     modifyStat?: any;
     addElement?: AddElementUseSpec;
+    removeElement?: RemoveElementUseSpec;
 }
 
 interface ObjectShell {
@@ -1137,7 +1143,16 @@ const Items: ObjectShell[] = [
         name: 'shovel', base: 'tool',
         use: {addElement: {
             elementName: 'Hole', numAllowed: 1,
-            failureMsg: 'You fail to dig a hole there'
+            successMsg: 'You dig a hole to the ground',
+            failureMsg: 'You fail to dig a hole there',
+        }}
+    },
+    {
+        name: 'machete', base: 'tool', char: '(',
+        use: {removeElement: {
+            elementName: 'web',
+            successMsg: 'You remove the webs using machete',
+            failureMsg: 'You do not manage to remove any webs',
         }}
     },
     {
@@ -1153,6 +1168,10 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'rope', base: 'tool'
+    },
+    {
+        name: 'piece of wood', base: 'tool',
+        className: 'cell-item-wooden',
     },
 
     // SPIRIT GEMS
@@ -1345,6 +1364,10 @@ const Items: ObjectShell[] = [
     {
         name: 'Poison arrow', base: 'MagicalArrowBase',
         className: 'cell-item-poison'
+    },
+    {
+        name: 'Arrow of webs', base: 'MagicalArrowBase',
+        className: 'cell-item-energy'
     }
 
     // ARTIFACT ITEMS
