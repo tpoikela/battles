@@ -28,6 +28,8 @@ export const World: any = {};
 type SubZoneArg = SubZoneBase | string;
 export type SubZoneConn = [SubZoneArg, SubZoneArg, number, number];
 
+type ZoneObj = SubZoneBase | ZoneBase;
+
 interface Entrance {
     levelNumber: number;
     x: number;
@@ -51,19 +53,24 @@ const oppositeEdge = {
     west: 'east'
 };
 
-function removeExistingConnection(level, x, y) {
+function removeExistingConnection(level: Level, x: number, y: number): void {
     const cell = level.getMap().getCell(x, y);
     if (cell.hasConnection()) {
         const conn = cell.getConnection();
         debug(`world.js Removing conn@${x},${y}`);
-        level.removeElement(conn, x, y);
+        if (!level.removeElement(conn, x, y)) {
+            RG.err('world.ts', 'removeExistingConnection',
+               `Failed to remove conn @ ${x}, ${y}`);
+
+        }
     }
 }
 
 /* Adds exits (ie passages/stairs) to the given edge (or any edge) of the level.
  * Returns an array of created connections. */
 export const addExitsToEdge = (
-    level, exitType = 'passage', edge = 'any', overwrite = false): Stairs[] => {
+    level: Level, exitType = 'passage', edge = 'any', overwrite = false
+): Stairs[] => {
     // level, exitType = 'passage', edge = 'any', overwrite = false) => {
     const map = level.getMap();
     const cols = map.cols;
@@ -114,7 +121,7 @@ export const addExitsToEdge = (
 
 /* Returns true if given level edge has any connections. If edge=any, then
  * checks all edges. */
-export const edgeHasConnections = (level, edge) => {
+export const edgeHasConnections = (level: Level, edge: string): boolean => {
     const map = level.getMap();
     const cols = map.cols;
     const rows = map.rows;
@@ -147,7 +154,7 @@ export const edgeHasConnections = (level, edge) => {
 
 /* Returns stairs leading to other zones. Used only for testing
 * purposes. */
-function getStairsOther(name, levels): Stairs[] {
+function getStairsOther(name: string, levels: Level[]): Stairs[] {
     const stairs = [];
     levels.forEach(level => {
         const sList = level.getStairs();
@@ -165,7 +172,7 @@ function getStairsOther(name, levels): Stairs[] {
 
 /* Finds a level from a named zone such as city quarter, dungeon branch or
  * mountain face. */
-function findLevel(name, zones, nLevel) {
+function findLevel(name: string, zones: ZoneObj[], nLevel): Level | null {
     const zone = zones.find(z => {
         return z.getName() === name;
     });
@@ -184,7 +191,7 @@ function findLevel(name, zones, nLevel) {
     return null;
 }
 
-function findSubZone(name, subZones) {
+function findSubZone(name: string, subZones: SubZoneBase[]): SubZoneBase {
     const subZone = subZones.find(sz => (
         sz.getName() === name
     ));
@@ -193,7 +200,7 @@ function findSubZone(name, subZones) {
 
 /* Returns a random free cell with any existing connections to avoid
  * piling up two connections. */
-function getFreeCellWithoutConnection(level) {
+function getFreeCellWithoutConnection(level: Level): Cell {
     let stairCell = level.getFreeRandCell();
     while (stairCell.hasConnection()) {
         stairCell = level.getFreeRandCell();
@@ -202,21 +209,20 @@ function getFreeCellWithoutConnection(level) {
 }
 
 /* Does linear connection of levels to given direction. */
-function connectLevelsLinear(levels) {
+function connectLevelsLinear(levels: Level[]): void {
     const nLevels = levels.length;
     const arrStairsDown = [];
     const arrStairsUp = [];
 
-
     for (let nl = 0; nl < nLevels; nl++) {
-        const src = levels[nl];
+        const src: Level = levels[nl];
 
         let extrasSrc = null;
         if (src.hasExtras()) {extrasSrc = src.getExtras();}
 
         // Create stairs down
         if (nl < nLevels - 1) {
-            const targetDown = levels[nl + 1];
+            const targetDown: Level = levels[nl + 1];
 
             const stairsDown = new ElementStairs('stairsDown', src, targetDown);
             const stairCell = getFreeCellWithoutConnection(src);
@@ -260,7 +266,7 @@ World.connectLevelsLinear = connectLevelsLinear;
 
 /* Can be used to connect two levels and constraining the placement of the
  * connections with the level. */
-function connectLevelsConstrained(conf1, conf2) {
+function connectLevelsConstrained(conf1, conf2): void {
     const level1 = conf1.level;
     const level2 = conf2.level;
     let x1 = Math.floor(level1.getMap().cols / 2);
@@ -291,7 +297,7 @@ function connectLevelsConstrained(conf1, conf2) {
 
 /* Tries to connect stairs to level N in the given list of levels. This creates
  * a new connection element into the target level. */
-function connectLevelToStairs(levels, nLevel, stairs) {
+function connectLevelToStairs(levels: Level[], nLevel, stairs): boolean {
     if (nLevel < levels.length) {
         const level = levels[nLevel];
         const otherQuartLevel = stairs.getSrcLevel();
@@ -514,7 +520,7 @@ export class ZoneBase extends WorldBase {
         return getSubZoneArgs(this._subZones, s1Arg, s2Arg);
     }
 
-    public setTileXY(x, y): void {
+    public setTileXY(x: number, y: number): void {
         this.tileX = x;
         this.tileY = y;
     }
