@@ -9,6 +9,8 @@ import * as Mixin from './mixin';
 import * as Component from './component/component';
 import {compsToJSON} from './component/component.base';
 
+type Cell = import('./map.cell').Cell;
+
 export interface ElementJSON {
     id: number;
     name: string;
@@ -100,6 +102,14 @@ export class ElementBase extends Mixin.Typed(Entity) {
 
     public hasMsg(msgType: string): boolean {
         return this.msg.hasOwnProperty(msgType);
+    }
+
+    /* Called when System adds this element to a cell. */
+    public onSystemAdd(cell: Cell): void {
+    }
+
+    /* Called when System removes this element from a cell. */
+    public onSystemRemove(cell: Cell): void {
     }
 
     /* Should be enough for stateless elements.
@@ -414,17 +424,17 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
         this._isAbandoned = true;
     }
 
-    public isAbandoned() {
+    public isAbandoned(): boolean {
         return this._isAbandoned;
     }
 
-    public reclaim(actor) {
+    public reclaim(actor): void {
         this._shopkeeper = actor;
         this._isAbandoned = false;
     }
 
     /* Returns the price in gold coins for item in the cell.*/
-    public getItemPriceForBuying(item) {
+    public getItemPriceForBuying(item): number {
         if (item.has('Unpaid')) {
             const value = item.getValue();
             const goldWeight = RG.valueToGoldWeight(value);
@@ -440,11 +450,11 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
             RG.err('Element.Shop', 'getItemPriceForBuying',
                 'Item ' + item.getName() + ' is not Unpaid item');
         }
-        return null;
+        return 0;
     }
 
     /* Returns the price for selling the item. */
-    public getItemPriceForSelling(item) {
+    public getItemPriceForSelling(item): number {
         const value = item.getValue();
         const goldWeight = RG.valueToGoldWeight(value);
         let ncoins = RG.getGoldInCoins(goldWeight);
@@ -453,13 +463,13 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
         return ncoins;
     }
 
-    public abandonShop() {
+    public abandonShop(): void {
         this._shopkeeper = null;
         this._isAbandoned = true;
     }
 
     /* Sets the shopkeeper.*/
-    public setShopkeeper(keeper) {
+    public setShopkeeper(keeper): void {
         if (!RG.isNullOrUndef([keeper])) {
             this._shopkeeper = keeper;
             this._isAbandoned = false;
@@ -471,12 +481,12 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
     }
 
     /* Returns the shopkeeper.*/
-    public getShopkeeper() {
+    public getShopkeeper(): void {
         return this._shopkeeper;
     }
 
     /* Sets the cost factors for selling and buying. .*/
-    public setCostFactor(buy, sell) {
+    public setCostFactor(buy: number, sell: number): void {
         if (!RG.isNullOrUndef([buy, sell])) {
             this._costFactorShopSells = sell;
             this._costFactorShopBuys = buy;
@@ -488,12 +498,12 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
     }
 
     /* Returns the cost factor for selling. .*/
-    public getCostFactorSell() {
+    public getCostFactorSell(): number {
         return this._costFactorShopSells;
     }
 
     /* Returns the cost factor for buying. .*/
-    public getCostFactorBuy() {
+    public getCostFactorBuy(): number {
         return this._costFactorShopBuys;
     }
 
@@ -549,7 +559,7 @@ export class ElementExploration extends Mixin.Locatable(ElementBase) {
         }
     }
 
-    public getExp() {
+    public getExp(): number {
         return this.exp;
     }
 
@@ -568,7 +578,29 @@ export class ElementExploration extends Mixin.Locatable(ElementBase) {
 }
 Element.Exploration = ElementExploration;
 
-export class ElementWeb extends Mixin.Locatable(ElementBase) {
+/* Base element for traps. */
+export class ElementTrap extends Mixin.Locatable(ElementBase) {
+
+    constructor(type: string) {
+        super(type);
+    }
+
+    public onSystemAdd(cell: Cell): void {
+        const actors = cell.getSentientActors();
+        actors.forEach(actor => {
+            actor.add(new Component.Entrapped());
+        });
+    }
+
+    public onSystemRemove(cell: Cell): void {
+        const actors = cell.getSentientActors();
+        actors.forEach(actor => {
+            actor.remove('Entrapped');
+        });
+    }
+}
+
+export class ElementWeb extends ElementTrap {
 
     constructor() {
         super('web');
@@ -585,7 +617,7 @@ export class ElementWeb extends Mixin.Locatable(ElementBase) {
 }
 Element.Web = ElementWeb;
 
-export class ElementSlime extends Mixin.Locatable(ElementBase) {
+export class ElementSlime extends ElementTrap {
 
     constructor() {
         super('slime');
@@ -602,7 +634,7 @@ export class ElementSlime extends Mixin.Locatable(ElementBase) {
 }
 Element.Slime = ElementSlime;
 
-export class ElementHole extends Mixin.Locatable(ElementBase) {
+export class ElementHole extends ElementTrap {
 
     constructor() {
         super('hole');
@@ -656,3 +688,11 @@ export class ElementMarker extends Mixin.Locatable(ElementBase) {
 }
 Element.Marker = ElementMarker;
 
+
+Element.create = function(type: string, ...args): ElementBase {
+    const nameCap = type.capitalize();
+    if (Element.hasOwnProperty(name)) {
+        return new Element[name](...args);
+    }
+    return null;
+};
