@@ -243,6 +243,9 @@ DebugGame.prototype.createArena = function(obj, game, player) {
 
     const shovel = parser.createItem('shovel');
     player.getInvEq().addItem(shovel);
+    const machete = parser.createItem('machete');
+    player.getInvEq().addItem(machete);
+
     const webRune = parser.createItem('rune of webs');
     player.getInvEq().addItem(webRune);
 
