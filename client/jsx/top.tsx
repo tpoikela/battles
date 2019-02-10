@@ -597,7 +597,7 @@ export class BattlesTop extends React.Component {
                 this.initBeforeNewGame();
             }
             else if (msg.error) {
-                throw new Error(msg.error);
+                throw new Error('Worker threw error: ' + msg.error);
             }
         };
         worker.postMessage([this.gameConf]);
