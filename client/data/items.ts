@@ -484,7 +484,7 @@ const Items: ObjectShell[] = [
     {
         name: 'VoidWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-void',
-        material: 'obsidian', dontCreate: true,
+        material: 'netherium', dontCreate: true,
         onAttackHit: [meleeHitDamage(2, '1d8 + 1', 'VOID')],
     },
     {
@@ -1135,7 +1135,10 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'shovel', base: 'tool',
-        use: {addElement: {elementName: 'Hole', numAllowed: 1}}
+        use: {addElement: {
+            elementName: 'Hole', numAllowed: 1,
+            failureMsg: 'You fail to dig a hole there'
+        }}
     },
     {
         name: 'trapmaking kit', base: 'tool'
@@ -1292,7 +1295,7 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'permaice ore', base: 'MineralBase',
-        weight: 0.4, value: value('mineral', 150),
+        weight: 0.4, value: value('mineral', 100),
         className: 'cell-item-ice'
     },
     {
@@ -1302,8 +1305,13 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'forium ore', base: 'MineralBase',
-        weight: 0.2, value: value('mineral', 200),
+        weight: 0.2, value: value('mineral', 150),
         className: 'cell-item-magic'
+    },
+    {
+        name: 'netherium ore', base: 'MineralBase',
+        weight: 0.3, value: value('mineral', 200),
+        className: 'cell-item-void'
     },
     {
         name: 'ruby', base: 'MineralBase',
