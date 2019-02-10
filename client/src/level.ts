@@ -18,6 +18,8 @@ type Cell = import('./map.cell').Cell;
 type House = import('./houses').House;
 type WorldShop = import('./world').WorldShop;
 
+type ElementBase = import('./element').ElementBase;
+
 const POOL = EventPool.getPool();
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
 
@@ -221,7 +223,7 @@ export class Level extends Entity {
     //---------------------------------------------------------------------
 
     /* Adds stairs for this level.*/
-    public addStairs(stairs, x, y) {
+    public addStairs(stairs, x: number, y: number): boolean {
         if (!RG.isNullOrUndef([x, y])) {
             if (this._map.hasXY(x, y)) {
               stairs.setSrcLevel(this);
@@ -243,7 +245,7 @@ export class Level extends Entity {
     }
 
     /* Uses stairs for given actor if it's on top of the stairs.*/
-    public useStairs(actor) {
+    public useStairs(actor): boolean {
         const cell = this._map.getCell(actor.getX(), actor.getY());
         if (cell.hasConnection()) {
             const connection = cell.getConnection();
@@ -258,7 +260,7 @@ export class Level extends Entity {
     }
 
     /* Adds one element into the level. */
-    public addElement(elem, x, y) {
+    public addElement(elem, x: number, y: number): boolean {
         if (elem.getType() === 'connection') {
             return this.addStairs(elem, x, y);
         }
@@ -274,11 +276,11 @@ export class Level extends Entity {
         return this._addPropToLevelXY(RG.TYPE_ELEM, elem, xCell, yCell);
     }
 
-    public removeElement(elem, x, y) {
+    public removeElement(elem, x: number, y: number): boolean {
         return this._removePropFromLevelXY(RG.TYPE_ELEM, elem, x, y);
     }
 
-    public addEntity(ent, x, y) {
+    public addEntity(ent, x: number, y: number): boolean {
         if (ent.getPropType) {
             const type = ent.getPropType();
             if (type === RG.TYPE_ACTOR) {
@@ -303,7 +305,7 @@ export class Level extends Entity {
     //---------------------------------------------------------------------
 
     /* Adds one item to the given location on the level.*/
-    public addItem(item, x, y): boolean {
+    public addItem(item, x: number, y: number): boolean {
         // verifyLevelCache(this);
         if (!RG.isNullOrUndef([x, y])) {
             return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
@@ -313,7 +315,7 @@ export class Level extends Entity {
     }
 
     /* Removes an item from the level in x,y position.*/
-    public removeItem(item, x, y): boolean {
+    public removeItem(item, x: number, y: number): boolean {
         const res = this._removePropFromLevelXY(RG.TYPE_ITEM, item, x, y);
         // verifyLevelCache(this);
         return res;
@@ -387,7 +389,7 @@ export class Level extends Entity {
 
     /* Adds a prop 'obj' to level location x,y. Returns true on success,
      * false on failure.*/
-    public _addPropToLevelXY(propType, obj, x, y): boolean {
+    public _addPropToLevelXY(propType, obj, x: number, y: number): boolean {
         if (this._p.hasOwnProperty(propType)) {
             this._p[propType].push(obj);
             if (!obj.isOwnable) {
@@ -424,7 +426,9 @@ export class Level extends Entity {
 
     /* Removes a prop 'obj' to level location x,y. Returns true on success,
      * false on failure.*/
-    public _removePropFromLevelXY(propType, obj, x, y): boolean {
+    public _removePropFromLevelXY(
+        propType, obj, x: number, y: number
+    ): boolean {
         if (this._p.hasOwnProperty(propType)) {
             const index = this._p[propType].indexOf(obj);
 
@@ -624,7 +628,7 @@ export class Level extends Entity {
         });
     }
 
-    public getCell(x, y) {
+    public getCell(x: number, y: number): Cell {
         return this._map.getCell(x, y);
     }
 
