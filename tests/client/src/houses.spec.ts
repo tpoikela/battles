@@ -29,8 +29,8 @@ describe('HouseGenerator', () => {
         const conf = {cols: 10, rows: 12, fullHouse: true};
         const house = houseGen.createHouse(conf);
         expect(house).to.be.instanceOf(House);
-        const nWindows = house.addWindows(5);
-        expect(nWindows).to.equal(5);
+        const nWindows = house.addWindows(2);
+        expect(nWindows).to.equal(2);
     });
 
     it('can be used in town maps', () => {
