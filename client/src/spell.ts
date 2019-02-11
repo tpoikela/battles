@@ -997,7 +997,7 @@ Spell.MagicArmor = function() {
             },
             duration: this._dice.duration,
             startMsg: `${name} is surrounded by a protective aura`,
-            endMsg: `Protective aura disappears from ${name}`
+            expireMsg: `Protective aura disappears from ${name}`
         };
         const effComp = new Component.Effects(effArgs);
         effComp.setEffectType('AddComp');
