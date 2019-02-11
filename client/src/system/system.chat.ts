@@ -1,8 +1,10 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
-import {Chat} from '../chat';
+import {Chat, ChatBase} from '../chat';
 import {SystemQuest} from './system.quest';
+import {TCoord} from '../interfaces';
+import {BaseActor} from '../actor';
 
 const NO_ACTORS_FOUND = Object.freeze([]);
 
@@ -12,7 +14,7 @@ export class SystemChat extends SystemBase {
         super(RG.SYS.CHAT, compTypes, pool);
     }
 
-    public updateEntity(ent) {
+    public updateEntity(ent): void {
         const args = ent.get('Chat').getArgs();
         const dir = args.dir;
 
@@ -47,7 +49,7 @@ export class SystemChat extends SystemBase {
     }
 
     /* Returns all actors in the given direction. */
-    public getActorsInDirection(ent, dir) {
+    public getActorsInDirection(ent, dir: TCoord): BaseActor[] {
         const [dX, dY] = [dir[0], dir[1]];
         const x = ent.getX() + dX;
         const y = ent.getY() + dY;
@@ -67,10 +69,10 @@ export class SystemChat extends SystemBase {
             const msg = 'There is no one to talk to.';
             RG.gameMsg({cell: ent.getCell(), msg});
         }
-        return NO_ACTORS_FOUND;
+        return NO_ACTORS_FOUND as BaseActor[];
     }
 
-    public getChatObject(ent, srcActor, compType) {
+    public getChatObject(ent, srcActor, compType): ChatBase {
         const chatObj = srcActor.get(compType).getChatObj();
         chatObj.setTarget(ent);
         const selObj = chatObj.getSelectionObject();
@@ -85,7 +87,7 @@ export class SystemChat extends SystemBase {
         return null;
     }
 
-    public getGenericChatObject(ent, actor) {
+    public getGenericChatObject(ent, actor): ChatBase {
         if (ent.has('Quest')) {
             const chatObj = new Chat.ChatBase();
             const aName = actor.getName();
@@ -97,7 +99,7 @@ export class SystemChat extends SystemBase {
 
 
     /* Adds additional chat items related to various quest objectives. */
-    public addQuestTargetItems(ent, actor, chatObj): void {
+    public addQuestTargetItems(ent, actor, chatObj: ChatBase): void {
         const qTarget = actor.get('QuestTarget');
         const tType = qTarget.getTargetType();
         if (tType === 'escort') {
@@ -124,13 +126,13 @@ export class SystemChat extends SystemBase {
         }
     }
 
-    public addQuestSpecificItems(ent, actor, chatObj) {
+    public addQuestSpecificItems(ent, actor, chatObj: ChatBase): void {
         if (ent.has('Quest')) {
             const qTargets = ent.get('Quest').getQuestTargets();
 
             // Adds generic options to ask about a quest
             qTargets.forEach(target => {
-                this.processQuestTarget(target, actor, chatObj);
+                this.addQuestTargetToChat(target, actor, chatObj);
             });
 
             // If target of chat has any info, add an option to ask about it
@@ -179,7 +181,7 @@ export class SystemChat extends SystemBase {
 
     /* Checks if initiator of chat is on quest and needs to query for any
      * information. */
-    public processQuestTarget(target, actor, chatObj) {
+    public addQuestTargetToChat(target, actor, chatObj: ChatBase): void {
         const aName = actor.getName();
         const tName = target.name;
         let resp = null;
