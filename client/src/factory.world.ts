@@ -21,6 +21,7 @@ import {Brain} from './brain';
 import {Level} from './level';
 
 import * as Element from './element';
+import * as IF from './interfaces';
 import {Random} from './random';
 
 const RNG = Random.getRNG();
@@ -29,6 +30,8 @@ const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
 
 type WorldTop = World.WorldTop;
 type Area = World.Area;
+type ConcreteSubZone = World.Branch | World.CityQuarter |
+    World.MountainFace;
 
 interface GlobalConf {
     levelSize: string;
@@ -750,7 +753,6 @@ export const FactoryWorld = function() {
             }
             if (constraint.disposition) {
                 const disp = constraint.disposition;
-                console.log('Found disp', JSON.stringify(disp));
                 levelConf.disposition = constraint.disposition;
             }
             if (constraint.cellsAround) {
@@ -803,7 +805,7 @@ export const FactoryWorld = function() {
     };
 
     /* Adds fixed features such as stairs, actors and items into the level. */
-    this.addFixedFeatures = function(nLevel, level, zone) {
+    this.addFixedFeatures = function(nLevel, level, zone): void {
         const create = this.getConf('create');
 
         // Actor creation
@@ -876,7 +878,7 @@ export const FactoryWorld = function() {
         return [];
     };
 
-    this.createMountain = function(conf) {
+    this.createMountain = function(conf: IF.MountainConf): World.Mountain {
         this._verif.verifyConf('createMountain', conf,
             ['name', 'nFaces', 'face']);
         this.pushScope(conf);
@@ -933,7 +935,7 @@ export const FactoryWorld = function() {
         return mountain;
     };
 
-    this.createMountainFace = function(conf) {
+    this.createMountainFace = function(conf: IF.FaceConf): World.MountainFace {
         if (this.id2levelSet) {
             this._verif.verifyConf('createMountainFace', conf,
                 ['name', 'nLevels']);
@@ -969,7 +971,7 @@ export const FactoryWorld = function() {
 
     /* Creates a subzone for mountain summit. Creates the levels contained in
      * that subzone. */
-    this.createSummit = function(conf) {
+    this.createSummit = function(conf: IF.SummitConf): World.MountainSummit {
         this._verif.verifyConf('createSummit', conf, ['name', 'nLevels']);
         this.pushScope(conf);
         const summit = new World.MountainSummit(conf.name);
@@ -999,7 +1001,7 @@ export const FactoryWorld = function() {
         return summit;
     };
 
-    this.addMaxDangerIfMissing = function(conf) {
+    this.addMaxDangerIfMissing = function(conf): void {
         if (!Number.isInteger(conf.maxDanger)) {
             conf.maxDanger = this.getConf('maxDanger');
         }
@@ -1011,7 +1013,7 @@ export const FactoryWorld = function() {
         }
     };
 
-    this._addEntranceToSubZone = function(subZone, conf) {
+    this._addEntranceToSubZone = function(subZone: ConcreteSubZone, conf): void {
         if (conf.hasOwnProperty('entranceLevel')) {
             subZone.addEntrance(conf.entranceLevel);
         }
@@ -1021,7 +1023,7 @@ export const FactoryWorld = function() {
     };
 
     /* Creates a City and all its sub-zones. */
-    this.createCity = function(conf) {
+    this.createCity = function(conf: IF.CityConf): World.City {
         this._verif.verifyConf('createCity',
             conf, ['name', 'nQuarters']);
         this.pushScope(conf);
@@ -1071,7 +1073,7 @@ export const FactoryWorld = function() {
     };
 
     /* Createa CityQuarter which can be added to a city. */
-    this.createCityQuarter = function(conf) {
+    this.createCityQuarter = function(conf: IF.QuarterConf): World.CityQuarter {
         this._verif.verifyConf('createCityQuarter',
             conf, ['name', 'nLevels']);
         this.pushScope(conf);
@@ -1097,7 +1099,6 @@ export const FactoryWorld = function() {
 
         for (let i = 0; i < conf.nLevels; i++) {
             let level = this.getFromPresetLevels(i, presetLevels);
-
 
             if (!level) {
 
@@ -1147,12 +1148,7 @@ export const FactoryWorld = function() {
             quarter.connectLevels();
         }
 
-        if (conf.hasOwnProperty('entranceLevel')) {
-            quarter.addEntrance(conf.entranceLevel);
-        }
-        else if (conf.hasOwnProperty('entrance')) {
-            quarter.setEntranceLocation(conf.entrance);
-        }
+        this._addEntranceToSubZone(quarter, conf);
 
         // Only during restore game
         if (conf.hasOwnProperty('shops')) {
