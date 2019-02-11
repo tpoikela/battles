@@ -3,6 +3,20 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {Geometry} from '../geometry';
 import {Level} from '../level';
+import * as Component from '../component/component';
+
+type Cell = import('../map.cell').Cell;
+type SentientActor = import('../actor').SentientActor;
+
+interface EventArgs {
+    type: string;
+    cell?: Cell;
+    cause?: SentientActor;
+}
+
+interface EventComp {
+    getArgs(): EventArgs;
+}
 
 /* System which handles events such as actorKilled, onPickup etc. This system
  * must be updated after most of the other systems have been processed, up to
@@ -34,105 +48,9 @@ export class SystemEvents extends SystemBase {
         };
     }
 
-    public addLevel(level: Level, radius: number): void {
-        this.eventRadiusPerID[level.getID()] = radius;
-    }
-
-    public removeLevel(level: Level): void {
-        delete this.eventRadiusPerID[level.getID()];
-    }
-
-
-    /* Returns the radius which is used to calculate the event propagation
-     * distance. */
-    public _getEventRadius(ent): number {
-        const id = ent.getLevel().getID();
-        if (this.eventRadiusPerID.hasOwnProperty(id)) {
-            return this.eventRadiusPerID[id];
-        }
-        // No level specific radius given, resort to global radius
-        return this.eventRadius;
-    }
-
-    public _handleActorKilled(ent, evt, actor) {
-        // React to friend/non-hostile being killed
-        if (ent.isPlayer()) {
-            const src = evt.cause;
-            if (src) {
-                const name = actor.getName();
-                const victim = ent.getName();
-                const msg = `${name} saw ${src.getName()} killing ${victim}`;
-                RG.gameMsg({cell: ent.getCell, msg});
-            }
-        }
-    }
-
-    public _handleItemPickedUp(ent, evt, actor) {
-        if (actor.getID() !== ent.getID()) {
-            if (!actor.isEnemy(ent)) {
-                const cell = ent.getCell();
-                const perceiver = actor.getName();
-                const acting = ent.getName();
-                const msg = `${perceiver} saw ${acting} picking up an item.`;
-                RG.gameMsg({msg, cell});
-            }
-        }
-    }
-
-    public _handleActorDamaged(ent, evt, actor) {
-        if (ent.getID() !== actor.getID()) {
-            const args = evt.getArgs();
-            const {cause} = args;
-            this._addActorAsEnemy(cause, ent, actor);
-        }
-    }
-
-    public _handleActorAttacked(ent, evt, actor) {
-        if (ent.getID() !== actor.getID()) {
-            const args = evt.getArgs();
-            const {cause} = args;
-            this._addActorAsEnemy(cause, ent, actor);
-        }
-    }
-
-    public _handleActorUsedStairs(ent, evt, actor) {
-        RG.gameMsg(`${actor.getName()} saw ${ent.getName()} using stairs.`);
-    }
-
-    /* Decides if attacker must be added as enemy of the perceiving actor. */
-    public _addActorAsEnemy(aggressor, victim, perceiver) {
-        if (victim.getType() === perceiver.getType()) {
-            if (!perceiver.isEnemy(victim) && !victim.isEnemy(perceiver)) {
-                if (perceiver.isFriend(aggressor)) {
-                    this._emitMsg('seems to dislike action', aggressor, victim,
-                        perceiver);
-                    perceiver.getBrain().getMemory().removeFriend(aggressor);
-                }
-                else {
-                    this._emitMsg('shows hatred against action', aggressor,
-                        victim, perceiver);
-                    perceiver.addEnemy(aggressor);
-                }
-            }
-        }
-        else if (perceiver.isFriend(victim)) {
-            this._emitMsg('shows hatred against action', aggressor, victim,
-                perceiver);
-            perceiver.addEnemy(aggressor);
-        }
-    }
-
-    public _emitMsg(msg, aggr, victim, perc) {
-        const aggrName = aggr.getName();
-        const cell = victim.getCell();
-        let fullMsg = `${perc.getName()} ${msg} of ${aggrName} `;
-        fullMsg += ` towards ${victim.getName()}`;
-        RG.gameMsg({cell, msg: fullMsg});
-    }
-
-    public updateEntity(ent) {
-        const evtList = ent.getList('Event');
-        evtList.forEach(evt => {
+    public updateEntity(ent): void {
+        const evtList = ent.getList('Event') as EventComp[];
+        evtList.forEach((evt: EventComp) => {
             const args = evt.getArgs();
             const {type} = args;
 
@@ -170,6 +88,115 @@ export class SystemEvents extends SystemBase {
             });
             ent.remove(evt);
         });
+    }
+
+    public addLevel(level: Level, radius: number): void {
+        this.eventRadiusPerID[level.getID()] = radius;
+    }
+
+    public removeLevel(level: Level): void {
+        delete this.eventRadiusPerID[level.getID()];
+    }
+
+
+    /* Returns the radius which is used to calculate the event propagation
+     * distance. */
+    public _getEventRadius(ent): number {
+        const id = ent.getLevel().getID();
+        if (this.eventRadiusPerID.hasOwnProperty(id)) {
+            return this.eventRadiusPerID[id];
+        }
+        // No level specific radius given, resort to global radius
+        return this.eventRadius;
+    }
+
+    public _handleActorKilled(ent, evt: EventComp, actor): void {
+        // React to friend/non-hostile being killed
+        if (ent.isPlayer()) {
+            const args = evt.getArgs();
+            const src: SentientActor = args.cause;
+            if (src) {
+                const name = actor.getName();
+                const victim = ent.getName();
+                const msg = `${name} saw ${src.getName()} killing ${victim}`;
+                RG.gameMsg({cell: ent.getCell, msg});
+            }
+        }
+    }
+
+    public _handleItemPickedUp(ent, evt: EventComp, actor): void {
+        if (actor.getID() !== ent.getID()) {
+            // If enemies pick up things, it does not matter because they
+            // will be killed anyway
+            if (!actor.isEnemy(ent)) {
+                const cell = ent.getCell();
+                const perceiver = actor.getName();
+                const acting = ent.getName();
+                const msg = `${perceiver} saw ${acting} picking up an item.`;
+                RG.gameMsg({msg, cell});
+            }
+        }
+    }
+
+    public _handleActorDamaged(ent, evt: EventComp, actor): void {
+        if (ent.getID() !== actor.getID()) {
+            const args = evt.getArgs();
+            const {cause} = args;
+            this._addActorAsEnemy(cause, ent, actor);
+        }
+    }
+
+    public _handleActorAttacked(ent, evt: EventComp, actor): void {
+        if (ent.getID() !== actor.getID()) {
+            const args = evt.getArgs();
+            const {cause} = args;
+            this._addActorAsEnemy(cause, ent, actor);
+        }
+    }
+
+    public _handleActorUsedStairs(ent, evt: EventComp, actor): void {
+        RG.gameMsg(`${actor.getName()} saw ${ent.getName()} using stairs.`);
+    }
+
+    /* Decides if attacker must be added as enemy of the perceiving actor. */
+    public _addActorAsEnemy(
+        aggressor: SentientActor,
+        victim: SentientActor,
+        perceiver: SentientActor
+    ): void {
+        // If self-inflicted damage, ignore it. Most actors are not
+        // against self-mutilation
+        if (aggressor.getID() === victim.getID()) {
+            return;
+        }
+
+        if (victim.getType() === perceiver.getType()) {
+            if (!perceiver.isEnemy(victim) && !victim.isEnemy(perceiver)) {
+                if (perceiver.isFriend(aggressor)) {
+                    this._emitMsg('seems to dislike action', aggressor, victim,
+                        perceiver);
+                    perceiver.getBrain().getMemory().removeFriend(aggressor);
+                }
+                else {
+                    this._emitMsg('shows hatred against action', aggressor,
+                        victim, perceiver);
+                    perceiver.addEnemy(aggressor);
+                }
+            }
+        }
+        else if (perceiver.isFriend(victim)) {
+            this._emitMsg('shows hatred against action', aggressor, victim,
+                perceiver);
+            perceiver.addEnemy(aggressor);
+        }
+    }
+
+    public _emitMsg(msg, aggr, victim, perc): void {
+        const aggrName = aggr.getName();
+        const cell = victim.getCell();
+        let fullMsg = `${perc.getName()} ${msg} of ${aggrName} `;
+        fullMsg += ` towards ${victim.getName()}`;
+        RG.gameMsg({cell, msg: fullMsg});
     }
 
 }
