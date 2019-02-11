@@ -18,28 +18,28 @@ export class Inventory {
     }
 
     // Wrappers for container methods
-    addItem(item) {
+    public addItem(item): void {
         this._inv.addItem(item);
     }
 
-    hasItem(item) {
+    public hasItem(item): boolean {
         return this._inv.hasItem(item);
     }
 
-    removeItem(item) {
+    public removeItem(item): boolean {
         return this._inv.removeItem(item);
     }
 
-    removeNItems(item, n) {
+    public removeNItems(item, n): boolean {
         return this._inv.removeNItems(item, n);
     }
 
-    getRemovedItem() {
+    public getRemovedItem() {
         return this._inv.getRemovedItem();
     }
 
     /* For using item inside the container. */
-    useItem(item, obj) {
+    public useItem(item, obj): boolean {
         if (this._inv.hasItem(item)) {
             if (item.useItem) {
                 item.useItem(obj);
@@ -53,7 +53,7 @@ export class Inventory {
     }
 
     /* Returns true if given item can be carried.*/
-    canCarryItem(item) {
+    public canCarryItem(item): boolean {
         const eqWeight = this._eq.getWeight();
         const invWeight = this._inv.getWeight();
         const newWeight = eqWeight + invWeight + item.getWeight();
@@ -63,7 +63,7 @@ export class Inventory {
     }
 
     /* Drops selected item to the actor's current location.*/
-    dropItem(item) {
+    public dropItem(item): boolean {
         if (this._inv.removeItem(item)) {
             const level = this._actor.getLevel();
             const droppedItem = this.getRemovedItem();
@@ -78,7 +78,7 @@ export class Inventory {
         return false;
     }
 
-    dropNItems(item, n) {
+    public dropNItems(item, n: number): boolean {
         if (this.removeNItems(item, n)) {
             const level = this._actor.getLevel();
             const droppedItem = this.getRemovedItem();
@@ -94,23 +94,23 @@ export class Inventory {
     }
 
     /* Removes and item and returns it. */
-    removeAndGetItem(item) {
+    public removeAndGetItem(item) {
         if (this._inv.removeItem(item)) {
             return this.getRemovedItem();
         }
         return null;
     }
 
-    getInventory() {
+    public getInventory() {
         return this._inv;
     }
 
-    getEquipment() {
+    public getEquipment() {
         return this._eq;
     }
 
     /* Removes item from inventory and equips it.*/
-    equipItem(item) {
+    public equipItem(item) {
         if (this._inv.hasItem(item)) {
             // If item has count > 2, can't use the same item ref
             const eqItem = this._getItemToEquip(item);
@@ -134,7 +134,7 @@ export class Inventory {
         return false;
     }
 
-    _getItemToEquip(item) {
+    public _getItemToEquip(item) {
         const res = this._inv.removeItem(item);
         if (res) {
             const rmvItem = this._inv.getRemovedItem();
@@ -145,7 +145,7 @@ export class Inventory {
     }
 
     /* Equips up to N items of given type. */
-    equipNItems(item, n) {
+    public equipNItems(item, n) {
         if (this._inv.hasItem(item)) {
             const res = this._inv.removeNItems(item, n);
             if (res) {
@@ -162,7 +162,7 @@ export class Inventory {
     }
 
     /* Unequips item and puts it back to inventory.*/
-    unequipItem(slotType, n, slotNumber) {
+    public unequipItem(slotType, n, slotNumber) {
         if (RG.isNullOrUndef([slotType])) {
             let msg = 'Some params null/undef: ';
             msg += `type: |${slotType}| n: |${n}| number: |${slotNumber}|`;
@@ -182,7 +182,7 @@ export class Inventory {
     }
 
     /* Unequips and returns N items. Doesn't add to inv.*/
-    unequipAndGetItem(slotType, n, slotNumber) {
+    public unequipAndGetItem(slotType, n, slotNumber) {
         const eqItem = this._eq.getItem(slotType);
         if (!RG.isNullOrUndef([eqItem])) {
             if (this._eq.unequipItem(slotType, n)) {
@@ -192,28 +192,28 @@ export class Inventory {
         return null;
     }
 
-    getWeapon() {
+    public getWeapon() {
         const item = this._eq.getItem('hand');
         if (!RG.isNullOrUndef([item])) {return item;}
         return null;
     }
 
-    getMissileWeapon() {
+    public getMissileWeapon() {
         const item = this._eq.getItem('missileweapon');
         if (!RG.isNullOrUndef([item])) {return item;}
         return null;
     }
 
-    getMissile() {
+    public getMissile() {
         const item = this._eq.getItem('missile');
         return item;
     }
 
-    getEquipped(slotType) {
+    public getEquipped(slotType) {
         return this._eq.getItem(slotType);
     }
 
-    restoreEquipped(item) {
+    public restoreEquipped(item) {
         const ok = this._eq.equipItem(item);
         if (!ok) {
             const json = JSON.stringify(item);
