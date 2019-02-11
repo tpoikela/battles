@@ -1231,6 +1231,23 @@ Spell.SummonDead = function() {
 };
 RG.extend2(Spell.SummonDead, Spell.SummonBase);
 
+/* Summon some spiders. */
+Spell.SummonSpiders = function() {
+    Spell.SummonBase.call(this, 'SummonSpiders', 10);
+    this.nActors = '1d4 + 1';
+
+    this.summonFunc = actor => {
+        const expComp = this.getCaster().get('Experience');
+        const danger = expComp.getDanger();
+        const expLevel = expComp.getExpLevel();
+        const totalDanger = danger + Math.round(expLevel / 2);
+        return (/spider/.test(actor.name) &&
+            actor.danger <= totalDanger);
+    };
+
+};
+RG.extend2(Spell.SummonSpiders, Spell.SummonBase);
+
 /* Based on caster's type, summons actors for help. */
 Spell.SummonKin = function() {
     Spell.SummonBase.call(this, 'SummonKin', 10);
