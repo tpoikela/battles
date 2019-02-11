@@ -61,6 +61,7 @@ export interface AreaConnection {
     stairs: StairsSpec;
 }
 
+/* Used in procedural constraints to specify conditions. */
 export interface IConstraint {
     op: string;
     prop: string;
@@ -89,6 +90,10 @@ export interface BranchConf extends SubZoneConf {
     [key: string]: any;
 }
 
+export interface SummitConf extends SubZoneConf {
+    [key: string]: any;
+}
+
 export interface DungeonConf extends ZoneConf {
     nBranches: number;
     branch: BranchConf[];
@@ -113,6 +118,9 @@ export interface FaceConf extends SubZoneConf {
 export interface MountainConf extends ZoneConf {
     nFaces: number;
     face: FaceConf[];
+    // Summits are optional for mountains
+    nSummits?: number;
+    summit?: SummitConf[];
 }
 
 export interface AreaConf {
