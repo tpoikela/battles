@@ -1495,7 +1495,7 @@ export class BattlesTop extends React.Component {
       }
     }
 
-    public showMsg(msg): void {
+    public showMsg(msg: string): void {
         RG.diag('showMsg:', msg);
         this.setState({msg});
     }
@@ -1503,6 +1503,8 @@ export class BattlesTop extends React.Component {
     /* Binds the callbacks. */
     public bindCallbacks(): void {
         this.newGame = this.newGame.bind(this);
+
+        this.showMsg = this.showMsg.bind(this);
 
         // GameStartScreen callbacks
         this.deleteGame = this.deleteGame.bind(this);
