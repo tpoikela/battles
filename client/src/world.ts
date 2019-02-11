@@ -730,7 +730,7 @@ World.SubZoneBase = SubZoneBase;
  * entry points to other branches (or out of the dungeon). */
 export class Branch extends SubZoneBase {
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType('branch');
         this._entrance = null;
@@ -1458,7 +1458,7 @@ export class Mountain extends ZoneBase {
 
     }
 
-    public findLevel(name, nLevel) {
+    public findLevel(name: string, nLevel: number): Level {
         const faces = this.getFaces();
         const summits = this.getSummits();
         let level = findLevel(name, faces, nLevel);
@@ -1468,11 +1468,11 @@ export class Mountain extends ZoneBase {
         return level;
     }
 
-    public addSummit(summit) {
+    public addSummit(summit): void {
         this.addSubZone(summit);
     }
 
-    public addFace(face) {
+    public addFace(face): void {
         this.addSubZone(face);
     }
 
@@ -1547,11 +1547,11 @@ export class MountainFace extends SubZoneBase {
         this._entrance = null;
     }
 
-    public setEntrance(stairs) {
+    public setEntrance(stairs): void {
         this._entrance = stairs;
     }
 
-    public setEntranceLocation(entrance) {
+    public setEntranceLocation(entrance): void {
         if (!RG.isNullOrUndef([entrance])) {
             this._entrance = entrance;
         }
@@ -1561,11 +1561,11 @@ export class MountainFace extends SubZoneBase {
         }
     }
 
-    public getEntrance() {
+    public getEntrance(): Stairs {
         return getEntrance(this._levels, this._entrance);
     }
 
-    public toJSON() {
+    public toJSON(): any {
         const json = super.toJSON();
         const obj: any = {};
         if (this._entrance) {
@@ -1575,7 +1575,7 @@ export class MountainFace extends SubZoneBase {
     }
 
     /* Entrance is created at the bottom by default. */
-    public addEntrance(levelNumber) {
+    public addEntrance(levelNumber: number): void {
         if (this._entrance === null) {
             const level = this._levels[levelNumber];
             const stairs = new ElementStairs('stairsDown', level);
@@ -1717,7 +1717,7 @@ export class CityQuarter extends SubZoneBase {
         return getEntrance(this._levels, this._entrance);
     }
 
-    public addEntrance(levelNumber) {
+    public addEntrance(levelNumber: number): void {
         if (this._entrance === null) {
             const level = this._levels[levelNumber];
             const stairs = new ElementStairs('stairsDown', level);
