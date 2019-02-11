@@ -309,6 +309,8 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     giverComp.setReward({type: 'item', name: 'Ruby glass mace'});
     level.moveActorTo(giver, pX + 1, pY);
 
+    // Move all quest targets close to player for easier access and make them
+    // slow
     const qTargets = actors.filter(actor => actor.has('QuestTarget'));
     qTargets.forEach((target, i) => {
         level.moveActorTo(target, pX, pY + 1 + i);
