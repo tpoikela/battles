@@ -1047,9 +1047,8 @@ export class QuestPopulate {
         let actor = RNG.arrayGetRand(actors);
         let numTries = 20;
         let createNew = false;
-        while (!isOkForQuest(actor)) {
-            console.log('Rejected actor for quest', actor.getName());
 
+        while (!isOkForQuest(actor)) {
             actor = RNG.arrayGetRand(actors);
             if (--numTries === 0) {
                 createNew = true;
@@ -1174,7 +1173,9 @@ export class QuestPopulate {
         const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
         const elemsToRepair = elems.filter(e => (
-            e.getType() === 'door'
+            e.getType() === 'door' ||
+            e.getType() === 'leverdoor' ||
+            e.getType() === 'lever'
         ));
         if (elemsToRepair.length > 0) {
             return RNG.arrayGetRand(elemsToRepair);
