@@ -995,7 +995,8 @@ const Items: ObjectShell[] = [
     // Note: Each potion should define useItem method. See examples below.
     {
         name: 'PotionBase', className: 'cell-item-potion', char: '!',
-        type: 'potion', dontCreate: true, weight: 0.1, addComp: 'OneShot'
+        type: 'potion', dontCreate: true, weight: 0.1,
+        addComp: 'OneShot' // Item is destroyed after use
     },
     {
         name: 'Healing potion', base: 'PotionBase',
@@ -1093,14 +1094,19 @@ const Items: ObjectShell[] = [
     // 100g. Energy should be generally between 0 - 9000
     {
         name: 'FoodBase', className: 'cell-item-food', char: '%',
-        weight: 0.1, type: 'food', dontCreate: true, addComp: 'OneShot'
+        weight: 0.1, type: 'food', dontCreate: true,
+        addComp: 'OneShot' // Item is destroyed after use
     },
     {
-        name: 'Berries', base: 'FoodBase', energy: 1700, value: value(30)
+        name: 'Carrots', base: 'FoodBase', energy: 500, value: value(10)
     },
     {
         name: 'Cabbage', base: 'FoodBase', energy: 700, value: value(10),
         color: color('green', 'black')
+    },
+    {
+        name: 'Berries', base: 'FoodBase', energy: 1700, value: value(30),
+        color: color('white', 'blue')
     },
     {
         name: 'Potatoes', base: 'FoodBase', energy: 1200, value: value(20)
@@ -1112,11 +1118,14 @@ const Items: ObjectShell[] = [
         name: 'Corn', base: 'FoodBase', energy: 1600, value: value(30)
     },
     {
-        name: 'Beef', base: 'FoodBase', energy: 1000, value: value(20),
-        weight: 0.4
+        name: 'Chunk of meat', base: 'FoodBase', energy: 1000, value: value(20),
+        weight: 0.4, color: color('white', 'red')
     },
     {
         name: 'Rye bread', base: 'FoodBase', energy: 2000, value: value(30)
+    },
+    {
+        name: 'Oats', base: 'FoodBase', energy: 2800, value: value(30)
     },
     {
         name: 'Ration', base: 'FoodBase', energy: 2000, value: value(40),
