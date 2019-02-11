@@ -590,28 +590,29 @@ describe('System.Shop', () => {
 
     let shopSys = null;
     let shopkeeper = null;
-    let shopCell = null;
+    // let shopCell = null;
     let shopElem = null;
     let actor = null;
+    let level = null;
 
     beforeEach(() => {
         shopSys = new System.Shop(['Transaction']);
         shopkeeper = new SentientActor('shopkeeper');
         actor = new SentientActor('buyer');
 
-        shopCell = new Cell(0, 0);
-        shopCell.setBaseElem(ELEM.FLOOR);
+        // shopCell = new Cell(0, 0);
+        // shopCell.setBaseElem(ELEM.FLOOR);
         shopElem = new Element.ElementShop();
-        shopCell.setProp(RG.TYPE_ELEM, shopElem);
-        RGUnitTests.wrapIntoLevel([shopkeeper, actor]);
-
+        // shopCell.setProp(RG.TYPE_ELEM, shopElem);
+        level = RGUnitTests.wrapIntoLevel([shopkeeper, actor]);
+        level.addElement(shopElem, 0, 0);
     });
 
     it('it handles buying transactions', () => {
         const item = new Item.Weapon('sword');
         item.setValue(100);
         item.add(new Component.Unpaid());
-        shopCell.setProp(RG.TYPE_ITEM, item);
+        level.addItem(item, shopElem.getX(), shopElem.getY());
         const coins = new Item.GoldCoin(RG.GOLD_COIN_NAME);
         coins.setCount(100);
 
