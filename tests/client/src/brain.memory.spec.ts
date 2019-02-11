@@ -59,7 +59,7 @@ describe('Brain.Memory', () => {
         const level = factLevel.createLevel('arena', 10, 10);
         level.addActor(enemy, 1, 1);
         mem.addEnemySeenCell(enemy);
-        expect(mem.hasSeen(enemy)).to.equal(true);
+        expect(mem.hasSeen(enemy.getID())).to.equal(true);
 
     });
 });
