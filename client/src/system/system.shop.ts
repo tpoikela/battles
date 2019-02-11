@@ -79,7 +79,6 @@ export class SystemShop extends SystemBase {
 
             seller.getInvEq().addItem(coins);
             const level = seller.getLevel();
-            // item.getOwner().removeProp('items', item);
             if (level.removeItem(item, shop.getX(), shop.getY())) {
                 buyer.getInvEq().addItem(item);
                 item.remove('Unpaid');
