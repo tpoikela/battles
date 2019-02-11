@@ -59,7 +59,7 @@ const getDuration = function(durStr: string): number {
     return duration;
 };
 
-const Effects = {
+export const Effects = {
 
     // Effects can be used in items freely.
     // Each obj arg will have {target:cell}
@@ -88,7 +88,7 @@ const Effects = {
         // Calls each use-function implementation
         {
             name: 'use',
-            func: function(obj) {
+            func(obj) {
                 if (this.getCharges) {
                     if (this.getCharges() === 0) {
                         const name = this.getName();
@@ -118,7 +118,7 @@ const Effects = {
             name: 'addComp',
             requires: ['name', 'duration'],
             optional: ['setters'],
-            func: function(obj) {
+            func(obj) {
                 const effArgs: EffArgs = {
                     duration: this.useArgs.duration,
                     effectType: 'AddComp',
@@ -140,7 +140,7 @@ const Effects = {
             name: 'removeComp',
             requires: ['name'],
             optional: ['all'],
-            func: function(obj) {
+            func(obj) {
                 const effArgs: EffArgs = {
                     all: this.useArgs.all,
                     effectType: 'RemoveComp',
@@ -161,7 +161,7 @@ const Effects = {
             name: 'modifyCompValue',
             requires: ['name', 'set', 'get', 'value'],
             optional: ['op'],
-            func: function(obj) {
+            func(obj) {
                 const effArgs = {
                     target: obj,
                     targetType: entities,
@@ -180,7 +180,7 @@ const Effects = {
         {
             name: 'cure',
             requires: ['effect'],
-            func: function(obj) {
+            func(obj) {
                 const actor = getTargetActor(obj);
                 if (actor) {
                     const effectName = this.useArgs.effect.capitalize();
@@ -204,7 +204,7 @@ const Effects = {
         // Digger effect can be used to dig into stones and rocks
         {
             name: 'digger',
-            func: function(obj) {
+            func(obj) {
                 const name = this.getTopOwner().getName();
                 const msg = `${name} digs through stone with ${this.getName()}`;
                 const effArgs = {
@@ -224,7 +224,7 @@ const Effects = {
         {
             name: 'heal',
             requires: ['hp'],
-            func: function(obj) {
+            func(obj) {
                 const actor = getTargetActor(obj);
                 if (actor) {
                     const die = Dice.create(this.useArgs.hp);
@@ -250,7 +250,7 @@ const Effects = {
         {
             name: 'poison',
             requires: ['duration', 'damage', 'prob'],
-            func: function(obj) {
+            func(obj) {
                 const arr = Dice.parseDieSpec(this.useArgs.damage);
                 const dmgDie = new Dice(arr[0], arr[1], arr[2]);
                 const effArgs = {
@@ -274,7 +274,7 @@ const Effects = {
         {
             name: 'stun',
             requires: ['duration'],
-            func: function(obj) {
+            func(obj) {
                 const actor = getTargetActor(obj);
                 if (actor) {
                     const stunDur = getDuration(this.useArgs.duration);
@@ -300,7 +300,7 @@ const Effects = {
         {
             name: 'modifyStat',
             requires: ['statName', 'value'],
-            func: function(obj) {
+            func(obj) {
                 const effArgs = {
                     target: obj,
                     targetType: ['actors'],
@@ -323,7 +323,7 @@ const Effects = {
             name: 'addEntity',
             requires: ['entityName'],
             optional: ['duration'],
-            func: function(obj) {
+            func(obj) {
                 const effArgs = {
                     target: obj,
                     targetType: ['cell'],
@@ -342,7 +342,7 @@ const Effects = {
             name: 'addElement',
             requires: ['elementName'],
             optional: ['duration', 'numAllowed'],
-            func: function(obj) {
+            func(obj) {
                 const effArgs = {
                     target: obj,
                     targetType: ['cell'],
@@ -364,7 +364,7 @@ const Effects = {
             name: 'removeElement',
             requires: ['elementName'],
             optional: ['successMsg', 'failureMsg'],
-            func: function(obj) {
+            func(obj) {
                 const effArgs = {
                     target: obj,
                     targetType: ['cell'],
@@ -381,5 +381,3 @@ const Effects = {
     ],
 
 };
-
-export {Effects};
