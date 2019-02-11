@@ -2,6 +2,7 @@
 import * as React from 'react';
 import ModalHeader from './modal-header';
 import GameBoard from './game-board';
+import {ElementMarker} from '../src/element';
 
 import RG from '../src/rg';
 
@@ -62,18 +63,18 @@ export default class GameOverWorldMap extends React.Component {
   }
 
   /* Selects which tab is shown in the modal. */
-  selectTab(tabName) {
+  public selectTab(tabName) {
     this.setState({tabShown: tabName});
   }
 
-  handleKeyDown(evt) {
+  public handleKeyDown(evt) {
     const keyCode = KeyCode.getKeyCode(evt);
     if (keyCode === Keys.GUI.OwMap) {
         this.toggleScreen('OWMap');
     }
   }
 
-  render() {
+  public render() {
     const tabButtons = this.renderTabButtons();
     const shownTabElement = this.renderTabElement();
 
@@ -112,12 +113,12 @@ export default class GameOverWorldMap extends React.Component {
     );
   }
 
-  toggleScreen(type) {
+  public toggleScreen(type) {
     this.props.toggleScreen(type);
   }
 
   /* Returns the content to render for the tab shown inside the modal. */
-  renderTabElement() {
+  public renderTabElement() {
     if (!this.props.ow) {
       return null;
     }
@@ -130,7 +131,7 @@ export default class GameOverWorldMap extends React.Component {
   }
 
   /* Returns the element to render for the full world map. */
-  renderWorldMap() {
+  public renderWorldMap() {
     let mapStr = 'No map generated.';
     const map = this.props.ow.mapToString(true).slice();
 
@@ -157,14 +158,14 @@ export default class GameOverWorldMap extends React.Component {
   }
 
   /* Returns a smaller region map centered on player position. */
-  renderRegionMap() {
+  public renderRegionMap() {
     const ow = this.props.ow;
     const map = ow.getCellList();
 
     let [x, y] = [null, null];
     if (this.props.playerOwPos) {
       [x, y] = this.props.playerOwPos;
-      const player = new RG.Element.Marker('@');
+      const player = new ElementMarker('@');
       map.getCell(x, y).removeProps(RG.TYPE_ELEM);
       map.getCell(x, y).setProp(RG.TYPE_ELEM, player);
     }
