@@ -7,16 +7,19 @@ import * as Item from '../../../client/src/item';
 import * as Component from '../../../client/src/component';
 import {ELEM} from '../../../client/data/elem-constants';
 
-// type Component.Unpaid = Component.Unpaid;
 type ElementBase = Element.ElementBase;
 
 describe('Element', () => {
     it('must have a defined type', () => {
         Object.values(ELEM).forEach((elem: ElementBase) => {
             expect(elem.getType(), JSON.stringify(elem)).not.to.be.empty;
-
             expect(elem.isPassable).to.exist;
         });
+    });
+
+    it('has factory function create', () => {
+        const elem = Element.create('Web');
+        expect(elem).to.be.an.instanceof(Element.ElementWeb);
     });
 
 });

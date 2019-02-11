@@ -649,6 +649,26 @@ describe('System.Shop', () => {
 
         const cell = seller.getCell();
         expect(cell.getItems()[0]).to.have.component('Unpaid');
+
+        // It works also when selling 2nd item
+        const dagger = new Item.Weapon('dagger');
+        const dagger1 = new Item.Weapon('dagger');
+        dagger.setValue(10);
+        dagger1.setValue(10);
+        seller.getInvEq().addItem(dagger);
+        seller.getInvEq().addItem(dagger1);
+
+        const transDagger = new Component.Transaction();
+        transDagger.setArgs({
+            item: dagger, buyer: shopkeeper, seller, shop: shopElem
+        });
+        seller.add(transDagger);
+
+        updateSystems([shopSys]);
+
+        const items = cell.getItems();
+        const soldDagger = items.find(i => i.getName() === 'dagger');
+        expect(soldDagger).to.have.component('Unpaid');
     });
 
     it('works with item count > 1', () => {
