@@ -245,6 +245,12 @@ export const ActorsData: ActorShell[] = [
         attack: 12, defense: 7, protection: 15, damage: '3d10',
         hp: 70, danger: 10
     },
+    {
+        name: 'spider queen', char: 'S', base: 'animal',
+        attack: 7, defense: 7, damage: '2d8',
+        hp: 45, danger: 11, brain: 'SpellCaster',
+        spells: ['SummonSpiders', 'ArrowOfWebs'], maxPP: 40, pp: 40
+    },
 
     // BEASTS TODO
     {
