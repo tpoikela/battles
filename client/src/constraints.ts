@@ -39,7 +39,7 @@ export class Constraints {
         return null;
     }
 
-    public getFunc(op, prop, value): (obj) => boolean {
+    public getFunc(op: string, prop: string, value: any): (obj) => boolean {
         if (Array.isArray(value)) {
             const funcs = value.map(val => (
                 this.getFunc(op, prop, val)
