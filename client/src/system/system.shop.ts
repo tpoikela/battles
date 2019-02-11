@@ -3,8 +3,19 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import * as Item from '../item';
 import * as Component from '../component';
+import {ElementShop} from '../element';
+import {SentientActor} from '../actor';
 
 const {addSkillsExp} = SystemBase;
+
+interface TransArgs {
+    buyer: SentientActor;
+    seller: SentientActor;
+    item: Item.ItemBase;
+    shop: ElementShop;
+    count?: number;
+    callback?: (obj: any) => void;
+}
 
 /* Processes entities with transaction-related components.*/
 export class SystemShop extends SystemBase {
@@ -12,9 +23,9 @@ export class SystemShop extends SystemBase {
         super(RG.SYS.SHOP, compTypes, pool);
     }
 
-    public updateEntity(ent) {
+    public updateEntity(ent): void {
         const trans = ent.get('Transaction');
-        const args = trans.getArgs();
+        const args: TransArgs = trans.getArgs();
         const {buyer} = args;
         this._checkArgsOK(ent, args);
         if (buyer.getID() === ent.getID()) {
@@ -26,7 +37,7 @@ export class SystemShop extends SystemBase {
         ent.remove(trans);
     }
 
-    public _checkArgsOK(ent, args) {
+    public _checkArgsOK(ent, args: TransArgs): void {
         const {item, buyer, shop, seller} = args;
         let msg = '';
         if (!item) {
@@ -48,12 +59,8 @@ export class SystemShop extends SystemBase {
     }
 
 
-    public buyItem(args) {
+    public buyItem(args: TransArgs): void {
         const {item, buyer, shop, seller} = args;
-        if (!buyer.getInvEq().canCarryItem(item)) {
-            RG.gameMsg(buyer.getName() + ' cannot carry more weight');
-            return;
-        }
         const buyerCell = buyer.getCell();
         const value = item.getValue() * shop.getCostFactorSell();
         const goldWeight = RG.valueToGoldWeight(value);
@@ -64,13 +71,26 @@ export class SystemShop extends SystemBase {
             const nCoinsRemoved = RG.removeNCoins(buyer, nCoins);
             coins.setCount(nCoinsRemoved);
 
+            if (!buyer.getInvEq().canCarryItem(item)) {
+                buyer.getInvEq().addItem(coins); // Add coins back
+                RG.gameMsg(buyer.getName() + ' cannot carry more weight');
+                return;
+            }
+
             seller.getInvEq().addItem(coins);
-            item.getOwner().removeProp('items', item);
-            buyer.getInvEq().addItem(item);
-            item.remove('Unpaid');
-            RG.gameMsg({cell: buyerCell, msg: buyer.getName() +
-                ' bought ' + item.getName() + ' for ' + nCoins + ' coins.'});
-            addSkillsExp(seller, 'Trading', 1);
+            const level = seller.getLevel();
+            // item.getOwner().removeProp('items', item);
+            if (level.removeItem(item, shop.getX(), shop.getY())) {
+                buyer.getInvEq().addItem(item);
+                item.remove('Unpaid');
+                RG.gameMsg({cell: buyerCell, msg: buyer.getName() +
+                    ' bought ' + item.getName() + ' for ' + nCoins + ' coins.'});
+                addSkillsExp(seller, 'Trading', 1);
+            }
+            else {
+                RG.err('System.Shop', 'buyItem',
+                   'Could not remove item from level');
+            }
         }
         else {
             RG.gameMsg({cell: buyerCell, msg: buyer.getName() +
@@ -79,7 +99,7 @@ export class SystemShop extends SystemBase {
         }
     }
 
-    public sellItem(args) {
+    public sellItem(args: TransArgs): void {
         const {item, buyer, seller, shop} = args;
         if (!seller) {
             RG.err('System.Shop', 'sellItem',
@@ -99,10 +119,12 @@ export class SystemShop extends SystemBase {
                 coins.setCount(nCoinsRemoved);
                 seller.getInvEq().addItem(coins);
 
-                const topItem = seller.getCell().getItems()[0];
-                topItem.add(new Component.Unpaid());
-                const itemName = topItem.getName();
+                // New item is found at the bottom
+                const cellItems = seller.getCell().getItems();
+                const bottomItem = cellItems[cellItems.length - 1];
+                bottomItem.add(new Component.Unpaid());
 
+                const itemName = bottomItem.getName();
                 RG.gameMsg({cell: sellerCell, msg: seller.getName() +
                     ' sold ' + itemName + ' for ' + nCoins + ' coins.'});
                 if (args.callback) {
@@ -122,7 +144,6 @@ export class SystemShop extends SystemBase {
                 args.callback({msg, result: false});
             }
         }
-
-        return false;
     }
+
 }
