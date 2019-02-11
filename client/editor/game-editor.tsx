@@ -35,6 +35,7 @@ import {ObjectShell} from '../src/objectshellparser';
 import {ZoneBase, SubZoneBase} from '../src/world';
 import {Keys} from '../src/keymap';
 import {GameMain} from '../src/game';
+import {FromJSON} from '../src/game.fromjson';
 import {Factory} from '../src/factory';
 import {MapGenerator} from '../src/map.generator';
 
@@ -924,7 +925,7 @@ export default class GameEditor extends Component {
   }
 
   public onLoadCallback(data) {
-    const fromJSON = new RG.Game.FromJSON();
+    const fromJSON = new FromJSON();
     const level = fromJSON.restoreLevel(data);
     fromJSON.restoreEntityData();
     this.addLevelToEditor(level);
@@ -1100,7 +1101,7 @@ export default class GameEditor extends Component {
     this.setState({levelType, levelConf, lastTouchedConf: levelConf});
   }
 
-  public getInt(value, base): number {
+  public getInt(value: string, base: number): number {
     const retValue = parseInt(value, base);
     if (Number.isInteger(retValue)) {
       return retValue;
@@ -1108,7 +1109,7 @@ export default class GameEditor extends Component {
     return 0;
   }
 
-  public onChangeSubType(evt) {
+  public onChangeSubType(evt): void {
     const value = evt.target.value;
     const subLevelConf = this.state.subLevelConf;
     this.modifyLevelConf(value, subLevelConf);
@@ -1116,7 +1117,7 @@ export default class GameEditor extends Component {
       lastTouchedConf: subLevelConf});
   }
 
-  public onChangeInputInt(evt) {
+  public onChangeInputInt(evt): void {
       const [tag, stateVar] = evt.target.name.split('-');
       if (tag === 'input') {
           const value = this.getInt(evt.target.value, 10);
@@ -1124,7 +1125,7 @@ export default class GameEditor extends Component {
       }
   }
 
-  public onChangeCellSelectX(evt) {
+  public onChangeCellSelectX(evt): void {
     const newX = this.getInt(evt.target.value, 10);
     const cell = this.getFirstSelectedCell();
     const update: any = {cellSelectX: newX};
@@ -1140,7 +1141,7 @@ export default class GameEditor extends Component {
     this.setState(update);
   }
 
-  public onChangeCellSelectY(evt) {
+  public onChangeCellSelectY(evt): void {
     const newY = this.getInt(evt.target.value, 10);
     const cell = this.getFirstSelectedCell();
     const update: any = {cellSelectY: newY};
@@ -1160,7 +1161,7 @@ export default class GameEditor extends Component {
   // SIMULATION METHODS
   //----------------------------------------------------------------
 
-  public playAnimation() {
+  public playAnimation(): void {
     if (this.game.hasAnimation()) {
       const anim = this.game.getAnimationFrame();
       this.setState({render: true, animation: anim});
@@ -1175,17 +1176,17 @@ export default class GameEditor extends Component {
   }
 
   /* Starts a simulation of the level. */
-  public simulateLevel(step = false) {
+  public simulateLevel(step = false): void {
     if (!this.state.level) {
       const msg = 'You must create a level before simulation!';
       this.setState({errorMsg: msg});
     }
     else if (!this.state.simulationStarted) {
 
-      this.game = new RG.Game.Main();
+      this.game = new GameMain();
       (window as any).GAME = this.game; // Handle for debugging
 
-      const fromJSON = new RG.Game.FromJSON();
+      const fromJSON = new FromJSON();
       const json = this.state.level.toJSON();
       const levelClone = fromJSON.restoreLevel(json);
       fromJSON.restoreEntityData();
@@ -1210,7 +1211,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  public mainLoop() {
+  public mainLoop(): void {
     const frameCount = this.state.frameCount;
     const fps = 1000 * frameCount /
       (new Date().getTime() - this.state.startTime);
