@@ -2,7 +2,7 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
-import {Entity} from  '../entity';
+import {Entity} from '../entity';
 import * as Component from '../component';
 
 const POOL = EventPool.getPool();
@@ -62,7 +62,7 @@ export class SystemTimeEffects extends SystemBase {
     }
 
     /* Decreases the remaining duration in the component by one.*/
-    public _decreaseDuration(ent: Entity) {
+    public _decreaseDuration(ent: Entity): void {
         const expirComps = ent.getList('Expiration');
         expirComps.forEach(tEff => {
             tEff.decrDuration();
