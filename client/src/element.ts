@@ -689,10 +689,12 @@ export class ElementMarker extends Mixin.Locatable(ElementBase) {
 Element.Marker = ElementMarker;
 
 
-Element.create = function(type: string, ...args): ElementBase {
+export const create = function(type: string, ...args): ElementBase {
     const nameCap = type.capitalize();
-    if (Element.hasOwnProperty(name)) {
-        return new Element[name](...args);
+    if (Element.hasOwnProperty(type)) {
+        return new Element[type](...args);
     }
     return null;
 };
+
+Element.create = create;
