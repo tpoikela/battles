@@ -182,10 +182,8 @@ export class SystemEffects extends SystemBase {
             compToAdd.setSource(srcEnt);
         }
 
-        // const dur = getDieValue(useArgs.duration);
         const dur = Dice.getValue(useArgs.duration);
-        const expirMsg = useArgs.endMsg;
-
+        const expirMsg = useArgs.expireMsg;
         Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
         return true;
     }
