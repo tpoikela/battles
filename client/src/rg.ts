@@ -16,7 +16,7 @@ RG.cellRenderVisible = ['actors', 'items', 'elements'];
 RG.cellRenderAlways = ['items', 'elements'];
 
 /* Given Map.Cell, returns CSS classname used for styling that cell. */
-RG.getCssClassForCell = function(cell, isVisible) {
+RG.getCssClassForCell = function(cell, isVisible): string {
     if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
     else {this.cellRenderArray = this.cellRenderAlways;}
     const className = this.getStyleClassForCell(cell);
@@ -25,7 +25,7 @@ RG.getCssClassForCell = function(cell, isVisible) {
 };
 
 /* Same as getClassName, but optimized for viewing the full map. */
-RG.getCssClassFullMap = function(cell) {
+RG.getCssClassFullMap = function(cell): string {
     this.cellRenderArray = this.cellRenderVisible;
 
     if (!cell.hasProps()) {
@@ -45,7 +45,7 @@ RG.getCssClassFullMap = function(cell) {
 };
 
 /* Given Map.Cell, returns a char that is rendered for the cell. */
-RG.getCharForCell = function(cell, isVisible) {
+RG.getCharForCell = function(cell, isVisible: boolean): string {
     if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
     else {this.cellRenderArray = this.cellRenderAlways;}
     const cellChar = this.getCellChar(cell);
@@ -54,7 +54,7 @@ RG.getCharForCell = function(cell, isVisible) {
 };
 
 /* Same as getChar, but optimized for full map viewing. */
-RG.getCharFullMap = function(cell) {
+RG.getCharFullMap = function(cell): string {
     this.cellRenderArray = this.cellRenderVisible;
 
     if (!cell.hasProps()) {
@@ -74,7 +74,7 @@ RG.getCharFullMap = function(cell) {
 
 /* Maps a cell to specific object in stylesheet. For rendering purposes
  * only.*/
-RG.getStyleClassForCell = function(cell) {
+RG.getStyleClassForCell = function(cell): string {
     if (!cell.isExplored()) { return 'cell-not-explored';}
 
     for (let i = 0; i < this.cellRenderArray.length; i++) {
@@ -92,7 +92,7 @@ RG.getStyleClassForCell = function(cell) {
 };
 
 /* styles is either a LUT of chars or LUT of CSS classnames. */
-RG.getPropClassOrChar = function(styles, propObj) {
+RG.getPropClassOrChar = function(styles, propObj): string {
 
     // Return by name, this is for object shells generally
     let lookupKey = null;
@@ -138,7 +138,7 @@ RG.getPropClassOrChar = function(styles, propObj) {
 };
 
 /* Returns char which is rendered on the map cell based on cell contents.*/
-RG.getCellChar = function(cell) {
+RG.getCellChar = function(cell): string {
     if (!cell.isExplored()) {return 'X';}
 
     for (let i = 0; i < this.cellRenderArray.length; i++) {
@@ -159,16 +159,16 @@ RG.getCellChar = function(cell) {
 /* Adds a CSS class for given prop and type. For example, "actors", "wolf",
  * "cell-actor-wolf" uses CSS class .cell-actor-wolf to style cells with
  * wolves in them. */
-RG.addCellStyle = function(prop, type, className): void {
+RG.addCellStyle = function(prop: string, type: string, cName: string): void {
     if (this.cellStyles.hasOwnProperty(prop)) {
-        this.cellStyles[prop][type] = className;
+        this.cellStyles[prop][type] = cName;
     }
     else {
         this.err('RG', 'addCellStyle', 'Unknown prop type: ' + prop);
     }
 };
 
-RG.removeCellStyle = function(prop, type): void {
+RG.removeCellStyle = function(prop: string, type: string): void {
     if (this.cellStyles.hasOwnProperty(prop)) {
         delete this.cellStyles[prop][type];
     }
@@ -176,7 +176,7 @@ RG.removeCellStyle = function(prop, type): void {
 
 /* Adds a char to render for given prop and type. Example: "actors",
  * "wolf", "w" renders 'w' for cells containing wolves.*/
-RG.addCharStyle = function(prop, type, charName): void {
+RG.addCharStyle = function(prop: string, type: string, charName: string): void {
     if (this.charStyles.hasOwnProperty(prop)) {
         this.charStyles[prop][type] = charName;
     }
@@ -185,13 +185,13 @@ RG.addCharStyle = function(prop, type, charName): void {
     }
 };
 
-RG.removeCharStyle = function(prop, type): void {
+RG.removeCharStyle = function(prop: string, type: string): void {
     if (this.charStyles.hasOwnProperty(prop)) {
         delete this.charStyles[prop][type];
     }
 };
 
-RG.getChar = function(prop, name, state = null): string {
+RG.getChar = function(prop: string, name: string, state = null): string {
     if (this.charStyles.hasOwnProperty(prop)) {
         if (state) {
             return this.charStyles[prop][name][state];
@@ -293,7 +293,7 @@ RG.cellStyles = {
     }
 };
 
-RG.debug = function(obj, msg) {
+RG.debug = function(obj: any, msg: string): void {
     if ($DEBUG) {
         const inst = typeof obj;
         const json = JSON.stringify(obj);
@@ -301,7 +301,7 @@ RG.debug = function(obj, msg) {
     }
 };
 
-RG.err = function(obj, fun, msg) {
+RG.err = function(obj: string, fun: string, msg: string) {
     if (!RG.suppressErrorMessages) {
         const formattedMsg = `[ERROR]: ${obj} ${fun} -> |${msg}|`;
         console.error(formattedMsg);
@@ -309,14 +309,14 @@ RG.err = function(obj, fun, msg) {
     }
 };
 
-RG.warn = function(obj, fun, msg) {
+RG.warn = function(obj: string, fun: string, msg: string): void {
     if (!RG.suppressWarningMessages) {
         const formattedMsg = `[WARN]: ${obj} ${fun} -> |${msg}|`;
         console.error(formattedMsg);
     }
 };
 
-RG.diag = function(obj) {
+RG.diag = function(obj): void {
     if (!RG.suppressDiagnosticMessages) {
         // Supposed to show the filename (of the caller)
         // With bundling, this does not work very well
@@ -1716,7 +1716,7 @@ RG.getImpassableMsg = (actor, cell, str) => {
     return `${str} ${cellMsg}`;
 };
 
-RG.formatLocationName = level => {
+RG.formatLocationName = (level): string => {
     const feat = level.getParent();
     if (!feat) {return '';}
     switch (feat.getType()) {
@@ -1729,7 +1729,8 @@ RG.formatLocationName = level => {
             if (subName === zoneName) {
                 return subName;
             }
-            return `${subName} of ${zoneName}`;
+            // return `${subName} of ${zoneName}`;
+            return `${zoneName}`;
         }
         default: return feat.getName();
     }
