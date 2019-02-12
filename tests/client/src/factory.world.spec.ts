@@ -6,6 +6,7 @@ import {ConfStack} from '../../../client/src/conf-stack';
 import {FactoryWorld} from '../../../client/src/factory.world';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import * as Element from '../../../client/src/element';
+import * as IF from '../../../client/src/interfaces';
 
 const expectConnected = RGTest.expectConnected;
 
@@ -77,7 +78,7 @@ describe('FactoryWorld', function() {
     });
 
     it('can create cities', () => {
-        const cityConf = {
+        const cityConf: IF.CityConf = {
             name: 'Arkham', nQuarters: 2,
             connectLevels: [
                 ['Q1', 'Q2', 0, 0]
@@ -107,7 +108,7 @@ describe('FactoryWorld', function() {
     });
 
     it('can create Branch using config object', () => {
-        const brConf = {
+        const brConf: IF.BranchConf = {
             name: 'DangerousBranch',
             nLevels: 2,
             entranceLevel: 0,
@@ -126,7 +127,7 @@ describe('FactoryWorld', function() {
     });
 
     it('can create elements to fixed positions', () => {
-        const brConf = {
+        const brConf: IF.BranchConf = {
             name: 'DangerousBranch',
             nLevels: 2,
             entranceLevel: 0,
@@ -144,7 +145,7 @@ describe('FactoryWorld', function() {
     });
 
     it('Can create dungeon using config object', () => {
-        const dungeonConf = {
+        const dungeonConf: IF.DungeonConf = {
             name: 'Cave',
             nBranches: 3,
             entrance: 'br2',
@@ -208,7 +209,7 @@ describe('FactoryWorld', function() {
     });
 
     it('can create cities within areas with given locations', () => {
-        const worldConf = {
+        const worldConf: IF.WorldConf = {
             name: 'ww',
             nAreas: 1,
             area: [
@@ -266,7 +267,7 @@ describe('FactoryWorld', function() {
 
         const levelStub = {stub: true, new: 'arena', args: [40, 40]};
 
-        const cityConf = {
+        const cityConf: IF.CityConf = {
             name: 'CapitalCity',
             x: 0, y: 0,
             nQuarters: 2,
@@ -292,7 +293,7 @@ describe('FactoryWorld', function() {
         };
         const areaLevel = factLevel.createLevel('empty', 100, 100, {});
         const areaLevels = [[areaLevel]];
-        const areaConf = {
+        const areaConf: IF.AreaConf = {
             name: 'Area1x1', maxX: 1, maxY: 1, nCities: 1,
             presetLevels: {
                 Area1x1: areaLevels
@@ -332,7 +333,7 @@ describe('FactoryWorld', function() {
     });
 
     it('can create mountains with faces and summits', () => {
-        const mountainConf = {
+        const mountainConf: IF.MountainConf = {
             name: 'Stormy Tower',
             nFaces: 1,
             nSummits: 2,
@@ -375,7 +376,7 @@ describe('FactoryWorld', function() {
     it('has createPresetLevels for creating all levels using factory', () => {
         fact = new FactoryWorld();
         const nLevels = 3;
-        const towerConf = {
+        const towerConf: IF.DungeonConf = {
             name: towerName,
             x: 0, y: 0,
             nBranches: 1,
@@ -396,7 +397,7 @@ describe('FactoryWorld', function() {
                 }
             }]
         };
-        const worldConf = {
+        const worldConf: IF.WorldConf = {
             name: 'world for black tower',
             nAreas: 1,
             createAllZones: true,
@@ -410,7 +411,6 @@ describe('FactoryWorld', function() {
         };
 
         const tower = fact.createDungeon(towerConf);
-
         const levels = tower.getLevels();
         expect(levels).to.have.length(nLevels);
 
