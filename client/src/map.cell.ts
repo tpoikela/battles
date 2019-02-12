@@ -4,6 +4,7 @@ import * as Element from './element';
 import {BaseActor} from './actor';
 import * as Item from './item';
 import {ELEM_MAP} from '../data/elem-constants';
+import {TCoord} from './interfaces';
 
 const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 
@@ -53,22 +54,22 @@ export class Cell {
         this._isPassable = elem ? elem.isPassable() : true;
     }
 
-    public getX() {return this._x;}
-    public getY() {return this._y;}
-    public getXY() {return [this._x, this._y];}
-    public setX(x) {this._x = x;}
-    public setY(y) {this._y = y;}
+    public getX(): number {return this._x;}
+    public getY(): number {return this._y;}
+    public getXY(): TCoord {return [this._x, this._y];}
+    public setX(x: number) {this._x = x;}
+    public setY(y: number) {this._y = y;}
 
-    public isAtXY(x, y) {
+    public isAtXY(x, y): boolean {
         return x === this._x && y === this._y;
     }
 
-    public getKeyXY() {
+    public getKeyXY(): string {
         return this._x + ',' + this._y;
     }
 
     /* Sets/gets the base element for this cell. There can be only one element.*/
-    public setBaseElem(elem) {
+    public setBaseElem(elem): void {
         this._baseElem = elem;
         this._lightPasses = elem.lightPasses();
         this._isPassable = elem.isPassable();
