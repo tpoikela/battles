@@ -28,6 +28,7 @@ const RNG = Random.getRNG();
 const Stairs = Element.ElementStairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
 
+type Stairs = Element.ElementStairs;
 type WorldTop = World.WorldTop;
 type Area = World.Area;
 type ConcreteSubZone = World.Branch | World.CityQuarter |
@@ -1341,7 +1342,7 @@ export const FactoryWorld = function() {
     /* Creates the actual connection objects such as stairs or passages, and
      * adds them into the zone level. Returns the created objects for connecting
      * them into the tile level. */
-    this.createNewZoneConnects = (zone, zoneLevel) => {
+    this.createNewZoneConnects = (zone, zoneLevel): Stairs | Stairs[] => {
         let zoneStairs = null;
         if (zone.getType() === 'dungeon') {
             zoneStairs = this.createDungeonZoneConnect(zone, zoneLevel);
@@ -1358,7 +1359,7 @@ export const FactoryWorld = function() {
     };
 
     /* Creates the connection for dungeon zone and returns the connection. */
-    this.createDungeonZoneConnect = (zone, zoneLevel) => {
+    this.createDungeonZoneConnect = (zone, zoneLevel): Stairs | Stairs[] => {
         this.debug('Creating dungeon connection');
         let sX = 0;
         let sY = 0;
@@ -1380,7 +1381,7 @@ export const FactoryWorld = function() {
         return zoneStairs;
     };
 
-    this.createCityZoneConnect = (zone, zoneLevel) => {
+    this.createCityZoneConnect = (zone, zoneLevel): Stairs[] => {
         let zoneStairs = null;
         this.debug('Creating new city edge connection');
         let allEdgeExits = [];
@@ -1394,10 +1395,9 @@ export const FactoryWorld = function() {
             }
         });
         zoneStairs = allEdgeExits;
+
         // Connection failed, resort to single point connection
         if (zoneStairs.length === 0) {
-            // zoneLevel.getMap().debugPrintInASCII();
-
             // TODO this one is shaky
             const freeCell = zoneLevel.getFreeRandCell();
             const zoneX = freeCell.getX();
@@ -1448,7 +1448,9 @@ export const FactoryWorld = function() {
  * @param {object} conf - Config for the zone
  * @return {void}
  * */
-FactoryWorld.prototype.createAreaZoneConnection = function(area, zone, conf) {
+FactoryWorld.prototype.createAreaZoneConnection = function(
+    area, zone, conf: IF.ZoneConf
+): void {
     this._verif.verifyConf('createAreaZoneConnection', conf, ['x', 'y']);
     this.debug('Creating area-zone connections');
 
@@ -1465,9 +1467,9 @@ FactoryWorld.prototype.createAreaZoneConnection = function(area, zone, conf) {
 
     const entrances = zone.getEntrances();
     if (entrances.length > 0) {
-        let entryStairs = entrances[0];
-        const entryLevel = entryStairs.getSrcLevel();
-        const zoneType = zone.getType();
+        let entryStairs: Stairs = entrances[0];
+        const entryLevel: Level = entryStairs.getSrcLevel();
+        const zoneType: string = zone.getType();
 
         this.debug('Connecting area-zone by entrance');
 
@@ -1479,7 +1481,7 @@ FactoryWorld.prototype.createAreaZoneConnection = function(area, zone, conf) {
                 this.debug(`conn length before: ${conns.length}`);
             }
 
-            const zoneStairs = this.createNewZoneConnects(zone,
+            const zoneStairs: Stairs | Stairs[] = this.createNewZoneConnects(zone,
                 entryLevel);
             entryStairs = this.getEntryStairs(entryLevel, entryStairs,
                 zoneStairs);
