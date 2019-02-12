@@ -444,10 +444,10 @@ export class Screen {
     }
 }
 
-class BufferMap {
-
-}
-
+/* A buffered screen for solving problem with elements/items added to
+ * non-visible cells. This screen has one "problem": The actors won't
+ * disappear from non-visible cells, but their "memory" stays there
+ * until the player sees the cell again without the actor. */
 export class ScreenBuffered extends Screen {
 
     protected fullMapCharRows: string[][];
@@ -480,7 +480,6 @@ export class ScreenBuffered extends Screen {
             this.fullMapClassRows[x][y] = cellClass;
             this.fullMapCharRows[x][y] = cellChar;
         });
-        console.log('There are', visibleCells.length, 'cells visible');
 
         // Finally, get the chars and classes to render
         return super.renderWithRLE(playX, playY, map, visibleCells, anim,
@@ -489,7 +488,6 @@ export class ScreenBuffered extends Screen {
 
     /* Called once when a new Map is loaded. */
     protected initializeFullMap(map: CellMap, visibleCells: Cell[]): void {
-        console.log('ScreenBuffered initialize full map now');
         const cells: Cell[] = map.getCells();
         this.fullMapClassRows = new Array(map.cols);
         this.fullMapCharRows = new Array(map.cols);
