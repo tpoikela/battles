@@ -324,7 +324,7 @@ export class CellMap {
 
     /* Queries a row of cells. _optimizeForRowAccess must be called before this
      * function is used. */
-    public getCellRowFast(y): Cell[] {
+    public getCellRowFast(y: number): Cell[] {
         if (!this._isRowOptimized) {this._optimizeForRowAccess();}
         return this._rowMap[y];
     }
@@ -358,7 +358,7 @@ export class CellMap {
         return result;
     }
 
-    public getCellsWithCoord(coord): Cell[] {
+    public getCellsWithCoord(coord: TCoord[]): Cell[] {
         const result = [];
         coord.forEach(xy => {
             if (this.hasXY(xy[0], xy[1])) {
@@ -374,7 +374,7 @@ export class CellMap {
         });
     }
 
-    public has(xy, query) {
+    public has(xy, query): boolean {
         const [x, y] = xy;
         if (this.hasXY(x, y)) {
             const cell = this.getCell(x, y);
@@ -388,7 +388,7 @@ export class CellMap {
 
     /* Creates another internal representation of the map. This can be used for fast
      * row access. */
-    public _optimizeForRowAccess() {
+    public _optimizeForRowAccess(): void {
         this._rowMap = [];
         for (let y = 0; y < this.rows; y++) {
             this._rowMap[y] = [];
@@ -423,14 +423,14 @@ export class CellMap {
         };
     }
 
-    public getShortestPathTo(actor, toX, toY) {
+
+    public getShortestPathTo(actor, toX, toY): Cell[] {
         const [sX, sY] = actor.getXY();
         let passCb = this.passableCallback.bind(null, sX, sY);
         if (actor.has('Flying')) {
             passCb = this.passableCallbackFlying.bind(null, sX, sY);
         }
         const pathFinder = new ROT.Path.AStar(toX, toY, passCb);
-
         const path = [];
         pathFinder.compute(sX, sY, (x, y) => {
             if (this.hasXY(x, y)) {
@@ -440,7 +440,12 @@ export class CellMap {
         return path;
     }
 
-    public passableCallback(sX, sY, x, y) {
+    public getShortestPathCached(actor, toX, toY): Cell[] {
+        // TODO
+        return [];
+    }
+
+    public passableCallback(sX, sY, x, y): boolean {
         let res = this.isPassable(x, y);
         if (!res) {
             res = (x === sX) && (y === sY);
@@ -448,7 +453,7 @@ export class CellMap {
         return res;
     }
 
-    public passableCallbackFlying(sX, sY, x, y) {
+    public passableCallbackFlying(sX, sY, x, y): boolean {
         let res = this.isPassableByAir(x, y);
         if (!res) {
             res = (x === sX) && (y === sY);
