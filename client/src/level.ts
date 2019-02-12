@@ -10,15 +10,22 @@ import * as Mixin from './mixin';
 import {ELEM} from '../data/elem-constants';
 
 // Import types only
-import {TCoord} from './interfaces';
+import {TCoord, BBox} from './interfaces';
 type ZoneBase = import('./world').ZoneBase;
 type SubZoneBase = import('./world').SubZoneBase;
 type Battle = import('./game.battle').Battle;
 type Cell = import('./map.cell').Cell;
+type CellMap = import('./map').CellMap;
 type House = import('./houses').House;
 type WorldShop = import('./world').WorldShop;
 
+type ItemBase = import('./item').ItemBase;
 type ElementBase = import('./element').ElementBase;
+type ElementStairs = import('./element').ElementStairs;
+type BaseActor = import('./actor').BaseActor;
+type SentientActor = import('./actor').BaseActor;
+
+type CellOrNull = Cell | null;
 
 const POOL = EventPool.getPool();
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
@@ -54,6 +61,8 @@ export class LevelCallback {
     }
 }
 
+type LocatableElement = ElementBase & Mixin.Locatable;
+
 type LevelParent = Battle | SubZoneBase;
 
 export type LevelExtraType = number | string | boolean | {[key: string]: LevelExtraType | LevelExtraType[]};
@@ -70,6 +79,12 @@ export type LevelExtras = Extras & {
     isCollapsed?: boolean;*/
 };
 
+interface LevelProps {
+    actors: BaseActor[];
+    elements: LocatableElement[];
+    items: ItemBase[];
+}
+
 /* Object for the game levels. Contains map, actors and items.  */
 // const Level = function() {
 export class Level extends Entity {
@@ -78,9 +93,9 @@ export class Level extends Entity {
         return Entity.createEntityID();
     }
 
-    private _map: any;
+    private _map: CellMap;
     private _parent: any;
-    private _p: {[key: string]: any[]};
+    private _p: LevelProps;
     private _levelNo: number;
     private _callbacks: {[key: string]: (any) => void};
     private _cbState: {[key: string]: boolean};
@@ -115,7 +130,7 @@ export class Level extends Entity {
 
     }
 
-    public setLevelNumber(no) {this._levelNo = no;}
+    public setLevelNumber(no: number): void {this._levelNo = no;}
 
     public getLevelNumber(): number {
         return this._levelNo;
@@ -186,11 +201,11 @@ export class Level extends Entity {
         return (/stairs(Down|Up)/).test(elem.getName());
     }
 
-    public setMap(map) {this._map = map;}
-    public getMap() {return this._map;}
+    public setMap(map: CellMap): void {this._map = map;}
+    public getMap(): CellMap {return this._map;}
 
     /* Given a level, returns stairs which lead to that level.*/
-    public getStairsToLevel(level) {
+    public getStairsToLevel(level: Level): ElementStairs | null {
         if (RG.isNullOrUndef([level])) {
             RG.err('Map.Level', 'getStairs', 'arg |level| required.');
         }
@@ -205,25 +220,11 @@ export class Level extends Entity {
     }
 
     //---------------------------------------------------------------------
-    // GENERIC ADD METHOD
-    //---------------------------------------------------------------------
-    public addToRandomCell(obj) {
-        const cell = this.getFreeRandCell();
-        switch (obj.getPropType()) {
-            case RG.TYPE_ITEM:
-                this.addItem(obj, cell.getX(), cell.getY());
-                break;
-            default: RG.err('Map.Level', 'addToRandomCell',
-                `No known propType |${obj.getPropType()}|`);
-        }
-    }
-
-    //---------------------------------------------------------------------
     // STAIRS RELATED FUNCTIONS
     //---------------------------------------------------------------------
 
     /* Adds stairs for this level.*/
-    public addStairs(stairs, x: number, y: number): boolean {
+    public addStairs(stairs: ElementStairs, x: number, y: number): boolean {
         if (!RG.isNullOrUndef([x, y])) {
             if (this._map.hasXY(x, y)) {
               stairs.setSrcLevel(this);
@@ -245,7 +246,7 @@ export class Level extends Entity {
     }
 
     /* Uses stairs for given actor if it's on top of the stairs.*/
-    public useStairs(actor): boolean {
+    public useStairs(actor: BaseActor): boolean {
         const cell = this._map.getCell(actor.getX(), actor.getY());
         if (cell.hasConnection()) {
             const connection = cell.getConnection();
@@ -523,7 +524,7 @@ export class Level extends Entity {
 
     /* Returns the bounding box of the level (upper-left and lower-right
      * coordinates). */
-    public getBbox() {
+    public getBbox(): BBox {
         return {
             ulx: 0, uly: 0,
             lrx: this.getMap().cols - 1,
@@ -531,7 +532,7 @@ export class Level extends Entity {
         };
     }
 
-    public getColsRows() {
+    public getColsRows(): [number, number] {
         return [
             this.getMap().cols,
             this.getMap().rows
@@ -554,13 +555,13 @@ export class Level extends Entity {
         this._callbacks.OnFirstExit = cb;
     }
 
-    public onEnter() {
+    public onEnter(): void {
         if (this._callbacks.hasOwnProperty('OnEnter')) {
             this._callbacks.OnEnter(this);
         }
     }
 
-    public onFirstEnter() {
+    public onFirstEnter(): void {
         if (!this._cbState.onFirstEnterDone) {
             if (this._callbacks.hasOwnProperty('OnFirstEnter')) {
                 this._callbacks.OnFirstEnter(this);
@@ -575,7 +576,7 @@ export class Level extends Entity {
         }
     }
 
-    public onFirstExit() {
+    public onFirstExit(): void {
         if (!this._cbState.onFirstExitDone) {
             if (this._callbacks.hasOwnProperty('OnFirstExit')) {
                 this._callbacks.OnFirstExit(this);
@@ -585,7 +586,7 @@ export class Level extends Entity {
     }
 
     /* Return random free cell on a given level.*/
-    public getFreeRandCell() {
+    public getFreeRandCell(): CellOrNull {
         const freeCells = this.getMap().getFree();
         if (freeCells.length > 0) {
             const index = RNG.randIndex(freeCells);
@@ -595,7 +596,7 @@ export class Level extends Entity {
     }
 
     /* Returns random empty cells, or null if cannot find any.*/
-    public getEmptyRandCell() {
+    public getEmptyRandCell(): CellOrNull {
         const emptyCells = this.getMap().getEmptyCells();
         if (emptyCells.length > 0) {
             const index = RNG.randIndex(emptyCells);
@@ -604,7 +605,7 @@ export class Level extends Entity {
         return null;
     }
 
-    public _getFreeCellXY() {
+    public _getFreeCellXY(): [number, number] {
         const freeCells = this._map.getFree();
         if (freeCells.length > 0) {
             const xCell = freeCells[0].getX();
@@ -619,7 +620,7 @@ export class Level extends Entity {
     }
 
     /* Removes all elements matching the given function. */
-    public removeElements(filter) {
+    public removeElements(filter: (elem) => boolean): void {
         const toRemove = this._p.elements.filter(filter);
         toRemove.forEach(elem => {
           const eX = (elem as Mixin.Locatable).getX();
@@ -630,6 +631,12 @@ export class Level extends Entity {
 
     public getCell(x: number, y: number): Cell {
         return this._map.getCell(x, y);
+    }
+
+    /* Returns the player actor or null if player does not exist. */
+    public getPlayer(): SentientActor | null {
+        const pActor = this._p.actors.find(a => a.isPlayer && a.isPlayer());
+        return pActor as SentientActor;
     }
 
     /* Serializes the level object. */
