@@ -55,13 +55,6 @@ export class BrainSpellCaster extends BrainGoalOriented {
         const spellEval = this.goal.getEvaluator('CastSpell') as EvaluatorCastSpell;
         spellEval.setCastingProbability(0.8);
     }
-
-    public decideNextAction(): ActionCallback | null {
-        this._cache.seen = null;
-        this.goal.process();
-        this._cache.seen = null;
-        return ACTION_ALREADY_DONE;
-    }
 }
 Brain.SpellCaster = BrainSpellCaster;
 
