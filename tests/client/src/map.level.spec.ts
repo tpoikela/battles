@@ -42,11 +42,15 @@ describe('Level', () => {
 
         const freeCell: Cell = level1.getFreeRandCell();
         expect(freeCell).to.be.an.instanceof(Cell);
+        expect(freeCell.isPassable()).to.equal(true);
+        expect(freeCell.isPassableByAir()).to.equal(true);
 
         const emptyCell: Cell = level1.getEmptyRandCell();
+        expect(emptyCell.hasElements()).to.equal(false);
+        expect(emptyCell.hasActors()).to.equal(false);
+        expect(emptyCell.hasItems()).to.equal(false);
+
         expect(emptyCell).to.be.an.instanceof(Cell);
-        // expect(emptyCell.isPassable()).to.equal(true);
-        expect(emptyCell.isPassableByAir()).to.equal(true);
     });
 
     it('has actors', () => {
