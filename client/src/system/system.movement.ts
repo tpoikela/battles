@@ -119,7 +119,7 @@ export class SystemMovement extends SystemBase {
         if (newCell.hasProp(RG.TYPE_ELEM)) {
             if (newCell.hasStairs()) {
                 const stairs = newCell.getStairs();
-                const level = stairs.getTargetLevel();
+                const level = stairs.getTargetLevel() as Level;
                 let msg = 'You see stairs here';
 
                 const parent = level.getParent();
@@ -131,7 +131,7 @@ export class SystemMovement extends SystemBase {
             }
             else if (newCell.hasPassage()) {
                 const passage = newCell.getPassage();
-                const level = passage.getTargetLevel();
+                const level = passage.getTargetLevel() as Level;
                 const dir = RG.getCardinalDirection(level, newCell);
                 let msg = `You see a passage to ${dir} here.`;
                 const parent = level.getParent();
@@ -143,7 +143,7 @@ export class SystemMovement extends SystemBase {
             }
             else if (newCell.hasConnection()) {
                 const connection = newCell.getConnection();
-                const level = connection.getTargetLevel();
+                const level = connection.getTargetLevel() as Level;
                 let msg = 'You see an entrance here';
 
                 const parent = level.getParent();
