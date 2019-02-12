@@ -39,7 +39,8 @@ import {Cell} from '../src/map.cell';
 
 import md5 = require('js-md5');
 
-import {Screen} from '../gui/screen';
+import {ScreenBuffered} from '../gui/screen';
+
 import {Persist} from '../src/persist';
 import {WorldConf} from '../data/conf.world';
 
@@ -192,7 +193,7 @@ export class BattlesTop extends React.Component {
     public viewportX: number;
     public viewportY: number;
     public frameID: number;
-    public screen: Screen;
+    public screen: ScreenBuffered;
     public hasNotify: boolean;
     public listener: ProxyListener;
     public multiHandler: MultiKeyHandler;
@@ -223,7 +224,7 @@ export class BattlesTop extends React.Component {
         this.viewportX = 35; // * 2
         this.viewportY = 15; // * 2
 
-        this.screen = new Screen(this.viewportX, this.viewportY);
+        this.screen = new ScreenBuffered(this.viewportX, this.viewportY);
 
         // Simple configuration for the game
         this.gameConf = {
@@ -725,6 +726,7 @@ export class BattlesTop extends React.Component {
     public notify(evtName, obj): void {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             const actor = obj.actor;
+            this.screen.invalidate();
             if (actor.isPlayer()) {
                 this.setState({render: true});
             }
