@@ -65,11 +65,11 @@ const INV_SCREEN = 'Inventory';
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
 
-  public static describeCell(cell, seenCells) {
+  public static describeCell(cell: Cell, seenCells: Cell[]): void {
     const index = seenCells.indexOf(cell);
     if (index !== -1) {
       if (cell.hasActors()) {
-        const actor = cell.getProp('actors')[0];
+        const actor = cell.getFirstActor();
         const msg = 'You see ' + actor.getName();
         RG.gameMsg(msg);
       }
@@ -96,7 +96,7 @@ class TopLogic {
     }
   }
 
-  public static getAdjacentCell(player, code) {
+  public static getAdjacentCell(player, code): Cell | null {
     if (KeyMap.inMoveCodeMap(code) || KeyMap.isRest(code)) {
       const [x, y] = player.getXY();
       const diffXY = KeyMap.getDiff(code, x, y);
@@ -726,8 +726,9 @@ export class BattlesTop extends React.Component {
     public notify(evtName, obj): void {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             const actor = obj.actor;
-            this.screen.invalidate();
             if (actor.isPlayer()) {
+                this.screen.invalidate();
+                this.gameState.visibleCells = actor.getBrain().getSeenCells();
                 this.setState({render: true});
             }
         }
@@ -953,9 +954,6 @@ export class BattlesTop extends React.Component {
     public render() {
         let map = null;
         let player = null;
-        let inv = null;
-        let eq = null;
-        let maxWeight = null;
         let message: IMessage[] = [];
         let charRows = null;
         let classRows = null;
@@ -969,9 +967,6 @@ export class BattlesTop extends React.Component {
         if (this.game) {
             map = this.game.getVisibleMap();
             player = this.game.getPlayer();
-            inv = player.getInvEq().getInventory();
-            eq = player.getInvEq().getEquipment();
-            maxWeight = player.getMaxWeight();
             overworld = this.game.getOverWorld();
             if (this.game.hasNewMessages()) {
                 message = this.game.getMessages();
@@ -982,9 +977,7 @@ export class BattlesTop extends React.Component {
             rowClass = 'cell-row-div-player-view';
             if (showMap) {rowClass = 'cell-row-div-map-view';}
 
-            const playX = player.getX();
-            const playY = player.getY();
-
+            const [playX, playY] = player.getXY();
             if (map) {
                 this.screen.renderWithRLE(
                     playX, playY, map, this.gameState.visibleCells,
@@ -1013,7 +1006,6 @@ export class BattlesTop extends React.Component {
             playerLevel: this.state.playerLevel,
             levelSize: this.state.levelSize
         };
-
         const oneSelectedCell = this.getOneSelectedCell();
 
         return (
@@ -1075,12 +1067,9 @@ export class BattlesTop extends React.Component {
                  this.state.showInventory &&
                 <GameInventory
                     doInvCmd={this.doInvCmd}
-                    eq={eq}
                     equipSelected={this.state.equipSelected}
                     handleKeyDown={this.handleKeyDown}
-                    inv={inv}
                     invMsg={this.state.invMsg}
-                    maxWeight={maxWeight}
                     msgStyle={this.state.invMsgStyle}
                     player={player}
                     selectedItem={this.state.selectedItem}
