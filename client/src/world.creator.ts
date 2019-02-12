@@ -459,9 +459,9 @@ export class WorldCreator {
             name: this.getName('area'),
             maxX,
             maxY,
-            nDungeon: dungeons.length,
-            nCity: cities.length,
-            nMountain: mountains.length,
+            nDungeons: dungeons.length,
+            nCities: cities.length,
+            nMountains: mountains.length,
             dungeon: dungeons,
             city: cities,
             mountain: mountains
