@@ -273,7 +273,7 @@ export class BrainSentient extends BrainBase {
     }
 
     // Returns cells seen by this actor
-    public getSeenCells() {
+    public getSeenCells(): Cell[] {
         if (this._cache.seen) {
             return this._cache.seen;
         }
@@ -287,20 +287,20 @@ export class BrainSentient extends BrainBase {
     }
 
     /* Checks if the actor can melee attack given x,y coordinate.*/
-    public canMeleeAttack(x, y) {
+    public canMeleeAttack(x: number, y: number): boolean {
         const attackRange = this._actor.get('Combat').getAttackRange();
         const [dX, dY] = RG.dXdYAbs([x, y], this._actor);
         if (dX <= attackRange && dY <= attackRange) {return true;}
         return false;
     }
 
-    public findSeenCell(func) {
+    public findSeenCell(func): Cell[] {
         const seenCells = this.getSeenCells();
         return seenCells.filter(func);
     }
 
     /* Returns true if this actor can see the given actor. */
-    public canSeeActor(actor) {
+    public canSeeActor(actor: BaseActor): boolean {
         const seenCells = this.getSeenCells();
         const cells = Brain.findCellsWithActors(this._actor, seenCells);
         let canSee = false;
@@ -587,5 +587,3 @@ export class BrainArcher extends BrainSentient {
     }
 }
 Brain.Archer = BrainArcher;
-
-
