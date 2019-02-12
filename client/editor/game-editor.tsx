@@ -38,6 +38,7 @@ import {GameMain} from '../src/game';
 import {FromJSON} from '../src/game.fromjson';
 import {Factory} from '../src/factory';
 import {MapGenerator} from '../src/map.generator';
+import {Path} from '../src/path';
 
 const KeyMap = Keys.KeyMap;
 
@@ -156,6 +157,7 @@ export interface IGameEditorState {
       turnsPerFrame: number;
       idCount: number;
       updateMap: boolean;
+      enablePathfind: boolean;
       startTime?: number;
 
       useRLE: boolean;
@@ -248,6 +250,7 @@ export default class GameEditor extends Component {
       turnsPerFrame: 1,
       idCount: 0,
       updateMap: true,
+      enablePathfind: false,
 
       useRLE: true,
       savedLevelName: 'saved_level_from_editor.json'
@@ -368,6 +371,23 @@ export default class GameEditor extends Component {
     }
   }
 
+  /* Sets selected cells from first selected cell to given cell. */
+  public setCellsForPathfinding(cell: Cell): void {
+    const firstCell = this.getFirstSelectedCell();
+    if (firstCell) {
+      const map = this.getCurrMap();
+      const [x0, y0] = firstCell.getXY();
+      const [x1, y1] = cell.getXY();
+      const coord = Path.getShortestPassablePath(map, x0, y0, x1, y1);
+      const pathCells = coord.map(xy => map.getCell(xy.x, xy.y));
+      this.setState({selectedCell: pathCells,
+        mouseOverCell: cell});
+    }
+    else {
+      this.setState({mouseOverCell: cell});
+    }
+  }
+
   public onMouseDown(x, y): void {
     if (!this.state.selectMode) {
       const cell = this.getCellCurrMap(x, y);
@@ -390,8 +410,8 @@ export default class GameEditor extends Component {
   }
 
   public onMouseOver(x, y): void {
+    const cell = this.getCellCurrMap(x, y);
     if (this.state.selectMode) {
-      const cell = this.getCellCurrMap(x, y);
       if (cell) {
         const map = this.getCurrMap();
         const selectedCells = getSelection(this.state.selectBegin,
@@ -400,6 +420,11 @@ export default class GameEditor extends Component {
         const dY = cell.getY() - this.state.selectBegin.getY();
         this.setState({selectedCell: selectedCells, selectEnd: cell,
             selectDiffX: dX, selectDiffY: dY});
+      }
+    }
+    else if (this.state.enablePathfind) {
+      if (cell) {
+        this.setCellsForPathfinding(cell);
       }
     }
   }
@@ -1432,6 +1457,15 @@ export default class GameEditor extends Component {
                     type='checkbox'
                 />
                 Update map
+                </label>
+                <label>
+                <input
+                    checked={this.state.enablePathfind}
+                    name='checkbox-enablePathfind'
+                    onChange={this.onInputChange}
+                    type='checkbox'
+                />
+                Pathfinding
                 </label>
               </span>
             </div>
