@@ -12,6 +12,7 @@ import {SentientActor} from '../../../client/src/actor';
 import * as Component from '../../../client/src/component';
 import {FromJSON} from '../../../client/src/game.fromjson';
 import {EventPool} from '../../../client/src/eventpool';
+import {Level} from '../../../client/src/level';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -217,13 +218,11 @@ describe('ChunkManager', function() {
         expect(newNumLoaded).to.equal(6);
 
         const newGameMaster = newGame.getGameMaster();
-        let battle = Object.values(newGameMaster.battles)[0];
+        const battle = Object.values(newGameMaster.battles)[0];
         expect(battle).not.to.have.property('getLevel');
 
         newGame.movePlayer(1, 1);
-        console.log('1,1 Player level ID', newGame.getPlayer().getLevel().getID());
         newGame.movePlayer(2, 1);
-        console.log('2,1 Player level ID', newGame.getPlayer().getLevel().getID());
         levels = newGame.getLevels();
         expect(levels.length).to.equal(12);
 
@@ -231,7 +230,7 @@ describe('ChunkManager', function() {
         const battleArrays = Object.values(masterBattles);
         const battleObj: Battle = battleArrays[0][0];
         const battleLevel = battleObj.getLevel();
-        expect(battleLevel).to.exist;
+        expect(battleLevel).to.be.an.instanceof(Level);
 
         json = newGame.toJSON();
         fromJSON = new FromJSON();
@@ -269,5 +268,3 @@ describe('ChunkManager', function() {
     });
 
 });
-
-
