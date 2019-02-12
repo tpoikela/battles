@@ -17,7 +17,9 @@ import {Cell} from '../../client/src/map.cell';
 import {SentientActor} from '../../client/src/actor';
 
 import {CmdInput, PlayerCmdInput} from '../../client/src/interfaces';
+
 type Stairs = import('../../client/src/element').ElementStairs;
+type Level = import('../../client/src/level').Level;
 
 const RNG = Random.getRNG();
 const {KEY, KeyMap} = Keys;
@@ -685,8 +687,8 @@ export class PlayerDriver extends DriverBase {
         }
 
         const stairs = cell.getStairs();
-        const targetStairs = stairs.getTargetStairs();
-        const targetLevel = stairs.getTargetLevel();
+        const targetStairs = stairs.getTargetStairs() as Stairs;
+        const targetLevel = stairs.getTargetLevel() as Level;
         const targetID = targetLevel.getID();
         const levelID = this.player.getLevel().getID();
         if (!this.state.visitedStairs.hasOwnProperty(levelID)) {
