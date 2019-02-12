@@ -1,12 +1,12 @@
 
 import RG from './rg';
 import {FromJSON} from './game.fromjson';
-import * as World from './world';
 import {ElementStairs} from './element';
 import {TCoord} from './interfaces';
+import {Level} from './level';
+import * as World from './world';
 
 type Stairs = ElementStairs;
-
 type AreaTileObj = World.AreaTileObj;
 type AreaTileJSON = World.AreaTileJSON;
 
@@ -90,7 +90,7 @@ export class ChunkManager {
 
     /* Must be called when player enters a new tile. Loads/unloads the tiles
      * based on old & new tile coordinates. */
-    setPlayerTile(px, py, oldX, oldY): void {
+    public setPlayerTile(px, py, oldX, oldY): void {
         const moveDir: string = this.getMoveDir(px, py, oldX, oldY);
         if (debug.enabled) {
             debug(`## setPlayerTile START ${oldX},${oldY}->${px},${py}`);
@@ -121,13 +121,13 @@ export class ChunkManager {
         }
     }
 
-    isLoaded(x, y): boolean {
+    public isLoaded(x, y): boolean {
         return this.state[x][y].loadState === LOAD.LOADED;
     }
 
     /* Returns true if given tile (tx,ty) is within load range from
      * player px,py .*/
-    inLoadRange(px, py, tx, ty): boolean {
+    public inLoadRange(px, py, tx, ty): boolean {
         for (let x = px - this.loadDistX; x <= px + this.loadDistX; x++) {
             for (let y = py - this.loadDistY; y <= py + this.loadDistY; y++) {
                 if (tx === x && ty === y) {return true;}
@@ -136,12 +136,12 @@ export class ChunkManager {
         return false;
     }
 
-    loadAllTiles(): void {
+    public loadAllTiles(): void {
         this.setLoadStateAll(LOAD.LOADED);
     }
 
     /* Returns number of tiles in given load state. */
-    getNumInState(loadState): number {
+    public getNumInState(loadState): number {
         let num = 0;
         for (let x = 0; x < this.sizeX; x++) {
             for (let y = 0; y < this.sizeY; y++) {
@@ -154,7 +154,7 @@ export class ChunkManager {
     }
 
     /* Loads the serialized/on-disk tile. */
-    loadTiles(px, py, loadedTilesXY: TCoord[], moveDir: string): void {
+    public loadTiles(px, py, loadedTilesXY: TCoord[], moveDir: string): void {
         const areaTiles: AreaTileObj[][] = this.area.getTiles();
         debug('loadTiles: ' + JSON.stringify(loadedTilesXY));
         const areaTileToLoadNow: AreaTileJSON[] = loadedTilesXY.map(
@@ -185,7 +185,7 @@ export class ChunkManager {
 
     // The only case where this is used is when player enters the game, or
     // moves via debugging functions such as Game.movePlayer()
-    removeAdjacentConnections(areaTiles, px, py, tx, ty) {
+    public removeAdjacentConnections(areaTiles, px, py, tx, ty) {
         // 1. If cell to north not in range, unload north conns
         if (!this.inLoadRange(px, py, tx, ty - 1)) {
             if ((ty - 1) >= 0) {
@@ -220,7 +220,7 @@ export class ChunkManager {
     }
 
     /* Unloads the tile from memory. */
-    unloadTile(px, py, tx, ty, moveDir): void {
+    public unloadTile(px, py, tx, ty, moveDir): void {
         debug(`Unloading tile ${tx},${ty}`);
         const areaTiles = this.area.getTiles();
         this.state[tx][ty].loadState = LOAD.LOADED2JSON;
@@ -318,17 +318,17 @@ export class ChunkManager {
         this.state[tx][ty].loadState = LOAD.JSON;
     }
 
-    getLoadState(x, y): string {
+    public getLoadState(x, y): string {
         return this.state[x][y].loadState;
     }
 
-    toJSON() {
+    public toJSON() {
         return {
             state: this.state
         };
     }
 
-    setLoadStateAll(state) {
+    public setLoadStateAll(state) {
         this.state.forEach((col, x) => {
             col.forEach((tile, y) => {
                 this.state[x][y].loadState = state;
@@ -336,7 +336,7 @@ export class ChunkManager {
         });
     }
 
-    createTiles(tilesJSON: AreaTileJSON[]): void {
+    public createTiles(tilesJSON: AreaTileJSON[]): void {
         const nTiles = tilesJSON.length;
         debug(`Creating ${nTiles} AreaTiles with FromJSON`);
         const fromJSON = new FromJSON();
@@ -344,7 +344,7 @@ export class ChunkManager {
         fromJSON.createTiles(this.game, tilesJSON);
     }
 
-    addConnections(dir, tileToConnect, newTile): void {
+    public addConnections(dir, tileToConnect, newTile): void {
         const oppositeDir = this.getOpposite(dir);
         const addedConns: Stairs[] = this.getReplacedConnections(dir, tileToConnect);
         const newConns: Stairs[] = this.getReplacedConnections(oppositeDir, newTile);
@@ -354,22 +354,26 @@ export class ChunkManager {
         fromJSON.connectTileLevels(levels, conns);
     }
 
-    removeConnections(dir, tile): void {
+    public removeConnections(dir, tile): void {
         const replacedConns: Stairs[] = this.getReplacedConnections(dir, tile);
         replacedConns.forEach(conn => {
-            const targetConn = conn.getTargetStairs();
+            const targetConn = conn.getTargetStairs() as Stairs;
+            const targetLevel = conn.getTargetLevel();
 
-            if (typeof conn.getTargetLevel().getID === 'function') {
+            if (targetLevel instanceof Level) {
                 const connObj = {
-                    targetLevel: conn.getTargetLevel().getID(),
-                    targetStairs: {x: targetConn.getX(), y: targetConn.getY()}
+                    targetLevel: targetLevel.getID(),
+                    targetStairs: {
+                      x: targetConn.getX(),
+                      y: targetConn.getY()
+                    }
                 };
                 conn.setConnObj(connObj);
             }
         });
     }
 
-    getReplacedConnections(dir, tile): Stairs[] {
+    public getReplacedConnections(dir, tile): Stairs[] {
         const level = tile.getLevel();
         const conns = level.getConnections();
         if (conns.length === 0) {
@@ -392,7 +396,7 @@ export class ChunkManager {
         return replacedConns;
     }
 
-    getOpposite(dir) {
+    public getOpposite(dir) {
         switch (dir) {
             case 'NORTH': return 'SOUTH';
             case 'SOUTH': return 'NORTH';
@@ -405,7 +409,7 @@ export class ChunkManager {
     }
 
     /* Returns the player movement direction. */
-    getMoveDir(px, py, oldX, oldY): string {
+    public getMoveDir(px, py, oldX, oldY): string {
         let [dx, dy] = [0, 0];
         let moveDir = '';
         if (!RG.isNullOrUndef([oldX, oldY])) {
@@ -425,7 +429,7 @@ export class ChunkManager {
     }
 
     /* Prints the state in concise format. */
-    debugPrint(): void {
+    public debugPrint(): void {
         let result = '';
         for (let y = 0; y < this.sizeY; y++) {
             for (let x = 0; x < this.sizeX; x++) {
@@ -450,7 +454,7 @@ export class ChunkManager {
     }
 
     /* Converts current state into a single char. */
-    stateToChar(state: ChunkState): string {
+    public stateToChar(state: ChunkState): string {
         switch (state.loadState) {
             case LOAD.LOADED: return 'L';
             case LOAD.JSON: return 'J';
