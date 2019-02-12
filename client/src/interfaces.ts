@@ -7,6 +7,7 @@
 
 type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
+type ElementStairs = import('./element').ElementStairs;
 
 export type TCoord = [number, number];
 
@@ -41,6 +42,7 @@ export interface SubZoneConf {
     constraint?: ConstraintMap;
 }
 
+export type LevelConnection = [string, string, number, number];
 
 export interface LevelSpecStub {
     stub: boolean;
@@ -50,15 +52,21 @@ export interface LevelSpecStub {
 
 export interface PresetLevelSpec {
     nLevel: number;
-    level: LevelSpecStub;
+    level?: LevelSpecStub;
+    levelStub?: LevelSpecStub;
 }
 
 export interface StairsSpec {
     getStairs: number;
 }
 
+/* Used to connect zones to a connection in AreaTile Level. */
 export interface AreaConnection {
-    stairs: StairsSpec;
+    name?: string; // Name of sub-zone to connect
+    nLevel?: number; // Level in that sub-zone to connect
+    levelX?: number; // Connection x-pos in AreaTile Level
+    levelY?: number; // Connection y-pos in AreaTile Level
+    stairs?: StairsSpec | ElementStairs; // Existing Stairs to use
 }
 
 /* Used in procedural constraints to specify conditions. */
@@ -73,17 +81,22 @@ export interface ConstraintMap {
 }
 
 export interface ZoneConf {
-    name: string;
-    x?: number; // Size of the level in x (cols)
-    y?: number; // Size of the level in y (rows)
-    connectLevels?: any[];
-    owX?: number; // Position in OWMap
-    owY?: number; // Position in OWMap
-    levelX?: number; // Position inside Area level
-    levelY?: number; // Position inside Area level
-    presetLevels?: {[key: string]: PresetLevelSpec[]};
+    connectLevels?: LevelConnection[];
     connectToAreaXY?: AreaConnection[];
     constraint?: ConstraintMap;
+    connectEdges?: boolean; // Used to create connections to all edges of levels
+    entrance?: string; // Name of entrance SubZone
+    levelX?: number; // Position inside AreaTile level
+    levelY?: number; // Position inside AreaTile level
+    maxDanger?: number;
+    name: string;
+    owX?: number; // Position in OWMap
+    owY?: number; // Position in OWMap
+    presetLevels?: {[key: string]: PresetLevelSpec[]};
+    sqrPerActor?: number;
+    sqrPerItem?: number;
+    x?: number; // Position in area (tile x)
+    y?: number; // Position in area (tile y)
 }
 
 export interface BranchConf extends SubZoneConf {
@@ -95,11 +108,12 @@ export interface SummitConf extends SubZoneConf {
 }
 
 export interface DungeonConf extends ZoneConf {
-    nBranches: number;
     branch: BranchConf[];
+    nBranches: number;
+
+    dungeonType?: string; // Used to select flavor during proc gen
     dungeonX?: number;
     dungeonY?: number;
-    dungeonType?: string;
 }
 
 export interface QuarterConf extends SubZoneConf {
@@ -116,23 +130,26 @@ export interface FaceConf extends SubZoneConf {
 }
 
 export interface MountainConf extends ZoneConf {
-    nFaces: number;
     face: FaceConf[];
+    nFaces: number;
+
     // Summits are optional for mountains
     nSummits?: number;
     summit?: SummitConf[];
 }
 
 export interface AreaConf {
-    name: string;
-    nDungeon?: number;
-    nMountain?: number;
-    nCity?: number;
-    city?: CityConf[];
-    dungeon?: DungeonConf[];
-    mountain: MountainConf[];
     maxX: number;
     maxY: number;
+    name: string;
+
+    city?: CityConf[];
+    dungeon?: DungeonConf[];
+    mountain?: MountainConf[];
+    nCities?: number;
+    nDungeons?: number;
+    nMountains?: number;
+    presetLevels?: {[key: string]: Level[][]};
 }
 
 export interface PlayerStart {
@@ -142,8 +159,10 @@ export interface PlayerStart {
 }
 
 export interface WorldConf {
-    name: string;
-    nAreas: number;
     area: AreaConf[];
+    nAreas: number;
+    name: string;
+
+    createAllZones?: boolean; // If true, creates everything at once
     playerStart?: PlayerStart;
 }
