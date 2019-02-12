@@ -13,7 +13,7 @@ import {ObjectShell} from './objectshellparser';
 import {QuestGrammar} from '../data/quest-grammar';
 import {Names} from '../data/name-gen';
 import {EventPool} from '../src/eventpool';
-import {SentientActor} from './actor';
+import {BaseActor, SentientActor} from './actor';
 import * as Item from './item';
 import * as Component from './component';
 import {Entity} from './entity';
@@ -1043,7 +1043,7 @@ export class QuestPopulate {
 
     /* Returns an actor from the given array, who is suitable as quest target
      * or quest giver. */
-    public getActorForQuests(actors: SentientActor[]): Entity {
+    public getActorForQuests(actors: BaseActor[]): Entity {
         let actor = RNG.arrayGetRand(actors);
         let numTries = 20;
         let createNew = false;
@@ -1106,8 +1106,8 @@ export class QuestPopulate {
     /* Returns an item already in player's possession. */
     public getAlreadyOwnedItem(): ItemOrNull {
         const location = this.currQuest.getCurrentLocation();
-        const actors = location.getActors();
-        const player = actors.find(a => a.isPlayer && a.isPlayer());
+        // const actors = location.getActors();
+        const player = location.getPlayer() as SentientActor;
         if (player) {
             const items = player.getInvEq().getInventory().getItems();
             return RNG.arrayGetRand(items);
@@ -1566,7 +1566,7 @@ const tasksImplemented = new Set([
 ]);
 
 /* Returns true if given actor can be used as quest target/giver. */
-function isOkForQuest(actor): boolean {
+function isOkForQuest(actor: BaseActor): boolean {
     return actor.has('Corporeal') &&
         (RG.ALL_RACES.indexOf(actor.getType()) >= 0) &&
     !(
