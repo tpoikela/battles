@@ -64,7 +64,14 @@ const getClassesAndChars = function(seen: Cell[] | string, cells: Cell[], selCel
 };
 
 const getClassesAndCharsWithRLE = function(
-    seen: Cell[] | string, cells: Cell[], selCell, anim?, styles: Styles = {}) {
+    seen: Cell[] | string,
+    cells: Cell[],
+    selCell,
+    anim?,
+    styles: Styles = {},
+    funcClassSrc?,
+    funcCharSrc?
+): [string[], string[]] {
     let prevChar = null;
     let prevClass = null;
     let charRL = 0;
@@ -72,6 +79,9 @@ const getClassesAndCharsWithRLE = function(
 
     const cssClasses = [];
     const asciiChars = [];
+
+    funcClassSrc = funcClassSrc || RG.getCssClassForCell.bind(RG);
+    funcCharSrc = funcCharSrc || RG.getCharForCell.bind(RG);
 
     let selMap: Map<string, Cell> = null;
     if (selCell) {
@@ -111,8 +121,10 @@ const getClassesAndCharsWithRLE = function(
             visibleToPlayer = cellIndex < 0 ? false : true;
         }
 
-        cellClass = RG.getCssClassForCell(cell, visibleToPlayer);
-        cellChar = RG.getCharForCell(cell, visibleToPlayer);
+        // cellClass = RG.getCssClassForCell(cell, visibleToPlayer);
+        // cellChar = RG.getCharForCell(cell, visibleToPlayer);
+        cellClass = funcClassSrc(cell, visibleToPlayer);
+        cellChar = funcCharSrc(cell, visibleToPlayer);
 
         // Useless to animate non-visible cells
         if (visibleToPlayer && anim) {
@@ -329,7 +341,7 @@ export class Screen {
         else {
             this.setViewportXY(map.cols, map.rows);
         }
-        this.viewport.getCellsInViewPort(playX, playY, map);
+        this.viewport.initCellsInViewPort(playX, playY, map);
 
         this.startX = this.viewport.startX;
         this.endX = this.viewport.endX;
@@ -357,13 +369,14 @@ export class Screen {
         this.render(playX, playY, map, ALL_VISIBLE);
     }
 
-    public renderWithRLE(playX, playY, map, visibleCells, anim?) {
+    public renderWithRLE(playX: number, playY: number, map: CellMap,
+                         visibleCells: Cell[], anim?, funcClassSrc?, funcCharSrc?) {
         this._initRender(playX, playY, map);
         let yCount = 0;
         for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
             const rowCellData = this.viewport.getCellRow(y);
             const classesChars = getClassesAndCharsWithRLE(visibleCells,
-                rowCellData, this.selectedCell, anim, this.styles);
+                rowCellData, this.selectedCell, anim, this.styles, funcClassSrc, funcCharSrc);
 
             this._classRows[yCount] = classesChars[0];
             this._charRows[yCount] = classesChars[1];
@@ -402,7 +415,7 @@ export class Screen {
         }
     }
 
-    public clear() {
+    public clear(): void {
         this._classRows = [];
         this._charRows = [];
         this.selectedCell = null;
@@ -413,14 +426,102 @@ export class Screen {
         this.styles = {};
     }
 
-    public setStyle(name, value) {
+    public setStyle(name: string, value): void {
         this.styles[name] = value;
     }
 
     /* Prints the chars in screen. */
-    public printRenderedChars() {
-      this._charRows.forEach(row => {
+    public printRenderedChars(): void {
+      this._charRows.forEach((row: string[]) => {
         console.log(row.join(''));
       });
     }
+
+    public printRenderedClasses(): void {
+      this._classRows.forEach((row: string[]) => {
+        console.log(row.join(''));
+      });
+    }
+}
+
+class BufferMap {
+
+}
+
+export class ScreenBuffered extends Screen {
+
+    protected fullMapCharRows: string[][];
+    protected fullMapClassRows: string[][];
+    protected isInitialized: boolean;
+
+    constructor(viewX: number, viewY: number) {
+        super(viewX, viewY);
+        this.isInitialized = false;
+
+        this.getCellChar = this.getCellChar.bind(this);
+        this.getCellClass = this.getCellClass.bind(this);
+    }
+
+    public invalidate(): void {
+        this.isInitialized = false;
+    }
+
+    public renderWithRLE(playX: number, playY: number, map: CellMap,
+                         visibleCells: Cell[], anim?, funcClassSrc?, funcCharSrc?) {
+        if (!this.isInitialized) {
+            this.initializeFullMap(map, visibleCells);
+        }
+
+        // Mutate only visible cells in the full map
+        visibleCells.forEach(cell => {
+            const [x, y] = cell.getXY();
+            const cellClass = RG.getCssClassForCell(cell, true);
+            const cellChar = RG.getCharForCell(cell, true);
+            this.fullMapClassRows[x][y] = cellClass;
+            this.fullMapCharRows[x][y] = cellChar;
+        });
+        console.log('There are', visibleCells.length, 'cells visible');
+
+        // Finally, get the chars and classes to render
+        return super.renderWithRLE(playX, playY, map, visibleCells, anim,
+            this.getCellClass, this.getCellChar);
+    }
+
+    /* Called once when a new Map is loaded. */
+    protected initializeFullMap(map: CellMap, visibleCells: Cell[]): void {
+        console.log('ScreenBuffered initialize full map now');
+        const cells: Cell[] = map.getCells();
+        this.fullMapClassRows = new Array(map.cols);
+        this.fullMapCharRows = new Array(map.cols);
+        for (let x = 0; x < map.cols; x++) {
+            this.fullMapCharRows[x] = new Array(map.rows);
+            this.fullMapClassRows[x] = new Array(map.rows);
+        }
+
+        const visibleMap: Map<string, boolean> = new Map();
+        visibleCells.forEach(cell => {
+            visibleMap[cell.getKeyXY()] = true;
+        });
+        cells.forEach(cell => {
+            const [x, y] = cell.getXY();
+            const isVisible = visibleMap[cell.getKeyXY()];
+            const cellClass = RG.getCssClassForCell(cell, isVisible);
+            const cellChar = RG.getCharForCell(cell, isVisible);
+            this.fullMapClassRows[x][y] = cellClass;
+            this.fullMapCharRows[x][y] = cellChar;
+        });
+        this.isInitialized = true;
+
+    }
+
+    protected getCellClass(cell: Cell, isVisible: boolean): string {
+        const [x, y] = cell.getXY();
+        return this.fullMapClassRows[x][y];
+    }
+
+    protected getCellChar(cell: Cell, isVisible: boolean): string {
+        const [x, y] = cell.getXY();
+        return this.fullMapCharRows[x][y];
+    }
+
 }
