@@ -8,7 +8,7 @@ import GameEquipment from './game-equipment';
 import RG from '../src/rg';
 import {KeyCode} from '../gui/keycode';
 import {ItemBase} from '../src/item';
-import {ISelection} from "./game-equip-slot";
+import {ISelection} from './game-equip-slot';
 import {Keys} from '../src/keymap';
 
 interface IGameInventoryProps {
@@ -35,12 +35,14 @@ interface IGameInventoryState {
     filter: string;
 }
 
+const ACTIVE_BTN_CLASS = 'btn btn-secondary';
+const DISABLED_BTN_CLASS = 'btn btn-secondary disabled';
 
 /* Component renders the player inventory.*/
 export default class GameInventory extends React.Component {
 
   public props: IGameInventoryProps;
-  public state: IGameInventoryState;;
+  public state: IGameInventoryState;
 
   constructor(props: IGameInventoryProps) {
     super(props);
@@ -58,7 +60,7 @@ export default class GameInventory extends React.Component {
     };
   }
 
-  handleKeyDown(evt) {
+  public handleKeyDown(evt): void {
       const keyCode = KeyCode.getKeyCode(evt);
       if (keyCode === Keys.GUI.Inv) {
           this.toggleScreen('Inventory');
@@ -69,12 +71,12 @@ export default class GameInventory extends React.Component {
       }
   }
 
-  onChangeCount(evt) {
+  public onChangeCount(evt): void {
     const value = evt.target.value;
     this.setState({count: value});
   }
 
-  getCount() {
+  public getCount(): number {
     const count = parseInt(this.state.count, 10);
     if (Number.isInteger(count)) {
       if (count > 0) {
@@ -85,7 +87,7 @@ export default class GameInventory extends React.Component {
   }
 
   /* Called when "Drop" is clicked. Drops item to the ground.*/
-  dropItem() {
+  public dropItem(): void {
     if (this.props.selectedItem !== null) {
       const cmd = RG.getDropCmd(this.props.selectedItem, this.getCount());
       cmd.callback = function(obj) {
@@ -94,7 +96,7 @@ export default class GameInventory extends React.Component {
           msgStyle = 'text-danger';
         }
         this.props.setInventoryMsg(
-          {invMsg: obj.msg, msgStyle: msgStyle});
+          {invMsg: obj.msg, msgStyle});
         this.props.selectItemTop(null);
       }.bind(this);
       this.props.doInvCmd(cmd);
@@ -107,7 +109,7 @@ export default class GameInventory extends React.Component {
   }
 
   /* When "Equip" is clicked, equips the selected item, if any.*/
-  equipItem() {
+  public equipItem(): void {
     const item = this.props.selectedItem;
     if (item !== null) {
       const cmd = RG.getEquipCmd(this.props.selectedItem, this.getCount());
@@ -118,7 +120,7 @@ export default class GameInventory extends React.Component {
           msgStyle = 'text-danger';
         }
         this.props.setInventoryMsg(
-          {invMsg: obj.msg, msgStyle: msgStyle});
+          {invMsg: obj.msg, msgStyle});
         this.props.selectItemTop(null);
       }.bind(this);
 
@@ -132,7 +134,7 @@ export default class GameInventory extends React.Component {
   }
 
   /* Called when "Remove" button is clicked to remove an equipped item.*/
-  unequipItem() {
+  public unequipItem(): void {
     if (this.props.equipSelected) {
       const name = this.props.equipSelected.slotName;
       const slotNumber = this.props.equipSelected.slotNumber;
@@ -144,7 +146,7 @@ export default class GameInventory extends React.Component {
           msgStyle = 'text-danger';
         }
         this.props.setInventoryMsg(
-          {invMsg: obj.msg, msgStyle: msgStyle});
+          {invMsg: obj.msg, msgStyle});
         this.props.selectEquipTop(null);
       }.bind(this);
 
@@ -158,7 +160,7 @@ export default class GameInventory extends React.Component {
 
   /* Called when Use button is clicked. If an item is selected, uses that
    * item. */
-  useItem() {
+  public useItem(): void {
     const item = this.props.selectedItem;
     if (!RG.isNullOrUndef([item])) {
 
@@ -171,7 +173,7 @@ export default class GameInventory extends React.Component {
           msgStyle = 'text-danger';
         }
         this.props.setInventoryMsg(
-          {invMsg: obj.msg, msgStyle: msgStyle});
+          {invMsg: obj.msg, msgStyle});
         if (item.has('OneShot')) {
           this.props.selectItemTop(null);
         }
@@ -186,21 +188,21 @@ export default class GameInventory extends React.Component {
   }
 
   /* When an item is clicked, selects it and adds count to the <input> */
-  setSelectedItem(item) {
+  public setSelectedItem(item): void {
     const msg = 'Inventory Selected: ' + item.toString();
     this.props.selectItemTop(item);
     this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
     this.setState({count: item.getCount()});
   }
 
-  setEquipSelected(selection: ISelection) {
+  public setEquipSelected(selection: ISelection): void {
     const msg = 'Equipment Selected: ' + selection.item.toString();
     this.props.selectEquipTop(selection);
     this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
     this.setState({count: selection.item.getCount()});
   }
 
-  render() {
+  public render() {
     const inv = this.props.inv;
     const eq = this.props.eq;
     const maxWeight = this.props.maxWeight;
@@ -208,23 +210,9 @@ export default class GameInventory extends React.Component {
 
     const isMasterEquipper = this.props.player.has('MasterEquipper');
 
-    const activebuttonClass = 'btn btn-secondary';
-    const disabledButtonClass = 'btn btn-secondary disabled';
-
-    const onlyItemSelected = this.props.selectedItem
-      && this.props.equipSelected === null;
-
-    const dropButtonClass = onlyItemSelected
-      ? activebuttonClass : disabledButtonClass;
-    const equipButtonClass = onlyItemSelected
-      ? activebuttonClass : disabledButtonClass;
-    const unequipButtonClass = this.props.equipSelected
-      ? activebuttonClass : disabledButtonClass;
-    const useButtonClass = this.props.selectedItem
-      ? activebuttonClass : disabledButtonClass;
-
-    const useButtonText = this.getUseButtonText();
     const itemTabs = this.getItemTabs(inv);
+    const itemButtons = this.getItemButtons();
+    const equipButtons = this.getEquipButtons();
 
     return (
       <Modal
@@ -240,6 +228,7 @@ export default class GameInventory extends React.Component {
 
           <div className='items-box col-md-6'>
             {itemTabs}
+            {itemButtons}
             <GameItems
               eqWeight={eqWeight}
               filter={this.state.filter}
@@ -250,6 +239,7 @@ export default class GameInventory extends React.Component {
           </div>
 
           <div className='col-md-6' id='equipment-box'>
+            {equipButtons}
             <GameEquipment
               eq={eq}
               isMasterEquipper={isMasterEquipper}
@@ -262,32 +252,9 @@ export default class GameInventory extends React.Component {
         <div className='modal-footer row'>
           <div className='col-md-6'>
             <p className={this.props.msgStyle}>{this.props.invMsg}</p>
-            <div>Count:
-              <input onChange={this.onChangeCount} value={this.state.count} />
-            </div>
           </div>
 
           <div className='col-md-6'>
-            <button
-              className={dropButtonClass}
-              onClick={this.dropItem}
-              type='button'
-            >Drop</button>
-            <button
-              className={equipButtonClass}
-              onClick={this.equipItem}
-              type='button'
-            >Equip</button>
-            <button
-              className={unequipButtonClass}
-              onClick={this.unequipItem}
-              type='button'
-            >Remove</button>
-            <button
-              className={useButtonClass}
-              onClick={this.useItem}
-              type='button'
-            >{useButtonText}</button>
             <button
                 className='btn btn-danger'
                 onClick={this.toggleScreen.bind(this, 'Inventory')}
@@ -295,22 +262,21 @@ export default class GameInventory extends React.Component {
             >Close
             </button>
           </div>
-
         </div>
       </Modal>
     );
   }
 
-  getItemTabs(inv) {
+  public getItemTabs(inv) {
       const types = {All: true};
       inv.getItems().forEach(item => {
           types[item.getType()] = true;
       });
       const tabNames = Object.keys(types);
       const tabElems = tabNames.map(name => {
-          let className = 'btn btn-secondary';
+          let className = 'btn btn-secondary btn-sm';
           if (this.state.filter === name) {
-              className = 'btn btn-primary';
+              className = 'btn btn-primary btn-sm';
           }
           return (
               <button
@@ -325,15 +291,64 @@ export default class GameInventory extends React.Component {
       );
   }
 
-  toggleScreen(type) {
+  public getItemButtons() {
+    const isItemSelected = this.props.selectedItem;
+
+    const dropButtonClass = isItemSelected
+      ? ACTIVE_BTN_CLASS : DISABLED_BTN_CLASS;
+    const equipButtonClass = isItemSelected
+      ? ACTIVE_BTN_CLASS : DISABLED_BTN_CLASS;
+    const useButtonClass = isItemSelected
+      ? ACTIVE_BTN_CLASS : DISABLED_BTN_CLASS;
+    const useButtonText = this.getUseButtonText();
+    return (
+      <React.Fragment>
+        <button
+          className={equipButtonClass}
+          onClick={this.equipItem}
+          type='button'
+        >Equip</button>
+        <button
+          className={useButtonClass}
+          onClick={this.useItem}
+          type='button'
+        >{useButtonText}</button>
+        <button
+          className={dropButtonClass}
+          onClick={this.dropItem}
+          type='button'
+        >Drop</button>
+        <label>Count:
+          <input onChange={this.onChangeCount} value={this.state.count} />
+        </label>
+      </React.Fragment>
+    );
+  }
+
+  public getEquipButtons() {
+    const unequipButtonClass = this.props.equipSelected
+      ? ACTIVE_BTN_CLASS : DISABLED_BTN_CLASS;
+    return (
+      <React.Fragment>
+        <button
+        className={unequipButtonClass}
+        onClick={this.unequipItem}
+        type='button'
+        >Remove</button>
+      </React.Fragment>
+    );
+  }
+
+
+  public toggleScreen(type) {
       this.props.toggleScreen(type);
   }
 
-  filterItems(type) {
+  public filterItems(type) {
       this.setState({filter: type});
   }
 
-  getUseButtonText() {
+  public getUseButtonText() {
     if (this.props.selectedItem) {
       const type = this.props.selectedItem.getType();
       if (type === 'food') {return 'Eat';}
