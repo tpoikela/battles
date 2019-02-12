@@ -277,7 +277,7 @@ class TargetingFSM {
                     const names = tcell.getPropNames();
                     msg = '';
                     names.forEach(name => {
-                        msg += `You see ${name} `;
+                        msg += `You see ${name}. `;
                     });
                     RG.gameMsg(msg);
                 }
