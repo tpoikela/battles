@@ -7,6 +7,8 @@ import * as Component from '../../../client/src/component';
 import {EventPool} from '../../../client/src/eventpool';
 import {System} from '../../../client/src/system';
 import {Quest, QuestPopulate} from '../../../client/src/quest-gen';
+import {Entity} from '../../../client/src/entity';
+import {ItemBase} from '../../../client/src/item';
 
 import {RGTest} from '../../roguetest';
 import {chaiBattles} from '../../helpers/chai-battles';
@@ -23,6 +25,10 @@ describe('System.Quest', () => {
     let sysQuest = null;
     let sysDamage = null;
     let pool = null;
+    let quester = null;
+    let area = null;
+    let city = null;
+    let level = null;
 
     beforeEach(() => {
         pool = EventPool.getPool();
@@ -36,13 +42,18 @@ describe('System.Quest', () => {
         systems.push(sysBaseAction);
         systems.push(sysQuest);
         systems.push(sysDamage);
+
+        area = RGTest.createTestArea();
+        city = area.getTileXY(0, 0).getZones('City')[0];
+        level = city.getLevels()[0];
+        quester = new SentientActor('hero');
+        level.addActor(quester, 1, 1);
     });
 
+    // Note we don't create separate it() blocks for all tests because that
+    // would mean creating the test Area for each test. This has several
+    // levels, so creating it may take time
     it('Handles listen/report quests', () => {
-        const area = RGTest.createTestArea();
-        const city = area.getTileXY(0, 0).getZones('City')[0];
-        const level = city.getLevels()[0];
-        console.log('There N actors', level.getActors().length);
 
         //---------------------
         // LISTEN-REPORT QUEST
@@ -53,8 +64,6 @@ describe('System.Quest', () => {
         questPopul.mapQuestToResources(reportQuest, city, null);
         questPopul.addQuestComponents(city);
 
-        const quester = new SentientActor('hero');
-        level.addActor(quester, 1, 1);
         const actors = level.getActors();
 
         let giver = actors.find(actor => actor.has('QuestGiver'));
@@ -113,7 +122,7 @@ describe('System.Quest', () => {
         questPopul.addQuestComponents(city);
 
         const killTarget = getQuestTarget('kill', actors);
-        expect(killTarget).to.not.be.empty;
+        expect(killTarget).to.an.instanceof(Entity);
 
         giver = actors.find(actor => actor.has('QuestGiver'));
         giverComp = giver.get('QuestGiver');
@@ -226,17 +235,17 @@ describe('System.Quest', () => {
 
         const questGiver = actors.find(a => (
             a.has('QuestGiver')));
-        expect(questGiver).to.not.be.empty;
+        expect(questGiver).to.be.an.instanceof(Entity);
 
         const actorToGive = getQuestTarget('give', actors);
-        expect(actorToGive).to.not.be.empty;
+        expect(actorToGive).to.be.an.instanceof(Entity);
         expect(quester).to.not.have.component('Quest');
         giveQuest(questGiver, quester);
         sysQuest.update();
         expect(quester).to.have.component('Quest');
 
-        const questItem = getQuestTarget('get', level.getItems());
-        expect(questItem).to.not.be.empty;
+        const questItem = getQuestTarget('get', level.getItems()) as ItemBase;
+        expect(questItem).to.be.an.instanceof(Entity);
 
         const [x, y] = questItem.getXY();
         level.moveActorTo(quester, x, y);
@@ -256,9 +265,69 @@ describe('System.Quest', () => {
         expect(currQuest.isCompleted()).to.equal(true);
 
     });
+
+    it('handles escort-quest mapping', () => {
+        //---------------------
+        // ESCORT QUEST
+        //---------------------
+        const escortTasks = ['<learn>already_know_it',
+            '<goto>goto', 'damage', 'escort', '<learn>already_know_it', '<goto>goto', 'report'];
+        const escortQuest = new Quest('Get stuff and give', escortTasks);
+        console.log(escortQuest.getSteps());
+        questPopul = new QuestPopulate();
+        questPopul.setDebug(true);
+        const ok = questPopul.mapQuestToResources(escortQuest, city, area.getTileXY(0, 0));
+        expect(ok, 'Escort Quest mapped OK').to.equal(true);
+        questPopul.addQuestComponents(city);
+
+        const actors = level.getActors();
+        const questGiver = actors.find(a => (
+            a.has('QuestGiver')));
+        expect(questGiver).to.be.an.instanceof(Entity);
+
+        expect(quester).to.not.have.component('Quest');
+        giveQuest(questGiver, quester);
+        sysQuest.update();
+        expect(quester).to.have.component('Quest');
+
+        const dung = area.getTileXY(0, 0).getZones('Dungeon')[0];
+        const dungLevel = dung.getLevels()[0];
+        const escortActor = dungLevel.getActors().find(a => (
+            a.has('QuestTarget') && a.has('QuestEscortTarget')
+        ));
+        const escComp = escortActor.get('QuestEscortTarget');
+        const escortLevel = escComp.getEscortTo();
+        expect(escortLevel.getID()).to.equal(level.getID());
+
+        /*
+        const actorToGive = getQuestTarget('give', actors);
+        expect(actorToGive).to.be.an.instanceof(Entity);
+
+        const questItem = getQuestTarget('get', level.getItems()) as ItemBase;
+        expect(questItem).to.be.an.instanceof(Entity);
+
+        const [x, y] = questItem.getXY();
+        level.moveActorTo(quester, x, y);
+        const pickupItem = new Component.Pickup();
+        quester.add(pickupItem);
+        RGTest.updateSystems(systems);
+
+        const giveComp = new Component.Give();
+        giveComp.setItem(questItem);
+        giveComp.setGiveTarget(actorToGive);
+        quester.add(giveComp);
+        RGTest.updateSystems(systems);
+
+        const currQuest = quester.get('Quest');
+        console.log('Get-Give:', JSON.stringify(currQuest.getQuestTargets()));
+        console.log('currQuest:', JSON.stringify(currQuest));
+        expect(currQuest.isCompleted()).to.equal(true);
+        */
+
+    });
 });
 
-function getQuestTarget(type, entities) {
+function getQuestTarget(type, entities): Entity {
     return entities.find(entity => (
         entity.has('QuestTarget') &&
         entity.get('QuestTarget').getTargetType() === type
