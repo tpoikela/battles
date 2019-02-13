@@ -1766,7 +1766,7 @@ export class BattleZone extends ZoneBase {
         return this._levels.push(level);
     }
 
-    public getLevels() {
+    public getLevels(): Level[] {
         return this._levels;
     }
 
