@@ -41,7 +41,7 @@ type SelectionFunc = () => void;
 export interface SelectionObject {
     showMenu: () => boolean;
     getMenu?: () => any;
-    select: (code: number) => SelectionObject | SelectionFunc | null
+    select: (code: number) => SelectionObject | SelectionFunc | null;
     showMsg?: () => void;
     funcToCall?: () => void;
 }
@@ -77,15 +77,15 @@ const createMenuTable = function(args: MenuArg[]): MenuTable {
         const index = Keys.menuIndices[i];
         if ((item as MenuArgObj).key) {
             const itemObj = item as MenuArgObj;
-            const index = Keys.codeToIndex(itemObj.key);
+            const ii = Keys.codeToIndex(itemObj.key);
             if (itemObj.menu) {
-                table[index] = itemObj.menu;
+                table[ii] = itemObj.menu;
             }
             else if (itemObj.func) {
-                table[index] = itemObj.func;
+                table[ii] = itemObj.func;
             }
             else if (itemObj.funcToCall) {
-                table[index] = {funcToCall: itemObj.funcToCall};
+                table[ii] = {funcToCall: itemObj.funcToCall};
             }
         }
         else if ((item as MenuArgArray).length === 2) {
@@ -119,8 +119,8 @@ export class MenuBase {
     public post: string[];
     public parent: MenuBase | null;
     public table: MenuTable;
-    protected _showMenu: boolean;
     public callback: (any) => void;
+    protected _showMenu: boolean;
 
     constructor(args: MenuArg[] = []) {
         this.table = createMenuTable(args);
@@ -132,40 +132,40 @@ export class MenuBase {
         this.parent = null; // Parent menu for this object
     }
 
-    setName(name: string): void {
+    public setName(name: string): void {
         this.name = name;
     }
 
-    setMsg(msg: string): void {
+    public setMsg(msg: string): void {
         this.msg = msg;
     }
 
-    showMsg(): void {
+    public showMsg(): void {
         if (this.msg.length > 0) {
             RG.gameMsg(this.msg);
         }
     }
 
-    setParent(parent: MenuBase | null) {
+    public setParent(parent: MenuBase | null) {
         this.parent = parent;
     }
 
-    getParent(): MenuBase | null {
+    public getParent(): MenuBase | null {
         return this.parent;
     }
 
-    addItem(code: number, item) {
+    public addItem(code: number, item) {
         const index = Keys.codeToIndex(code);
         this.table[index] = item;
     }
 
-    showMenu() {return this._showMenu;}
+    public showMenu() {return this._showMenu;}
 
-    setCallback(cb) {
+    public setCallback(cb) {
         this.callback = cb;
     }
 
-    getMenu() {
+    public getMenu() {
         const obj = {pre: [], post: []};
         Object.keys(this.table).forEach(index => {
             const char = Keys.menuIndices[index];
@@ -176,7 +176,7 @@ export class MenuBase {
         return obj;
     }
 
-    addPost(item: string | string[]): void {
+    public addPost(item: string | string[]): void {
         if (Array.isArray(item)) {
             this.post = this.post.concat(item);
         }
@@ -185,7 +185,7 @@ export class MenuBase {
         }
     }
 
-    addPre(item: string | string[]): void {
+    public addPre(item: string | string[]): void {
         if (Array.isArray(item)) {
             this.pre = this.pre.concat(item);
         }
@@ -194,11 +194,11 @@ export class MenuBase {
         }
     }
 
-    dbg(...args): void {
+    public dbg(...args): void {
         console.log(`MENU ${this.name}`, ...args);
     }
 
-    select(code) {
+    public select(code) {
         const selectIndex = Keys.codeToIndex(code);
         if (this.table.hasOwnProperty(selectIndex)) {
             const selection = this.table[selectIndex];
@@ -225,7 +225,7 @@ export class MenuInfoOnly extends MenuBase {
         super();
     }
 
-    select(code) {
+    public select(code) {
         const selection = Keys.codeToIndex(code);
         if (selection === 0) {
             return Menu.EXIT_MENU;
@@ -233,7 +233,7 @@ export class MenuInfoOnly extends MenuBase {
         return this;
     }
 
-    getMenu() {
+    public getMenu() {
         const obj = {
             0: 'Back to game.',
             pre: this.pre,
@@ -257,7 +257,7 @@ export class MenuWithQuit extends MenuBase {
         this.table[quitIndex] = ['Quit menu', Menu.EXIT_MENU];
     }
 
-    select(code) {
+    public select(code) {
         const selection = Keys.codeToIndex(code);
         if (this.table.hasOwnProperty(selection)) {
             const value = this.table[selection][1];
@@ -277,7 +277,7 @@ export class MenuSelectRequired extends MenuBase {
         super(args);
     }
 
-    select(code) {
+    public select(code) {
         const selection = Keys.codeToIndex(code);
         if (this.table.hasOwnProperty(selection)) {
             return this.table[selection][1];
@@ -303,11 +303,11 @@ export class MenuSelectCell extends MenuBase {
         this._showMenu = false;
     }
 
-    enableSelectAll() {
+    public enableSelectAll(): void {
         this._enableSelectAll = true;
-    };
+    }
 
-    select(code) {
+    public select(code) {
         if (KeyMap.inMoveCodeMap(code)) {
             this.callback(code);
             return this;
@@ -342,7 +342,7 @@ export class MenuSelectTarget extends MenuSelectCell {
         this.targetCallback = null;
     }
 
-    select(code) {
+    public select(code) {
         const val = MenuSelectCell.prototype.select.call(this, code);
         if (val === Menu.EXIT_MENU) {
             if (KeyMap.isNextTarget(code)) {
@@ -378,7 +378,7 @@ export class MenuSelectDir extends MenuBase {
         this._showMenu = false;
     }
 
-    select(code) {
+    public select(code) {
         if (KeyMap.inMoveCodeMap(code)) {
             const dXdY = Keys.KeyMap.getDir(code);
             return this.callback.bind(null, dXdY);
@@ -422,7 +422,7 @@ export class MenuWithState extends MenuWithQuit {
 
     }
 
-    select(code) {
+    public select(code) {
         if (this.keyToState.hasOwnProperty(code)) {
             this.menuState = this.keyToState[code];
             return this;
@@ -445,16 +445,16 @@ export class MenuWithState extends MenuWithQuit {
         }
     }
 
-    addState(state, menuArgs) {
+    public addState(state, menuArgs) {
         this.stateToTable[state] = createMenuTable(menuArgs);
     }
 
-    addTransition(state, code) {
+    public addTransition(state, code) {
         this.keyToState[code] = state;
     }
 
     /* Returns the menu which should be shown. */
-    getMenu() {
+    public getMenu() {
         const quitObj = MenuWithQuit.prototype.getMenu.call(this);
         const state = this.menuState;
         const table = this.stateToTable[state];
@@ -473,7 +473,7 @@ export class MenuWithState extends MenuWithQuit {
         return obj;
     }
 
-    addPreState(item, state) {
+    public addPreState(item, state) {
         if (state) {
             this.stateToPre[state] = item;
         }
@@ -482,7 +482,7 @@ export class MenuWithState extends MenuWithQuit {
         }
     }
 
-    addPostState(item, state) {
+    public addPostState(item, state) {
         if (state) {
             this.stateToPost[state] = item;
         }
