@@ -1134,7 +1134,7 @@ export class BrainPlayer extends BrainBase {
         if (msg) {RG.gameMsg(msg);}
     }
 
-    public issueOrderCmd() {
+    public issueOrderCmd(): void {
         const orderMenuArgs = [
             ['Follow me', this.giveOrder.bind(this, 'Follow')],
             ['Attack enemy', this.giveOrder.bind(this, 'Attack')],
@@ -1157,7 +1157,7 @@ export class BrainPlayer extends BrainBase {
         this.selectCell();
     }
 
-    public lookCmd() {
+    public lookCmd(): void {
         const cellMenuArgs = [
             // When key is pressed, calls func
             {key: Keys.KEY.SELECT,
@@ -1172,14 +1172,14 @@ export class BrainPlayer extends BrainBase {
         this.selectCell();
     }
 
-    public giveCmd() {
+    public giveCmd(): void {
         const menu = new Menu.SelectDir();
         menu.setCallback(this.giveCallback.bind(this));
         this.setSelectionObject(menu);
         RG.gameMsg('Please select direction to giving an item:');
     }
 
-    public giveCallback(dXdY) {
+    public giveCallback(dXdY): void {
         const [tX, tY] = RG.newXYFromDir(dXdY, this._actor);
         const cell = this._actor.getLevel().getMap().getCell(tX, tY);
         if (cell.hasActors()) {
@@ -1200,21 +1200,21 @@ export class BrainPlayer extends BrainBase {
         }
     }
 
-    public giveItemToActor(item, actor) {
+    public giveItemToActor(item, actor): void {
         const giveComp = new Component.Give();
         giveComp.setGiveTarget(actor);
         giveComp.setItem(item);
         this._actor.add(giveComp);
     }
 
-    public jumpCmd() {
+    public jumpCmd(): void {
         const menu = new Menu.SelectDir();
         menu.setCallback(this.jumpCallback.bind(this));
         this.setSelectionObject(menu);
         RG.gameMsg('Please select direction to jump');
     }
 
-    public jumpCallback(dXdY) {
+    public jumpCallback(dXdY): void {
         this.energy = RG.energy.JUMP;
         const [x, y] = dXdY;
         const jumpCmp = new Component.Jump();
