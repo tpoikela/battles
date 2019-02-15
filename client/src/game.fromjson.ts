@@ -260,6 +260,12 @@ FromJSON.prototype.createGame = function(game, gameJSON) {
         rng.setState(gameJSON.rng.state);
         game.setRNG(rng);
     }
+    if (gameJSON.diceRng) {
+        const diceRng = new Random(gameJSON.diceRng.seed);
+        diceRng.setState(gameJSON.diceRng.state);
+        Dice.RNG = diceRng;
+    }
+
     this.IND = 0;
     return game;
 };
