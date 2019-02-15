@@ -32,6 +32,7 @@ import {FactoryWorld} from '../src/factory.world';
 import {World} from '../src/world';
 import {WorldCreator} from '../src/world.creator';
 import {WinCondition} from '../src/game';
+import {Room} from '../../lib/bsp';
 
 const POOL = EventPool.getPool();
 
@@ -44,6 +45,7 @@ export const DebugGame = function(fact, parser) {
 };
 
 DebugGame.prototype.createArena = function(obj, game, player) {
+    Room.rng = RNG;
     const parser = this._parser;
     const sqrPerItem = obj.sqrPerItem;
     obj.cols = 100;
