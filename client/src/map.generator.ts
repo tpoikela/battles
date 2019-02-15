@@ -297,7 +297,7 @@ export class MapGenerator {
         const haloAroundX = 2; // Prevents house placement on edges
         const haloAroundY = 2; // Prevents house placement on edges
 
-        const bspGen = new BSP.BSPGen();
+        const bspGen = new BSP.BSPGen({rng: RNG});
         const bspX0 = haloAroundX - 1;
         const bspY0 = haloAroundY - 1;
         const bspCols = cols - 2 * bspX0;
