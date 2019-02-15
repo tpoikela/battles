@@ -71,14 +71,14 @@ describe('Level', () => {
         const level1 = factLevel.createLevel('arena', 20, 20);
         const item1 = new ItemBase('item1');
         const item2 = new ItemBase('item2');
-        expect(level1.addItem(item1, 2, 2)).to.be.true;
-        expect(level1.addItem(item2, 3, 3)).to.be.true;
+        expect(level1.addItem(item1, 2, 2)).to.equal(true);
+        expect(level1.addItem(item2, 3, 3)).to.equal(true);
 
         let items = level1.getItems();
         expect(items).to.have.length(2);
         expect(items[0]).to.equal(item1);
 
-        expect(level1.removeItem(item1, 2, 2)).to.be.true;
+        expect(level1.removeItem(item1, 2, 2)).to.equal(true);
         const funcThatThrows = () => {
             level1.removeItem(item1, 2, 2);
         };
@@ -161,7 +161,6 @@ describe('Level', () => {
         expect(level1.hasExtras()).to.equal(true);
 
         expect(Object.keys(level1.getExtras())).to.have.length(5);
-
         level1.addExtras('shops', [1, 2, 3, 4]);
         expect(Object.keys(level1.getExtras())).to.have.length(6);
     });
