@@ -2,7 +2,7 @@
 import chai from 'chai';
 import RG from '../../../client/src/rg';
 
-import {SentientActor} from '../../../client/src/actor';
+import {BaseActor, SentientActor} from '../../../client/src/actor';
 import * as Component from '../../../client/src/component';
 import {EventPool} from '../../../client/src/eventpool';
 import {System} from '../../../client/src/system';
@@ -74,9 +74,9 @@ describe('System.Quest', () => {
         expect(qTargets).to.have.length(2);
 
         const listenTarget = actors.find(a => a.has('QuestInfo'));
-        expect(listenTarget).to.not.be.empty;
+        expect(listenTarget).to.be.an.instanceof(BaseActor);
         const reportTarget = actors.find(a => a.has('QuestReport'));
-        expect(reportTarget).to.not.be.empty;
+        expect(reportTarget).to.be.an.instanceof(BaseActor);
 
         giveQuest(giver, quester);
         expect(giverComp.getHasGivenQuest()).to.equal(false);
@@ -167,14 +167,14 @@ describe('System.Quest', () => {
         questPopul.addQuestComponents(city);
 
         const bookToRead = getQuestTarget('read', level.getItems());
-        expect(bookToRead).to.not.be.empty;
+        expect(bookToRead).to.be.an.instanceof(ItemBase);
 
         const mainGiver = actors.find(a => (
             a.has('QuestGiver') && !a.has('QuestTarget')));
         const subGiver = actors.find(a => (
             a.has('QuestGiver') && a.has('QuestTarget')));
-        expect(mainGiver).to.not.be.empty;
-        expect(subGiver).to.not.be.empty;
+        expect(mainGiver).to.be.an.instanceof(SentientActor);
+        expect(subGiver).to.be.an.instanceof(SentientActor);
 
         giveQuest(mainGiver, quester);
         sysQuest.update();
@@ -271,12 +271,21 @@ describe('System.Quest', () => {
         // ESCORT QUEST
         //---------------------
         const escortTasks = ['<learn>already_know_it',
-            '<goto>goto', 'damage', 'escort', '<learn>already_know_it', '<goto>goto', 'report'];
+            '<goto>goto', 'damage', 'escort'
+            // , '<learn>already_know_it', '<goto>goto', 'report'
+            , '<goto>explore', 'report'
+        ];
         const escortQuest = new Quest('Get stuff and give', escortTasks);
-        console.log(escortQuest.getSteps());
+
+        const hierEscortTasks = [
+            '<goto>goto', 'damage', 'escort',
+            escortQuest, '<subquest>goto', 'report'];
+        const hierQuest = new Quest('Escort and escort again', hierEscortTasks);
+        console.log(hierQuest.getSteps());
+
         questPopul = new QuestPopulate();
         questPopul.setDebug(true);
-        const ok = questPopul.mapQuestToResources(escortQuest, city, area.getTileXY(0, 0));
+        const ok = questPopul.mapQuestToResources(hierQuest, city, area.getTileXY(0, 0));
         expect(ok, 'Escort Quest mapped OK').to.equal(true);
         questPopul.addQuestComponents(city);
 
@@ -300,7 +309,7 @@ describe('System.Quest', () => {
         expect(escortLevel.getID()).to.equal(level.getID());
 
         /*
-        const actorToGive = getQuestTarget('give', actors);
+        const actorToEscort = getQuestTarget('escort', actors);
         expect(actorToGive).to.be.an.instanceof(Entity);
 
         const questItem = getQuestTarget('get', level.getItems()) as ItemBase;
