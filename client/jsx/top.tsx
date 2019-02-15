@@ -356,6 +356,7 @@ export class BattlesTop extends React.Component {
         }
         console.log('setSeedName used seed is', seed, 'got name', name);
         ROT.RNG.setSeed(seed);
+        Dice.RNG.setSeed(seed);
         this.gameConf.seed = seed;
         this.setState({seedName: name});
     }
