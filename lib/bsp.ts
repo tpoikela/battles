@@ -7,7 +7,6 @@
  */
 import ROT from './rot';
 
-const rng = ROT.RNG;
 export const BSP: any = {};
 
 const OPTS = {
@@ -34,7 +33,7 @@ export class Tree {
         this.rchild = null;
     }
 
-    getLeafs() {
+    public getLeafs() {
         if (this.lchild === null && this.rchild === null) {
             return [this.leaf];
         }
@@ -44,7 +43,7 @@ export class Tree {
         }
     }
 
-    getLevel(level, queue) {
+    public getLevel(level, queue) {
         if (!queue) {
             queue = [];
         }
@@ -88,25 +87,27 @@ BSP.Container = Container;
 // Room object
 //--------------
 export class Room {
+    public static rng: any;
+
     public x: number;
     public y: number;
     public h: number;
     public w: number;
 
     constructor(container) {
-        this.x = container.x + rng.getUniformInt(1, Math.floor(container.w / 3));
-        this.y = container.y + rng.getUniformInt(1, Math.floor(container.h / 3));
+        this.x = container.x + Room.rng.getUniformInt(1, Math.floor(container.w / 3));
+        this.y = container.y + Room.rng.getUniformInt(1, Math.floor(container.h / 3));
         this.w = container.w - (this.x - container.x) - 1;
         this.h = container.h - (this.y - container.y) - 1;
-        this.w -= rng.getUniformInt(0, this.w / 3);
-        this.h -= rng.getUniformInt(0, this.h / 3);
+        this.w -= Room.rng.getUniformInt(0, this.w / 3);
+        this.h -= Room.rng.getUniformInt(0, this.h / 3);
         if (this.w < OPTS.minRoomW) {this.w = OPTS.minRoomW;}
         if (this.h < OPTS.minRoomH) {this.h = OPTS.minRoomH;}
         return this;
     }
 
     /* Returns all x,y coordinates occupied by the room. */
-    getCoord() {
+    public getCoord() {
         const coord = [];
         const startX = this.x;
         const endX = startX + (this.w - 1);
@@ -121,19 +122,20 @@ export class Room {
     }
 
     /* Returns coordinates directly outside the room. */
-    getOuterBorder() {
+    public getOuterBorder() {
         const [x0, y0] = [this.x - 1, this.y - 1];
         const [maxX, maxY] = [this.x + this.w + 1, this.y + this.h + 1];
         return getHollowBox(x0, y0, maxX, maxY);
     }
 
     /* Returns the coordinates of the outmost free space of the room. */
-    getInnerBorder() {
+    public getInnerBorder() {
         const [x0, y0] = [this.x, this.y];
         const [maxX, maxY] = [this.x + this.w - 1, this.y + this.h - 1];
         return getHollowBox(x0, y0, maxX, maxY);
     }
 }
+Room.rng = ROT.RNG;
 
 BSP.Room = Room;
 
@@ -152,8 +154,9 @@ function getHollowBox(x0, y0, maxX, maxY) {
 
 /* Main class of the BSP. Used to generate the tree and the features. */
 export class BSPGen {
-    private _opts: {[key: string]: any};
+    public rng: any;
     public generated: any;
+    private _opts: {[key: string]: any};
 
     constructor(opts = {}) {
         this._opts = OPTS;
@@ -162,10 +165,11 @@ export class BSPGen {
                 this._opts[key] = opts;
             }
         });
+        this.rng = this._opts.rng || ROT.RNG;
     }
 
     /* Creates and returns coordinates for path between containers c1 and c2. */
-    createPath(c1, c2) {
+    public createPath(c1, c2) {
         const path = [];
         const center1 = c1.center;
         const center2 = c2.center;
@@ -188,7 +192,7 @@ export class BSPGen {
         return path;
     }
 
-    splitContainer(container, iter) {
+    public splitContainer(container, iter) {
         const root = new Tree(container);
         if (this.isLargeEnough(container)) {
             if (iter !== 0) {
@@ -200,20 +204,21 @@ export class BSPGen {
         return root;
     }
 
-    isLargeEnough(cont) {
+    public isLargeEnough(cont) {
         if (this._opts.discardBySize) {
             return cont.w >= this._opts.minSplitW && cont.h >= this._opts.minSplitH;
         }
         return true;
     }
 
-    randomSplit(container) {
-        let r1, r2;
-        if (rng.getUniform() <= this._opts.vertSplit) {
+    public randomSplit(container) {
+        let r1;
+        let r2;
+        if (this.rng.getUniform() <= this._opts.vertSplit) {
             // Vertical
             r1 = new Container(
                 container.x, container.y, // r1.x, r1.y
-                rng.getUniformInt(1, container.w), container.h // r1.w, r1.h
+                this.rng.getUniformInt(1, container.w), container.h // r1.w, r1.h
             );
             r2 = new Container(
                 container.x + r1.w, container.y, // r2.x, r2.y
@@ -230,7 +235,7 @@ export class BSPGen {
             // Horizontal
             r1 = new Container(
                 container.x, container.y, // r1.x, r1.y
-                container.w, rng.getUniformInt(1, container.h) // r1.w, r1.h
+                container.w, this.rng.getUniformInt(1, container.h) // r1.w, r1.h
             );
             r2 = new Container(
                 container.x, container.y + r1.h, // r2.x, r2.y
@@ -246,13 +251,13 @@ export class BSPGen {
         return [r1, r2];
     }
 
-    isVRatioTooSmall(r1, r2) {
+    public isVRatioTooSmall(r1, r2) {
         const r1Wratio = r1.w / r1.h;
         const r2Wratio = r2.w / r2.h;
         return r1Wratio < this._opts.wRatio || r2Wratio < this._opts.wRatio;
     }
 
-    isHRatioTooSmall(r1, r2) {
+    public isHRatioTooSmall(r1, r2) {
         const r1Hratio = r1.h / r1.w;
         const r2Hratio = r2.h / r2.w;
         return r1Hratio < this._opts.hRatio || r2Hratio < this._opts.hRatio;
@@ -261,7 +266,7 @@ export class BSPGen {
     /* Creates a tree container with BSP and generates rooms based on the tree.
      * Each room is surrounded by wall, so now room spaces are merged together
      */
-    createWithRooms(cols, rows, iter = 5) {
+    public createWithRooms(cols, rows, iter = 5) {
         const mainContainer = new Container(0, 0, cols, rows);
         const containerTree = this.splitContainer(mainContainer, iter);
 
@@ -278,7 +283,7 @@ export class BSPGen {
         return [containerTree, rooms];
     }
 
-    createWithRoomsAndPaths(cols, rows, iter = 5) {
+    public createWithRoomsAndPaths(cols, rows, iter = 5) {
         const mainContainer = new Container(0, 0, cols, rows);
         const containerTree = this.splitContainer(mainContainer, iter);
 
@@ -300,7 +305,7 @@ export class BSPGen {
     /* Creates paths between the nodes of the tree. These paths are placed into
      * paths variable. Each path is an array of coordinates.
      */
-    createPaths(tree, paths) {
+    public createPaths(tree, paths) {
         if (tree.lchild === null || tree.rchild === null) {
             return [];
         }
@@ -313,7 +318,7 @@ export class BSPGen {
         return paths;
     }
 
-    get(prop) {
+    public get(prop) {
         if (this.generated.hasOwnProperty(prop)) {
             return this.generated[prop];
         }
