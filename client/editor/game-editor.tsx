@@ -914,6 +914,7 @@ export default class GameEditor extends Component {
 
           <div className='btn-div'>
             <LevelSaveLoad
+                id=''
                 objData={this.state.level}
                 onLoadCallback={this.onLoadCallback}
                 savedObjName={this.state.savedLevelName}
