@@ -36,6 +36,7 @@ import * as  Verify from '../src/verify';
 import {KeyCode} from '../gui/keycode';
 import {MultiKeyHandler} from '../gui/multikey-handler';
 import {Cell} from '../src/map.cell';
+import {PlayerCmdInput} from '../src/interfaces';
 
 import md5 = require('js-md5');
 
@@ -201,6 +202,7 @@ export class BattlesTop extends React.Component {
     public playerDriver: DriverBase;
     public nextCode: number;
     public animationID: number;
+    public recordedCommands: PlayerCmdInput[];
 
     constructor(props) {
         super(props);
@@ -258,6 +260,7 @@ export class BattlesTop extends React.Component {
         this.keysEnabled = false;
         this.autoModeKeyBuffer = [];
         this.ctrlMode = 'MANUAL';
+        this.recordedCommands = [];
 
         this.notify = this.notify.bind(this);
         this.hasNotify = true;
@@ -342,16 +345,17 @@ export class BattlesTop extends React.Component {
         this.setState({playerName: name});
     }
 
-    public setSeedName(name) {
+    public setSeedName(name: string): void {
         let seed = parseInt(name, 10);
         if (Number.isNaN(seed)) {
             const hash = md5(name);
             seed = parseInt(hash, 16);
         }
-        // RG.RAND.setSeed(seed);
+        if (name === '') {
+            seed = new Date().getTime();
+        }
+        console.log('setSeedName used seed is', seed, 'got name', name);
         ROT.RNG.setSeed(seed);
-        // RG.RAND.setSeed(new Date().getTime());
-        // ROT.RNG.setSeed(new Date().getTime());
         this.gameConf.seed = seed;
         this.setState({seedName: name});
     }
@@ -878,6 +882,7 @@ export class BattlesTop extends React.Component {
                 this.game.update(code);
             }
             else {this.game.update({code});}
+            this.recordedCommands.push(code);
             this.gameState.visibleCells = this.game.visibleCells;
 
             if (this.game.isGameOver()) {
@@ -933,7 +938,7 @@ export class BattlesTop extends React.Component {
 
     /* Called when a JSON file is imported. This can be a save game or a
      * plugin */
-    public onLoadCallback(jsonData) {
+    public onLoadCallback(jsonData): void {
         if (jsonData.plugin) {
             const entry = this.pluginManager.readJSON(jsonData);
             const parser = RG.ObjectShell.getParser();
@@ -949,6 +954,16 @@ export class BattlesTop extends React.Component {
                 this.initRestoredGame(restGame);
             }
         }
+    }
+
+    /* Called when a JSON file is imported. This can be a save game or a
+     * plugin */
+    public onLoadRecordedKeys(jsonKeysArray): void {
+        const player = this.game.getPlayer();
+        this.playerDriver = new DriverBase(player, this.game);
+        this.playerDriver.setKeys(jsonKeysArray);
+        this.ctrlMode = 'AUTOMATIC';
+        this.finishAutoOnSight = false;
     }
 
     public render() {
@@ -1159,13 +1174,28 @@ export class BattlesTop extends React.Component {
                 }
 
                 {!this.state.showEditor &&
+                  <React.Fragment>
                   <LevelSaveLoad
+                    id=''
                     objData={this.game}
                     onLoadCallback={this.onLoadCallback}
                     pretty={false}
                     savedObjName={player ? 'saveGame_' + player.getName() : ''}
+                    saveButtonName='Save'
                     setMsg={this.showMsg}
                   />
+                  <LevelSaveLoad
+                    fNamePrefix='keys'
+                    id='keys'
+                    loadInputValue='Load keys'
+                    objData={this.recordedCommands}
+                    onLoadCallback={this.onLoadRecordedKeys}
+                    pretty={false}
+                    savedObjName={player ? 'recorded_cmds_' + player.getName() : ''}
+                    saveButtonName='SaveKeys'
+                    setMsg={this.showMsg}
+                  />
+                  </React.Fragment>
                 }
                 {!this.state.showEditor &&
                 <GameContextMenu
@@ -1486,9 +1516,14 @@ export class BattlesTop extends React.Component {
       }
     }
 
-    public showMsg(msg: string): void {
-        RG.diag('showMsg:', msg);
-        this.setState({msg});
+    public showMsg(msg: any): void {
+        let msgText = msg;
+        if (msg.errorMsg) {
+            msgText = msg.errorMsg;
+        }
+        RG.diag('showMsg:', msgText);
+        console.log('showMsg arg:', msg);
+        this.setState({msg: msgText});
     }
 
     /* Binds the callbacks. */
@@ -1552,6 +1587,7 @@ export class BattlesTop extends React.Component {
 
         this.getNextTargetCell = this.getNextTargetCell.bind(this);
 
+        this.onLoadRecordedKeys = this.onLoadRecordedKeys.bind(this);
         this.onLoadCallback = this.onLoadCallback.bind(this);
         this.topMenuCallback = this.topMenuCallback.bind(this);
         // this.importJSON = this.importJSON.bind(this);
