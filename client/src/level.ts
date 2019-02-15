@@ -162,12 +162,12 @@ export class Level extends Entity {
         }
     }
 
-    public getActors() {return this._p.actors;}
-    public getItems() {return this._p.items;}
-    public getElements() {return this._p.elements;}
+    public getActors(): BaseActor[] {return this._p.actors;}
+    public getItems(): ItemBase[] {return this._p.items;}
+    public getElements(): ElementBase[] {return this._p.elements;}
 
     /* Returns all stairs elements. */
-    public getStairs() {
+    public getStairs(): ElementStairs[] {
         const res = [];
         this._p.elements.forEach(elem => {
             if (this._isStairs(elem)) {
@@ -177,27 +177,29 @@ export class Level extends Entity {
         return res;
     }
 
-    public getPassages() {
+    public getPassages(): ElementStairs[] {
         const res = [];
         this._p.elements.forEach(elem => {
             if (elem.getName() === 'passage') {
-                res.push(elem);
+                const elemStairs: unknown = elem;
+                res.push(elemStairs as ElementStairs);
             }
         });
         return res;
     }
 
-    public getConnections() {
+    public getConnections(): ElementStairs[] {
         const conn = [];
         this._p.elements.forEach(elem => {
             if (elem.getType() === 'connection') {
-                conn.push(elem);
+                const elemStairs: unknown = elem;
+                conn.push(elemStairs as ElementStairs);
             }
         });
         return conn;
     }
 
-    public _isStairs(elem) {
+    public _isStairs(elem): elem is ElementStairs {
         return (/stairs(Down|Up)/).test(elem.getName());
     }
 
@@ -305,8 +307,9 @@ export class Level extends Entity {
     // ITEM RELATED FUNCTIONS
     //---------------------------------------------------------------------
 
-    /* Adds one item to the given location on the level.*/
-    public addItem(item, x: number, y: number): boolean {
+    /* Adds one item to the given location on the level. If x,y not given,
+    *  adds it to random free cell. */
+    public addItem(item, x?: number, y?: number): boolean {
         // verifyLevelCache(this);
         if (!RG.isNullOrUndef([x, y])) {
             return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
@@ -322,13 +325,14 @@ export class Level extends Entity {
         return res;
     }
 
-    public pickupItem(actor): void {
+    public pickupItem(actor: BaseActor): void {
         const pickup = new Pickup();
         actor.add(pickup);
     }
 
-    /* Moves the given object to x,y. */
-    public moveActorTo(obj, x, y): boolean {
+    /* Moves the given object to x,y of this level. Note that object can reside
+    *  in another level before the move, and it's handled correctly. */
+    public moveActorTo(obj: BaseActor, x: number, y: number): boolean {
         // Note that source level may be different than this level
         const level = obj.getLevel();
         const [oX, oY] = [obj.getX(), obj.getY()];
@@ -539,19 +543,19 @@ export class Level extends Entity {
         ];
     }
 
-    public setOnEnter(cb) {
+    public setOnEnter(cb): void {
         this._callbacks.OnEnter = cb;
     }
 
-    public setOnFirstEnter(cb) {
+    public setOnFirstEnter(cb): void {
         this._callbacks.OnFirstEnter = cb;
     }
 
-    public setOnExit(cb) {
+    public setOnExit(cb): void {
         this._callbacks.OnExit = cb;
     }
 
-    public setOnFirstExit(cb) {
+    public setOnFirstExit(cb): void {
         this._callbacks.OnFirstExit = cb;
     }
 
@@ -570,7 +574,7 @@ export class Level extends Entity {
         }
     }
 
-    public onExit() {
+    public onExit(): void {
         if (this._callbacks.hasOwnProperty('OnExit')) {
             this._callbacks.OnExit(this);
         }
@@ -615,7 +619,7 @@ export class Level extends Entity {
         return [null, null];
     }
 
-    public debugPrintInASCII() {
+    public debugPrintInASCII(): void {
         this.getMap().debugPrintInASCII();
     }
 
@@ -640,7 +644,7 @@ export class Level extends Entity {
     }
 
     /* Serializes the level object. */
-    public toJSON() {
+    public toJSON(): any {
         const obj: any = {
             isJSON: true,
             id: this.getID(),
