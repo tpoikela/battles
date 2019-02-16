@@ -1526,13 +1526,14 @@ export class QuestPopulate {
      * is known only after escort target is selected, so we need to
      * use crossrefs. */
     public handleEscort(target): void {
-        const qEscort = Component.create('QuestEscortTarget');
         const escortLocation = this.popQuestCrossRef(target);
         if (escortLocation) {
+            const qEscort = Component.create('QuestEscortTarget');
             qEscort.setEscortTo(escortLocation);
             target.add(qEscort);
         }
         else {
+            this.dumpInternalData('handleEscort');
             this.errorQuestHandle(target, 'handleEscort');
         }
     }
@@ -1686,6 +1687,13 @@ export class QuestPopulate {
         msg +=  '\n\ttarget: ' + target.getName();
         msg +=  '\n\tcrossRefs: ' + this._questCrossRefs.entries();
         RG.err('QuestPopulate', funcName, msg);
+    }
+
+    /* Used for debugging to show various pieces of internal data. */
+    protected dumpInternalData(tag): void {
+        if (typeof window !== 'undefined') {
+            (window as any).QUEST_GEN = this;
+        }
     }
 }
 
