@@ -55,6 +55,8 @@ import {EventPool} from '../src/eventpool';
 import {FactoryGame} from '../src/factory.game';
 import {FromJSON} from '../src/game.fromjson';
 import {IMessage} from '../src/rg';
+import {Dice} from '../src/dice';
+
 const POOL = EventPool.getPool();
 
 import {DriverBase, PlayerDriver} from '../../tests/helpers/player-driver';
