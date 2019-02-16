@@ -179,6 +179,7 @@ export class PlayerDriver extends DriverBase {
         const visible = this.player.getLevel().getMap().getVisibleCells(this.player);
         this.printTurnInfo(visible);
 
+        // This is the driver front-end which sets the action type this.action
         this.checkForSelection();
         if (this.action === '') {this.checkForEnemies();}
         if (this.action === '') {this.tryExploringAround(visible);}
@@ -820,12 +821,15 @@ export class PlayerDriver extends DriverBase {
         return res;
     }
 
+    /* Returns true if the player can cast any spells. */
     private canCastSpell(): boolean {
         const spellPower = this.player.get('SpellPower');
         if (spellPower) {
             const book = this.player.getBook();
-            const spell = book.getSpells()[0];
-            return spell.canCast();
+            if (book) {
+                const spell = book.getSpells()[0];
+                return spell.canCast();
+            }
         }
         return false;
     }
