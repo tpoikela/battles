@@ -612,6 +612,7 @@ export class QuestPopulate {
     private _data: Map<QuestData, QuestPopulData>;
     private _questCrossRefs: Map<any, any>;
     private questGivers: Map<QuestData, SentientActor>;
+    private listOfAllTasks: string[];
 
     constructor() {
         this.resetData();
@@ -644,13 +645,16 @@ export class QuestPopulate {
 
     public resetData(): void {
         this.questData = {quests: []};
+        this.questList = [];
         this._cleanup = [];
+
         this.flags = {
             alreadyKnowIt: false,
             escort: false,
             listen: false,
             read: false
         };
+        this.listOfAllTasks = [];
 
         this.currQuest = null;
 
@@ -893,6 +897,7 @@ export class QuestPopulate {
         }
 
         this.dbg('Processing taskType |' + taskType + '|');
+        this.listOfAllTasks.push(taskType);
         this.currTaskType = taskType;
 
         switch (taskType) {
@@ -1109,6 +1114,12 @@ export class QuestPopulate {
                 if (returnLocation) {
                     this.currQuest.addTarget('location', returnLocation);
                     ok = true;
+                    if (this.flags.escort) {
+                        this.flags.escort = false;
+                        // Prev escort target must be escorted to this location
+                        const escortData = this.getQuestPopulData('escort', true);
+                        this.pushQuestCrossRef(escortData, returnLocation);
+                    }
                 }
                 break;
             }
