@@ -8,26 +8,17 @@ import {Random} from './random';
 import {ELEM} from '../data/elem-constants';
 import {TCoord} from './interfaces';
 
+const dbgReq = require('debug');
+const debug = dbgReq('bitn:cave-br');
+
+debug.enabled = true;
+
 const RNG = Random.getRNG();
 
-/* Impl. Python range function. */
-function range(v1: number, v2?: number, step?: number): number[] {
-    if (!step) {step = 1;}
-    const res = [];
-    if (v2 < v1 || step < 1) {return [];} // Args don't make sense
-
-    if (typeof v2 === 'undefined') {
-        for (let i = 0; i < v1; i += step) {
-            res.push(i);
-        }
-    }
-    else {
-        for (let i = v1; i < v2; i += step) {
-            res.push(i);
-        }
-    }
-    return res;
-}
+const [MIN_WIDTH, MAX_WIDTH] = [3, 20];
+const [BR_WIDTH_MIN, BR_WIDTH_MAX] = [4, 8];
+const [ROUGH_MIN, ROUGH_MAX] = [40, 80];
+const [WIND_MIN, WIND_MAX] = [40, 80];
 
 export function createCaveLevel(cols: number, rows: number, conf: any): Level {
     const level = new Level();
@@ -40,6 +31,8 @@ export function createCaveLevel(cols: number, rows: number, conf: any): Level {
     return level;
 }
 
+let IND = 0; // Used for indenting debug messages
+
 /* At the moment this is the game map, based off the map class in TDL with
  * some additions (much easier than using a Tile)
  * */
@@ -47,7 +40,7 @@ export function createCaveLevel(cols: number, rows: number, conf: any): Level {
 /* This is the top level function to generate a cave map. Carve out a series of branches which interlink with eachohter.
 # Few arguments to determine how this works but generally its pretty simple. */
 function createCaveMap(gameMap: CellMap, mapConfig, monsterConfig?, entities?): void {
-
+    ++IND;
     let {mapWidth, mapHeight} = mapConfig;
     const {nActorsBranch, nItemsBranch} = mapConfig;
     mapWidth -= 1;
@@ -55,9 +48,10 @@ function createCaveMap(gameMap: CellMap, mapConfig, monsterConfig?, entities?): 
 
     // Random seeds for the cave parameters
     const numBranches = Math.floor(((mapWidth + mapHeight) / 2) / 10);
-    // const numBranches = 4;
-    const windyness = RNG.getUniformInt(40, 80); // The extent that the branch position will move a lot.
-    const roughness = RNG.getUniformInt(40, 80); // The extent that the branch width will vary
+    // The extent that the branch position will move a lot.
+    const windyness = RNG.getUniformInt(WIND_MIN, WIND_MAX);
+    // The extent that the branch width will vary
+    const roughness = RNG.getUniformInt(ROUGH_MIN, ROUGH_MAX);
     const magnitude = RNG.getUniformInt(2, 4);  // The step value for branch path movement.
 
     // Set the boundaries so branches occur within the map size.
@@ -76,11 +70,12 @@ function createCaveMap(gameMap: CellMap, mapConfig, monsterConfig?, entities?): 
 
     // Main loop to create branches.
     for (let branch = 0; branch < connectedBranches; ++branch) {
-        console.log('Creating connected branch', branch);
+        dbg('Creating connected branch', branch);
+        ++IND;
 
         // First we need to randomly decide whether this branch is horizontal or vertical.
         if (RNG.getUniformInt(0, 1) === 0) {
-            console.log('\tCreating vertical connected branch', branch);
+            dbg('Creating vertical connected branch', branch);
 
             // The create_?_cave_branch functions also return the list of
             // coordinates carved out, which we will append to the coords for
@@ -99,7 +94,7 @@ function createCaveMap(gameMap: CellMap, mapConfig, monsterConfig?, entities?): 
             caveCoords = caveCoords.concat(currentBranchCoords);
         }
         else {
-            console.log('\tCreating horizontal connected branch', branch);
+            dbg('\tCreating horizontal connected branch', branch);
             const currentBranchCoords = createHorCaveBranch(gameMap, branchMinX,
                  branchMaxX, branchMinY, branchMaxY,
                  magnitude, windyness, roughness, caveCoords);
@@ -108,6 +103,7 @@ function createCaveMap(gameMap: CellMap, mapConfig, monsterConfig?, entities?): 
                            monsterConfig);
             caveCoords = caveCoords.concat(currentBranchCoords);
         }
+        --IND;
     }
 
     // Once all the connected branches have been created, pop a coordinate off
@@ -147,21 +143,7 @@ function createCaveMap(gameMap: CellMap, mapConfig, monsterConfig?, entities?): 
     }
 
     addBordersToMap(gameMap, mapWidth, mapHeight);
-
-    /* The following code is optional, and is used for debugging purposes only - prints out some info on the map, and
-    dumps a basic ASCII image to a txt file to view the whole map without FOV getting in the way.
-
-    count_monsters = 0
-    count_items = 0
-    for entity in entities:
-        if entity.name.lower() != "player":
-            count_monsters += 1
-        # if entity.name.lower() != "player" and entity.item:
-        #     count_items += 1
-
-    draw_cave(gameMap, mapWidth, mapHeight, numBranches, connectedBranches, unconnectedBranches,
-              windyness, roughness, magnitude, count_monsters, count_items, entities)
-    */
+    --IND;
 }
 
 //# Set all the required parameters for a new cave branch
@@ -169,7 +151,8 @@ function setupBranch(
     caveCoords: TCoord[], branchMinX, branchMinY, branchMaxX, branchMaxY, branchType
 ): [number, number, number, number] {
 
-    let branchStartWidth = RNG.getUniformInt(4, 8);
+    ++IND;
+    let branchStartWidth = RNG.getUniformInt(BR_WIDTH_MIN, BR_WIDTH_MAX);
     let [branchStartX, branchStartY, branchLength] = [0, 0, 0];
 
     if (branchType === 'h') {  // Horizontal, obviously.
@@ -178,6 +161,7 @@ function setupBranch(
             RNG.shuffle(caveCoords);
              // Set a random seed coordinate for this branch, connecting to the rest
             const [seedX, seedY] = caveCoords.pop();
+            dbg('Branch will start from', seedX, seedY, 'type', branchType);
 
             /*# If the seed coordinates are in the left or top half of the
              * screen, we should be fine to start the new
@@ -195,20 +179,20 @@ function setupBranch(
             if (seedX > Math.floor(branchMaxX * 0.5)) {
                 // # This is the important calculation
                 branchStartX = seedX - ((seedX - halfAvailSpace) * 2);
-                branchStartY = Math.floor(seedY);
+                branchStartY = seedY;
             }
             else {
-                branchStartX = Math.floor(seedX);
-                branchStartY = Math.floor(seedY);
+                branchStartX = seedX;
+                branchStartY = seedY;
             }
 
             branchLength = (branchMaxX - branchStartX) - 3;
-            console.log('xs, ys, blen', branchStartX, branchStartY, branchLength);
+            dbg('xs, ys, blen', branchStartX, branchStartY, branchLength);
 
             [branchStartWidth, branchStartX, branchStartY] =
             checkValidCoords(branchMinX, branchMaxX, branchMinY, branchMaxY,
                                branchStartX, branchStartY, branchStartWidth, branchType);
-            console.log('ADJ xs, ys, blen', branchStartX, branchStartY, branchLength);
+            dbg('ADJ xs, ys, blen', branchStartX, branchStartY, branchLength);
 
         }
         // # If we don't have a seed coord, just pick some random coordinates skewed to the left / top.
@@ -216,7 +200,7 @@ function setupBranch(
             branchStartX = branchMinX + RNG.getUniformInt(branchMinX, Math.floor(branchMaxX * 0.75));
             branchStartY = branchMinY + RNG.getUniformInt(branchMinY, Math.floor(branchMaxY * 0.75));
             branchLength = (branchMaxX - branchStartX) - 3;
-            console.log('no caveCoord xs, ys, blen', branchStartX, branchStartY, branchLength);
+            dbg('no caveCoord xs, ys, blen', branchStartX, branchStartY, branchLength);
         }
 
         branchLength = Math.floor(branchLength / 4);
@@ -227,6 +211,7 @@ function setupBranch(
         if (caveCoords.length > 0) {
             RNG.shuffle(caveCoords);
             const [seedX, seedY] = caveCoords.pop();
+            dbg('Branch will start from', seedX, seedY, 'type', branchType);
             const halfAvailSpace = Math.floor(branchMaxY * 0.5);
 
             if (seedY > Math.floor(branchMaxY * 0.5)) {
@@ -239,23 +224,26 @@ function setupBranch(
             }
 
             branchLength = Math.floor(branchMaxY - branchStartY - 3);
-            console.log('xs, ys, blen', branchStartX, branchStartY, branchLength);
+            dbg('xs, ys, blen', branchStartX, branchStartY, branchLength);
 
             [branchStartWidth, branchStartX, branchStartY] =
             checkValidCoords(branchMinX, branchMaxX, branchMinY, branchMaxY,
                                branchStartX, branchStartY, branchStartWidth, branchType);
 
-            console.log('ADJ xs, ys, blen', branchStartX, branchStartY, branchLength);
+            dbg('ADJ xs, ys, blen', branchStartX, branchStartY, branchLength);
         }
         else {
             branchStartX = branchMinX + RNG.getUniformInt(branchMinX, Math.floor(branchMaxX * 0.75));
             branchStartY = branchMinY + RNG.getUniformInt(branchMinY, Math.floor(branchMaxY * 0.75));
             branchLength = (branchMaxY - branchStartY) - 3;
+            dbg('no caveCoord xs, ys, blen', branchStartX, branchStartY, branchLength);
         }
 
         branchLength = Math.floor(branchLength / 4);
         return [branchStartX, branchStartY, branchLength, branchStartWidth];
     }
+
+    --IND;
 }
 
 // Just some checking to make sure the iterative part of the cave generation
@@ -264,12 +252,13 @@ function checkValidCoords(
     branchMinX: number, branchMaxX: number, branchMinY: number, branchMaxY: number,
     currentX: number, currentY: number, currentWidth: number, branchType: string
 ): [number, number, number] {
+    ++IND;
 
-    if (currentWidth < 3) {
-        currentWidth = 3;
+    if (currentWidth < MIN_WIDTH) {
+        currentWidth = MIN_WIDTH;
     }
-    else if (currentWidth > 16) {
-        currentWidth = 16;
+    else if (currentWidth > MAX_WIDTH) {
+        currentWidth = MAX_WIDTH;
     }
 
     if (branchType === 'v') {
@@ -294,6 +283,7 @@ function checkValidCoords(
         }
     }
 
+    --IND;
     return [currentWidth, currentX, currentY];
 }
 
@@ -305,6 +295,7 @@ function createVerCaveBranch(
     gameMap: CellMap, branchMinX, branchMaxX, branchMinY, branchMaxY,
     magnitude, windyness, roughness, caveCoords: TCoord[]
 ): TCoord[] {
+    ++IND;
 
     const branchCoords: TCoord[] = [];  //Empty# Empty list to store coords
 
@@ -316,14 +307,13 @@ function createVerCaveBranch(
     //horizontal slices/tunnels).
 
     const branchStopX = branchStartX + branchStartWidth;
-    createHorTunnel(gameMap, branchStartX, branchStopX, branchStartY);
+    createHoriSlice(gameMap, branchStartX, branchStopX, branchStartY);
 
     let currentX = branchStartX;
     let currentY = branchStartY;
     let currentWidth = branchStartWidth;
 
-    console.log('\t\tVert branch Magnitude is ',
-                magnitude, 'brLen', branchLength);
+    dbg('createVerCaveBranch magn:', magnitude, 'brLen', branchLength);
 
     for (let i = 0; i < branchLength; ++i) {
         currentY += 1;  //# Move down one row / slice.
@@ -355,7 +345,7 @@ function createVerCaveBranch(
              currentWidth, 'v');
 
         // # Create the slice by carving out from the x, on the y, with a length of width.
-        createHorTunnel(gameMap, currentX, currentX + currentWidth, currentY);
+        createHoriSlice(gameMap, currentX, currentX + currentWidth, currentY);
 
         // # Append the coords.
         const maxX = currentX + currentWidth + 1;
@@ -366,6 +356,8 @@ function createVerCaveBranch(
 
     //# Round off the end of the branch (no flat edges)
     if (currentWidth > 3) {
+        dbg('Ver br starting to round, width:', currentWidth);
+
         while ((branchMinY < currentY) && (currentY < branchMaxY - 1)) {
             currentY += 1;
             currentX += 1;
@@ -377,16 +369,21 @@ function createVerCaveBranch(
                 currentWidth -= magnitude;
             }
 
-            createHorTunnel(gameMap, currentX, currentX + currentWidth, currentY);
+            createHoriSlice(gameMap, currentX, currentX + currentWidth, currentY);
 
             //# Append the coords.
-            const maxX = currentX + currentWidth + 1;
-            for (let x = currentX; x <= maxX; ++x) {
+            const stopX = currentX + currentWidth;
+            for (let x = currentX; x <= stopX; ++x) {
                 branchCoords.push([x, currentY]);
+            }
+
+            if (currentWidth < 3) {
+                break;
             }
         }
     }
 
+    --IND;
     return branchCoords;
 }
 
@@ -395,20 +392,21 @@ function createHorCaveBranch(
     gameMap: CellMap, branchMinX, branchMaxX, branchMinY, branchMaxY,
     magnitude, windyness, roughness, caveCoords: TCoord[]
 ): TCoord[] {
-
-    const branchCoords: TCoord[] = [];
+    ++IND;
 
     const [branchStartX, branchStartY, branchLength, branchStartWidth] =
         setupBranch(caveCoords, branchMinX, branchMinY,
                     branchMaxX, branchMaxY, 'h');
 
     const branchStopY = branchStartY + branchStartWidth;
-    createVerTunnel(gameMap, branchStartY, branchStopY, branchStartX);
+    createVertSlice(gameMap, branchStartY, branchStopY, branchStartX);
 
-    let currentX = Math.floor(branchStartX);
-    let currentY = Math.floor(branchStartY);
-    let currentWidth = Math.floor(branchStartWidth);
+    let currentX = branchStartX;
+    let currentY = branchStartY;
+    let currentWidth = branchStartWidth;
 
+    const branchCoords: TCoord[] = [];
+    dbg('Hor branch Magnitude is ', magnitude, 'brLen', branchLength);
     for (let i = 0; i < branchLength; ++i) {
         currentX += 1;
 
@@ -432,7 +430,7 @@ function createHorCaveBranch(
             branchMinX, branchMaxX, branchMinY, branchMaxY,
             currentX, currentY, currentWidth, 'h');
 
-        createVerTunnel(gameMap, currentY, currentY + currentWidth, currentX);
+        createVertSlice(gameMap, currentY, currentY + currentWidth, currentX);
 
         const maxY = currentY + currentWidth + 1;
         for (let y = currentY; y < maxY; ++y) {
@@ -441,6 +439,7 @@ function createHorCaveBranch(
     }
 
     if (currentWidth > 3) {
+        dbg('Hor br starting to round, width:', currentWidth);
         while ((branchMinX < currentX) && (currentX < branchMaxX - 1)) {
             currentY += 1;
             currentX += 1;
@@ -452,14 +451,20 @@ function createHorCaveBranch(
                 currentWidth -= magnitude;
             }
 
-            createVerTunnel(gameMap, currentY, currentY + currentWidth, currentX);
+            createVertSlice(gameMap, currentY, currentY + currentWidth, currentX);
 
-            for (let y = currentY; y < currentY + currentWidth + 1; ++y) {
+            const stopY = currentY + currentWidth + 1;
+            for (let y = currentY; y < stopY; ++y) {
                 branchCoords.push([currentX, y]);
+            }
+
+            if (currentWidth < 3) {
+                break;
             }
         }
      }
 
+    --IND;
     return branchCoords;
 }
 
@@ -482,12 +487,13 @@ function placeEntities(branchCoords, entities, nActorsBranch, nItemsBranch, mons
 
 }
 
-//# This creates a horizontal slice on a vertical branch
-function createHorTunnel(gameMap: CellMap, x1: number, x2: number, y: number): void {
+// This creates a horizontal slice (moves in x dir) on a vertical branch
+function createHoriSlice(gameMap: CellMap, x1: number, x2: number, y: number): void {
+    ++IND;
     const minX = Math.min(x1, x2);
-    const maxX = Math.max(x1, x2) + 1;
-    console.log('createHorTunnel x:', minX, '->', maxX, 'y:', y);
-    for (let x = minX; x < maxX; ++x) {
+    const maxX = Math.max(x1, x2);
+    dbg('createHoriSlice x:', minX, '->', maxX, 'y:', y);
+    for (let x = minX; x <= maxX; ++x) {
         if (gameMap.hasXY(x, y)) {
             gameMap.setBaseElemXY(x, y, ELEM.FLOOR);
         }
@@ -495,14 +501,16 @@ function createHorTunnel(gameMap: CellMap, x1: number, x2: number, y: number): v
             // console.warn(`${x},${y} out of range`);
         }
     }
+    --IND;
 }
 
-
-//# This creates a vertical slice on a horizontal branch
-function createVerTunnel(gameMap: CellMap, y1: number, y2: number, x: number): void {
+// This creates a vertical slice (moves in y dir) on a horizontal branch
+function createVertSlice(gameMap: CellMap, y1: number, y2: number, x: number): void {
+    ++IND;
     const minY = Math.min(y1, y2);
-    const maxY = Math.max(y1, y2) + 1;
-    for (let y = minY; y < maxY; ++y) {
+    const maxY = Math.max(y1, y2);
+    dbg('createVertSlice x:', x, 'y:', minY, '->', maxY);
+    for (let y = minY; y <= maxY; ++y) {
         if (gameMap.hasXY(x, y)) {
             gameMap.setBaseElemXY(x, y, ELEM.FLOOR);
         }
@@ -510,10 +518,11 @@ function createVerTunnel(gameMap: CellMap, y1: number, y2: number, x: number): v
             // console.warn(`${x},${y} out of range`);
         }
     }
+    --IND;
 }
 
+// Creates the surrounding wall to map edges
 function addBordersToMap(gameMap: CellMap, mapWidth: number, mapHeight: number): void {
-    //# Make sure there's a border all the way around the map.
     for (let x = 0; x <= mapWidth; ++x) {
         gameMap.setBaseElemXY(x, 0, ELEM.WALL);
         gameMap.setBaseElemXY(x, mapHeight, ELEM.WALL);
@@ -524,3 +533,30 @@ function addBordersToMap(gameMap: CellMap, mapWidth: number, mapHeight: number):
         gameMap.setBaseElemXY(mapWidth, y, ELEM.WALL);
     }
 }
+
+function dbg(...args): void {
+    if (debug.enabled) {
+        const ind = ' '.repeat(IND);
+        console.log(ind + '[DBG]', ...args);
+    }
+}
+
+/* Impl. Python range function. */
+function range(v1: number, v2?: number, step?: number): number[] {
+    if (!step) {step = 1;}
+    const res = [];
+    if (v2 < v1 || step < 1) {return [];} // Args don't make sense
+
+    if (typeof v2 === 'undefined') {
+        for (let i = 0; i < v1; i += step) {
+            res.push(i);
+        }
+    }
+    else {
+        for (let i = v1; i < v2; i += step) {
+            res.push(i);
+        }
+    }
+    return res;
+}
+
