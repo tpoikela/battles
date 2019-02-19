@@ -20,6 +20,15 @@ const [BR_WIDTH_MIN, BR_WIDTH_MAX] = [4, 8];
 const [ROUGH_MIN, ROUGH_MAX] = [40, 80];
 const [WIND_MIN, WIND_MAX] = [40, 80];
 
+interface Conf {
+    mapWidth: number;
+    mapHeight: number;
+    nActorsBranch: number;
+    nItemsBranch: number;
+    [key: string]: number | string | boolean;
+}
+
+/* Creates a cave level and returns Level object. */
 export function createCaveLevel(cols: number, rows: number, conf: any): Level {
     const level = new Level();
     const map = new CellMap(cols, rows, ELEM.WALL);
@@ -37,9 +46,10 @@ let IND = 0; // Used for indenting debug messages
  * some additions (much easier than using a Tile)
  * */
 
-/* This is the top level function to generate a cave map. Carve out a series of branches which interlink with eachohter.
-# Few arguments to determine how this works but generally its pretty simple. */
-function createCaveMap(gameMap: CellMap, mapConfig, monsterConfig?, entities?): void {
+/* This is the top level function to generate a cave map. Carve out a series of
+ * branches which interlink with each other.
+ * Few arguments to determine how this works, but generally its pretty simple. */
+function createCaveMap(gameMap: CellMap, mapConfig: Conf, monsterConfig?, entities?): void {
     ++IND;
     let {mapWidth, mapHeight} = mapConfig;
     const {nActorsBranch, nItemsBranch} = mapConfig;
@@ -117,8 +127,8 @@ function createCaveMap(gameMap: CellMap, mapConfig, monsterConfig?, entities?): 
     // used for connected branches i've found doing a few random branches makes
     // the map a lot more interesting.
 
-    // const unconnectedBranches = numBranches - connectedBranches;
-    const unconnectedBranches = 0;
+    const unconnectedBranches = numBranches - connectedBranches;
+    // const unconnectedBranches = 0;
 
     for (let branch = 0; branch < unconnectedBranches; ++branch) {
         if (RNG.getUniformInt(0, 1) === 0) {
@@ -315,27 +325,28 @@ function createVerCaveBranch(
 
     dbg('createVerCaveBranch magn:', magnitude, 'brLen', branchLength);
 
+    const widthDeltaRange = range(-magnitude, magnitude).filter(v => v !== 0);
+    const currentXDeltaRange = range(-magnitude, magnitude).filter(v => v !== 0);
+
     for (let i = 0; i < branchLength; ++i) {
         currentY += 1;  //# Move down one row / slice.
 
-        //# The higher the roughness, the more likely this bit will be called.
-        //This is how often the width will change.
+        // The higher the roughness, the more likely this bit will be called.
+        // This is how often the width will change.
 
         if (RNG.getUniformInt(1, 100) <= roughness) {
-              // # make a list of potential deltas
-            const widthDeltaRange = range(-magnitude, magnitude).filter(v => v !== 0);
-            RNG.shuffle(widthDeltaRange);
+            // # make a list of potential deltas
+            // RNG.shuffle(widthDeltaRange);
 
-            const widthDelta = widthDeltaRange.pop();
+            // const widthDelta = widthDeltaRange.pop();
+            const widthDelta = RNG.arrayGetRand(widthDeltaRange);
             currentWidth += widthDelta;
         }
 
-        //# The windyness is how much the starting position of the slice will move.
+        // The windyness is how much the starting position of the slice will move.
         if (RNG.getUniformInt(1, 100) <= windyness) {
-            const currentXDeltaRange = range(-magnitude, magnitude).filter(v => v !== 0);
-            RNG.shuffle(currentXDeltaRange);
-
-            const currentXDelta = currentXDeltaRange.pop();
+            // RNG.shuffle(currentXDeltaRange);
+            const currentXDelta = RNG.arrayGetRand(currentXDeltaRange);
             currentX += currentXDelta;
         }
 
@@ -377,9 +388,7 @@ function createVerCaveBranch(
                 branchCoords.push([x, currentY]);
             }
 
-            if (currentWidth < 3) {
-                break;
-            }
+            if (currentWidth < 3) {break;}
         }
     }
 
@@ -405,24 +414,21 @@ function createHorCaveBranch(
     let currentY = branchStartY;
     let currentWidth = branchStartWidth;
 
+    const widthDeltaRange = range(-magnitude, magnitude).filter(v => v !== 0);
+    const currentYDeltaRange = range(-magnitude, magnitude).filter(v => v !== 0);
+
     const branchCoords: TCoord[] = [];
     dbg('Hor branch Magnitude is ', magnitude, 'brLen', branchLength);
     for (let i = 0; i < branchLength; ++i) {
         currentX += 1;
 
         if (RNG.getUniformInt(1, 100) <= roughness) {
-            const widthDeltaRange = range(-magnitude, magnitude).filter(v => v !== 0);
-            RNG.shuffle(widthDeltaRange);
-
-            const widthDelta = widthDeltaRange.pop();
+            const widthDelta = RNG.arrayGetRand(widthDeltaRange);
             currentWidth += widthDelta;
         }
 
         if (RNG.getUniformInt(1, 100) <= windyness) {
-            const currentYDeltaRange = range(-magnitude, magnitude).filter(v => v !== 0);
-            RNG.shuffle(currentYDeltaRange);
-
-            const currentYDelta = currentYDeltaRange.pop();
+            const currentYDelta = RNG.arrayGetRand(currentYDeltaRange);
             currentY += currentYDelta;
         }
 
@@ -430,10 +436,10 @@ function createHorCaveBranch(
             branchMinX, branchMaxX, branchMinY, branchMaxY,
             currentX, currentY, currentWidth, 'h');
 
-        createVertSlice(gameMap, currentY, currentY + currentWidth, currentX);
+        const maxY = currentY + currentWidth;
+        createVertSlice(gameMap, currentY, maxY, currentX);
 
-        const maxY = currentY + currentWidth + 1;
-        for (let y = currentY; y < maxY; ++y) {
+        for (let y = currentY; y <= maxY; ++y) {
             branchCoords.push([currentX, y]);
         }
     }
@@ -451,16 +457,14 @@ function createHorCaveBranch(
                 currentWidth -= magnitude;
             }
 
-            createVertSlice(gameMap, currentY, currentY + currentWidth, currentX);
+            const stopY = currentY + currentWidth;
+            createVertSlice(gameMap, currentY, stopY, currentX);
 
-            const stopY = currentY + currentWidth + 1;
-            for (let y = currentY; y < stopY; ++y) {
+            for (let y = currentY; y <= stopY; ++y) {
                 branchCoords.push([currentX, y]);
             }
 
-            if (currentWidth < 3) {
-                break;
-            }
+            if (currentWidth < 3) {break;}
         }
      }
 
