@@ -9,8 +9,8 @@ describe('createCaveLevel', () => {
     it('creates cave levels', () => {
         const conf: any = {
         };
-        const n = 2;
-        const level: Level = createCaveLevel(n * 100, n * 50, conf);
+        const n = 1;
+        const level: Level = createCaveLevel(n * 150, n * 50, conf);
         level.debugPrintInASCII();
     });
 });
