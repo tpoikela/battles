@@ -32,7 +32,7 @@ import {ZoneBase, SubZoneBase} from '../src/world';
 import {Keys} from '../src/keymap';
 import {GameMain} from '../src/game';
 import {FromJSON} from '../src/game.fromjson';
-import {Factory} from '../src/factory';
+import {Factory, FactoryBase} from '../src/factory';
 import {Path} from '../src/path';
 
 import {MapGenerator} from '../src/map.generator';
@@ -724,12 +724,13 @@ export default class GameEditor extends Component {
       level.removeItem(item, item.getX(), item.getY());
     });
 
-    RG.FACT.addNRandItems(level, this.parser, conf);
+    const fact = new FactoryBase();
+    fact.addNRandItems(level, this.parser, conf);
     this.setStateWithLevel(level);
   }
 
   /* Generates and inserts random actors into the map. */
-  public generateActors() {
+  public generateActors(): void {
     const level = this.state.level;
 
     // Remove existing actors first
@@ -744,12 +745,13 @@ export default class GameEditor extends Component {
       func: (actor) => (actor.danger < 100)
     };
 
-    RG.FACT.setParser(ObjectShell.getParser());
-    RG.FACT.addNRandActors(level, this.parser, conf);
+    const fact = new FactoryBase();
+    fact.setParser(ObjectShell.getParser());
+    fact.addNRandActors(level, this.parser, conf);
     this.setStateWithLevel(level);
   }
 
-  public debugMsg(msg) {
+  public debugMsg(msg): void {
     if (this.state.debug) {
       console.log('[DEBUG] ' + msg);
     }
