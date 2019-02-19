@@ -242,13 +242,18 @@ describe('CellMap', () => {
     it('can be used with Dijkstra maps', () => {
         const boss = new SentientActor('boss');
         const level = factLevel.createLevel('arena', 40, 40);
-        level.addActor(20, 20);
+        level.addActor(boss, 20, 20);
+
+        const map = level.getMap();
         const dmapObj = new DijkstraMap(map.isPassable.bind(map));
         dmapObj.addTarget(20, 20, 0);
 
         const dmap = new Array(40);
         for (let i = 0; i < 40; i++) {
             dmap[i] = new Array(40);
+            for (let j = 0; j < 40; j++) {
+                dmap[i][j] = 666;
+            }
         }
 
         dmapObj.compute((x, y, cost) => {
