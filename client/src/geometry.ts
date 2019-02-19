@@ -974,7 +974,7 @@ Geometry.getCaveConnLine = function(x0, y0, x1, y1, conf?): TCoord[] {
     const bresLine: TCoord[] = Geometry.getBresenham(x0, y0, x1, y1);
     bresLine.forEach((xy: TCoord) => {
         const [x, y] = xy;
-        const w = RNG.getUniformInt(0, 2);
+        const w = RNG.getUniformInt(1, 3);
         const coord = Geometry.getCrossCaveConn(x, y, w, true);
         res = res.concat(coord);
     });
