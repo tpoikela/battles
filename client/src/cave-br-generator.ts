@@ -12,6 +12,8 @@ import {TCoord} from './interfaces';
 const dbgReq = require('debug');
 const debug = dbgReq('bitn:cave-br');
 
+export const CaveBrGenerator: any = {};
+
 // debug.enabled = true;
 
 const RNG = Random.getRNG();
@@ -33,10 +35,17 @@ interface Conf {
     numBranches: number;
     mapWidth: number;
     mapHeight: number;
-    nActorsBranch: number;
-    nItemsBranch: number;
-    allowUnconnected: boolean;
 }
+
+CaveBrGenerator.getOpts = (): Conf => {
+    return {
+        connectAll: true,
+        connectedRatio: 0.50,
+        numBranches: 30,
+        mapWidth: 100,
+        mapHeight: 100
+    };
+};
 
 /* Creates a cave level and returns Level object. */
 export function createCaveLevel(cols: number, rows: number, conf: any): Level {
@@ -56,10 +65,9 @@ let IND = 0; // Used for indenting debug messages
 /* Top-level function to generate a cave map. Carve out a series of
  * branches which connect to each other.
  * Few arguments to determine how this works, but generally its pretty simple. */
-function createCaveMap(gameMap: CellMap, mapConfig: Conf, monsterConfig?, entities?): void {
+function createCaveMap(gameMap: CellMap, mapConfig: Conf): void {
     ++IND;
     let {mapWidth, mapHeight} = mapConfig;
-    const {nActorsBranch, nItemsBranch} = mapConfig;
     mapWidth -= 1;
     mapHeight -= 1;
 
