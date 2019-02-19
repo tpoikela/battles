@@ -5,6 +5,7 @@
 import {CellMap} from './map';
 import {Level} from './level';
 import {Random} from './random';
+import {Geometry} from './geometry';
 import {ELEM} from '../data/elem-constants';
 import {TCoord} from './interfaces';
 
@@ -16,8 +17,9 @@ const debug = dbgReq('bitn:cave-br');
 const RNG = Random.getRNG();
 
 // These can be adjusted for different results, but defaults are OK
-const BR_SCALE = 0.75;
-const [MIN_WIDTH, MAX_WIDTH] = [3, 32];
+const BR_LEN_DIV = 4;
+const BR_SCALE = 0.90;
+const [MIN_WIDTH, MAX_WIDTH] = [3, 16];
 const [BR_WIDTH_MIN, BR_WIDTH_MAX] = [4, 8];
 const [ROUGH_MIN, ROUGH_MAX] = [40, 80];
 const [WIND_MIN, WIND_MAX] = [40, 80];
@@ -26,6 +28,7 @@ const [STEP_MIN, STEP_MAX] = [2, 4];
 const NO_COORDS = []; // Dummy empty list
 
 interface Conf {
+    connectAll: boolean;
     connectedRatio: number;
     numBranches: number;
     mapWidth: number;
@@ -125,6 +128,7 @@ function createCaveMap(gameMap: CellMap, mapConfig: Conf, monsterConfig?, entiti
     // used for connected branches i've found doing a few random branches makes
     // the map a lot more interesting.
 
+    const brUnconnected: TCoord[][] = [];
     const unconnectedBranches = numBranches - connectedBranches;
     for (let branch = 0; branch < unconnectedBranches; ++branch) {
         if (RNG.getUniformInt(0, 1) === 0) {
@@ -133,17 +137,31 @@ function createCaveMap(gameMap: CellMap, mapConfig: Conf, monsterConfig?, entiti
             // coordinate list, and also don't assign a var to return the list
             // of new branch coordinates to.
 
+            const coord: TCoord[] =
             createVerCaveBranch(gameMap,
                                  branchMinX, branchMaxX, branchMinY, branchMaxY,
                                  magnitude, windyness, roughness, NO_COORDS);
+            brUnconnected.push(coord);
 
         }
         else {
+            const coord: TCoord[] =
             createHorCaveBranch(gameMap,
                                  branchMinX, branchMaxX, branchMinY, branchMaxY,
                                  magnitude, windyness, roughness, NO_COORDS);
+            brUnconnected.push(coord);
         }
 
+    }
+
+    // Connect unconnected branches to connected ones using bresenham lines
+    if (mapConfig.connectAll) {
+        brUnconnected.forEach((coord: TCoord[]) => {
+            const [unConnX, unConnY] = RNG.arrayGetRand(coord);
+            const [connX, connY] = RNG.arrayGetRand(caveCoords);
+            const bresLine = Geometry.getCaveConnLine(unConnX, unConnY, connX, connY);
+            addToMap(gameMap, bresLine, ELEM.FLOOR);
+        });
     }
 
     addBordersToMap(gameMap, mapWidth, mapHeight);
@@ -199,7 +217,7 @@ function setupBranch(
             dbg('no caveCoord xs, ys, blen', branchStartX, branchStartY, branchLength);
         }
 
-        branchLength = Math.floor(branchLength / 4);
+        branchLength = Math.floor(branchLength / BR_LEN_DIV);
         return [branchStartX, branchStartY, branchLength, branchStartWidth];
     }
 
@@ -226,7 +244,7 @@ function setupBranch(
             dbg('no caveCoord xs, ys, blen', branchStartX, branchStartY, branchLength);
         }
 
-        branchLength = Math.floor(branchLength / 4);
+        branchLength = Math.floor(branchLength / BR_LEN_DIV);
         return [branchStartX, branchStartY, branchLength, branchStartWidth];
     }
 
@@ -253,7 +271,7 @@ function checkValidCoords(
             currentX = branchMinX + 1;
         }
 
-        if (currentX + currentWidth >= branchMaxX) {
+        if ((currentX + currentWidth) >= branchMaxX) {
             currentX = branchMaxX - currentWidth - 1;
             currentWidth = branchMaxX - currentX;
         }
@@ -264,7 +282,7 @@ function checkValidCoords(
             currentY = branchMinY + 1;
         }
 
-        if (currentY + currentWidth >= branchMaxY) {
+        if ((currentY + currentWidth) >= branchMaxY) {
             currentY = branchMaxY - currentWidth - 1;
             currentWidth = branchMaxY - currentY;
         }
@@ -470,6 +488,15 @@ function addBordersToMap(gameMap: CellMap, mapWidth: number, mapHeight: number):
         gameMap.setBaseElemXY(0, y, ELEM.WALL);
         gameMap.setBaseElemXY(mapWidth, y, ELEM.WALL);
     }
+}
+
+function addToMap(gameMap: CellMap, coord: TCoord[], elem): void {
+    coord.forEach(xy => {
+        const [x, y] = xy;
+        if (gameMap.hasXY(x, y)) {
+            gameMap.setBaseElemXY(x, y, elem);
+        }
+    });
 }
 
 function dbg(...args): void {
