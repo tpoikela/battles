@@ -8,6 +8,8 @@ import {Level} from '../../../client/src/level';
 describe('createCaveLevel', () => {
     it('creates cave levels', () => {
         const conf: any = {
+            numBranches: 30,
+            connectedRatio: 1.00
         };
         const n = 1;
         const level: Level = createCaveLevel(n * 150, n * 50, conf);
