@@ -966,6 +966,21 @@ Geometry.histArrayVals = function(array) {
     return hist;
 };
 
+/* Creates a cave connection using bresenham line between points x0,y0 and
+ * x1,y1. Uses a special 'brush' such that line does not have only one
+ * floor cell at each point. */
+Geometry.getCaveConnLine = function(x0, y0, x1, y1, conf?): TCoord[] {
+    let res: TCoord[] = [];
+    const bresLine: TCoord[] = Geometry.getBresenham(x0, y0, x1, y1);
+    bresLine.forEach((xy: TCoord) => {
+        const [x, y] = xy;
+        const w = RNG.getUniformInt(0, 2);
+        const coord = Geometry.getCrossCaveConn(x, y, w, true);
+        res = res.concat(coord);
+    });
+    return res;
+};
+
 /* Checks that all given args are ints. */
 function verifyInt(arr) {
     arr.forEach(val => {
