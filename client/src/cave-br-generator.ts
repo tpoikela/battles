@@ -28,6 +28,7 @@ const [STEP_MIN, STEP_MAX] = [2, 4];
 const NO_COORDS = []; // Dummy empty list
 
 interface Conf {
+    appendConnected: boolean;
     connectAll: boolean;
     connectedRatio: number;
     numBranches: number;
@@ -49,6 +50,7 @@ export class CaveBrGenerator {
 
 CaveBrGenerator.getOptions = (): Conf => {
     return {
+        appendConnected: false,
         connectAll: true,
         connectedRatio: 0.50,
         numBranches: 30,
@@ -171,13 +173,22 @@ function createCaveMap(gameMap: CellMap, mapConfig: Conf): void {
 
     }
 
+    if (caveCoords.length === 0) {
+        caveCoords = RNG.arrayGetRand(brUnconnected);
+    }
     // Connect unconnected branches to connected ones using bresenham lines
     if (mapConfig.connectAll) {
         brUnconnected.forEach((coord: TCoord[]) => {
             const [unConnX, unConnY] = RNG.arrayGetRand(coord);
             const [connX, connY] = RNG.arrayGetRand(caveCoords);
+            console.log('Connecting points', unConnX, unConnY, '=>', connX, connY);
             const bresLine = Geometry.getCaveConnLine(unConnX, unConnY, connX, connY);
             addToMap(gameMap, bresLine, ELEM.FLOOR);
+
+            // Add unconnected branch to connected coordinates
+            if (mapConfig.appendConnected) {
+                caveCoords = caveCoords.concat(coord);
+            }
         });
     }
 
@@ -330,6 +341,9 @@ function createVerCaveBranch(
 
     const branchStopX = branchStartX + branchStartWidth;
     createHoriSlice(gameMap, branchStartX, branchStopX, branchStartY);
+    for (let x = branchStartX; x <= branchStopX; x++) {
+        branchCoords.push([x, branchStartY]);
+    }
 
     let currentX = branchStartX;
     let currentY = branchStartY;
@@ -400,12 +414,16 @@ function createHorCaveBranch(
 ): TCoord[] {
     ++IND;
 
+    const branchCoords: TCoord[] = [];
     const [branchStartX, branchStartY, branchLength, branchStartWidth] =
         setupBranch(caveCoords, branchMinX, branchMinY,
                     branchMaxX, branchMaxY, 'h');
 
     const branchStopY = branchStartY + branchStartWidth;
     createVertSlice(gameMap, branchStartY, branchStopY, branchStartX);
+    for (let y = branchStartY; y <= branchStopY; ++y) {
+        branchCoords.push([branchStartX, y]);
+    }
 
     let currentX = branchStartX;
     let currentY = branchStartY;
@@ -414,7 +432,6 @@ function createHorCaveBranch(
     const widthDeltaRange = range(-magnitude, magnitude).filter(v => v !== 0);
     const currentYDeltaRange = range(-magnitude, magnitude).filter(v => v !== 0);
 
-    const branchCoords: TCoord[] = [];
     dbg('Hor branch Magnitude is ', magnitude, 'brLen', branchLength);
     for (let i = 0; i < branchLength; ++i) {
         currentX += 1;
