@@ -9,14 +9,15 @@ describe('createCaveLevel', function() {
     this.timeout(5000);
 
     it('creates cave levels', () => {
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 5; i++) {
             const conf: any = {
+                appendConnected: false,
                 connectAll: true,
-                numBranches: 30,
-                connectedRatio: 0.50
+                numBranches: 20,
+                connectedRatio: 0.10
             };
-            const n = 1;
-            const level: Level = createCaveLevel(n * 120, n * 120, conf);
+            const n = 2;
+            const level: Level = createCaveLevel(n * 80, n * 80, conf);
             level.debugPrintInASCII();
         }
     });
