@@ -9,7 +9,7 @@ describe('createCaveLevel', function() {
     this.timeout(5000);
 
     it('creates cave levels', () => {
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 50; i++) {
             const conf: any = {
                 connectAll: true,
                 numBranches: 30,
@@ -17,7 +17,7 @@ describe('createCaveLevel', function() {
             };
             const n = 1;
             const level: Level = createCaveLevel(n * 120, n * 120, conf);
-            // level.debugPrintInASCII();
+            level.debugPrintInASCII();
         }
     });
 });
