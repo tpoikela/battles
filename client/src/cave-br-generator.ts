@@ -12,8 +12,6 @@ import {TCoord} from './interfaces';
 const dbgReq = require('debug');
 const debug = dbgReq('bitn:cave-br');
 
-export const CaveBrGenerator: any = {};
-
 // debug.enabled = true;
 
 const RNG = Random.getRNG();
@@ -37,23 +35,34 @@ interface Conf {
     mapHeight: number;
 }
 
-CaveBrGenerator.getOpts = (): Conf => {
+export class CaveBrGenerator {
+    public static getOptions: () => Conf;
+
+    constructor() {
+    }
+
+    public create(cols: number, rows: number, conf: Conf): Level {
+        return createCaveLevel(cols, rows, conf);
+    }
+
+}
+
+CaveBrGenerator.getOptions = (): Conf => {
     return {
         connectAll: true,
         connectedRatio: 0.50,
         numBranches: 30,
-        mapWidth: 100,
-        mapHeight: 100
+        mapWidth: 150,
+        mapHeight: 150
     };
 };
 
 /* Creates a cave level and returns Level object. */
-export function createCaveLevel(cols: number, rows: number, conf: any): Level {
+export function createCaveLevel(cols: number, rows: number, conf: Conf): Level {
     const level = new Level();
     const map = new CellMap(cols, rows, ELEM.WALL);
-    if (!conf.mapWidth) {conf.mapWidth = cols;}
-    if (!conf.mapHeight) {conf.mapHeight = rows;}
-    conf.randBranches = false;
+    conf.mapWidth = cols;
+    conf.mapHeight = rows;
     conf.connectedRatio = conf.connectedRatio || 1.00;
     createCaveMap(map, conf);
     level.setMap(map);
