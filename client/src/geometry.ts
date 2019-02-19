@@ -1003,10 +1003,13 @@ Geometry.getCaveConnLine = function(x0, y0, x1, y1, conf?): TCoord[] {
     const bresLine: TCoord[] = [];
     Geometry.tesselateLine(x0, y0, x1, y1, 4, bresLine);
 
-    const brushFunc = conf.brush || Geometry.getCrossCaveConn;
+    let brushFunc = Geometry.getCrossCaveConn;
+    if (conf && typeof conf.brush === 'function') {
+        brushFunc = conf.brush;
+    }
     bresLine.forEach((xy: TCoord) => {
         const [x, y] = xy;
-        const w = RNG.getUniformInt(0, 3);
+        const w = RNG.getUniformInt(1, 3);
         const coord = brushFunc(x, y, w, true);
         res = res.concat(coord);
     });
