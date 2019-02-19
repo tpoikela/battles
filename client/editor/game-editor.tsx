@@ -17,10 +17,6 @@ import {Capital} from '../data/capital';
 import {AbandonedFort, abandonedFortConf} from '../data/abandoned-fort';
 import {DwarvenCity, dwarvenCityConf} from '../data/dwarven-city';
 import {MapWall} from '../../lib/map.wall';
-import {DungeonGenerator} from '../src/dungeon-generator';
-import {CaveGenerator} from '../src/cave-generator';
-import {MountainGenerator} from '../src/mountain-generator';
-import {CastleGenerator} from '../src/castle-generator';
 import {FactoryLevel} from '../src/factory.level';
 import {Geometry} from '../src/geometry';
 import {Level} from '../src/level';
@@ -37,15 +33,21 @@ import {Keys} from '../src/keymap';
 import {GameMain} from '../src/game';
 import {FromJSON} from '../src/game.fromjson';
 import {Factory} from '../src/factory';
-import {MapGenerator} from '../src/map.generator';
 import {Path} from '../src/path';
+
+import {MapGenerator} from '../src/map.generator';
+import {DungeonGenerator} from '../src/dungeon-generator';
+import {CaveGenerator} from '../src/cave-generator';
+import {CaveBrGenerator} from '../src/cave-br-generator';
+import {MountainGenerator} from '../src/mountain-generator';
+import {CastleGenerator} from '../src/castle-generator';
 
 const KeyMap = Keys.KeyMap;
 
 const NO_VISIBLE_CELLS = [];
 
 const editorLevelTypes: string[] = [
-  'Castle', 'Cave', 'Dungeon', 'MountainFace', 'MountainSummit',
+  'Castle', 'Cave', 'CaveBr', 'Dungeon', 'MountainFace', 'MountainSummit',
   'abandoned_fort',
   'arena', 'castle', 'capital', 'cellular', 'cave', 'crypt',
   'digger', 'divided', 'dungeon', 'dwarven_city',
@@ -395,17 +397,19 @@ export default class GameEditor extends Component {
     }
   }
 
-  public onMouseUp(x, y): void {
+  public onMouseUp(x: number, y: number): void {
     if (this.state.selectMode) {
       const cell = this.getCellCurrMap(x, y);
-      const stateUpdates: any = {
-        selectMode: false, selectEnd: cell,
-        cellSelectX: cell.getX(), cellSelectY: cell.getY()
-      };
-      if (this.state.selectBegin === this.state.selectEnd) {
-        stateUpdates.selectedCell = [cell];
+      if (cell) {
+        const stateUpdates: any = {
+          selectMode: false, selectEnd: cell,
+          cellSelectX: cell.getX(), cellSelectY: cell.getY()
+        };
+        if (this.state.selectBegin === this.state.selectEnd) {
+          stateUpdates.selectedCell = [cell];
+        }
+        this.setState(stateUpdates);
       }
-      this.setState(stateUpdates);
     }
   }
 
@@ -610,6 +614,9 @@ export default class GameEditor extends Component {
     }
     else if (levelType === 'Cave') {
       level = new CaveGenerator().create(cols, rows, conf);
+    }
+    else if (levelType === 'CaveBr') {
+      level = new CaveBrGenerator().create(cols, rows, conf);
     }
     else if (levelType === 'Castle') {
       level = new CastleGenerator().create(cols, rows, conf);
@@ -1013,6 +1020,9 @@ export default class GameEditor extends Component {
     }
     else if (value === 'Cave') {
       return CaveGenerator.getOptions();
+    }
+    else if (value === 'CaveBr') {
+      return CaveBrGenerator.getOptions();
     }
     else if (value === 'Castle') {
       return CastleGenerator.getOptions();
