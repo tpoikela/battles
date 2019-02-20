@@ -1,12 +1,13 @@
 
 import { expect } from 'chai';
 import {CaveGenerator} from '../../../client/src/cave-generator';
+import {Level} from '../../../client/src/level';
 
 describe('CaveGenerator', () => {
     it('can create Cave-like levels', () => {
         const caveGen = new CaveGenerator();
         const level = caveGen.create(80, 50, {dungeonType: 'Cave'});
-        expect(level).to.exist;
+        expect(level).to.be.an.instanceof(Level);
     });
 
     it('can generate simple cave levels', () => {
@@ -15,7 +16,7 @@ describe('CaveGenerator', () => {
             const conf = {dungeonType: 'Cave', isCollapsed: false,
                 maxDanger: 5};
             const level = caveGen.create(100, 50, conf);
-            expect(level).to.exist;
+            expect(level).to.be.an.instanceof(Level);
 
             const extras = level.getExtras();
             const {startPoint, endPoint} = extras;
@@ -30,7 +31,7 @@ describe('CaveGenerator', () => {
             const caveGen = new CaveGenerator();
             const level = caveGen.create(100, 50,
                 {dungeonType: 'Lair', isCollapsed: true});
-            expect(level).to.exist;
+            expect(level).to.be.an.instanceof(Level);
 
             const extras = level.getExtras();
             expect(extras).to.have.property('startPoint');
@@ -43,7 +44,7 @@ describe('CaveGenerator', () => {
             const caveGen = new CaveGenerator();
             const level = caveGen.create(150, 80,
                 {dungeonType: 'Cavern', isCollapsed: false, maxDanger: 2});
-            expect(level).to.exist;
+            expect(level).to.be.an.instanceof(Level);
 
             const extras = level.getExtras();
             expect(extras).to.have.property('startPoint');
@@ -58,7 +59,7 @@ describe('CaveGenerator', () => {
             dungeonType: 'Lair', isCollapsed: true, maxDanger: 3
         };
         const level = caveGen.create(100, 50, conf);
-        expect(level).to.exist;
+        expect(level).to.be.an.instanceof(Level);
         // level.debugPrintInASCII();
     });
 });
