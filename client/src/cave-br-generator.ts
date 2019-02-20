@@ -39,15 +39,13 @@ interface Conf {
 export class CaveBrGenerator {
     public static getOptions: () => Conf;
 
-    constructor() {
-    }
-
     public create(cols: number, rows: number, conf: Conf): Level {
         return createCaveLevel(cols, rows, conf);
     }
 
 }
 
+/* Returns the default options for the generator. */
 CaveBrGenerator.getOptions = (): Conf => {
     return {
         appendConnected: false,
@@ -115,7 +113,8 @@ function createCaveMap(gameMap: CellMap, mapConfig: Conf): void {
         dbg('Creating connected branch', branch);
         ++IND;
 
-        // First we need to randomly decide whether this branch is horizontal or vertical.
+        // First we need to randomly decide whether this branch is horizontal
+        // or vertical.
         if (RNG.getUniformInt(0, 1) === 0) {
             dbg('Creating vertical connected branch', branch);
 
@@ -181,7 +180,6 @@ function createCaveMap(gameMap: CellMap, mapConfig: Conf): void {
         brUnconnected.forEach((coord: TCoord[]) => {
             const [unConnX, unConnY] = RNG.arrayGetRand(coord);
             const [connX, connY] = RNG.arrayGetRand(caveCoords);
-            console.log('Connecting points', unConnX, unConnY, '=>', connX, connY);
             const bresLine = Geometry.getCaveConnLine(unConnX, unConnY, connX, connY);
             addToMap(gameMap, bresLine, ELEM.FLOOR);
 
