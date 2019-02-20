@@ -11,7 +11,7 @@ import {FactoryLevel} from '../../../client/src/factory.level';
 import * as Component from '../../../client/src/component';
 import {DijkstraMap} from '../../../client/src/dijkstramaps';
 import {MapGenerator} from '../../../client/src/map.generator';
-
+import {ELEM} from '../../../client/data/elem-constants';
 
 const Actor = SentientActor;
 const ElementBase = Element.ElementBase;
@@ -232,8 +232,7 @@ describe('CellMap', () => {
         const obj = mapgen.getMap();
         const map = obj.map;
 
-        map.setBaseElemXY(0, 0, RG.ELEM.CHASM);
-
+        map.setBaseElemXY(0, 0, ELEM.CHASM);
         expect(map.isPassable(0, 0)).to.equal(false);
         expect(map.getCell(0, 0).isFree()).to.equal(false);
         expect(map.isPassableByAir(0, 0)).to.equal(true);
