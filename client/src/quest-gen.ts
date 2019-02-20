@@ -1607,8 +1607,8 @@ export class QuestPopulate {
         }
     }
 
-    public createBattle(target, zone, areaTile) {
-        const battleZones = areaTile.getZones('BattleZone');
+    public createBattle(target, zone, areaTile): Level | null {
+        const battleZones: ZoneBase[] = areaTile.getZones('BattleZone');
         if (battleZones.length > 0) {
             const battleZone = RNG.arrayGetRand(battleZones);
             // BattleZone has only 1 level at the moment
