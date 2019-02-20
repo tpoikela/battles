@@ -52,7 +52,7 @@ const PROB = {
 /* Maps a big room to different possible features. The key is matched using
 * regular expression. This means the keys must be uniquely matchable. */
 const bigRoomType2Feature = {
-    cross: {
+    'cross': {
         special: ['splashes']
     },
     'small vault': {},
@@ -60,7 +60,7 @@ const bigRoomType2Feature = {
     'large corridor': {
         special: ['splashes']
     },
-    center: {
+    'center': {
     }
 };
 
@@ -75,16 +75,8 @@ export class DungeonGenerator extends LevelGenerator {
 
     public static mapOptions: {[key: string]: any}; // TODO fix typings
 
-    public addDoors: boolean;
-
-    constructor() {
-        super();
-        this.addDoors = true;
-        this.shouldRemoveMarkers = true;
-    }
-
     /* Returns the default options for dungeon level generation. */
-    static getOptions(type = 'digger') {
+    public static getOptions(type = 'digger') {
         const levelOpts = {
             levelType: type, nBigRooms: 1,
             bigRoomX: ['cen'], bigRoomY: ['cen'],
@@ -97,9 +89,17 @@ export class DungeonGenerator extends LevelGenerator {
         return Object.assign(levelOpts, mapOpts);
     }
 
+    public addDoors: boolean;
+
+    constructor() {
+        super();
+        this.addDoors = true;
+        this.shouldRemoveMarkers = true;
+    }
+
     /* Creates the actual Map.Level. User should call this function with desired
      * size (X * Y) and configuration. */
-    create(cols, rows, conf) {
+    public create(cols, rows, conf) {
         // Creates the Map.Level with rooms, walls and floor
         const level = this._createLevel(cols, rows, conf);
 
@@ -130,7 +130,7 @@ export class DungeonGenerator extends LevelGenerator {
     }
 
     /* Creates the Map.Level with extras (such as rooms) added. */
-    _createLevel(cols, rows, conf) {
+    public _createLevel(cols, rows, conf) {
         if (!cols) {
             cols = RNG.getUniformInt(80, 120);
         }
@@ -171,7 +171,7 @@ export class DungeonGenerator extends LevelGenerator {
         return level;
     }
 
-    getMapGen(cols, rows, conf) {
+    public getMapGen(cols, rows, conf) {
         let levelType = getRandMapType();
         if (conf.dungeonType && conf.dungeonType !== '') {
             levelType = conf.dungeonType;
@@ -192,7 +192,7 @@ export class DungeonGenerator extends LevelGenerator {
      * always guaranteed to be connected by the algorith. 2nd room may not be
      * connected, but this can be checked if necessary.
      */
-    addBigRooms(mapGen, conf) {
+    public addBigRooms(mapGen, conf) {
         let bigRoomsCreated = [];
 
         // Generate different options for big rooms:
@@ -230,12 +230,12 @@ export class DungeonGenerator extends LevelGenerator {
         return bigRoomsCreated;
     }
 
-    getBigRoomType() {
+    public getBigRoomType() {
         return RNG.arrayGetRand(Object.keys(bigRoomType2Feature));
     }
 
     /* Adds manually specified custom rooms into the level. */
-    addCustomBigRooms(mapGen, conf) {
+    public addCustomBigRooms(mapGen, conf) {
         const [cx, cy] = mapGen.getCenterXY();
         const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
         const nBigRooms = conf.nBigRooms || 0;
@@ -286,7 +286,7 @@ export class DungeonGenerator extends LevelGenerator {
     }
 
     /* Adds a big room aligned to the center of the level. */
-    addBigCenterRoom(mapGen) {
+    public addBigCenterRoom(mapGen) {
         const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
         const [cx, cy] = mapGen.getCenterXY();
 
@@ -303,7 +303,7 @@ export class DungeonGenerator extends LevelGenerator {
         return [new BigRoom('center', room)];
     }
 
-    addLargeCorridorRoom(mapGen) {
+    public addLargeCorridorRoom(mapGen) {
         const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
         const cardinalDir = RNG.getCardinalDirLetter();
         const roomName = 'large corridor ' + cardinalDir;
@@ -349,7 +349,7 @@ export class DungeonGenerator extends LevelGenerator {
         return [new BigRoom(roomName, room)];
     }
 
-    addLargeCross(mapGen) {
+    public addLargeCross(mapGen) {
         const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
         const [cx, cy] = mapGen.getCenterXY();
 
@@ -382,7 +382,7 @@ export class DungeonGenerator extends LevelGenerator {
         ];
     }
 
-    addVault(mapGen) {
+    public addVault(mapGen) {
         // Small vault 1/4 of level
         // Big vault 1/2 of level
         const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
@@ -415,7 +415,7 @@ export class DungeonGenerator extends LevelGenerator {
     }
 
     /* Returns a random corner for a feature. */
-    getRandCorner(w, h, cols, rows, corners) {
+    public getRandCorner(w, h, cols, rows, corners) {
         const corner = RNG.arrayGetRand(corners);
         let [x, y] = [1, 1];
         switch (corner) {
@@ -429,7 +429,7 @@ export class DungeonGenerator extends LevelGenerator {
     }
 
     /* Function adds features like chasms, bridges, rivers etc. */
-    addSpecialFeatures(level) {
+    public addSpecialFeatures(level) {
         const extras = level.getExtras();
         const map = level.getMap();
 
@@ -463,9 +463,9 @@ export class DungeonGenerator extends LevelGenerator {
         */
 
         if (extras.rooms) {
-            const room = RNG.arrayGetRand(extras.rooms);
+            const fireRoom = RNG.arrayGetRand(extras.rooms);
             const terms = [];
-            this.addFireToRoom(level, room);
+            this.addFireToRoom(level, fireRoom);
 
             extras.rooms.forEach((room, id) => {
                 room.setID(id); // Add ID to identify rooms
@@ -509,7 +509,7 @@ export class DungeonGenerator extends LevelGenerator {
 
     /* Adds a special feature to a big room. This can be obstructions or some
      * structures like temples etc. */
-    addBigRoomSpecialFeat(level, randSpecial, bigRooms) {
+    public addBigRoomSpecialFeat(level, randSpecial, bigRooms) {
         bigRooms.forEach(bigRoom => {
             const room = bigRoom.room; // Unwrap Feature.Room from BigRoom
             if (!room) {
@@ -526,7 +526,7 @@ export class DungeonGenerator extends LevelGenerator {
     }
 
     /* Adds door elements for the given room. */
-    addDoorsForRoom(level, room) {
+    public addDoorsForRoom(level, room) {
         if (this.addDoors) {
             room.getDoors((x, y) => {
                 const cell = level.getMap().getCell(x, y);
@@ -544,7 +544,7 @@ export class DungeonGenerator extends LevelGenerator {
      * 3. forest - animals
      * Make sure  this is same for all rooms.
      */
-    addElemSplashes(level, room) {
+    public addElemSplashes(level, room) {
         const themeName = RNG.arrayGetRand(Object.keys(SPLASH_THEMES));
         const theme = SPLASH_THEMES[themeName];
         const elem = theme.elem;
@@ -560,7 +560,7 @@ export class DungeonGenerator extends LevelGenerator {
     }
 
     /* Decorates the room corners with fire. */
-    addFireToRoom(level, room) {
+    public addFireToRoom(level, room) {
         const parser = ObjectShell.getParser();
         const corners = Object.values(room.getCorners());
         corners.forEach(xy => {
@@ -569,7 +569,7 @@ export class DungeonGenerator extends LevelGenerator {
         });
     }
 
-    addStairsLocations(level) {
+    public addStairsLocations(level) {
         // Default is to find rooms that are far away from each other
         const extras = level.getExtras();
         let watchdog = 100;
@@ -623,7 +623,7 @@ export class DungeonGenerator extends LevelGenerator {
 
     /* Adds a critical path to the level. The path is denoted with markers 'critical
      * path' to retrieve it later. */
-    addCriticalPath(level) {
+    public addCriticalPath(level) {
         const extras = level.getExtras();
         const [cx2, cy2] = extras.startPoint;
         const [cx1, cy1] = extras.endPoint;
@@ -697,7 +697,7 @@ export class DungeonGenerator extends LevelGenerator {
 
     /* This breaks the path with a wall and by placing a 'path broken' marker to
      * locate the element later. */
-    _breakPath(level, path) {
+    public _breakPath(level, path) {
         for (let i = 0; i < path.length; i++) {
             const {x, y} = path[i];
             const cell = level.getMap().getCell(x, y);
@@ -711,7 +711,7 @@ export class DungeonGenerator extends LevelGenerator {
         return false;
     }
 
-    _addWallsToBrokenPath(level) {
+    public _addWallsToBrokenPath(level) {
         const markers = level.getElements().filter(
             e => e.getType() === 'marker' && e.getTag() === 'path broken'
         );
@@ -723,7 +723,7 @@ export class DungeonGenerator extends LevelGenerator {
 
     /* Restores previous broken path in case no sufficiently long new path is found.
      * */
-    restorePath(level, path) {
+    public restorePath(level, path) {
         for (let i = 0; i < path.length; i++) {
             const {x, y} = path[i];
             const cell = level.getMap().getCell(x, y);
@@ -744,9 +744,9 @@ export class DungeonGenerator extends LevelGenerator {
     /* Right now, use a floodfill to check the connectivity. Returns true if the
      * level is rejected. If conf.errorOnFailure is set, throws error immediately.
      * */
-    verifyLevel(level, conf) {
+    public verifyLevel(level, conf) {
         const map = level.getMap();
-        const fillFilter = cell => cell.isPassable() || cell.hasDoor();
+        const fillFilter = c => c.isPassable() || c.hasDoor();
         const floorCells = map.getCells(fillFilter);
         const cell = floorCells[0];
         const floorCellsFilled = Geometry.floodfill(map, cell, fillFilter);
