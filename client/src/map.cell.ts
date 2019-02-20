@@ -404,7 +404,7 @@ export class Cell {
     }
 
     /* Returns true if the cell has an usable element. */
-    public hasUsable() {
+    public hasUsable(): boolean {
         const elems = this.getProp(RG.TYPE_ELEM) as Element.ElementBase[];
         if (elems) {
             for (let i = 0; i < elems.length; i++) {
@@ -420,28 +420,13 @@ export class Cell {
         const json: CellJSON = {
             t: ELEM_MAP.elemTypeToIndex[this._baseElem.getType()]
         };
-
-        if (this._explored) {
-            json.ex = 1;
-        }
-
-        if (this._p.hasOwnProperty(RG.TYPE_ELEM)) {
-            const elements = [];
-            this._p[RG.TYPE_ELEM].forEach(elem => {
-                if (/(snow|tree|grass|stone|water)/.test(elem.getType())) {
-                    elements.push(elem.toJSON());
-                }
-            });
-            if (elements.length > 0) {
-                json.elements = elements;
-            }
-        }
+        if (this._explored) {json.ex = 1;}
         return json;
     }
 
     /* Returns name (or type if unnamed) for each prop in this cell, including the
      * base element type. */
-    public getPropNames() {
+    public getPropNames(): string[] {
         const result = [this._baseElem.getType()];
         const keys = Object.keys(this._p);
         keys.forEach(propType => {
