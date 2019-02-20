@@ -129,16 +129,22 @@ describe('Level', () => {
     });
 
     it('can be serialized to JSON', () => {
-        const level1 = factLevel.createLevel('arena', 20, 20);
+        const level1 = factLevel.createLevel('arena', 80, 40);
         const map = level1.getMap();
         const cells = map.getCells();
         const cell0 = cells[0];
         expect(cell0.getBaseElem().getType()).to.equal('wall');
-        expect(cells[35].getBaseElem().getType()).to.equal('floor');
+        // expect(cells[35].getBaseElem().getType()).to.equal('floor');
 
         const json = level1.toJSON();
         expect(json.id).to.equal(level1.getID());
         expect(json.levelNumber).to.equal(level1.getLevelNumber());
+
+        const jsonMap1 = map.toJSON();
+        const jsonCompr = map.toJSONEncoded();
+
+        const mapRest = CellMap.fromJSON(jsonCompr);
+        //mapRest.debugPrintInASCII();
     });
 
     it('can contain almost arbitrary extra info for procgen', () => {
