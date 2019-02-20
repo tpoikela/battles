@@ -72,6 +72,8 @@ interface Extras {
 }
 
 export type LevelExtras = Extras & {
+    points?: TCoord[];
+    startPoints?: TCoord[];
     startPoint?: TCoord;
     houses?: House[];
     shops?: WorldShop[];
@@ -653,6 +655,7 @@ export class Level extends Entity {
             items: [],
             elements: [],
             map: this.getMap().toJSON(),
+            // map: this.getMap().toJSONEncoded(),
             cbState: this._cbState
         };
 
