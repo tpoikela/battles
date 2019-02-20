@@ -4,8 +4,14 @@
  * */
 
 import RG from '../src/rg';
-import {Template} from '../src/template';
+import {Template, ElemTemplate} from '../src/template';
 import {Random, RandWeights} from '../src/random';
+
+interface HouseData {
+    tiles: {[key: string]: string[]};
+    templates: {[key: string]: ElemTemplate[]};
+    Models: {[key: string]: string[]};
+}
 
 export const Houses5x5: any = {tiles: {}, templates: {}, Models: {}};
 const RNG = Random.getRNG();
@@ -451,25 +457,27 @@ Houses5x5.startRoomFunc = function() {
         };
     }
     else if (this.tilesX === 1) {
-        const usableTempl = Houses5x5.templates.start1xN.filter(templ => (
-            !(/(R90|R270)/i).test(templ.getProp('name'))
-        ));
+        const usableTempl: ElemTemplate[] =
+            Houses5x5.templates.start1xN.filter(tpl => (
+                !(/(R90|R270)/i).test(tpl.getProp('name'))
+            ));
         const templ = RNG.arrayGetRand(usableTempl);
         let y = this.tilesY - 1;
         if (/R180/i.test(templ.getProp('name'))) {y = 0;}
         return {x: 0, y, room: templ};
     }
     else if (this.tilesY === 1) {
-        const usableTempl = Houses5x5.templates.start1xN.filter(templ => (
-            (/(R90|R270)/i).test(templ.getProp('name'))
-        ));
+        const usableTempl: ElemTemplate[] =
+            Houses5x5.templates.start1xN.filter(tpl => (
+                (/(R90|R270)/i).test(tpl.getProp('name'))
+            ));
         const templ = RNG.arrayGetRand(usableTempl);
         let x = 0;
         if (/R270/i.test(templ.getProp('name'))) {x = this.tilesX - 1;}
         return {x, y: 0, room: templ};
     }
     else if (this.tilesX === 2 || this.tilesY === 2) {
-        const usableTempl = Houses5x5.templates.start2xN;
+        const usableTempl: ElemTemplate[] = Houses5x5.templates.start2xN;
         const templ = RNG.arrayGetRand(usableTempl);
         let x = 0;
         let y = 0;
@@ -490,9 +498,9 @@ Houses5x5.startRoomFunc = function() {
         this.addRoom(blocker, midX, y);
     }
 
-    const templ = Template.createTemplate(tile);
+    const templRoom = Template.createTemplate(tile);
     return {
-        x: midX, y: midY, room: templ
+        x: midX, y: midY, room: templRoom
     };
 };
 
