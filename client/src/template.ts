@@ -14,9 +14,14 @@ const debug = msg => {
     }
 };
 
+export interface ElemTemplate {
+    setProps: (props: any) => void;
+    getProp: (prop: string) => any;
+}
+
 /* Creates and return ElemTemplate from a string.
  */
-Template.createTemplate = function(str: string) {
+Template.createTemplate = function(str: string): ElemTemplate {
     const lines = str.split('\n');
     let nLine = 0;
     let currLine = lines[0];
@@ -215,7 +220,7 @@ export const ElemTemplate = function(conf?) {
     };
 
     /* Returns direction (dir property) as sorted string. */
-    this.getDir = function() {
+    this.getDir = function(): string {
         const dir = this.getProp('dir');
         if (dir) {
             return dir.split('').sort().join('');
@@ -223,12 +228,11 @@ export const ElemTemplate = function(conf?) {
         return '';
     };
 
-    this.setProp = function(key, val) {
+    this.setProp = function(key, val): void {
         this.elemPropMap[key] = val;
     };
 
     // Find Y-generator
-
     this.getChars = function(arr) {
         if (!arr) {
             arr = [];
@@ -385,19 +389,19 @@ export const ElemTemplate = function(conf?) {
                 for (let y = 0; y < col.length; y++) {
                    // Take one char per y
                    const row = col[y];
-                    let writeIndex = realX;
-                    row.split('').forEach(char => {
-                        if (y === 0) {
-                            // Create new array on 1st index
-                            res.push([char]);
-                            debug('\tres push ' + JSON.stringify(res));
-                        }
-                        else {
-                            // ..and push to array on 2nd,3rd etc
-                            res[writeIndex++].push(char);
-                            debug('\tres[x] push ' + JSON.stringify(res));
-                        }
-                    });
+                   let writeIndex = realX;
+                   row.split('').forEach(char => {
+                       if (y === 0) {
+                           // Create new array on 1st index
+                           res.push([char]);
+                           debug('\tres push ' + JSON.stringify(res));
+                       }
+                       else {
+                           // ..and push to array on 2nd,3rd etc
+                           res[writeIndex++].push(char);
+                           debug('\tres[x] push ' + JSON.stringify(res));
+                       }
+                   });
                 }
                 realX += nChars; // Real X dim was expanded by nChars
             }
