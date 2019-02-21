@@ -1,5 +1,5 @@
 /* This grammar/generation rules taken from publication
-    "A Prototype Quest Generator Based on a
+    [1] "A Prototype Quest Generator Based on a
     Structural Analysis of Quests from Four MMORPGs"
     J. Doran and I. Parberry,
     Proceedings of the Second International Workshop on Procedural Content
@@ -93,7 +93,7 @@ ${actorMotivationsGrammar}
 <Check_on_NPC1> ::= <goto> "listen" <goto> "report";
 <Check_on_NPC2> ::= <goto> "take" <goto> "give";
 <Recover_lost_or_stolen_item> ::= <get> <goto> "give";
-<Rescue_captured_NPC> ::= <goto> "damage" "escort" <goto> "report";
+<Rescue_captured_NPC> ::= <goto> "damage" "escort" <goto_new_place> "report";
 
 <Attack_threatening_entities> ::=<goto> "damage" <goto> "report";
 <Treat_or_repair_1> ::= <get> <goto> "use";
@@ -130,6 +130,8 @@ ${actorMotivationsGrammar}
     <goto> <QUEST> "<subquest>goto";
 
 <goto> ::= "<goto>already_there" | "<goto>explore" | <learn> "<goto>goto";
+
+<goto_new_place> ::= "<goto>explore" | <learn> "<goto>goto";
 
 <learn> ::= "<learn>already_know_it" |
     <goto> <subquest> "listen" |
@@ -186,7 +188,8 @@ function getMotivations(text) {
     return res;
 }
 
-/* Used to generate randomly different weights. */
+/* Used to generate randomly different weights. Default values are simply
+*  borrowed from the [1]. */
 const motiveWeights = {
     Knowledge: 180,
     Comfort: 20,
@@ -207,8 +210,8 @@ QuestGrammar.setWeight = function(motive, weight, clearOthers = false) {
     if (clearOthers) {
         // Can be used for debugging if only one type of motive is
         // being tested
-        Object.keys(motiveWeights).forEach(motive => {
-            motiveWeights[motive] = 0;
+        Object.keys(motiveWeights).forEach(mot => {
+            motiveWeights[mot] = 0;
         });
     }
     motiveWeights[motive] = weight;

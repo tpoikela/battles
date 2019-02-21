@@ -12,6 +12,7 @@ import {Geometry} from './geometry';
 import {WorldSimulation} from './world.simulation';
 import * as Component from './component';
 import * as World from './world';
+import {Dice} from './dice';
 
 type Level = import('./level').Level;
 
@@ -538,6 +539,7 @@ export const GameMain = function() {
             lastComponentID: Component.getIDCount(),
             globalConf: this.globalConf,
             rng: this._rng.toJSON(),
+            diceRng: Dice.RNG.toJSON(),
             charStyles: RG.charStyles,
             cellStyles: RG.cellStyles,
             actorsKilled: this.actorsKilled,

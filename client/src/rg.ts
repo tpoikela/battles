@@ -4,6 +4,14 @@ const $DEBUG = 0;
 /* Main object of the package for encapsulating all other objects. */
 const RG: any = {};
 
+// Import only types
+type BaseActor = import('./actor').BaseActor;
+type SentientActor = import('./actor').SentientActor;
+type ItemBase = import('./item').ItemBase;
+type ElementBase = import('./element').ElementBase;
+type Entity = import('./entity').Entity;
+type Cell = import('./map.cell').Cell;
+
 RG.gameTitle = 'Battles in the North (BitN)';
 
 // Can be set to true for testing, when error conditions are checked
@@ -16,7 +24,7 @@ RG.cellRenderVisible = ['actors', 'items', 'elements'];
 RG.cellRenderAlways = ['items', 'elements'];
 
 /* Given Map.Cell, returns CSS classname used for styling that cell. */
-RG.getCssClassForCell = function(cell, isVisible): string {
+RG.getCssClassForCell = function(cell: Cell, isVisible: boolean): string {
     if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
     else {this.cellRenderArray = this.cellRenderAlways;}
     const className = this.getStyleClassForCell(cell);
@@ -25,7 +33,7 @@ RG.getCssClassForCell = function(cell, isVisible): string {
 };
 
 /* Same as getClassName, but optimized for viewing the full map. */
-RG.getCssClassFullMap = function(cell): string {
+RG.getCssClassFullMap = function(cell: Cell): string {
     this.cellRenderArray = this.cellRenderVisible;
 
     if (!cell.hasProps()) {
@@ -45,7 +53,7 @@ RG.getCssClassFullMap = function(cell): string {
 };
 
 /* Given Map.Cell, returns a char that is rendered for the cell. */
-RG.getCharForCell = function(cell, isVisible: boolean): string {
+RG.getCharForCell = function(cell: Cell, isVisible: boolean): string {
     if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
     else {this.cellRenderArray = this.cellRenderAlways;}
     const cellChar = this.getCellChar(cell);
@@ -54,7 +62,7 @@ RG.getCharForCell = function(cell, isVisible: boolean): string {
 };
 
 /* Same as getChar, but optimized for full map viewing. */
-RG.getCharFullMap = function(cell): string {
+RG.getCharFullMap = function(cell: Cell): string {
     this.cellRenderArray = this.cellRenderVisible;
 
     if (!cell.hasProps()) {
@@ -74,7 +82,7 @@ RG.getCharFullMap = function(cell): string {
 
 /* Maps a cell to specific object in stylesheet. For rendering purposes
  * only.*/
-RG.getStyleClassForCell = function(cell): string {
+RG.getStyleClassForCell = function(cell: Cell): string {
     if (!cell.isExplored()) { return 'cell-not-explored';}
 
     for (let i = 0; i < this.cellRenderArray.length; i++) {
@@ -138,7 +146,7 @@ RG.getPropClassOrChar = function(styles, propObj): string {
 };
 
 /* Returns char which is rendered on the map cell based on cell contents.*/
-RG.getCellChar = function(cell): string {
+RG.getCellChar = function(cell: Cell): string {
     if (!cell.isExplored()) {return 'X';}
 
     for (let i = 0; i < this.cellRenderArray.length; i++) {
@@ -389,7 +397,7 @@ RG.nullOrUndefError = function(name, msg, val) {
 };
 
 /* Returns true if anything in the list is null or undefined.*/
-RG.isNullOrUndef = function(list) {
+RG.isNullOrUndef = function(list: any[]) {
     for (let i = 0; i < list.length; i++) {
         if (list[i] === null || typeof list[i] === 'undefined' ||
             typeof list === 'undefined') {
@@ -399,9 +407,8 @@ RG.isNullOrUndef = function(list) {
     return false;
 };
 
-
 /* Tries to add item2 to item1 stack. Returns true on success.*/
-RG.addStackedItems = function(item1, item2) {
+RG.addStackedItems = function(item1: ItemBase, item2: ItemBase): boolean {
     if (item1.equals(item2)) {
         const countToAdd = item2.getCount();
         item1.incrCount(countToAdd);
@@ -412,7 +419,7 @@ RG.addStackedItems = function(item1, item2) {
 
 /* Removes N items from the stack and returns them. Returns null if the
  * stack is not changed.*/
-RG.removeStackedItems = function(itemStack, n) {
+RG.removeStackedItems = function(itemStack: ItemBase, n): ItemBase | null {
     if (n > 0) {
     let rmvItem = null;
     if (n === 1 && itemStack.getCount() === 1) {
@@ -435,9 +442,9 @@ RG.removeStackedItems = function(itemStack, n) {
 // COMBAT-RELATED FUNCTIONS
 //--------------------------------------------------------------
 
-RG.getItemDamage = function(item) {
-    if (item.rollDamage) {
-        return item.rollDamage();
+RG.getItemDamage = function(item: ItemBase): number {
+    if ((item as any).rollDamage) {
+        return (item as any).rollDamage();
     }
     else {
         const weight = item.getWeight();
@@ -445,9 +452,9 @@ RG.getItemDamage = function(item) {
     }
 };
 
-RG.getMeleeAttack = function(att) {
+RG.getMeleeAttack = function(att: SentientActor): number {
     let attack = att.getAttack();
-    const missile = att.getInvEq().getEquipment().getItem('missile');
+    const missile = att.getInvEq().getMissile();
     const missWeapon = att.getInvEq().getMissileWeapon();
     if (missile) {attack -= missile.getAttack();}
     if (missWeapon) {attack -= missWeapon.getAttack();}
@@ -1425,21 +1432,21 @@ RG.isOneShotItem = item => {
 };
 
 
-RG.isActor = obj => {
+RG.isActor = (obj): obj is BaseActor => {
     if (obj && obj.getPropType) {
         return obj.getPropType() === RG.TYPE_ACTOR;
     }
     return false;
 };
 
-RG.isElement = obj => {
+RG.isElement = (obj): obj is ElementBase => {
     if (obj && obj.getPropType) {
         return obj.getPropType() === RG.TYPE_ELEM;
     }
     return false;
 };
 
-RG.isItem = obj => {
+RG.isItem = (obj): obj is ItemBase => {
     if (obj && obj.getPropType) {
         return obj.getPropType() === RG.TYPE_ITEM;
     }
@@ -1448,7 +1455,7 @@ RG.isItem = obj => {
 
 /* Returns true if given object is an entity. Can return false results
  * sometimes. */
-RG.isEntity = obj => {
+RG.isEntity = (obj): obj is Entity => {
     if (obj.comps && obj.compsByType && obj.add && obj.get) {
         return true;
     }

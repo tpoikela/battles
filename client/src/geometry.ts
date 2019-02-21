@@ -633,7 +633,8 @@ export const Geometry: any = {
         return bresLine;
     },
 
-    /* Returns a path from x0,y0 to x1,y1 which resembles "straight" line. */
+    /* Returns a path from x0,y0 to x1,y1 which resembles "straight" line.
+    * TODO remove this as getBresenham() is now used. */
     getMissilePath(x0, y0, x1, y1, incEnds = true) {
         let res = [];
         if (this.isLine(x0, y0, x1, y1)) {
@@ -964,6 +965,55 @@ Geometry.histArrayVals = function(array) {
         else {hist[value] = 1;}
     });
     return hist;
+};
+
+/* Recursive function, which builds up a list of coordinates on "tesselated"
+ * line. Original line x0,y0 -> x1,y1 is divided into sub-lines, which
+ * are created using bresenham line. */
+Geometry.tesselateLine = function(x0, y0, x1, y1, thr, coord): void {
+    const dX = Math.abs(x0 - x1);
+    const dY = Math.abs(y0 - y1);
+
+    const minX = x0 < x1 ? x0 : x1;
+    const maxX = x0 > x1 ? x0 : x1;
+    const minY = y0 < y1 ? y0 : y1;
+    const maxY = y0 > y1 ? y0 : y1;
+
+    if (dX >= thr && dY >= thr) {
+        const nX = RNG.getUniformInt(minX, maxX);
+        const nY = RNG.getUniformInt(minY, maxY);
+        Geometry.tesselateLine(x0, y0, nX, nY, thr, coord);
+        Geometry.tesselateLine(nX, nY, x1, y1, thr, coord);
+    }
+    else {
+        const lineCoord = Geometry.getBresenham(x0, y0, x1, y1);
+        lineCoord.forEach(xy => {
+            coord.push(xy);
+        });
+    }
+};
+
+/* Creates a cave connection using bresenham line between points x0,y0 and
+ * x1,y1. Uses a special 'brush' such that line does not have only one
+ * floor cell at each point. If thin line needs to be created, use the
+ * the following conf: {brush: (x, y) => [x, y]}
+ */
+Geometry.getCaveConnLine = function(x0, y0, x1, y1, conf?): TCoord[] {
+    let res: TCoord[] = [];
+    const bresLine: TCoord[] = [];
+    Geometry.tesselateLine(x0, y0, x1, y1, 4, bresLine);
+
+    let brushFunc = Geometry.getCrossCaveConn;
+    if (conf && typeof conf.brush === 'function') {
+        brushFunc = conf.brush;
+    }
+    bresLine.forEach((xy: TCoord) => {
+        const [x, y] = xy;
+        const w = RNG.getUniformInt(1, 3);
+        const coord = brushFunc(x, y, w, true);
+        res = res.concat(coord);
+    });
+    return res;
 };
 
 /* Checks that all given args are ints. */

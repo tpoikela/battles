@@ -6,16 +6,24 @@ import RG from '../src/rg';
 import {CellMap} from '../src/map';
 import FileSaver = require('file-saver');
 
+interface ErrorMsg {
+    errorMsg: string;
+}
+
 interface ILevelSaveLoadProps {
     objData: any;
     savedObjName: string;
     pretty?: boolean;
     onSaveCallback?: (json: any) => void;
     onLoadCallback: (json: any) => void;
-    setMsg: (any) => void;
+    setMsg: (msg: ErrorMsg) => void;
+    fNamePrefix?: string;
+    saveButtonName?: string;
+    loadInputValue?: string;
+    id: string; // Passed to sub-elements
 }
 
-/* Component which handles loading/saving of the levels from/to files. */
+/* Component which handles loading/saving of various game data from/to files. */
 export default class LevelSaveLoad extends Component {
   public props: ILevelSaveLoadProps;
 
@@ -25,20 +33,24 @@ export default class LevelSaveLoad extends Component {
     this.loadLevel = this.loadLevel.bind(this);
   }
 
-  shouldComponentUpdate(): boolean {
+  public shouldComponentUpdate(): boolean {
       return false;
   }
 
   /* Converts the rendered level to JSON and puts that into localStorage.*/
-  saveLevel() {
-    const json = this.props.objData.toJSON();
+  public saveLevel(): void {
+    let json = this.props.objData;
+    if (this.props.objData.toJSON) {
+      json = this.props.objData.toJSON();
+    }
     try {
       /* eslint-disable */
-      const isFileSaverSupported = !!new Blob;
+      const isFileSaverSupported = !!new Blob();
       /* eslint-enable */
       if (isFileSaverSupported) {
         const date = new Date().getTime();
-        const fname = `bsave_${date}_${this.props.savedObjName}.json`;
+        const prefix = this.props.fNamePrefix || 'bsave';
+        const fname = `${prefix}_${date}_${this.props.savedObjName}.json`;
 
         let text = null;
         if (this.props.pretty) {
@@ -65,11 +77,12 @@ export default class LevelSaveLoad extends Component {
 
   /* Loads a user file and converts that into a level object, which will be
    * shown if the loading was successful. */
-  loadLevel() {
-    const elem = document.querySelector('#level-file-input') as HTMLInputElement;
+  public loadLevel(): void {
+    const inputId = '#' + this.props.id + 'level-file-input';
+    const elem = document.querySelector(inputId) as HTMLInputElement;
     const fileList = elem.files;
-
     const file = fileList[0];
+
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -101,15 +114,15 @@ export default class LevelSaveLoad extends Component {
     }
   }
 
-  render() {
+  public render() {
     return (
       <span>
         <button
-          id='btn-save-level'
+          id={this.props.id + 'btn-save-level'}
           onClick={this.saveLevel}
-        >Save</button>
+        >{this.props.saveButtonName || 'Save'}</button>
         <input
-          id='level-file-input'
+          id={this.props.id + 'level-file-input'}
           onChange={this.loadLevel}
           type='file'
         />

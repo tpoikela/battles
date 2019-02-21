@@ -326,7 +326,7 @@ export class Adventurer extends ActorClassBase {
     public setStartingStats() {
         const stats = this._actor.get('Stats');
         for (let i = 0; i < 3; i++) {
-            let statName = RNG.arrayGetRand(RG.STATS);
+            let statName: string = RNG.arrayGetRand(RG.STATS);
             statName = statName.toLowerCase();
             stats.incrStat(statName, RNG.getUniformInt(1, 3));
         }

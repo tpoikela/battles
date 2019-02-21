@@ -260,6 +260,12 @@ FromJSON.prototype.createGame = function(game, gameJSON) {
         rng.setState(gameJSON.rng.state);
         game.setRNG(rng);
     }
+    if (gameJSON.diceRng) {
+        const diceRng = new Random(gameJSON.diceRng.seed);
+        diceRng.setState(gameJSON.diceRng.state);
+        Dice.RNG = diceRng;
+    }
+
     this.IND = 0;
     return game;
 };
@@ -901,6 +907,9 @@ FromJSON.prototype.createUnconnectedStairs = function(elem) {
 
 
 FromJSON.prototype.createCellMap = function(map): CellMap {
+    if (map.encoded) {
+        return CellMap.fromJSON(map);
+    }
     const mapObj = new CellMap(map.cols, map.rows);
     map.cells.forEach((col, x) => {
         col.forEach((cell, y) => {
@@ -911,16 +920,26 @@ FromJSON.prototype.createCellMap = function(map): CellMap {
     map.explored.forEach(explXY => {
         mapObj.getCell(explXY[0], explXY[1]).setExplored();
     });
+    /*
     Object.keys(map.elements).forEach(key => {
         const [x, y] = RG.key2Num(key);
         mapObj.setElemXY(x, y, this.createBaseElem(map.elements[key]));
     });
+    */
     return mapObj;
 };
 
 
 FromJSON.prototype.createBaseElem = function(cell: string) {
     const type = ELEM_MAP.elemIndexToType[cell];
+    if (ELEM_MAP.elemTypeToObj[type]) {
+        return ELEM_MAP.elemTypeToObj[type];
+    }
+    else {
+        RG.err('Game.fromJSON', 'createBaseElem',
+            `Unknown type ${type}`);
+    }
+    /*
     switch (type) {
         case '#': // wall
         case 'wall': return ELEM.WALL;
@@ -944,6 +963,7 @@ FromJSON.prototype.createBaseElem = function(cell: string) {
             }
         }
     }
+    */
     return null;
 };
 

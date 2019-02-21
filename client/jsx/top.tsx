@@ -36,10 +36,12 @@ import * as  Verify from '../src/verify';
 import {KeyCode} from '../gui/keycode';
 import {MultiKeyHandler} from '../gui/multikey-handler';
 import {Cell} from '../src/map.cell';
+import {PlayerCmdInput} from '../src/interfaces';
 
 import md5 = require('js-md5');
 
-import {Screen} from '../gui/screen';
+import {ScreenBuffered} from '../gui/screen';
+
 import {Persist} from '../src/persist';
 import {WorldConf} from '../data/conf.world';
 
@@ -53,6 +55,8 @@ import {EventPool} from '../src/eventpool';
 import {FactoryGame} from '../src/factory.game';
 import {FromJSON} from '../src/game.fromjson';
 import {IMessage} from '../src/rg';
+import {Dice} from '../src/dice';
+
 const POOL = EventPool.getPool();
 
 import {DriverBase, PlayerDriver} from '../../tests/helpers/player-driver';
@@ -64,11 +68,11 @@ const INV_SCREEN = 'Inventory';
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
 
-  public static describeCell(cell, seenCells) {
+  public static describeCell(cell: Cell, seenCells: Cell[]): void {
     const index = seenCells.indexOf(cell);
     if (index !== -1) {
       if (cell.hasActors()) {
-        const actor = cell.getProp('actors')[0];
+        const actor = cell.getFirstActor();
         const msg = 'You see ' + actor.getName();
         RG.gameMsg(msg);
       }
@@ -95,7 +99,7 @@ class TopLogic {
     }
   }
 
-  public static getAdjacentCell(player, code) {
+  public static getAdjacentCell(player, code): Cell | null {
     if (KeyMap.inMoveCodeMap(code) || KeyMap.isRest(code)) {
       const [x, y] = player.getXY();
       const diffXY = KeyMap.getDiff(code, x, y);
@@ -192,7 +196,7 @@ export class BattlesTop extends React.Component {
     public viewportX: number;
     public viewportY: number;
     public frameID: number;
-    public screen: Screen;
+    public screen: ScreenBuffered;
     public hasNotify: boolean;
     public listener: ProxyListener;
     public multiHandler: MultiKeyHandler;
@@ -200,6 +204,7 @@ export class BattlesTop extends React.Component {
     public playerDriver: DriverBase;
     public nextCode: number;
     public animationID: number;
+    public recordedCommands: PlayerCmdInput[];
 
     constructor(props) {
         super(props);
@@ -223,7 +228,7 @@ export class BattlesTop extends React.Component {
         this.viewportX = 35; // * 2
         this.viewportY = 15; // * 2
 
-        this.screen = new Screen(this.viewportX, this.viewportY);
+        this.screen = new ScreenBuffered(this.viewportX, this.viewportY);
 
         // Simple configuration for the game
         this.gameConf = {
@@ -257,6 +262,7 @@ export class BattlesTop extends React.Component {
         this.keysEnabled = false;
         this.autoModeKeyBuffer = [];
         this.ctrlMode = 'MANUAL';
+        this.recordedCommands = [];
 
         this.notify = this.notify.bind(this);
         this.hasNotify = true;
@@ -341,16 +347,18 @@ export class BattlesTop extends React.Component {
         this.setState({playerName: name});
     }
 
-    public setSeedName(name) {
+    public setSeedName(name: string): void {
         let seed = parseInt(name, 10);
         if (Number.isNaN(seed)) {
             const hash = md5(name);
             seed = parseInt(hash, 16);
         }
-        // RG.RAND.setSeed(seed);
+        if (name === '') {
+            seed = new Date().getTime();
+        }
+        console.log('setSeedName used seed is', seed, 'got name', name);
         ROT.RNG.setSeed(seed);
-        // RG.RAND.setSeed(new Date().getTime());
-        // ROT.RNG.setSeed(new Date().getTime());
+        Dice.RNG.setSeed(seed);
         this.gameConf.seed = seed;
         this.setState({seedName: name});
     }
@@ -726,6 +734,8 @@ export class BattlesTop extends React.Component {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             const actor = obj.actor;
             if (actor.isPlayer()) {
+                this.screen.invalidate();
+                this.gameState.visibleCells = actor.getBrain().getSeenCells();
                 this.setState({render: true});
             }
         }
@@ -875,6 +885,7 @@ export class BattlesTop extends React.Component {
                 this.game.update(code);
             }
             else {this.game.update({code});}
+            this.recordedCommands.push(code);
             this.gameState.visibleCells = this.game.visibleCells;
 
             if (this.game.isGameOver()) {
@@ -930,7 +941,7 @@ export class BattlesTop extends React.Component {
 
     /* Called when a JSON file is imported. This can be a save game or a
      * plugin */
-    public onLoadCallback(jsonData) {
+    public onLoadCallback(jsonData): void {
         if (jsonData.plugin) {
             const entry = this.pluginManager.readJSON(jsonData);
             const parser = RG.ObjectShell.getParser();
@@ -948,12 +959,19 @@ export class BattlesTop extends React.Component {
         }
     }
 
+    /* Called when a JSON file is imported. This can be a save game or a
+     * plugin */
+    public onLoadRecordedKeys(jsonKeysArray): void {
+        const player = this.game.getPlayer();
+        this.playerDriver = new DriverBase(player, this.game);
+        this.playerDriver.setKeys(jsonKeysArray);
+        this.ctrlMode = 'AUTOMATIC';
+        this.finishAutoOnSight = false;
+    }
+
     public render() {
         let map = null;
         let player = null;
-        let inv = null;
-        let eq = null;
-        let maxWeight = null;
         let message: IMessage[] = [];
         let charRows = null;
         let classRows = null;
@@ -967,9 +985,6 @@ export class BattlesTop extends React.Component {
         if (this.game) {
             map = this.game.getVisibleMap();
             player = this.game.getPlayer();
-            inv = player.getInvEq().getInventory();
-            eq = player.getInvEq().getEquipment();
-            maxWeight = player.getMaxWeight();
             overworld = this.game.getOverWorld();
             if (this.game.hasNewMessages()) {
                 message = this.game.getMessages();
@@ -980,9 +995,7 @@ export class BattlesTop extends React.Component {
             rowClass = 'cell-row-div-player-view';
             if (showMap) {rowClass = 'cell-row-div-map-view';}
 
-            const playX = player.getX();
-            const playY = player.getY();
-
+            const [playX, playY] = player.getXY();
             if (map) {
                 this.screen.renderWithRLE(
                     playX, playY, map, this.gameState.visibleCells,
@@ -1011,7 +1024,6 @@ export class BattlesTop extends React.Component {
             playerLevel: this.state.playerLevel,
             levelSize: this.state.levelSize
         };
-
         const oneSelectedCell = this.getOneSelectedCell();
 
         return (
@@ -1073,12 +1085,9 @@ export class BattlesTop extends React.Component {
                  this.state.showInventory &&
                 <GameInventory
                     doInvCmd={this.doInvCmd}
-                    eq={eq}
                     equipSelected={this.state.equipSelected}
                     handleKeyDown={this.handleKeyDown}
-                    inv={inv}
                     invMsg={this.state.invMsg}
-                    maxWeight={maxWeight}
                     msgStyle={this.state.invMsgStyle}
                     player={player}
                     selectedItem={this.state.selectedItem}
@@ -1168,13 +1177,28 @@ export class BattlesTop extends React.Component {
                 }
 
                 {!this.state.showEditor &&
+                  <React.Fragment>
                   <LevelSaveLoad
+                    id=''
                     objData={this.game}
                     onLoadCallback={this.onLoadCallback}
                     pretty={false}
                     savedObjName={player ? 'saveGame_' + player.getName() : ''}
+                    saveButtonName='Save'
                     setMsg={this.showMsg}
                   />
+                  <LevelSaveLoad
+                    fNamePrefix='keys'
+                    id='keys'
+                    loadInputValue='Load keys'
+                    objData={this.recordedCommands}
+                    onLoadCallback={this.onLoadRecordedKeys}
+                    pretty={false}
+                    savedObjName={player ? 'recorded_cmds_' + player.getName() : ''}
+                    saveButtonName='SaveKeys'
+                    setMsg={this.showMsg}
+                  />
+                  </React.Fragment>
                 }
                 {!this.state.showEditor &&
                 <GameContextMenu
@@ -1495,9 +1519,14 @@ export class BattlesTop extends React.Component {
       }
     }
 
-    public showMsg(msg: string): void {
-        RG.diag('showMsg:', msg);
-        this.setState({msg});
+    public showMsg(msg: any): void {
+        let msgText = msg;
+        if (msg.errorMsg) {
+            msgText = msg.errorMsg;
+        }
+        RG.diag('showMsg:', msgText);
+        console.log('showMsg arg:', msg);
+        this.setState({msg: msgText});
     }
 
     /* Binds the callbacks. */
@@ -1561,6 +1590,7 @@ export class BattlesTop extends React.Component {
 
         this.getNextTargetCell = this.getNextTargetCell.bind(this);
 
+        this.onLoadRecordedKeys = this.onLoadRecordedKeys.bind(this);
         this.onLoadCallback = this.onLoadCallback.bind(this);
         this.topMenuCallback = this.topMenuCallback.bind(this);
         // this.importJSON = this.importJSON.bind(this);

@@ -58,6 +58,7 @@ export class Random {
     }
 
     /* Returns a random entry from the array.*/
+    // public arrayGetRand<T>(arr: T[]): T { // Explodes the type errors
     public arrayGetRand(arr) {
         const randIndex = this.randIndex(arr);
         return arr[randIndex];
@@ -65,7 +66,7 @@ export class Random {
 
     /* Returns N unique items randomly from the array. This assumes that
      * all items are already unique in the array. */
-    public getUniqueItems(arr, n = 2) {
+    public getUniqueItems<T>(arr: T[], n = 2): T[] {
         if (arr.length <= n) {
             return arr.slice(); // Just return a copy
         }
@@ -81,20 +82,20 @@ export class Random {
         return items;
     }
 
-    public getUniformInt(min, max) {
+    public getUniformInt(min: number, max: number) {
         return this.rng.getUniformInt(min, max);
     }
 
     /* Returns a random index number from given array. */
-    public randIndex(arr) {
+    public randIndex(arr): number {
         return Math.floor(this.rng.getUniform() * arr.length);
     }
 
-    public getUniform() {
+    public getUniform(): number {
         return this.rng.getUniform();
     }
 
-    public getUniformRange(min, max) {
+    public getUniformRange(min, max): number {
         const span = max - min;
         const uniform = this.getUniform();
         return min + span * uniform;
@@ -111,7 +112,7 @@ export class Random {
     /* Given a number N, returns an integer from 0 to N weighted such that N has the
      * highest weight, and 0 the lowest.
      */
-    public getWeightedLinear(N) {
+    public getWeightedLinear(N): number {
         const weights = {};
         for (let i = 0; i < N; i++) {
             weights[i] = i + 1; // Without + 1, 0 will never be chosen

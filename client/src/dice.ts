@@ -3,7 +3,6 @@ import RG from './rg';
 import {Random} from './random';
 
 // RNG used for dynamic "micro" stuff like damage rolls etc level ups
-const DICE_RNG = new Random(new Date().getTime());
 
 // Can be either '1d6 + 4' or [1, 6, 4] for example
 type IDiceInputArg = string | [number, number, number];
@@ -14,6 +13,7 @@ type DiceValue = Dice | IDiceInputArg;
  * which is +/- X. */
 export class Dice {
 
+    public static RNG: Random;
     public static DIE_RE = /\s*(\d+)d(\d+)\s*(\+|-)?\s*(\d+)?/;
     public static DIE_NUMBER = /^\s*(-?\d+)\s*$/;
 
@@ -78,7 +78,7 @@ export class Dice {
             }
         }
         return [];
-    };
+    }
 
     private _num: number;
     private _dice: number;
@@ -91,48 +91,48 @@ export class Dice {
         this._mod = parseInt(mod, 10);
     }
 
-    getNum() {return this._num;}
-    setNum(num) {this._num = num;}
-    getDice() {return this._dice;}
-    setDice(dice) {this._dice = dice;}
-    getMod() {return this._mod;}
-    setMod(mod) {this._mod = mod;}
+    public getNum(): number {return this._num;}
+    public setNum(num: number): void {this._num = num;}
+    public getDice() {return this._dice;}
+    public setDice(dice) {this._dice = dice;}
+    public getMod() {return this._mod;}
+    public setMod(mod) {this._mod = mod;}
 
-    roll(): number {
+    public roll(): number {
         let res = 0;
         for (let i = 0; i < this._num; i++) {
-            res += DICE_RNG.getUniformInt(1, this._dice);
+            res += Dice.RNG.getUniformInt(1, this._dice);
         }
         return res + this._mod;
     }
 
-    toString(): string {
+    public toString(): string {
         let modStr = '+ ' + this._mod;
         if (this._mod < 0) {modStr = '- ' + this._mod;}
         else if (this._mod === 0) {modStr = '';}
         return this._num + 'd' + this._dice + ' ' + modStr;
     }
 
-    copy(rhs): void {
+    public copy(rhs): void {
         this._num = rhs.getNum();
         this._dice = rhs.getDice();
         this._mod = rhs.getMod();
     }
 
-    clone(): Dice {
+    public clone(): Dice {
         return new Dice(this._num, this._dice, this._mod);
     }
 
     /* Returns true if dice are equal.*/
-    equals(rhs): boolean {
+    public equals(rhs): boolean {
         let res = this._num === rhs.getNum();
         res = res && (this._dice === rhs.getDice());
         res = res && (this._mod === rhs.getMod());
         return res;
     }
 
-    toJSON(): number[] {
+    public toJSON(): number[] {
         return [this._num, this._dice, this._mod];
     }
 }
-
+Dice.RNG = new Random(new Date().getTime());

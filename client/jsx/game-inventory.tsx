@@ -14,12 +14,9 @@ import {Keys} from '../src/keymap';
 interface IGameInventoryProps {
   // count: number;
   doInvCmd: (cmd: any) => void;
-  eq: any;
   equipSelected: any;
   handleKeyDown: (evt: any) => void;
-  inv: any;
   invMsg: string;
-  maxWeight: number;
   msgStyle: string;
   player: any;
   selectEquipTop: (selection: ISelection) => void;
@@ -203,12 +200,13 @@ export default class GameInventory extends React.Component {
   }
 
   public render() {
-    const inv = this.props.inv;
-    const eq = this.props.eq;
-    const maxWeight = this.props.maxWeight;
+    const {player} = this.props;
+    const inv = player.getInvEq().getInventory();
+    const eq = player.getInvEq().getEquipment();
+    const maxWeight = player.getMaxWeight();
     const eqWeight = eq.getWeight();
 
-    const isMasterEquipper = this.props.player.has('MasterEquipper');
+    const isMasterEquipper = player.has('MasterEquipper');
 
     const itemTabs = this.getItemTabs(inv);
     const itemButtons = this.getItemButtons();

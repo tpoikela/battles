@@ -16,6 +16,7 @@ import {CityGenerator} from '../src/city-generator';
 import {EquipSlot} from '../src/equipment';
 import {ItemRandomizer} from '../src/factory.items';
 import {MapGenerator} from '../src/map.generator';
+import {Cell} from '../src/map.cell';
 import {Random} from '../src/random';
 import {Spell} from '../src/spell';
 import {Texts} from '../data/texts';
@@ -32,6 +33,7 @@ import {FactoryWorld} from '../src/factory.world';
 import {World} from '../src/world';
 import {WorldCreator} from '../src/world.creator';
 import {WinCondition} from '../src/game';
+import {Room} from '../../lib/bsp';
 
 const POOL = EventPool.getPool();
 
@@ -44,6 +46,7 @@ export const DebugGame = function(fact, parser) {
 };
 
 DebugGame.prototype.createArena = function(obj, game, player) {
+    Room.rng = RNG;
     const parser = this._parser;
     const sqrPerItem = obj.sqrPerItem;
     obj.cols = 100;
@@ -325,7 +328,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     level.addVirtualProp(RG.TYPE_ACTOR, weatherActor);
 
     // Testing the trap elements such as web
-    const freeCells = level.getMap().getCells(c => c.isFree());
+    const freeCells: Cell[] = level.getMap().getCells(c => c.isFree());
     for (let i = 0; i < 200; i++) {
         const cell = RNG.arrayGetRand(freeCells);
         const [xx, yy] = cell.getXY();
@@ -335,9 +338,10 @@ DebugGame.prototype.createArena = function(obj, game, player) {
         }
     }
 
-    const floorCells = level.getMap().getCells(c => c.hasPropType('floorhouse'));
+    const floorCells: Cell[] = level.getMap().getCells(c => (
+        c.hasPropType('floorhouse')));
     for (let i = 0; i < 40; i++) {
-        const cell = RNG.arrayGetRand(floorCells);
+        const cell: Cell = RNG.arrayGetRand(floorCells);
         cell.setBaseElem(ELEM.BED);
     }
 

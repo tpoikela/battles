@@ -28,7 +28,7 @@ export class ItemBase extends Entity {
     protected _owner: SentientActor | ItemBase;
     private _name: string;
 
-    constructor(name) {
+    constructor(name: string) {
         super();
         this.isOwnable = true;
         this._owner = null;
@@ -84,30 +84,30 @@ export class ItemBase extends Entity {
     public setName(name) {this._name = name;}
     public getName() {return this._name;}
 
-    public setWeight(weight) {
+    public setWeight(weight: number): void {
         this.get('Physical').setWeight(weight);
     }
 
-    public getWeight() {return this.get('Physical').getWeight();}
+    public getWeight(): number {return this.get('Physical').getWeight();}
 
-    public setValue(value) {this.get('Item').setValue(value);}
-    public getValue() {return this.get('Item').getValue();}
+    public setValue(value: number): void {this.get('Item').setValue(value);}
+    public getValue(): number {return this.get('Item').getValue();}
 
-    public incrCount(count) {this.get('Item').incrCount(count);}
-    public decrCount(count) {this.get('Item').decrCount(count);}
-    public getCount() {return this.get('Item').getCount();}
-    public setCount(count) {this.get('Item').setCount(count);}
+    public incrCount(count: number): void {this.get('Item').incrCount(count);}
+    public decrCount(count: number): void {this.get('Item').decrCount(count);}
+    public getCount(): number {return this.get('Item').getCount();}
+    public setCount(count: number): void {this.get('Item').setCount(count);}
 
-    public getType() {return this.get('Typed').getObjType();}
-    public setType(type) {return this.get('Typed').setObjType(type);}
-    public getPropType() {return this.get('Typed').getPropType();}
-    public setPropType(type) {return this.get('Typed').setPropType(type);}
+    public getType(): string {return this.get('Typed').getObjType();}
+    public setType(type: string): void {return this.get('Typed').setObjType(type);}
+    public getPropType(): string {return this.get('Typed').getPropType();}
+    public setPropType(type: string): void {return this.get('Typed').setPropType(type);}
 
-    public setDamageType(type) {this.get('Item').setDamageType(type);}
-    public getDamageType() {return this.get('Item').getDamageType();}
+    public setDamageType(type: string): void {this.get('Item').setDamageType(type);}
+    public getDamageType(): string {return this.get('Item').getDamageType();}
 
     /* Used when showing the item in inventory lists etc. */
-    public toString() {
+    public toString(): string {
         let txt = this.getName() + ', ' + this.getType() + ', ';
         const totalWeight = this.getWeight() * this.getCount();
         txt += totalWeight.toFixed(2) + 'kg';
@@ -121,7 +121,7 @@ export class ItemBase extends Entity {
         return txt;
     }
 
-    public copy(rhs: ItemBase) {
+    public copy(rhs: ItemBase): void {
         this.setName(rhs.getName());
         this.setType(rhs.getType());
         this.setWeight(rhs.getWeight());
@@ -161,7 +161,7 @@ export class ItemBase extends Entity {
         return res;
     }
 
-    public toJSON() {
+    public toJSON(): any {
         const json: any = {
             setID: this.getID(),
             setName: this.getName(),
@@ -182,7 +182,7 @@ export class Food extends ItemBase {
 
     protected _energy: number;
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType(RG.ITEM.FOOD);
         this._energy = 0; // per 0.1 kg
@@ -231,11 +231,11 @@ export class Food extends ItemBase {
         return false;
     }
 
-    public getConsumedEnergy() {
+    public getConsumedEnergy(): number {
         return Math.round(this.getWeight() * this._energy / 0.1);
     }
 
-    public toJSON() {
+    public toJSON(): any {
         const json = super.toJSON();
         json.setEnergy = this.getEnergy();
         return json;
@@ -275,26 +275,26 @@ export class Weapon extends Mixin.Damage(ItemBase) {
         this._weaponType = '';
     }
 
-    public copy(rhs) {
+    public copy(rhs: Weapon) {
         super.copy(rhs);
         this._weaponType = rhs.getWeaponType();
     }
 
-    public clone() {
+    public clone(): Weapon {
         const weapon = new Weapon(this.getName());
         weapon.copy(this);
         return weapon;
     }
 
-    public setWeaponType(type) {
+    public setWeaponType(type: string): void {
         this._weaponType = type;
     }
 
-    public getWeaponType() {
+    public getWeaponType(): string {
         return this._weaponType;
     }
 
-    public toJSON() {
+    public toJSON(): any {
         const json = super.toJSON();
         json.setWeaponType = this._weaponType;
         return json;
@@ -317,26 +317,26 @@ export class MissileWeapon extends Weapon {
         this._fireRate = 1;
     }
 
-    public setFireRate(rate) {
+    public setFireRate(rate: number): void {
         this._fireRate = rate;
     }
 
-    public getFireRate() {
+    public getFireRate(): number {
         return this._fireRate;
     }
 
-    public copy(rhs) {
+    public copy(rhs: MissileWeapon): void {
         super.copy(rhs);
         this.setFireRate(rhs.getFireRate());
     }
 
-    public clone() {
+    public clone(): MissileWeapon {
         const weapon = new MissileWeapon(this.getName());
         weapon.copy(this);
         return weapon;
     }
 
-    public equals(rhs) {
+    public equals(rhs): boolean {
         if (super.equals(rhs)) {
             return this._fireRate === rhs.getFireRate();
         }

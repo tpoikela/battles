@@ -34,7 +34,9 @@ import {ObjectShell} from './objectshellparser';
 import {Brain} from './brain';
 import {Geometry} from './geometry';
 import {Path} from './path';
+
 import {TCoord} from './interfaces';
+type Cell = import('./map.cell').Cell;
 
 const RNG = Random.getRNG();
 const {KeyMap} = Keys;
@@ -83,7 +85,7 @@ const poisonActor = (actor, src, dur, dmgDie, prob) => {
     actor.add(expiration);
 };
 
-const addFadingActorToCell = (actor, cell, spell) => {
+const addFadingActorToCell = (actor, cell: Cell, spell) => {
     const caster = spell.getCaster();
     const level = caster.getLevel();
     level.addActor(actor, cell.getX(), cell.getY());
@@ -116,7 +118,7 @@ const aiSpellCellDone = (actor, target, cb) => {
 const aiSpellCellEnemy = (args, cb) => {
     const {actor, actorCellsAround} = args;
     let strongest = null;
-    actorCellsAround.forEach(cell => {
+    actorCellsAround.forEach((cell: Cell) => {
         const actors = cell.getActors();
         actors.forEach(otherActor => {
             if (actor.isEnemy(otherActor)) {
@@ -152,7 +154,7 @@ const aiSpellCellEnemy = (args, cb) => {
 const aiSpellCellFriend = (args, cb) => {
     const {actor, actorCellsAround} = args;
     let suitable = null;
-    actorCellsAround.forEach(cell => {
+    actorCellsAround.forEach((cell: Cell) => {
         const actors = cell.getActors();
         actors.forEach(otherActor => {
             if (actor.isFriend(otherActor)) {
@@ -900,7 +902,7 @@ RG.extend2(Spell.PoisonBreath, Spell.BoltBase);
 Spell.PoisonBreath.prototype.onHit = function(actor, src) {
     addPoisonEffect(actor, src);
     const parser = ObjectShell.getParser();
-    const cells = Brain.getCellsAroundActor(actor, 1);
+    const cells: Cell[] = Brain.getCellsAroundActor(actor, 1);
 
     for (let i = 0; i < this.nActors; i++) {
         const cell = RNG.arrayGetRand(cells);

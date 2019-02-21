@@ -9,6 +9,9 @@ import {SentientActor} from '../../../client/src/actor';
 import {Level} from '../../../client/src/level';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import * as Component from '../../../client/src/component';
+import {DijkstraMap} from '../../../client/src/dijkstramaps';
+import {MapGenerator} from '../../../client/src/map.generator';
+import {ELEM} from '../../../client/data/elem-constants';
 
 const Actor = SentientActor;
 const ElementBase = Element.ElementBase;
@@ -59,7 +62,7 @@ describe('Map.Cell', () => {
         const cell = new Cell(0, 0, new ElementBase('floor'));
         const door = new Element.ElementDoor(true);
         cell.setProp(RG.TYPE_ELEM, door);
-        expect(cell.hasDoor(), 'Cell should have a door').to.be.true;
+        expect(cell.hasDoor(), 'Cell should have a door').to.equal(true);
     });
 });
 
@@ -76,7 +79,7 @@ describe('RG.getStyleClassForCell()', () => {
         expect(RG.getCellChar(wallCell)).to.equal(RG.charStyles.elements.wall);
 
         const stylesCopy = JSON.parse(JSON.stringify(RG.cellStyles));
-        stylesCopy[RG.TYPE_ACTOR]['Player'] = 'cell-actor-player';
+        stylesCopy[RG.TYPE_ACTOR].Player = 'cell-actor-player';
 
         const floorCell = new Cell(0, 0, new ElementBase('floor'));
         const actor = new SentientActor('Player');
@@ -180,14 +183,17 @@ describe('Items in map cells', () => {
 // MAP UNIT TESTS
 //---------------------------------------------------------------------------
 
-/*
-describe('Map.CellList', () => {
-    const actor = new Actor('Player');
-    actor.setIsPlayer(true);
-    const level1 = Factory.createLevel('arena', 10, 10);
-    // const level2 = Factory.createLevel('arena', 20, 20);
+describe('CellMap', () => {
+
+    let factLevel = null;
+    beforeEach(() => {
+        factLevel = new FactoryLevel();
+    });
 
     it('Is initialized as empty and having floors', () => {
+        const actor = new Actor('Player');
+        actor.setIsPlayer(true);
+        const level1 = factLevel.createLevel('arena', 10, 10);
         const map = level1.getMap();
         expect(map.hasXY(0, 0)).to.equal(true);
         expect(map.hasXY(9, 9)).to.equal(true);
@@ -211,7 +217,7 @@ describe('Map.CellList', () => {
 
         // After setting x,y try again
         actorNotInLevel.setXY(4, 4);
-        actorNotInLevel.getFOVRange = () => {return 5;}; // Override default
+        actorNotInLevel.getFOVRange = () => 5; // Override default
         zeroCells = map.getVisibleCells(actorNotInLevel);
         expect(zeroCells.length).to.equal(0);
 
@@ -226,20 +232,44 @@ describe('Map.CellList', () => {
         const obj = mapgen.getMap();
         const map = obj.map;
 
-        map.setBaseElemXY(0, 0, RG.ELEM.CHASM);
-
+        map.setBaseElemXY(0, 0, ELEM.CHASM);
         expect(map.isPassable(0, 0)).to.equal(false);
         expect(map.getCell(0, 0).isFree()).to.equal(false);
         expect(map.isPassableByAir(0, 0)).to.equal(true);
     });
+
+    it('can be used with Dijkstra maps', () => {
+        const boss = new SentientActor('boss');
+        const level = factLevel.createLevel('arena', 40, 40);
+        level.addActor(boss, 20, 20);
+
+        const map = level.getMap();
+        const dmapObj = new DijkstraMap(map.isPassable.bind(map));
+        dmapObj.addTarget(20, 20, 0);
+
+        const dmap = new Array(40);
+        for (let i = 0; i < 40; i++) {
+            dmap[i] = new Array(40);
+            for (let j = 0; j < 40; j++) {
+                dmap[i][j] = 666;
+            }
+        }
+
+        dmapObj.compute((x, y, cost) => {
+            dmap[x][y] = cost;
+        });
+
+        expect(dmap[20][20]).to.equal(0);
+        expect(dmap[21][20]).to.equal(1);
+        expect(dmap[20][21]).to.equal(1);
+    });
 });
-*/
 
 //--------------------------------------------------------------------------
 // SHOPS
 //--------------------------------------------------------------------------
 
-describe('ElementBase.Shop', () => {
+describe('ElementShop', () => {
     it('Has special Shop elements', () => {
         const levelFact = new FactoryLevel();
         const level = levelFact.createLevel('arena', 30, 30);
@@ -277,5 +307,3 @@ describe('ElementBase.Shop', () => {
 
     });
 });
-
-

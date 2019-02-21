@@ -18,6 +18,7 @@ import * as Item from './item';
 import * as Component from './component';
 import {Entity} from './entity';
 import {Level} from './level';
+import {ElementExploration} from './element';
 
 const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
@@ -27,6 +28,7 @@ type ItemBase = Item.ItemBase;
 type ItemOrNull = ItemBase | null;
 type ZoneBase = import('./world').ZoneBase;
 type AreaTile = import('./world').AreaTile;
+type WorldCity = import('./world').City;
 
 import {ElementBase} from './element';
 
@@ -355,7 +357,7 @@ interface QuestObjSurrogate {
     args?: any[];
 }
 
-type QuestTargetObj = Entity | QuestObjSurrogate;
+type QuestTargetObj = Entity | ZoneBase | QuestObjSurrogate;
 
 interface QuestPathObj {
     type: string;
@@ -446,7 +448,7 @@ export class QuestData {
     }
 
     /* Reset iterators of the quest data. */
-    public resetIter() {
+    public resetIter(): void {
         this.keys().forEach(targetType => {
             this._ptr[targetType] = 0;
         });
@@ -482,7 +484,7 @@ export class QuestData {
     }
 
     /* Returns human-readable description of the quest. */
-    public getDescr() {
+    public getDescr(): string {
         // this.resetIter();
         let res = '';
         this.path.forEach(pair => {
@@ -567,6 +569,27 @@ interface CleanupItem {
     tag?: string;
 }
 
+type Location = Level | ZoneBase;
+
+interface QuestPopulData {
+    actor: any[];
+    element: any[];
+    escort: any[];
+    item: any[];
+    listen: any[];
+    place: any[];
+    read: any[];
+    return: any[];
+    zone: any[];
+}
+
+interface QuestFlags {
+    alreadyKnowIt: boolean;
+    escort: boolean;
+    listen: boolean;
+    read: boolean;
+}
+
 export class QuestPopulate {
 
     public static supportedKeys: Set<string>;
@@ -579,14 +602,17 @@ export class QuestPopulate {
     public checkImplemented: boolean;
     public IND: number;
     public debug: boolean;
+    public currTaskType: string;
 
     private questData: {[key: string]: any}; // TODO
     private _cleanup: CleanupItem[]; // TODO
-    private flags: {[key: string]: boolean};
+    private flags: QuestFlags;
     private currQuest: QuestData | null;
-    private _data: {[key: string]: any[]};
+    // private _data: {[key: string]: any[]};
+    private _data: Map<QuestData, QuestPopulData>;
     private _questCrossRefs: Map<any, any>;
     private questGivers: Map<QuestData, SentientActor>;
+    private listOfAllTasks: string[];
 
     constructor() {
         this.resetData();
@@ -619,44 +645,103 @@ export class QuestPopulate {
 
     public resetData(): void {
         this.questData = {quests: []};
+        this.questList = [];
         this._cleanup = [];
+
         this.flags = {
             alreadyKnowIt: false,
             escort: false,
             listen: false,
             read: false
         };
+        this.listOfAllTasks = [];
 
         this.currQuest = null;
 
         // Data which must be stored between different quest items
-        this._data = {
-            item: [],
-            place: [],
-            actor: [],
-            element: [],
-            read: [],
-            listen: [],
-            zone: [],
-            escort: []
-        };
+        this._data = new Map();
 
         // Stores the refs between tasks like get-give
         this._questCrossRefs = new Map();
         this.questGivers = new Map();
     }
 
-    public setDebug(val): void {
+    public setDebug(val: boolean): void {
         this.debug = val;
         debug.enabled = val;
     }
 
+    public getParentQuestData(): QuestData | null {
+        const currIndex = this.questData.quests.indexOf(this.currQuest);
+        if (currIndex > 0) {
+            return this.questData.quests[currIndex - 1];
+        }
+        return null;
+    }
+
+    public initQuestPopulDataForQuest(questData: QuestData): void {
+        this._data.set(questData, {
+            actor: [],
+            element: [],
+            escort: [],
+            item: [],
+            listen: [],
+            place: [],
+            read: [],
+            return: [],
+            zone: [],
+        });
+    }
+
+    public addQuestPopulData(key: string, populData): void {
+        if (!this._data.has(this.currQuest)) {
+            this.initQuestPopulDataForQuest(this.currQuest);
+        }
+
+        if (this._data.get(this.currQuest).hasOwnProperty(key)) {
+            this._data.get(this.currQuest)[key].push(populData);
+        }
+        else {
+            const keys = Object.keys(this._data.get(this.currQuest)).join(',');
+            RG.err('QuestPopulate', 'addQuestPopulData',
+               `Key ${key} not present. Choices: ${keys}`);
+        }
+    }
+
     /* Returns previous item of given type. Type refers to actor/item/place/element.
      * */
-    public getPrevType(type: string) {
-        if (this._data.hasOwnProperty(type)) {
-            const n = this._data[type].length;
-            return this._data[type][n - 1];
+    public getQuestPopulData(
+        type: string, searchParen: boolean = false
+    ): Entity | Location | null {
+        if (this._data.has(this.currQuest)) {
+            const qData: QuestPopulData = this._data.get(this.currQuest);
+            if (qData.hasOwnProperty(type) && qData[type].length > 0) {
+                const n = qData[type].length;
+                return qData[type][n - 1];
+            }
+            else if (searchParen) {
+                // TODO maybe this should be recursive call to getQuestPopulData()
+                const parentQuest = this.getParentQuestData();
+                if (parentQuest) {
+                    const qDataParent: QuestPopulData = this._data.get(parentQuest);
+                    if (qDataParent.hasOwnProperty(type)) {
+                        const n = qDataParent[type].length;
+                        return qDataParent[type][n - 1];
+                    }
+                }
+
+                RG.err('QuestPopulate', 'getQuestPopulData',
+                   `No data for type ${type}. Searched parent also`);
+            }
+            else {
+                const keys = Object.keys(qData);
+                RG.err('QuestPopulate', 'getQuestPopulData',
+                   `No data for type ${type}. Keys: ${keys}`);
+            }
+        }
+        else {
+            RG.err('QuestPopulate', 'getQuestPopulData',
+               'No data for currQuest exists');
         }
         return null;
     }
@@ -664,10 +749,10 @@ export class QuestPopulate {
     /* Creates quests for given tile x,y in area in world. Returns the number
      * of quests successfully created. */
     public createQuests(world, area, x, y): number {
-        const areaTile = area.getTileXY(x, y);
-        const cities = areaTile.getZones('City');
+        const areaTile: AreaTile = area.getTileXY(x, y);
+        const cities: WorldCity[] = areaTile.getZones('City') as WorldCity[];
         let numCreated = 0;
-        cities.forEach(city => {
+        cities.forEach((city: WorldCity) => {
             numCreated += this.createQuestsForZone(city, areaTile);
         });
         return numCreated;
@@ -705,20 +790,31 @@ export class QuestPopulate {
         this.dbg('*** New quest started ****');
         if (quest.isQuest()) {
             this.dbg('  Quest has ' + quest.numTasks() + ' tasks');
-            this.dbg('  Quest has ' + quest.numQuests() + ' sub-quests');
+            this.dbg('  Quest has ' + (quest.numQuests() - 1) + ' sub-quests');
         }
 
+        // We need to create a quest target to complete a sub-quest, if
+        // currQuest is already defined
+        let returnLocation = null;
         if (this.currQuest) {
             const target = {createTarget: 'createSubQuestTarget',
                 subQuest: newQuest, args: []};
-            this.dbg('Adding |subquest| target for sub-quest');
+            this.dbg('Adding |subquest| target for current quest');
             this.currQuest.addTarget('subquest', target);
+            returnLocation = this.currQuest.getCurrentLocation() as Level;
+        }
+
+        // We need to set return location for sub-quest (handled by
+        // <subquest>goto task, but the goto-task will be in the parent quest
+        if (returnLocation) {
+            this.addQuestPopulData('return', returnLocation);
         }
 
         this.currQuest = newQuest;
         this.questData.quests.push(this.currQuest);
         const level = RNG.arrayGetRand(zone.getLevels());
         this.currQuest.addTarget('location', level);
+
 
         let ok = true;
         quest.getSteps().forEach(step => {
@@ -740,7 +836,10 @@ export class QuestPopulate {
             --this.IND;
             return false;
         }
+        this.dbg('Created quest: ' + this.currQuest.getDescr());
 
+        // Finally, pop a quest from stack and make parent quest
+        // the current one
         const nQuests = this.questData.quests.length;
         if (nQuests > 1) {
             this.questList.unshift(this.questData.quests.pop());
@@ -750,21 +849,28 @@ export class QuestPopulate {
         else {
             this.questList.unshift(this.currQuest);
         }
-        // Finally, add a quest to quest giver
-        this.dbg('Created quest: ' + this.currQuest.getDescr());
         --this.IND;
         return true;
     }
 
     /* Used to add cross reference from later quest item to an earlier item. */
     public pushQuestCrossRef(key, data): void {
+        const taskType = this.currTaskType;
+        if (!key) {
+            RG.err('QuestPopulate', 'pushQuestCrossRef',
+               `${taskType}: Undefined KEY with data ${data}`);
+        }
+        if (!data) {
+            RG.err('QuestPopulate', 'pushQuestCrossRef',
+               `${taskType}: Undefined DATA with key ${key}`);
+        }
         if (!this._questCrossRefs.has(key)) {
             this._questCrossRefs.set(key, []);
         }
         this._questCrossRefs.get(key).push(data);
     }
 
-    public popQuestCrossRef(key) {
+    public popQuestCrossRef(key: object): Entity | null {
         if (this._questCrossRefs.has(key)) {
             const arr = this._questCrossRefs.get(key);
             if (arr.length > 0) {
@@ -779,7 +885,7 @@ export class QuestPopulate {
     }
 
     /* Maps a single task to resources. Prev. or next step may also affect mapping.
-     * */
+     * Contains large switch-for mapping different atomic tasks to resources. */
     public mapTask(quest: Quest, task: Task, zone: ZoneBase, areaTile): boolean {
         ++this.IND;
         const taskType = task.getTaskType();
@@ -791,6 +897,8 @@ export class QuestPopulate {
         }
 
         this.dbg('Processing taskType |' + taskType + '|');
+        this.listOfAllTasks.push(taskType);
+        this.currTaskType = taskType;
 
         switch (taskType) {
             case 'capture': {
@@ -823,14 +931,15 @@ export class QuestPopulate {
                 if (actorToEscort) {
                     this.currQuest.addTarget('escort', actorToEscort);
                     ok = true;
-                    this._data.escort.push(actorToEscort);
+                    this.addQuestPopulData('escort', actorToEscort);
+                    // this._data.escort.push(actorToEscort);
                     this.flags.escort = true;
                 }
                 // Get a rescued NPC to follow you to a place
                 break;
             }
             case 'experiment': {
-                const item = this.getPrevType('item');
+                const item = this.getQuestPopulData('item');
                 if (item) {
                     this.currQuest.addTarget('experiment', item);
                     ok = true;
@@ -844,7 +953,7 @@ export class QuestPopulate {
                 if (item) {
                     this.currQuest.addTarget('get', item);
                     ok = true;
-                    this._data.item.push(item);
+                    this.addQuestPopulData('item', item);
                 }
                 break;
             }
@@ -854,7 +963,7 @@ export class QuestPopulate {
                 if (newItem) {
                     this.currQuest.addTarget('get', newItem);
                     ok = true;
-                    this._data.item.push(newItem);
+                    this.addQuestPopulData('item', newItem);
                 }
                 break;
             }
@@ -864,7 +973,7 @@ export class QuestPopulate {
                 if (item) {
                     this.currQuest.addTarget('exchange', item);
                     ok = true;
-                    this._data.item.push(item);
+                    this.addQuestPopulData('item', item);
                 }
                 break;
             }
@@ -882,6 +991,10 @@ export class QuestPopulate {
             case '<goto>already_there': {
                 // Don't add current location because it's already in the stack
                 ok = true;
+                if (this.flags.escort) {
+                    // There was some glitch, this should not happen
+                    ok = false;
+                }
                 break;
             }
             case '<goto>explore': {
@@ -890,10 +1003,15 @@ export class QuestPopulate {
                 const newLocation = this.getNewExploreLocation(zone, areaTile);
                 this.currQuest.addTarget('location', newLocation);
                 const exploreTarget = this.getExploreTarget();
-
                 if (exploreTarget) {
                     this.currQuest.addTarget('explore', exploreTarget);
                     ok = true;
+                    if (this.flags.escort) {
+                        this.flags.escort = false;
+                        // Prev escort target must be escorted to this location
+                        const escortData = this.getQuestPopulData('escort', true);
+                        this.pushQuestCrossRef(escortData, newLocation);
+                    }
                 }
                 break;
             }
@@ -905,12 +1023,13 @@ export class QuestPopulate {
                 if (this.flags.read) {
                     this.flags.read = false;
                     // Read about this location from previous read target
-                    this.pushQuestCrossRef(this.getPrevType('read'), newLocation);
+                    this.pushQuestCrossRef(this.getQuestPopulData('read'), newLocation);
                 }
                 if (this.flags.escort) {
                     this.flags.escort = false;
                     // Prev escort target must be escorted to this location
-                    this.pushQuestCrossRef(this.getPrevType('escort'), newLocation);
+                    const escortData = this.getQuestPopulData('escort', true);
+                    this.pushQuestCrossRef(escortData, newLocation);
                 }
                 break;
             }
@@ -933,7 +1052,7 @@ export class QuestPopulate {
                 if (actorToListen) {
                     this.currQuest.addTarget('listen', actorToListen);
                     this.flags.listen = true;
-                    this._data.listen.push(actorToListen);
+                    this.addQuestPopulData('listen', actorToListen);
                     ok = true;
                 }
                 break;
@@ -947,7 +1066,8 @@ export class QuestPopulate {
             case '<learn>read': {
                 const readTarget = this.getReadTarget(zone, areaTile);
                 if (readTarget) {
-                    this._data.read.push(readTarget);
+                    this.addQuestPopulData('read', readTarget);
+                    // this._data.read.push(readTarget);
                     this.flags.read = true;
                     this.currQuest.addTarget('read', readTarget);
                     ok = true;
@@ -967,8 +1087,11 @@ export class QuestPopulate {
                 if (actor) {
                     this.currQuest.addTarget('report', actor);
                     ok = true;
-                    const listenTarget = this.getPrevType('listen');
-                    this.pushQuestCrossRef(actor, listenTarget);
+                    if (this.flags.listen) {
+                        const listenTarget = this.getQuestPopulData('listen');
+                        this.pushQuestCrossRef(actor, listenTarget);
+                        this.flags.listen = false;
+                    }
                 }
                 break;
             }
@@ -986,9 +1109,18 @@ export class QuestPopulate {
                 break;
             }
             case '<subquest>goto': {
-                const newLocation = this.getNewLocation(zone, areaTile);
-                this.currQuest.addTarget('location', newLocation);
-                ok = true;
+                // Should return to the same location, before the subquest
+                const returnLocation = this.getQuestPopulData('return');
+                if (returnLocation) {
+                    this.currQuest.addTarget('location', returnLocation);
+                    ok = true;
+                    if (this.flags.escort) {
+                        this.flags.escort = false;
+                        // Prev escort target must be escorted to this location
+                        const escortData = this.getQuestPopulData('escort', true);
+                        this.pushQuestCrossRef(escortData, returnLocation);
+                    }
+                }
                 break;
             }
             case '<steal>take': {
@@ -996,7 +1128,8 @@ export class QuestPopulate {
                 if (newItem) {
                     // this.currQuest.addTarget('steal', newItem);
                     this.currQuest.addTarget('get', newItem);
-                    this._data.item.push(newItem);
+                    this.addQuestPopulData('item', newItem);
+                    // this._data.item.push(newItem);
                     ok = true;
                 }
                 break;
@@ -1006,7 +1139,7 @@ export class QuestPopulate {
                 if (newItem) {
                     // this.currQuest.addTarget('take', newItem);
                     this.currQuest.addTarget('get', newItem);
-                    this._data.item.push(newItem);
+                    this.addQuestPopulData('item', newItem);
                     ok = true;
                 }
                 break;
@@ -1040,6 +1173,7 @@ export class QuestPopulate {
         --this.IND;
         return ok;
     }
+
 
     /* Returns an actor from the given array, who is suitable as quest target
      * or quest giver. */
@@ -1245,7 +1379,7 @@ export class QuestPopulate {
             }
         }
 
-        this._data.zone.push(newZone);
+        this.addQuestPopulData('zone', newZone);
         return RNG.arrayGetRand(newZone.getLevels());
     }
 
@@ -1264,14 +1398,14 @@ export class QuestPopulate {
                     break;
                 }
             }
-            this._data.zone.push(newZone);
+            this.addQuestPopulData('zone', newZone);
             return newZone.getLevels()[0];
         }
         return null;
     }
 
     public getExploreTarget() {
-        const zone = this.getPrevType('zone');
+        const zone = this.getQuestPopulData('zone') as ZoneBase;
         const levels = zone.getLevels();
         let exploreElem = null;
         levels.forEach(level => {
@@ -1299,8 +1433,8 @@ export class QuestPopulate {
                         if (isEntity(target)) {
                             this.setAsQuestTarget(key, target);
                         }
-                        else if (target.createTarget) {
-                            const {createTarget, args} = target;
+                        else if ((target as QuestObjSurrogate).createTarget) {
+                            const {createTarget, args} = target as QuestObjSurrogate;
                             if (typeof this[createTarget] !== 'function') {
                                 RG.err('QuestPopulate', 'addQuestComponents',
                                     `${createTarget} not a func in QuestPopulate`);
@@ -1403,11 +1537,18 @@ export class QuestPopulate {
      * is known only after escort target is selected, so we need to
      * use crossrefs. */
     public handleEscort(target): void {
-        const qEscort = Component.create('QuestEscortTarget');
         const escortLocation = this.popQuestCrossRef(target);
-        qEscort.setEscortTo(escortLocation);
-        target.add(qEscort);
+        if (escortLocation) {
+            const qEscort = Component.create('QuestEscortTarget');
+            qEscort.setEscortTo(escortLocation);
+            target.add(qEscort);
+        }
+        else {
+            this.dumpInternalData('handleEscort');
+            this.errorQuestHandle(target, 'handleEscort');
+        }
     }
+
 
     public handleRepair(target): void {
         target.add(Component.create('Broken'));
@@ -1466,8 +1607,8 @@ export class QuestPopulate {
         }
     }
 
-    public createBattle(target, zone, areaTile) {
-        const battleZones = areaTile.getZones('BattleZone');
+    public createBattle(target, zone, areaTile): Level | null {
+        const battleZones: ZoneBase[] = areaTile.getZones('BattleZone');
         if (battleZones.length > 0) {
             const battleZone = RNG.arrayGetRand(battleZones);
             // BattleZone has only 1 level at the moment
@@ -1494,7 +1635,7 @@ export class QuestPopulate {
         return null;
     }
 
-    public createBook(target, level) {
+    public createBook(target: QuestTargetObj, level: Level): Item.Book | null {
         const book = new Item.Book(Names.getBookName());
         const location = this.popQuestCrossRef(target);
         if (location) {
@@ -1523,7 +1664,7 @@ export class QuestPopulate {
 
     /* Cleans up already created resources which would've been part of quest.
      * Quest gen failed for some reason, so we'll clean up the resources. */
-    public cleanUpFailedQuest(): void {
+    protected cleanUpFailedQuest(): void {
         this._cleanup.forEach((cleanupObj: CleanupItem) => {
             const {location} = cleanupObj;
             if (cleanupObj.item) {
@@ -1536,8 +1677,8 @@ export class QuestPopulate {
                     const name = cleanupObj.item.getName();
                     let msg = `Failed to cleanup item ${name} @ ${x},${y}`;
                     if (tag) {msg += '\nTag specified: |' + tag + '|';}
-                    msg += e.message;
-                    msg += '\nItems at loc: ' + JSON.stringify(location.getItems());
+                    msg += '\n' + e.message;
+                    // msg += '\nItems at loc: ' + JSON.stringify(location.getItems());
                     RG.err('QuestPopulate', 'cleanUpFailedQuest', msg);
                 }
             }
@@ -1551,6 +1692,20 @@ export class QuestPopulate {
             }
         });
     }
+
+    protected errorQuestHandle(target, funcName): void {
+        let msg = 'Failed to get location for escort: ';
+        msg +=  '\n\ttarget: ' + target.getName();
+        msg +=  '\n\tcrossRefs: ' + this._questCrossRefs.entries();
+        RG.err('QuestPopulate', funcName, msg);
+    }
+
+    /* Used for debugging to show various pieces of internal data. */
+    protected dumpInternalData(tag): void {
+        if (typeof window !== 'undefined') {
+            (window as any).QUEST_GEN = this;
+        }
+    }
 }
 
 const tasksImplemented = new Set([
@@ -1559,9 +1714,10 @@ const tasksImplemented = new Set([
     '<get>gather', 'give',
     '<kill>kill',
     '<goto>already_there', '<goto>explore', '<goto>goto',
-    '<learn>read',
+    '<learn>already_know_it', '<learn>read',
     'listen', 'report',
     '<steal>stealth', '<steal>take', 'take',
+    '<subquest>goto',
     'finishbattle', 'winbattle'
 ]);
 

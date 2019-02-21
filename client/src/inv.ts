@@ -4,6 +4,8 @@ import * as Item from './item';
 import {Equipment} from './equipment';
 import {SentientActor} from './actor';
 
+type AmmoOrMissile = Item.Missile | Item.Ammo;
+
 /* Object models inventory items and equipment on actor. This object handles
  * movement of items between inventory and equipment. */
 export class Inventory {
@@ -198,18 +200,25 @@ export class Inventory {
         return null;
     }
 
-    public getMissileWeapon() {
+    public getMissileWeapon(): Item.MissileWeapon | null {
         const item = this._eq.getItem('missileweapon');
-        if (!RG.isNullOrUndef([item])) {return item;}
+        if (!RG.isNullOrUndef([item])) {
+            const missWeapon: unknown = item;
+            return missWeapon as Item.MissileWeapon;
+        }
         return null;
     }
 
-    public getMissile() {
+    public getMissile(): AmmoOrMissile | null {
         const item = this._eq.getItem('missile');
-        return item;
+        if (item) {
+            const missItem: unknown = item;
+            return missItem as AmmoOrMissile;
+        }
+        return null;
     }
 
-    public getEquipped(slotType) {
+    public getEquipped(slotType: string): Item.ItemBase | Item.ItemBase[] | null {
         return this._eq.getItem(slotType);
     }
 

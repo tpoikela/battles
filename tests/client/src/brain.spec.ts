@@ -209,9 +209,9 @@ describe('BrainPlayer', () => {
         const brain = new BrainPlayer(player);
         brain.addGUICallback(cbCode, callback);
 
-        expect(called).to.be.false;
+        expect(called).to.equal(false);
         brain.decideNextAction({code: cbCode});
-        expect(called).to.be.true;
+        expect(called).to.equal(true);
     });
 
     it('has commands for using spellpowers', () => {
@@ -221,12 +221,12 @@ describe('BrainPlayer', () => {
         book.addSpell(new Spell.FrostBolt());
         // Bring up the spell menu
         let func = brain.decideNextAction({code: KEY.POWER});
-        expect(func).to.be.null;
+        expect(func).to.equal(null);
         expect(brain.isMenuShown()).to.equal(true);
 
         // Choose 1st shown spell (FrostBolt)
         func = brain.decideNextAction({code: ROT.VK_0});
-        expect(func).to.be.null;
+        expect(func).to.equal(null);
         expect(brain.isMenuShown()).to.equal(false);
 
         // Select direction (a == left)
@@ -235,7 +235,7 @@ describe('BrainPlayer', () => {
     });
 
     it('has commands for shooting and targeting', () => {
-        const player = new SentientActor('player');
+        player = new SentientActor('player');
         player.setIsPlayer(true);
         const orc = new SentientActor('orc');
         const goblin = new SentientActor('goblin');
@@ -248,9 +248,9 @@ describe('BrainPlayer', () => {
         RGUnitTests.moveEntityTo(goblin, 3, 3);
 
         const brain = player.getBrain() as BrainPlayer;
-        expect(brain.hasTargetSelected()).to.be.false;
+        expect(brain.hasTargetSelected()).to.equal(false);
         brain.decideNextAction({code: KEY.TARGET});
-        expect(brain.hasTargetSelected()).to.be.true;
+        expect(brain.hasTargetSelected()).to.equal(true);
 
         let targetCell = brain.getTarget() as Cell;
         const firstID = targetCell.getFirstActor().getID();
@@ -323,9 +323,8 @@ describe('BrainSentient', () => {
             cellChanged = rogue.getCell().getX() !== 3 ||
                 rogue.getCell().getY() !== 3;
             if (cellChanged) {break;}
-            
         }
-        expect(cellChanged, 'Actor cell changed').to.be.true;
+        expect(cellChanged, 'Actor cell changed').to.equal(true);
     });
 
     it('flees when low on health', () => {
@@ -333,7 +332,7 @@ describe('BrainSentient', () => {
         const arena = factLevel.createLevel('arena', 30, 30);
         const rogue = new SentientActor('rogue');
         rogue.setFOVRange(20);
-        const player = new SentientActor('player');
+        player = new SentientActor('player');
 
         // Check that flee action not triggered when not player seen
         rogue.get('Health').setHP(1);
@@ -350,15 +349,20 @@ describe('BrainSentient', () => {
         arena.addActor(player, 1, 1);
         player.setIsPlayer(true);
 
-        let currDist = Path.shortestDist(rogueX, rogueY, 1, 1);
+        let currDx = rogueX - 1;
+        let currDY = rogueY - 1;
+        let currDist = Math.abs(currDx + currDY);
         let prevDist = currDist;
+
         for (let i = 3; i < 9; i++) {
-            const action = rogue.nextAction();
-            action.doAction();
+            const rAction = rogue.nextAction();
+            rAction.doAction();
             movSys.update();
-            const rogueX = rogue.getX();
-            const rogueY = rogue.getY();
-            currDist = Path.shortestDist(rogueX, rogueY, 1, 1);
+
+            const [rX, rY] = rogue.getXY();
+            currDx = rX - 1;
+            currDY = rY - 1;
+            currDist = Math.abs(currDx + currDY);
             expect(currDist).to.be.above(prevDist);
             prevDist = currDist;
         }
@@ -396,9 +400,9 @@ describe('Brain.Human', () => {
 
         const action = human.nextAction();
         action.doAction();
-        expect(human2.has('Communication')).to.be.true;
+        expect(human2).to.have.component('Communication');
         commSystem.update();
-        expect(human2.has('Communication')).to.be.false;
+        expect(human2).to.not.have.component('Communication');
         expect(human2.isEnemy(demon)).to.equal(true);
     });
 });

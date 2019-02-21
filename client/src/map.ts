@@ -4,9 +4,12 @@ import RG from './rg';
 import {Cell, CellJSON} from './map.cell';
 import {ElementBase, ElementWall, ElementMarker} from './element';
 import {TCoord, BBox} from './interfaces';
+import {ELEM_MAP} from '../data/elem-constants';
 
 const FLOOR = new ElementBase('floor');
 const WALL = new ElementWall('wall');
+
+type YAndIndex = [number, number];
 
 export interface CellMapJSON {
     cols: number;
@@ -14,12 +17,17 @@ export interface CellMapJSON {
     cells: CellJSON[];
     explored: TCoord[];
     elements: any[];
+
+    encoded?: boolean;
+    cellsXY?: {[key: string]: YAndIndex[]};
+    defaultType: string;
 }
 
 /* Map cell list object which contains a number of cells. Map.CellList is used
  * for rendering while the Map.Level contains high-level information about
  * game objects such as actors, items and elements (stairs/traps). */
 export class CellMap {
+    public static fromJSON: (json) => CellMap;
 
     public static invertMap(map: CellMap): void {
         for (let x = 0; x < map.cols; x++) {
@@ -403,11 +411,14 @@ export class CellMap {
         const map = new Array(this.cols);
         const elements = {};
         const explored = [];
+        const baseTypes = {};
+
         for (let x = 0; x < this.cols; x++) {
             map[x] = new Array(this.rows);
             for (let y = 0; y < this.rows; y++) {
                 const json = this.getCell(x, y).toJSON();
                 map[x][y] = json.t;
+                baseTypes[json.t] = 0;
                 if (json.ex) {explored.push([x, y]);}
                 if (json.elements) {
                     elements[x + ',' + y] = elements;
@@ -419,8 +430,49 @@ export class CellMap {
             rows: this.rows,
             cells: map,
             explored,
-            elements
+            elements,
+            baseTypes
         };
+    }
+
+    /* Does special encoding to reduce the size of the map. */
+    public toJSONEncoded(): any {
+        const json: any = this.toJSON();
+        const {cells, baseTypes} = json;
+        const typeHist = {};
+        const newCells = [];
+
+        // Create histogram of the cells
+        for (let x = 0; x < this.cols; x++) {
+            for (let y = 0; y < this.rows; y++) {
+                baseTypes[cells[x][y]] += 1;
+            }
+        }
+
+        let defaultType = -1;
+        let highestCount = 0;
+        Object.keys(baseTypes).forEach(type => {
+            if (baseTypes[type] > highestCount) {
+                highestCount = baseTypes[type];
+                defaultType = parseInt(type, 10);
+            }
+        });
+
+        const cellsXY = {};
+        for (let x = 0; x < this.cols; x++) {
+            for (let y = 0; y < this.rows; y++) {
+                if (cells[x][y] !== defaultType) {
+                    if (!cellsXY[x]) {cellsXY[x] = [];}
+                    cellsXY[x].push([y,cells[x][y]]);
+                }
+            }
+        }
+
+        delete json.cells;
+        json.defaultType = defaultType;
+        json.cellsXY = cellsXY;
+        json.encoded = true;
+        return json;
     }
 
 
@@ -463,3 +515,25 @@ export class CellMap {
     }
 }
 
+CellMap.fromJSON = function(json: any): CellMap {
+    if (json.encoded) {
+        const {defaultType} = json;
+        const elemObj = ELEM_MAP.elemIndexToElemObj[defaultType];
+        const map = new CellMap(json.cols, json.rows, elemObj);
+
+        Object.keys(json.cellsXY).forEach(x => {
+            const xCol = json.cellsXY[x];
+            const xNum = parseInt(x, 10);
+            xCol.forEach(yAndIndex => {
+                const elem = ELEM_MAP.elemIndexToElemObj[yAndIndex[1]];
+                map.setBaseElemXY(xNum, yAndIndex[0], elem);
+            });
+        });
+
+        json.explored.forEach(xy => {
+            const [x, y] = xy;
+            map._map[x][y].setExplored();
+        });
+        return map;
+    }
+};

@@ -1,7 +1,7 @@
 
 import {expect} from 'chai';
 import RG from '../../../client/src/rg';
-import {Screen} from '../../../client/gui/screen';
+import {Screen, ScreenBuffered} from '../../../client/gui/screen';
 
 import {Objects} from '../../../client/data/battles_objects';
 import {Effects} from '../../../client/data/effects';
@@ -9,6 +9,8 @@ import {ObjectShell} from '../../../client/src/objectshellparser';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {SentientActor} from '../../../client/src/actor';
 import {ElementWall} from '../../../client/src/element';
+import {CellMap} from '../../../client/src/map';
+
 
 const wallChar = '#';
 const wallClass = 'cell-element-wall';
@@ -95,7 +97,7 @@ describe('GUI.Screen', () => {
         const level = factLevel.createLevel('arena', 10, 10);
         const map = level.getMap();
         const screen = new Screen(5, 5);
-        map._optimizeForRowAccess(map);
+        map._optimizeForRowAccess();
         screen.renderFullMap(map);
 
         const chars = screen.getCharRows();
@@ -120,7 +122,7 @@ describe('GUI.Screen', () => {
 
         map.setBaseElemXY(2, 2, new ElementWall('wall'));
 
-        map._optimizeForRowAccess(map);
+        map._optimizeForRowAccess();
         screen.renderFullMapWithRLE(map);
 
         const chars = screen.getCharRows();
@@ -147,7 +149,7 @@ describe('GUI.Screen', () => {
         const level = factLevel.createLevel('arena', levelX, levelY);
         const map = level.getMap();
         const screen = new Screen(100, 100);
-        map._optimizeForRowAccess(map);
+        map._optimizeForRowAccess();
 
         // Slap some actors into the level before rendering
         let xPos = 2;
@@ -174,8 +176,43 @@ describe('GUI.Screen', () => {
             expect(chars[y].length, `Char: ${msg}`).to.be.within(5, 6);
             expect(classes[y].length, `Class: ${msg}`).to.be.within(5, 6);
             for (let x = 0; x < chars[y].length; x++) {
-                expect(chars[y][x]).not.to.be.empty;
-                expect(classes[y][x]).not.to.be.empty;
+                expect(typeof chars[y][x][0] === 'number').to.equal(true);
+                expect(typeof chars[y][x][1] === 'string').to.equal(true);
+                expect(typeof classes[y][x][0] === 'number').to.equal(true);
+                expect(typeof classes[y][x][1] === 'string').to.equal(true);
+            }
+        }
+
+    });
+});
+
+describe('ScreenBuffered', () => {
+    it('stores an initial buffer of cells before render', () => {
+        const levelX = 50;
+        const levelY = 40;
+        const screen = new ScreenBuffered(levelX, levelY);
+        const factLevel = new FactoryLevel();
+        const level = factLevel.createLevel('arena', levelX, levelY);
+        const player = new SentientActor('player');
+
+        player.setIsPlayer(true);
+        level.addActor(player, 15, 25);
+        const map: CellMap = level.getMap();
+        map._optimizeForRowAccess();
+
+        const visible = map.getCells(c => c.getX() > 10 && c.getX() < 20 &&
+             c.getY() > 20 && c.getY() < 30);
+        screen.renderWithRLE(player.getX(), player.getY(), map, visible);
+
+        const chars: string[][] = screen.getCharRows();
+        const classes: string[][] = screen.getClassRows();
+
+        for (let y = 1; y < levelY - 1; y++) {
+            for (let x = 0; x < chars[y].length; x++) {
+                expect(typeof chars[y][x][0] === 'number').to.equal(true);
+                expect(typeof chars[y][x][1] === 'string').to.equal(true);
+                expect(typeof classes[y][x][0] === 'number').to.equal(true);
+                expect(typeof classes[y][x][1] === 'string').to.equal(true);
             }
         }
     });

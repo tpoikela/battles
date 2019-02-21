@@ -5,7 +5,7 @@
 import RG from './rg';
 import {MapGenerator} from './map.generator';
 import {CellMap} from './map';
-import {Level} from './level';
+import {Level, LevelExtras} from './level';
 // const Random = require('./random');
 import {DungeonPopulate} from './dungeon-populate';
 import {LevelGenerator} from './level-generator';
@@ -14,10 +14,17 @@ import {Geometry} from './geometry';
 import {Random} from './random';
 import {ELEM} from '../data/elem-constants';
 import * as Element from './element';
+import {TCoord} from './interfaces';
+
+type Cell = import('./map.cell').Cell;
 
 const RNG = Random.getRNG();
 
 const ElementMarker = Element.ElementMarker;
+
+interface FreeCellMap {
+    [key: string]: Cell;
+}
 
 export interface Miner {
     x: number;
@@ -42,12 +49,7 @@ interface MapOpts {
 
 
 export class CaveGenerator extends LevelGenerator {
-    constructor() {
-        super();
-        this.shouldRemoveMarkers = true;
-    }
-
-    static getOptions() {
+    public static getOptions() {
         return {
             dungeonType: 'Lair',
             maxDanger: 5, maxValue: 100,
@@ -55,8 +57,13 @@ export class CaveGenerator extends LevelGenerator {
         };
     }
 
+    constructor() {
+        super();
+        this.shouldRemoveMarkers = true;
+    }
+
     /* Main function to call when a cave is created. */
-    create(cols, rows, conf) {
+    public create(cols: number, rows: number, conf): Level {
         if (RG.isNullOrUndef([cols, rows])) {
             RG.err('CaveGenerator', 'create',
                 `cols or rows not defined: cols: ${cols} / rows: ${rows}`);
@@ -75,7 +82,7 @@ export class CaveGenerator extends LevelGenerator {
     }
 
     /* Creates the Map.Level object with walls/floor and cave-flavor. */
-    _createLevel(cols, rows, conf) {
+    public _createLevel(cols, rows, conf): Level {
         const mapOpts: MapOpts = this._createMapOptions(cols, rows, conf);
         const mapgen = new MapGenerator();
         const level = new Level();
@@ -90,7 +97,7 @@ export class CaveGenerator extends LevelGenerator {
         return level;
     }
 
-    setLevelExtras(level, mapGen) {
+    public setLevelExtras(level: Level, mapGen): void {
         const extras = mapGen.getMapData();
         // Need to uniquify start points
         extras.startPoints = RG.uniquifyCoord(extras.startPoints);
@@ -99,7 +106,7 @@ export class CaveGenerator extends LevelGenerator {
 
     /* Creates the options how to generate the level map. This depends on the type
      * of cave that needs to be generated. */
-    _createMapOptions(cols, rows, conf): MapOpts {
+    public _createMapOptions(cols, rows, conf): MapOpts {
         let {dungeonType} = conf;
         let opts: MapOpts = {};
         const miners = getMiners(cols, rows);
@@ -131,8 +138,8 @@ export class CaveGenerator extends LevelGenerator {
         return opts;
     }
 
-    addStairsLocations(level) {
-        const extras = level.getExtras();
+    public addStairsLocations(level: Level): void {
+        const extras: LevelExtras = level.getExtras();
         const {startPoints} = extras;
         let startPoint = null;
         let endPoint = null;
@@ -166,31 +173,31 @@ export class CaveGenerator extends LevelGenerator {
     }
 
     /* Adds features like extra obstacles etc. */
-    _addSpecialFeatures(level) {
+    public _addSpecialFeatures(level: Level): void {
         if (level.getExtras().isCollapsed) {
             this._createCollapsedLevel(level);
         }
     }
 
-    getEndPointFromMap(level, startPoint) {
+    public getEndPointFromMap(level: Level, startPoint) {
         const map = level.getMap();
         const freeCellMap = this.getMapOfNonWallCells(level);
         return this.getRandomEndPoint(map, startPoint, freeCellMap);
     }
 
-    getMapOfNonWallCells(level) {
+    public getMapOfNonWallCells(level: Level): FreeCellMap {
         const map = level.getMap();
         const nonWallCells = map.getCells(c => (
             !c.getBaseElem().isWall()
         ));
-        const freeCellMap = {};
+        const freeCellMap: FreeCellMap = {};
         nonWallCells.forEach(cell => {
             freeCellMap[cell.getKeyXY()] = cell;
         });
         return freeCellMap;
     }
 
-    _createCollapsedLevel(level) {
+    public _createCollapsedLevel(level) {
         const extras = level.getExtras();
         const map = level.getMap();
         let {endPoint} = extras;
@@ -240,7 +247,7 @@ export class CaveGenerator extends LevelGenerator {
         // const nPoints = pathPoints.length;
     }
 
-    createPath(map, startPoint, endPoint) {
+    public createPath(map, startPoint, endPoint) {
         const wallCb = (x, y) => (
             map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
         );
@@ -266,7 +273,7 @@ export class CaveGenerator extends LevelGenerator {
         return result;
     }
 
-    getRandomEndPoint(map, startPoint, freeCellMap) {
+    public getRandomEndPoint(map, startPoint, freeCellMap: FreeCellMap): TCoord {
         const wallCb = (x, y) => (
             map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
         );
@@ -277,7 +284,7 @@ export class CaveGenerator extends LevelGenerator {
         let currDist = 0;
         let watchdog = 10;
 
-        const freeCells = Object.values(freeCellMap);
+        const freeCells: Cell[] = Object.values(freeCellMap);
         let currPath = null;
 
         while (currDist < minDist) {
@@ -301,16 +308,16 @@ export class CaveGenerator extends LevelGenerator {
         return endPoint;
     }
 
-    getRandomPoint(map, startPoint, freeCellMap) {
+    public getRandomPoint(map, startPoint, freeCellMap: FreeCellMap): TCoord {
         const wallCb = (x, y) => (
             map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
         );
         const [sX, sY] = startPoint;
-        const freeCells = Object.values(freeCellMap);
+        const freeCells: Cell[] = Object.values(freeCellMap);
 
         const endCell = RNG.arrayGetRand(freeCells);
         const [eX, eY] = endCell.getXY();
-        const point = [eX, eY];
+        const point = [eX, eY] as TCoord;
         const currPath = Path.getShortestPath(eX, eY, sX, sY, wallCb);
 
         // Delete each path cell from list of free cells
@@ -324,7 +331,7 @@ export class CaveGenerator extends LevelGenerator {
         return point;
     }
 
-    _addEncounters(level, conf) {
+    public _addEncounters(level, conf) {
         const {dungeonType} = conf;
         if (dungeonType === 'Lair') {
             this._addLairBoss(level, conf);
@@ -333,7 +340,7 @@ export class CaveGenerator extends LevelGenerator {
         this.populatePoints(level, conf);
     }
 
-    _addLairBoss(level, conf) {
+    public _addLairBoss(level, conf) {
         const {maxDanger, maxValue} = conf;
         const endPoint = level.getExtras().endPoint;
         if (endPoint) {
@@ -352,7 +359,7 @@ export class CaveGenerator extends LevelGenerator {
     }
 
     /* Processes points of interest other than start/end points. */
-    populatePoints(level, conf) {
+    public populatePoints(level, conf) {
         const extras = level.getExtras();
         const {points} = extras;
         const populate = new DungeonPopulate({});

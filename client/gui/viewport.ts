@@ -14,14 +14,14 @@ export class Viewport {
     public endY: number;
     public rows: number;
 
-    constructor(viewportX, viewportY) {
+    constructor(viewportX: number, viewportY: number) {
         // Size of the viewport
         this.viewportX = viewportX;
         this.viewportY = viewportY;
     }
 
     /* Sets the viewport dimensions. */
-    setViewportXY(x, y) {
+    public setViewportXY(x: number, y: number): void {
         this.viewportX = x;
         this.viewportY = y;
     }
@@ -29,7 +29,7 @@ export class Viewport {
     /* Sets the cells in the current viewport. x,y is the position of the
      * player, the map Map.CellList of current level.
      */
-    getCellsInViewPort(x: number, y: number, map: CellMap): void {
+    public initCellsInViewPort(x: number, y: number, map: CellMap): void {
         let startX = x - this.viewportX;
         let endX = x + this.viewportX;
         let startY = y - this.viewportY;
@@ -91,9 +91,9 @@ export class Viewport {
     }
 
     /* Returns the specified cell row in the viewport. */
-    getCellRow(y): Cell[] {return this.coord[y];}
+    public getCellRow(y): Cell[] {return this.coord[y];}
 
-    debugPrint(): void {
+    public debugPrint(): void {
         const [startY, endY] = [this.startY, this.endY];
         for (let yy = startY; yy <= endY; yy++) {
             const row = this.coord[yy];

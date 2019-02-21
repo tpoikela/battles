@@ -76,6 +76,7 @@ export const addExitsToEdge = (
     const cols = map.cols;
     const rows = map.rows;
     const exitsAdded = [];
+
     for (let row = 1; row < rows - 1; row++) {
         if (edge === 'any' || edge === 'west') {
             if (map.isPassable(0, row) || overwrite) {
@@ -96,6 +97,7 @@ export const addExitsToEdge = (
             }
         }
     }
+
     for (let col = 1; col < cols - 1; col++) {
         if (edge === 'any' || edge === 'north') {
             if (map.isPassable(col, 0) || overwrite) {
@@ -120,7 +122,7 @@ export const addExitsToEdge = (
 };
 
 /* Returns true if given level edge has any connections. If edge=any, then
- * checks all edges. */
+ * checks all edges. edge can also be 'north', 'south', 'west', 'east' */
 export const edgeHasConnections = (level: Level, edge: string): boolean => {
     const map = level.getMap();
     const cols = map.cols;
@@ -158,10 +160,11 @@ function getStairsOther(name: string, levels: Level[]): Stairs[] {
     const stairs = [];
     levels.forEach(level => {
         const sList = level.getStairs();
-        sList.forEach(s => {
+        sList.forEach((s: Stairs) => {
             const levelStair = s.getTargetLevel();
-            if (levelStair) {
-                if (levelStair.getParent() !== name) {
+            if (levelStair && (levelStair as Level).getParent) {
+                const levelParent = (levelStair as Level).getParent();
+                if (levelParent && levelParent.getName() !== name) {
                     stairs.push(s);
                 }
             }
@@ -564,13 +567,13 @@ export class ZoneBase extends WorldBase {
         return level;
     }
 
-    public findSubZone(name) {
+    public findSubZone(name: string): SubZoneBase {
         const subZone = findSubZone(name, this._subZones);
         return subZone;
     }
 
     /* Returns each entrance in each subzone. */
-    public getEntrances() {
+    public getEntrances(): Stairs[] {
         const entrances = [];
         this._subZones.forEach(sz => {
             const szEntr = sz.getEntrance();
@@ -587,14 +590,14 @@ export class ZoneBase extends WorldBase {
         });
     }
 
-    public toJSON() {
+    public toJSON(): any {
         const json = super.toJSON();
         json.x = this.tileX;
         json.y = this.tileY;
         return json;
     }
 
-    public getID2Place() {
+    public getID2Place(): {[key: number]: WorldBase} {
         const res: {[key: number]: WorldBase} = {[this.getID()]: this};
         this._subZones.forEach(sz => {
             res[sz.getID()] = sz;
@@ -619,7 +622,7 @@ export class SubZoneBase extends WorldBase {
     protected _levelFeatures: Map<string, any[]>;
     protected _levelCount: number;
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this._levelFeatures = new Map();
         this._levels = [];
@@ -1766,7 +1769,7 @@ export class BattleZone extends ZoneBase {
         return this._levels.push(level);
     }
 
-    public getLevels() {
+    public getLevels(): Level[] {
         return this._levels;
     }
 

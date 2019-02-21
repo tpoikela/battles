@@ -71,14 +71,14 @@ describe('Level', () => {
         const level1 = factLevel.createLevel('arena', 20, 20);
         const item1 = new ItemBase('item1');
         const item2 = new ItemBase('item2');
-        expect(level1.addItem(item1, 2, 2)).to.be.true;
-        expect(level1.addItem(item2, 3, 3)).to.be.true;
+        expect(level1.addItem(item1, 2, 2)).to.equal(true);
+        expect(level1.addItem(item2, 3, 3)).to.equal(true);
 
         let items = level1.getItems();
         expect(items).to.have.length(2);
         expect(items[0]).to.equal(item1);
 
-        expect(level1.removeItem(item1, 2, 2)).to.be.true;
+        expect(level1.removeItem(item1, 2, 2)).to.equal(true);
         const funcThatThrows = () => {
             level1.removeItem(item1, 2, 2);
         };
@@ -129,16 +129,22 @@ describe('Level', () => {
     });
 
     it('can be serialized to JSON', () => {
-        const level1 = factLevel.createLevel('arena', 20, 20);
+        const level1 = factLevel.createLevel('arena', 80, 40);
         const map = level1.getMap();
         const cells = map.getCells();
         const cell0 = cells[0];
         expect(cell0.getBaseElem().getType()).to.equal('wall');
-        expect(cells[35].getBaseElem().getType()).to.equal('floor');
+        // expect(cells[35].getBaseElem().getType()).to.equal('floor');
 
         const json = level1.toJSON();
         expect(json.id).to.equal(level1.getID());
         expect(json.levelNumber).to.equal(level1.getLevelNumber());
+
+        const jsonMap1 = map.toJSON();
+        const jsonCompr = map.toJSONEncoded();
+
+        const mapRest = CellMap.fromJSON(jsonCompr);
+        //mapRest.debugPrintInASCII();
     });
 
     it('can contain almost arbitrary extra info for procgen', () => {
@@ -161,7 +167,6 @@ describe('Level', () => {
         expect(level1.hasExtras()).to.equal(true);
 
         expect(Object.keys(level1.getExtras())).to.have.length(5);
-
         level1.addExtras('shops', [1, 2, 3, 4]);
         expect(Object.keys(level1.getExtras())).to.have.length(6);
     });
