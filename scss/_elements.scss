@@ -8,6 +8,11 @@
     color: $tree-color;
 }
 
+@mixin frozen-elem {
+    background-color: $snow-white;
+    color: $gray;
+}
+
 .cell-elements {
     background-color: $purple;
     color: $white;
@@ -45,6 +50,11 @@
     background-color: $floor-house-bg-color;
 }
 
+.cell-element-bed {
+    background-color: $floor-house-bg-color;
+    color: $white;
+}
+
 .cell-element-floor-cave {
     background-color: $floor-bg-color;
 }
@@ -69,7 +79,35 @@
     color: $white;
 }
 
+.cell-element-light-snow {
+    background-color: darken($snow-white, 10%);
+    color: darken($snow-white, 10%);
+    // color: $black;
+};
+
+.cell-element-light-snow-tracks {
+    background-color: darken($snow-white, 10%);
+    color: $black;
+};
+
 .cell-element-snow {
+    background-color: darken($snow-white, 10%);
+    color: darken($snow-white, 10%);
+    // color: $black;
+};
+
+.cell-element-snow-tracks {
+    background-color: darken($snow-white, 10%);
+    color: $black;
+};
+
+.cell-element-deep-snow {
+    background-color: $snow-white;
+    color: $snow-white;
+    // color: $black;
+};
+
+.cell-element-deep-snow-tracks {
     background-color: $snow-white;
     color: $black;
 };
@@ -112,12 +150,25 @@
     color: $blue;
 };
 
+.cell-element-frozen-water {
+    background-color: $snow-white;
+    color: $blue;
+};
+
 .cell-element-tree {
     @include green-elem;
 };
 
+.cell-element-snow-tree {
+    @include frozen-elem;
+}
+
 .cell-element-grass {
     @include green-elem;
+};
+
+.cell-element-snowy-grass {
+    @include frozen-elem;
 };
 
 .cell-element-stone {
@@ -161,6 +212,41 @@
     color: $red;
 }
 
+.cell-element-castle {
+    background-color: $black;
+    color: $floor-bg-color;
+}
+
+.cell-element-floor-castle {
+    background-color: lighten($floor-bg-color, 10%);
+    color: $black;
+}
+
+.cell-element-floor-wooden {
+    background-color: 'beige';
+    color: 'white';
+}
+
+.cell-element-web {
+    background-color: $floor-bg-color;
+    color: $white;
+}
+
+.cell-element-slime {
+    background-color: $floor-bg-color;
+    color: $slime-color;
+}
+
+.cell-element-hole {
+    background-color: $floor-bg-color;
+    color: $black;
+}
+
+.cell-element-window {
+    background-color: $cyan;
+    color: $blue;
+}
+
 //----------------------
 // CONNECTIONS/STAIRS
 //----------------------
@@ -194,4 +280,5 @@
     background-color: $floor-bg-color;
     color: $brown;
 }
+
 

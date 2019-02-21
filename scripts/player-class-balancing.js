@@ -5,10 +5,33 @@ require('babel-register');
 const RG = require('../client/src/battles');
 const Actors = require('../client/data/actors.js');
 const ActorBattles = require('../tests/actor-battles');
+const {FactoryItem} = require('../client/src/factory.items');
 
 const brainMap = {
     Cryomancer: 'SpellCaster',
     Marksman: 'GoalOriented'
+};
+
+const equip = {
+    4: 'Leather',
+    8: 'Chain',
+    12: 'Steel',
+    16: 'Mithril',
+    20: 'Mithril',
+    24: 'Ruby',
+    28: 'Runed',
+    32: 'Permaice'
+};
+
+const weapon = {
+    4: 'Mace',
+    8: 'Mace',
+    12: 'Longsword',
+    16: 'Great battle axe',
+    20: 'Mithril spear',
+    24: 'Ruby glass battle axe',
+    28: 'Runed runesword',
+    32: 'Permaice katana'
 };
 
 const createPlayer = function(playerConf) {
@@ -30,6 +53,8 @@ const createPlayer = function(playerConf) {
 
     const brain = new RG.Brain[brainType](playerActor);
     playerActor.setBrain(brain);
+    FactoryItem.equipFullGearType(playerActor, equip[playerLevel]);
+    FactoryItem.equipWeaponOfType(playerActor, weapon[playerLevel]);
     return playerActor;
 };
 
@@ -38,7 +63,8 @@ const matchLimit = 2000;
 const shells = Actors.filter(a => !((/spirit/i).test(a.name)));
 
 // Classes to be tested
-const classes = ['Adventurer', 'Blademaster', 'Cryomancer', 'Marksman'];
+// const classes = ['Adventurer', 'Blademaster', 'Cryomancer', 'Marksman'];
+ const classes = ['Marksman'];
 // const classes = ['Cryomancer'];
 const levels = [4, 8, 12, 16, 20, 24, 28, 32];
 // const levels = [4];
@@ -53,8 +79,9 @@ classes.forEach(className => {
             actorClass: className, playerLevel
         };
         const ab = new ActorBattles({monitorActor, matchLimit, shells});
+        ab.equalizeLevels = false;
         ab.runWithActor(createPlayer.bind(null, conf), 3);
-        // ab.printOutputs(className);
+        // ab.printOutputs(tag);
 
         ab.printMonitored(tag);
 
@@ -63,7 +90,7 @@ classes.forEach(className => {
 
         console.log('Player stats:');
         const player = createPlayer(conf);
-        console.log(JSON.stringify(player, null, 1));
+        console.log('Used player', JSON.stringify(player, null, 1));
         console.log(`#### FINISHED: ${tag} }}}`);
 
         const monitor = ab.monitor;

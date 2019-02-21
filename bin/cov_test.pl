@@ -30,7 +30,7 @@ GetOptions(
     "t|tests=s" => \$opt{tests}
 );
 
-my $comp_babel = "--compilers babel-core/register";
+my $comp_babel = "--compilers ts-node/register";
 
 clean_cov() if defined $opt{clean};
 
@@ -47,17 +47,20 @@ if (not -e $nyc) {
     die("Cannot find nyc exec in $nyc.");
 }
 
-my $cmd = "$nyc -n client/src mocha $comp_babel tests/client/src";
+#my $cmd = "$nyc -n client/src mocha $comp_babel tests/client/src";
+my $cmd = "$nyc mocha $comp_babel tests/client/src/*.ts";
 _cmd($cmd, "Running coverage for unit tests.");
 
+if (0) {
 $cmd = "$nyc -n client/gui mocha $comp_babel tests/client/gui";
 _cmd($cmd,  "Running coverage for GUI unit tests.");
 
-$cmd = "$nyc -n client/jsx -e .jsx mocha --require tests/helpers/browser.js $comp_babel tests/client/jsx/*.jsx";
+$cmd = "$nyc -n client/jsx -e .tsx mocha --require tests/helpers/browser.js $comp_babel tests/client/jsx/*.tsx";
 _cmd($cmd,  "Running coverage for jsx component unit tests.");
 
 $cmd = "$nyc -n client/src mocha $comp_babel tests/client/functional";
 _cmd($cmd,  "Running coverage for functional tests.");
+}
 
 # Copy .json files back and do report
 system("cp $nyc_bak/* .nyc_output");

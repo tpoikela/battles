@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "removeComments": false,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "noImplicitAny": false,
+    "jsx": "react",
+    "module": "commonjs",
+    "strictNullChecks": false,
+    "outDir": "build",
+    "sourceMap": true,
+    "target": "ES6",
+    "moduleResolution": "node",
+    "lib": ["webworker", "es2015", "es2017", "dom"],
+    "typeRoots": [
+        "./node_modules/@types",
+        "./typings"
+    ]
+  },
+  "include": [
+      "./client/**/*",
+      "./typings/**/*",
+      "./public/*.json"
+  ],
+  "exclude": [
+    "node_modules/**/*",
+    "build"
+  ],
+  "awesomeTypescriptLoaderOptions": {
+      "useCache": true
+  }
+}

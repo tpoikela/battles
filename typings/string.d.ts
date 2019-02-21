@@ -1,0 +1,5 @@
+
+interface String {
+    capitalize(): string;
+}
+

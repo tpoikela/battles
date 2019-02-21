@@ -1,0 +1,17 @@
+{
+    "type": "items",
+    "name": "Example of adding items into the game",
+    "data": [
+        {
+            "name": "Emerald sword", "base": "WeaponBase",
+            "color": {"fg": "green", "bg": "black"},
+            "value": 100, "damage": "4d10 + 8",
+            "attack": 15, "defense": 5
+        },
+        {
+            "name": "Emerald shield", "base": "ArmourBase",
+            "color": {"fg": "green", "bg": "black"},
+            "defense": 5, "protection": 5
+        }
+    ]
+}

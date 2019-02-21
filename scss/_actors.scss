@@ -110,6 +110,11 @@
     color: $blue;
 }
 
+.cell-actor-water {
+    background-color: $black;
+    color: $blue;
+}
+
 .cell-actor-fire {
     background-color: $tangerine;
     color: $red;
@@ -125,17 +130,23 @@
     color: $brown;
 }
 
+.cell-actor-hyrkh {
+    background-color: $wild-pink;
+    color: $purple;
+}
+
 /* Generates using standard CSS color names for custom elements defined using
  * custom color and bg. Should be
  * used in JSON files when defining colors for custom items, actors and
  * elements.
  */
-@each $color-fg in $css-color-names {
-    @each $color-bg in $css-color-names {
-        .cell-fg-#{to-lower-case('#{$color-fg}')}-bg-#{to-lower-case('#{$color-bg}')} {
-            background-color: unquote(to-lower-case('#{$color-bg}'));
-            color: unquote(to-lower-case('#{$color-fg}'));
-        }
+@each $color-var in $css-color-names {
+    .cell-fg-#{to-lower-case('#{$color-var}')} {
+        color: unquote(to-lower-case('#{$color-var}'));
+    }
+
+    .cell-bg-#{to-lower-case('#{$color-var}')} {
+        background-color: unquote(to-lower-case('#{$color-var}'));
     }
 }
 
@@ -153,4 +164,3 @@
         }
     }
 }
-
