@@ -181,7 +181,7 @@ describe('QuestPopulate', () => {
         const factWorld = new FactoryWorld();
         const area = factWorld.createArea(areaConf);
 
-        areaConf.nDungeon = 2;
+        areaConf.nDungeons = 2;
         areaConf.dungeon.push(dungConf);
         const taskList = [
             // Given in city, map this quest as:
