@@ -8,6 +8,7 @@ import {EventPool} from './eventpool';
 import {verifyLevelCache} from './verify';
 import * as Mixin from './mixin';
 import {ELEM} from '../data/elem-constants';
+import * as Component from './component/component';
 
 // Import types only
 import {TCoord, BBox} from './interfaces';
@@ -130,6 +131,7 @@ export class Level extends Entity {
             onFirstExitDone: false
         };
 
+        this.add(new Component.Lore());
     }
 
     public setLevelNumber(no: number): void {this._levelNo = no;}
