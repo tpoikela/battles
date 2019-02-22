@@ -17,7 +17,7 @@ export class SystemMissile extends SystemBase {
         this.criticalShot = RG.MISSILE_CRITICAL_SHOT;
     }
 
-    public updateEntity(ent) {
+    public updateEntity(ent): void {
         const mComp = ent.get('Missile');
         const attacker = mComp.getSource();
         const level = mComp.getLevel();
@@ -71,7 +71,7 @@ export class SystemMissile extends SystemBase {
             else if (currCell.hasProp('actors')) {
                 const actor = currCell.getActors()[0];
                 // Check hit and miss
-                if (this.targetHit(ent, actor, mComp)) {
+                if (this.targetWasHit(ent, actor, mComp)) {
                     this.finishMissileFlight(ent, mComp, currCell);
                     if (typeof mComp.onHit === 'function') {
                         mComp.onHit(actor);
@@ -129,7 +129,7 @@ export class SystemMissile extends SystemBase {
 
     /* Adds damage to hit actor, and returns the verb for the message
      * corresponding to the hit (ie critical or not). */
-    public _addDamageToActor(ent, mComp) {
+    public _addDamageToActor(ent, mComp): string {
         let hitVerb = 'hits';
         const dmg = mComp.getDamage();
         const damageComp = new Component.Damage(dmg,
@@ -150,7 +150,7 @@ export class SystemMissile extends SystemBase {
         return hitVerb;
     }
 
-    public finishMissileFlight(ent, mComp, currCell) {
+    public finishMissileFlight(ent, mComp, currCell: Cell): void {
         mComp.stopMissile(); // Target reached, stop missile
         ent.remove(mComp);
 
@@ -196,7 +196,7 @@ export class SystemMissile extends SystemBase {
     }
 
     /* Returns true if the ammo/missile is destroyed. */
-    public _isItemDestroyed(ent) {
+    public _isItemDestroyed(ent): boolean {
         const name = ent.getName();
         const prob = this.rng.getUniform();
         if (ent.has('Ammo')) {
@@ -221,14 +221,14 @@ export class SystemMissile extends SystemBase {
         }
     }
 
-    public _formatFiredMsg(ent, att) {
+    public _formatFiredMsg(ent, att): string {
         let verb = 'thrown';
         if (ent.has('Ammo')) {verb = 'shot';}
         return `${ent.getName()} ${verb} by ${att.getName()}`;
     }
 
     /* Returns true if the target was hit.*/
-    public targetHit(ent, target, mComp) {
+    public targetWasHit(ent, target, mComp): boolean {
         if (target.has('Ethereal')) {
             return false;
         }
@@ -255,6 +255,7 @@ export class SystemMissile extends SystemBase {
         }
         const hitProp = attack / (attack + defense);
         if (RG.isSuccess(hitProp)) {
+            // Using RangedEvasion does not improve Dodge
             if (target.has('RangedEvasion')) {
                 return RG.isSuccess(0.5);
             }
