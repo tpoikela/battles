@@ -6,7 +6,7 @@ import {BaseActor, SentientActor} from '../../../client/src/actor';
 import * as Component from '../../../client/src/component';
 import {EventPool} from '../../../client/src/eventpool';
 import {System} from '../../../client/src/system';
-import {Quest, QuestPopulate} from '../../../client/src/quest-gen';
+import {Quest, QuestPopulate} from '../../../client/src/quest';
 import {Entity} from '../../../client/src/entity';
 import {ItemBase} from '../../../client/src/item';
 import {Random} from '../../../client/src/random';
@@ -283,7 +283,7 @@ describe('System.Quest', () => {
             '<goto>goto', 'damage', 'escort',
             escortQuest, '<subquest>goto', 'report'];
         const hierQuest = new Quest('Escort and escort again', hierEscortTasks);
-        console.log(hierQuest.getSteps());
+        console.log('Dumping steps now:', hierQuest.getSteps());
 
         const rng = RGTest.createRNG(1);
         questPopul = new QuestPopulate({rng});
@@ -307,6 +307,7 @@ describe('System.Quest', () => {
         const escortActor = dungLevel.getActors().find(a => (
             a.has('QuestTarget') && a.has('QuestEscortTarget')
         ));
+        expect(RG.isNullOrUndef([escortActor])).to.equal(false);
         const escComp = escortActor.get('QuestEscortTarget');
         const escortLevel = escComp.getEscortTo();
         expect(escortLevel.getID()).to.equal(level.getID());
