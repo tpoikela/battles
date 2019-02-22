@@ -34,11 +34,16 @@ export const FactoryZone = function() {
     FactoryBase.call(this);
     this._verif = new Verify.Conf('FactoryZone');
     this._parser = ObjectShell.getParser();
+    this.rng = RNG;
 
     this.getRandLevelType = () => {
         const type = ['uniform', 'rooms', 'rogue', 'digger'];
-        const nLevelType = RNG.randIndex(type);
+        const nLevelType = this.rng.randIndex(type);
         return type[nLevelType];
+    };
+
+    this.setRNG = (rng: Random): void => {
+        this.rng = rng;
     };
 
     this.addItemsAndActors = function(level, conf) {
@@ -282,7 +287,7 @@ export const FactoryZone = function() {
     this.populateCityLevel = function(level, levelConf) {
         let alignment = levelConf.alignment;
         if (!alignment) {
-            alignment = RNG.arrayGetRand(RG.ALIGNMENTS);
+            alignment = this.rng.arrayGetRand(RG.ALIGNMENTS);
         }
 
         if (!levelConf.actor) {
@@ -354,7 +359,7 @@ export const FactoryZone = function() {
     this.populateWithEvil = function(level, levelConf) {
         let allOK = false;
         while (!allOK) {
-            const raceType = RNG.arrayGetRand(RG.EVIL_RACES);
+            const raceType = this.rng.arrayGetRand(RG.EVIL_RACES);
             const actorConf = {
                 actorsPerLevel: levelConf.actorsPerLevel || 100,
                 maxDanger: levelConf.maxDanger || 10,
@@ -368,7 +373,7 @@ export const FactoryZone = function() {
     };
 
     this.populateWithNeutral = function(level, levelConf) {
-        const raceType = RNG.arrayGetRand(RG.NEUTRAL_RACES);
+        const raceType = this.rng.arrayGetRand(RG.NEUTRAL_RACES);
         const actorConf = {
             actorsPerLevel: levelConf.actorsPerLevel || 100,
             maxDanger: levelConf.maxDanger || 10,
@@ -397,7 +402,7 @@ export const FactoryZone = function() {
                 });
             });
 
-            const room = RNG.arrayGetRand(extras.rooms);
+            const room = this.rng.arrayGetRand(extras.rooms);
             const bbox = room.getBbox();
             this.addActorsToBbox(level, bbox, conf);
         }
