@@ -1816,6 +1816,13 @@ RG.while = function(testFunc, loopBody, timeout = -1) {
 // Functions for emitting in-game messages to player
 // -------------------------------------------------
 
+interface GameMsgObject {
+    cell: Cell;
+    msg: string;
+}
+
+type GameMsg = string | GameMsgObject;
+
 import {EventPool} from './eventpool';
 const POOL: EventPool = EventPool.getPool();
 
@@ -1823,36 +1830,37 @@ const POOL: EventPool = EventPool.getPool();
 // 1. A simple string messages
 // 2. {msg: "Your message", cell: Origin cell of messaage}
 // Using 2. messages can be easily filtered by position.
-RG.gameMsg = function(msg) {
+RG.gameMsg = function(msg: GameMsg): void {
     this.emitMsgEvent('prim', msg);
 };
 
-RG.gameInfo = function(msg) {
+RG.gameInfo = function(msg: GameMsg): void {
     this.emitMsgEvent('info', msg);
 };
 
-RG.gameDescr = function(msg) {
+RG.gameDescr = function(msg: GameMsg): void {
     this.emitMsgEvent('descr', msg);
 };
 
-RG.gameSuccess = function(msg) {
+RG.gameSuccess = function(msg: GameMsg) {
     this.emitMsgEvent('success', msg);
 };
 
-RG.gameWarn = function(msg) {
+RG.gameWarn = function(msg: GameMsg) {
     this.emitMsgEvent('warn', msg);
 };
 
-RG.gameDanger = function(msg) {
+RG.gameDanger = function(msg: GameMsg) {
     this.emitMsgEvent('danger', msg);
 };
 
 /* Emits message event with cell origin, style and message. */
-RG.emitMsgEvent = function(style, msg) {
+RG.emitMsgEvent = function(style: string, msg: GameMsg): void {
     let newMsg = '';
     if (typeof msg === 'object') {
-        const cell = msg.cell;
-        newMsg = msg.msg;
+        const msgObj = msg as GameMsgObject;
+        const cell = msgObj.cell;
+        newMsg = msgObj.msg;
         newMsg = newMsg[0].toUpperCase() + newMsg.substring(1);
 
         const msgObject = {cell, msg: newMsg, style};
