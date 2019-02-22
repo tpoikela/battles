@@ -1699,3 +1699,19 @@ export const Entrapping = UniqueDataComponent('Entrapping', {
 });
 
 export const Entrapped = UniqueTagComponent('Entrapped');
+
+/* Component attached to Level/Places for Lore. */
+export const Lore = UniqueDataComponent('Lore', {
+    topics: null
+});
+
+Lore.prototype.addTopic = function(key: string, msg: any): void {
+    if (!this.topics[key]) {
+        this.topics[key] = [];
+    }
+    this.topics[key].push(msg);
+};
+
+Lore.prototype._init = function() {
+    this.topics = {};
+};
