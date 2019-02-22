@@ -1,15 +1,21 @@
 
+import RG from '../rg';
+import {Entity} from '../entity';
+import {Level} from '../level';
+
+type ZoneBase = import('../world').ZoneBase;
+
 //---------------------------------------------------------------------------
 // QUESTDATA for storing quest mapping information
 //---------------------------------------------------------------------------
 
 /* Used when target creation is deferred until all tasks are mapped. */
-interface QuestObjSurrogate {
+export interface QuestObjSurrogate {
     createTarget: string; // Factory function to call
     args?: any[];
 }
 
-type QuestTargetObj = Entity | ZoneBase | QuestObjSurrogate;
+export type QuestTargetObj = Entity | ZoneBase | QuestObjSurrogate;
 
 interface QuestPathObj {
     type: string;
