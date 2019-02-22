@@ -62,7 +62,7 @@
     "sass-loader": "^7.0.1",
     "source-map-loader": "^0.2.3",
     "style-loader": "^0.21.0",
-    "ts-node": "^8.0.2",
+    "ts-node": "^7.0.1",
     "tslint": "^5.12.1",
     "tslint-consistent-codestyle": "^1.15.0",
     "uglify-js": "git+https://github.com/mishoo/UglifyJS2.git#harmony",
