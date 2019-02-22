@@ -1,4 +1,6 @@
 
+import RG from '../rg';
+
 /* A task represents a part of a quest. */
 export class Task {
 
