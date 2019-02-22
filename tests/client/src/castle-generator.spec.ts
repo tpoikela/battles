@@ -2,6 +2,7 @@
 import { expect } from 'chai';
 import RG from '../../../client/src/rg';
 import {CastleGenerator} from '../../../client/src/castle-generator';
+import {Level} from '../../../client/src/level';
 
 describe('CastleGenerator', () => {
 
@@ -14,7 +15,7 @@ describe('CastleGenerator', () => {
     it('can create castle levels with default config', () => {
         const conf = CastleGenerator.getOptions();
         const level = castleGen.create(80, 50, conf);
-        expect(level).not.to.be.empty;
+        expect(level).to.be.an.instanceof(Level);
 
         const elements = level.getElements();
         expect(elements.length).to.be.above(0);
