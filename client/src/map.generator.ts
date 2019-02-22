@@ -45,12 +45,14 @@ export interface MapConf {
     models?: any;
     nGates?: number;
     roomCount?: number;
+    ratio?: number;
     startRoomFunc?: () => void;
     templates?: string;
     tilesX?: number;
     tilesY?: number;
     wallType?: string;
     snowRatio?: number;
+    rng?: Random;
 }
 
 interface MapObj {
@@ -66,6 +68,11 @@ interface HouseObj extends BBox {
     walls: TCoord[];
     floor: TCoord[];
     door: TCoord;
+}
+
+type ElemMapFunc = (map: CellMap, x: number, y: number) => void;
+interface ASCIIToElemMap {
+    [key: string]: ElementBase | ElemMapFunc;
 }
 
 /* Returns true if given coordinates are in allowed area. */
@@ -97,13 +104,22 @@ export class MapGenerator {
     public static snowElemMap: {[key: string]: ElementBase};
     public static snowMeltMap: {[key: string]: ElementBase};
 
+    public static getAndSetRNG(conf?: MapConf): Random {
+        if (conf) {
+            if (conf.rng) {return conf.rng;}
+            else {conf.rng = RNG;}
+        }
+        return RNG;
+    }
+
     /* Decorates the given map with snow. ratio is used to control how much
      * snow to put. */
-    public static addRandomSnow(map: CellMap, ratio: number): void {
+    public static addRandomSnow(map: CellMap, ratio: number, conf?): void {
         const freeCells = map.getFree().filter(c => c.isOutdoors());
+        const rng = MapGenerator.getAndSetRNG(conf);
 
         for (let i = 0; i < freeCells.length; i++) {
-            const addSnow = RNG.getUniform();
+            const addSnow = rng.getUniform();
             const cell = freeCells[i];
             if (addSnow <= ratio) {
                 const baseType = cell.getBaseElem().getType();
@@ -118,10 +134,13 @@ export class MapGenerator {
 
     /* Given 2-d ascii map, and mapping from ascii to Element, constructs the
      * map of base elements, and returns it. */
-    public static fromAsciiMap(asciiMap, asciiToElem) {
+    public static fromAsciiMap(
+        asciiMap: string[][], asciiToElem: ASCIIToElemMap
+    ): MapObj {
         const cols = asciiMap.length;
         const rows = asciiMap[0].length;
         const map = new CellMap(cols, rows);
+
         for (let x = 0; x < cols; x++) {
             for (let y = 0; y < rows; y++) {
                 const char = asciiMap[x][y];
@@ -129,7 +148,7 @@ export class MapGenerator {
                     const marker = new Element.ElementMarker('+');
                     marker.setTag('door');
                     // door.setXY(x, y);
-                    map.setBaseElemXY(x, y, asciiToElem['.']);
+                    map.setBaseElemXY(x, y, asciiToElem['.'] as ElementBase);
                     map.setElemXY(x, y, marker);
                 }
                 else if (asciiToElem.hasOwnProperty(char)) {
@@ -148,7 +167,7 @@ export class MapGenerator {
         };
     }
 
-    public static getWallElem(wallType): Element.ElementWall {
+    public static getWallElem(wallType: string): Element.ElementWall {
         switch (wallType) {
             case 'cave': return ELEM.WALL_CAVE;
             case 'wallcave': return ELEM.WALL_CAVE;
@@ -180,7 +199,7 @@ export class MapGenerator {
         }
     }
 
-    public static createSplashes(cols, rows, conf) {
+    public static createSplashes(cols, rows, conf): MapObj {
         const elem = conf.elem || ELEM.WATER;
         const map = new CellMap(cols, rows);
         const mapGen = new MapForest(cols, rows, conf);
@@ -297,7 +316,8 @@ export class MapGenerator {
         const haloAroundX = 2; // Prevents house placement on edges
         const haloAroundY = 2; // Prevents house placement on edges
 
-        const bspGen = new BSP.BSPGen({rng: RNG});
+        const rng = MapGenerator.getAndSetRNG(conf);
+        const bspGen = new BSP.BSPGen({rng});
         const bspX0 = haloAroundX - 1;
         const bspY0 = haloAroundY - 1;
         const bspCols = cols - 2 * bspX0;
@@ -313,7 +333,7 @@ export class MapGenerator {
             leaf.y += bspY0;
         });
 
-        RNG.shuffle(leaves); // Introduce some randomness
+        rng.shuffle(leaves); // Introduce some randomness
 
         const floorElem = MapGenerator.getFloorElem(conf.floorType);
         const map = new CellMap(cols, rows, floorElem);
@@ -414,17 +434,19 @@ export class MapGenerator {
         house.adjustCoord(x, y);
     }
 
-    /* Creates a forest map. Uses the same RNG but instead of walls, populates
+    /* Creates a forest map. Uses the same rng but instead of walls, populates
      * using trees. Ratio is conversion ratio of walls to trees. For example,
      * 0.5 on average replaces half the walls with tree, and removes rest of
      * the walls. */
-    public createForest(conf): MapObj {
+    public createForest(conf?: MapConf): MapObj {
         const map = new CellMap(this.cols, this.rows, this.defaultMapElem);
         const ratio = conf.ratio;
+        const rng = MapGenerator.getAndSetRNG(conf);
+
         this._mapGen = new MapForest(this.cols, this.rows, conf);
         this._mapGen.create((x, y, val) => {
             map.setBaseElemXY(x, y, ELEM.FLOOR);
-            const createTree = RNG.getUniform() <= ratio;
+            const createTree = rng.getUniform() <= ratio;
             if (val === 1 && createTree) {
                 map.setBaseElemXY(x, y, ELEM.TREE);
             }
@@ -491,6 +513,7 @@ export class MapGenerator {
             conf = MapGenerator.getOptions('mountain');
         }
 
+        const rng = MapGenerator.getAndSetRNG(conf);
         this._mapGen = new MapMountain(this.cols, this.rows, conf);
         this._mapGen.create((x, y, val) => {
             if (val > conf.highRockThr) {
@@ -503,7 +526,7 @@ export class MapGenerator {
                 map.setBaseElemXY(x, y, ELEM.CHASM);
             }
             else {
-                const addSnow = RNG.getUniform();
+                const addSnow = rng.getUniform();
                 if (addSnow < conf.snowRatio) {
                     map.setBaseElemXY(x, y, ELEM.SNOW);
                 }
@@ -545,6 +568,7 @@ export class MapGenerator {
             )
         ];
 
+        const rng = MapGenerator.getAndSetRNG(conf);
         for (let i = 0; inBounds && i < nTurns; i++) {
             inBounds = false;
 
@@ -552,10 +576,10 @@ export class MapGenerator {
             let y0 = prevY;
             if (i === 0) {
                 x0 = Number.isInteger(conf.startX) ? conf.startX :
-                    RNG.arrayGetRand(xPoints);
+                    rng.arrayGetRand(xPoints);
                 y0 = conf.startY ? conf.startY : 0;
             }
-            const x1 = RNG.arrayGetRand(xPoints);
+            const x1 = rng.arrayGetRand(xPoints);
             const y1 = (i + 1) * yPerTurn + y0;
 
             // Compute 2 paths: Shortest and shortest passable. Then calculate
@@ -585,7 +609,7 @@ export class MapGenerator {
             if (lastPath.length > 0) {
                 const lastXY = lastPath[lastPath.length - 1];
                 const [x0, y0] = [lastXY.x, lastXY.y];
-                let x1 = RNG.arrayGetRand(xPoints);
+                let x1 = rng.arrayGetRand(xPoints);
                 const y1 = conf.maxY;
                 if (conf.endX) {x1 = conf.endX;}
                 if (y1 > y0) {
@@ -602,7 +626,6 @@ export class MapGenerator {
         }
 
         return paths;
-
     }
 
     /* Creates a mountain summit. */
@@ -617,10 +640,11 @@ export class MapGenerator {
         map.setBaseElemXY(cX, cY, ELEM.FLOOR);
         let placedCells = 1;
 
+        const rng = MapGenerator.getAndSetRNG(conf);
         let watchdog = 10000;
         while (placedCells / totalCells < ratio) {
-            [cX, cY] = RNG.arrayGetRand(placedCoord);
-            const [dX, dY] = RNG.getRandDir();
+            [cX, cY] = rng.arrayGetRand(placedCoord);
+            const [dX, dY] = rng.getRandDir();
             cX += dX;
             cY += dY;
             if (map.hasXY(cX, cY)) {
