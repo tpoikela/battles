@@ -17,17 +17,16 @@ import {DungeonGenerator} from './dungeon-generator';
 import {CaveGenerator} from './cave-generator';
 import {CastleGenerator} from './castle-generator';
 import {QuestPopulate} from './quest-gen';
-import {Brain} from './brain';
 import {Level} from './level';
+import {DungeonFeatures} from './dungeon-features';
 
 import * as Element from './element';
 import * as IF from './interfaces';
-import {Random} from './random';
 
-const RNG = Random.getRNG();
 const Stairs = Element.ElementStairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
 
+type Random = import('./random').Random;
 type Stairs = Element.ElementStairs;
 type WorldTop = World.WorldTop;
 type Area = World.Area;
@@ -90,115 +89,6 @@ const levelSizes = {
     }
 };
 
-/* Used to add details like bosses and distinct room features into dungeon
- * levels. */
-export const DungeonFeatures = function(zoneType) {
-    this._verif = new Verify.Conf('DungeonFeatures');
-    this._zoneType = zoneType;
-
-    /* Adds special features to the last level of the zone. */
-    this.addLastLevelFeatures = function(nLevel, level, conf) {
-        this._verif.verifyConf('addLastLevelFeatures', conf,
-            ['maxDanger', 'maxValue']);
-        const exploreElem = new Element.ElementExploration();
-        const expPoints = 10 * (nLevel + 1) * conf.maxDanger;
-        if (!Number.isInteger(expPoints)) {
-            RG.err('DungeonFeatures', 'addLastLevelFeatures',
-                `expPoints NaN. nLevel: ${nLevel}, dang: ${conf.maxDanger}`);
-        }
-        exploreElem.setExp(expPoints);
-        exploreElem.setData({zoneType: this._zoneType});
-
-        const parent = level.getParent();
-        if (parent && parent.getName) {
-            exploreElem.addData('zoneName', parent.getName());
-        }
-
-        const extras = level.getExtras();
-        if (extras && extras.endPoint) {
-            const [eX, eY] = extras.endPoint;
-            level.addElement(exploreElem, eX, eY);
-        }
-        else {
-            level.addElement(exploreElem);
-        }
-
-        const bossActor = this.generateBoss(nLevel, level, conf);
-
-        if (bossActor) {
-            this.addMinions(bossActor, nLevel, level, conf);
-        }
-        else {
-            let msg = `Failed to created boss. nLevel: ${nLevel}`;
-            msg += ` Level parent: ${level.getParent()}`;
-            RG.debug({}, msg);
-        }
-
-    };
-
-    /* TODO Move to object which is related to actors. */
-    this.generateBoss = (nLevel, level, conf) => {
-        this._verif.verifyConf('generateBoss', conf,
-            ['maxDanger', 'maxValue']);
-        const parser = ObjectShell.getParser();
-        const bossDanger = conf.maxDanger + 2;
-        const bossActor = parser.createRandomActor(
-            {func: actor => (
-                actor.danger <= bossDanger && actor.danger >= conf.maxDanger
-            )}
-        );
-        if (bossActor) {
-            level.addActorToFreeCell(bossActor);
-            const prizeValue = conf.maxValue * 2;
-            const prizeItem = parser.createRandomItem(
-                {func: item => item.value <= prizeValue}
-            );
-            if (prizeItem) {
-                bossActor.getInvEq().addItem(prizeItem);
-            }
-            else {
-                const msg = `Value: ${prizeValue}`;
-                RG.err('DungeonFeatures', 'generateBoss',
-                    'Failed to create prize item: ' + msg);
-            }
-
-        }
-        return bossActor;
-    };
-
-    /* TODO Move to object which is related to actors. */
-    this.addMinions = (boss, nLevel, level, conf) => {
-        const parser = ObjectShell.getParser();
-        const bossType = boss.getType();
-        const isSwarm = RNG.getUniform() <= 0.5;
-        let numMinions = nLevel + 1;
-        let dangerMinion = conf.maxDanger;
-        if (isSwarm) {
-            numMinions *= 2;
-            dangerMinion -= 1;
-        }
-        const dist = Math.round(Math.sqrt(numMinions)) + 1;
-        const cells = Brain.getBoxOfFreeCellsAround(boss, dist);
-        RNG.shuffle(cells);
-
-        const minionFunc = actor => (
-            actor.danger <= dangerMinion && actor.type === bossType
-        );
-
-        while (cells.length > 0 && numMinions > 0) {
-            const currCell = cells.pop();
-            --numMinions;
-            const minion = parser.createRandomActor({func: minionFunc});
-            if (minion) {
-                const [x, y] = [currCell.getX(), currCell.getY()];
-                level.addActor(minion, x, y);
-            }
-        }
-
-    };
-
-};
-
 /* Factory object for creating worlds and zones. Uses conf object which is
  * somewhat involved. For an example, see ../data/conf.world.js. This Factory
  * does not have any procedural generation. The configuration object can be
@@ -227,6 +117,10 @@ export const FactoryWorld = function() {
     //----------------------------------------------------------------------
     // FUNCTIONS
     //----------------------------------------------------------------------
+    this.setRNG = function(rng: Random): void {
+        this.factZone.setRNG(rng);
+    };
+
 
     this.setPresetLevels = function(levels) {
         this.presetLevels = levels;
@@ -1085,7 +979,6 @@ export const FactoryWorld = function() {
 
         const presetLevels = this.getPresetLevels(hierName, conf);
 
-        // const randType = RNG.arrayGetRand(RG.SHOP_TYPES);
         const cityLevelConf = {
             x: conf.x || 80, y: conf.y || 40,
             nShops: conf.nShops || 1,
