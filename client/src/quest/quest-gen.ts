@@ -1,14 +1,24 @@
 
 import dbg = require('debug');
 const debug = dbg('bitn:quest-gen');
+import {Random} from '../random';
 import prettybnf = require('prettybnf');
-import {Quest} from './quest-task';
+
+import {Quest, Task} from './quest-task';
+import {QuestGrammar} from '../../data/quest-grammar';
+const questGrammar = QuestGrammar.grammar;
+
+const RNG = Random.getRNG();
 
 //---------------------------------------------------------------------------
 // QUESTGEN for generating quest sequences procedurally
 //---------------------------------------------------------------------------
 interface QuestGenConf {
     [key: string]: any;
+}
+
+function extract(key, obj) {
+    return obj[key];
 }
 
 export class QuestGen {
