@@ -3,7 +3,7 @@ import 'mocha';
 import { expect } from 'chai';
 
 import RG from '../../../client/src/rg';
-import {Quest, QuestGen, QuestPopulate} from '../../../client/src/quest-gen';
+import {Quest, QuestGen, QuestPopulate} from '../../../client/src/quest';
 import {SentientActor} from '../../../client/src/actor';
 import {FactoryWorld} from '../../../client/src/factory.world';
 import {QuestGrammar} from '../../../client/data/quest-grammar';
