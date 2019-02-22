@@ -36,10 +36,10 @@ MapForest.prototype.create = function(callback) {
     const rng = this._options.rng;
     this.map = this._fillMap(0);
 
-	// Draw a number of 'subforests' based on the options
+    // Draw a number of 'subforests' based on the options
     for (let i = 0; i < this._options.nForests; i++) {
-		const x = rng.getUniformInt(0, this._width - 1);
-		const y = rng.getUniformInt(0, this._height - 1);
+        const x = rng.getUniformInt(0, this._width - 1);
+        const y = rng.getUniformInt(0, this._height - 1);
         this.drawForest(x, y, this._options.forestSize);
     }
 
@@ -60,51 +60,49 @@ MapForest.prototype.inBounds = function(i, j) {
 
 /* Draws a forest around x,y location. */
 MapForest.prototype.drawForest = function(x, y, forestSize) {
-	let i, j;
+    // this is so that it knows where to generate around or actually originally
+    // intended to be the start of a hall way*/
+    let i = x;
+    let j = y;
     const rng = this._options.rng;
 
-	// this is so that it knows where to generate around or actually originally
-	// intended to be the start of a hall way*/
-	i = x;
-	j = y;
-
-	// how large it will be, adjust it to adapt it to the size intended
-	// (note: forestSize 40 will not be double size from 20,
+    // how large it will be, adjust it to adapt it to the size intended
+    // (note: forestSize 40 will not be double size from 20,
     //  double size is around a 100 because it draws over itself)
-	for (let k = 1; k <= forestSize; k++) {
+    for (let k = 1; k <= forestSize; k++) {
 
-		// north south east west there at six to not make the forest too big
+        // north south east west there at six to not make the forest too big
         // and have a predictable pattern
-		const n = rng.getUniformInt(0, this._options.factor);
-		const e = rng.getUniformInt(0, this._options.factor);
-		const s = rng.getUniformInt(0, this._options.factor);
-		const w = rng.getUniformInt(0, this._options.factor);
+        const n = rng.getUniformInt(0, this._options.factor);
+        const e = rng.getUniformInt(0, this._options.factor);
+        const s = rng.getUniformInt(0, this._options.factor);
+        const w = rng.getUniformInt(0, this._options.factor);
 
-		if (n === 1) { /* if we draw north then... if we dont, skip this*/
-			// this is to ensure that when we restart at the end that we draw from
-			// the same location
-			i = i - 1;
-            if (this.inBounds(i, j)) {
-                this.map[i][j] = 1; /* this makes map at location i , j tree*/
-            }
-		}
-        if (s === 1) { /* do the above but go south*/
-			i = i + 1;
-            if (this.inBounds(i, j)) {
-                this.map[i][j] = 1; /* this makes map at location i , j tree*/
-            }
-		}
-        if (e === 1) { /* again but east*/
-			j = j + 1;
+        if (n === 1) { /* if we draw north then... if we dont, skip this*/
+            // this is to ensure that when we restart at the end that we draw from
+            // the same location
+            i = i - 1;
             if (this.inBounds(i, j)) {
                 this.map[i][j] = 1; /* this makes map at location i , j tree*/
             }
         }
-		if (w === 1) { /* and west*/
-			j = j - 1;
+        if (s === 1) { /* do the above but go south*/
+            i = i + 1;
             if (this.inBounds(i, j)) {
                 this.map[i][j] = 1; /* this makes map at location i , j tree*/
             }
-		}
+        }
+        if (e === 1) { /* again but east*/
+            j = j + 1;
+            if (this.inBounds(i, j)) {
+                this.map[i][j] = 1; /* this makes map at location i , j tree*/
+            }
+        }
+        if (w === 1) { /* and west*/
+            j = j - 1;
+            if (this.inBounds(i, j)) {
+                this.map[i][j] = 1; /* this makes map at location i , j tree*/
+            }
+        }
     } // for
 };
