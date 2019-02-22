@@ -37,6 +37,11 @@ export class SystemChat extends SystemBase {
                 this.addQuestTargetItems(ent, actor, chatObj);
             }
             this.addQuestSpecificItems(ent, actor, chatObj);
+
+            if (ent.getLevel().has('Lore')) {
+                console.log('Level has some lore');
+                this.addLoreItems(ent, actor, chatObj);
+            }
         });
 
         if (chatObj) {
@@ -88,13 +93,13 @@ export class SystemChat extends SystemBase {
     }
 
     public getGenericChatObject(ent, actor): ChatBase {
-        if (ent.has('Quest')) {
+        // if (ent.has('Quest')) {
             const chatObj = new Chat.ChatBase();
             const aName = actor.getName();
             chatObj.pre = `${aName} greets you. What do you say?`;
             return chatObj;
-        }
-        return null;
+        // }
+        // return null;
     }
 
 
@@ -179,6 +184,7 @@ export class SystemChat extends SystemBase {
         }
     }
 
+
     /* Checks if initiator of chat is on quest and needs to query for any
      * information. */
     public addQuestTargetToChat(target, actor, chatObj: ChatBase): void {
@@ -211,4 +217,31 @@ export class SystemChat extends SystemBase {
             });
         }
     }
+
+    /* Add lore-specific items to the chat object. */
+    public addLoreItems(ent, actor, chatObj: ChatBase): void {
+        const lore = actor.getLevel().get('Lore');
+        const topics = lore.getTopics();
+        Object.keys(topics).forEach(name => {
+            chatObj.add({
+                name: getTopicQuestion(name),
+                option: () => {
+                    const opt = this.rng.arrayGetRand(topics[name]);
+                    RG.gameInfo({cell: ent.getCell(), msg: opt});
+                }
+            });
+        });
+    }
+
+}
+
+function getTopicQuestion(topicName: string): string {
+    const questions = {
+        quests: 'Is anyone looking for help here?',
+        places: 'Do you know what places are nearby?',
+        shops:  'Is there a place for trading?',
+        people: 'What can you tell me about people here?',
+        world: 'Do you have any rumors from faraway lands?'
+    };
+    return questions[topicName];
 }
