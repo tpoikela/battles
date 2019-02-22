@@ -16,7 +16,7 @@ import {ObjectShell} from './objectshellparser';
 import {DungeonGenerator} from './dungeon-generator';
 import {CaveGenerator} from './cave-generator';
 import {CastleGenerator} from './castle-generator';
-import {QuestPopulate} from './quest-gen';
+import {QuestPopulate} from './quest';
 import {Level} from './level';
 import {DungeonFeatures} from './dungeon-features';
 
