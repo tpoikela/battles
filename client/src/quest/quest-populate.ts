@@ -4,33 +4,35 @@
 import dbg = require('debug');
 const debug = dbg('bitn:quest-gen');
 
-import RG from './rg';
-import {Random} from './random';
-import {RandomCyclic} from './random-cyclic';
-import {Placer} from './placer';
-import {ObjectShell} from './objectshellparser';
+import RG from '../rg';
+import {RandomCyclic} from '../random-cyclic';
+import {Random} from '../random';
+import {Placer} from '../placer';
+import {ObjectShell} from '../objectshellparser';
 
-import {QuestGrammar} from '../data/quest-grammar';
-import {Names} from '../data/name-gen';
-import {EventPool} from '../src/eventpool';
-import {BaseActor, SentientActor} from './actor';
-import * as Item from './item';
-import * as Component from './component';
-import {Entity} from './entity';
-import {Level} from './level';
-import {ElementExploration} from './element';
+import {Names} from '../../data/name-gen';
+import {EventPool} from '../eventpool';
+import {BaseActor, SentientActor} from '../actor';
+import * as Item from '../item';
+import * as Component from '../component';
+import {Entity} from '../entity';
+import {Level} from '../level';
+import {ElementExploration} from '../element';
+
+import {QuestData, QuestTargetObj, QuestObjSurrogate} from './quest-data';
+import {Quest, Task} from './quest-task';
+import {QuestGen} from './quest-gen';
 
 const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
-const questGrammar = QuestGrammar.grammar;
 
 type ItemBase = Item.ItemBase;
 type ItemOrNull = ItemBase | null;
-type ZoneBase = import('./world').ZoneBase;
-type AreaTile = import('./world').AreaTile;
-type WorldCity = import('./world').City;
+type ZoneBase = import('../world').ZoneBase;
+type AreaTile = import('../world').AreaTile;
+type WorldCity = import('../world').City;
 
-import {ElementBase} from './element';
+import {ElementBase} from '../element';
 
 //---------------------------------------------------------------------------
 // OBJECT QUEST-POPULATE
@@ -662,7 +664,7 @@ export class QuestPopulate {
 
     /* Returns an actor from the given array, who is suitable as quest target
      * or quest giver. */
-    public getActorForQuests(actors: BaseActor[]): Entity {
+    public getActorForQuests(actors: BaseActor[]): BaseActor {
         let actor = this.rng.arrayGetRand(actors);
         let numTries = 20;
         let createNew = false;
@@ -826,10 +828,10 @@ export class QuestPopulate {
         return null;
     }
 
-    public getActorToCapture() {
+    public getActorToCapture(): SentientActor {
         const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
-        return this.getActorForQuests(actors);
+        return this.getActorForQuests(actors) as SentientActor;
     }
 
     public getItemToExchange() {
@@ -958,6 +960,9 @@ export class QuestPopulate {
 
             questGiver.add(giverComp);
             this.addUniqueName(questGiver);
+
+            level.get('Lore').addTopic('quests',
+               questGiver.getName() + ' could have some work for you');
 
             // TODO fix typings
             const giver = questGiver as unknown;
