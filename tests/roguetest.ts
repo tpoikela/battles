@@ -28,6 +28,11 @@ const POOL = EventPool.getPool();
 
 RGTest.rng = new Random();
 
+if (process.env.SEED) {
+    const RNG = Random.getRNG();
+    RNG.setSeed(parseInt(process.env.SEED, 10));
+}
+
 /* Creates a mock-level for unit tests. */
 RGTest.createMockLevel = function(cols, rows) {
     const level = {cols, rows,
@@ -102,6 +107,17 @@ RGTest.checkActorXY = function(actor, x, y) {
 
 RGTest.expectEqualHealth = function(o1, o2) {
     expect(o1.get('Health').getHP()).to.equal(o2.get('Health').getHP());
+};
+
+RGTest.createRNG = function(seed?: number): Random {
+    const rng = new Random();
+    if (process.env.SEED) {
+        rng.setSeed(parseInt(process.env.SEED, 10));
+    }
+    else if (typeof seed !== 'undefined') {
+        rng.setSeed(seed);
+    }
+    return rng;
 };
 
 RGTest.verifyStairsConnectivity = function(stairs, numExp = -1) {
@@ -372,9 +388,12 @@ RGTest.addOnTop = function(toAdd, locObj) {
     }
 };
 
-RGTest.createTestArea = function(conf = {}) {
+RGTest.createTestArea = function(conf: any = {}) {
     const usedConf = Object.assign(conf, RGTest.AreaConf);
     const factWorld = new FactoryWorld();
+    if (conf.rng) {
+        factWorld.setRNG(conf.rng);
+    }
     return factWorld.createArea(usedConf);
 };
 
