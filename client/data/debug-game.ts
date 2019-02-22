@@ -24,7 +24,7 @@ import {VirtualActor, WeatherActor} from '../src/actor.virtual';
 import {ELEM} from '../data/elem-constants';
 import * as IF from '../src/interfaces';
 
-import {Quest, QuestPopulate} from '../src/quest-gen';
+import {Quest, QuestPopulate} from '../src/quest';
 
 import {EventPool} from '../src/eventpool';
 import {Factory} from '../src/factory';
@@ -344,6 +344,11 @@ DebugGame.prototype.createArena = function(obj, game, player) {
         const cell: Cell = RNG.arrayGetRand(floorCells);
         cell.setBaseElem(ELEM.BED);
     }
+
+    const loreComp = new Component.Lore({});
+    loreComp.addTopic('quests',
+        giver.getName() + ' is looking for someone.');
+    level.add(loreComp);
 
     return game;
 };
