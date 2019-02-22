@@ -93,6 +93,9 @@ export const DataComponent = (type: string, members: any, compAttrib: any = {}) 
         Object.keys(compAttrib).forEach(key => {
             this[key] = compAttrib[key];
         });
+
+        // Setup the default values, either from args given to constructor,
+        // or use default values passed to members
         Object.keys(members).forEach(key => {
             if (argsList && argsList[0] && argsList[0].hasOwnProperty(key)) {
                 this[key] = argsList[0][key];
