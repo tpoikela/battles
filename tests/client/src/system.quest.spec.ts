@@ -9,6 +9,7 @@ import {System} from '../../../client/src/system';
 import {Quest, QuestPopulate} from '../../../client/src/quest-gen';
 import {Entity} from '../../../client/src/entity';
 import {ItemBase} from '../../../client/src/item';
+import {Random} from '../../../client/src/random';
 
 import {RGTest} from '../../roguetest';
 import {chaiBattles} from '../../helpers/chai-battles';
@@ -31,8 +32,9 @@ describe('System.Quest', () => {
     let level = null;
 
     beforeEach(() => {
+        const rng = RGTest.createRNG(1);
         pool = EventPool.getPool();
-        questPopul = new QuestPopulate();
+        questPopul = new QuestPopulate({rng});
         sysQuest = new System.Quest(['GiveQuest', 'QuestCompleted',
             'QuestTargetEvent'], pool);
 
@@ -43,7 +45,7 @@ describe('System.Quest', () => {
         systems.push(sysQuest);
         systems.push(sysDamage);
 
-        area = RGTest.createTestArea();
+        area = RGTest.createTestArea({rng});
         city = area.getTileXY(0, 0).getZones('City')[0];
         level = city.getLevels()[0];
         quester = new SentientActor('hero');
@@ -283,7 +285,8 @@ describe('System.Quest', () => {
         const hierQuest = new Quest('Escort and escort again', hierEscortTasks);
         console.log(hierQuest.getSteps());
 
-        questPopul = new QuestPopulate();
+        const rng = RGTest.createRNG(1);
+        questPopul = new QuestPopulate({rng});
         questPopul.setDebug(true);
         const ok = questPopul.mapQuestToResources(hierQuest, city, area.getTileXY(0, 0));
         expect(ok, 'Escort Quest mapped OK').to.equal(true);
