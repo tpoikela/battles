@@ -10,7 +10,7 @@ import {Evaluator} from './evaluators';
 import {EvaluatorsBattle} from './evaluators-battle';
 import {Territory} from './territory';
 import {GameObject} from './game-object';
-import {QuestData} from './quest-gen';
+import {QuestData} from './quest';
 import {WorldFromJSON} from './world.fromjson';
 import {Level} from './level';
 import {ActorClass} from './actor-class';
