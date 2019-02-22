@@ -142,18 +142,6 @@ function extract(prop, o) {
     return o[prop];
 }
 
-/* Chooses a random rule from arrOfRules. */
-function chooseRandomRule(arrOfRules) {
-    if (Array.isArray(arrOfRules)) {
-        const result = RNG.arrayGetRand(arrOfRules);
-        debug('chose next rule at RANDOM:', result);
-        return result;
-    }
-    else {
-        debug(`chooseRandomRule() not an ARRAY: |${arrOfRules}`);
-    }
-    return null;
-}
 
 //---------------------------------------------------------------------------
 // QUESTGEN for generating quest sequences procedurally
@@ -176,13 +164,15 @@ export class QuestGen {
         return rules;
     }
 
+    public rng: Random;
     public stack: Quest[];
     public currQuest: Quest;
     public ruleHist: any; // TODO fix typings
     public startRule: string;
 
-    constructor() {
+    constructor(rng?: Random) {
         this._init();
+        this.rng = rng || RNG;
     }
 
     public _init(): void {
@@ -196,7 +186,7 @@ export class QuestGen {
     public genQuestWithMotive(conf: QuestGenConf = {}): Quest {
         const {motive} = conf;
         const questRules = conf.rules || QuestGen.rules;
-        const [nameRule] = chooseRandomRule(questRules[motive]);
+        const [nameRule] = this.chooseRandomRule(questRules[motive]);
         const questType = nameRule.text;
         console.log('questType is', questType);
         const newConf = Object.assign({}, conf);
@@ -288,7 +278,7 @@ export class QuestGen {
         }
 
         debug(`Choosing randRule ${rule} from ${JSON.stringify(rules[rule])}`);
-        const randRule = chooseRandomRule(rules[rule]);
+        const randRule = this.chooseRandomRule(rules[rule]);
         if (Array.isArray(randRule)) {
             const steps = randRule.map(this.generateTerm.bind(this, rules));
             this._checkIfQuestOver(rule);
@@ -329,6 +319,20 @@ export class QuestGen {
             }
         }
     }
+
+    /* Chooses a random rule from arrOfRules. */
+    protected chooseRandomRule(arrOfRules: any[]): any | null {
+        if (Array.isArray(arrOfRules)) {
+            const result = this.rng.arrayGetRand(arrOfRules);
+            debug('chose next rule at RANDOM:', result);
+            return result;
+        }
+        else {
+            debug(`chooseRandomRule() not an ARRAY: |${arrOfRules}`);
+        }
+        return null;
+    }
+
 }
 
 // Read in the default grammar rules for quest generation
@@ -603,6 +607,7 @@ export class QuestPopulate {
     public IND: number;
     public debug: boolean;
     public currTaskType: string;
+    public rng: Random;
 
     private questData: {[key: string]: any}; // TODO
     private _cleanup: CleanupItem[]; // TODO
@@ -614,7 +619,7 @@ export class QuestPopulate {
     private questGivers: Map<QuestData, SentientActor>;
     private listOfAllTasks: string[];
 
-    constructor() {
+    constructor(conf?) {
         this.resetData();
         this.questList = [];
         this.conf = {
@@ -641,6 +646,10 @@ export class QuestPopulate {
         this.checkImplemented = true;
         this.IND = 0;
         this.debug = debug.enabled;
+
+        // Set the RNG if specified for constructor
+        this.rng = RNG;
+        if (conf && conf.rng) {this.rng = conf.rng;}
     }
 
     public resetData(): void {
@@ -812,7 +821,7 @@ export class QuestPopulate {
 
         this.currQuest = newQuest;
         this.questData.quests.push(this.currQuest);
-        const level = RNG.arrayGetRand(zone.getLevels());
+        const level = this.rng.arrayGetRand(zone.getLevels());
         this.currQuest.addTarget('location', level);
 
 
@@ -1178,12 +1187,12 @@ export class QuestPopulate {
     /* Returns an actor from the given array, who is suitable as quest target
      * or quest giver. */
     public getActorForQuests(actors: BaseActor[]): Entity {
-        let actor = RNG.arrayGetRand(actors);
+        let actor = this.rng.arrayGetRand(actors);
         let numTries = 20;
         let createNew = false;
 
         while (!isOkForQuest(actor)) {
-            actor = RNG.arrayGetRand(actors);
+            actor = this.rng.arrayGetRand(actors);
             if (--numTries === 0) {
                 createNew = true;
                 break;
@@ -1202,7 +1211,7 @@ export class QuestPopulate {
             a.hasNone(['QuestGiver', 'QuestTarget'])
         );
         // TODO make sure to return something meaningful like boss
-        return RNG.arrayGetRand(actors);
+        return this.rng.arrayGetRand(actors);
     }
 
     public getActorForReport(): SentientActor {
@@ -1244,7 +1253,7 @@ export class QuestPopulate {
         const player = location.getPlayer() as SentientActor;
         if (player) {
             const items = player.getInvEq().getInventory().getItems();
-            return RNG.arrayGetRand(items);
+            return this.rng.arrayGetRand(items);
         }
         return null;
     }
@@ -1287,7 +1296,7 @@ export class QuestPopulate {
         const items = location.getItems();
         const useItems = items.filter(item => item.hasOwnProperty('useItem'));
         if (useItems.length > 0) {
-            return RNG.arrayGetRand(useItems);
+            return this.rng.arrayGetRand(useItems);
         }
 
         const parser = ObjectShell.getParser();
@@ -1312,7 +1321,7 @@ export class QuestPopulate {
             e.getType() === 'lever'
         ));
         if (elemsToRepair.length > 0) {
-            return RNG.arrayGetRand(elemsToRepair);
+            return this.rng.arrayGetRand(elemsToRepair);
         }
         return null;
     }
@@ -1322,12 +1331,12 @@ export class QuestPopulate {
         const elems = location.getElements();
         const doors = elems.filter(elem => elem.getType() === 'door');
         if (doors) {
-            return RNG.arrayGetRand(doors);
+            return this.rng.arrayGetRand(doors);
         }
 
         const actors = location.getActors();
         if (actors.length > 0) {
-            return RNG.arrayGetRand(actors);
+            return this.rng.arrayGetRand(actors);
         }
         return null;
     }
@@ -1336,7 +1345,7 @@ export class QuestPopulate {
         const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         if (actors.length > 0) {
-            return RNG.arrayGetRand(actors);
+            return this.rng.arrayGetRand(actors);
         }
         return null;
     }
@@ -1351,7 +1360,7 @@ export class QuestPopulate {
         const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
         const shops = elems.filter(elem => elem.getType() === 'shop');
-        RNG.shuffle(shops);
+        this.rng.shuffle(shops);
 
         while (shops.length > 0) {
             const cell = shops[0].getCell();
@@ -1372,15 +1381,15 @@ export class QuestPopulate {
         let zones: ZoneBase[] = areaTile.getZones();
         zones = zones.filter(zz => zz.getType() !== 'battlezone');
 
-        let newZone: ZoneBase = RNG.arrayGetRand(zones);
+        let newZone: ZoneBase = this.rng.arrayGetRand(zones);
         if (zones.length > 1) {
             while (newZone.getID() === zone.getID()) {
-                newZone = RNG.arrayGetRand(zones);
+                newZone = this.rng.arrayGetRand(zones);
             }
         }
 
         this.addQuestPopulData('zone', newZone);
-        return RNG.arrayGetRand(newZone.getLevels());
+        return this.rng.arrayGetRand(newZone.getLevels());
     }
 
     public getNewExploreLocation(zone, areaTile): Level | null {
@@ -1461,7 +1470,7 @@ export class QuestPopulate {
             });
 
             // Grab random actor and make it the quest giver
-            const level: Level = RNG.arrayGetRand(zone.getLevels());
+            const level: Level = this.rng.arrayGetRand(zone.getLevels());
             const questGiver = this.getActorForQuests(level.getActors());
             const giverComp = new Component.QuestGiver(questData.getDescr());
             this.addTargetsToGiver(giverComp, questData);
@@ -1601,7 +1610,7 @@ export class QuestPopulate {
         }
         else if (RG.isItem(target)) {
             // TODO add proper random name generation
-            const itemName = 'Quest item ' + RNG.getUniformInt(0, 1000000);
+            const itemName = 'Quest item ' + this.rng.getUniformInt(0, 1000000);
             console.log('addUniqueName rand item name ' + itemName);
             named.setUniqueName(itemName);
         }
@@ -1610,7 +1619,7 @@ export class QuestPopulate {
     public createBattle(target, zone, areaTile): Level | null {
         const battleZones: ZoneBase[] = areaTile.getZones('BattleZone');
         if (battleZones.length > 0) {
-            const battleZone = RNG.arrayGetRand(battleZones);
+            const battleZone = this.rng.arrayGetRand(battleZones);
             // BattleZone has only 1 level at the moment
             const level = battleZone.getLevels()[0];
             return level;
