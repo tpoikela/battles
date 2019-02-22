@@ -5,7 +5,7 @@ import chai from 'chai';
 import RG from '../../../client/src/rg';
 import {Placer} from '../../../client/src/placer';
 import {GameMain} from '../../../client/src/game';
-import {QuestData} from '../../../client/src/quest-gen';
+import {QuestData} from '../../../client/src/quest';
 import {RGTest} from '../../roguetest';
 import {FromJSON} from '../../../client/src/game.fromjson';
 
