@@ -3,10 +3,10 @@ import RG from '../rg';
 import * as Component from '../component';
 import {Entity} from '../entity';
 import {EventPool} from '../eventpool';
+import {Random} from '../random';
 
 const dbg = require('debug');
 const debug = dbg('bitn:System');
-
 const POOL = EventPool.getPool();
 
 //---------------------------------------------------
@@ -67,6 +67,7 @@ export abstract class SystemBase {
     public hasNotify: boolean;
 
     public debugEnabled: boolean;
+    public rng: Random;
 
     constructor(type: string, compTypes: string[], pool?: EventPool) {
         if (!Array.isArray(compTypes)) {
@@ -101,6 +102,11 @@ export abstract class SystemBase {
         }
 
         this.debugEnabled = debug.enabled;
+        this.rng = Random.getRNG();
+    }
+
+    public setRNG(rng: Random): void {
+        this.rng = rng;
     }
 
     public addEntity(entity: Entity): void {

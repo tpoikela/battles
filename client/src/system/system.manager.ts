@@ -2,6 +2,7 @@
 
 import RG from '../rg';
 import {System, SystemBase} from './index';
+import {Random} from '../random';
 
 interface SystemCreate {
     create: (comps: string[], pool: any) => SystemBase;
@@ -128,6 +129,13 @@ export class SystemManager {
             const sysName = this.loopSystemOrder[i];
             this.loopSystems[sysName].update();
         }
+    }
+
+    /* Sets the RNG for all systems. */
+    public setRNG(rng: Random): void {
+        Object.values(this.systems).forEach(system => {
+            system.setRNG(rng);
+        });
     }
 }
 

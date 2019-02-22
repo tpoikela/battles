@@ -1,11 +1,8 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
-import {Random} from '../random';
 import * as Component from '../component';
 import {Cell} from '../map.cell';
-
-const RNG = Random.getRNG();
 
 // Missile has
 // srcX/Y, targetX/X, path, currX/Y, shooter + all damage components, item ref
@@ -201,7 +198,7 @@ export class SystemMissile extends SystemBase {
     /* Returns true if the ammo/missile is destroyed. */
     public _isItemDestroyed(ent) {
         const name = ent.getName();
-        const prob = RNG.getUniform();
+        const prob = this.rng.getUniform();
         if (ent.has('Ammo')) {
             if ((/(magic|ruby|permaice)/i).test(name)) {
                 return prob > 0.95;

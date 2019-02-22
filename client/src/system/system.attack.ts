@@ -5,8 +5,6 @@ import {Random} from '../random';
 import * as Component from '../component';
 import {Brain} from '../brain';
 
-const RNG = Random.getRNG();
-
 /* Processes entities with attack-related components.*/
 export class SystemAttack extends SystemBase {
 
@@ -84,7 +82,7 @@ export class SystemAttack extends SystemBase {
 
         const totalDef = this.getEntityDefense(def);
         const hitChance = totalAtt / (totalAtt + totalDef);
-        const hitThreshold = RNG.getUniform();
+        const hitThreshold = this.rng.getUniform();
         this.dbg(`hitChance is ${hitChance}, threshold ${hitThreshold}`);
 
         if (hitChance >= hitThreshold) {

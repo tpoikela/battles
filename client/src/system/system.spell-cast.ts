@@ -29,8 +29,8 @@ export class SystemSpellCast extends SystemBase {
             const ppComp = ent.get('SpellPower');
             const spell = spellcast.getSpell();
             if (spell.getCastingPower() <= ppComp.getPP()) {
-                const drainers = Object.values(this.entities).filter(ent => (
-                    ent.has('PowerDrain')
+                const drainers = Object.values(this.entities).filter(e => (
+                    e.has('PowerDrain')
                 ));
 
                 const args = spellcast.getArgs();

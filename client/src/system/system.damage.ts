@@ -2,14 +2,11 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
-import {Random} from '../random';
 import * as Component from '../component';
 import * as Item from '../item';
 
 const POOL = EventPool.getPool();
-
 const NO_DAMAGE_SRC = RG.NO_DAMAGE_SRC;
-const RNG = Random.getRNG();
 
 /* Processes entities with damage component.*/
 export class SystemDamage extends SystemBase {
@@ -241,7 +238,7 @@ export class SystemDamage extends SystemBase {
 
     /* Returns true if the hit bypasses defender's protection completely. */
     public bypassProtection(ent, src) {
-        const bypassChance = RNG.getUniform();
+        const bypassChance = this.rng.getUniform();
         if (src && !src.has) {
             console.log('src is not entity:', src);
             console.log('With entity:', ent);

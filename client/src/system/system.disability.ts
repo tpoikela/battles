@@ -1,13 +1,10 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
-import {Random} from '../random';
 import {EventPool} from '../eventpool';
 import * as Component from '../component';
 
 import {Cell} from '../map.cell';
-
-const RNG = Random.getRNG();
 
 // Messages emitted for each disability
 const _msg = {
@@ -92,7 +89,7 @@ export class SystemDisability extends SystemBase {
                 },
                 // Stun moves actor to random direction if they try to attack
                 Movement: ent => {
-                    const dir = RNG.getRandDir();
+                    const dir = this.rng.getRandDir();
                     const [x, y] = RG.newXYFromDir(dir, ent);
                     ent.remove('Movement');
                     const map = ent.getLevel().getMap();
