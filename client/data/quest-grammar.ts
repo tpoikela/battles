@@ -77,7 +77,7 @@ ${actorMotivationsGrammar}
 
 <Deliver_item_for_study> ::= <get> <goto> "give";
 <Spy> ::= <spy>;
-<Interview_NPC> ::= <goto> "listen" <goto> "report";
+<Interview_NPC> ::= <goto> "<report>listen" <goto> "report";
 <Use_an_item_in_the_field> ::= <get> <goto> "use" <goto> "give";
 
 <Obtain_luxuries> ::= <get> <goto> "give";
@@ -90,7 +90,7 @@ ${actorMotivationsGrammar}
 <Revenge_Justice> ::= <goto> "damage";
 <Capture_Criminal1> ::= <get> <goto> "use" <goto> "give";
 <Capture_Criminal2> ::= <get> <goto> "use" "capture" <goto> "give";
-<Check_on_NPC1> ::= <goto> "listen" <goto> "report";
+<Check_on_NPC1> ::= <goto> "<report>listen" <goto> "report";
 <Check_on_NPC2> ::= <goto> "take" <goto> "give";
 <Recover_lost_or_stolen_item> ::= <get> <goto> "give";
 <Rescue_captured_NPC> ::= <goto> "damage" "escort" <goto_new_place> "report";
