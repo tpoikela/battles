@@ -495,6 +495,13 @@ export class QuestPopulate {
                 if (exploreTarget) {
                     this.currQuest.addTarget('explore', exploreTarget);
                     ok = true;
+                    // TODO This should be added to handle read flag properly
+                    /* if (this.flags.read) {
+                        this.flags.read = false;
+                        // Read about this location from previous read target
+                        this.pushQuestCrossRef(this.getQuestPopulData('read'),
+                            newLocation);
+                    }*/
                     if (this.flags.escort) {
                         this.flags.escort = false;
                         // Prev escort target must be escorted to this location
@@ -760,9 +767,13 @@ export class QuestPopulate {
         const location = this.currQuest.getCurrentLocation();
         const item = new Item.ItemBase(Names.getItemToStealName());
 
-        if (!Placer.addEntityToCellType(item, location, c => c.hasHouse())) {
-            return null;
+        let ok = Placer.addEntityToCellType(item, location, c => c.hasHouse());
+        if (!ok) {
+            // If no house available, use empty cell
+            ok = Placer.addEntityToCellType(item, location, c => c.isFree());
         }
+
+        if (!ok) {return null;}
 
         this._cleanup.push({location, item, tag: 'getItemToSteal'});
         return item;
