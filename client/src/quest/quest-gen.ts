@@ -167,6 +167,14 @@ export class QuestGen {
             throw new Error(`Null/undef term.text with rules| ${json}|`);
         }
 
+        // Used for debugging only at the moment
+        if (term.type === 'terminal') {
+            this.currQuest.addTerm(term.text);
+        }
+        else {
+            this.currQuest.addTerm('<<' + term.text + '>>');
+        }
+
         if (term.type === 'terminal') {
             this.currQuest.addStep(new Task(term.text));
             return term.text;

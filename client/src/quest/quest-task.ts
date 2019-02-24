@@ -34,6 +34,7 @@ export class Quest {
     public steps: QuestStep[]; // Atomics/sub-quests
     public stepType: string;
     public motive: string;
+    public terms: any[];
 
     constructor(name: string, tasks?: any[]) { // TODO fix typings
         if (name && typeof name !== 'string') {
@@ -43,6 +44,7 @@ export class Quest {
         this.steps = []; // Atomics/sub-quests
         this.stepType = 'Quest';
         this.motive = '';
+        this.terms = [];
 
         if (Array.isArray(tasks)) {
             tasks.forEach(taskType => {
@@ -66,6 +68,10 @@ export class Quest {
     public getMotive(): string {return this.motive;}
     public isTask(): this is Task {return false;}
     public isQuest(): this is Quest {return true;}
+
+    public addTerm(term): void {
+        this.terms.push(term);
+    }
 
     public getTasks(): Task[] {
         const result = this.steps.filter(step => step.isTask());

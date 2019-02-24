@@ -56,6 +56,7 @@ interface QuestPopulData {
     listen: any[];
     place: any[];
     read: any[];
+    reportListen: any[];
     return: any[];
     zone: any[];
 }
@@ -65,6 +66,7 @@ interface QuestFlags {
     escort: boolean;
     listen: boolean;
     read: boolean;
+    report: boolean;
 }
 
 export class QuestPopulate {
@@ -109,6 +111,7 @@ export class QuestPopulate {
             escort: this.handleEscort = this.handleEscort.bind(this),
             repair: this.handleRepair = this.handleRepair.bind(this),
             listen: this.handleListen = this.handleListen.bind(this),
+            reportListen: this.handleListen = this.handleListen.bind(this),
             report: this.handleReport = this.handleReport.bind(this),
             subquest: this.handleSubQuest = this.handleSubQuest.bind(this)
         };
@@ -134,7 +137,8 @@ export class QuestPopulate {
             alreadyKnowIt: false,
             escort: false,
             listen: false,
-            read: false
+            read: false,
+            report: false
         };
         this.listOfAllTasks = [];
 
@@ -170,6 +174,7 @@ export class QuestPopulate {
             listen: [],
             place: [],
             read: [],
+            reportListen: [],
             return: [],
             zone: [],
         });
@@ -495,9 +500,6 @@ export class QuestPopulate {
                         // Prev escort target must be escorted to this location
                         const escortData = this.getQuestPopulData('escort', true);
                         this.pushQuestCrossRef(escortData, newLocation);
-                        console.log('Handled escort flag which was set');
-                        console.log('escortData:', escortData);
-                        console.log('to location:', newLocation);
                     }
                 }
                 break;
@@ -510,7 +512,14 @@ export class QuestPopulate {
                 if (this.flags.read) {
                     this.flags.read = false;
                     // Read about this location from previous read target
-                    this.pushQuestCrossRef(this.getQuestPopulData('read'), newLocation);
+                    this.pushQuestCrossRef(this.getQuestPopulData('read'),
+                        newLocation);
+                }
+                if (this.flags.listen) {
+                    this.flags.listen = false;
+                    // Hear about this location from previous listen target
+                    this.pushQuestCrossRef(this.getQuestPopulData('listen'),
+                        newLocation);
                 }
                 if (this.flags.escort) {
                     this.flags.escort = false;
@@ -569,15 +578,26 @@ export class QuestPopulate {
                 }
                 break;
             }
+            case '<report>listen': {
+                const actorToListen = this.getActorToListen();
+                if (actorToListen) {
+                    this.currQuest.addTarget('reportListen', actorToListen);
+                    this.flags.report = true;
+                    this.addQuestPopulData('reportListen', actorToListen);
+                    ok = true;
+                }
+
+                break;
+            }
             case 'report': {
                 const actor = this.getActorForReport();
                 if (actor) {
                     this.currQuest.addTarget('report', actor);
                     ok = true;
-                    if (this.flags.listen) {
-                        const listenTarget = this.getQuestPopulData('listen');
+                    if (this.flags.report) {
+                        const listenTarget = this.getQuestPopulData('reportListen');
                         this.pushQuestCrossRef(actor, listenTarget);
-                        this.flags.listen = false;
+                        this.flags.report = false;
                     }
                 }
                 break;
@@ -1205,7 +1225,8 @@ export class QuestPopulate {
     protected errorQuestHandle(target, funcName): void {
         let msg = 'Failed to get location for escort: ';
         msg +=  '\n\ttarget: ' + target.getName();
-        msg +=  '\n\tcrossRefs: ' + this._questCrossRefs.entries();
+        msg +=  '\n\tcrossRefs: ' + JSON.stringify(Object.values(
+            this._questCrossRefs.entries()));
         RG.err('QuestPopulate', funcName, msg);
     }
 
@@ -1224,7 +1245,7 @@ const tasksImplemented = new Set([
     '<kill>kill',
     '<goto>already_there', '<goto>explore', '<goto>goto',
     '<learn>already_know_it', '<learn>read',
-    'listen', 'report',
+    'listen', '<report>listen', 'report',
     '<steal>stealth', '<steal>take', 'take',
     '<subquest>goto',
     'finishbattle', 'winbattle'
@@ -1247,7 +1268,8 @@ function isOkForQuest(actor: BaseActor): boolean {
 
 QuestPopulate.supportedKeys = new Set([
     'defend', 'capture', 'explore',
-    'kill', 'location', 'listen', 'give', 'report', 'get', 'steal', 'use',
+    'kill', 'location', 'listen', 'give', 'report', 'reportListen',
+    'get', 'steal', 'use',
     'repair', 'damage', 'winbattle', 'finishbattle', 'escort', 'spy',
     'exchange', 'read', 'experiment', 'subquest'
 ]);
