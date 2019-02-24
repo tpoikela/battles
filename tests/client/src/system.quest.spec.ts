@@ -60,7 +60,7 @@ describe('System.Quest', () => {
         //---------------------
         // LISTEN-REPORT QUEST
         //---------------------
-        const reportQuestTasks = ['<goto>already_there', 'listen',
+        const reportQuestTasks = ['<goto>already_there', '<report>listen',
             '<goto>already_there', 'report'];
         const reportQuest = new Quest('Report info to actor', reportQuestTasks);
         questPopul.mapQuestToResources(reportQuest, city, null);
@@ -273,9 +273,11 @@ describe('System.Quest', () => {
         // ESCORT QUEST
         //---------------------
         const escortTasks = ['<learn>already_know_it',
-            '<goto>goto', 'damage', 'escort'
-            // , '<learn>already_know_it', '<goto>goto', 'report'
-            , '<goto>explore', 'report'
+            '<goto>goto', 'damage', 'escort',
+            // Go to known place, kill someone, take their book and learn location
+            '<goto>goto', '<kill>kill', '<steal>take', '<learn>read',
+            , '<goto>explore', // This is the escort taget
+            'report'
         ];
         const escortQuest = new Quest('Get stuff and give', escortTasks);
 
