@@ -299,7 +299,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     newBook.addText('In the land of mordor where shadows lie...');
     player.getInvEq().addItem(newBook);
 
-    const reportQuestTasks = ['<goto>already_there', 'listen',
+    const reportQuestTasks = ['<goto>already_there', '<report>listen',
         '<goto>already_there', 'report'];
     const reportQuest = new Quest('Report info to actor', reportQuestTasks);
     questPopul.mapQuestToResources(reportQuest, city, null);
