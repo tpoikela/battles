@@ -206,6 +206,7 @@ QuestData.mapStepToType = {
     read: 'item',
     repair: 'element',
     report: 'entity',
+    reportListen: 'entity',
     rescue: 'entity',
     spy: 'entity',
     steal: 'item',
@@ -214,4 +215,3 @@ QuestData.mapStepToType = {
     use: 'item',
     winbattle: 'place'
 };
-
