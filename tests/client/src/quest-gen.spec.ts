@@ -76,7 +76,8 @@ describe('QuestGen', () => {
 
     it('can generate quests based on name', () => {
         const questName = 'Kill_pests';
-        const conf = {startRule: questName, maxQuests: 1};
+        const conf = {startRule: questName, maxQuests: 1,
+        debug: true};
         const quest = questGen.genQuestWithConf(conf);
         expect(quest).to.be.an.instanceof(Quest);
         expect(quest.numSteps()).to.be.at.least(4);
@@ -144,6 +145,25 @@ describe('QuestPopulate', () => {
         const questTargets = giverComp.getQuestTargets();
         expect(questTargets.length).to.equal(6);
 
+    });
+
+    it('can map goto/listen/goto/report', () => {
+        const area = RGTest.createTestArea();
+        const taskList = [
+            '<goto>already_there',
+            '<report>listen',
+            'listen', // <learn>listen
+            '<goto>goto',
+            'report'
+        ];
+        const descr = 'Find info, learn where to report it to, and report it';
+        const quest = new Quest(descr, taskList);
+
+        const areaTile = area.getTileXY(0, 0);
+        const city = areaTile.getZones('City')[0];
+        const ok = questPopul.mapQuestToResources(quest, city, areaTile);
+        expect(ok, 'Quest mapped OK').to.equal(true);
+        questPopul.addQuestComponents(city);
     });
 
     it('can map any arbitrary quest without sub-quests to resources', () => {
