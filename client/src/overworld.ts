@@ -39,6 +39,8 @@ import * as IF from './interfaces';
 import dbg = require('debug');
 const debug = dbg('bitn:overworld');
 
+type Level = import('./level').Level;
+
 //-------------------
 // Variables
 //-------------------
@@ -56,7 +58,7 @@ const WATCHDOG_MAX = 111;
 // Used for debugging only
 const playerTileX = 1;
 const playerTileY = 1;
-const debugBlackTower = true;
+const debugBlackTower = false;
 
 // When set to 1, builds roads between main features. Currently this feature is
 // very slow on large maps.
@@ -158,11 +160,11 @@ OverWorld.SubFeature.prototype.getLastCoord = function() {
 };
 
 //---------------------------------------------------------------------------
-/* Data struct which is tied to 'RG.Map.Level'. Contains more high-level
+/* Data struct which is tied to 'Level'. Contains more high-level
  * information like positions of walls and other features. Essentially a wrapper
  * around Map.Level, to keep feature creep out of the Map.Level. */
 //---------------------------------------------------------------------------
-OverWorld.SubLevel = function(level) {
+OverWorld.SubLevel = function(level: Level) {
     this._level = level;
     this._hWalls = [];
     this._vWalls = [];
@@ -853,7 +855,7 @@ function addMountainToSubLevel(owSubLevel, subLevel) {
 
 /* This creates a tunnel through mountain wall. This cannot fail, otherwise game
  * is unplayable. */
-function addVertTunnelToSubLevel(owSubLevel, subLevel) {
+function addVertTunnelToSubLevel(owSubLevel, subLevel: Level) {
     const map = subLevel.getMap();
     const cols = map.cols;
     const tunnelX = getRNG().getUniformInt(0, cols - 1);
@@ -987,10 +989,10 @@ OverWorld.createWorldConf = function(
                         addCityConfToArea(feat, coordObj, areaConf);
                     }
                     else if (feat.type === 'dungeon') {
-                        const coord = feat.coord;
+                        const coordD = feat.coord;
 
-                        let featX = mapX(coord[0][0], slX, subX);
-                        let featY = mapY(coord[0][1], slY, subY);
+                        let featX = mapX(coordD[0][0], slX, subX);
+                        let featY = mapY(coordD[0][1], slY, subY);
                         [featX, featY] = legalizeXY([featX, featY]);
                         const dName = Names.getGenericPlaceName('dungeon');
 
@@ -1003,10 +1005,10 @@ OverWorld.createWorldConf = function(
                         areaConf.dungeon.push(dungeonConf);
                     }
                     else if (feat.type === 'mountain') {
-                        const coord = feat.coord;
+                        const coordM = feat.coord;
 
-                        const featX = mapX(coord[0][0], slX, subX);
-                        const featY = mapY(coord[0][1], slY, subY);
+                        const featX = mapX(coordM[0][0], slX, subX);
+                        const featY = mapY(coordM[0][1], slY, subY);
                         const mName = Names.getUniqueName('mountain');
 
                         const mountConf = LevelGen.getMountainConf(mName);
@@ -1262,6 +1264,7 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
 
     const dungeonConf = LevelGen.getDungeonConf(tName);
     if (debugBlackTower) {
+        debug(`BlackTower: Placing to player position.`);
         addToPlayerPosition(dungeonConf, coordObj);
     }
     else {
