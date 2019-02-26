@@ -9,6 +9,16 @@ type AmmoOrMissile = Item.Missile | Item.Ammo;
 /* Object models inventory items and equipment on actor. This object handles
  * movement of items between inventory and equipment. */
 export class Inventory {
+
+    public static equipAnyItem(actor: SentientActor, item: Item.ItemBase): void {
+        const inv: Inventory = actor.getInvEq();
+        if (!inv.hasItem(item)) {
+            inv.addItem(item);
+        }
+        inv.equipItem(item);
+    }
+
+
     public _actor: SentientActor;
     public _inv: Item.Container;
     public _eq: Equipment;
