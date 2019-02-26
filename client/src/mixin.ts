@@ -265,6 +265,10 @@ export const Defense =superclass => class extends superclass {
 
 };
 
+export interface Defense {
+    getAttack(): number;
+}
+
 /* Mixin for damage objects. */
 export const Damage =superclass => class extends Defense(superclass) {
 
@@ -329,3 +333,9 @@ export const Damage =superclass => class extends Defense(superclass) {
     }
 
 };
+
+export interface Damage extends Defense {
+    getAttackRange(): number;
+    rollDamage(): number;
+    getDamageDie(): Dice;
+}
