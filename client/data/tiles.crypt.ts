@@ -1,12 +1,16 @@
 /* Contains ASCII tiles used for the crypt level generation. */
 
 import RG from '../src/rg';
-import {Template} from '../src/template';
+import {Template, ElemTemplate} from '../src/template';
 import {Random} from '../src/random';
+import {TemplateData} from '../src/interfaces';
 
 const RNG = Random.getRNG();
 
-export const Crypt: any = {};
+export const Crypt: TemplateData = {
+    Models: {default: []},
+    templates: {all: []}
+};
 Crypt.tiles = {};
 
 Crypt.tiles.filler = `
@@ -558,8 +562,6 @@ Y#...##
 ###.###`
 ];
 
-Crypt.templates = {};
-
 Crypt.templates.start = Crypt.tiles.start.map(tile => {
     return Template.createTemplate(tile);
 });
@@ -567,7 +569,7 @@ Crypt.templates.start = Crypt.tiles.start.map(tile => {
 /* Returns the starting room for the crypt generation. Note that 'this' should
  * be bound to Template.Level object. */
 Crypt.startRoomFunc = function() {
-    const tile = RNG.arrayGetRand(Crypt.templates.start);
+    const tile: ElemTemplate = RNG.arrayGetRand(Crypt.templates.start);
     let x = RNG.getUniformInt(0, this.tilesX - 1);
     let y = RNG.getUniformInt(0, this.tilesY - 1);
     switch (tile.getProp('name')) {
@@ -609,9 +611,6 @@ Crypt.startRoomFunc = function() {
         x, y, room: tile
     };
 };
-
-
-Crypt.Models = {};
 
 // Note that the starting rooms are not included in this list, thus they'll be
 // placed only by the startRoomFunc
