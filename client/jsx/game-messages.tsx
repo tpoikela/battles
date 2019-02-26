@@ -1,7 +1,7 @@
 
 import * as React from 'react';
 import {Cell} from '../src/map.cell';
-import {IMessage} from "../src/rg";
+import {IMessage} from '../src/interfaces';
 
 interface IGameMessagesProps {
   message: IMessage[];
