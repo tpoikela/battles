@@ -8,6 +8,8 @@
 type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
 type ElementStairs = import('./element').ElementStairs;
+type Locatable = import('./mixin').Locatable;
+type ElemTemplate = import('./template').ElemTemplate;
 
 export type TCoord = [number, number];
 
@@ -25,6 +27,9 @@ export interface BBox {
     lry: number;
 }
 
+export type DestOrSrc = TCoord | Locatable;
+
+
 /* Used to pass player input (keys/mouse) to the game */
 export interface PlayerCmdInput {
     code?: number;
@@ -32,8 +37,41 @@ export interface PlayerCmdInput {
     target?: Cell;
     item?: any; // TODO add correct type
     count?: number;
+    slot?: string;
+    slotNumber?: number;
 }
 export type CmdInput = PlayerCmdInput | number;
+
+/* Used in message handler. */
+export interface IMessage {
+    msg: string;
+    style?: string;
+    count?: number;
+    cell?: any;
+    seen?: boolean;
+}
+
+export interface TemplateData {
+    tiles?: {
+        filler?: string;
+        omni?: string[];
+        corridor?: string[];
+        start?: string[];
+        term?: string[];
+        corner?: string[];
+        misc?: string[];
+    };
+    templates: {
+        all: ElemTemplate[];
+        start?: ElemTemplate[];
+    };
+    Models: {
+        default: string[];
+    };
+    startRoomFunc?: () => void;
+
+}
+
 
 export interface SubZoneConf {
     name: string;
@@ -166,3 +204,11 @@ export interface WorldConf {
     createAllZones?: boolean; // If true, creates everything at once
     playerStart?: PlayerStart;
 }
+
+export interface IFactoryGameConf {
+    seed?: number;
+    sqrPerItem: number;
+    sqrPerActor: number;
+    playMode: string;
+}
+
