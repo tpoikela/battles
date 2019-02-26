@@ -333,15 +333,15 @@ describe('Template.ElemTemplate', () => {
 
         const ascii21 = templ2.getChars([2, 2, 2, 2]);
         const ascii2R90 = templ2R90.getChars([2, 2, 2, 2]);
-        RG.printMap(ascii21);
-        RG.printMap(ascii2R90);
+        // RG.printMap(ascii21);
+        // RG.printMap(ascii2R90);
 
         const templ2Flipped = Template.flipVer(templ2);
         expect(templ2Flipped.xGenPos).to.deep.equal({2: 1, 5: 1});
         expect(templ2Flipped.yGenPos).to.deep.equal(templ2.yGenPos);
 
         const ascii2Flipped = templ2Flipped.getChars([2, 2, 2, 2]);
-        RG.printMap(ascii2Flipped);
+        // RG.printMap(ascii2Flipped);
 
     });
 
