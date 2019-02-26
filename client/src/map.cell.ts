@@ -60,7 +60,7 @@ export class Cell {
     public setX(x: number) {this._x = x;}
     public setY(y: number) {this._y = y;}
 
-    public isAtXY(x, y): boolean {
+    public isAtXY(x: number, y: number): boolean {
         return x === this._x && y === this._y;
     }
 
@@ -69,22 +69,22 @@ export class Cell {
     }
 
     /* Sets/gets the base element for this cell. There can be only one element.*/
-    public setBaseElem(elem): void {
+    public setBaseElem(elem: Element.ElementBase): void {
         this._baseElem = elem;
         this._lightPasses = elem.lightPasses();
         this._isPassable = elem.isPassable();
     }
 
-    public getBaseElem() { return this._baseElem; }
+    public getBaseElem(): Element.ElementBase { return this._baseElem; }
 
     /* Returns true if the cell has props of given type.*/
-    public hasProp(prop) {
+    public hasProp(prop): boolean {
         return this._p.hasOwnProperty(prop);
     }
 
     /* Returns the given type of props, or null if does not have any props of that
      * type. */
-    public getProp(prop: string): PropsType[] {
+    public getProp(prop: string): PropsType[] | null {
         if (this._p.hasOwnProperty(prop)) {
             return this._p[prop];
         }
@@ -109,7 +109,7 @@ export class Cell {
         return (this.getProp(TYPE_ACTOR) as BaseActor[]);
     }
 
-    public getFirstActor(): BaseActor {
+    public getFirstActor(): BaseActor | null {
         const actors = this.getProp(TYPE_ACTOR) as BaseActor[];
         if (actors && actors.length > 0) {
             return actors[0];
@@ -133,7 +133,7 @@ export class Cell {
     }
 
     /* Checks if this cell has a marker with given tag. */
-    public hasMarker(tag) {
+    public hasMarker(tag: string): boolean {
         if (this.hasElements()) {
             const elems = this.getElements() as Element.ElementBase[];
             for (let i = 0; i < elems.length; i++) {
@@ -148,7 +148,7 @@ export class Cell {
     }
 
     /* Returns true if cell has any props. */
-    public hasProps() {
+    public hasProps(): boolean {
         return Object.keys(this._p).length > 0;
     }
 
@@ -211,14 +211,14 @@ export class Cell {
     }
 
     /* Return stairs in this cell, or null if there are none.*/
-    public getStairs(): Stairs {
+    public getStairs(): Stairs | null {
         if (this.hasStairs()) {
             return this.getConnection();
         }
         return null;
     }
 
-    public getConnection(): Stairs {
+    public getConnection(): Stairs | null {
         if (this.hasPropType('connection')) {
             const connU = this.getPropType('connection')[0] as unknown;
             return connU as Stairs;
@@ -227,7 +227,7 @@ export class Cell {
     }
 
     /* Returns passage in this cell, or null if not found. */
-    public getPassage(): Stairs {
+    public getPassage(): Stairs | null {
         if (this.hasPassage()) {
             return this.getConnection();
         }
@@ -303,13 +303,8 @@ export class Cell {
                 return leverDoor.isOpen();
             }
         }
+
         // Handle flying/non-flying here
-        /* if (!isFlying) {
-            return this._baseElem.isPassable();
-        }
-        else {
-            return this._baseElem.isPassableByAir();
-        }*/
         if (isFlying) {
             return this._baseElem.isPassableByAir();
         }
@@ -318,7 +313,7 @@ export class Cell {
         }
     }
 
-    public getDoor(): Door {
+    public getDoor(): Door | null {
         if (this.hasPropType('door')) {
             const door = this.getPropType('door')[0] as unknown;
             return (door as Door);
@@ -326,7 +321,7 @@ export class Cell {
         return null;
     }
 
-    public getLeverDoor(): LeverDoor {
+    public getLeverDoor(): LeverDoor | null {
         if (this.hasPropType('leverdoor')) {
             const door = this.getPropType('leverdoor')[0] as unknown;
             return (door as LeverDoor);
@@ -335,7 +330,7 @@ export class Cell {
     }
 
     /* Add given obj with specified property type.*/
-    public setProp(prop, obj) {
+    public setProp(prop, obj): void {
         if (obj.getType() === 'connection' && this.hasConnection()) {
             let msg = `${this._x},${this._y}`;
             msg += `\nExisting: ${JSON.stringify(this.getConnection())}`;
@@ -365,7 +360,7 @@ export class Cell {
         }
     }
 
-    public removeProps(propType) {
+    public removeProps(propType): void {
         delete this._p[propType];
     }
 
