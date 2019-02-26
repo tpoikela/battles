@@ -20,7 +20,7 @@ chai.use(chaiBattles);
 const {ChunkManager, LOAD} = Chunk;
 
 describe('ChunkManager', function() {
-    this.timeout(60000);
+    this.timeout(10000);
 
     let game = null;
     let area = null;
