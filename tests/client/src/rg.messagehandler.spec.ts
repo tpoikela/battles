@@ -1,12 +1,15 @@
 
 import { expect } from 'chai';
 import RG from '../../../client/src/rg';
+import {MessageHandler} from '../../../client/src/message-handler';
+import {EventPool} from '../../../client/src/eventpool';
 
-const MsgHandler = RG.MessageHandler;
+const POOL = EventPool.getPool();
 
-describe('RG.MessageHandler', () => {
+
+describe('MessageHandler', () => {
     it('Receives messages via notify function', () => {
-        const handler = new MsgHandler();
+        const handler = new MessageHandler(POOL);
         expect(handler.hasNew()).to.equal(false);
         handler.notify(RG.EVT_MSG, {msg: 'Test'});
         expect(handler.hasNew()).to.equal(true);
@@ -14,7 +17,7 @@ describe('RG.MessageHandler', () => {
     });
 
     it('adds multiplier after repeated message', () => {
-        const handler = new MsgHandler();
+        const handler = new MessageHandler(POOL);
         expect(handler.getMessages()).to.have.length(0);
         handler.notify(RG.EVT_MSG, {msg: 'Test'});
         handler.notify(RG.EVT_MSG, {msg: 'Test'});
