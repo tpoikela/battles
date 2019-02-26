@@ -16,6 +16,7 @@ type Level = import('./level').Level;
 
 type ActionCallback = Time.ActionCallback;
 type ItemArmour = import('./item').Armour;
+type MissileWeapon = import('./item').MissileWeapon;
 type Cell = import('./map.cell').Cell;
 
 export const Actor: any = {};
@@ -220,7 +221,7 @@ export class SentientActor extends BaseActor {
     public getWeapon() {return this._invEq.getWeapon();}
 
     /* Returns weapon that is wielded by the actor.*/
-    public getMissileWeapon() {
+    public getMissileWeapon(): MissileWeapon | null {
         return this._invEq.getMissileWeapon();
     }
 
