@@ -7,6 +7,8 @@ import {Cell} from './map.cell';
 import {Brain} from './brain';
 import * as Component from './component';
 
+type ItemBase = import('./item').ItemBase;
+
 const {
     GOAL_ACTIVE,
     GOAL_COMPLETED} = GoalStatus;
@@ -15,6 +17,8 @@ const RNG = Random.getRNG();
 /* With this Goal, an actor can search a house for interesting features,
  * such as items to pick up. */
 export class GoalSearchHouse extends Goal.Base {
+
+    public floorCells: Cell[];
 
     constructor(actor) {
         super(actor);
@@ -29,7 +33,7 @@ export class GoalSearchHouse extends Goal.Base {
 
     public activate(): void {
         this.status = GOAL_ACTIVE;
-        const seenCells = this.actor.getBrain().getSeenCells();
+        const seenCells: Cell[] = this.actor.getBrain().getSeenCells();
         if (!this.floorCells || this.floorCells.length === 0) {
             this.floorCells = seenCells.filter(c => (
                 c.getBaseElem().getType() === 'floorhouse'
@@ -149,7 +153,7 @@ export class GoalThief extends Goal.Base {
 
     public tryToSellItem() {
         const inventory = this.actor.getInvEq().getInventory();
-        const itemToSell = RNG.arrayGetRand(inventory.getItems());
+        const itemToSell: ItemBase = RNG.arrayGetRand(inventory.getItems());
         const actorCell = this.actor.getCell();
 
         if (itemToSell) {
