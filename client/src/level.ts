@@ -287,18 +287,15 @@ export class Level extends Entity {
         return this._removePropFromLevelXY(RG.TYPE_ELEM, elem, x, y);
     }
 
-    public addEntity(ent, x: number, y: number): boolean {
-        if (ent.getPropType) {
-            const type = ent.getPropType();
-            if (type === RG.TYPE_ACTOR) {
-                return this.addActor(ent, x, y);
-            }
-            else if (type === RG.TYPE_ITEM) {
-                  return this.addItem(ent, x, y);
-            }
-            else if (type === RG.TYPE_ELEM) {
-                  return this.addElement(ent, x, y);
-            }
+    public addEntity(ent: Entity, x: number, y: number): boolean {
+        if (RG.isActor(ent)) {
+            return this.addActor(ent, x, y);
+        }
+        else if (RG.isItem(ent)) {
+              return this.addItem(ent, x, y);
+        }
+        else if (RG.isElement(ent)) {
+              return this.addElement(ent, x, y);
         }
         else {
             RG.err('Level', 'addEntity',
@@ -380,7 +377,7 @@ export class Level extends Entity {
      * always preferred. */
     public addActorToFreeCell(actor): boolean {
         RG.debug(this, 'Adding actor to free slot');
-        const freeCells = this._map.getFree();
+        const freeCells: Cell[] = this._map.getFree();
         if (freeCells.length > 0) {
             const xCell = freeCells[0].getX();
             const yCell = freeCells[0].getY();
@@ -465,7 +462,7 @@ export class Level extends Entity {
     }
 
     /* Removes a virtual property (virtual prop has no x,y position). */
-    public removeVirtualProp(propType, obj): boolean {
+    public removeVirtualProp(propType: string, obj): boolean {
         if (this._p.hasOwnProperty(propType)) {
             const index = this._p[propType].indexOf(obj);
             if (index >= 0) {
