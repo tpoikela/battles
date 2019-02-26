@@ -6,6 +6,11 @@ import {Random} from './random';
 const RNG = Random.getRNG();
 export const Placer: any = {};
 
+import {TCoord, BBox} from './interfaces';
+type Cell = import('./map.cell').Cell;
+type Level = import('./level').Level;
+type Entity = import('./entity').Entity;
+
 Placer.addPropsToFreeCells = function(level, props, type) {
     const freeCells = level.getMap().getFree();
     Placer.addPropsToCells(level, freeCells, props, type);
@@ -14,7 +19,7 @@ Placer.addPropsToFreeCells = function(level, props, type) {
 /* Adds to the given level, and its cells, all props given in the list. Assumes
  * that all props are of given type (placement function is different for
  * different types. */
-Placer.addPropsToCells = function(level, cells, props, type) {
+Placer.addPropsToCells = function(level: Level, cells: Cell[], props, type) {
     for (let i = 0; i < props.length; i++) {
         if (cells.length > 0) {
             const index = RNG.randIndex(cells);
@@ -34,12 +39,12 @@ Placer.addPropsToCells = function(level, cells, props, type) {
     }
 };
 
-Placer.addPropsToRoom = function(level, room, props) {
+Placer.addPropsToRoom = function(level: Level, room, props) {
     if (!Array.isArray(props)) {
         RG.err('Placer', 'addPropsToRoom',
             `props must be an array. Got: ${props}`);
     }
-    const bbox = room.getBbox();
+    const bbox: BBox = room.getBbox();
     const prop = props[0];
     if (RG.isActor(prop)) {
         Placer.addActorsToBbox(level, bbox, props);
@@ -53,7 +58,7 @@ Placer.addPropsToRoom = function(level, room, props) {
     }
 };
 
-Placer.addActorsToBbox = function(level, bbox, actors) {
+Placer.addActorsToBbox = function(level: Level, bbox: BBox, actors) {
     const nActors = actors.length;
     const freeCells = level.getMap().getFreeInBbox(bbox);
     if (freeCells.length < nActors) {
@@ -64,16 +69,16 @@ Placer.addActorsToBbox = function(level, bbox, actors) {
 };
 
 
-Placer.addItemsToBbox = function(level, bbox, items) {
+Placer.addItemsToBbox = function(level: Level, bbox: BBox, items) {
     const freeCells = level.getMap().getFreeInBbox(bbox);
     Placer.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
 };
 
 /* Adds entity to a random cell of matching filterFunc. Returns true if success,
  * otherwise returns false (for example if no cells found). */
-Placer.addEntityToCellType = function(entity, level, filterFunc) {
+Placer.addEntityToCellType = function(entity: Entity, level: Level, filterFunc) {
     let ok = false;
-    const cells = level.getMap().getCells(filterFunc);
+    const cells: Cell[] = level.getMap().getCells(filterFunc);
     if (cells.length === 0) {return false;}
     const randCell = RNG.arrayGetRand(cells);
     const [x, y] = randCell.getXY();
