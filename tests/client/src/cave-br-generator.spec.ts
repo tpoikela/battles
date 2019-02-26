@@ -6,7 +6,6 @@ import {Level} from '../../../client/src/level';
 import {Random} from '../../../client/src/random';
 
 describe('createCaveLevel', function() {
-    this.timeout(5000);
 
     it('creates cave levels', () => {
         for (let i = 0; i < 5; i++) {
@@ -18,7 +17,7 @@ describe('createCaveLevel', function() {
             };
             const n = 2;
             const level: Level = createCaveLevel(n * 80, n * 80, conf);
-            level.debugPrintInASCII();
+            // level.debugPrintInASCII();
         }
     });
 });
