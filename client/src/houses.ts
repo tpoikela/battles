@@ -227,7 +227,7 @@ export class HouseGenerator {
         let x2 = RNG.getUniformInt(1, 3);
 
         let currSizeX = sizeX + x0 + x2;
-        let watchdogX = 100;
+        let watchdogX = RG.WATCHDOG;
         while (cols % currSizeX !== 0) {
             x0 = RNG.getUniformInt(1, 3);
             x2 = RNG.getUniformInt(1, 3);
@@ -240,7 +240,7 @@ export class HouseGenerator {
         let y0 = RNG.getUniformInt(1, 3);
         let y2 = RNG.getUniformInt(1, 3);
         let currSizeY = sizeY + y0 + y2;
-        let watchdogY = 100;
+        let watchdogY = RG.WATCHDOG;
         while (rows % currSizeY !== 0) {
             y0 = RNG.getUniformInt(1, 3);
             y2 = RNG.getUniformInt(1, 3);
