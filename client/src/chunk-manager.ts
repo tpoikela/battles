@@ -177,7 +177,6 @@ export class ChunkManager {
             // This is correct TODO remove
             if (xy[0] === 0 && xy[1] === 2) {
                 const tiles = this.area.getTiles();
-                console.log('END OF LOADTILES: ', tiles[0][2]);
             }
         });
 
