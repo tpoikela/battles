@@ -207,7 +207,7 @@ export class CmdDropItem extends CmdBase {
 
       if (hasActiveShop) {
           const shopElem = actorCell.getPropType('shop')[0];
-          const price = shopElem.getItemPriceForSelling(obj.item);
+          const price = shopElem.getItemPriceForSelling(obj.item, dropCount);
 
           // this.brain._wantConfirm = true;
           const confirmCb = () => {
