@@ -126,7 +126,7 @@ export class FactoryBattle {
                 const {bbox} = conf;
                 let xy = RNG.getRandInBbox(bbox);
                 let cell = map.getCell(xy[0], xy[1]);
-                let watchdog = 100;
+                let watchdog = RG.WATCHDOG;
                 while (cell.hasProps()) {
                     xy = RNG.getRandInBbox(bbox);
                     cell = map.getCell(xy[0], xy[1]);

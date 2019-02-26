@@ -1130,7 +1130,7 @@ export const FactoryWorld = function() {
         }
 
         let cell = level.getMap().getCell(tsX, tsY);
-        let watchdog = 100;
+        let watchdog = RG.WATCHDOG;
         while (cell.hasConnection()) {
             const freeAreaCell = level.getEmptyRandCell();
             tsX = freeAreaCell.getX();
