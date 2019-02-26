@@ -491,11 +491,12 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
     }
 
     /* Returns the price for selling the item. */
-    public getItemPriceForSelling(item): number {
+    public getItemPriceForSelling(item, count?): number {
         const value = item.getValue();
         const goldWeight = RG.valueToGoldWeight(value);
         let ncoins = RG.getGoldInCoins(goldWeight);
-        ncoins *= item.getCount();
+        if (count) {ncoins *= count;}
+        else {ncoins *= item.getCount();}
         ncoins = Math.floor(this._costFactorShopBuys * ncoins);
         return ncoins;
     }
