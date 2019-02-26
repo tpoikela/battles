@@ -4,6 +4,8 @@ const $DEBUG = 0;
 /* Main object of the package for encapsulating all other objects. */
 const RG: any = {};
 
+import {TCoord} from './interfaces';
+
 // Import only types
 type BaseActor = import('./actor').BaseActor;
 type SentientActor = import('./actor').SentientActor;
@@ -709,6 +711,8 @@ RG.USE = {
 
 RG.LEVEL_ID_ADD = 1000000000;
 RG.ENTITY_ID_ADD = 1000000000;
+
+RG.WATCHDOG = 100; // Used mainly to terminate while-loops
 
 //----------------------------
 // Different level types
@@ -1606,7 +1610,7 @@ RG.printMap = map => {
     if (Array.isArray(map)) {
         rowByRow = RG.colsToRows(map);
     }
-    else if (map instanceof RG.Map.CellList) {
+    else if (Array.isArray(map._map)) {
         rowByRow = RG.colsToRows(map._map);
     }
     if (rowByRow) {
@@ -1619,8 +1623,9 @@ RG.printMap = map => {
 };
 
 
+type ForEachCb<T> = (x: number, y: number, val?: T) => void;
 /* Iterates through 2D-array and calls the callback with (i, j, [i][j]) .*/
-RG.forEach2D = (arr, func) => {
+RG.forEach2D = <T>(arr: T[][], func: ForEachCb<T>): void => {
     for (let i = 0; i < arr.length; i++) {
         for (let j = 0; j < arr[i].length; j++) {
             func(i, j, arr[i][j]);
@@ -1628,8 +1633,9 @@ RG.forEach2D = (arr, func) => {
     }
 };
 
+type MapCb<T> = (x: number, y: number, val?: T) => T;
 /* Similar to Array.map, but maps a 2D array to an array of values. */
-RG.map2D = (arr, func) => {
+RG.map2D = <T>(arr: T[][], func: MapCb<T>): T[] => {
     const res = [];
     RG.forEach2D(arr, (i, j, val) => {
         res.push(func(i, j, val));
@@ -1637,7 +1643,7 @@ RG.map2D = (arr, func) => {
     return res;
 };
 
-RG.copy2D = arr => {
+RG.copy2D = <T>(arr: T[][]): T[][] => {
     const copy = new Array(arr.length);
     for (let i = 0; i < arr.length; i++) {
         copy[i] = new Array(arr[i].length);
@@ -1686,7 +1692,7 @@ RG.flattenTo2D = arr => {
     return res;
 };
 
-RG.uniquifyCoord = arr => {
+RG.uniquifyCoord = (arr: TCoord[]): TCoord[] => {
     const seen = {};
     const res = [];
     for (let i = 0; i < arr.length; i++) {
