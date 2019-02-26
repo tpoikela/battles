@@ -32,11 +32,11 @@ import RG from '../src/rg';
 import {Keys} from '../src/keymap';
 import {GameMain} from '../src/game';
 import {GameSave} from '../src/gamesave';
-import * as  Verify from '../src/verify';
+import * as Verify from '../src/verify';
 import {KeyCode} from '../gui/keycode';
 import {MultiKeyHandler} from '../gui/multikey-handler';
 import {Cell} from '../src/map.cell';
-import {PlayerCmdInput} from '../src/interfaces';
+import {IMessage, PlayerCmdInput} from '../src/interfaces';
 
 import md5 = require('js-md5');
 
@@ -54,7 +54,6 @@ import {ItemBase} from '../src/item';
 import {EventPool} from '../src/eventpool';
 import {FactoryGame} from '../src/factory.game';
 import {FromJSON} from '../src/game.fromjson';
-import {IMessage} from '../src/rg';
 import {Dice} from '../src/dice';
 
 const POOL = EventPool.getPool();
@@ -527,8 +526,11 @@ export class BattlesTop extends React.Component {
 
         const player = this.game.getPlayer();
         this.gameState.visibleCells = player.getBrain().getSeenCells();
-        POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
-        POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
+
+        const eventPool = game.getEventPool();
+        eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
+        eventPool.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
+
         this.enableKeys();
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
         this.setState({render: true, loadInProgress: false});
