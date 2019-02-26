@@ -6,7 +6,8 @@
 import {expect} from 'chai';
 import RG from '../../../client/src/rg';
 import {RGTest} from '../../roguetest';
-import {GameMain, WinCondition} from '../../../client/src/game';
+import {GameMain} from '../../../client/src/game';
+import {WinCondition} from '../../../client/src/win-condition';
 import {ObjectShell} from '../../../client/src/objectshellparser';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {FactoryWorld} from '../../../client/src/factory.world';
@@ -300,10 +301,10 @@ describe('How poison item is used, and experience propagates', () => {
     });
 });
 
-describe('Game.WinCondition', () => {
+describe('WinCondition', () => {
     it('can listen to event and become true', () => {
         const pool = new EventPool();
-        const winCond = new WinCondition('Kill boss');
+        const winCond = new WinCondition('Kill boss', pool);
         winCond.setPool(pool);
         expect(winCond.isTrue(), 'Win condition false').to.equal(false);
 
