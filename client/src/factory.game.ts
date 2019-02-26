@@ -28,6 +28,8 @@ import {Territory} from './territory';
 import {WorldConf} from './world.creator';
 import {Level} from './level';
 
+import {IFactoryGameConf} from './interfaces';
+
 const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
 
@@ -60,7 +62,7 @@ FactoryGame.prototype.restoreGame = function(json) {
 
 /* Creates the game based on the selection. Main method that you want to
  * call. */
-FactoryGame.prototype.createNewGame = function(conf) {
+FactoryGame.prototype.createNewGame = function(conf: IFactoryGameConf) {
     this._verif.verifyConf('createNewGame', conf,
         ['sqrPerItem', 'sqrPerActor', 'playMode']);
 
