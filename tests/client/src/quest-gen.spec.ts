@@ -192,7 +192,7 @@ describe('QuestPopulate', () => {
 
 
     it('can map escort quest to resources/tasks/subquests', () => {
-        const areaConf: AreaConf = Object.assign({}, RGTest.AreaConf);
+        const areaConf: AreaConf = JSON.parse(JSON.stringify(RGTest.AreaConf));
         const dungConf: DungeonConf = {
             name: 'Fortress of Evil beings', x: 0, y: 0, nBranches: 1,
             dungeonType: 'fortress', dungeonX: 80, dungeonY: 40,
