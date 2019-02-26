@@ -8,6 +8,8 @@ import {Animation} from './animation';
 import {Level} from './level';
 import {Cell} from './map.cell';
 import {BaseActor, SentientActor} from './actor';
+import {MessageHandler} from './message-handler';
+import {IMessage} from './interfaces';
 
 type BrainPlayer = import('./brain/brain.player').BrainPlayer;
 type Entity = import('./entity').Entity;
@@ -45,7 +47,7 @@ export class Engine {
     public _levelMap: {[key: number]: Level};
     public _activeLevels: number[]; // Only these levels are simulated
     public _scheduler: any; // TODO = new Time.Scheduler();
-    public _msg: any; // TODO RG.MessageHandler();
+    public _msg: MessageHandler;
     public _eventPool: EventPool;
 
     public visibleCells: Cell[];
@@ -72,7 +74,7 @@ export class Engine {
         this._levelMap = {}; // All levels, ID -> level
         this._activeLevels = []; // Only these levels are simulated
         this._scheduler = new Time.Scheduler();
-        this._msg = new RG.MessageHandler();
+        this._msg = new MessageHandler(eventPool);
         this._eventPool = eventPool;
 
         this.visibleCells = [];
@@ -95,7 +97,7 @@ export class Engine {
         this._eventPool.listenEvent(RG.EVT_ANIMATION, this);
     }
 
-    public getMessages() {
+    public getMessages(): IMessage[] {
         return this._msg.getMessages();
     }
 
@@ -136,6 +138,7 @@ export class Engine {
         return this._levelMap.hasOwnProperty(level.getID());
     }
 
+    /* Returns active levels within the engine. */
     public getLevels(): Level[] {
         return Object.values(this._levelMap);
     }
@@ -156,12 +159,12 @@ export class Engine {
     //--------------------------------------------------------------
 
 
-    public hasAnimation() {
+    public hasAnimation(): boolean {
         return this.animation !== null &&
             this.animation.hasFrames();
     }
 
-    public finishAnimation() {
+    public finishAnimation(): void {
         this.animation = null;
     }
 
@@ -179,9 +182,8 @@ export class Engine {
 
             // Build the cache if not valid
             if (!this._cache.visibleValid) {
-                this.visibleCells.forEach(cell => {
-                    const [x, y] = [cell.getX(), cell.getY()];
-                    this._cache.visibleCoord[x + ',' + y] = true;
+                this.visibleCells.forEach((cell: Cell) => {
+                    this._cache.visibleCoord[cell.getKeyXY()] = true;
                 });
                 this._cache.visibleValid = true;
             }
@@ -192,12 +194,12 @@ export class Engine {
         return false;
     }
 
-    public enableAnimations() {
+    public enableAnimations(): void {
         const sysAnim = this.sysMan.get('Animation') as SystemAnimation;
         sysAnim.enableAnimations();
     }
 
-    public disableAnimations() {
+    public disableAnimations(): void {
         const sysAnim = this.sysMan.get('Animation') as SystemAnimation;
         sysAnim.disableAnimations();
     }
