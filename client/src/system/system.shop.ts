@@ -27,7 +27,7 @@ export class SystemShop extends SystemBase {
         const trans = ent.get('Transaction');
         const args: TransArgs = trans.getArgs();
         const {buyer} = args;
-        this._checkArgsOK(ent, args);
+        this._checkTransArgsOK(ent, args);
         if (buyer.getID() === ent.getID()) {
             this.buyItem(args);
         }
@@ -37,7 +37,7 @@ export class SystemShop extends SystemBase {
         ent.remove(trans);
     }
 
-    public _checkArgsOK(ent, args: TransArgs): void {
+    public _checkTransArgsOK(ent, args: TransArgs): void {
         const {item, buyer, shop, seller} = args;
         let msg = '';
         if (!item) {
@@ -54,7 +54,7 @@ export class SystemShop extends SystemBase {
         }
         if (msg !== '') {
             msg += 'Entity: ' + ent.getName();
-            RG.err('System.Shop', '_checkArgsOK', msg);
+            RG.err('System.Shop', '_checkTransArgsOK', msg);
         }
     }
 
@@ -105,6 +105,16 @@ export class SystemShop extends SystemBase {
                 'Seller is null or undefined.');
         }
 
+        if (!this.willingToBuyItem(item, buyer)) {
+            const itemName = item.getName();
+            const msg = `${buyer.getName()} is not interested in ${item.getName()}.`;
+            RG.gameMsg({cell: seller.getCell(), msg});
+            if (args.callback) {
+                args.callback({msg, result: false});
+            }
+            return;
+        }
+
         const count = args.count || 1;
         const sellerCell = seller.getCell();
         const value = count * item.getValue() * shop.getCostFactorBuy();
@@ -143,6 +153,13 @@ export class SystemShop extends SystemBase {
                 args.callback({msg, result: false});
             }
         }
+    }
+
+    public willingToBuyItem(item, buyer): boolean {
+        if (item.getName() === RG.GOLD_COIN_NAME) {
+            return false;
+        }
+        return true;
     }
 
 }
