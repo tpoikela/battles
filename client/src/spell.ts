@@ -949,10 +949,10 @@ Spell.SlimeBolt.prototype.onHit = function(actor, src) {
 
 /* Ice shield increase the defense of the caster temporarily. */
 Spell.IceShield = function() {
-    SpellBase.call(this, 'Ice shield', 7);
+    SpellBase.call(this, 'Ice shield', 6);
 
-    this._dice.duration = Dice.create('5d5 + 5');
-    this._dice.defense = Dice.create('1d6 + 1');
+    this._dice.duration = Dice.create('5d5 + 15');
+    this._dice.defense = Dice.create('1d6 + 3');
 
     this.cast = args => {
         const actor = args.src;
@@ -985,8 +985,8 @@ Spell.IceShield.prototype.toString = function() {
 Spell.MagicArmor = function() {
     SpellBase.call(this, 'MagicArmor', 5);
 
-    this._dice.duration = Dice.create('5d5 + 5');
-    this._dice.protection = Dice.create('2d6 + 1');
+    this._dice.duration = Dice.create('6d5 + 15');
+    this._dice.protection = Dice.create('2d6 + 2');
 
     this.cast = args => {
         const actor = args.src;
