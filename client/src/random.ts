@@ -1,6 +1,7 @@
 
 import RG from './rg';
 import ROT from '../../lib/rot';
+import {TCoord, BBox} from './interfaces';
 
 const DIRS = [-1, 0, 1];
 const DIRS_NO_ZERO = [-1, 1];
@@ -58,8 +59,7 @@ export class Random {
     }
 
     /* Returns a random entry from the array.*/
-    // public arrayGetRand<T>(arr: T[]): T { // Explodes the type errors
-    public arrayGetRand(arr) {
+    public arrayGetRand<T>(arr: T[]): T { // Explodes the type errors
         const randIndex = this.randIndex(arr);
         return arr[randIndex];
     }
@@ -82,7 +82,7 @@ export class Random {
         return items;
     }
 
-    public getUniformInt(min: number, max: number) {
+    public getUniformInt(min: number, max: number): number {
         return this.rng.getUniformInt(min, max);
     }
 
@@ -101,7 +101,7 @@ export class Random {
         return min + span * uniform;
     }
 
-    public getNormal(mean, stddev) {
+    public getNormal(mean, stddev): number {
         return this.rng.getNormal(mean, stddev);
     }
 
@@ -110,9 +110,9 @@ export class Random {
     }
 
     /* Given a number N, returns an integer from 0 to N weighted such that N has the
-     * highest weight, and 0 the lowest.
+     * highest weight, and 0 the lowest. IE: {0: 1, 1: 2, ... N: N + 1}
      */
-    public getWeightedLinear(N): number {
+    public getWeightedLinear(N: number): number {
         const weights = {};
         for (let i = 0; i < N; i++) {
             weights[i] = i + 1; // Without + 1, 0 will never be chosen
@@ -128,7 +128,7 @@ export class Random {
     }
 
     /* Returns random direction [x, y] while excluding [0, 0]. */
-    public getRandDir() {
+    public getRandDir(): TCoord {
         const dX = this.arrayGetRand(DIRS);
         let dY = this.arrayGetRand(DIRS);
         if (dX === 0) {
@@ -138,16 +138,16 @@ export class Random {
     }
 
     /* Returns randomly one of the 4 cardinal directions. */
-    public getCardinalDir() {
+    public getCardinalDir(): string {
         return this.arrayGetRand(RG.CARDINAL_DIR);
     }
 
-    public getCardinalDirLetter() {
+    public getCardinalDirLetter(): string {
         return this.arrayGetRand(RG.CARDINAL_DIR_ABBR);
     }
 
     /* Returns a random xy-coord in the given bounding box. */
-    public getRandInBbox(bbox) {
+    public getRandInBbox(bbox: BBox): TCoord {
         const {ulx, uly, lrx, lry} = bbox;
         // RG.nullOrUndefError([ulx, uly, lrx, lry]);
         return [
