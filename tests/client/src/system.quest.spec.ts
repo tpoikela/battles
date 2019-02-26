@@ -164,7 +164,7 @@ describe('System.Quest', () => {
         const areaTile = area.getTileXY(0, 0);
         questPopul = new QuestPopulate();
         let ok = questPopul.mapQuestToResources(mainQuest, city, areaTile);
-        expect(ok, 'Quest mapped OK').to.equal(true);
+        expect(ok, 'Learn-Goto Quest mapped OK').to.equal(true);
 
         questPopul.addQuestComponents(city);
 
@@ -187,8 +187,6 @@ describe('System.Quest', () => {
         const mainQuestComp = questComps[0];
         const subQuestComp = questComps[1];
         expect(questComps).to.have.length(2);
-        // console.log(questComps[0].toString());
-        console.log('subQuest is', subQuestComp.toString());
 
         const readComp = new Component.Read();
         readComp.setReadTarget(bookToRead);
@@ -198,7 +196,13 @@ describe('System.Quest', () => {
 
         const dungeon = areaTile.getZones('Dungeon')[0];
         const dungLevel = dungeon.getLevels()[0];
-        expect(dungLevel).to.have.component('QuestTarget');
+        console.log(areaTile.getZones().map(z => (
+            z.getName() + ',' + z.getLevels().map(l => (
+                l.getID() + ': ' + l.has('QuestTarget')
+            ))
+        )));
+        expect(dungLevel, dungLevel.getID() + ' has QuestTarget')
+            .to.have.component('QuestTarget');
 
         const qEvent = new Component.QuestTargetEvent();
         qEvent.setEventType('goto');
