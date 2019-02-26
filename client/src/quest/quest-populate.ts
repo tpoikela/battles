@@ -23,8 +23,8 @@ import {QuestData, QuestTargetObj, QuestObjSurrogate} from './quest-data';
 import {Quest, Task} from './quest-task';
 import {QuestGen} from './quest-gen';
 
-const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
+const POOL = EventPool.getPool();
 
 type ItemBase = Item.ItemBase;
 type ItemOrNull = ItemBase | null;
@@ -73,6 +73,7 @@ export class QuestPopulate {
 
     public static supportedKeys: Set<string>;
 
+    public pool: EventPool;
     public currTile: AreaTile;
     public questList: QuestData[];
     public conf: {[key: string]: any};
@@ -126,6 +127,8 @@ export class QuestPopulate {
         // Set the RNG if specified for constructor
         this.rng = RNG;
         if (conf && conf.rng) {this.rng = conf.rng;}
+
+        this.pool = POOL;
     }
 
     public resetData(): void {
@@ -716,7 +719,7 @@ export class QuestPopulate {
             a.hasNone(['QuestGiver', 'QuestTarget'])
         );
         // TODO make sure to return something meaningful like boss
-        return this.rng.arrayGetRand(actors);
+        return this.rng.arrayGetRand(actors) as SentientActor;
     }
 
     public getActorForReport(): SentientActor {
@@ -821,7 +824,7 @@ export class QuestPopulate {
     }
 
     /* Finds a target to repair. */
-    public getRepairTarget() {
+    public getRepairTarget(): Entity | null {
         const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
         const elemsToRepair = elems.filter(e => (
@@ -830,17 +833,19 @@ export class QuestPopulate {
             e.getType() === 'lever'
         ));
         if (elemsToRepair.length > 0) {
-            return this.rng.arrayGetRand(elemsToRepair);
+            const elem: unknown = this.rng.arrayGetRand(elemsToRepair);
+            return elem as Entity;
         }
         return null;
     }
 
-    public getEntityToDamage(): Entity {
+    public getEntityToDamage(): Entity | null {
         const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
         const doors = elems.filter(elem => elem.getType() === 'door');
         if (doors) {
-            return this.rng.arrayGetRand(doors);
+            const chosenDoor: unknown = this.rng.arrayGetRand(doors);
+            return chosenDoor as Entity;
         }
 
         const actors = location.getActors();
@@ -1145,7 +1150,7 @@ export class QuestPopulate {
             const eventArgs: any = { // TODO fix typings
                 areaTile, zone
             };
-            POOL.emitEvent(RG.EVT_CREATE_BATTLE, eventArgs);
+            this.pool.emitEvent(RG.EVT_CREATE_BATTLE, eventArgs);
             if (eventArgs.response) {
                 console.log('createBattle return eventArgs.response.level');
                 const {battle} = eventArgs.response;
