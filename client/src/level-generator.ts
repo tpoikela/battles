@@ -13,9 +13,10 @@ export abstract class LevelGenerator {
         this.shouldRemoveMarkers = true;
     }
 
-    abstract create(cols, rows, conf): Level;
+    public abstract create(cols, rows, conf): Level;
 
-    addStartAndEndPoint(level: Level, start: TCoord, end: TCoord): void {
+    /* Adds markers for start and endpoint for given level. */
+    public addStartAndEndPoint(level: Level, start: TCoord, end: TCoord): void {
         if (start) {
             const [sX, sY] = start;
             const startPointElem = new ElementMarker('<');
@@ -31,7 +32,9 @@ export abstract class LevelGenerator {
         }
     }
 
-    removeMarkers(level: Level, conf): void {
+    /* Removes the markers which are used during PCG, but should not be visible
+     * to player. */
+    public removeMarkers(level: Level, conf): void {
         let markersPreserved = ['start_point', 'end_point', 'critical_path'];
         if (conf.markersPreserved) {
             markersPreserved = markersPreserved.concat(conf.markersPreserved);
@@ -55,6 +58,5 @@ export abstract class LevelGenerator {
                 return false;
             });
         }
-
     }
 }
