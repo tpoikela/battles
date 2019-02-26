@@ -32,7 +32,7 @@ import {FactoryLevel} from '../src/factory.level';
 import {FactoryWorld} from '../src/factory.world';
 import {World} from '../src/world';
 import {WorldCreator} from '../src/world.creator';
-import {WinCondition} from '../src/game';
+import {WinCondition} from '../src/win-condition';
 import {Room} from '../../lib/bsp';
 
 const POOL = EventPool.getPool();
@@ -143,7 +143,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     // Marksman components
     player.add(new Component.ThroughShot());
 
-    const winCond = new WinCondition('Kill a keeper');
+    const winCond = new WinCondition('Kill a keeper', game.getPool());
     winCond.addActorKilled(keeper);
 
     game.addPlayer(player);
