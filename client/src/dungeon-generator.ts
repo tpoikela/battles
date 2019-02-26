@@ -572,7 +572,7 @@ export class DungeonGenerator extends LevelGenerator {
     public addStairsLocations(level) {
         // Default is to find rooms that are far away from each other
         const extras = level.getExtras();
-        let watchdog = 100;
+        let watchdog = RG.WATCHDOG;
         if (extras.rooms) {
 
             // 1. Find 2 different rooms with maximum center distance
