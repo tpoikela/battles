@@ -442,7 +442,7 @@ export class DungeonPopulate {
     }
 
     public createTrainers(level, conf) {
-        const houses = level.getExtras().houses;
+        const houses: House[] = level.getExtras().houses;
         if (RG.isSuccess(RG.TRAINER_PROB)) {
             let trainer = null;
             if (conf.parser) {
