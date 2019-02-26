@@ -8,7 +8,7 @@ import dbg = require('debug');
 const debug = dbg('bitn:OW');
 
 import RG from './rg';
-import {TCoord} from './interfaces';
+import {TCoord, BBox} from './interfaces';
 
 import {CellMap} from './map';
 import {Geometry} from './geometry';
@@ -47,6 +47,7 @@ interface FeatData {
 interface OWWall {
     x: number | number[];
     y: number | number[];
+    type: string;
 }
 
 export class OWMap {
@@ -88,24 +89,24 @@ export class OWMap {
         this._terrMap = null;
     }
 
-    getSizeXY() {
+    public getSizeXY() {
         return [this.getSizeX(), this.getSizeY()];
     }
 
-    getCenterX() {
+    public getCenterX() {
         return Math.round(this.getSizeX() / 2);
     }
 
-    getCenterY() {
+    public getCenterY() {
         return Math.round(this.getSizeY() / 2);
     }
 
-    isWallTile(x, y) {
+    public isWallTile(x, y) {
         const tile = this._baseMap[x][y];
         return OW.ALL_WALLS_LUT.hasOwnProperty(tile);
     }
 
-    numTiles(tile) {
+    public numTiles(tile) {
         let numFound = 0;
         const [sizeX, sizeY] = this.getSizeXY();
         for (let x = 0; x < sizeX; x++) {
@@ -118,7 +119,7 @@ export class OWMap {
         return numFound;
     }
 
-    numWallTiles() {
+    public numWallTiles() {
         let numWalls = 0;
         const [sizeX, sizeY] = this.getSizeXY();
         for (let x = 0; x < sizeX; x++) {
@@ -131,11 +132,11 @@ export class OWMap {
         return numWalls;
     }
 
-    getBiomeMap(): {[key: string]: string} {
+    public getBiomeMap(): {[key: string]: string} {
         return this._biomeMap;
     }
 
-    getBiome(x, y): string {
+    public getBiome(x, y): string {
         const key = x + ',' + y;
         if (this._biomeMap.hasOwnProperty(key)) {
             return this._biomeMap[x + ',' + y];
@@ -147,31 +148,31 @@ export class OWMap {
         return '';
     }
 
-    getMap() {
+    public getMap(): string[][] {
         return this._baseMap;
     }
 
-    getCell(xy) {
+    public getCell(xy: TCoord): string {
         return this._baseMap[xy[0]][xy[1]];
     }
 
-    numHWalls(): number {
+    public numHWalls(): number {
         return this._hWalls.length;
     }
 
-    numVWalls(): number {
+    public numVWalls(): number {
         return this._vWalls.length;
     }
 
-    getHWalls(): OWWall[] {
+    public getHWalls(): OWWall[] {
         return this._hWalls;
     }
 
-    getVWalls(): OWWall[] {
+    public getVWalls(): OWWall[] {
         return this._vWalls;
     }
 
-    setMap(map): void {
+    public setMap(map): void {
         const sizeX = map.length;
         this._baseMap = map;
         for (let x = 0; x < sizeX; x++) {
@@ -179,30 +180,30 @@ export class OWMap {
         }
     }
 
-    setTerrMap(terrMap: Territory): void {
+    public setTerrMap(terrMap: Territory): void {
         this._terrMap = terrMap;
     }
 
-    getTerrMap(): Territory {
+    public getTerrMap(): Territory {
         return this._terrMap;
     }
 
-    addBiome(x: number, y: number, biomeType: string) {
+    public addBiome(x: number, y: number, biomeType: string): void {
         const key = x + ',' + y;
         this._biomeMap[key] = biomeType;
     }
 
-    addVWall(wall): void {
+    public addVWall(wall: OWWall): void {
         wall.type = 'vertical';
         this._vWalls.push(wall);
     }
 
-    addHWall(wall): void {
+    public addHWall(wall: OWWall): void {
         wall.type = 'horizontal';
         this._hWalls.push(wall);
     }
 
-    addFeature(xy: TCoord, type: string): void {
+    public addFeature(xy: TCoord, type: string): void {
         const keyXY = xy[0] + ',' + xy[1];
         if (!this._features.hasOwnProperty(type)) {
             this._features[type] = [];
@@ -214,7 +215,7 @@ export class OWMap {
         this._featuresByXY[keyXY].push(type);
     }
 
-    addFeatureData(xy: TCoord, data: FeatData) {
+    public addFeatureData(xy: TCoord, data: FeatData) {
         const keyXY = xy[0] + ',' + xy[1];
         if (!this._featureData.hasOwnProperty(keyXY)) {
             this._featureData[keyXY] = [];
@@ -222,44 +223,44 @@ export class OWMap {
         this._featureData[keyXY].push(data);
     }
 
-    getFeaturesByType(type: string): TCoord[] {
+    public getFeaturesByType(type: string): TCoord[] {
         if (!this._features.hasOwnProperty(type)) {
             return [];
         }
         return this._features[type];
     }
 
-    getFeaturesByXY(xy: TCoord): string[] {
+    public getFeaturesByXY(xy: TCoord): string[] {
         const keyXY = xy[0] + ',' + xy[1];
         return this._featuresByXY[keyXY];
     }
 
-    addSubLevel(xy: TCoord, level: Level): void {
+    public addSubLevel(xy: TCoord, level: Level): void {
         this._subLevels[xy[0]][xy[1]] = level;
     }
 
-    getSubLevel(xy: TCoord): Level {
+    public getSubLevel(xy: TCoord): Level {
         return this._subLevels[xy[0]][xy[1]];
     }
 
-    clearSubLevels(): void {
+    public clearSubLevels(): void {
         this._subLevels = [];
     }
 
-    getSubLevelsWithFeature(type: string): Level[] {
+    public getSubLevelsWithFeature(type: string): Level[] {
         const featXY = this.getFeaturesByType(type);
         return featXY.map(xy => this.getSubLevel(xy));
     }
 
-    getAreaXY(): number {
+    public getAreaXY(): number {
         return this.getSizeX() * this.getSizeY();
     }
 
-    getSizeX(): number {
+    public getSizeX(): number {
         return this._baseMap.length;
     }
 
-    getSizeY(): number {
+    public getSizeY(): number {
         if (this._baseMap[0].length > 0) {
             return this._baseMap[0].length;
         }
@@ -270,15 +271,15 @@ export class OWMap {
         }
     }
 
-    setExplored(xy: TCoord): void {
+    public setExplored(xy: TCoord): void {
         this._explored[xy[0] + ',' + xy[1]] = true;
     }
 
-    isExplored(xy: TCoord): boolean {
+    public isExplored(xy: TCoord): boolean {
         return this._explored[xy[0] + ',' + xy[1]];
     }
 
-    toJSON(): any {
+    public toJSON(): any {
         const json: any = {
             baseMap: this._baseMap,
             biomeMap: this._biomeMap,
@@ -297,7 +298,7 @@ export class OWMap {
         return json;
     }
 
-    getOWMap(useExplored = false) {
+    public getOWMap(useExplored = false) {
         const map = JSON.parse(JSON.stringify(this._baseMap));
         const sizeY = map[0].length;
         const sizeX = map.length;
@@ -324,7 +325,7 @@ export class OWMap {
 
     /* Returns the OWMap represented as Map.CellList. Marker elements are used to
      * show the visible cells. */
-    getCellList() {
+    public getCellList() {
         const map = this.getOWMap();
         const sizeY = map[0].length;
         const sizeX = map.length;
@@ -347,7 +348,7 @@ export class OWMap {
     }
 
     /* Converts the OWMap into string. */
-    mapToString(useExplored = false) {
+    public mapToString(useExplored = false) {
         const map = this.getOWMap(useExplored);
         const sizeY = map[0].length;
         const sizeX = map.length;
@@ -364,7 +365,7 @@ export class OWMap {
     }
 
     /* Prints the map of biomes and a legend explaining the numbers. */
-    biomeMapToString() {
+    public biomeMapToString() {
         const sizeX = this.getSizeX() - 1;
         const sizeY = this.getSizeY() - 1;
 
@@ -678,7 +679,7 @@ function createOverWorldTerritories(ow, conf) {
 /* Adds features like water, cities etc into the world. This feature only
  * designates the x,y coordinate on overworld map, but does not give details
  * for the Map.Level sublevels. */
-function addOverWorldFeatures(ow, conf) {
+function addOverWorldFeatures(ow: OWMap, conf) {
     const sizeX = ow.getSizeX();
     const sizeY = ow.getSizeY();
     const area = sizeX * sizeY;
@@ -762,7 +763,7 @@ function addOverWorldFeatures(ow, conf) {
 }
 
 /* Adds a feature to the map based on the cardinal direction. */
-function addFeatureToAreaByDir(ow, loc, shrink, type) {
+function addFeatureToAreaByDir(ow: OWMap, loc, shrink, type) {
     const map = ow.getMap();
     const sizeY = map[0].length;
     const sizeX = map.length;
@@ -784,7 +785,7 @@ function addFeatureToAreaByDir(ow, loc, shrink, type) {
 }
 
 /* Adds given feature on top of given wall to random position. */
-function addFeatureToWall(ow, wall, type) {
+function addFeatureToWall(ow: OWMap, wall, type) {
     const map = ow.getMap();
     let xy = null;
 
@@ -805,7 +806,7 @@ function addFeatureToWall(ow, wall, type) {
 
 /* Adds a biome zone to the overworld map. These zones can be used to generate
  * terrain props + different actors based on the zone type. */
-function addBiomeToOverWorld(ow, cmd, biomeType: string) {
+function addBiomeToOverWorld(ow: OWMap, cmd, biomeType: string): void {
     const bbox = getBoundingBox(ow, cmd);
     // Apply given type on the found range
     for (let x = bbox.ulx; x <= bbox.lrx; x++) {
@@ -816,7 +817,7 @@ function addBiomeToOverWorld(ow, cmd, biomeType: string) {
 }
 
 /* Adds dungeons into the overworld. Can be bounded using using coordinates. */
-function addDungeonsToOverWorld(ow, nDungeons, cmd) {
+function addDungeonsToOverWorld(ow: OWMap, nDungeons, cmd): void {
     const bbox = getBoundingBox(ow, cmd);
     for (let i = 0; i < nDungeons; i++) {
         const xy = findCellRandXYInBox(ow.getMap(), bbox, OW.ALL_WALLS);
@@ -824,7 +825,7 @@ function addDungeonsToOverWorld(ow, nDungeons, cmd) {
     }
 }
 
-function addMountainsToOverWorld(ow, nMountains, cmd) {
+function addMountainsToOverWorld(ow: OWMap, nMountains, cmd): void {
     const bbox = getBoundingBox(ow, cmd);
     for (let i = 0; i < nMountains; i++) {
         const xy = findCellRandXYInBox(ow.getMap(), bbox, [OW.TERM]);
@@ -834,7 +835,7 @@ function addMountainsToOverWorld(ow, nMountains, cmd) {
 }
 
 /* Adds villages into the overworld. Can be bounded using using coordinates. */
-function addVillagesToOverWorld(ow, nVillages, cmd) {
+function addVillagesToOverWorld(ow: OWMap, nVillages, cmd): void {
     const bbox = getBoundingBox(ow, cmd);
     for (let i = 0; i < nVillages; i++) {
         const xy = findCellRandXYInBox(ow.getMap(), bbox, [OW.TERM]);
@@ -844,14 +845,14 @@ function addVillagesToOverWorld(ow, nVillages, cmd) {
 
 /* Adds the cities and settlements to the map based on territories, instead
  * of directly specifying the number of cities etc. */
-function addCitiesBasedOnTerritories(ow) {
+function addCitiesBasedOnTerritories(ow: OWMap): void {
     const cityProb = 0.13;
     const fortProb = 0.09;
     const terrObj = ow.getTerrMap();
     const map = terrObj.getMap();
 
-    RG.forEach2D(map, (x, y) => {
-        const xy = [x, y];
+    RG.forEach2D(map, (x: number, y: number) => {
+        const xy = [x, y] as TCoord;
         const name = terrObj.getRival(xy);
 
         if (terrObj.hasRival(xy)) {
@@ -861,14 +862,14 @@ function addCitiesBasedOnTerritories(ow) {
                 ow.addFeatureData(xy, {type: featName});
             }
             else {
-                const box = Geometry.getBoxAround(x, y, 1);
+                const box: TCoord[] = Geometry.getBoxAround(x, y, 1);
                 let placed = false;
-                box.forEach(xy => {
-                    if (!placed && ow.isWallTile(xy[0], xy[1])) {
+                box.forEach((bXY: TCoord) => {
+                    if (!placed && ow.isWallTile(bXY[0], bXY[1])) {
                         if (RG.isSuccess(fortProb)) {
-                            ow.addFeature(xy, OW.MFORT);
+                            ow.addFeature(bXY, OW.MFORT);
                             const featName = name + '_fort';
-                            ow.addFeatureData(xy, {type: featName});
+                            ow.addFeatureData(bXY, {type: featName});
                             placed = true;
                         }
                     }
@@ -878,7 +879,7 @@ function addCitiesBasedOnTerritories(ow) {
     });
 }
 
-function placeCityFeature(ow, xy) {
+function placeCityFeature(ow: OWMap, xy: TCoord): void {
     if (RG.isSuccess(OW.PROB_BVILLAGE)) {
         ow.addFeature(xy, OW.BVILLAGE);
     }
@@ -889,7 +890,7 @@ function placeCityFeature(ow, xy) {
 
 /* Checks if given cell type matches any in the array. If there's OW.CELL_ANY,
  * in the list, then returns always true regardless of type. */
-function cellMatches(type, listOrStr) {
+function cellMatches(type: string, listOrStr): boolean {
     let list = listOrStr;
     if (typeof listOrStr === 'string') {
         list = [listOrStr];
@@ -903,7 +904,7 @@ function cellMatches(type, listOrStr) {
 
 /* Finds a random cell of given type from the box of coordinates. listOrStr
  * should contain cells which are allowed. */
-function findCellRandXYInBox(map, bbox, listOrStr) {
+function findCellRandXYInBox(map: string[][], bbox: BBox, listOrStr): TCoord {
     const {ulx, uly, lrx, lry} = bbox;
 
     let x = ulx === lrx ? ulx : getRNG().getUniformInt(ulx, lrx);
@@ -929,7 +930,7 @@ function findCellRandXYInBox(map, bbox, listOrStr) {
 /* Given location like 'NE' (northeast), and shrink 0 - 1, plus maximum size,
  * returns a random x,y coordinate bounded by these conditions.
  */
-function getRandLoc(loc, shrink, sizeX, sizeY) {
+function getRandLoc(loc, shrink, sizeX, sizeY): TCoord {
     let ulx = 0;
     let lry = 0;
     let lrx = 0;
@@ -1130,4 +1131,4 @@ OWMap.fromJSON = function(json): OWMap {
         ow._terrMap = Territory.fromJSON(json.terrMap);
     }
     return ow;
-}
+};
