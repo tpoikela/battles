@@ -132,15 +132,15 @@ Names.item = {
 
 Names.getItemToStealName = () => {
     const names = Names.item.steal;
-    const first = RNG.arrayGetRand(names.adjective);
-    const second = RNG.arrayGetRand(names.substantive);
+    const first: string = RNG.arrayGetRand(names.adjective);
+    const second: string = RNG.arrayGetRand(names.substantive);
     return first.capitalize() + ' ' + second;
 };
 
 Names.getItemToGather = () => {
     const names = Names.item.gather;
-    const first = RNG.arrayGetRand(names.adjective);
-    const second = RNG.arrayGetRand(names.substantive);
+    const first: string = RNG.arrayGetRand(names.adjective);
+    const second: string = RNG.arrayGetRand(names.substantive);
     return first.capitalize() + ' ' + second;
 };
 
@@ -155,8 +155,8 @@ Names.getUniqueName = type => {
     if (names) {
         let fullName = '';
         while (Names.alreadyUsed.has(fullName)) {
-            const first = RNG.arrayGetRand(names.first);
-            const second = RNG.arrayGetRand(names.second);
+            const first: string = RNG.arrayGetRand(names.first);
+            const second: string = RNG.arrayGetRand(names.second);
             fullName = first + second;
         }
         return fullName;
