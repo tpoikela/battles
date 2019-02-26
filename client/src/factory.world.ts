@@ -185,7 +185,7 @@ export const FactoryWorld = function() {
     this.getHierName = () => this._conf.getScope().join('.');
 
     /* Creates a world using given configuration. */
-    this.createWorld = function(conf) {
+    this.createWorld = function(conf): World.WorldTop {
         this._verif.verifyConf('createWorld', conf, ['name', 'nAreas']);
         if (!this.getGlobalConf().set) {
             this.setGlobalConf({});
