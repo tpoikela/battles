@@ -4,7 +4,7 @@ const $DEBUG = 0;
 /* Main object of the package for encapsulating all other objects. */
 const RG: any = {};
 
-import {TCoord} from './interfaces';
+import {TCoord, DestOrSrc, PlayerCmdInput} from './interfaces';
 
 // Import only types
 type BaseActor = import('./actor').BaseActor;
@@ -13,6 +13,9 @@ type ItemBase = import('./item').ItemBase;
 type ElementBase = import('./element').ElementBase;
 type Entity = import('./entity').Entity;
 type Cell = import('./map.cell').Cell;
+type CellMap = import('./map').CellMap;
+type Level = import('./level').Level;
+type Damage = import('./mixin').Damage;
 
 RG.gameTitle = 'Battles in the North (BitN)';
 
@@ -347,7 +350,7 @@ RG.log = function(...args) {
 
 /* Checks that object has given type using getType() function. Throws error if
  * type does not match. */
-RG.assertType = function(obj, typeStr) {
+RG.assertType = function(obj: any, typeStr: string): void {
     if (obj.getType) {
         if (obj.getType() !== typeStr) {
             RG.err('RG', 'assertType',
@@ -361,7 +364,7 @@ RG.assertType = function(obj, typeStr) {
 
 /* Used to inherit from a prototype. Supports multiple inheritance but
  * sacrifices instanceof.*/
-RG.extend2 = function(Child, Parent) {
+RG.extend2 = function(Child: any, Parent: any): void {
     if (RG.isNullOrUndef([Child])) {
         RG.err('RG', 'extend2',
             `Child not defined. Parent: ${Parent}`);
@@ -390,7 +393,7 @@ RG.extend2 = function(Child, Parent) {
 };
 
 /* Prints an error into console if 'val' is null or undefined.*/
-RG.nullOrUndefError = function(name, msg, val) {
+RG.nullOrUndefError = function(name: string, msg: string, val: any): void {
     if (this.isNullOrUndef([val])) {
         const formattedMsg = `nullOrUndef ${name} ${msg}`;
         console.error(formattedMsg);
@@ -399,7 +402,7 @@ RG.nullOrUndefError = function(name, msg, val) {
 };
 
 /* Returns true if anything in the list is null or undefined.*/
-RG.isNullOrUndef = function(list: any[]) {
+RG.isNullOrUndef = function(list: any[]): boolean {
     for (let i = 0; i < list.length; i++) {
         if (list[i] === null || typeof list[i] === 'undefined' ||
             typeof list === 'undefined') {
@@ -463,27 +466,27 @@ RG.getMeleeAttack = function(att: SentientActor): number {
     return attack;
 };
 
-RG.getMeleeAttackRange = function(att) {
+RG.getMeleeAttackRange = function(att: SentientActor): number {
     const attackRange = att.get('Combat').getAttackRange();
-    const weapon = att.getWeapon();
-    if (weapon) {
-        const weaponRange = weapon.getAttackRange();
+    const weapon: unknown = att.getWeapon();
+    if (weapon && (weapon as Damage).getAttackRange) {
+        const weaponRange = (weapon as Damage).getAttackRange();
         return weaponRange > attackRange ? weaponRange : attackRange;
     }
     return attackRange;
 };
 
-RG.getMeleeDamageAdded = function(att) {
+RG.getMeleeDamageAdded = function(att: SentientActor): number {
     let dmg = att.getCombatBonus('getDamage');
     dmg += RG.strengthToDamage(att.getStrength());
     return dmg;
 };
 
-RG.getMeleeAttackInfo = function(att) {
+RG.getMeleeAttackInfo = function(att: SentientActor): string {
     let result = 'Att: ' + RG.getMeleeAttack(att);
-    const weapon = att.getWeapon();
-    if (weapon) {
-        result += ' D: ' + weapon.getDamageDie().toString();
+    const weapon: unknown = att.getWeapon();
+    if (weapon && (weapon as Damage).getDamageDie) {
+        result += ' D: ' + (weapon as Damage).getDamageDie().toString();
     }
     else {
         result += ' D: ' + att.get('Combat').getDamageDie().toString();
@@ -496,7 +499,9 @@ RG.getMissileAgilityDmg = function(agi) {
     return Math.round(agi / 3);
 };
 
-RG.getMissileDamageAdded = function(att, miss) {
+type MissType = Entity & Damage;
+
+RG.getMissileDamageAdded = function(att: SentientActor, miss: MissType): number {
     let dmg = RG.getMissileAgilityDmg(att.get('Stats').getAgility());
     if (miss.has('Ammo')) {
         dmg += att.getMissileWeapon().rollDamage();
@@ -507,31 +512,28 @@ RG.getMissileDamageAdded = function(att, miss) {
     return dmg;
 };
 
-RG.getMissileDamage = function(att, miss) {
+RG.getMissileDamage = function(att: SentientActor, miss: MissType): number {
     let dmg = miss.rollDamage();
     dmg += RG.getMissileDamageAdded(att, miss);
     return dmg;
 };
 
-RG.getMissileAttack = function(att) {
+RG.getMissileAttack = function(att: SentientActor): number {
     let attack = att.get('Combat').getAttack();
     attack += att.getInvEq().getEquipment().getAttack();
     attack += att.get('Stats').getAccuracy() / 2;
     attack += att.getInvEq().getEquipment().getAccuracy() / 2;
 
     // Subtract melee weapon
-    const weapon = att.getWeapon();
-    if (weapon) {
-        if (weapon.getAttack) {
-            attack -= weapon.getAttack();
-        }
+    const weapon: unknown = att.getWeapon();
+    if (weapon && (weapon as Damage).getAttack) {
+        attack -= (weapon as Damage).getAttack();
     }
-
     return attack;
 };
 
 /* Returns the missile attack info in a string. */
-RG.getMissileAttackInfo = function(att) {
+RG.getMissileAttackInfo = function(att: SentientActor): string {
     const missWeapon = att.getMissileWeapon();
     const miss = att.getInvEq().getMissile();
     if (!miss) {
@@ -551,7 +553,7 @@ RG.getMissileAttackInfo = function(att) {
     return result;
 };
 
-RG.getMissileRange = function(att, miss) {
+RG.getMissileRange = function(att: SentientActor, miss: MissType): number {
     let range = miss.getAttackRange();
     if (miss.has('Ammo')) {
         const missWeapon = att.getMissileWeapon();
@@ -576,21 +578,21 @@ RG.getMissileRange = function(att, miss) {
     return range;
 };
 
-RG.strengthToDamage = function(str) {
+RG.strengthToDamage = function(str: number): number {
     return Math.round(str / 4);
 };
 
-RG.accuracyToAttack = function(acc) {
+RG.accuracyToAttack = function(acc: number): number {
     return Math.floor(acc / 2);
 };
 
-RG.agilityToDefense = function(agi) {
+RG.agilityToDefense = function(agi: number): number {
     return Math.floor(agi / 2);
 };
 
 
 /* Given actor and cells it sees, returns first enemy cell found.*/
-RG.findEnemyCellForActor = function(actor, seenCells) {
+RG.findEnemyCellForActor = function(actor, seenCells: Cell[]): Cell[] {
     const res = [];
     const actorCells = seenCells.filter(c => c.hasActors());
     actorCells.forEach(cell => {
@@ -828,7 +830,7 @@ RG.DAY = {
 
 /* Converts a direction (N, S, ...) to 2-d vector. If already,
  * a vector, returns it. */
-RG.dirTodXdY = function(dir) {
+RG.dirTodXdY = function(dir: TCoord | string): TCoord | null {
     if (Array.isArray(dir)) {
         return dir;
     }
@@ -841,7 +843,7 @@ RG.dirTodXdY = function(dir) {
     return null;
 };
 
-RG.dXdYToDir = function(dXdY) {
+RG.dXdYToDir = function(dXdY: TCoord): string {
     const [dX, dY] = dXdY;
     let result = '';
     if (dY === 1) {result += 'S';}
@@ -852,7 +854,7 @@ RG.dXdYToDir = function(dXdY) {
 };
 
 
-RG.dirToChar = function(dir) {
+RG.dirToChar = function(dir: TCoord): string {
     const [dX, dY] = dir;
     if (dX !== 0) {
         if (dY === 0) {return '-';}
@@ -930,16 +932,17 @@ RG.STATS_ABBR = RG.STATS.map(stat => stat.substr(0, 3));
 RG.GET_STATS = RG.STATS.map(stat => 'get' + stat);
 RG.SET_STATS = RG.STATS.map(stat => 'set' + stat);
 
-RG.getDmgClassName = function(dmgType) {
+RG.getDmgClassName = function(dmgType: string): string {
     return RG.classNameDMG[dmgType];
 };
 
+/* Converts key of format X,Y to [X, Y]. */
 RG.key2Num = function(key: string): [number, number] {
     const [x, y] = key.split(',');
     return [parseInt(x, 10), parseInt(y, 10)];
 };
 
-RG.isEmpty =value => {
+RG.isEmpty = (value: any): boolean => {
     if (RG.isNullOrUndef([value])) {
         return true;
     }
@@ -953,7 +956,7 @@ RG.isEmpty =value => {
 };
 
 /* Returns name of object, or its parent's if object has no name. */
-RG.getName =obj => {
+RG.getName = (obj: any): string => {
     if (obj.getName) {
         return obj.getName();
     }
@@ -961,7 +964,7 @@ RG.getName =obj => {
         const parent = obj.getParent();
         return parent.getName();
     }
-    return '';
+    return ''; // Should this be an error?
 };
 
 RG.getObjRefArray = (type, arr) => {
@@ -1031,8 +1034,10 @@ RG.ALIGNMENTS = [RG.ALIGN_GOOD, RG.ALIGN_NEUTRAL, RG.ALIGN_EVIL];
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
+type ProbDist = {[key: string]: number};
+
 /* Returns danger probabilites for given level.*/
-RG.getDangerProb = (min, max) => {
+RG.getDangerProb = (min: number, max: number): ProbDist => {
     if (min > max) {
         console.error('RG.getDangerProb param order is min < max');
         console.error(`\tGot min: ${min}, max: ${max}`);
@@ -1077,7 +1082,7 @@ RG.getMaxValue = (xDiff, yDiff) => {
 
 /* Returns the weight distribution for foods. This is something like
  * {0.1: 10, 0.2: 7, 0.3: 5, 0.5: 1} etc.*/
-RG.getFoodWeightDistr = () => ({
+RG.getFoodWeightDistr = (): ProbDist => ({
     0.1: 20,
     0.2: 10,
     0.3: 5,
@@ -1086,7 +1091,7 @@ RG.getFoodWeightDistr = () => ({
 });
 
 /* Returns the count distribution for gold coins. */
-RG.getGoldCoinCountDistr = nLevel => {
+RG.getGoldCoinCountDistr = (nLevel: number): ProbDist => {
     const maxVal = nLevel + 1;
     const dist = {};
     for (let i = 1; i <= maxVal; i++) {
@@ -1095,7 +1100,8 @@ RG.getGoldCoinCountDistr = nLevel => {
     return dist;
 };
 
-RG.getRuneChargeDistr = () => ({
+RG.getRuneChargeDistr = (): ProbDist => ({
+    0: 2,
     1: 10,
     2: 30,
     3: 10,
@@ -1108,7 +1114,7 @@ RG.getRuneChargeDistr = () => ({
 //--------------------------------
 
 /* Converts abstract value into gold weight. */
-RG.valueToGoldWeight = value => {
+RG.valueToGoldWeight = (value: number): number => {
     let currVal = value;
     let slope = 1;
     while (currVal >= 100) {
@@ -1121,7 +1127,7 @@ RG.valueToGoldWeight = value => {
 
 /* Scales (up) the value of item if any extra bonuses or modifiers are added to
  * it. */
-RG.scaleItemValue = (type, bonus, item) => {
+RG.scaleItemValue = (type: string, bonus: number, item: ItemBase) => {
     const currValue = item.getValue();
     let mult = 1;
     switch (type) {
@@ -1134,7 +1140,7 @@ RG.scaleItemValue = (type, bonus, item) => {
 };
 
 /* Returns true if given actor has gold at least equal to given gold weight. */
-RG.hasEnoughGold = (actor, goldWeight) => {
+RG.hasEnoughGold = (actor, goldWeight: number): boolean => {
     const ncoins = RG.getGoldInCoins(goldWeight);
     const items = actor.getInvEq().getInventory().getItems();
     for (let i = 0; i < items.length; i++) {
@@ -1149,7 +1155,7 @@ RG.hasEnoughGold = (actor, goldWeight) => {
 
 /* Tries to remove given amount of gold coins from the actor. Returns the number
  * of coins removed. */
-RG.removeNCoins = (actor, ncoins) => {
+RG.removeNCoins = (actor: SentientActor, ncoins: number): number => {
     let ncoinsRemoved = 0;
     const items = actor.getInvEq().getInventory().getItems();
     let coinsFound = null;
@@ -1175,7 +1181,7 @@ RG.removeNCoins = (actor, ncoins) => {
 
 /* Returns the total stat value of the given stat. Note that stat must be given
  * in getter format ie 'getStrength', not Strength. */
-RG.getItemStat = (getFuncName, item) => {
+RG.getItemStat = (getFuncName: string, item): number => {
     if (!item) {return 0;}
 
     let result = 0;
@@ -1198,7 +1204,7 @@ RG.getItemStat = (getFuncName, item) => {
 
 };
 
-RG.getExpRequired =newLevel => {
+RG.getExpRequired = (newLevel: number): number => {
     let reqExp = 0;
     for (let i = 1; i <= newLevel; i++) {
         reqExp += (i - 1) * 10;
@@ -1207,7 +1213,7 @@ RG.getExpRequired =newLevel => {
 };
 
 /* Given direction vector and source, returns a new x,y coordinate. */
-RG.newXYFromDir = (dir, src) => {
+RG.newXYFromDir = (dir: TCoord, src: DestOrSrc): TCoord => {
     let [xSrc, ySrc] = [0, 0];
     if (Array.isArray(src)) {
         [xSrc, ySrc] = src;
@@ -1219,7 +1225,7 @@ RG.newXYFromDir = (dir, src) => {
 };
 
 /* Returns the dX,dY of two coordinates or objects. */
-RG.dXdY = (dest, src) => {
+RG.dXdY = (dest: DestOrSrc, src: DestOrSrc): TCoord => {
     let [xDest, yDest, xSrc, ySrc] = [0, 0, 0, 0];
     if (Array.isArray(dest)) {
         xDest = dest[0];
@@ -1242,7 +1248,7 @@ RG.dXdY = (dest, src) => {
     return [xDest - xSrc, yDest - ySrc];
 };
 
-RG.dXdYAbs = (dest, src) => {
+RG.dXdYAbs = (dest: DestOrSrc, src: DestOrSrc): TCoord => {
     const [dX, dY] = RG.dXdY(dest, src);
     return [Math.abs(dX), Math.abs(dY)];
 };
@@ -1254,20 +1260,21 @@ RG.dXdYAbs = (dest, src) => {
  *   3. Given 2 objects at (0,4) and (0,1), returns [0,1].
  *   4. Given 2 objects at (4,0) and (2,0), returns [1,0].
  */
-RG.dXdYUnit = (dest, src) => {
+RG.dXdYUnit = (dest: DestOrSrc, src: DestOrSrc): TCoord => {
     const [dX, dY] = RG.dXdY(dest, src);
     const dXUnit = dX === 0 ? 0 : dX / Math.abs(dX);
     const dYUnit = dY === 0 ? 0 : dY / Math.abs(dY);
     return [dXUnit, dYUnit];
 };
 
-RG.withinRange = (r, dest, src) => {
+RG.withinRange = (r: number, dest: DestOrSrc, src: DestOrSrc): boolean => {
     const [dX, dY] = RG.dXdYAbs(dest, src);
     return dX <= r && dY <= r;
 };
 
-/* Given an actor, scales its attributes based on new experience level.*/
-RG.levelUpActor = (actor, newLevel) => {
+/* Given an actor, scales its attributes based on new experience level. Can advance 
+ * actor multiple levels also, if newLevel diff to current level is more than 1.*/
+RG.levelUpActor = (actor: SentientActor, newLevel: number): void => {
     if (actor.has('Experience')) {
         let currLevel = actor.get('Experience').getExpLevel();
         if (currLevel < newLevel) {
@@ -1309,14 +1316,14 @@ RG.levelUpActor = (actor, newLevel) => {
     }
 };
 
-RG.levelUpStats = function(actor, nextLevel) {
+RG.levelUpStats = function(actor: SentientActor, nextLevel: number): void {
     const rng = Random.getRNG();
     const randStat = rng.arrayGetRand(RG.STATS_LC);
     const stats = actor.get('Stats');
     stats.incrStat(randStat, 1);
 };
 
-RG.levelUpCombatStats = function(actor, nextLevel) {
+RG.levelUpCombatStats = function(actor: SentientActor, nextLevel: number): void {
     if (actor.has('Combat')) {
         const combatComp = actor.get('Combat');
 
@@ -1343,7 +1350,7 @@ RG.levelUpCombatStats = function(actor, nextLevel) {
 /* Prints the given object using console.log. Calls all accessor functions
  * given in 'funcs' list and prints their value. If no list is given, prints the
  * full object directly. */
-RG.printObj = function(obj, funcs, linfo) {
+RG.printObj = function(obj: any, funcs: string | string[], linfo): void {
 
     const printVal = (value, func) => {
         if (typeof value === 'object') {
@@ -1364,7 +1371,7 @@ RG.printObj = function(obj, funcs, linfo) {
                 }
                 else {
                     const json = JSON.stringify(obj);
-                    RG.err('RG', 'printObjList',
+                    RG.err('RG', 'printObj',
                         `No func ${funcs} in object ${json}`);
                 }
 
@@ -1376,7 +1383,7 @@ RG.printObj = function(obj, funcs, linfo) {
                 printVal(value, funcs);
             }
             else {
-                RG.err('RG', 'printObjList',
+                RG.err('RG', 'printObj',
                     `No func ${funcs} in object ${JSON.stringify(obj)}`);
             }
         }
@@ -1390,7 +1397,7 @@ RG.printObj = function(obj, funcs, linfo) {
  * given in 'funcs' list and prints their value. If no list is given, prints the
  * full object directly using console.log(obj). filterFunc can be given to
  * filter the list. */
-RG.printObjList = function(list, funcs, filterFunc) {
+RG.printObjList = function(list: any[], funcs: string | string[], filterFunc) {
     const numObjs = list.length;
     console.log(`List has ${numObjs} objects`);
 
@@ -1409,27 +1416,26 @@ RG.printObjList = function(list, funcs, filterFunc) {
 };
 
 // To create player commands
-RG.getUseCmd = function(item, target) {
+RG.getUseCmd = function(item, target): PlayerCmdInput {
     return {cmd: 'use', item, target};
 };
 
-RG.getDropCmd = function(item, count) {
+RG.getDropCmd = function(item, count): PlayerCmdInput {
     return {cmd: 'drop', item, count};
 };
 
-RG.getEquipCmd = function(item, count) {
+RG.getEquipCmd = function(item, count): PlayerCmdInput {
     return {cmd: 'equip', item, count};
 };
 
-RG.getUnequipCmd = function(name, slotNumber, count) {
+RG.getUnequipCmd = function(name, slotNumber, count): PlayerCmdInput {
     return {cmd: 'unequip', slot: name, slotNumber, count};
 };
-
 
 RG.ONE_SHOT_ITEMS = ['potion'];
 
 /* Returns true if given item is one-shot use item by its type.*/
-RG.isOneShotItem = item => {
+RG.isOneShotItem = (item: ItemBase): boolean => {
     const itemType = item.getType();
     const index = RG.ONE_SHOT_ITEMS.indexOf(itemType);
     return index >= 0;
@@ -1468,12 +1474,12 @@ RG.isEntity = (obj): obj is Entity => {
 
 /* Can be queried if actor is still valid for serialisation or effects
  * like telepath or order giving. */
-RG.isActorActive = target => {
+RG.isActorActive = (target: Entity): boolean => {
     return target && !target.has('Dead');
 };
 
 /* Returns the use type (ie drink or dig or hit...) for a item/target pair. */
-RG.getItemUseType = (item, targetOrObj) => {
+RG.getItemUseType = (item: ItemBase, targetOrObj): string => {
     let target = targetOrObj;
     if (targetOrObj.target) {
         target = targetOrObj.target;
@@ -1572,7 +1578,7 @@ RG.SYS.WEATHER = Symbol('WEATHER');
 RG.NO_DAMAGE_SRC = null;
 
 
-RG.getCardinalDirection = (level, cell) => {
+RG.getCardinalDirection = (level: Level, cell: Cell): string => {
     const cols = level.getMap().cols;
     const rows = level.getMap().rows;
     const x = cell.getX();
@@ -1586,7 +1592,7 @@ RG.getCardinalDirection = (level, cell) => {
 
 /* Returns a textual (human-readable) interpretation of x,y difference between
  * to targets. */
-RG.getTextualDir = (dest, src, tol = 10) => {
+RG.getTextualDir = (dest: DestOrSrc, src: DestOrSrc, tol = 10): string => {
     let res = '';
     const [dX, dY] = RG.dXdY(dest, src);
     const dXNew = dX / 10;
@@ -1604,14 +1610,16 @@ RG.getTextualDir = (dest, src, tol = 10) => {
 // RG ARRAY METHODS
 //-------------------------------------------------------------
 
+type Map2D = any[][];
+
 /* Debugging function for printing 2D map row-by-row. */
-RG.printMap = map => {
+RG.printMap = (map: Map2D | CellMap): void => {
     let rowByRow = null;
     if (Array.isArray(map)) {
         rowByRow = RG.colsToRows(map);
     }
-    else if (Array.isArray(map._map)) {
-        rowByRow = RG.colsToRows(map._map);
+    else if (Array.isArray((map as CellMap)._map)) {
+        rowByRow = RG.colsToRows((map as CellMap)._map);
     }
     if (rowByRow) {
         const sizeY = rowByRow.length;
@@ -1891,77 +1899,6 @@ RG.destroyItemIfNeeded = item => {
         }
     }
 };
-
-//---------------------------------------------------------------------------
-// MessageHandler
-//---------------------------------------------------------------------------
-
-export interface IMessage {
-    msg: string;
-    style?: string;
-    count?: number;
-    cell?: any;
-    seen?: boolean;
-}
-
-/* Handles the game message listening and storing of the messages. */
-export class MessageHandler { // {{{2
-    public _lastMsg: IMessage;
-    public _messages: IMessage[];
-    public _prevMessages: IMessage[];
-    public _hasNew: boolean;
-    public hasNotify: boolean;
-
-    constructor() {
-        this._lastMsg = null;
-        this._messages = [];
-        this._prevMessages = [];
-        this._hasNew = false;
-        this.hasNotify = true;
-        POOL.listenEvent(RG.EVT_MSG, this);
-    }
-
-    public notify(evtName, msg): void {
-        if (evtName === RG.EVT_MSG) {
-            if (msg.hasOwnProperty('msg')) {
-                const msgObj: IMessage = {msg: msg.msg, style: 'prim', count: 1};
-
-                if (msg.hasOwnProperty('cell')) {
-                    msgObj.cell = msg.cell;
-                }
-
-                if (msg.hasOwnProperty('style')) {
-                    msgObj.style = msg.style;
-                }
-
-                if (this._lastMsg && this._lastMsg.msg === msgObj.msg) {
-                    this._lastMsg.count += 1;
-                }
-                else {
-                    this._lastMsg = msgObj;
-                    this._messages.push(msgObj);
-                }
-                this._hasNew = true;
-            }
-        }
-    }
-
-    public hasNew(): boolean {return this._hasNew;}
-
-    public getMessages(): IMessage[] {
-        this._hasNew = false;
-        if (this._messages.length > 0) {return this._messages;}
-        else if (this._prevMessages.length > 0) {return this._prevMessages;}
-        else {return [];}
-    }
-
-    public clear(): void {
-        if (this._messages.length > 0) {this._prevMessages = this._messages.slice();}
-        this._messages = [];
-    }
-
-}
-RG.MessageHandler = MessageHandler;
 
 /* eslint no-unused-vars: 0 */
 export default RG;
