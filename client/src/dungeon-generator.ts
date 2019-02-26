@@ -257,20 +257,22 @@ export class DungeonGenerator extends LevelGenerator {
 
             const maxX = cols - 2 - width;
             let x = RNG.getUniformInt(1, maxX);
+            let xConf = '';
             if (conf.bigRoomX) {
-                x = conf.bigRoomX[i];
+                xConf = conf.bigRoomX[i];
             }
 
-            if (/cen/.test(x)) {
+            if (/cen/.test(xConf)) {
                 x = cx - Math.floor(width / 2);
             }
 
             const maxY = rows - 2 - height;
             let y = RNG.getUniformInt(1, maxY);
+            let yConf = '';
             if (conf.bigRoomY) {
-                y = conf.bigRoomY[i];
+                yConf = conf.bigRoomY[i];
             }
-            if (/cen/.test(y)) {
+            if (/cen/.test(yConf)) {
                 y = cy - Math.floor(height / 2);
             }
 
