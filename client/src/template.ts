@@ -17,6 +17,9 @@ const debug = msg => {
 export interface ElemTemplate {
     setProps: (props: any) => void;
     getProp: (prop: string) => any;
+    getChars: () => string[];
+    getDir: () => string;
+    setProp: (key: string, val: any) => void;
 }
 
 /* Creates and return ElemTemplate from a string.
@@ -233,7 +236,7 @@ export const ElemTemplate = function(conf?) {
     };
 
     // Find Y-generator
-    this.getChars = function(arr) {
+    this.getChars = function(arr): string[] {
         if (!arr) {
             arr = [];
             for (let i = 0; i < this.nMaps; i++) {
