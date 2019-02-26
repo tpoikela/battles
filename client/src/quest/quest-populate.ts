@@ -207,7 +207,8 @@ export class QuestPopulate {
                 return qData[type][n - 1];
             }
             else if (searchParen) {
-                // TODO maybe this should be recursive call to getQuestPopulData()
+                // TODO maybe this should be recursive call to getQuestPopulData()?
+                // now it searches only the immediate parent quest
                 const parentQuest = this.getParentQuestData();
                 if (parentQuest) {
                     const qDataParent: QuestPopulData = this._data.get(parentQuest);
@@ -495,13 +496,12 @@ export class QuestPopulate {
                 if (exploreTarget) {
                     this.currQuest.addTarget('explore', exploreTarget);
                     ok = true;
-                    // TODO This should be added to handle read flag properly
-                    /* if (this.flags.read) {
+                    if (this.flags.read) {
                         this.flags.read = false;
                         // Read about this location from previous read target
                         this.pushQuestCrossRef(this.getQuestPopulData('read'),
                             newLocation);
-                    }*/
+                    }
                     if (this.flags.escort) {
                         this.flags.escort = false;
                         // Prev escort target must be escorted to this location
@@ -1205,32 +1205,48 @@ export class QuestPopulate {
     /* Cleans up already created resources which would've been part of quest.
      * Quest gen failed for some reason, so we'll clean up the resources. */
     protected cleanUpFailedQuest(): void {
+        let numCleaned = 0;
         this._cleanup.forEach((cleanupObj: CleanupItem) => {
             const {location} = cleanupObj;
+            let ok = false;
+            let questObj = null;
             if (cleanupObj.item) {
                 const [x, y] = cleanupObj.item.getXY();
+                questObj = cleanupObj.item;
                 try {
-                    location.removeItem(cleanupObj.item, x, y);
+                    ok = location.removeItem(cleanupObj.item, x, y);
                 }
                 catch (e) {
                     const {tag} = cleanupObj;
                     const name = cleanupObj.item.getName();
+                    const itemList = location.getItems().map(i => i.toString());
                     let msg = `Failed to cleanup item ${name} @ ${x},${y}`;
                     if (tag) {msg += '\nTag specified: |' + tag + '|';}
                     msg += '\n' + e.message;
-                    // msg += '\nItems at loc: ' + JSON.stringify(location.getItems());
+                    msg += '\nItems at loc: ' + itemList;
                     RG.err('QuestPopulate', 'cleanUpFailedQuest', msg);
                 }
             }
             else if (cleanupObj.actor) {
                 const [x, y] = cleanupObj.actor.getXY();
-                location.removeActor(cleanupObj.actor);
+                ok = location.removeActor(cleanupObj.actor);
+                questObj = cleanupObj.actor;
             }
             else if (cleanupObj.element) {
                 const [x, y] = cleanupObj.element.getXY();
-                location.removeElement(cleanupObj.element, x, y);
+                ok = location.removeElement(cleanupObj.element, x, y);
+                questObj = cleanupObj.element;
+            }
+            if (ok) {
+                ++numCleaned;
             }
         });
+        if (numCleaned !== this._cleanup.length) {
+            RG.warn('QuestPopulate', 'cleanUpFailedQuest',
+                'Did not remove all quest items for failed quest');
+        }
+        // Clear the list to prevent double cleanup
+        this._cleanup = [];
     }
 
     protected errorQuestHandle(target, funcName): void {
