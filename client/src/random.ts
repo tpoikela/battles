@@ -66,12 +66,12 @@ export class Random {
 
     /* Returns N unique items randomly from the array. This assumes that
      * all items are already unique in the array. */
-    public getUniqueItems<T>(arr: T[], n = 2): T[] {
+    public getUniqueItems<T>(arr: T[], n: number = 2): T[] {
         if (arr.length <= n) {
             return arr.slice(); // Just return a copy
         }
-        const seen = {};
-        const items = [];
+        const seen: {[key: string]: boolean} = {};
+        const items: T[] = [];
         while (items.length < n) {
             const index = this.randIndex(arr);
             if (!seen[index]) {
@@ -87,7 +87,7 @@ export class Random {
     }
 
     /* Returns a random index number from given array. */
-    public randIndex(arr): number {
+    public randIndex(arr: any[]): number {
         return Math.floor(this.rng.getUniform() * arr.length);
     }
 
@@ -95,13 +95,13 @@ export class Random {
         return this.rng.getUniform();
     }
 
-    public getUniformRange(min, max): number {
+    public getUniformRange(min: number, max: number): number {
         const span = max - min;
         const uniform = this.getUniform();
         return min + span * uniform;
     }
 
-    public getNormal(mean, stddev): number {
+    public getNormal(mean: number, stddev: number): number {
         return this.rng.getNormal(mean, stddev);
     }
 
@@ -113,14 +113,14 @@ export class Random {
      * highest weight, and 0 the lowest. IE: {0: 1, 1: 2, ... N: N + 1}
      */
     public getWeightedLinear(N: number): number {
-        const weights = {};
+        const weights: RandWeights = {};
         for (let i = 0; i < N; i++) {
             weights[i] = i + 1; // Without + 1, 0 will never be chosen
         }
         return this.rng.getWeightedValue(weights);
     }
 
-    public toJSON() {
+    public toJSON(): any {
         return {
             seed: this.seed,
             state: this.rng.getState()
@@ -160,11 +160,11 @@ export class Random {
      * From http://stackoverflow.com/questions/2450954/
      * how-to-randomize-shuffle-a-javascript-array
      */
-    public shuffle(array) {
+    public shuffle<T>(array: T[]): T[] {
         if (array.length <= 1) {return array;}
         let currentIndex = array.length - 1;
-        let temporaryValue = 0;
-        let randomIndex = 0;
+        let temporaryValue: T;
+        let randomIndex: number = 0;
 
         // While there remain elements to shuffle...
         while (0 !== currentIndex) {
@@ -181,5 +181,6 @@ export class Random {
 
         return array;
     }
+
 }
 
