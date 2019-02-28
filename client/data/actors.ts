@@ -14,6 +14,13 @@ export interface Color {
     bg: string;
 }
 
+interface ItemObj {
+    name: string;
+    count: number;
+}
+
+type Item = string | ItemObj;
+
 // Defines all possible attributes which can be given
 export interface ActorShell {
     name: string; // Only name is mandatory
@@ -59,8 +66,8 @@ export interface ActorShell {
     onAttackHit?: any;
     addComp?: any;
     poison?: any;
-    equip?: any[];
-    inv?: any[];
+    equip?: Item[];
+    inv?: Item[];
 
 }
 
@@ -176,6 +183,13 @@ export const ActorsData: ActorShell[] = [
         hp: 23, danger: 5
     },
     {
+        name: 'giant spider', char: 'S', base: 'animal',
+        colorfg: 'Green',
+        attack: 6, defense: 3, damage: '1d8 + 2',
+        hp: 17, danger: 5,
+        poison: {duration: '4d6', damage: '1d4 + 2', prob: '0.20'},
+    },
+    {
         name: 'black vulture', char: 'V', base: 'animal',
         attack: 5, defense: 5, damage: '1d7',
         hp: 25, danger: 5, addComp: 'Flying'
@@ -247,9 +261,18 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'spider queen', char: 'S', base: 'animal',
+        color: color('Purple', 'Green'),
         attack: 7, defense: 7, damage: '2d8',
         hp: 45, danger: 11, brain: 'SpellCaster',
         spells: ['SummonSpiders', 'ArrowOfWebs'], maxPP: 40, pp: 40
+    },
+    {
+        name: 'ancient manticore', char: 'M', base: 'animal',
+        color: color('Gray', 'Brown'),
+        attack: 15, defense: 10, damage: '2d10 + 10',
+        hp: 75, danger: 15, addComp: 'Flying',
+        onHit: [{addComp: 'Paralysis', duration: '1d6 + 1'}],
+        spells: ['SummonKin'], maxPP: 30, pp: 30
     },
 
     // BEASTS TODO
@@ -1043,8 +1066,13 @@ export const ActorsData: ActorShell[] = [
         attack: 4, defense: 8, damage: '6d2', hp: 35, danger: 7
     },
     {
+        name: 'catfolk queen', base: 'CatfolkBase',
+        attack: 6, defense: 15, damage: '7d3', hp: 45, danger: 10,
+        colorfg: 'Purple', addComp: 'FirstStrike'
+    },
+    {
         name: 'catfolk king', base: 'CatfolkBase',
-        attack: 6, defense: 12, damage: '7d3', hp: 40, danger: 10,
+        attack: 10, defense: 12, damage: '7d3 + 5', hp: 60, danger: 13,
         colorfg: 'Red'
     },
 
