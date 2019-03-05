@@ -1,6 +1,12 @@
 /* This file contains modifications that are applied to specific actors. */
 
-export const ActorMods: any = {};
+export interface IActorMods {
+    description?: string;
+    stats: {[key: string]: number};
+    player: {[key: string]: number};
+}
+
+export const ActorMods: {[key: string]: IActorMods} = {};
 
 ActorMods.bearfolk = {
     description: '',
