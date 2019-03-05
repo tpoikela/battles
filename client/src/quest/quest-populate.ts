@@ -839,6 +839,7 @@ export class QuestPopulate {
         return null;
     }
 
+    /* Finds an entity to damage. Can be element or actor. */
     public getEntityToDamage(): Entity | null {
         const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
@@ -855,7 +856,7 @@ export class QuestPopulate {
         return null;
     }
 
-    public getEntityToDefend() {
+    public getEntityToDefend(): Entity | null {
         const location = this.currQuest.getCurrentLocation();
         const actors = location.getActors();
         if (actors.length > 0) {
@@ -870,7 +871,7 @@ export class QuestPopulate {
         return this.getActorForQuests(actors) as SentientActor;
     }
 
-    public getItemToExchange() {
+    public getItemToExchange(): ItemBase | null {
         const location = this.currQuest.getCurrentLocation();
         const elems = location.getElements();
         const shops = elems.filter(elem => elem.getType() === 'shop');
@@ -958,8 +959,8 @@ export class QuestPopulate {
                     while (target) {
                         // Custom create function can be given such as createBattle
                         // or createBook, which must return the target
-                        if (isEntity(target)) {
-                            this.setAsQuestTarget(key, target);
+                        if (RG.isEntity(target)) {
+                            this.setAsQuestTarget(key, target as Entity);
                         }
                         else if ((target as QuestObjSurrogate).createTarget) {
                             const {createTarget, args} = target as QuestObjSurrogate;
@@ -1307,22 +1308,10 @@ QuestPopulate.supportedKeys = new Set([
 ]);
 
 /*
-const runningAsNodeScript = !module.parent && typeof window === 'undefined';
-if (runningAsNodeScript) {
-    RNG.setSeed(Date.now());
-    // The grammar is stored in the string g
-    // console.log(JSON.stringify(rules));
-    // console.log(generateQuest(rules, 'QUEST'));
-    const questGen = new QuestGen();
-    console.log(questGen.genQuestWithConf({maxLength: 10, minLength: 3}));
-    console.log(JSON.stringify(questGen.stack));
-    console.log(JSON.stringify(questGen.ruleHist));
-}
-*/
-
 function isEntity(obj: any): obj is Entity {
     if ((obj as Entity).comps && (obj as Entity).compsByType && (obj as Entity).add && (obj as Entity).get) {
         return true;
     }
     return false;
 }
+*/
