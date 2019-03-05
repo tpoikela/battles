@@ -633,6 +633,7 @@ FromJSON.prototype.restoreSpell = function(spell, entity) {
         spellObj._dice = dice;
     }
     if (spell.spells) {
+        spellObj.removeSpells(); // Remove default spells
         spell.spells.forEach(subJSON => {
             const subSpell = this.restoreSpell(subJSON, entity);
             spellObj.addSpell(subSpell);
