@@ -8,7 +8,7 @@ import {FromJSON} from '../../../client/src/game.fromjson';
 import * as Component from '../../../client/src/component';
 import {SentientActor} from '../../../client/src/actor';
 import * as Item from '../../../client/src/item';
-import {Spell} from '../../../client/src/spell';
+import {Spell} from '../../../client/data/spells';
 import {System} from '../../../client/src/system';
 import {ObjectShell} from '../../../client/src/objectshellparser';
 import { RGUnitTests } from '../../rg.unit-tests';
@@ -55,7 +55,7 @@ describe('Spell.SpellBook', () => {
         const menuValues = Object.values(selMenu);
         expect(menuValues.length).to.be.above(15);
 
-        const selectObjSpell = selObj.select(Keys.VK_b);
+        const selectObjSpell = selObj.select(Keys.VK_a);
         expect(selectObjSpell).to.not.be.empty;
 
         if (typeof selectObjSpell === 'function') {
