@@ -621,6 +621,14 @@ export const Named = UniqueDataComponent('Named',
     {name: '', uniqueName: ''}
 );
 
+Named.prototype.prepend = function(name: string): void {
+    this.name = name + this.name;
+}
+
+Named.prototype.getBaseName = function(): string {
+    return this.name;
+}
+
 Named.prototype.getFullName = function() {
     if (this.uniqueName !== '') {
         return `${this.uniqueName}, ${this.name}`;
