@@ -17,6 +17,7 @@ import {SentientActor} from './actor';
 import {FactoryLevel} from './factory.level';
 import * as Component from './component';
 import {TCoord} from './interfaces';
+import {Entity} from './entity';
 
 const POOL: EventPool = EventPool.getPool();
 
@@ -36,13 +37,13 @@ interface Entrance {
     y: number;
 }
 
-export interface AreaTileJSON {
+export interface IAreaTileJSON {
     level: number;
     [key: string]: any;
     isJSON: boolean;
 }
 
-export type AreaTileObj = AreaTile | AreaTileJSON;
+export type AreaTileObj = AreaTile | IAreaTileJSON;
 
 const RNG = Random.getRNG();
 
@@ -445,9 +446,28 @@ World.edgeHasConnections = edgeHasConnections;
 // WorldBase
 //----------------
 
+export interface IWorldBaseJSON {
+    hierName: string;
+    id: number;
+    name: string;
+    type: string;
+    parent?: number;
+    components?: {[key: string]: any};
+}
+
+export interface IZoneBaseJSON extends IWorldBaseJSON {
+    x: number;
+    y: number;
+}
+
+export interface ISubZoneBaseJSON extends IWorldBaseJSON {
+    nLevels: number;
+    levels: number[];
+}
+
 /* Base class for world places. Each place has name and type + full hierarchical
 * name to trace where the place is in hierarchy. */
-export class WorldBase extends GameObject {
+export class WorldBase extends Entity {
 
     public name: string;
     public hierName: string;
@@ -461,19 +481,19 @@ export class WorldBase extends GameObject {
         this.parent = null;
     }
 
-    public getName() {
+    public getName(): string {
         return this.name;
     }
 
-    public getHierName() {
+    public getHierName(): string {
         return this.hierName;
     }
 
-    public setHierName(hierName) {
+    public setHierName(hierName: string): void {
         this.hierName = hierName;
     }
 
-    public getType() {
+    public getType(): string {
         return this.type;
     }
 
@@ -489,8 +509,8 @@ export class WorldBase extends GameObject {
         this.parent = parent;
     }
 
-    public toJSON() {
-        const obj: any = { // TODO fix typings
+    public toJSON(): IWorldBaseJSON {
+        const obj: IWorldBaseJSON = { // TODO fix typings
             hierName: this.hierName,
             id: this.getID(),
             name: this.name,
@@ -499,6 +519,7 @@ export class WorldBase extends GameObject {
         if (this.parent) {
             obj.parent = this.parent.getID();
         }
+        obj.components = Component.compsToJSON(this);
         return obj;
     }
 }
@@ -558,6 +579,14 @@ export class ZoneBase extends WorldBase {
         return res;
     }
 
+    public getPlaceEntities(): Entity[] {
+        let res: Entity[] = [this];
+        this._subZones.forEach(subFeat => {
+            res.push(subFeat);
+        });
+        return res;
+    }
+
     public connectSubZones(s1Arg, s2Arg, l1, l2): void {
         connectSubZones(this._subZones, s1Arg, s2Arg, l1, l2);
     }
@@ -590,8 +619,8 @@ export class ZoneBase extends WorldBase {
         });
     }
 
-    public toJSON(): any {
-        const json = super.toJSON();
+    public toJSON(): IZoneBaseJSON {
+        const json = <IZoneBaseJSON>super.toJSON();
         json.x = this.tileX;
         json.y = this.tileY;
         return json;
@@ -715,8 +744,8 @@ export class SubZoneBase extends WorldBase {
         }
     }
 
-    public toJSON() {
-        const json = super.toJSON();
+    public toJSON(): ISubZoneBaseJSON {
+        const json = <ISubZoneBaseJSON>super.toJSON();
         json.nLevels = this._levels.length;
         json.levels = this._levels.map(level => level.getID());
         return json;
@@ -906,7 +935,6 @@ export class AreaTile {
 
         this._level = null;
 
-
         // All zones inside this tile
         this.zones = {
             Dungeon: [],
@@ -1047,6 +1075,14 @@ export class AreaTile {
             console.error(msg);
         }
 
+        return res;
+    }
+
+    public getPlaceEntities(): Entity[] {
+        let res: Entity[] = [];
+        Object.keys(this.zones).forEach(type => {
+            this.zones[type].forEach(z => {res = res.concat(z.getPlaceEntities());});
+        });
         return res;
     }
 
@@ -1242,6 +1278,7 @@ export class Area extends WorldBase {
         return res;
     }
 
+
     /* Returns tile X,Y which has the level with given ID. */
     public findTileXYById(id): TCoord | null {
         for (let x = 0; x < this._tiles.length; x++) {
@@ -1276,7 +1313,7 @@ export class Area extends WorldBase {
                         return true;
                     }
                 }
-                else if ((this._tiles[x][y] as AreaTileJSON).level === id) {
+                else if ((this._tiles[x][y] as IAreaTileJSON).level === id) {
                     return true;
                 }
             }
@@ -1373,7 +1410,7 @@ export class Area extends WorldBase {
         return Object.assign(obj, json);
     }
 
-    /* Execute function cb for each tile. */
+    /* Execute function cb for each loaded tile. */
     public forEachTileLoaded(cb) {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
@@ -1384,12 +1421,22 @@ export class Area extends WorldBase {
         }
     }
 
+
+    /* Execute callback for each tile. */
     public forEachTile(cb: (x: number, y: number, tile: AreaTileObj) => void) {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
                 cb(x, y, this._tiles[x][y]);
             }
         }
+    }
+
+    public getPlaceEntities(): Entity[] {
+        let res: Entity[] = [this];
+        this.forEachTileLoaded((x, y, tile) => {
+            res = res.concat(this._tiles[x][y].getPlaceEntities());
+        });
+        return res;
     }
 
     public printLevelIDs(): void {
@@ -1399,7 +1446,7 @@ export class Area extends WorldBase {
                 allIDs.push(this._tiles[x][y].getLevel().getID());
             }
             else {
-                allIDs.push((this._tiles[x][y] as AreaTileJSON).level);
+                allIDs.push((this._tiles[x][y] as IAreaTileJSON).level);
             }
 
         });
@@ -1410,7 +1457,7 @@ export class Area extends WorldBase {
         const loadedTiles: TCoord[] = [];
         const tilesOther: TCoord[] = [];
         this.forEachTile((x, y, tile) => {
-            if ((tile as AreaTileJSON).isJSON) {tilesJSON.push([x, y]);}
+            if ((tile as IAreaTileJSON).isJSON) {tilesJSON.push([x, y]);}
             else if (this.tilesLoaded[x][y]) {loadedTiles.push([x, y]);}
             else {tilesOther.push([x, y]);}
         });
@@ -1855,6 +1902,16 @@ export class WorldTop extends WorldBase {
             )
         );
         return res;
+    }
+
+    /* Returns all entities related to places in world hierarchy. This excludes all 
+     * actors, items, levels and elements. */
+    public getPlaceEntities(): Entity[] {
+        let entities: Entity[] = [this];
+        this._areas.map(area => {
+            entities = entities.concat(area.getPlaceEntities());
+        });
+        return entities;
     }
 
     public getCurrentArea(): Area {
