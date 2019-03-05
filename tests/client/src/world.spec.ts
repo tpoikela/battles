@@ -70,6 +70,9 @@ describe('World.Dungeon', () => {
         });
 
         dungeon.connectSubZones(branches[0], branches[1], 1, 2);
+
+        const placeEnts = dungeon.getPlaceEntities();
+        expect(placeEnts).to.have.length(5);
     });
 });
 
@@ -280,3 +283,17 @@ describe('World.Shop', () => {
     });
 });
 
+
+describe('WorldTop', () => {
+    it('It has accessor functions for world hierarchy', () => {
+        const worldTop = new World.WorldTop('my world');
+        let ents = worldTop.getPlaceEntities();
+        expect(ents).to.have.length(1);
+
+        const testArea = new World.Area('TestArea', 3, 3);
+        worldTop.addArea(testArea);
+        ents = worldTop.getPlaceEntities();
+        expect(ents).to.have.length(2);
+
+    });
+});
