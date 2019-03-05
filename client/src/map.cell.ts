@@ -16,7 +16,9 @@ type Stairs = Element.ElementStairs;
 type SentientActor = import('./actor').SentientActor;
 
 interface CellProps {
-    [key: string]: PropsType[];
+    actors?: PropsType[];
+    items?: PropsType[];
+    elements?: PropsType[];
 }
 
 export interface CellJSON {
@@ -96,7 +98,7 @@ export class Cell {
         return this.hasProp(TYPE_ELEM);
     }
 
-    public getElements(): Element.ElementBase[] {
+    public getElements(): Element.ElementBase[] | null {
         return this.getProp(TYPE_ELEM) as Element.ElementBase[];
     }
 
@@ -105,7 +107,7 @@ export class Cell {
         return this.hasProp(TYPE_ACTOR);
     }
 
-    public getActors(): BaseActor[] {
+    public getActors(): BaseActor[] | null {
         return (this.getProp(TYPE_ACTOR) as BaseActor[]);
     }
 
@@ -128,7 +130,7 @@ export class Cell {
     }
 
     public hasItems(): boolean {return this.hasProp(TYPE_ITEM);}
-    public getItems(): ItemBase[] {
+    public getItems(): ItemBase[] | null {
         return (this.getProp(TYPE_ITEM) as ItemBase[]);
     }
 
@@ -173,7 +175,7 @@ export class Cell {
         return this.hasPropType('shop');
     }
 
-    public getShop(): Element.ElementShop {
+    public getShop(): Element.ElementShop | null {
         const shopU = this.getPropType('shop')[0] as unknown;
         return shopU as Element.ElementShop;
     }
@@ -330,7 +332,7 @@ export class Cell {
     }
 
     /* Add given obj with specified property type.*/
-    public setProp(prop, obj): void {
+    public setProp(prop: string, obj: PropsType): void {
         if (obj.getType() === 'connection' && this.hasConnection()) {
             let msg = `${this._x},${this._y}`;
             msg += `\nExisting: ${JSON.stringify(this.getConnection())}`;
@@ -355,8 +357,8 @@ export class Cell {
             this._p[prop].push(obj);
         }
 
-        if (obj.isOwnable) {
-            obj.setOwner(this);
+        if ((obj as ItemBase).isOwnable) {
+            (obj as ItemBase).setOwner(this);
         }
     }
 
@@ -365,7 +367,7 @@ export class Cell {
     }
 
     /* Removes the given object from cell properties.*/
-    public removeProp(prop, obj) {
+    public removeProp(prop: string, obj): boolean {
         if (this.hasProp(prop)) {
             const props = this._p[prop];
             const index = props.indexOf(obj);
