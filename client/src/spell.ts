@@ -329,6 +329,9 @@ export class SpellBook {
         let equals = true;
         this._spells.forEach((spell, i) => {
             equals = equals && spell.equals(rhsSpells[i]);
+            if (!equals) {
+                console.log('Spell', spell.getName(), ' caused error');
+            }
         });
         return equals;
     }
@@ -998,8 +1001,12 @@ Spell.MultiSpell = function(name, power) {
 };
 RG.extend2(Spell.MultiSpell, SpellBase);
 
-Spell.MultiSpell.prototype.addSpell = function(spell) {
+Spell.MultiSpell.prototype.addSpell = function(spell): void {
     this._spells.push(spell);
+};
+
+Spell.MultiSpell.prototype.removeSpells = function(): void {
+    this._spells = [];
 };
 
 Spell.MultiSpell.prototype.canCast = function(): boolean {
@@ -1028,6 +1035,22 @@ Spell.MultiSpell.prototype.aiShouldCastSpell = function(args, cb) {
     let ok = true;
     this._spells.forEach(spell => {
         ok = ok && spell.aiShouldCastSpell(args, cb);
+    });
+    return ok;
+};
+
+Spell.MultiSpell.prototype.equals = function(rhs): boolean {
+    if (!rhs._spells) {return false;}
+    if (rhs._spells.length !== this._spells.length) {
+        return false;
+    }
+
+    let ok = true;
+    this._spells.forEach((spell, i) => {
+        ok = ok && spell.equals(rhs._spells[i]);
+        if (!ok) {
+            console.log('Spell', spell.getName(), ' caused error');
+        }
     });
     return ok;
 };
