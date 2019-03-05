@@ -35,7 +35,7 @@ import {Brain} from './brain';
 import {BrainPlayer} from './brain/brain.player';
 import { BrainSpawner } from './brain/brain.virtual';
 
-type AreaTileJSON = World.AreaTileJSON;
+type IAreaTileJSON = World.IAreaTileJSON;
 type Stairs = Element.ElementStairs;
 type ElementBase = Element.ElementBase;
 type Cell = import('./map.cell').Cell;
@@ -600,24 +600,11 @@ FromJSON.prototype.createTopGoal = function(json, entity) {
     return goal;
 };
 
-FromJSON.prototype.createSpells = (json, entity) => {
+FromJSON.prototype.createSpells = function(json, entity) {
     entity._spellbook = new Spell.SpellBook(entity);
     json.spellbook.spells.forEach(spell => {
         if (Spell.hasOwnProperty(spell.new)) {
-            const spellObj = new Spell[spell.new]();
-            spellObj.setPower(spell.power);
-            if (spell.range) {
-                spellObj.setRange(spell.range);
-            }
-            // If spell has damage/duration etc dice, restore them
-            if (spell.dice) {
-                const dice = {};
-                Object.keys(spell.dice).forEach(key => {
-                    const die = spell.dice[key];
-                    dice[key] = Dice.create(die);
-                });
-                spellObj._dice = dice;
-            }
+            const spellObj = this.restoreSpell(spell, entity);
             entity._spellbook.addSpell(spellObj);
         }
         else {
@@ -626,6 +613,32 @@ FromJSON.prototype.createSpells = (json, entity) => {
         }
     });
     return entity._spellbook;
+};
+
+/* Restores a single spell for the entity. If called on multi-spell,
+ * calls itself recursively to create sub-spells. */
+FromJSON.prototype.restoreSpell = function(spell, entity) {
+    const spellObj = new Spell[spell.new]();
+    spellObj.setPower(spell.power);
+    if (spell.range) {
+        spellObj.setRange(spell.range);
+    }
+    // If spell has damage/duration etc dice, restore them
+    if (spell.dice) {
+        const dice = {};
+        Object.keys(spell.dice).forEach(key => {
+            const die = spell.dice[key];
+            dice[key] = Dice.create(die);
+        });
+        spellObj._dice = dice;
+    }
+    if (spell.spells) {
+        spell.spells.forEach(subJSON => {
+            const subSpell = this.restoreSpell(subJSON, entity);
+            spellObj.addSpell(subSpell);
+        });
+    }
+    return spellObj;
 };
 
 
@@ -1246,7 +1259,7 @@ FromJSON.prototype.getLevelsToRestore = function(gameJSON) {
 
 /* Given a list of JSON World.AreaTiles, creates the objects and level
  * connections, and attaches them to area in current game. */
-FromJSON.prototype.createTiles = function(game, jsonTiles: AreaTileJSON[]) {
+FromJSON.prototype.createTiles = function(game, jsonTiles: IAreaTileJSON[]) {
     const allLevels = game.getLevels();
     this.addLevels(allLevels, 'createTiles');
 
