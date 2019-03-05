@@ -39,9 +39,9 @@ export class ItemBase extends Entity {
         this.add(new Component.Physical());
     }
 
-    public setOwner(owner) {
+    public setOwner(owner): void {
         if (RG.isNullOrUndef([owner])) {
-            RG.err('Object.Ownable', 'setOwner', 'Owner cannot be null.');
+            RG.err('ItemBase', 'setOwner', 'Owner cannot be null.');
         }
         else {
             this._owner = owner;
@@ -101,7 +101,9 @@ export class ItemBase extends Entity {
     public getType(): string {return this.get('Typed').getObjType();}
     public setType(type: string): void {return this.get('Typed').setObjType(type);}
     public getPropType(): string {return this.get('Typed').getPropType();}
-    public setPropType(type: string): void {return this.get('Typed').setPropType(type);}
+    public setPropType(type: string): void {
+        return this.get('Typed').setPropType(type);
+    }
 
     public setDamageType(type: string): void {this.get('Item').setDamageType(type);}
     public getDamageType(): string {return this.get('Item').getDamageType();}
@@ -151,11 +153,11 @@ export class ItemBase extends Entity {
     }
 
     public equals(item: ItemBase): boolean {
+        if (this.getType() !== item.getType()) {return false;}
         if (this.getID() === item.getID()) {
             return true;
         }
         let res = this.getName() === item.getName();
-        res = res && (this.getType() === item.getType());
         res = res && (this.getWeight() === item.getWeight());
         res = res && !(this.has('GemBound') || item.has('GemBound'));
         return res;
@@ -241,7 +243,7 @@ export class Food extends ItemBase {
         return json;
     }
 
-    public clone() {
+    public clone(): Food {
         const newFood = new Item.Food(this.getName());
         newFood.copy(this);
         newFood.setEnergy(this.getEnergy());
@@ -255,9 +257,19 @@ Item.Food = Food;
 /* Corpse */
 //------------------
 export class Corpse extends ItemBase {
-    constructor(name) {
+    protected actorName: string;
+
+    constructor(name: string) {
         super(name);
         this.setType(RG.ITEM.CORPSE);
+    }
+
+    public setActorName(name: string): void {
+        this.actorName = name;
+    }
+
+    public getActorName(): string {
+        return this.actorName;
     }
 }
 Item.Corpse = Corpse;
@@ -269,13 +281,13 @@ export class Weapon extends Mixin.Damage(ItemBase) {
 
     private _weaponType: string;
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType(RG.ITEM.WEAPON);
         this._weaponType = '';
     }
 
-    public copy(rhs: Weapon) {
+    public copy(rhs: Weapon): void {
         super.copy(rhs);
         this._weaponType = rhs.getWeaponType();
     }
@@ -311,7 +323,7 @@ export class MissileWeapon extends Weapon {
 
     private _fireRate: number;
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType(RG.ITEM.MISSILE_WEAPON);
         this._fireRate = 1;
@@ -343,7 +355,7 @@ export class MissileWeapon extends Weapon {
         return false;
     }
 
-    public toJSON() {
+    public toJSON(): any {
         const json = super.toJSON();
         json.setFireRate = this._fireRate;
         return json;
@@ -368,18 +380,18 @@ export class Ammo extends Weapon {
     public setAmmoType(type) {this._ammoType = type;}
     public getAmmoType() {return this._ammoType;}
 
-    public copy(rhs) {
+    public copy(rhs: Ammo): void {
         super.copy(rhs);
         this.setAmmoType(rhs.getAmmoType());
     }
 
-    public clone() {
+    public clone(): Ammo {
         const ammo = new Ammo(this.getName());
         ammo.copy(this);
         return ammo;
     }
 
-    public equals(rhs) {
+    public equals(rhs): boolean {
         if (super.equals(rhs)) {
             return this._ammoType === rhs.getAmmoType();
         }
@@ -403,27 +415,28 @@ export class Armour extends Mixin.Defense(ItemBase) {
 
     private _armourType: string;
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType(RG.ITEM.ARMOUR);
         this._armourType = null;
 
-        this.setArmourType = type => {this._armourType = type;};
-        this.getArmourType = () => this._armourType;
     }
 
-    public copy(rhs) {
+    public setArmourType(type: string): void {this._armourType = type;}
+    public getArmourType(): string {return this._armourType;}
+
+    public copy(rhs: Armour): void {
         super.copy(rhs);
         this.setArmourType(rhs.getArmourType());
     }
 
-    public clone() {
+    public clone(): Armour {
         const armour = new Armour(this.getName());
         armour.copy(this);
         return armour;
     }
 
-    public equals(rhs) {
+    public equals(rhs): boolean {
         let res = super.equals(rhs);
         res = res && this._armourType === rhs.getArmourType();
         return res;
@@ -476,7 +489,7 @@ export class Potion extends ItemBase {
         return false;
     }
 
-    public clone() {
+    public clone(): Potion {
         const newPotion = new Item.Potion(this.getName());
         newPotion.copy(this);
         return newPotion;
@@ -492,28 +505,28 @@ export class Rune extends ItemBase {
 
     private _charges: number;
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType(RG.ITEM.RUNE);
 
         this._charges = 1;
     }
 
-    public getCharges() {return this._charges;}
-    public setCharges(charges) {this._charges = charges;}
+    public getCharges(): number {return this._charges;}
+    public setCharges(charges: number): void {this._charges = charges;}
 
-    public clone() {
+    public clone(): Rune {
         const rune = new Rune(this.getName());
         rune.copy(this);
         return rune;
     }
 
-    public copy(rhs) {
+    public copy(rhs: Rune): void {
         super.copy(rhs);
         this.setCharges(rhs.getCharges());
     }
 
-    public equals(rhs) {
+    public equals(rhs): boolean {
         let res = super.equals(rhs);
         if (rhs.getCharges) {
             res = res && this.getCharges() === rhs.getCharges();
@@ -522,7 +535,7 @@ export class Rune extends ItemBase {
         return false;
     }
 
-    public toString() {
+    public toString(): string {
         let res = super.toString();
         res += ` charges: ${this.getCharges()}`;
         return res;
@@ -545,7 +558,7 @@ export class Missile extends Weapon {
         this.setType(RG.ITEM.MISSILE);
     }
 
-    public clone() {
+    public clone(): Missile {
         const weapon = new Missile(this.getName());
         weapon.copy(this);
         return weapon;
@@ -574,7 +587,7 @@ export class Container extends ItemBase {
     }
 
     /* Adds one item to container. Always succeeds. */
-    public _addItem(item) {
+    public _addItem(item: ItemBase): void {
         let matchFound = false;
         for (let i = 0; i < this._items.length; i++) {
             if (this._items[i].equals(item)) {
@@ -591,7 +604,7 @@ export class Container extends ItemBase {
     }
 
     /* Returns the total weight of the container.*/
-    public getWeight() {
+    public getWeight(): number {
         let sum = 0;
         for (let i = 0; i < this._items.length; i++) {
             sum += this._items[i].getWeight() * this._items[i].getCount();
@@ -600,7 +613,7 @@ export class Container extends ItemBase {
     }
 
     /* Adds an item. Container becomes item's owner.*/
-    public addItem(item) {
+    public addItem(item: ItemBase): void {
         if (item.getCount() <= 0) {
             const str = JSON.stringify(item);
             RG.warn('Container', 'addItem',
@@ -620,10 +633,10 @@ export class Container extends ItemBase {
         }
     }
 
-    public getItems() {return this._items.slice();}
+    public getItems(): ItemBase[] {return this._items.slice();}
 
     /* Check by pure obj ref. Returns true if contains item ref.*/
-    public hasItemRef(item) {
+    public hasItemRef(item: ItemBase): boolean {
         const index = this._items.indexOf(item);
         if (index !== -1) {return true;}
         return false;
@@ -631,14 +644,14 @@ export class Container extends ItemBase {
 
     /* Used for stacking/equip purposes only. Uses item.equals(), much slower
      * than hasItemRef(). */
-    public hasItem(item) {
+    public hasItem(item: ItemBase): boolean {
         if (this.hasItemRef(item)) {return true;}
         const index = this._getMatchingItemIndex(item);
         return index >= 0;
     }
 
     /* Tries to remove an item. Returns true on success, false otherwise.*/
-    public removeItem(item) {
+    public removeItem(item: ItemBase): boolean {
         if (this.hasItem(item)) {
             return this._removeItem(item);
         }
@@ -646,14 +659,14 @@ export class Container extends ItemBase {
         return false;
     }
 
-    public _getMatchingItemIndex(item) {
+    public _getMatchingItemIndex(item: ItemBase): number {
         for (let i = 0; i < this._items.length; i++) {
             if (item.equals(this._items[i])) {return i;}
         }
         return -1;
     }
 
-    public _removeItem(item) {
+    public _removeItem(item: ItemBase): boolean {
         const i = this._getMatchingItemIndex(item);
 
         if (i === -1) {
@@ -674,10 +687,10 @@ export class Container extends ItemBase {
     }
 
     /* Returns last removed item if removeItem returned true.*/
-    public getRemovedItem() {return this._removedItem;}
+    public getRemovedItem(): ItemBase {return this._removedItem;}
 
     /* Removes N items from the inventory of given type.*/
-    public removeNItems(item, n) {
+    public removeNItems(item: ItemBase, n: number): boolean {
         let count = 0;
         while ((count < n) && this.removeItem(item)) {
             ++count;
@@ -697,7 +710,7 @@ export class Container extends ItemBase {
     }
 
     /* Returns first item or null for empty container.*/
-    public first() {
+    public first(): ItemBase | null {
         if (this._items.length > 0) {
             this._iter = 1;
             return this._items[0];
@@ -706,7 +719,7 @@ export class Container extends ItemBase {
     }
 
     /* Returns next item from container or null if there are no more items.*/
-    public next() {
+    public next(): ItemBase | null {
         if (this._iter < this._items.length) {
             return this._items[this._iter++];
         }
@@ -718,11 +731,11 @@ export class Container extends ItemBase {
     }
 
         /* Returns true for empty container.*/
-    public isEmpty() {
+    public isEmpty(): boolean {
         return this._items.length === 0;
     }
 
-    public toString() {
+    public toString(): string {
         let str = 'Container: ' + this.getName() + '\n';
         const items = this.getItems();
         for (let i = 0; i < items.length; i++) {
@@ -806,12 +819,12 @@ export class SpiritGem extends ItemBase {
 
     }
 
-    public getArmourType() {return this.getType();}
+    public getArmourType(): string {return this.getType();}
 
-    public hasSpirit() {return this._hasSpirit;}
-    public getSpirit() {return this._spirit;}
+    public hasSpirit(): boolean {return this._hasSpirit;}
+    public getSpirit(): SentientActor {return this._spirit;}
 
-    public setSpirit(spirit) {
+    public setSpirit(spirit: SentientActor): void {
         if (!this._hasSpirit) {
             this._hasSpirit = true;
             this._spirit = spirit;
@@ -838,24 +851,24 @@ export class SpiritGem extends ItemBase {
         return false;
     }
 
-    public clone() {
+    public clone(): SpiritGem {
         const gem = new SpiritGem(this.getName());
         gem.copy(this);
         return gem;
     }
 
-    public copy(rhs) {
+    public copy(rhs: SpiritGem): void {
         super.copy(rhs);
         if (rhs.hasSpirit()) {this.setSpirit(rhs.getSpirit());}
     }
 
-    public equals(rhs) {
+    public equals(rhs): boolean {
         let res = super.equals(rhs);
         res = res && (this.getSpirit() === rhs.getSpirit());
         return res;
     }
 
-    public toString() {
+    public toString(): string {
         let txt = super.toString();
         if (this.hasSpirit()) {
             const stats = this.getSpirit().get('Stats');
