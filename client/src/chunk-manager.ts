@@ -8,7 +8,7 @@ import * as World from './world';
 
 type Stairs = ElementStairs;
 type AreaTileObj = World.AreaTileObj;
-type AreaTileJSON = World.AreaTileJSON;
+type IAreaTileJSON = World.IAreaTileJSON;
 
 import dbg = require('debug');
 const debug = dbg('bitn:ChunkManager');
@@ -157,8 +157,8 @@ export class ChunkManager {
     public loadTiles(px, py, loadedTilesXY: TCoord[], moveDir: string): void {
         const areaTiles: AreaTileObj[][] = this.area.getTiles();
         debug('loadTiles: ' + JSON.stringify(loadedTilesXY));
-        const areaTileToLoadNow: AreaTileJSON[] = loadedTilesXY.map(
-            xy => (areaTiles[xy[0]][xy[1]] as AreaTileJSON)
+        const areaTileToLoadNow: IAreaTileJSON[] = loadedTilesXY.map(
+            xy => (areaTiles[xy[0]][xy[1]] as IAreaTileJSON)
         );
 
         this.createTiles(areaTileToLoadNow);
@@ -335,7 +335,7 @@ export class ChunkManager {
         });
     }
 
-    public createTiles(tilesJSON: AreaTileJSON[]): void {
+    public createTiles(tilesJSON: IAreaTileJSON[]): void {
         const nTiles = tilesJSON.length;
         debug(`Creating ${nTiles} AreaTiles with FromJSON`);
         const fromJSON = new FromJSON();
