@@ -112,7 +112,7 @@ Spell.AnimateDead.prototype.animateCallback = function(cell: Cell) {
 };
 
 Spell.AnimateDead.prototype.aiShouldCastSpell = (args, cb) => {
-    const caster = this.getCaster();
+    const caster = args.actor;
     const cells = Brain.getCellsAroundActor(caster);
     const corpseCells: Cell[] = cells.filter(c => (
         c.hasItems() && c.getItems().find(i => (
@@ -949,6 +949,19 @@ Spell.ForceField = function() {
 };
 RG.extend2(Spell.ForceField, SpellBase);
 
+
+Spell.IcyTouch = function() {
+    Spell.MultiSpell.call(this, 'IcyTouch', 5);
+    this._spells.push(new Spell.GraspOfWinter());
+    this._spells.push(new Spell.RingOfFrost());
+};
+RG.extend2(Spell.IcyTouch, Spell.MultiSpell);
+
+Spell.IcyTouch.prototype.getSelectionObject = function(actor) {
+    const msg = 'Select a direction for touching:';
+    return Spell.getSelectionObjectDir(this, actor, msg);
+};
+
 Spell.addAllSpells = book => {
     book.addSpell(new Spell.AnimateDead());
     book.addSpell(new Spell.ArrowOfWebs());
@@ -964,6 +977,7 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.IceArrow());
     book.addSpell(new Spell.IceShield());
     book.addSpell(new Spell.IcyPrison());
+    book.addSpell(new Spell.IcyTouch());
     book.addSpell(new Spell.LightningArrow());
     book.addSpell(new Spell.LightningBolt());
     book.addSpell(new Spell.MagicArmor());
