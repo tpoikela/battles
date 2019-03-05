@@ -5,6 +5,8 @@ import {EventPool} from '../eventpool';
 import * as Component from '../component';
 import * as Item from '../item';
 
+type Cell = import('../map.cell').Cell;
+
 const POOL = EventPool.getPool();
 const NO_DAMAGE_SRC = RG.NO_DAMAGE_SRC;
 
@@ -48,7 +50,7 @@ export class SystemDamage extends SystemBase {
 
             if (health.isDead() && !ent.has('Dead')) {
                 if (ent.has('Loot')) {
-                    const entCell = ent.getCell();
+                    const entCell: Cell = ent.getCell();
                     ent.get('Loot').dropLoot(entCell);
                 }
                 this._dropInvAndEq(ent);
@@ -107,7 +109,7 @@ export class SystemDamage extends SystemBase {
 
     /* Checks if protection checks can be applied to the damage caused. For
      * damage like hunger and poison, no protection helps.*/
-    public _getDamageModified(ent, dmgComp) {
+    public _getDamageModified(ent, dmgComp): number {
         const dmgType = dmgComp.getDamageType();
         let src = dmgComp.getSourceActor();
         if (!src) {
@@ -116,7 +118,7 @@ export class SystemDamage extends SystemBase {
         const dmg = this._getDmgAfterWeaknessAndResistance(ent, dmgComp);
 
         // Deal with "internal" damage bypassing protection here
-        const cell = ent.getCell();
+        const cell: Cell = ent.getCell();
         if (dmgType === RG.DMG.POISON) {
             const msg = 'Poison is gnawing inside ' + ent.getName();
             RG.gameDanger({cell, msg});
@@ -140,7 +142,7 @@ export class SystemDamage extends SystemBase {
             RG.gameInfo({cell, msg});
             return dmg;
         }
-        else if (this.bypassProtection(ent, src)) {
+        else if (this.isProtectionBypassed(ent, src)) {
             const msg = `${src.getName()} hits ${ent.getName()} through armor.`;
             RG.gameDanger({cell, msg});
             return dmg;
@@ -229,7 +231,7 @@ export class SystemDamage extends SystemBase {
         return dmg;
     }
 
-    public effectMatches(dmgComp, effComp) {
+    public effectMatches(dmgComp, effComp): boolean {
         const effect = effComp.getEffect();
         const dmgType = dmgComp.getDamageType();
         const dmgCateg = dmgComp.getDamageCateg();
@@ -237,12 +239,12 @@ export class SystemDamage extends SystemBase {
     }
 
     /* Returns true if the hit bypasses defender's protection completely. */
-    public bypassProtection(ent, src) {
+    public isProtectionBypassed(ent, src): boolean {
         const bypassChance = this.rng.getUniform();
         if (src && !src.has) {
             console.log('src is not entity:', src);
             console.log('With entity:', ent);
-            RG.err('System.Damage', 'bypassProtection', 'No src.has()');
+            RG.err('System.Damage', 'isProtectionBypassed', 'No src.has()');
         }
 
         if (src && src.has('BypassProtection')) {
@@ -336,8 +338,16 @@ export class SystemDamage extends SystemBase {
             // Finally drop a corpse
             if (actor.has('Corporeal')) {
                 const corpse = new Item.Corpse(nameKilled + ' corpse');
+                corpse.setActorName(actor.get('Named').getBaseName());
+                this._cloneComponentsToCorpse(actor, corpse);
+
+                // TODO move some components like stats, resistance etc
+                // This way, eating corpse can move these around
+
+                // Update rendering info for corpse item
                 const cssClass = RG.getCssClass(RG.TYPE_ACTOR, nameKilled);
                 RG.addCellStyle(RG.TYPE_ITEM, corpse.getName(), cssClass);
+
                 level.addItem(corpse, x, y);
                 if (actor.has('QuestTarget')) {
                     const qEvent = new Component.QuestTargetEvent();
@@ -389,7 +399,7 @@ export class SystemDamage extends SystemBase {
         att.get('BattleExp').getData().kill += 1;
     }
 
-    public _cleanUpComponents(actor) {
+    public _cleanUpComponents(actor): void {
         const compTypes = ['Coldness', 'Expiration', 'Fading'];
         compTypes.forEach(compType => {
             const compList = actor.getList(compType);
@@ -402,7 +412,16 @@ export class SystemDamage extends SystemBase {
         });
     }
 
-    public updateEntity(ent) {
+    public _cloneComponentsToCorpse(actor, corpse): void {
+        console.log('calling moveComponentsToCorpse()');
+        const compTypes = ['Named', 'Health', 'Stats', 'Combat', 'Experience'];
+        compTypes.forEach(compType => {
+            const comp = actor.get(compType).clone();
+            corpse.add(comp);
+        });
+    }
+
+    public updateEntity(ent): void {
         const dmgComps = ent.getList('Damage');
         dmgComps.forEach(dmgComp => {
             this.processDamageComp(ent, dmgComp);
