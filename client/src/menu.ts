@@ -38,9 +38,20 @@ Menu.NEXT_STATE = 'NEXT_STATE';
 
 type SelectionFunc = () => void;
 
+export interface IMenu {
+    [key: string]: string | string[];
+}
+
+/*
+export type IMenu = {
+    pre?: string[];
+    post?: string[];
+} & IMenuObj;
+*/
+
 export interface SelectionObject {
     showMenu: () => boolean;
-    getMenu?: () => any;
+    getMenu?: () => IMenu;
     select: (code: number) => SelectionObject | SelectionFunc | null;
     showMsg?: () => void;
     funcToCall?: () => void;
