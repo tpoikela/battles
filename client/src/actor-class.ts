@@ -2,7 +2,7 @@
 import RG from './rg';
 import {MenuInfoOnly} from './menu';
 import * as Component from './component';
-import {Spell} from './spell';
+import {Spell} from '../data/spells';
 import {Random} from './random';
 import {Ability} from './abilities';
 import {EquipSlot} from './equipment';
