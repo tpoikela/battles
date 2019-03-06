@@ -1144,7 +1144,7 @@ export class Area extends WorldBase {
 
     private _conf: {[key: string]: any};
 
-    constructor(name, sizeX, sizeY, cols, rows, levels?: Level[]) {
+    constructor(name, sizeX, sizeY, cols, rows, levels?: Level[][]) {
         super(name);
         this.setType('area');
         this._sizeX = parseInt(sizeX, 10);
@@ -1218,7 +1218,7 @@ export class Area extends WorldBase {
         return this._conf;
     }
 
-    public _init(levels?): void {
+    public _init(levels?: Level[][]): void {
         // Create the tiles
         for (let x = 0; x < this._sizeX; x++) {
             const tileColumn = [];
