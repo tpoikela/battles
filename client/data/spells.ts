@@ -80,7 +80,7 @@ Spell.AnimateDead.prototype.animateCallback = function(cell: Cell) {
 
     const items = cell.getItems();
     const corpseItem = items.find(i => /corpse/.test(i.getName()));
-    const corpse = <Corpse>corpseItem;
+    const corpse = corpseItem as Corpse;
 
     if (corpse) {
         const parser = ObjectShell.getParser();
@@ -949,18 +949,21 @@ Spell.ForceField = function() {
 };
 RG.extend2(Spell.ForceField, SpellBase);
 
+class IcyTouch extends Spell.MultiSpell {
 
-Spell.IcyTouch = function() {
-    Spell.MultiSpell.call(this, 'IcyTouch', 5);
-    this._spells.push(new Spell.GraspOfWinter());
-    this._spells.push(new Spell.RingOfFrost());
-};
-RG.extend2(Spell.IcyTouch, Spell.MultiSpell);
+    constructor() {
+        super('IcyTouch', 5);
+        this._spells.push(new Spell.GraspOfWinter());
+        this._spells.push(new Spell.RingOfFrost());
+    }
 
-Spell.IcyTouch.prototype.getSelectionObject = function(actor) {
-    const msg = 'Select a direction for touching:';
-    return Spell.getSelectionObjectDir(this, actor, msg);
-};
+    public getSelectionObject(actor) {
+        const msg = 'Select a direction for touching:';
+        return Spell.getSelectionObjectDir(this, actor, msg);
+    }
+
+}
+Spell.IcyTouch = IcyTouch;
 
 Spell.addAllSpells = book => {
     book.addSpell(new Spell.AnimateDead());
