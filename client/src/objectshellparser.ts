@@ -574,6 +574,12 @@ export const Creator = function(db, dbNoRandom) {
             const itemObj = this.createActualObj(RG.TYPE_ITEM, itemName);
             if (itemObj) {
                 itemObj.setCount(count);
+                if (!actor.getInvEq().restoreEquipped(itemObj)) {
+                    const actorName = actor.getName();
+                    RG.err('Creator', 'addEquippedItems',
+                        `Cannot equip: ${count} ${item} to ${actorName}`);
+                }
+                /*
                 actor.getInvEq().addItem(itemObj);
                 if (count > 1) {
                     if (!actor.getInvEq().equipNItems(itemObj, count)) {
@@ -586,6 +592,7 @@ export const Creator = function(db, dbNoRandom) {
                     RG.err('Creator', 'addEquippedItems',
                         `Cannot equip: ${item} to ${actor.getName()}`);
                 }
+                */
             }
             else {
                 RG.err('Creator', 'addEquippedItems',
