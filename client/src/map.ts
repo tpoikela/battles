@@ -43,6 +43,17 @@ export class CellMap {
         }
     }
 
+    public static createWithoutCells(cols: number, rows: number): CellMap {
+        const map = new CellMap(0, 0);
+        map._map = new Array(cols);
+        for (let x = 0; x < cols; x++) {
+            map._map[x] = new Array(rows);
+        }
+        map.cols = cols;
+        map.rows = rows;
+        return map;
+    }
+
     public _map: Cell[][];
     public cols: number;
     public rows: number;
@@ -512,6 +523,11 @@ export class CellMap {
         }
         return res;
 
+    }
+
+    public moveCellUnsafe(x: number, y: number, cell: Cell): void {
+        cell.setXY([x, y]);
+        this._map[x][y] = cell;
     }
 }
 
