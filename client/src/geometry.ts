@@ -329,6 +329,16 @@ export const Geometry: any = {
         const actors = l2.getActors().slice();
         const items = l2.getItems().slice();
         const elements = l2.getElements().slice();
+        const allZero = actors.length === 0 && items.length === 0 &&
+            elements.length === 0;
+
+        // Nothing special to merge, just move cells + baseElems
+        /*
+        if (allZero) {
+            this.mergeMapCellsUnsafe(m1, m2, startX, startY);
+            return;
+        }
+        */
 
         const getNewXY = prop => [prop.getX() + startX, prop.getY() + startY];
         actors.forEach(actor => {
@@ -388,6 +398,23 @@ export const Geometry: any = {
                 if (m1.hasXY(x, y)) {
                     const cell = m2.getCell(x - startX, y - startY);
                     m1._map[x][y].setBaseElem(cell.getBaseElem());
+                }
+            }
+        }
+    },
+
+    mergeMapCellsUnsafe(m1, m2, startX, startY): void {
+        const endX = startX + m2.cols - 1;
+        const endY = startY + m2.rows - 1;
+        for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+                if (m1.hasXY(x, y)) {
+                    const cell = m2.getCell(x - startX, y - startY);
+                    if (!cell) {
+                        RG.err('Geometry', 'mergeMapCellsUnsafe',
+                            `Null cell: ${startX},${startY}, [${x}][${y}]`);
+                    }
+                    m1.moveCellUnsafe(x, y, cell);
                 }
             }
         }
