@@ -539,18 +539,25 @@ export default class GameEditor extends Component {
 
   /* Generates a world scale map using overworld algorithm and adds it to the
    * editor. Does not generate any sublevels or zones. */
-  public generateWorld() {
+  public generateWorld(): void {
+    const xMult = 1;
     const mult = 1;
+    const scaleX = this.state.levelX / 100;
+    const scaleY = this.state.levelY / 100;
     const owConf = {
-      worldX: mult * this.state.levelX,
-      worldY: mult * this.state.levelY,
       yFirst: false,
       topToBottom: false,
       stopOnWall: true,
       nVWalls: [0.8],
-      nHWalls: 3,
-      owTilesX: mult * 40,
-      owTilesY: mult * 40
+      // nHWalls: 3,
+      owTilesX: xMult * 10 * scaleX,
+      owTilesY: mult * 10 * scaleY,
+      worldX: xMult * this.state.levelX,
+      worldY: mult * this.state.levelY,
+      nLevelsX: xMult * scaleX,
+      nLevelsY: mult * scaleY,
+      areaX: xMult * scaleX,
+      areaY: mult * scaleY
     };
     const overworld = OWMap.createOverWorld(owConf);
     const worldAndConf = OverWorld.createOverWorldLevel(
