@@ -12,35 +12,32 @@ export class EquipSlot {
     public _stacked: boolean;
 
     constructor(type: string, stacked?: boolean) {
-
         this._type = type;
         this._item = null;
         this._hasItem = false;
         this._unequipped = null;
         this._stacked = false;
-
         if (!RG.isNullOrUndef([stacked])) {this._stacked = stacked;}
-
     }
 
-    isStacked() {
+    public isStacked(): boolean {
         return this._stacked;
     }
 
-    getUnequipped(): ItemBase | null {return this._unequipped;}
+    public getUnequipped(): ItemBase | null {return this._unequipped;}
 
     /* Returns the equipped item for this slot.*/
-    getItem(): ItemBase | null {
+    public getItem(): ItemBase | null {
         if (this._hasItem) {return this._item;}
         return null;
     }
 
-    hasItem(): boolean {
+    public hasItem(): boolean {
         return this._hasItem;
     }
 
     /* Equips given item to first available place in slot.*/
-    equipItem(item): boolean {
+    public equipItem(item): boolean {
         if (this.canEquip(item)) {
             if (!this._stacked || !this._hasItem) {
                 item.setOwner(this);
@@ -56,7 +53,7 @@ export class EquipSlot {
     }
 
     /* Unequips N items from the slot. */
-    unequipItem(n): boolean {
+    public unequipItem(n): boolean {
         if (this._hasItem) {
             if (!this._stacked) {
                 this._hasItem = false;
@@ -81,7 +78,7 @@ export class EquipSlot {
         return false;
     }
 
-    canEquip(item) {
+    public canEquip(item) {
         if (!this._hasItem) {
             return true;
         }
@@ -134,7 +131,7 @@ export class Equipment {
 
     }
 
-    public addSlot(slotType: string, slotObj: EquipSlot) {
+    public addSlot(slotType: string, slotObj: EquipSlot): void {
         if (this._hasSlot(slotType)) {
             if (Array.isArray(this._slots[slotType])) {
                 (this._slots[slotType] as EquipSlot[]).push(slotObj);
@@ -241,7 +238,7 @@ export class Equipment {
         return false;
     }
 
-    _equipToSlotType(slotType, item) {
+    public _equipToSlotType(slotType, item) {
         const slot = this._slots[slotType];
         if (Array.isArray(slot)) {
             for (let i = 0; i < slot.length; i++) {
@@ -257,17 +254,17 @@ export class Equipment {
     }
 
     /* Returns true if given item is equipped.*/
-    isEquipped(item) {
+    public isEquipped(item) {
         const equipped = this.getItems();
         const index = equipped.indexOf(item);
         return index !== -1;
     }
 
-    getEquipped(slotType) {
+    public getEquipped(slotType) {
         return this.getItem(slotType);
     }
 
-    getEquippedItems() {
+    public getEquippedItems() {
         const items = [];
         Object.values(this._slots).forEach((slot) => {
             if (Array.isArray(slot)) {
