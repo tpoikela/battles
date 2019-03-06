@@ -240,7 +240,7 @@ export class MapGenerator {
         this.defaultMapElem = ELEM.FLOOR;
     }
 
-    public createEmptyMap() {
+    public createEmptyMap(): MapObj {
         const map = new CellMap(this.cols, this.rows, this.defaultMapElem);
         const obj = {map};
         return obj;
