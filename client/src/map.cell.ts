@@ -61,6 +61,7 @@ export class Cell {
     public getXY(): TCoord {return [this._x, this._y];}
     public setX(x: number) {this._x = x;}
     public setY(y: number) {this._y = y;}
+    public setXY(xy: TCoord) {this._x = xy[0]; this._y = xy[1];}
 
     public isAtXY(x: number, y: number): boolean {
         return x === this._x && y === this._y;
