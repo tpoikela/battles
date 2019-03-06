@@ -225,8 +225,8 @@ FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
         const terrMap = this.createTerritoryMap(overworld, obj.playerRace,
             playerX, playerY);
         overworld.setTerrMap(terrMap);
+        this.progress('DONE');
     }
-    this.progress('DONE');
 
     this.progress('Creating Overworld Level Map...');
     const worldAndConf = OverWorld.createOverWorldLevel(
