@@ -232,12 +232,15 @@ export class Inventory {
         return this._eq.getItem(slotType);
     }
 
-    public restoreEquipped(item) {
+    /* Used when restoring/creating new actors, and immediately equipping items.
+     * Bypasses some safety checks. */
+    public restoreEquipped(item): boolean {
         const ok = this._eq.equipItem(item);
         if (!ok) {
             const json = JSON.stringify(item);
             RG.err('Inventory', 'restoreEquipped',
                 'Failed to equip item ' + json);
         }
+        return ok;
     }
 }
