@@ -19,6 +19,8 @@ import {TerritoryMap} from '../data/territory-map';
 import {Territory} from './territory';
 import {ElementMarker} from './element';
 
+type OWSubLevel = import('./overworld').OWSubLevel;
+
 const getRNG = Random.getRNG;
 
 export interface OWMapConf {
@@ -57,7 +59,7 @@ export class OWMap {
 
     public _baseMap: string[][];
     public _explored: {[key: string]: boolean};
-    public _subLevels: Level[][];
+    public _subLevels: OWSubLevel[][];
 
     public _hWalls: OWWall[];
     public _vWalls: OWWall[];
@@ -235,11 +237,11 @@ export class OWMap {
         return this._featuresByXY[keyXY];
     }
 
-    public addSubLevel(xy: TCoord, level: Level): void {
+    public addSubLevel(xy: TCoord, level: OWSubLevel): void {
         this._subLevels[xy[0]][xy[1]] = level;
     }
 
-    public getSubLevel(xy: TCoord): Level {
+    public getSubLevel(xy: TCoord): OWSubLevel {
         return this._subLevels[xy[0]][xy[1]];
     }
 
@@ -247,7 +249,7 @@ export class OWMap {
         this._subLevels = [];
     }
 
-    public getSubLevelsWithFeature(type: string): Level[] {
+    public getSubLevelsWithFeature(type: string): OWSubLevel[] {
         const featXY = this.getFeaturesByType(type);
         return featXY.map(xy => this.getSubLevel(xy));
     }
