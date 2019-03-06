@@ -623,11 +623,11 @@ export const Named = UniqueDataComponent('Named',
 
 Named.prototype.prepend = function(name: string): void {
     this.name = name + this.name;
-}
+};
 
 Named.prototype.getBaseName = function(): string {
     return this.name;
-}
+};
 
 Named.prototype.getFullName = function() {
     if (this.uniqueName !== '') {
@@ -1594,6 +1594,12 @@ QuestTarget.prototype.toJSON = function() {
 export const QuestEscortTarget = DataComponent('QuestEscortTarget', {
     escortTo: -1, question: 'Can I help you safely somewhere?'
 });
+
+QuestEscortTarget.prototype.toJSON = function() {
+    const json = BaseProto.toJSON.call(this);
+    json.setEscortTo = RG.getObjRef('entity', this.escortTo);
+    return json;
+};
 
 /* Quest component contains all info related to a single quest. */
 export const Quest = DataComponent('Quest', {
