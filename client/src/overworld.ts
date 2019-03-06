@@ -35,12 +35,18 @@ import {Random} from './random';
 import {FactoryLevel} from './factory.level';
 import {Geometry} from './geometry';
 import * as IF from './interfaces';
+import {CellMap} from './map';
 
 import dbg = require('debug');
 const debug = dbg('bitn:overworld');
 
+type TCoord = IF.TCoord;
 type Level = import('./level').Level;
+type Cell = import('./map.cell').Cell;
 
+interface WorldConf {
+    [key: string]: any;
+}
 //-------------------
 // Variables
 //-------------------
@@ -73,225 +79,256 @@ const {TILE_SIZE_X, TILE_SIZE_Y} = OverWorld;
 //---------------------------------------------------------------------------
 // Wall object inside the Overworld. Wall here means a huge wall of mountains.
 //---------------------------------------------------------------------------
-const Wall = function(type) {
-    this.type = type; // vertical/horizontal/etc
-    this.coord = []; // 2-d array of coordinates
-};
+export class OWWall {
+    public type: string;
+    public coord: TCoord[][];
 
-Wall.prototype.addWallCoord = function(tile) {
-    this.coord.push(tile);
-};
+    constructor(type: string) {
+        this.type = type; // vertical/horizontal/etc
+        this.coord = []; // 2-d array of coordinates
+    }
 
-Wall.prototype.getCoordAt = function(n) {
-    return this.coord[n];
-};
+    public addWallCoord(tile: TCoord[]): void {
+        this.coord.push(tile);
+    }
 
-/* Returns the y-pos for horizontal and x-pos for vertical walls. */
-Wall.prototype.getWallPos = function() {
-    if (this.type === 'vertical') {
-        return this.coord[0][0][0];
+    public getCoordAt(n: number): TCoord[] {
+        return this.coord[n];
     }
-    if (this.type === 'horizontal') {
-        return this.coord[0][0][1];
-    }
-    return OW.ILLEGAL_POS;
-};
 
-Wall.prototype.getWallStart = function() {
-    if (this.type === 'vertical') {
-        return this.coord[0][0][1];
+    /* Returns the y-pos for horizontal and x-pos for vertical walls. */
+    public getWallPos(): number {
+        if (this.type === 'vertical') {
+            return this.coord[0][0][0];
+        }
+        if (this.type === 'horizontal') {
+            return this.coord[0][0][1];
+        }
+        return OW.ILLEGAL_POS;
     }
-    if (this.type === 'horizontal') {
-        return this.coord[0][0][0];
-    }
-    return OW.ILLEGAL_POS;
-};
 
-Wall.prototype.getWallEnd = function() {
-    const last = this.coord.length - 1;
-    if (this.type === 'vertical') {
-        return this.coord[last][0][1];
+    public getWallStart(): number {
+        if (this.type === 'vertical') {
+            return this.coord[0][0][1];
+        }
+        if (this.type === 'horizontal') {
+            return this.coord[0][0][0];
+        }
+        return OW.ILLEGAL_POS;
     }
-    if (this.type === 'horizontal') {
-        return this.coord[last][0][0];
-    }
-    return -1;
-};
 
-Wall.prototype.toString = function() {
-    let str = `type: ${this.type} `;
-    str += `Length: ${this.coord.length}\n`;
-    str += `Start: ${this.getWallStart()} End: ${this.getWallEnd()}\n`;
-    str += `Tiles: ${JSON.stringify(this.coord)}`;
-    return str;
-};
+    public getWallEnd(): number {
+        const last = this.coord.length - 1;
+        if (this.type === 'vertical') {
+            return this.coord[last][0][1];
+        }
+        if (this.type === 'horizontal') {
+            return this.coord[last][0][0];
+        }
+        return -1;
+    }
+
+    public toString(): string {
+        let str = `type: ${this.type} `;
+        str += `Length: ${this.coord.length}\n`;
+        str += `Start: ${this.getWallStart()} End: ${this.getWallEnd()}\n`;
+        str += `Tiles: ${JSON.stringify(this.coord)}`;
+        return str;
+    }
+
+}
 
 //---------------------------------------------------------------------------
 /* Feature has type and a list of coordinates. It can be for example a fort
  * occupying several squares. */
 //---------------------------------------------------------------------------
-OverWorld.SubFeature = function(type, coord) {
-    this.type = type;
-    this.coord = coord;
-    this.cellsAround = null;
+export class OWSubFeature {
+    public type: string;
+    public coord: TCoord[];
+    public cellsAround: {[key: string]: string};
+    public alignment: string;
 
-    if (Array.isArray(coord)) {
-        if (coord.length === 0) {
-            RG.err('OverWorld.SubFeature', 'new',
-                'coord len is 0.');
+    constructor(type: string, coord: TCoord[]) {
+        this.type = type;
+        this.coord = coord;
+        this.cellsAround = null;
+
+        if (Array.isArray(coord)) {
+            if (coord.length === 0) {
+                RG.err('OWSubFeature', 'new',
+                    'coord len is 0.');
+            }
+            else if (!Array.isArray(coord[0])) {
+                RG.err('OWSubFeature', 'new',
+                    'Each coord must be [x, y] pair.');
+            }
         }
-        else if (!Array.isArray(coord[0])) {
-            RG.err('OverWorld.SubFeature', 'new',
-                'Each coord must be [x, y] pair.');
+        else {
+            RG.err('OWSubFeature', 'new',
+                'coord must be an array.');
         }
     }
-    else {
-        RG.err('OverWorld.SubFeature', 'new',
-            'coord must be an array.');
+
+    public getLastCoord(): TCoord {
+        if (this.coord.length > 0) {
+            return this.coord[this.coord.length - 1];
+        }
+        return [-1, -1];
     }
 
-};
+}
 
-OverWorld.SubFeature.prototype.getLastCoord = function() {
-    if (this.coord.length > 0) {
-        return this.coord[this.coord.length - 1];
-    }
-    return [];
-};
-
+interface OWFeatureMap {[key: string]: OWSubFeature[];}
 //---------------------------------------------------------------------------
 /* Data struct which is tied to 'Level'. Contains more high-level
  * information like positions of walls and other features. Essentially a wrapper
  * around Map.Level, to keep feature creep out of the Map.Level. */
 //---------------------------------------------------------------------------
-OverWorld.SubLevel = function(level: Level) {
-    this._level = level;
-    this._hWalls = [];
-    this._vWalls = [];
-    this._subX = level.getMap().rows;
-    this._subY = level.getMap().cols;
+export class OWSubLevel {
+    protected _level: Level;
+    protected _hWalls: OWWall[];
+    protected _vWalls: OWWall[];
+    protected _subX: number;
+    protected _subY: number;
+    protected _features: OWFeatureMap;
+    protected _featuresByXY: {[key: string]: string};
 
-    // Store any number of different type of features by type
-    this._features = {};
+    constructor(level: Level) {
+        this._level = level;
+        this._hWalls = [];
+        this._vWalls = [];
+        this._subX = level.getMap().rows;
+        this._subY = level.getMap().cols;
 
-    // Stores one feature per coordinate location
-    this._featuresByXY = {};
+        // Store any number of different type of features by type
+        this._features = {};
 
-};
-
-OverWorld.SubLevel.prototype.getFeatures = function() {
-    return this._features;
-};
-
-OverWorld.SubLevel.prototype.getSubX = function() {
-    return this._subX;
-};
-
-OverWorld.SubLevel.prototype.getSubY = function() {
-    return this._subY;
-};
-
-OverWorld.SubLevel.prototype.addWall = function(wall) {
-    if (wall.type === 'vertical') {
-        this._vWalls.push(wall);
+        // Stores one feature per coordinate location
+        this._featuresByXY = {};
     }
-    else if (wall.type === 'horizontal') {
-        this._hWalls.push(wall);
+
+    public getFeatures(): OWFeatureMap {
+        return this._features;
     }
-};
 
-/* Returns one wall (or null) if none found. */
-OverWorld.SubLevel.prototype.getWall = function() {
-    const hLen = this._hWalls.length;
-    const vLen = this._vWalls.length;
-    if (hLen === 0 && vLen === 0) {return null;}
-    if (hLen === 0) {return this._vWalls[0];}
-    if (vLen === 0) {return this._hWalls[0];}
-    RG.warn('OverWorld.SubLevel', 'getWall',
-        `Return hor wall. Too many walls: vLen: ${vLen}, hLen: ${hLen}`);
-    return this._hWalls[0];
-};
-
-OverWorld.SubLevel.prototype.addFeature = function(feature) {
-    const type = feature.type;
-    if (!this._features.hasOwnProperty(type)) {
-        this._features[type] = [];
+    public getSubX(): number {
+        return this._subX;
     }
-    this._features[type].push(feature);
 
-    feature.coord.forEach(xy => {
-        const keyXY = xy[0] + ',' + xy[1];
-        this._featuresByXY[keyXY] = type;
-    });
-};
-
-
-OverWorld.SubLevel.prototype.getFeaturesByType = function(type) {
-    if (this._features.hasOwnProperty(type)) {
-        return this._features[type];
+    public getSubY(): number {
+        return this._subY;
     }
-    return [];
-};
+
+    public addWall(wall: OWWall): void {
+        if (wall.type === 'vertical') {
+            this._vWalls.push(wall);
+        }
+        else if (wall.type === 'horizontal') {
+            this._hWalls.push(wall);
+        }
+    }
+
+    /* Returns one wall (or null) if none found. */
+    public getWall() {
+        const hLen = this._hWalls.length;
+        const vLen = this._vWalls.length;
+        if (hLen === 0 && vLen === 0) {return null;}
+        if (hLen === 0) {return this._vWalls[0];}
+        if (vLen === 0) {return this._hWalls[0];}
+        RG.warn('OWSubLevel', 'getWall',
+            `Return hor wall. Too many walls: vLen: ${vLen}, hLen: ${hLen}`);
+        return this._hWalls[0];
+    }
+
+    public addFeature(feature: OWSubFeature): void {
+        const type = feature.type;
+        if (!this._features.hasOwnProperty(type)) {
+            this._features[type] = [];
+        }
+        this._features[type].push(feature);
+
+        feature.coord.forEach(xy => {
+            const keyXY = xy[0] + ',' + xy[1];
+            this._featuresByXY[keyXY] = type;
+        });
+    }
+
+    public getFeaturesByType(type) {
+        if (this._features.hasOwnProperty(type)) {
+            return this._features[type];
+        }
+        return [];
+    }
+}
 
 //---------------------------------------------------------------------------
 /* Object to translate coordinates between different maps and levels.
  */
 //---------------------------------------------------------------------------
-export const CoordMap = function(args: any = {}) { // TODO typings
-    // Size of the large overworld Map.Level
-    this.worldCols = args.worldCols || 0;
-    this.worldRows = args.worldRows || 0;
+export class CoordMap {
+    public worldCols: number;
+    public worldRows: number;
+    public nTilesX: number;
+    public nTilesY: number;
+    public xMap: number;
+    public yMap: number;
 
-    // Number of area tiles per x/y
-    this.nTilesX = args.nTilesX || 0;
-    this.nTilesY = args.nTilesY || 0;
+    constructor(args: any = {}) { // TODO typings
+        // Size of the large overworld Map.Level
+        this.worldCols = args.worldCols || 0;
+        this.worldRows = args.worldRows || 0;
 
-    // How many cols/rows one overworld square is in overworld Map.Level
-    this.xMap = args.xMap || 0;
-    this.yMap = args.yMap || 0;
+        // Number of area tiles per x/y
+        this.nTilesX = args.nTilesX || 0;
+        this.nTilesY = args.nTilesY || 0;
 
-    this.setXYMap = function(xMap, yMap) {
+        // How many cols/rows one overworld square is in overworld Map.Level
+        this.xMap = args.xMap || 0;
+        this.yMap = args.yMap || 0;
+    }
+
+    public setXYMap(xMap: number, yMap: number): void {
         this.xMap = xMap;
         this.yMap = yMap;
-    };
+    }
 
-    this.getAreaLevelCols = function() {
+    public getAreaLevelCols(): number {
         return this.worldCols / this.nTilesX;
-    };
+    }
 
-    this.getAreaLevelRows = function() {
+    public getAreaLevelRows(): number {
         return this.worldRows / this.nTilesY;
-    };
+    }
 
-    this.toOwLevelXY = function(subTileXY, subLevelXY) {
+    public toOwLevelXY(subTileXY: TCoord, subLevelXY: TCoord): TCoord {
         const x = subTileXY[0] * this.xMap + subLevelXY[0];
         const y = subTileXY[1] * this.xMap + subLevelXY[1];
         return [x, y];
-    };
+    }
 
     /**
      * @param {array[]} areaXY - x,y coord for AreaTile
      * @param {array[]} areaLevelXY - local x,y coord with AreaTile Map.Level
      * @return {array[]} - x,y coordinates for overworld tile
      */
-    this.toOWTileXY = function(areaXY, areaLevelXY) {
+    public toOWTileXY(areaXY: TCoord, areaLevelXY: TCoord): TCoord {
         const bbox = this.getOWTileBboxFromAreaTileXY(areaXY[0], areaXY[1]);
         return [
             bbox.ulx + Math.floor(areaLevelXY[0] / this.xMap),
             bbox.uly + Math.floor(areaLevelXY[1] / this.yMap)
         ];
-    };
+    }
 
     /* Given ow tile x,y, returns AreaTile x,y in which this ow tile x,y
      * is located in. */
-    this.getAreaXYFromOWTileXY = function(owX, owY) {
+    public getAreaXYFromOWTileXY(owX: number, owY: number): TCoord {
         return [
             Math.floor(owX / this.xMap),
             Math.floor(owY / this.yMap)
         ];
-    };
+    }
 
-    this.getOWTileBboxFromAreaTileXY = function(aX, aY) {
+    public getOWTileBboxFromAreaTileXY(aX: number, aY: number): IF.BBox | null {
         if (Number.isInteger(aX) && Number.isInteger(aY)) {
             return {
                 ulx: (aX * TILE_SIZE_X) / this.xMap,
@@ -303,9 +340,9 @@ export const CoordMap = function(args: any = {}) { // TODO typings
         RG.err('OverWorld.CoordMap', 'getOWTileBboxFromAreaTileXY',
             `Args (x,y) must be ints. Got ${aX}, ${aY}`);
         return null;
-    };
+    }
 
-    this.toJSON = function() {
+    public toJSON(): any {
         return {
             worldCols: this.worldCols,
             worldRows: this.worldRows,
@@ -314,9 +351,9 @@ export const CoordMap = function(args: any = {}) { // TODO typings
             xMap: this.xMap,
             yMap: this.yMap
         };
-    };
+    }
 
-};
+}
 OverWorld.CoordMap = CoordMap;
 
 //---------------------------------------------------------------------------
@@ -362,13 +399,17 @@ OverWorld.createOverWorldLevel = (overworld, conf) => {
 //---------------------------------------------------------------------------
 
 /* Creates the overworld level. Returns RG.Map.Level + conf object. */
-function buildMapLevel(ow, coordMap) {
+function buildMapLevel(ow, coordMap): [Level, WorldConf] {
     const {worldCols, worldRows, xMap, yMap, nTilesX, nTilesY} = coordMap;
 
     const sizeX = ow.getSizeX();
     const sizeY = ow.getSizeY();
     const factLevel = new FactoryLevel();
     const owLevel = factLevel.createLevel(RG.LEVEL_EMPTY, worldCols, worldRows);
+    /*const owLevel = factLevel.createLevel(RG.LEVEL_EMPTY, worldCols, worldRows);
+    const levelMap = CellMap.createWithoutCells(worldCols, worldRows);
+    owLevel.setMap(levelMap);
+    */
 
     // Build the overworld level in smaller pieces, and then insert the
     // small levels into the large level.
@@ -379,10 +420,11 @@ function buildMapLevel(ow, coordMap) {
             const x0 = x * xMap;
             const y0 = y * yMap;
             Geometry.mergeLevels(owLevel, subLevel, x0, y0);
+            // Geometry.mergeMapCellsUnsafe(owLevel, subLevel, x0, y0);
         }
     }
 
-    const conf = OverWorld.createWorldConf(ow,
+    const conf: WorldConf = OverWorld.createWorldConf(ow,
         sizeX, sizeY, nTilesX, nTilesY);
 
     // Some global features (like roads) need to be added
@@ -392,11 +434,10 @@ function buildMapLevel(ow, coordMap) {
 }
 
 /* Returns a subLevel created based on the tile type. */
-function createSubLevel(ow, owX, owY, xMap, yMap) {
-    const owMap = ow.getMap();
-    const type = owMap[owX][owY];
-
-    const biomeType = ow.getBiome(owX, owY);
+function createSubLevel(ow: OWMap, owX, owY, xMap, yMap): Level {
+    const owMap: string[][] = ow.getMap();
+    const type: string = owMap[owX][owY];
+    const biomeType: string = ow.getBiome(owX, owY);
 
     const subX = xMap;
     const subY = yMap;
@@ -405,7 +446,7 @@ function createSubLevel(ow, owX, owY, xMap, yMap) {
 
     addBiomeFeaturesSubLevel(biomeType, subLevel);
 
-    const owSubLevel = new OverWorld.SubLevel(subLevel);
+    const owSubLevel = new OWSubLevel(subLevel);
     ow.addSubLevel([owX, owY], owSubLevel);
 
     addSubLevelWalls(type, owSubLevel, subLevel);
@@ -470,7 +511,7 @@ function addBiomeFeaturesSubLevel(biomeType, subLevel) {
 
 /* Adds the "mountain" walls into the overworld subLevel and the RG.Map.Level
  * sublevel. */
-function addSubLevelWalls(type, owSubLevel, subLevel) {
+function addSubLevelWalls(type: string, owSubLevel: OWSubLevel, subLevel: Level) {
     const map = subLevel.getMap();
 
     const canConnectNorth = OW.N_HAS_CONN.findIndex(item => item === type) >= 0;
@@ -507,7 +548,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
     let widths = getWidthMovingAvg(endY + 1, MEAN_WX, STDDEV_W, subX, 3);
     // Draw line from center to north
     if (canConnectNorth || canConnectSouth) {
-        const wall = new Wall('vertical');
+        const wall = new OWWall('vertical');
         for (let y = startY; y <= endY; y++) {
             width = widths[y - startY];
             const tile = [];
@@ -516,6 +557,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
                 map.setBaseElemXY(x, y, ELEM.WALL_MOUNT);
                 tile.push([x, y]);
             }
+            // map.setBaseElems(tile, ELEM.WALL_MOUNT);
             wall.addWallCoord(tile);
         }
         owSubLevel.addWall(wall);
@@ -538,7 +580,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
 
     widths = getWidthMovingAvg(endX + 1, MEAN_WY, STDDEV_W, subX, 3);
     if (canConnectEast || canConnectWest) {
-        const wall = new Wall('horizontal');
+        const wall = new OWWall('horizontal');
         for (let x = startX; x <= endX; x++) {
             width = widths[x - startX];
             const tile = [];
@@ -547,6 +589,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
                 map.setBaseElemXY(x, y, ELEM.WALL_MOUNT);
                 tile.push([x, y]);
             }
+            // map.setBaseElems(tile, ELEM.WALL_MOUNT);
             wall.addWallCoord(tile);
         }
         owSubLevel.addWall(wall);
@@ -605,16 +648,18 @@ function getFiltered(arr, i, filterW) {
 }
 
 /* Monster of a function. Has to add all possible features. */
-function addSubLevelFeatures(ow, owX, owY, subLevel) {
-    const xy = [owX, owY];
+function addSubLevelFeatures(
+    ow: OWMap, owX: number, owY: number, subLevel: Level
+): void {
+    const xy: TCoord = [owX, owY];
     const owSubLevel = ow.getSubLevel(xy);
-    const features = ow.getFeaturesByXY(xy);
-    const base = ow.getCell(xy);
+    const features: string[] = ow.getFeaturesByXY(xy);
+    const base: string = ow.getCell(xy);
 
     if (!features) {return;}
 
     let numSkipped = 0;
-    features.forEach(feat => {
+    features.forEach((feat: string) => {
         if (feat === OW.WCAPITAL) {
             addMountainFortToSubLevel(feat, owSubLevel, subLevel);
         }
@@ -651,14 +696,16 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
     }
 }
 
-function isMountainFort(base, feat) {
+function isMountainFort(base: string, feat: string): boolean {
     return (base === OW.LL_WE || base === OW.LL_NS) &&
         (feat === OW.BTOWER || feat === OW.WTOWER);
 }
 
 /* Creates a fort which goes through a mountain wall. Adds also fort elements
  * into the Map.Level. */
-function addMountainFortToSubLevel(feat, owSubLevel, subLevel) {
+function addMountainFortToSubLevel(
+    feat: string, owSubLevel: OWSubLevel, subLevel: Level
+): void {
     const wall = owSubLevel.getWall();
     const start = wall.getWallStart();
     const end = wall.getWallEnd();
@@ -677,15 +724,17 @@ function addMountainFortToSubLevel(feat, owSubLevel, subLevel) {
 
     // Tile is a list of x,y coordinates
     subLevel.getMap().setBaseElems(coord, ELEM.FORT);
-    const fort = new OverWorld.SubFeature(type, coord);
+    const fort = new OWSubFeature(type, coord);
     fort.alignment = getAlignment(feat);
     owSubLevel.addFeature(fort);
 }
 
-function addTowerToSubLevel(feat, owSubLevel, subLevel) {
+function addTowerToSubLevel(
+    feat: string, owSubLevel: OWSubLevel, subLevel: Level
+): void {
     let placed = false;
     const freeCells = subLevel.getMap().getFree();
-    const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
+    const freeXY: TCoord[] = freeCells.map(cell => cell.getXY());
     let coord = [];
 
     let watchdog = WATCHDOG_MAX;
@@ -709,7 +758,7 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
         debug('addTowerToSubLevel feat placed with ' +
             JSON.stringify(coord));
         subLevel.getMap().setBaseElems(coord, ELEM.FORT);
-        const tower = new OverWorld.SubFeature(type, coord);
+        const tower = new OWSubFeature(type, coord);
         tower.alignment = getAlignment(feat);
         owSubLevel.addFeature(tower);
     }
@@ -717,7 +766,7 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
 }
 
 /* Returns the alignment for the given feature. */
-function getAlignment(feat) {
+function getAlignment(feat: string): string {
     switch (feat) {
         case OW.BCAPITAL: // fallthrough
         case OW.BTOWER: // fallthrough
@@ -731,23 +780,23 @@ function getAlignment(feat) {
 
 /* Adds a dungeon to given sub-level. Each dungeon must be adjacent to a
  * mountain.*/
-function addDungeonToSubLevel(owSubLevel, subLevel) {
+function addDungeonToSubLevel(owSubLevel: OWSubLevel, subLevel: Level) {
     const coord = getAccessibleMountainCoord(subLevel);
     if (coord && coord.length > 0) {
-        const dungeon = new OverWorld.SubFeature('dungeon', coord);
+        const dungeon = new OWSubFeature('dungeon', coord);
         owSubLevel.addFeature(dungeon);
     }
 }
 
-function addFortToSubLevel(owSubLevel, subLevel) {
-    const coord = getAccessibleMountainCoord(subLevel, false);
+function addFortToSubLevel(owSubLevel: OWSubLevel, subLevel: Level) {
+    const coord: TCoord[] = getAccessibleMountainCoord(subLevel, false);
     if (coord && coord.length > 0) {
         const [x, y] = coord[0];
-        const coordAround = Geometry.getBoxAround(x, y, 1);
+        const coordAround: TCoord[] = Geometry.getBoxAround(x, y, 1);
         const map = subLevel.getMap();
-        const cellsAround = map.getCellsWithCoord(coordAround);
+        const cellsAround: Cell[] = map.getCellsWithCoord(coordAround);
 
-        const fort = new OverWorld.SubFeature('fort', coord);
+        const fort = new OWSubFeature('fort', coord);
         const cellMap = {};
         cellsAround.forEach(c => {
             const dXdY = RG.dXdYUnit(c, coord[0]);
@@ -759,7 +808,7 @@ function addFortToSubLevel(owSubLevel, subLevel) {
     }
 }
 
-function getAccessibleMountainCoord(subLevel, edges = true) {
+function getAccessibleMountainCoord(subLevel: Level, edges = true): TCoord[] {
     let placed = false;
     const map = subLevel.getMap();
     const freeCells = map.getFree();
@@ -782,7 +831,7 @@ function getAccessibleMountainCoord(subLevel, edges = true) {
     let watchdog = 10 * WATCHDOG_MAX;
     while (!placed) {
         const xyRand = getRNG().arrayGetRand(freeXY);
-        let box = [];
+        let box: TCoord[] = [];
         try {
             box = Geometry.getBoxAround(xyRand[0], xyRand[1], 1);
         }
@@ -801,7 +850,7 @@ function getAccessibleMountainCoord(subLevel, edges = true) {
         }
 
         /* eslint-disable */
-        box.forEach(xyBox => {
+        box.forEach((xyBox: TCoord) => {
             if (!placed) {
                 if (map.hasXY(xyBox[0], xyBox[1])) {
                     const elem = map.getBaseElemXY(xyBox[0], xyBox[1]);
@@ -824,7 +873,7 @@ function getAccessibleMountainCoord(subLevel, edges = true) {
 
 /* Adds a mountain to the given sub-level. Each mountain is placed on free map
  * cell. */
-function addMountainToSubLevel(owSubLevel, subLevel) {
+function addMountainToSubLevel(owSubLevel: OWSubLevel, subLevel: Level) {
     let placed = false;
     const map = subLevel.getMap();
     const freeCells = map.getFreeNotOnEdge();
@@ -847,7 +896,7 @@ function addMountainToSubLevel(owSubLevel, subLevel) {
     }
 
     if (placed) {
-        const mountain = new OverWorld.SubFeature('mountain', coord);
+        const mountain = new OWSubFeature('mountain', coord);
         owSubLevel.addFeature(mountain);
     }
 
@@ -866,14 +915,15 @@ function addVertTunnelToSubLevel(owSubLevel, subLevel: Level) {
 }
 
 /* Adds a village to the free square of the sub-level. */
-function addVillageToSubLevel(feat, owSubLevel, subLevel) {
-    const map = subLevel.getMap();
-    const freeCells = map.getFreeNotOnEdge();
+function addVillageToSubLevel(feat, owSubLevel: OWSubLevel, subLevel: Level) {
+    const map: CellMap = subLevel.getMap();
+    const freeCells: Cell[] = map.getFreeNotOnEdge();
+
     if (freeCells.length > 0) {
-        const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
-        const coord = getRNG().arrayGetRand(freeXY);
-        const village = new OverWorld.SubFeature('village', [coord]);
-        village.aligntment = getAlignment(feat);
+        const freeXY: TCoord[] = freeCells.map(cell => cell.getXY());
+        const coord: TCoord = getRNG().arrayGetRand(freeXY);
+        const village = new OWSubFeature('village', [coord]);
+        village.alignment = getAlignment(feat);
         owSubLevel.addFeature(village);
     }
     else {
@@ -961,13 +1011,13 @@ OverWorld.createWorldConf = function(
                 x, y, slX, slY, aX, aY, subLevel, subX, subY};
 
             const [pX, pY] = getPlayerPosition(coordObj);
-            const features = subLevel.getFeatures();
+            const features: OWFeatureMap = subLevel.getFeatures();
 
             Object.keys(features).forEach(type => {
-                const featureArray = features[type];
-                featureArray.forEach(feat => {
+                const featureArray: OWSubFeature[] = features[type];
+                featureArray.forEach((feat: OWSubFeature) => {
+                    const coord: TCoord[] = feat.coord;
 
-                    const coord = feat.coord;
                     if (!coord) {
                         RG.err('OverWorld', 'createWorldConf',
                             `coord must exist. feat: ${JSON.stringify(feat)}`);
@@ -1035,7 +1085,7 @@ OverWorld.createWorldConf = function(
 
 /* Adds maxDanger and maxValue props into the configuration. At the moment, this
  * is based on the distance from player (+ plus some randomisation). */
-function addMaxDangerAndValue(pX, pY, zoneConf) {
+function addMaxDangerAndValue(pX: number, pY: number, zoneConf): void {
     const {x, y} = zoneConf;
     const dX = Math.abs(pX - x);
     const dY = Math.abs(pY - y);
@@ -1055,7 +1105,7 @@ function addMaxDangerAndValue(pX, pY, zoneConf) {
  * Assuming we have a matrix 3x3 of 10x10 sub-levels. Our area tile is now
  * 30x30. slX points then to x-pos of 3x3 matrix.
  */
-function mapX(x, slX, subSizeX) {
+function mapX(x: number, slX: number, subSizeX: number): number {
     if (Number.isInteger(x)) {
         const res = x + slX * subSizeX;
         if (res >= TILE_SIZE_X) {
@@ -1074,7 +1124,7 @@ function mapX(x, slX, subSizeX) {
  * an AreaTile.
  * slY = sub-level y index in area tile. For longer expl, see mapY() above.
  */
-function mapY(y, slY, subSizeY) {
+function mapY(y, slY, subSizeY): number {
     if (Number.isInteger(y)) {
         return y + slY * subSizeY;
     }
@@ -1085,7 +1135,7 @@ function mapY(y, slY, subSizeY) {
     return null;
 }
 
-function addCapitalConfToArea(feat, coordObj, areaConf) {
+function addCapitalConfToArea(feat: OWSubFeature, coordObj, areaConf) {
     const capitalLevel = {stub: true, new: 'Capital', args: [200, 500, {}]};
     const cityConf: IF.CityConf = {
         name: 'Blashyrkh',
@@ -1114,7 +1164,7 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
     areaConf.city.push(cityConf);
 }
 
-function addDwarvenCityConfToArea(feat, coordObj, areaConf) {
+function addDwarvenCityConfToArea(feat: OWSubFeature, coordObj, areaConf) {
     const fortConf = {};
     const dwarvenCity = {stub: true, new: 'DwarvenCity',
         args: [300, 250, fortConf]};
@@ -1144,7 +1194,7 @@ function addDwarvenCityConfToArea(feat, coordObj, areaConf) {
     areaConf.city.push(cityConf);
 }
 
-function addAbandonedFortToArea(feat, coordObj, areaConf) {
+function addAbandonedFortToArea(feat: OWSubFeature, coordObj, areaConf) {
     const fortConf = {};
     const fortLevel = {stub: true, new: 'AbandonedFort',
         args: [500, 200, fortConf]};
@@ -1176,10 +1226,10 @@ function addAbandonedFortToArea(feat, coordObj, areaConf) {
 }
 
 /* Adds a (normal) city configuration to the area. */
-function addCityConfToArea(feat, coordObj, areaConf) {
+function addCityConfToArea(feat: OWSubFeature, coordObj, areaConf) {
     const coord = feat.coord;
-    const nLevels = coord.length;
-    feat.nLevels = nLevels;
+    // const nLevels = coord.length;
+    // feat.nLevels = nLevels;
 
     const cName = Names.getUniqueName('city');
     const cityConf = LevelGen.getCityConf(cName, feat);
@@ -1355,8 +1405,7 @@ function legalizeXY(xy) {
 }
 
 /* Adds global features like roads to the overworld level map. */
-function addGlobalFeatures(ow, owLevel, conf, coordMap) {
-
+function addGlobalFeatures(ow, owLevel: Level, conf, coordMap) {
     // Find player x,y on level
     const [playerStartX, playerStartY] = getPlayerStartPos(ow, coordMap);
 
