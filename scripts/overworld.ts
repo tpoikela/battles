@@ -2,9 +2,7 @@
 /* Test code to generate valley surrounded by mountains.
 */
 
-require('babel-register');
-
-const RG = require('../client/src/battles');
+import * as RG from '../client/src/battles';
 
 const RNG = RG.Random.getRNG();
 RNG.setSeed(new Date().getTime());
@@ -14,7 +12,7 @@ const createOverWorld = OverWorld.createOverWorld;
 
 let mult = 2;
 
-let conf = {
+let conf: any = {
     yFirst: false,
     topToBottom: false,
     // stopOnWall: 'random',
@@ -27,7 +25,9 @@ let conf = {
     worldY: mult * 400
 };
 
-mult = 4;
+const xMult = 2;
+
+mult = 1;
 conf = {
     yFirst: false,
     topToBottom: false,
@@ -36,13 +36,13 @@ conf = {
     // nHWalls: 2,
     // nVWalls: 4,
     nVWalls: [0.8],
-    owTilesX: mult * 40,
+    owTilesX: xMult * 40,
     owTilesY: mult * 40,
-    worldX: mult * 400,
+    worldX: xMult * 400,
     worldY: mult * 400,
-    nLevelsX: mult * 4,
+    nLevelsX: xMult * 4,
     nLevelsY: mult * 4,
-    areaX: mult * 4,
+    areaX: xMult * 4,
     areaY: mult * 4,
     printResult: true
 };
