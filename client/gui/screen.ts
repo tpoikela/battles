@@ -14,7 +14,9 @@ export const ALL_VISIBLE = 'ALL';
 // TODO: Refactor out of this file
 /* Builds and returns two arrays. First contains all CSS classNames of
  * cells to be rendered, and the second one all characters to be rendered.*/
-const getClassesAndChars = function(seen: Cell[] | string, cells: Cell[], selCell) {
+const getClassesAndChars = function(
+    seen: Cell[] | string, cells: Cell[], selCell
+) {
     const cssClasses = [];
     const asciiChars = [];
 
@@ -400,6 +402,7 @@ export class Screen {
         }
     }
 
+    /* Same as renderFullMap() but using RLE */
     public renderFullMapWithRLE(map: CellMap): void {
         this.startX = 0;
         this.endX = map.cols - 1;
@@ -453,6 +456,7 @@ export class ScreenBuffered extends Screen {
     protected fullMapCharRows: string[][];
     protected fullMapClassRows: string[][];
     protected isInitialized: boolean;
+    protected prevVisible: Cell[];
 
     constructor(viewX: number, viewY: number) {
         super(viewX, viewY);
@@ -460,6 +464,7 @@ export class ScreenBuffered extends Screen {
 
         this.getCellChar = this.getCellChar.bind(this);
         this.getCellClass = this.getCellClass.bind(this);
+        this.prevVisible = [];
     }
 
     public invalidate(): void {
@@ -472,15 +477,31 @@ export class ScreenBuffered extends Screen {
             this.initializeFullMap(map, visibleCells);
         }
 
+        // Do a diff of prev visible and new ones
+        const changedCells: Cell[] = this.getCellsInFirstOnly(this.prevVisible,
+            visibleCells);
+
+        // Then render these as non-visible
+        changedCells.forEach(cell => {
+            const [x, y] = cell.getXY();
+            // false == not visible
+            const cellClass = RG.getCssClassForCell(cell, false);
+            const cellChar = RG.getCharForCell(cell, false);
+            this.fullMapClassRows[x][y] = cellClass;
+            this.fullMapCharRows[x][y] = cellChar;
+        });
+
         // Mutate only visible cells in the full map
         visibleCells.forEach(cell => {
             const [x, y] = cell.getXY();
+            // true == visible
             const cellClass = RG.getCssClassForCell(cell, true);
             const cellChar = RG.getCharForCell(cell, true);
             this.fullMapClassRows[x][y] = cellClass;
             this.fullMapCharRows[x][y] = cellChar;
         });
 
+        this.prevVisible = visibleCells;
         // Finally, get the chars and classes to render
         return super.renderWithRLE(playX, playY, map, visibleCells, anim,
             this.getCellClass, this.getCellChar);
@@ -510,6 +531,17 @@ export class ScreenBuffered extends Screen {
         });
         this.isInitialized = true;
 
+    }
+
+    protected getCellsInFirstOnly(first: Cell[], second: Cell[]): Cell[] {
+        const res: Cell[] = [];
+        first.forEach((cPrev: Cell) => {
+            const index = second.indexOf(cPrev);
+            if (index < 0) {
+                res.push(cPrev);
+            }
+        });
+        return res;
     }
 
     protected getCellClass(cell: Cell, isVisible: boolean): string {
