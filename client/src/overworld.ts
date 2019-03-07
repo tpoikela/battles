@@ -443,7 +443,6 @@ function createSubLevel(ow: OWMap, owX, owY, xMap, yMap): Level {
     const subY = yMap;
     const factLevel = new FactoryLevel();
     const subLevel = factLevel.createLevel(RG.LEVEL_EMPTY, subX, subY);
-
     addBiomeFeaturesSubLevel(biomeType, subLevel);
 
     const owSubLevel = new OWSubLevel(subLevel);
@@ -458,53 +457,53 @@ function createSubLevel(ow: OWMap, owX, owY, xMap, yMap): Level {
 }
 
 
-function addBiomeFeaturesSubLevel(biomeType, subLevel) {
+function addBiomeFeaturesSubLevel(biomeType: string, subLevel: Level): void {
     const cols = subLevel.getMap().cols;
     const rows = subLevel.getMap().rows;
-    const factLevel = new FactoryLevel();
+    const addLakes = getRNG().getUniform();
 
     if (biomeType === 'arctic') {
         MapGenerator.addRandomSnow(subLevel.getMap(), 1.0);
     }
     else if (biomeType === 'alpine') {
         MapGenerator.addRandomSnow(subLevel.getMap(), 0.5);
+        if (addLakes < 0.1) {
+            const mapGen = new MapGenerator();
+            mapGen.setGen('lakes', cols, rows);
+            const lakeConf = {ratio: 0.15, freeOnly: true};
+            mapGen.addLakesToMap(subLevel.getMap(), lakeConf);
+        }
     }
     else if (biomeType === 'tundra') {
         MapGenerator.addRandomSnow(subLevel.getMap(), 0.1);
+        // Add some water
+        if (addLakes < 0.2) {
+            const mapGen = new MapGenerator();
+            mapGen.setGen('lakes', cols, rows);
+            const lakeConf = {ratio: 0.3, freeOnly: true};
+            mapGen.addLakesToMap(subLevel.getMap(), lakeConf);
+        }
     }
     else if (biomeType === 'taiga' || biomeType === 'forest') {
-        const freeCells = subLevel.getMap().getFree();
         const forestConf = {
-            ratio: 0.6
+            ratio: 0.6, freeOnly: true
         };
-        const forest = factLevel.createLevel('forest', cols, rows, forestConf);
-        const forestMap = forest.getMap();
-        freeCells.forEach(cell => {
-            cell.setBaseElem(forestMap.getBaseElemXY(cell.getX(), cell.getY()));
-        });
+        const mapGen = new MapGenerator();
+        mapGen.setGen('forest', cols, rows);
+        mapGen.addForestToMap(subLevel.getMap(), forestConf);
 
         // Add some water
-        const addLakes = getRNG().getUniform();
         if (addLakes < 0.3) {
-            const lakeConf = {ratio: 0.4};
-            const lakes = factLevel.createLevel('lakes', cols, rows, lakeConf);
-            const lakesMap = lakes.getMap();
-            freeCells.forEach(cell => {
-                cell.setBaseElem(
-                    lakesMap.getBaseElemXY(cell.getX(), cell.getY()));
-            });
+            mapGen.setGen('lakes', cols, rows);
+            const lakeConf = {ratio: 0.4, freeOnly: true};
+            mapGen.addLakesToMap(subLevel.getMap(), lakeConf);
         }
     }
     else if (biomeType === 'grassland') {
-        const freeCells = subLevel.getMap().getFree();
-        const conf = {
-            ratio: 0.1
-        };
-        const grassland = factLevel.createLevel('forest', cols, rows, conf);
-        const grassMap = grassland.getMap();
-        freeCells.forEach(cell => {
-            cell.setBaseElem(grassMap.getBaseElemXY(cell.getX(), cell.getY()));
-        });
+        const conf = {ratio: 0.1};
+        const mapGen = new MapGenerator();
+        mapGen.setGen('forest', cols, rows);
+        mapGen.addForestToMap(subLevel.getMap(), conf);
     }
 
 }
