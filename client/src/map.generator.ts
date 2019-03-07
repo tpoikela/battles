@@ -40,6 +40,7 @@ export interface MapConf {
     callbacks?: {[key: string]: () => void};
     constraintFunc?: () => void;
     floorType?: string;
+    freeOnly?: boolean;
     genParams?: number[];
     levelType?: string;
     models?: any;
@@ -440,33 +441,69 @@ export class MapGenerator {
      * the walls. */
     public createForest(conf?: MapConf): MapObj {
         const map = new CellMap(this.cols, this.rows, this.defaultMapElem);
-        const ratio = conf.ratio;
-        const rng = MapGenerator.getAndSetRNG(conf);
-
-        this._mapGen = new MapForest(this.cols, this.rows, conf);
-        this._mapGen.create((x, y, val) => {
-            map.setBaseElemXY(x, y, ELEM.FLOOR);
-            const createTree = rng.getUniform() <= ratio;
-            if (val === 1 && createTree) {
-                map.setBaseElemXY(x, y, ELEM.TREE);
-            }
-            else if (val === 1) {
-                map.setBaseElemXY(x, y, ELEM.GRASS);
-            }
-        });
+        this.addForestToMap(map, conf);
         return {map};
+    }
+
+    public addForestToMap(map: CellMap, conf?: MapConf): void {
+        const ratio = conf.ratio;
+        const {freeOnly} = conf;
+        const rng = MapGenerator.getAndSetRNG(conf);
+        this._mapGen = new MapForest(this.cols, this.rows, conf);
+        if (freeOnly) {
+            this._mapGen.create((x, y, val) => {
+                const createTree = rng.getUniform() <= ratio;
+                if (val === 1 && createTree) {
+                    if (map.getCell(x, y).isFree()) {
+                        map.setBaseElemXY(x, y, ELEM.TREE);
+                    }
+                }
+                else if (val === 1) {
+                    if (map.getCell(x, y).isFree()) {
+                        map.setBaseElemXY(x, y, ELEM.GRASS);
+                    }
+                }
+            });
+        }
+        else {
+            this._mapGen.create((x, y, val) => {
+                const createTree = rng.getUniform() <= ratio;
+                if (val === 1 && createTree) {
+                    map.setBaseElemXY(x, y, ELEM.TREE);
+                }
+                else if (val === 1) {
+                    map.setBaseElemXY(x, y, ELEM.GRASS);
+                }
+            });
+        }
     }
 
     public createLakes(conf) {
         const map = new CellMap(this.cols, this.rows, this.defaultMapElem);
         this._mapGen = new MapForest(this.cols, this.rows, conf);
-        this._mapGen.create((x, y, val) => {
-            map.setBaseElemXY(x, y, ELEM.FLOOR);
-            if (val === 1 /* && createDeep */) {
-                map.setBaseElemXY(x, y, ELEM.WATER);
-            }
-        });
+        this.addLakesToMap(map, conf);
         return {map};
+    }
+
+    public addLakesToMap(map: CellMap, conf): void {
+        if (conf.freeOnly) {
+            this._mapGen.create((x, y, val) => {
+                // map.setBaseElemXY(x, y, ELEM.FLOOR);
+                if (val === 1 /* && createDeep */) {
+                    if (map.getCell(x, y).isFree()) {
+                        map.setBaseElemXY(x, y, ELEM.WATER);
+                    }
+                }
+            });
+        }
+        else {
+            this._mapGen.create((x, y, val) => {
+                map.setBaseElemXY(x, y, ELEM.FLOOR);
+                if (val === 1 /* && createDeep */) {
+                    map.setBaseElemXY(x, y, ELEM.WATER);
+                }
+            });
+        }
     }
 
     public addLakes(map: CellMap, conf, bbox: BBox): void {
