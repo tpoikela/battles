@@ -294,9 +294,6 @@ RG.cellStyles = {
     actors: {
         default: 'cell-actor-default',
         player: 'cell-actor-player',
-        monster: 'cell-actor-monster',
-        summoner: 'cell-actor-summoner',
-        wolf: 'cell-actor-animal',
         spirit: 'cell-actor-spirit'
     },
     items: {
@@ -695,11 +692,6 @@ RG.ITEM.POTION = 'potion';
 RG.ITEM.RUNE = 'rune';
 RG.ITEM.GOLD_COIN = 'goldcoin';
 
-/*
-RG.ITEM_TYPES = ['ammo', 'armour', 'food', 'gold', 'goldcoin',
-    'missile', 'missileweapon', 'potion', 'spiritgem', 'weapon'];
-*/
-
 // This is a subset of ITEM_TYPES, excluding gold items
 RG.SHOP_TYPES = ['ammo', 'armour', 'food', 'mineral',
     'missile', 'missileweapon', 'potion', 'rune', 'spiritgem', 'weapon'
@@ -1034,7 +1026,7 @@ RG.ALIGNMENTS = [RG.ALIGN_GOOD, RG.ALIGN_NEUTRAL, RG.ALIGN_EVIL];
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
-type ProbDist = {[key: string]: number};
+interface ProbDist {[key: string]: number;}
 
 /* Returns danger probabilites for given level.*/
 RG.getDangerProb = (min: number, max: number): ProbDist => {
@@ -1272,7 +1264,7 @@ RG.withinRange = (r: number, dest: DestOrSrc, src: DestOrSrc): boolean => {
     return dX <= r && dY <= r;
 };
 
-/* Given an actor, scales its attributes based on new experience level. Can advance 
+/* Given an actor, scales its attributes based on new experience level. Can advance
  * actor multiple levels also, if newLevel diff to current level is more than 1.*/
 RG.levelUpActor = (actor: SentientActor, newLevel: number): void => {
     if (actor.has('Experience')) {
