@@ -693,7 +693,7 @@ export class GoalAttackActor extends GoalBase {
         this.status = GoalStatus.GOAL_COMPLETED;
     }
 
-    public canMissileAttack() {
+    public canMissileAttack(): boolean {
         const [eX, eY] = this.targetActor.getXY();
         const [aX, aY] = this.actor.getXY();
         const miss = this.actor.getInvEq().getEquipment().getItem('missile');
@@ -817,8 +817,6 @@ export class GoalShootActor extends GoalBase {
     }
 
     public activate() {
-        const [eX, eY] = this.targetActor.getXY();
-        const mComp = new Component.Missile(this.actor);
         const invEq = this.actor.getInvEq();
         const shotItem = invEq.unequipAndGetItem('missile', 1, 0);
 
@@ -826,11 +824,14 @@ export class GoalShootActor extends GoalBase {
             return;
         }
 
+        const [eX, eY] = this.targetActor.getXY();
+        const mComp = new Component.Missile(this.actor);
         mComp.setTargetXY(eX, eY);
         mComp.setDamage(RG.getMissileDamage(this.actor, shotItem));
         mComp.setAttack(RG.getMissileAttack(this.actor, shotItem));
         mComp.setRange(RG.getMissileRange(this.actor, shotItem));
         shotItem.add(mComp);
+
         this.dbg(`${this.getType()} added Missile comp`);
         this.status = GoalStatus.GOAL_ACTIVE;
     }
