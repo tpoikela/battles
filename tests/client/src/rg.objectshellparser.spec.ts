@@ -57,7 +57,7 @@ describe('ObjectShell.Parser', () => {
 
         const wolfPack = parser.dbGet({categ: 'actors', danger: 3});
         expect(wolfPack.hasOwnProperty('superwolf')).to.equal(true);
-        const wolf1 = wolfPack['superwolf'];
+        const wolf1 = wolfPack.superwolf;
         expect(wolf1).to.equal(superWolf);
 
         // Create a reference actor
@@ -95,7 +95,7 @@ describe('ObjectShell.Parser', () => {
         expect(punyWolf.attack).to.equal(1);
 
         const punyWolfCreated = parser.createRandomActor({
-            func: function(actor) {return actor.attack < 2;}
+            func(actor) {return actor.attack < 2;}
         });
         expect(punyWolfCreated.get('Combat').getDefense()).to.equal(50);
         expect(punyWolfCreated.get('Combat').getAttack()).to.equal(1);
@@ -110,12 +110,12 @@ describe('ObjectShell.Parser', () => {
         parser.parseObjShell(RG.TYPE_ACTOR, wolf);
 
         let func = actor => (actor.danger <= 1 && actor.type === 'animal');
-        expect(parser.createRandomActor({func})).to.be.null;
+        expect(parser.createRandomActor({func})).to.equal(null);
 
         let wolfObj = null;
         func = actor => (actor.danger <= 2 && actor.type === 'animal');
         wolfObj = parser.createRandomActor({func});
-        expect(wolfObj).not.to.be.empty;
+        expect(wolfObj).to.be.an.instanceof(SentientActor);
 
     });
 
@@ -153,16 +153,16 @@ describe('ObjectShell.Parser', () => {
         const sword = parser.parseObjShell(RG.TYPE_ITEM, {
             name: 'sword', type: 'weapon'
         });
-        expect(sword).to.exist;
+        expect(sword.name).to.equal('sword');
         const potion = parser.parseObjShell(RG.TYPE_ITEM, {
             name: 'Healing potion', type: 'potion'
         });
-        expect(potion).to.exist;
+        expect(potion.name).to.equal('Healing potion');
 
         const goblinObj = parser.createActualObj(RG.TYPE_ACTOR, 'goblin');
 
         expect(goblinObj.has('Loot'),
-            'Goblin should have loot component').to.be.true;
+            'Goblin should have loot component').to.equal(true);
 
         const inv = goblinObj.getInvEq().getInventory();
         expect(inv.getItems()).to.have.length(1);
@@ -171,10 +171,11 @@ describe('ObjectShell.Parser', () => {
 
     it('can add equipped items into the created actors', () => {
         const parser = new Parser();
-        const goblin = parser.parseObjShell('actors', {
+        const goblinShell = {
             name: 'goblin', attack: 15, defense: 10, damage: '1d6 + 2',
             hp: 9, equip: ['sword']
-        });
+        };
+        const goblin = parser.parseObjShell('actors', goblinShell);
         expect(goblin.equip).to.have.length(1);
         parser.parseObjShell(RG.TYPE_ITEM, {
             name: 'sword', type: 'weapon', damage: '1d1'
@@ -184,6 +185,16 @@ describe('ObjectShell.Parser', () => {
         const eqSword = actualGoblin.getWeapon();
         expect(eqSword).to.exist;
         expect(eqSword.getType()).to.equal('weapon');
+
+        // Check to competing equips
+        goblinShell.equip.push('sword');
+        goblinShell.name = 'goblin2';
+        const goblin2 = parser.parseObjShell('actors', goblinShell);
+        expect(goblin2.equip).to.have.length(2);
+
+        const actualGoblin2 = parser.createActor('goblin2');
+        const eq2Sword = actualGoblin2.getWeapon();
+        expect(eq2Sword.getType()).to.equal('weapon');
 
     });
 
@@ -253,7 +264,7 @@ describe('ObjectShell.Parser', () => {
         expect(Object.keys(items).length).to.equal(2);
 
         const randFood = parser.createRandomItem({
-            func: function(item) {return item.value <= 5;}
+            func(item) {return item.value <= 5;}
         });
 
         expect(randFood.getEnergy()).to.equal(100);
@@ -262,7 +273,7 @@ describe('ObjectShell.Parser', () => {
         RGUnitTests.checkCSSClassName(randFood, 'cell-item-food');
 
         const geleeFood = parser.createRandomItem({
-            func: function(item) {return item.value >= 99;}
+            func(item) {return item.value >= 99;}
         });
         expect(geleeFood.getEnergy()).to.equal(500);
         expect(geleeFood.getType()).to.equal('food');
@@ -293,6 +304,19 @@ describe('ObjectShell.Parser', () => {
             }
 
         });
+    });
+
+    it('supports also random specifications', () => {
+        const addCompRand = ['Ethereal', {random: ['EagleEye', 
+            'DoubleShot']}
+        ];
+        const archer = {name: 'archer', addComp: addCompRand};
+        const parser = new Parser();
+        const archerShell = parser.parseObjShell(RG.TYPE_ACTOR, archer);
+
+        const archerObj = parser.createActor('archer');
+        expect(archerObj).to.have.component('Ethereal');
+        expect(archerObj.hasAny(['EagleEye', 'DoubleShot'])).to.equal(true);
     });
 
 });
