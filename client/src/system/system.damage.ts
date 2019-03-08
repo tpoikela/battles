@@ -413,7 +413,6 @@ export class SystemDamage extends SystemBase {
     }
 
     public _cloneComponentsToCorpse(actor, corpse): void {
-        console.log('calling moveComponentsToCorpse()');
         const compTypes = ['Named', 'Health', 'Stats', 'Combat', 'Experience'];
         compTypes.forEach(compType => {
             const comp = actor.get(compType).clone();
