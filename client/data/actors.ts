@@ -229,6 +229,16 @@ export const ActorsData: ActorShell[] = [
         hp: 35, danger: 6, addComp: 'Flying', speed: 130
     },
     {
+        name: 'polar bear', char: 'B', base: 'animal',
+        color: color('blue', 'white'),
+        attack: 10, defense: 5, damage: '4d4 + 5',
+        hp: 50, danger: 8,
+        onHit: [
+            {addComp: 'Stun', duration: '1d2 + 1'}
+        ],
+        addComp: [resistance('ICE', 'HIGH')]
+    },
+    {
         name: 'mammoth', char: 'M', base: 'animal',
         attack: 4, defense: 4, protection: 7, damage: '1d9',
         strength: 30, hp: 40, danger: 8,
@@ -240,6 +250,16 @@ export const ActorsData: ActorShell[] = [
         strength: 35, hp: 50, danger: 9,
         colorfg: 'Gray',
         addComp: [resistance('ICE', 'MEDIUM')]
+    },
+    {
+        name: 'polar bear king', char: 'B', base: 'animal',
+        color: color('cyan', 'white'),
+        attack: 15, defense: 7, damage: '5d5 + 5',
+        hp: 75, danger: 10,
+        onHit: [
+            {addComp: 'Stun', duration: '1d2 + 1'}
+        ],
+        addComp: [resistance('ICE', 'IMMUNITY')]
     },
     {
         name: 'thunderbird', char: 'G', base: 'animal',
@@ -1312,7 +1332,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'Thabba, Son of Ice', base: 'UniqueBase',
         char: '@', danger: 200, enemies: ['human'], type: 'finalboss',
-        spells: ['FrostBolt', 'RingOfFrost'], hp: 100, pp: 100,
+        spells: ['FrostBolt', 'RingOfFrost'], hp: 266, pp: 100,
         brain: 'SpellCaster',
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
         magic: 30, attack: 30, defense: 30, protection: 10,
@@ -1322,7 +1342,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'Zamoned, Son of Frost', base: 'UniqueBase',
         char: '@', danger: 200, enemies: ['human'], type: 'finalboss',
-        hp: 150, pp: 100, brain: defaultBrain,
+        hp: 200, pp: 100, brain: defaultBrain,
         strength: 20, accuracy: 25, agility: 35, willpower: 15, perception: 25,
         magic: 10, attack: 30, defense: 30, protection: 10,
         equip: ['Permaice axe', 'Permaice armour', 'Bow of Defense',
@@ -1337,7 +1357,8 @@ export const ActorsData: ActorShell[] = [
         spells: ['IcyPrison', 'FrostBolt'],
         strength: 15, accuracy: 15, agility: 15, willpower: 30, perception: 25,
         magic: 25, attack: 15, defense: 15, protection: 5,
-        equip: ['Ruby glass armour', 'Ruby glass collar']
+        equip: ['Ruby glass armour', 'Ruby glass collar'],
+        addComp: ['SnowWalk', resistance('ICE', 'HIGH'), 'RegenEffect']
     },
 
     {
@@ -1350,7 +1371,8 @@ export const ActorsData: ActorShell[] = [
         equip: ['Runed armour', 'Runed collar'],
         onHit: [
             {addComp: 'Stun', duration: '1d4 + 1'}
-        ]
+        ],
+        addComp: ['RegenEffect']
     },
     {
         name: 'Aspelin Primoen, the Blacksmith', type: 'dogfolk',
@@ -1364,7 +1386,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'Elene Immolate Kinin, Queen of cats', type: 'catfolk',
         base: 'UniqueBase', char: 'f', danger: 100,
-        damage: '10d3 + 3', hp: 100, pp: 50, brain: 'SpellCaster',
+        damage: '10d3 + 3', hp: 123, pp: 50, brain: 'SpellCaster',
         spells: ['ScorpionsTail', 'EnergyArrow', 'SummonKin'],
         strength: 15, accuracy: 25, agility: 25, willpower: 17, perception: 25,
         magic: 17, attack: 25, defense: 15, protection: 5,
@@ -1385,6 +1407,7 @@ export const ActorsData: ActorShell[] = [
             meleeHitDamage(4, '2d8 + 2', 'NECRO')
         ],
         spells: ['SummonDead', 'FrostBolt', 'GraspOfWinter'],
+        addComp: ['RegenEffect']
     },
     {
         name: 'Zargoth, undead sorcerer', type: 'undead',
@@ -1397,6 +1420,7 @@ export const ActorsData: ActorShell[] = [
             meleeHitDamage(2, '1d8 + 2', 'NECRO')
         ],
         spells: ['SummonUndeadUnicorns', 'ShadowRay'],
+        addComp: ['RegenEffect']
     },
 
     {
@@ -1413,7 +1437,7 @@ export const ActorsData: ActorShell[] = [
     },
 
     {
-        name: 'Dvaling, sharpshooter', type: 'dwarf',
+        name: 'Dvaling, dwarven sharpshooter', type: 'dwarf',
         base: 'UniqueBase', char: 'h', danger: 70,
         damage: '4d7 + 3', hp: 123, brain: defaultBrain,
         strength: 35, accuracy: 17, agility: 17, willpower: 17, perception: 30,
@@ -1443,6 +1467,9 @@ export const ActorsData: ActorShell[] = [
 
 
 ];
+
+// TODO here we can generate procedurally some actor shells to make things
+// more interesting. These can be pushed to the array
 
 //---------------------------------------------------------------------------
 // HELPER FUNCTIONS
@@ -1501,7 +1528,7 @@ export const adjustActorValues = (actorsData, order = Actors.modOrder) => {
     });
 };
 
-function resistance(type, level) {
+export function resistance(type, level) {
     return {
         comp: 'Resistance', func: {
             setEffect: RG.DMG[type.toUpperCase()],
@@ -1510,7 +1537,7 @@ function resistance(type, level) {
     };
 }
 
-function BypassComp(value) {
+export function BypassComp(value) {
     return {comp: 'BypassProtection', func: {setChance: value}};
 }
 
