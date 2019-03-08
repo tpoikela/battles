@@ -11,7 +11,7 @@ import {Random} from './random';
 import {ElementBase} from './element';
 import * as Component from './component';
 import {Dice} from './dice';
-import {Spell} from './spell';
+import {Spell} from '../data/spells';
 
 const RNG = Random.getRNG();
 export const ObjectShell: any = {};
@@ -358,14 +358,25 @@ export const Creator = function(db, dbNoRandom) {
     this.addSpellbookAndSpells = (shell, obj) => {
         obj.setBook(new Spell.SpellBook(obj));
         shell.spells.forEach(spell => {
-            if (Spell[spell]) {
-                obj.getBook().addSpell(new Spell[spell]());
+            const usedSpell = this.getUsedObject(spell);
+            if (Spell[usedSpell]) {
+                obj.getBook().addSpell(new Spell[usedSpell]());
             }
             else {
-                const msg = `Spell |${spell}| does not exist.`;
+                const msg = `Spell |${usedSpell}| does not exist.`;
                 RG.err('Creator', 'addSpellbookAndSpells', msg);
             }
         });
+    };
+
+    this.getUsedObject = (strOrObj) => {
+        if (typeof strOrObj === 'object') {
+            if (strOrObj.random) {
+                return RNG.arrayGetRand(strOrObj.random);
+            }
+        }
+        return strOrObj;
+
     };
 
     /* Factory-method for creating the actual game objects.*/
@@ -505,16 +516,24 @@ export const Creator = function(db, dbNoRandom) {
         }
         else if (Array.isArray(shell.addComp)) {
             shell.addComp.forEach(comp => {
-                if (typeof comp === 'string') {
-                    _addCompFromString(comp, entity);
+                let usedComp = comp;
+                if (comp.random) {
+                    usedComp = RNG.arrayGetRand(comp.random);
+                }
+                if (typeof usedComp === 'string') {
+                    _addCompFromString(usedComp, entity);
                 }
                 else {
-                    _addCompFromObj(entity, comp);
+                    _addCompFromObj(entity, usedComp);
                 }
             });
         }
         else if (typeof shell.addComp === 'object') {
-            _addCompFromObj(entity, shell.addComp);
+            let usedComp = shell.addComp;
+            if (shell.addComp.random) {
+                usedComp = RNG.arrayGetRand(shell.addComp.random);
+            }
+            _addCompFromObj(entity, usedComp);
         }
         else {
             RG.err('Creator', 'addComponents',
@@ -568,6 +587,7 @@ export const Creator = function(db, dbNoRandom) {
     /* Adds equipped items given with shell.equip into the actor. */
     this.addEquippedItems = function(shell, actor) {
         const equip = shell.equip;
+        let needShuffle = false;
         equip.forEach(item => {
             const itemName = item.name || item;
             const count = item.count || 1;
@@ -575,30 +595,20 @@ export const Creator = function(db, dbNoRandom) {
             if (itemObj) {
                 itemObj.setCount(count);
                 if (!actor.getInvEq().restoreEquipped(itemObj)) {
-                    const actorName = actor.getName();
-                    RG.err('Creator', 'addEquippedItems',
-                        `Cannot equip: ${count} ${item} to ${actorName}`);
+                    // Shuffle for the next round
+                    needShuffle = true;
                 }
-                /*
-                actor.getInvEq().addItem(itemObj);
-                if (count > 1) {
-                    if (!actor.getInvEq().equipNItems(itemObj, count)) {
-                        const actorName = actor.getName();
-                        RG.err('Creator', 'addEquippedItems',
-                            `Cannot equip: ${count} ${item} to ${actorName}`);
-                    }
-                }
-                else if (!actor.getInvEq().equipItem(itemObj)) {
-                    RG.err('Creator', 'addEquippedItems',
-                        `Cannot equip: ${item} to ${actor.getName()}`);
-                }
-                */
             }
             else {
                 RG.err('Creator', 'addEquippedItems',
                     `itemObj for ${item} is null. Actor: ${actor.getName()}`);
             }
         });
+        // Shell may have conflict equip such as 2 weapons or armour.
+        // Shuffle this for the next round
+        if (needShuffle) {
+            RNG.shuffle(shell.equip);
+        }
     };
 
     /* If shell has 'use', this adds specific use effect to the item.*/
