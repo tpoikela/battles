@@ -1,10 +1,20 @@
 
 /* Helper functions for testing actor balancing. */
-const RG = require('../client/src/battles');
+import * as RG from '../client/src/battles';
 const fs = require('fs');
 
 const UNLIMITED = -1;
 const parser = RG.ObjectShell.getParser();
+
+interface ActorEntry {
+    won: number;
+    lost: number;
+    tied: number;
+}
+
+interface ActorHist {
+    [key: string]: ActorEntry;
+}
 
 const ActorBattles = function(args) {
     this.monitorActor = args.monitorActor;
@@ -12,10 +22,13 @@ const ActorBattles = function(args) {
     this.shells = args.shells;
     this.equalizeLevels = true;
 
+    this.parser = parser;
+    this.parser.parseShellData({actors: this.shells});
+
     this.fname = 'actor_fight_results';
     this.dir = 'results';
 
-    this.histogram = {};
+    this.histogram = {} as ActorHist;
     this.monitor = {
         name: this.monitorActor,
         won: {},
@@ -54,9 +67,9 @@ ActorBattles.prototype.getActorObj = function(a1) {
         return a1();
     }
     if (a1.name) {
-        return parser.createActor(a1.name);
+        return this.parser.createActor(a1.name);
     }
-    else if (RG.isActor(a1)) {
+    else if (RG.RG.isActor(a1)) {
         return a1;
     }
     return a1;
@@ -65,7 +78,8 @@ ActorBattles.prototype.getActorObj = function(a1) {
 ActorBattles.prototype.runBattleTest = function(a1, a2) {
 
     let watchdog = 300;
-    const arena = RG.FACT.createLevel('arena', 7, 7);
+    const factLevel = new RG.FactoryLevel();
+    const arena = factLevel.createLevel('arena', 12, 12);
     const actor1 = this.getActorObj(a1);
     const actor2 = this.getActorObj(a2);
 
@@ -76,7 +90,7 @@ ActorBattles.prototype.runBattleTest = function(a1, a2) {
     actor1.addEnemy(actor2);
     actor2.addEnemy(actor1);
 
-    const game = new RG.Game.Main();
+    const game = new RG.GameMain();
     game.addLevel(arena);
     game.addActiveLevel(arena);
 
@@ -89,7 +103,7 @@ ActorBattles.prototype.runBattleTest = function(a1, a2) {
     const a1Level = actor1.get('Experience').getExpLevel();
     if (this.equalizeLevels) {
         if (a1Level > actor2.get('Experience').getExpLevel()) {
-            RG.levelUpActor(actor2, a1Level);
+            RG.RG.levelUpActor(actor2, a1Level);
         }
     }
 
@@ -99,29 +113,34 @@ ActorBattles.prototype.runBattleTest = function(a1, a2) {
     }
 
     if (watchdog === 0) {
-        this.recordResult('tied', a1Name);
-        this.recordResult('tied', a2Name);
+        this.recordResult('tied', a1Name, a2Name);
+        this.recordResult('tied', a2Name, a1Name);
     }
     else if (h1.isAlive()) {
-        this.recordResult('won', a1Name);
-        this.recordResult('lost', a2Name);
+        this.recordResult('won', a1Name, a2Name);
+        this.recordResult('lost', a2Name, a1Name);
     }
     else {
-        this.recordResult('lost', a1Name);
-        this.recordResult('won', a2Name);
+        this.recordResult('lost', a1Name, a2Name);
+        this.recordResult('won', a2Name, a1Name);
     }
 
 };
 
-ActorBattles.prototype.recordResult = function(resType, aName) {
+ActorBattles.prototype.recordResult = function(resType: string, aName, a2Name): void {
     this.histogram[aName][resType] += 1;
     if (aName === this.monitorActor) {
-        if (!this.monitor[resType][aName]) {this.monitor[resType][aName] = 1;}
-        else {this.monitor[resType][aName] += 1;}
+        if (!this.monitor[resType][a2Name]) {
+            this.monitor[resType][a2Name] = 1;
+        }
+        else {
+            this.monitor[resType][a2Name] += 1;
+        }
     }
 };
 
-ActorBattles.prototype.validActorsForTest = function(arr) {
+/* For filtering the valid actors for the test. */
+ActorBattles.prototype.validActorsForTest = function(arr): boolean {
     for (let i = 0; i < arr.length; i++) {
         const actor = arr[i];
         if (actor.dontCreate) {return false;}
@@ -185,6 +204,7 @@ ActorBattles.prototype.runWithActor = function(actor, nRounds = 1) {
         }
     }
 
+    /* TODO fix this
     ['won', 'lost', 'tied'].forEach(prop => {
         const values = Object.values(this.monitor[prop]);
         const sum = values.reduce((acc, val) => {
@@ -192,6 +212,7 @@ ActorBattles.prototype.runWithActor = function(actor, nRounds = 1) {
         }, 0);
         this.monitor[prop].sum = sum;
     });
+    */
 
     this.finish();
     this.nMatches = nMatches;
@@ -216,7 +237,7 @@ ActorBattles.prototype.printMonitored = function(tag = '') {
 };
 
 ActorBattles.prototype.printCSV = function(tag) {
-    const histogram = this.histogram;
+    const histogram: ActorHist = this.histogram;
     const outputFile = `${this.dir}/${this.fname}_${tag}.csv`;
     if (!fs.existsSync(this.dir)) {
         fs.mkdirSync(this.dir);
@@ -225,9 +246,10 @@ ActorBattles.prototype.printCSV = function(tag) {
         fs.writeFileSync(outputFile, `tag: ${tag}`);
     }
     fs.appendFileSync(outputFile, 'Actor,Won,Tied,Lost,Danger\n');
-    let actorData = Object.entries(histogram);
+
+    let actorData: Array<[string, ActorEntry]> = Object.entries(histogram);
     actorData = actorData.sort((a, b) => {
-        console.log('a', a, 'b', b);
+        const [e1, e2]: [ActorEntry, ActorEntry] = [a[1], b[1]];
         if (a[1].won > b[1].won) {
             return -1;
         }
