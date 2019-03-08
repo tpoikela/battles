@@ -105,14 +105,14 @@ export class CmdMissile extends CmdBase {
                 }
 
                 if (!RG.isNullOrUndef([obj.target])) {
-                    const x = obj.target.getX();
-                    const y = obj.target.getY();
+                    const [x, y] = obj.target.getXY();
                     const mComp = new Component.Missile(this._actor);
                     mComp.setTargetXY(x, y);
                     mComp.setDamage(RG.getMissileDamage(this._actor, missile));
                     mComp.setAttack(RG.getMissileAttack(this._actor, missile));
                     mComp.setRange(RG.getMissileRange(this._actor, missile));
                     missile.add(mComp);
+
                     this.brain.energy = RG.energy.MISSILE;
                 }
                 else {
