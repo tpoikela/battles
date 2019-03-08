@@ -41,18 +41,18 @@ export class Random {
         this.rng.setSeed(this.seed);
     }
 
-    public setSeed(seed) {
+    public setSeed(seed: number): void {
         console.log('Setting RNG seed to ' + seed);
         this.seed = seed;
         this.rng.setSeed(seed);
     }
 
-    public setState(state) {
+    public setState(state): void {
         this.rng.setState(state);
     }
 
     /* Return random property from the object.*/
-    public randProp(obj) {
+    public randProp(obj): any {
         const keys = Object.keys(obj);
         const keyIndex = this.randIndex(keys);
         return obj[keys[keyIndex]];
