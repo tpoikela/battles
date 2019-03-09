@@ -39,11 +39,11 @@ const randWeights = {
 
 };
 
-interface IShell {
+export interface IShell {
     [key: string]: any;
 }
 
-interface StringMap<T> {
+export interface StringMap<T> {
     [key: string]: T;
 }
 
@@ -150,7 +150,7 @@ shellProps.ranks = {
     },
     commander: {
         danger: 5,
-        strength: 7, hp: 20,
+        strength: 5, hp: 20,
         equip: ['Great battle axe', 'Steel armour', 'Steel helmet'],
     },
     lord: {
@@ -159,6 +159,10 @@ shellProps.ranks = {
     },
     warlord: {
         danger: 7, hp: 25
+    },
+    captain: {
+        danger: 7, hp: 25,
+        strength: 7, agility: 3, accuracy: 3
     },
     prince: {
         danger: 5, hp: 20
@@ -418,7 +422,7 @@ ActorGen.genRandShell = function(): IShell {
         .concat(usedRoleShells);
     const newShell = mixNewShell(allShells);
     if (rankName !== 'commoner') {
-        newShell.name = raceShell.prefix + ' ' + rankName + fullRoleName;
+        newShell.name = raceShell.prefix + fullRoleName + ' ' + rankName;
     }
     else {
         newShell.name = raceShell.prefix + fullRoleName;
