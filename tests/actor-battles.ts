@@ -29,12 +29,22 @@ const ActorBattles = function(args) {
     this.fname = 'actor_fight_results';
     this.dir = 'results';
 
+    // Weapon database for actors
+    this.weaponDb = {};
+
     this.histogram = {} as ActorHist;
     this.monitor = {
         name: this.monitorActor,
         won: {},
         lost: {},
         tied: {}
+    };
+
+    this.propsToQuery = {
+        equip: (shell) => !!shell.equip,
+        weaponDmg: (shell) => (
+            this.weaponDb[shell.name] ? this.weaponDb[shell.name] : ''
+        )
     };
 };
 
@@ -64,16 +74,21 @@ ActorBattles.prototype.initHistograms = function(a1, a2) {
 /* Returns the actor object that will be used. If given arg is function,
  * calls the function and returns the result. */
 ActorBattles.prototype.getActorObj = function(a1) {
+    let actor = null;
     if (typeof a1 === 'function') {
-        return a1();
+        actor = a1(); // Mainly used for player
     }
     if (a1.name) {
-        return this.parser.createActor(a1.name);
+        actor = this.parser.createActor(a1.name);
     }
     else if (RG.RG.isActor(a1)) {
-        return a1;
+        actor = a1;
     }
-    return a1;
+    const weapon = actor.getWeapon();
+    if (weapon) {
+        this.weaponDb[actor.getName()] = weapon.getDamageDie().toString();
+    }
+    return actor;
 };
 
 ActorBattles.prototype.runBattleTest = function(a1, a2) {
@@ -237,7 +252,8 @@ ActorBattles.prototype.printMonitored = function(tag = '') {
     this.printCSV(tag);
 };
 
-const propsToAppend = ['hp', 'attack', 'defense', 'protection'];
+const propsToAppend = ['danger', 'hp', 'attack', 'defense', 'protection', 'damage'];
+
 
 ActorBattles.prototype.printCSV = function(tag) {
     const histogram: ActorHist = this.histogram;
@@ -250,8 +266,10 @@ ActorBattles.prototype.printCSV = function(tag) {
     }
 
     // Format the header for CSV file
-    let headerLine = 'Actor,Won,Tied,Lost,Danger';
+    let headerLine = 'Actor,Won,Tied,Lost,WinRatio';
     headerLine += ',' + propsToAppend.join(',');
+    headerLine += ',' + Object.keys(this.propsToQuery).join(',');
+    this.headerLine = headerLine;
     fs.appendFileSync(outputFile, headerLine + '\n');
 
     let actorData: Array<[string, ActorEntry]> = Object.entries(histogram);
@@ -269,19 +287,23 @@ ActorBattles.prototype.printCSV = function(tag) {
     actorData.forEach(entry => {
         const key = entry[0];
         const shellFromDb: IShell = this.parser.dbGet({name: key})[0];
-        console.log('XXX', key, shellFromDb);
         const {hp} = shellFromDb;
         const {won, lost, tied} = entry[1];
         const newKey = key.replace(',', '');
-        const danger = Math.round((won / (won + lost)) * 100);
+        const winRatio = Math.round((won / (won + lost)) * 100);
 
         // Format CSV data for this actor
-        let csvData = `${newKey},${won},${tied},${lost},${danger}`;
+        let csvData = `${newKey},${won},${tied},${lost},${winRatio}`;
         propsToAppend.forEach(prop => {
             csvData += ',' + shellFromDb[prop];
         });
+        Object.keys(this.propsToQuery).forEach(name => {
+            const funcToCall = this.propsToQuery[name];
+            csvData += ',' + funcToCall(shellFromDb);
+        });
         fs.appendFileSync(outputFile, csvData + '\n');
     });
+    fs.appendFileSync(outputFile, this.headerLine + '\n');
     const linkName = `${this.dir}/last_sim.csv`;
     if (fs.existsSync(linkName)) {
         fs.unlinkSync(linkName);
