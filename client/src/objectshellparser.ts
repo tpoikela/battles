@@ -595,7 +595,7 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         inv.forEach(item => {
             const name = item.name || item;
             const count = item.count || 1;
-            const itemObj = this.createItem(name);
+            const itemObj = this.createActualObj(RG.TYPE_ITEM, name);
             if (itemObj) {
                 itemObj.setCount(count);
                 actor.getInvEq().addItem(itemObj);
@@ -610,7 +610,7 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
     // Adds the loot component to the Actor object
     this.addLootComponents = function(shell: IShell, actor): void {
         const loot = shell.loot;
-        const lootItem = this.createItem(loot);
+        const lootItem = this.createActualObj(RG.TYPE_ITEM, loot);
         const lootComp = new Component.Loot(lootItem);
         actor.add(lootComp);
     };
@@ -622,7 +622,7 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         equip.forEach(item => {
             const itemName = item.name || item;
             const count = item.count || 1;
-            const itemObj = this.createItem(itemName);
+            const itemObj = this.createActualObj(RG.TYPE_ITEM, itemName);
             if (itemObj) {
                 itemObj.setCount(count);
                 if (!actor.getInvEq().restoreEquipped(itemObj)) {
