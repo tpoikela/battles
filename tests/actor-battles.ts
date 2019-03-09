@@ -2,6 +2,7 @@
 /* Helper functions for testing actor balancing. */
 import * as RG from '../client/src/battles';
 const fs = require('fs');
+import {IShell} from '../client/data/actor-gen';
 
 const UNLIMITED = -1;
 const parser = RG.ObjectShell.getParser();
@@ -236,6 +237,8 @@ ActorBattles.prototype.printMonitored = function(tag = '') {
     this.printCSV(tag);
 };
 
+const propsToAppend = ['hp', 'attack', 'defense', 'protection'];
+
 ActorBattles.prototype.printCSV = function(tag) {
     const histogram: ActorHist = this.histogram;
     const outputFile = `${this.dir}/${this.fname}_${tag}.csv`;
@@ -245,7 +248,11 @@ ActorBattles.prototype.printCSV = function(tag) {
     if (tag.length > 0) {
         fs.writeFileSync(outputFile, `tag: ${tag}`);
     }
-    fs.appendFileSync(outputFile, 'Actor,Won,Tied,Lost,Danger\n');
+
+    // Format the header for CSV file
+    let headerLine = 'Actor,Won,Tied,Lost,Danger';
+    headerLine += ',' + propsToAppend.join(',');
+    fs.appendFileSync(outputFile, headerLine + '\n');
 
     let actorData: Array<[string, ActorEntry]> = Object.entries(histogram);
     actorData = actorData.sort((a, b) => {
@@ -261,11 +268,19 @@ ActorBattles.prototype.printCSV = function(tag) {
 
     actorData.forEach(entry => {
         const key = entry[0];
+        const shellFromDb: IShell = this.parser.dbGet({name: key})[0];
+        console.log('XXX', key, shellFromDb);
+        const {hp} = shellFromDb;
         const {won, lost, tied} = entry[1];
         const newKey = key.replace(',', '');
         const danger = Math.round((won / (won + lost)) * 100);
-        const csvData = `${newKey},${won},${tied},${lost},${danger}\n`;
-        fs.appendFileSync(outputFile, csvData);
+
+        // Format CSV data for this actor
+        let csvData = `${newKey},${won},${tied},${lost},${danger}`;
+        propsToAppend.forEach(prop => {
+            csvData += ',' + shellFromDb[prop];
+        });
+        fs.appendFileSync(outputFile, csvData + '\n');
     });
     const linkName = `${this.dir}/last_sim.csv`;
     if (fs.existsSync(linkName)) {
