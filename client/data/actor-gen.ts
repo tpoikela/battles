@@ -64,6 +64,7 @@ const shellProps: ShellProps = {
 const baseShell: IShell = {
     range: 1, danger: 1, speed: 100, brain: 'GoalOriented',
     damage: '1d6', attack: 1, defense: 1, hp: 5,
+    protection: 0,
     enemies: RG.ACTOR_RACES,
     accuracy: 5, agility: 5, strength: 5, magic: 5, perception: 5,
     willpower: 5
