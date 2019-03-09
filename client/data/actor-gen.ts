@@ -411,10 +411,12 @@ ActorGen.genRandShell = function(): IShell {
 
     // Then find shells for these roles
     let fullRoleName = '';
+    const roleNames = [];
     const usedRoleShells: IShell[] = rTypes.map((r: string) => {
         const roleShells: StringMap<IShell> = shellProps.roles[r];
         const roleName = RNG.arrayGetRand(Object.keys(roleShells));
         fullRoleName += ' ' + roleName;
+        roleNames.push(roleName);
         return roleShells[roleName];
     });
 
@@ -428,5 +430,7 @@ ActorGen.genRandShell = function(): IShell {
     else {
         newShell.name = raceShell.prefix + fullRoleName;
     }
+    newShell.roleTypes = rTypes;
+    newShell.roles = roleNames;
     return newShell;
 };
