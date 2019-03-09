@@ -99,7 +99,7 @@ export class DungeonGenerator extends LevelGenerator {
 
     /* Creates the actual Map.Level. User should call this function with desired
      * size (X * Y) and configuration. */
-    public create(cols, rows, conf) {
+    public create(cols: number, rows: number, conf): Level {
         // Creates the Map.Level with rooms, walls and floor
         const level = this._createLevel(cols, rows, conf);
 
@@ -130,7 +130,7 @@ export class DungeonGenerator extends LevelGenerator {
     }
 
     /* Creates the Map.Level with extras (such as rooms) added. */
-    public _createLevel(cols, rows, conf) {
+    public _createLevel(cols, rows, conf): Level {
         if (!cols) {
             cols = RNG.getUniformInt(80, 120);
         }
@@ -794,7 +794,7 @@ const getRandMapType = () => {
     return RNG.arrayGetRand(['uniform', 'digger']);
 };
 
-function getRoomDist(level, r1, r2) {
+function getRoomDist(level: Level, r1, r2): number {
     const map = level.getMap();
     const [cx1, cy1] = r1.getCenter();
     const [cx2, cy2] = r2.getCenter();
