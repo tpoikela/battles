@@ -44,7 +44,8 @@ const ActorBattles = function(args) {
         equip: (shell) => !!shell.equip,
         weaponDmg: (shell) => (
             this.weaponDb[shell.name] ? this.weaponDb[shell.name] : ''
-        )
+        ),
+        spells: (shell) => !!shell.spells
     };
 };
 
