@@ -13,10 +13,41 @@ import * as Component from './component';
 import {Dice} from './dice';
 import {Spell} from '../data/spells';
 
+import {IShell, StringMap} from '../data/actor-gen';
+
 const RNG = Random.getRNG();
 export const ObjectShell: any = {};
 
-export const Creator = function(db, dbNoRandom) {
+type AcceptFunc = (IShell) => boolean;
+type BaseActor = Actor.BaseActor;
+type ItemBase = Item.ItemBase;
+
+export interface IShellInputData {
+    actors?: IShell[];
+    items?: IShell[];
+    elements?: IShell[];
+    effects?: IShell[];
+}
+
+export interface IShellDb {
+    actors: StringMap<IShell>;
+    items: StringMap<IShell>;
+    elements: StringMap<IShell>;
+    effects?: StringMap<IShell>;
+}
+
+export interface IShellDbDanger {
+    [key: number]: IShellDb;
+}
+
+export interface IQueryDB {
+    name?: string;
+    categ?: string; // actors, items, elements
+    danger?: number;
+    func?: AcceptFunc; // Acceptance func for query
+}
+
+export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
     this._db = db;
     this._dbNoRandom = dbNoRandom;
     /* Maps obj props to function calls. Essentially this maps bunch of setters
@@ -102,7 +133,7 @@ export const Creator = function(db, dbNoRandom) {
     _propToCall.items.ammo.ammoType = 'setAmmoType';
 
     /* Returns an object shell, given category and name.*/
-    this.get = (categ, name) => {
+    this.get = (categ: string, name: string): IShell | null => {
         if (this._dbNoRandom[categ][name]) {
             return this._dbNoRandom[categ][name];
         }
@@ -131,7 +162,7 @@ export const Creator = function(db, dbNoRandom) {
     /* Returns an actual game object when given category and name. Note that
      * the blueprint must exist already in the database (blueprints must have
      * been parsed before). */
-    this.createActualObj = function(categ, name) {
+    this.createActualObj = function(categ: string, name: string) {
         const shell = this.get(categ, name);
         const propCalls = _propToCall[categ];
         if (!shell) {
@@ -259,7 +290,7 @@ export const Creator = function(db, dbNoRandom) {
     };
 
     /* Adds Poison as addOnHit property. */
-    this.addPoison = (shell, obj) => {
+    this.addPoison = (shell: IShell, obj): void => {
         const poison = shell.poison;
         const poisonComp = new Component.Poison();
         poisonComp.setProb(poison.prob);
@@ -274,13 +305,13 @@ export const Creator = function(db, dbNoRandom) {
     };
 
     /* Adds any component as AddOnHit property. */
-    this.addOnHitProperties = (shell, obj) => {
+    this.addOnHitProperties = (shell: IShell, obj) => {
         shell.onHit.forEach(onHit => {
             this.processAddComp(onHit, obj);
         });
     };
 
-    this.addOnAttackHitProperties = (shell, obj) => {
+    this.addOnAttackHitProperties = (shell: IShell, obj) => {
         shell.onAttackHit.forEach(onHit => {
             const addOnHitComp = this.processAddComp(onHit, obj);
             addOnHitComp.setOnDamage(false);
@@ -288,7 +319,7 @@ export const Creator = function(db, dbNoRandom) {
         });
     };
 
-    this.addOnEquipProperties = (shell, newObj) => {
+    this.addOnEquipProperties = (shell: IShell, newObj) => {
         shell.onEquip.forEach(onEquip => {
             const isEquip = true;
             this.processAddComp(onEquip, newObj, isEquip);
@@ -348,14 +379,14 @@ export const Creator = function(db, dbNoRandom) {
     };
 
 
-    this.addEnemies = (shell, obj) => {
+    this.addEnemies = (shell: IShell, obj) => {
         shell.enemies.forEach(enemyType => {
             obj.getBrain().addEnemyType(enemyType);
         });
     };
 
     /* Creates a spellbook and adds specified spells into it. */
-    this.addSpellbookAndSpells = (shell, obj) => {
+    this.addSpellbookAndSpells = (shell: IShell, obj) => {
         obj.setBook(new Spell.SpellBook(obj));
         shell.spells.forEach(spell => {
             const usedSpell = this.getUsedObject(spell);
@@ -510,7 +541,7 @@ export const Creator = function(db, dbNoRandom) {
     };
 
     /* This function makes a pile of mess if used on non-entities. */
-    this.addComponents = (shell, entity) => {
+    this.addComponents = (shell: IShell, entity) => {
         if (typeof shell.addComp === 'string') {
             _addCompFromString(shell.addComp, entity);
         }
@@ -564,7 +595,7 @@ export const Creator = function(db, dbNoRandom) {
         inv.forEach(item => {
             const name = item.name || item;
             const count = item.count || 1;
-            const itemObj = this.createActualObj(RG.TYPE_ITEM, name);
+            const itemObj = this.createItem(name);
             if (itemObj) {
                 itemObj.setCount(count);
                 actor.getInvEq().addItem(itemObj);
@@ -577,21 +608,21 @@ export const Creator = function(db, dbNoRandom) {
     };
 
     // Adds the loot component to the Actor object
-    this.addLootComponents = function(shell, actor) {
+    this.addLootComponents = function(shell: IShell, actor): void {
         const loot = shell.loot;
-        const lootItem = this.createActualObj(RG.TYPE_ITEM, loot);
+        const lootItem = this.createItem(loot);
         const lootComp = new Component.Loot(lootItem);
         actor.add(lootComp);
     };
 
     /* Adds equipped items given with shell.equip into the actor. */
-    this.addEquippedItems = function(shell, actor) {
+    this.addEquippedItems = function(shell: IShell, actor) {
         const equip = shell.equip;
         let needShuffle = false;
         equip.forEach(item => {
             const itemName = item.name || item;
             const count = item.count || 1;
-            const itemObj = this.createActualObj(RG.TYPE_ITEM, itemName);
+            const itemObj = this.createItem(itemName);
             if (itemObj) {
                 itemObj.setCount(count);
                 if (!actor.getInvEq().restoreEquipped(itemObj)) {
@@ -612,7 +643,7 @@ export const Creator = function(db, dbNoRandom) {
     };
 
     /* If shell has 'use', this adds specific use effect to the item.*/
-    this.addUseEffects = (shell, newObj) => {
+    this.addUseEffects = (shell: IShell, newObj) => {
         newObj.useFuncs = [];
         newObj.useItem = this._db.effects.use.func.bind(newObj);
         if (typeof shell.use === 'object'
@@ -633,7 +664,7 @@ export const Creator = function(db, dbNoRandom) {
         }
     };
 
-    const _addUseEffectToItem = (shell, item, useName) => {
+    const _addUseEffectToItem = (shell: IShell, item, useName) => {
         const useFuncName = useName;
         if (this._db.effects.hasOwnProperty(useFuncName)) {
             const useEffectShell = this._db.effects[useFuncName];
@@ -688,7 +719,7 @@ export const Creator = function(db, dbNoRandom) {
     };
 
     /* Creates actual game object from obj shell in given category.*/
-    this.createFromShell = function(categ, obj) {
+    this.createFromShell = function(categ: string, obj: IShell) {
         if (obj) {
             return this.createActualObj(categ, obj.name);
         }
@@ -728,7 +759,7 @@ export const ProcGen = function(db, dbDanger, dbByName) {
 
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
-    this.dbGet = query => {
+    this.dbGet = (query: IQueryDB): IShell[] | StringMap<IShell> => {
         const name = query.name;
         const categ = query.categ;
         const danger = query.danger;
@@ -774,21 +805,20 @@ export const ProcGen = function(db, dbDanger, dbByName) {
      *   2.func(obj) {if (obj.hp > 25) return true;}.
      *   And it can be as complex as needed of course.
      * */
-    this.filterCategWithFunc = function(categ, func) {
-        const objects = this.dbGet({categ});
-        const res = [];
+    this.filterCategWithFunc = function(categ, func: AcceptFunc): IShell[] {
+        const objects: StringMap<IShell> = this.dbGet({categ});
+        const res: IShell[] = [];
         const keys = Object.keys(objects);
 
         for (let i = 0; i < keys.length; i++) {
             const name = keys[i];
-            const obj = objects[name];
+            const obj: IShell = objects[name];
             const acceptItem = func(obj);
             if (acceptItem) {
                 res.push(obj);
             }
         }
         return res;
-
     };
 
     //---------------------------------------------------
@@ -800,7 +830,7 @@ export const ProcGen = function(db, dbDanger, dbByName) {
      * returns a random actors with these constrains.
      * Ex2: {danger: 3, num:1}
      * returns randomly one entry which has danger 3.*/
-    this.dbGetRand = function(query) {
+    this.dbGetRand = function(query: IQueryDB) {
         const danger = query.danger;
         const categ = query.categ;
         if (typeof danger !== 'undefined') {
@@ -815,7 +845,7 @@ export const ProcGen = function(db, dbDanger, dbByName) {
     };
 
     /* Creates a random actor based on danger value or a filter function.*/
-    this.getRandomActor = function(obj) {
+    this.getRandomActor = function(obj: IQueryDB) {
         if (obj.hasOwnProperty('danger')) {
             const danger = obj.danger;
             const randShell = this.dbGetRand({danger, categ: RG.TYPE_ACTOR});
@@ -837,13 +867,13 @@ export const ProcGen = function(db, dbDanger, dbByName) {
      *  const item = createRandomItem({func: funcValueSel});
      *  // Above returns item with value > 100.
      */
-    this.getRandomItem = function(obj) {
-        if (obj.hasOwnProperty('func')) {
-            const res = this.filterCategWithFunc(RG.TYPE_ITEM, obj.func);
+    this.getRandomItem = function(obj: IQueryDB | AcceptFunc) {
+        if (typeof obj === 'function') {
+            const res = this.filterCategWithFunc(RG.TYPE_ITEM, obj);
             return RNG.arrayGetRand(res);
         }
-        else if (typeof obj === 'function') {
-            const res = this.filterCategWithFunc(RG.TYPE_ITEM, obj);
+        else if (obj.hasOwnProperty('func')) {
+            const res = this.filterCategWithFunc(RG.TYPE_ITEM, (obj as IShell).func);
             return RNG.arrayGetRand(res);
         }
         else {
@@ -896,23 +926,23 @@ export const Parser = function() {
         effects: {},
         items: {},
         elements: {}
-    };
+    } as IShellDb;
 
     this._db = {
         actors: {},
         effects: {},
         items: {},
         elements: {}
-    };
+    } as IShellDb;
 
-    this._dbDanger = {}; // All entries indexed by danger
-    this._dbByName = {}; // All entries indexed by name
+    this._dbDanger = {} as IShellDbDanger; // All entries indexed by danger
+    this._dbByName = {} as StringMap<IShell>; // All entries indexed by name
 
     this._dbNoRandom = {
         actors: {},
         items: {},
         elements: {}
-    }; // All entries excluded from random generation
+    } as IShellDb; // All entries excluded from random generation
 
     this._creator = new Creator(this._db, this._dbNoRandom);
     this._procgen = new ProcGen(this._db, this._dbDanger,
@@ -930,7 +960,7 @@ export const Parser = function() {
     //-----------------------------------------------------------------------
 
     /* Parses all shell data, items, monsters, level etc.*/
-    this.parseShellData = function(obj) {
+    this.parseShellData = function(obj: IShellInputData): void {
         const keys = Object.keys(obj);
         for (let i = 0; i < keys.length; i++) {
             this.parseShellCateg(keys[i], obj[keys[i]]);
@@ -938,7 +968,7 @@ export const Parser = function() {
     };
 
     /* Parses one specific shell category, ie items or monsters.*/
-    this.parseShellCateg = function(categ, objsArray) {
+    this.parseShellCateg = function(categ: string, objsArray: IShell[]): void {
         for (let i = 0; i < objsArray.length; i++) {
             this.parseObjShell(categ, objsArray[i]);
         }
@@ -948,7 +978,7 @@ export const Parser = function() {
      * corresponding object for actual actors. If 'base' property exists,
      * all base properties will be added to the returned object.
      * */
-    this.parseObjShell = function(categ, obj) {
+    this.parseObjShell = function(categ: string, obj: IShell): IShell {
         if (this.validShellGiven(obj)) {
             // Get properties from base shell
             if (obj.hasOwnProperty('base')) {
@@ -978,7 +1008,7 @@ export const Parser = function() {
     };
 
     /* Checks that the object shell given is correctly formed.*/
-    this.validShellGiven = obj => {
+    this.validShellGiven = (obj: IShell): boolean => {
         if (!obj.hasOwnProperty('name')) {
             RG.err('Parser', 'validShellGiven',
                 `shell doesn't have a name. shell: ${JSON.stringify(obj)}`);
@@ -988,26 +1018,26 @@ export const Parser = function() {
     };
 
     /* If an object doesn't have type, the name is chosen as its type.*/
-    this.addTypeIfUntyped = obj => {
+    this.addTypeIfUntyped = (obj: IShell): void => {
         if (!obj.hasOwnProperty('type')) {
             obj.type = obj.name;
         }
     };
 
     /* Returns an object shell, given category and name.*/
-    this.get = (categ, name) => this._db[categ][name];
+    this.get = (categ: string, name: string): IShell => this._db[categ][name];
 
     /* Return specified base shell.*/
-    this.getBase = (categ, name) => this._base[categ][name];
+    this.getBase = (categ: string, name: string): IShell => this._base[categ][name];
 
     /* All shells can be used as base, not only ones with
      * 'dontCreate: true' */
-    this.storeForUsingAsBase = (categ, obj) => {
+    this.storeForUsingAsBase = (categ: string, obj: IShell): void => {
         this._base[categ][obj.name] = obj;
     };
 
     /* Stores the object into given category.*/
-    this.storeIntoDb = function(categ, obj) {
+    this.storeIntoDb = function(categ: string, obj: IShell): void {
         if (this._db.hasOwnProperty(categ)) {
             this.storeForUsingAsBase(categ, obj);
 
@@ -1095,7 +1125,7 @@ export const Parser = function() {
     };
 
     /* Returns true if shell base exists.*/
-    this.baseExists = (categ, baseName) => {
+    this.baseExists = (categ: string, baseName: string): boolean => {
         if (this._base.hasOwnProperty(categ)) {
             return this._base[categ].hasOwnProperty(baseName);
         }
@@ -1103,7 +1133,7 @@ export const Parser = function() {
     };
 
     /* Extends the given object shell with a given base shell.*/
-    this.extendObj = (obj, baseObj) => {
+    this.extendObj = (obj: IShell, baseObj: IShell): IShell => {
         for (const prop in baseObj) {
             if (!obj.hasOwnProperty(prop)) {
                 if (prop !== 'dontCreate') {
@@ -1122,38 +1152,38 @@ export const Parser = function() {
 
     this.createEntity = function(name) {
         if (this.hasObj(RG.TYPE_ITEM, name)) {
-            return this.createActualObj(RG.TYPE_ITEM, name);
+            return this.createItem(name);
         }
         else if (this.hasObj(RG.TYPE_ACTOR, name)) {
-            return this.createActualObj(RG.TYPE_ACTOR, name);
+            return this.createActor(name);
         }
         return null;
     };
 
-    this.createActor = function(name) {
+    this.createActor = function(name: string): BaseActor {
         return this.createActualObj(RG.TYPE_ACTOR, name);
     };
 
-    this.createItem = function(name) {
+    this.createItem = function(name: string): ItemBase {
         return this.createActualObj(RG.TYPE_ITEM, name);
     };
 
-    this.createElement = function(name) {
+    this.createElement = function(name: string) {
         return this.createActualObj(RG.TYPE_ELEM, name);
     };
 
-    this.hasItem = function(name) {
+    this.hasItem = function(name: string) {
         return this.hasObj(RG.TYPE_ITEM, name);
     };
 
-    this.hasObj = function(categ, name) {
+    this.hasObj = function(categ: string, name: string): boolean {
         return this.dbExists(categ, name);
     };
 
     /* Returns an actual game object when given category and name. Note that
      * the shell must exist already in the database (shell must have
      * been parser before). */
-    this.createActualObj = function(categ, name) {
+    this.createActualObj = function(categ: string, name: string) {
         if (!this.dbExists(categ, name)) {
             RG.err('Parser', 'createActualObj',
                 `Categ: ${categ} Name: ${name} doesn't exist.`);
@@ -1185,9 +1215,9 @@ export const Parser = function() {
 
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
-    this.dbGet = query => this._procgen.dbGet(query);
+    this.dbGet = (query: IQueryDB) => this._procgen.dbGet(query);
 
-    this.dbGetRand = query => this._procgen.dbGetRand(query);
+    this.dbGetRand = (query: IQueryDB) => this._procgen.dbGetRand(query);
 
     this.filter = function(categ, func) {
         return this._procgen.filterCategWithFunc(categ, func);
@@ -1231,7 +1261,7 @@ export const Parser = function() {
      *  const item = createRandomItem({func: funcValueSel});
      *  // Above returns item with value > 100.
      *  */
-    this.createRandomItem = obj => {
+    this.createRandomItem = (obj: IQueryDB | AcceptFunc) => {
         const randShell = this._procgen.getRandomItem(obj);
         if (randShell) {
             return this._creator.createFromShell('items', randShell);
@@ -1243,11 +1273,11 @@ export const Parser = function() {
 };
 ObjectShell.Parser = Parser;
 
-export const createItem = function(nameOrShell) {
+export const createItem = function(nameOrShell: string | IShell) {
     const parser = ObjectShell.getParser();
     const creator = parser.getCreator();
     if (typeof nameOrShell === 'string') {
-        return creator.createActualObj(RG.TYPE_ITEM, nameOrShell);
+        return creator.createItem(nameOrShell);
     }
     else {
         parser.parseObjShell(RG.TYPE_ITEM, nameOrShell);
