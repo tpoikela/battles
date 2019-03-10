@@ -616,7 +616,7 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
     };
 
     /* Adds equipped items given with shell.equip into the actor. */
-    this.addEquippedItems = function(shell: IShell, actor) {
+    this.addEquippedItems = function(shell: IShell, actor): void {
         const equip = shell.equip;
         let needShuffle = false;
         equip.forEach(item => {
@@ -643,7 +643,7 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
     };
 
     /* If shell has 'use', this adds specific use effect to the item.*/
-    this.addUseEffects = (shell: IShell, newObj) => {
+    this.addUseEffects = (shell: IShell, newObj): void => {
         newObj.useFuncs = [];
         newObj.useItem = this._db.effects.use.func.bind(newObj);
         if (typeof shell.use === 'object'
@@ -733,15 +733,12 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
 };
 ObjectShell.Creator = Creator;
 
-Creator.prototype.createBrain = function(actor, brainName) {
+Creator.prototype.createBrain = function(actor, brainName: string): void {
     if (Brain[brainName]) {
         return new Brain[brainName](actor);
     }
     const msg = `ERROR. No brain type |${brainName}| found`;
-    // msg += 'Using the default Brain.Sentient instead.';
-    //console.warn(msg);
     RG.err('Creator', 'createBrain', msg);
-    // return new Brain.BrainSentient(actor);
 };
 
 
