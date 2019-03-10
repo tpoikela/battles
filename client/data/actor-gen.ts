@@ -154,6 +154,9 @@ shellProps.ranks = {
         strength: 5, hp: 20,
         equip: ['Great battle axe', 'Steel armour', 'Steel helmet'],
     },
+    steward: {
+        danger: 5, hp: 20
+    },
     lord: {
         danger: 5,
         strength: 7, hp: 20,
@@ -169,7 +172,7 @@ shellProps.ranks = {
         danger: 5, hp: 20
     },
     princess: {
-        agility: 5, magic: 5, danger: 5, hp: 20
+        danger: 5, agility: 5, magic: 5, hp: 20
     },
     queen: {
         colorfg: 'yellow',
@@ -182,18 +185,23 @@ shellProps.ranks = {
         danger: 12, hp: 40,
     },
     emperor: {
+        colorfg: 'purple',
         danger: 15,
         strength: 10, attack: 10, defense: 10,
         hp: 50,
         addComp: [BypassComp(0.15)]
     },
+    empress: {
+        colorfg: 'palevioletred',
+        danger: 17,
+        accuracy: 10, agility: 10, attack: 10, defense: 10,
+        hp: 45,
+        addComp: [BypassComp(0.25), 'Charm']
+    },
     overlord: {
         danger: 10, hp: 35,
         addComp: [BypassComp(0.10)]
     },
-    steward: {
-        danger: 5, hp: 20
-    }
 };
 const rankNames = Object.keys(shellProps.ranks);
 
