@@ -805,6 +805,11 @@ export const MasterEquipper = DataComponent('MasterEquipper',
 export const BypassProtection = DataComponent('BypassProtection',
     {chance: 0.0});
 
+/* Component which can prevent an attack being made. */
+export const Charm = DataComponent('Charm', {
+    level: 1, targetActor: RG.NO_TARGET
+});
+
 //--------------------------------------------
 // ALPINIST COMPONENTS
 //--------------------------------------------
