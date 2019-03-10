@@ -305,12 +305,9 @@ Menu.SelectRequired = MenuSelectRequired;
 export class MenuSelectCell extends MenuBase {
     private _enableSelectAll: boolean;
 
-    constructor(args) {
+    constructor(args: MenuArg[] = []) {
         super(args);
         this._enableSelectAll = false;
-        if (args.enableSelectAll) {
-            this._enableSelectAll = args.enableSelectAll;
-        }
         this._showMenu = false;
     }
 
@@ -348,7 +345,7 @@ export class MenuSelectTarget extends MenuSelectCell {
 
     public targetCallback: (any) => void;
 
-    constructor(args) {
+    constructor(args: MenuArg[] = []) {
         super(args);
         this.targetCallback = null;
     }
@@ -398,6 +395,67 @@ export class MenuSelectDir extends MenuBase {
     }
 }
 Menu.SelectDir = MenuSelectDir;
+
+/* This menu is used when player does missile targeting. */
+export class PlayerMissileMenu extends MenuSelectCell {
+
+    public actor: any;
+
+    constructor(args: MenuArg[] = [], actor) {
+        super(args);
+        this.actor = actor;
+        this._showMenu = false;
+        const brain = this.actor.getBrain();
+        if (brain.selectCell) {
+            const cellCb = brain.selectCell.bind(brain);
+            this.setCallback(cellCb);
+        }
+        else {
+            RG.err('PlayerMissileMenu', 'constructor',
+                'brain does not have selectCell() function');
+        }
+        // If there are enemies, auto-target most recent/new
+        brain.startTargeting();
+        if (!brain.hasTargetSelected()) {
+            // Otherwise let player select a cell
+            // brain.cancelTargeting();
+            brain.selectCell();
+            console.log('Brain no target selected. Using cell.');
+        }
+        else {
+            console.log('Brain has target selected');
+        }
+        // brain.selectCell();
+    }
+
+    public select(code) {
+        const val = MenuSelectCell.prototype.select.call(this, code);
+        if (val !== Menu.EXIT_MENU) {
+            return val;
+        }
+
+        // Base class did't return anything meaningful, thus process code
+        switch (code) {
+            case Keys.KEY.NEXT: {
+                this.actor.getBrain().nextTarget();
+                return this;
+            }
+            case Keys.KEY.PREV: {
+                this.actor.getBrain().prevTarget();
+                return this;
+            }
+            case Keys.KEY.TARGET: {
+                const keyIndex = Keys.codeToIndex(code);
+                return this.table[keyIndex];
+            }
+            default: {
+                return Menu.EXIT_MENU;
+            }
+        }
+        return Menu.EXIT_MENU;
+    }
+
+}
 
 //---------------------------------------------------------------------------
 /* Menu which has multiple states. An example is a selection menu, which has C-D
