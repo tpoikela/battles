@@ -110,6 +110,7 @@ const S_TARGETING = 'S_TARGETING';
 const S_LOOKING = 'S_LOOKING';
 
 const FSM_NO_MATCH = 256;
+const NO_SELECTED_CELLS = null;
 
 /* A class to manage the targeting/looking state of the player. */
 class TargetingFSM {
@@ -149,13 +150,23 @@ class TargetingFSM {
         }
     }
 
+    public prevTarget(): void {
+        if (this.hasTargets()) {
+            --this.targetIndex;
+            if (this.targetIndex < 0) {
+                this.targetIndex = this._targetList.length - 1;
+            }
+            this.setSelectedCells(this._targetList[this.targetIndex]);
+        }
+    }
+
     public startLooking(): void {
         this._state = S_LOOKING;
     }
 
     public stopLooking(): void {
         this._state = S_IDLE;
-        this.selectedCells = null;
+        this.selectedCells = NO_SELECTED_CELLS;
     }
 
     public startTargeting(): void {
@@ -168,7 +179,7 @@ class TargetingFSM {
     public cancelTargeting(): void {
         this._targetList = [];
         this._state = S_IDLE;
-        this.selectedCells = null;
+        this.selectedCells = NO_SELECTED_CELLS;
         this.targetIndex = -1;
     }
 
@@ -184,15 +195,6 @@ class TargetingFSM {
         return Object.values(mapXY);
     }
 
-    public prevTarget(): void {
-        if (this.hasTargets()) {
-            --this.targetIndex;
-            if (this.targetIndex < 0) {
-                this.targetIndex = this._targetList.length - 1;
-            }
-            this.setSelectedCells(this._targetList[this.targetIndex]);
-        }
-    }
 
     public setSelectedCells(cells: Cell | Cell[]): void {
         if (cells) {
