@@ -707,6 +707,7 @@ RG.LEVEL_ID_ADD = 1000000000;
 RG.ENTITY_ID_ADD = 1000000000;
 
 RG.WATCHDOG = 100; // Used mainly to terminate while-loops
+RG.NO_TARGET = -1;
 
 //----------------------------
 // Different level types
