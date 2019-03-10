@@ -287,8 +287,15 @@ ActorBattles.prototype.printCSV = function(tag) {
 
     actorData.forEach(entry => {
         const key = entry[0];
-        const shellFromDb: IShell = this.parser.dbGet({name: key})[0];
-        const {hp} = shellFromDb;
+        let shellFromDb: IShell = this.parser.dbGet({name: key})[0];
+        if (!shellFromDb) {
+            shellFromDb = this.parser.dbGetNoRandom({categ: 'actors', name: key})[0];
+            if (!shellFromDb) {
+                console.error(`ERROR. No shell for ${key} found`);
+                return;
+            }
+        }
+
         const {won, lost, tied} = entry[1];
         const newKey = key.replace(',', '');
         const winRatio = Math.round((won / (won + lost)) * 100);
