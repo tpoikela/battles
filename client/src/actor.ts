@@ -380,7 +380,7 @@ export class SentientActor extends BaseActor {
     // Combat-related methods
     //---------------------------------
 
-    public getAttack() {
+    public getAttack(): number {
         let attack = this.get('Combat').getAttack();
         attack += this.getEquipAttack();
         attack += this._addFromCompList('CombatMods', 'getAttack');
@@ -388,7 +388,7 @@ export class SentientActor extends BaseActor {
         return attack;
     }
 
-    public getDefense() {
+    public getDefense(): number {
         let defense = this.get('Combat').getDefense();
         defense += this.getEquipDefense();
         defense += this._addFromCompList('CombatMods', 'getDefense');
@@ -396,18 +396,21 @@ export class SentientActor extends BaseActor {
         return defense;
     }
 
-    public getProtection() {
+    public getProtection(): number {
         let protection = this.get('Combat').getProtection();
         protection += this.getEquipProtection();
         protection += this._addFromCompList('CombatMods', 'getProtection');
         return protection;
     }
 
-    public getDamage() {
+    public getDamage(): number {
         let damage = this.get('Combat').rollDamage();
         const weapon = this.getWeapon();
         if (weapon) {
-            damage = RG.getItemDamage(weapon);
+            const wpnDamage = RG.getItemDamage(weapon);
+            if (wpnDamage > damage) {
+                damage = wpnDamage;
+            }
         }
         const strength = this.getStrength();
         damage += RG.strengthToDamage(strength);
@@ -416,11 +419,11 @@ export class SentientActor extends BaseActor {
 
     }
 
-    public getCombatBonus(funcName) {
+    public getCombatBonus(funcName: string): number {
         return this._addFromCompList('CombatMods', funcName);
     }
 
-    public _addFromCompList(compType, func) {
+    public _addFromCompList(compType: string, func): number {
         const compList = this.getList(compType);
         if (compList.length > 0) {
             return compList.reduce((acc, val) => {
@@ -434,49 +437,49 @@ export class SentientActor extends BaseActor {
     // Stats-related methods (these take eq and boosts into account
     //-------------------------------------------------------------
 
-    public getAccuracy() {
+    public getAccuracy(): number {
         let acc = this.get('Stats').getAccuracy();
         acc += this.getInvEq().getEquipment().getAccuracy();
         acc += this._addFromCompList('StatsMods', 'getAccuracy');
         return acc;
     }
 
-    public getAgility() {
+    public getAgility(): number {
         let agi = this.get('Stats').getAgility();
         agi += this.getInvEq().getEquipment().getAgility();
         agi += this._addFromCompList('StatsMods', 'getAgility');
         return agi;
     }
 
-    public getStrength() {
+    public getStrength(): number {
         let str = this.get('Stats').getStrength();
         str += this.getInvEq().getEquipment().getStrength();
         str += this._addFromCompList('StatsMods', 'getStrength');
         return str;
     }
 
-    public getWillpower() {
+    public getWillpower(): number {
         let wil = this.get('Stats').getWillpower();
         wil += this.getInvEq().getEquipment().getWillpower();
         wil += this._addFromCompList('StatsMods', 'getWillpower');
         return wil;
     }
 
-    public getSpeed() {
+    public getSpeed(): number {
         let speed = this.get('Stats').getSpeed();
         speed += this.getInvEq().getEquipment().getSpeed();
         speed += this._addFromCompList('StatsMods', 'getSpeed');
         return speed;
     }
 
-    public getPerception() {
+    public getPerception(): number {
         let per = this.get('Stats').getPerception();
         per += this.getInvEq().getEquipment().getPerception();
         per += this._addFromCompList('StatsMods', 'getPerception');
         return per;
     }
 
-    public getMagic() {
+    public getMagic(): number {
         let mag = this.get('Stats').getMagic();
         mag += this.getInvEq().getEquipment().getMagic();
         mag += this._addFromCompList('StatsMods', 'getMagic');
@@ -484,14 +487,14 @@ export class SentientActor extends BaseActor {
     }
 
     /* Returns bonuses applied to given stat. */
-    public getStatBonus(funcName) {
+    public getStatBonus(funcName: string): number {
         return this._addFromCompList('StatsMods', funcName);
     }
 }
 
 const playerBrainComps = ['StatsMods', 'CombatMods'];
 
-function addPlayerBrainComps(actor) {
+function addPlayerBrainComps(actor): void {
     playerBrainComps.forEach(compName => {
         let hasTag = false;
         if (actor.has(compName)) {
@@ -511,7 +514,7 @@ function addPlayerBrainComps(actor) {
     });
 }
 
-function removePlayerBrainComps(actor) {
+function removePlayerBrainComps(actor: Entity): void {
     playerBrainComps.forEach(compName => {
         let compID = -1;
         if (actor.has(compName)) {
