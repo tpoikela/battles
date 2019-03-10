@@ -27,6 +27,49 @@ Spell.DispelMagic = function() {
 };
 RG.extend2(Spell.DispelMagic, Spell.RemoveComponent);
 
+Spell.Charm = function() {
+    SpellBase.call(this, 'Charm');
+    this._dice.duration = Dice.create('10d6 + 5');
+};
+RG.extend2(Spell.Charm, SpellBase);
+
+Spell.Charm.prototype.cast = function(args) {
+    const obj: SpellArgs = getDirSpellArgs(this, args);
+    const spellComp = new Component.SpellCell();
+    obj.callback = this.charmCallback.bind(this);
+    spellComp.setArgs(obj);
+    args.src.add(spellComp);
+};
+
+Spell.Charm.prototype.charmCallback = function(cell: Cell): void {
+    const actors = cell.getSentientActors();
+    if (actors && actors.length > 0) {
+        const targetActor = actors[0];
+        let charmLevel = 1 + this.getCasterExpBonus(3);
+        charmLevel += this.getCasterStatBonus('willpower', 3);
+
+        const charmComp = new Component.Charm();
+        charmComp.setTargetActor(targetActor.getID());
+        charmComp.setLevel(charmLevel);
+
+        const dur = this.getDuration();
+        Component.addToExpirationComp(this.getCaster(), charmComp, dur);
+
+        const caster = this.getCaster();
+        const msg = `${caster.getName()} charms ${targetActor.getName()}`;
+        RG.gameMsg({cell: caster.getCell(), msg});
+    }
+};
+
+Spell.Charm.prototype.getSelectionObject = function(actor) {
+    const msg = 'Select a direction for charming:';
+    return Spell.getSelectionObjectDir(this, actor, msg);
+};
+
+Spell.Charm.prototype.aiShouldCastSpell = function(args, cb) {
+    return aiSpellCellEnemy(args, cb);
+};
+
 /* A spell for melee combat using grasp of winter. */
 Spell.GraspOfWinter = function() {
     SpellBase.call(this, 'Grasp of winter');
@@ -81,6 +124,12 @@ Spell.AnimateDead.prototype.animateCallback = function(cell: Cell) {
     const items = cell.getItems();
     const corpseItem = items.find(i => /corpse/.test(i.getName()));
     const corpse = corpseItem as Corpse;
+
+    if (corpse.has('Undead')) {
+        const msg = `${caster.getName()} cannot reanimate undead remains`;
+        RG.gameMsg({cell: caster.getCell(), msg});
+        return;
+    }
 
     if (corpse) {
         const parser = ObjectShell.getParser();
@@ -969,6 +1018,7 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.AnimateDead());
     book.addSpell(new Spell.ArrowOfWebs());
     book.addSpell(new Spell.Blizzard());
+    book.addSpell(new Spell.Charm());
     book.addSpell(new Spell.CrossBolt());
     book.addSpell(new Spell.DispelMagic());
     book.addSpell(new Spell.EnergyArrow());
