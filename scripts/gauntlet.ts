@@ -3,9 +3,9 @@
  * fight each other. */
 
 import {ActorGen} from '../client/data/actor-gen';
+import {ActorsData} from '../client/data/actors';
 
 const ActorBattles = require('../tests/actor-battles');
-// const Actors = require('../client/data/actors.js');
 
 const matchLimit = process.argv[2] || 2000;
 const nRounds = 3;
@@ -13,8 +13,10 @@ const nRounds = 3;
 // const shells = Actors.filter(a => !((/spirit/i).test(a.name)));
 // const monitorActor = 'lich';
 
-const shells = ActorGen.genActors(100);
+let shells = ActorGen.genActors(100);
 const monitorActor = shells[0].name;
+
+shells = shells.concat(ActorsData);
 
 const ab = new ActorBattles({monitorActor, matchLimit, shells});
 
