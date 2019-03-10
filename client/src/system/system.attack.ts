@@ -74,7 +74,16 @@ export class SystemAttack extends SystemBase {
         return cells.length;
     }
 
-    public performAttack(att, def, aName, dName) {
+    public performAttack(att, def, aName, dName): void {
+        if (def.has('Charm')) {
+            if (this.attIsCharmed(att, def)) {
+                let msg = `${att.getName()} is charmed by ${def.getName()} `;
+                msg += ', and does not attack';
+                RG.gameMsg({cell: att.getCell(), msg});
+                return;
+            }
+        }
+
         let totalAtt = RG.getMeleeAttack(att);
         if (att.has('Attacker')) {
             totalAtt += this.addAttackerBonus(att);
@@ -176,6 +185,27 @@ export class SystemAttack extends SystemBase {
                 SystemBase.addSkillsExp(def, 'Shields', 1);
             }
         }
+    }
+
+    public attIsCharmed(att, def): boolean {
+        const charmList = def.getList('Charm');
+        let isSuccess = false;
+        charmList.forEach(charmComp => {
+            const charmTarget = charmComp.getTargetActor();
+            const charmLevel = charmComp.getLevel();
+            const attWillpower = att.getWillpower();
+            let charmSuccess = charmLevel / (charmLevel + attWillpower);
+            if (charmTarget !== RG.NO_TARGET && charmTarget === att.getID()) {
+                charmSuccess = 2 * (charmLevel / (charmLevel + attWillpower));
+                if (charmSuccess > 0.80) {
+                    charmSuccess = 0.80;
+                }
+            }
+            if (RG.isSuccess(charmSuccess)) {
+                isSuccess = true;
+            }
+        });
+        return isSuccess;
     }
 
     public _applyAddOnHitComp(att, def) {
