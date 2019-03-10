@@ -94,6 +94,7 @@ export const ActorsData: ActorShell[] = [
         name: 'animal', dontCreate: true, type: 'animal',
         className: 'cell-actor-animal',
         attack: 1, defense: 1, hp: 5,
+        protection: 0,
         range: 1, danger: 1, speed: 100, brain: 'Animal',
         enemies: RG.ACTOR_RACES
     },
@@ -231,7 +232,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'polar bear', char: 'B', base: 'animal',
         color: color('blue', 'white'),
-        attack: 10, defense: 5, damage: '4d4 + 5',
+        attack: 10, defense: 5, protection: 7, damage: '4d4 + 5',
         hp: 50, danger: 8,
         onHit: [
             {addComp: 'Stun', duration: '1d2 + 1'}
@@ -282,14 +283,15 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'spider queen', char: 'S', base: 'animal',
         color: color('Purple', 'Green'),
-        attack: 7, defense: 7, damage: '2d8',
+        attack: 7, defense: 7, protection: 7, damage: '2d8 + 7',
         hp: 45, danger: 11, brain: 'SpellCaster',
-        spells: ['SummonSpiders', 'ArrowOfWebs'], maxPP: 40, pp: 40
+        spells: ['SummonSpiders', 'ArrowOfWebs'], maxPP: 40, pp: 40,
+        poison: {duration: '10d6', damage: '1d5 + 3', prob: '0.20'},
     },
     {
         name: 'ancient manticore', char: 'M', base: 'animal',
         color: color('Gray', 'Brown'),
-        attack: 15, defense: 10, damage: '2d10 + 10',
+        attack: 15, defense: 10, protection: 10, damage: '2d10 + 10',
         hp: 75, danger: 15, addComp: 'Flying',
         onHit: [{addComp: 'Paralysis', duration: '1d6 + 1'}],
         spells: ['SummonKin'], maxPP: 30, pp: 30
@@ -370,6 +372,7 @@ export const ActorsData: ActorShell[] = [
         name: 'goblin', char: 'g', type: 'goblin',
         className: 'cell-actor-goblin',
         attack: 1, defense: 1, damage: '1d6', range: 1, hp: 7,
+        protection: 1,
         danger: 2, enemies: ['human'],
         brain: defaultBrain
     },
@@ -908,25 +911,25 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'dwarf', char: 'h', type: 'dwarf',
         className: 'cell-actor-dwarf',
-        attack: 2, defense: 2, damage: '1d4',
+        attack: 2, defense: 2, protection: 1, damage: '1d4',
         range: 1, hp: 20, danger: 3, enemies: ['human', 'undead', 'demon'],
         brain: defaultBrain
     },
     {
         name: 'dwarven fighter', base: 'dwarf',
-        attack: 4, defense: 4, damage: '1d7',
+        attack: 4, defense: 4, protection: 2, damage: '1d7',
         range: 1, hp: 30, danger: 4,
         equip: ['Spear']
     },
     {
         name: 'dwarven axeman', base: 'dwarf',
-        attack: 4, defense: 4, damage: '1d8',
+        attack: 4, defense: 4, protection: 3, damage: '1d8',
         range: 1, hp: 40, danger: 5,
         equip: ['Battle axe', 'Chain armour']
     },
     {
         name: 'dwarven hammerer', base: 'dwarf',
-        attack: 4, defense: 6, damage: '1d10',
+        attack: 4, defense: 6, protection: 4, damage: '1d10',
         range: 1, hp: 45, danger: 6,
         equip: ['Dwarven pick-axe', 'Leather armour']
     },
@@ -944,15 +947,22 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'dwarven elite', base: 'dwarf',
-        attack: 5, defense: 6, damage: '2d5',
+        attack: 5, defense: 6, damage: '3d5 + 3',
         range: 1, hp: 50, danger: 9,
         equip: ['Battle axe', 'Steel armour']
     },
     {
         name: 'dwarven commander', base: 'dwarf',
-        attack: 8, defense: 8, damage: '2d5',
+        attack: 8, defense: 8, protection: 7, damage: '2d5',
         range: 1, hp: 60, danger: 10,
         equip: ['Great battle axe', 'Steel armour']
+    },
+    {
+        name: 'dwarven king', base: 'dwarf',
+        colorfg: 'red',
+        attack: 12, defense: 12, protection: 10, damage: '4d5 + 5',
+        range: 1, hp: 75, danger: 15,
+        equip: ['Mithril armour']
     },
     // HUMANS
     {
@@ -1100,6 +1110,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'WolfclanBase', dontCreate: true, danger: 1,
         attack: 1, defense: 1, damage: '1d4', range: 1,
+        protection: 2,
         className: 'cell-actor-wolfclan', char: 'w',
         type: 'wolfclan',
         enemies: ['player', 'human', 'catfolk', 'dogfolk', 'bearfolk'],
@@ -1130,7 +1141,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'wolfclan elite', base: 'WolfclanBase', danger: 8,
-        attack: 8, defense: 5, damage: '2d4+10', hp: 50,
+        attack: 8, defense: 5, protection: 5, damage: '2d4+10', hp: 50,
         addComp: 'CounterAttack'
     },
     {
