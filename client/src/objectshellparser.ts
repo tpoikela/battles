@@ -841,6 +841,7 @@ export const ProcGen = function(db, dbDanger, dbByName) {
         return null;
     };
 
+
     /* Creates a random actor based on danger value or a filter function.*/
     this.getRandomActor = function(obj: IQueryDB) {
         if (obj.hasOwnProperty('danger')) {
@@ -1222,6 +1223,27 @@ export const Parser = function() {
 
     this.filterItems = function(func) {
         return this._procgen.filterCategWithFunc(RG.TYPE_ITEM, func);
+    };
+
+    this.dbGetNoRandom = (query: IQueryDB): IShell[] => {
+        const name = query.name;
+        const categ = query.categ;
+        const danger = query.danger;
+
+        if (categ && this._dbNoRandom[categ]) {
+            if (!name) {
+                return Object.values(this._dbNoRandom[categ]);
+            }
+            else {
+                const found = this._dbNoRandom[categ][name];
+                if (found) {return [found];}
+            }
+        }
+        else if (categ && danger) {
+            RG.err('ProcGen', 'dbGetNoRandom',
+                'Query by danger not implemented yet');
+        }
+        return [];
     };
 
     //----------------------------------------------------------------------
