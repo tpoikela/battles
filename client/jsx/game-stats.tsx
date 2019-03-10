@@ -19,6 +19,7 @@ export const VIEW_PLAYER = 1;
 // Different player status can be defined here
 const statusComps = [
     // Comp name, style   , text  , react-key
+    ['Charm', 'success', 'Charming', 'stat-coldness'],
     ['Coldness', 'primary', 'Cold', 'stat-coldness'],
     ['Ethereal', 'info', 'Ethereal', 'stat-ethereal'],
     ['Entrapped', 'danger', 'Trapped', 'stat-trapped'],
