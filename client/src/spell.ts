@@ -34,7 +34,7 @@ import {ObjectShell} from './objectshellparser';
 import {Brain} from './brain';
 import {Geometry} from './geometry';
 import {Path} from './path';
-import {IMenu, SelectionObject} from './menu';
+import {IMenu, SelectionObject, PlayerMissileMenu} from './menu';
 
 import {TCoord} from './interfaces';
 type Cell = import('./map.cell').Cell;
@@ -51,8 +51,8 @@ export const Spell: any = {};
 
 type AISpellCb = (actor, args: SpellArgs) => void;
 type SpellTarget = SentientActor | Cell;
-type AISpellFunc = (actor: SentientActor,
-    target: SpellTarget, cb: AISpellCb) => boolean;
+type AISpellFunc = (actor: SentientActor, target: SpellTarget, cb: AISpellCb)
+    => boolean;
 
 /* Used for sorting the spells by spell power. */
 /* function compareSpells(s1, s2) {
@@ -311,20 +311,20 @@ export class SpellBook {
         }
     }
 
-    getActor(): SentientActor {
+    public getActor(): SentientActor {
         return this._actor;
     }
 
-    addSpell(spell: Spell): void {
+    public addSpell(spell: Spell): void {
         this._spells.push(spell);
         spell.setCaster(this.getActor());
     }
 
-    getSpells(): Spell[] {
+    public getSpells(): Spell[] {
         return this._spells;
     }
 
-    equals(rhs: SpellBook): boolean {
+    public equals(rhs: SpellBook): boolean {
         const rhsSpells = rhs.getSpells();
         let equals = true;
         this._spells.forEach((spell, i) => {
@@ -338,7 +338,7 @@ export class SpellBook {
 
     /* Returns the object which is used in Brain.Player to make the player
      * selection of spell casting. */
-    getSelectionObject(): SelectionObject {
+    public getSelectionObject(): SelectionObject {
         const powerSorted: Spell[] = this._spells;
         return {
             select: (code: number) => {
@@ -363,7 +363,7 @@ export class SpellBook {
         };
     }
 
-    toJSON(): any {
+    public toJSON(): any {
         return {
             spells: this._spells.map(spell => spell.toJSON())
         };
@@ -532,7 +532,7 @@ SpellBase.prototype.hasDice = function(name: string): boolean {
 
 SpellBase.prototype.removeDice = function(name: string): void {
     this._dice[name] = null;
-}
+};
 
 SpellBase.prototype.rollDice = function(name: string): number {
     if (this._dice[name]) {
@@ -861,7 +861,25 @@ Spell.Missile.prototype.getSelectionObject = function(actor) {
     const msg = 'Press [n/p] for next/prev target. [t] to fire.';
     RG.gameMsg(msg);
     actor.getBrain().startTargeting();
-    const spell = this;
+    const spellCb = () => {
+        const target = actor.getBrain().getTarget();
+        if (target) {
+            console.log('ZZZ Target is', target);
+            const spellCast = new Component.SpellCast();
+            spellCast.setSource(actor);
+            spellCast.setSpell(this);
+            spellCast.setArgs({src: actor, target});
+            actor.add(spellCast);
+            actor.getBrain().cancelTargeting();
+        }
+    };
+    const menuOpts = [
+        {key: Keys.KEY.TARGET, func: spellCb}
+    ];
+    return new PlayerMissileMenu(menuOpts, actor);
+
+    //const spell = this;
+    /*
     return {
         // showMsg: () => RG.gameMsg(msg),
         select: function(code) {
@@ -892,6 +910,7 @@ Spell.Missile.prototype.getSelectionObject = function(actor) {
         },
         showMenu: () => false
     };
+    */
 };
 
 Spell.Missile.prototype.aiShouldCastSpell = function(args, cb) {
@@ -1019,17 +1038,17 @@ Spell.MultiSpell.prototype.cast = function(args) {
     this._spells.forEach(spell => {
         spell.cast(args);
     });
-}
+};
 
 Spell.MultiSpell.prototype.getCastingPower = function(): number {
     return this._spells.map(spell => spell.getCastingPower())
         .reduce((acc, cur) => acc + cur, 0);
-}
+};
 
 Spell.MultiSpell.prototype.getPower = function(): number {
     return this._spells.map(spell => spell.getPower())
         .reduce((acc, cur) => acc + cur, 0);
-}
+};
 
 Spell.MultiSpell.prototype.aiShouldCastSpell = function(args, cb) {
     let ok = true;
