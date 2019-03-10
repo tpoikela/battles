@@ -495,6 +495,20 @@ SpellBase.prototype.toString = function(): string {
     return str;
 };
 
+SpellBase.prototype.getCasterExpBonus = function(div: number): number {
+    const expLevel = this.getCaster().get('Experience').getExpLevel();
+    return Math.round(expLevel / div);
+};
+
+SpellBase.prototype.getCasterStatBonus = function(
+    statName: string, div: number
+): number {
+    const getter = 'get' + statName.capitalize();
+    const caster = this.getCaster();
+    const statValue = caster[getter]();
+    return Math.round(statValue / div);
+};
+
 SpellBase.prototype.equals = function(rhs): boolean {
     let equals = this.getName() === rhs.getName();
     equals = equals && this.getPower() === rhs.getPower();
@@ -861,6 +875,8 @@ Spell.Missile.prototype.getSelectionObject = function(actor) {
     const msg = 'Press [n/p] for next/prev target. [t] to fire.';
     RG.gameMsg(msg);
     actor.getBrain().startTargeting();
+
+    // This will be called when player pressed TARGET key
     const spellCb = () => {
         const target = actor.getBrain().getTarget();
         if (target) {
@@ -877,40 +893,6 @@ Spell.Missile.prototype.getSelectionObject = function(actor) {
         {key: Keys.KEY.TARGET, func: spellCb}
     ];
     return new PlayerMissileMenu(menuOpts, actor);
-
-    //const spell = this;
-    /*
-    return {
-        // showMsg: () => RG.gameMsg(msg),
-        select: function(code) {
-            switch (code) {
-                case Keys.KEY.NEXT: {
-                    actor.getBrain().nextTarget();
-                    return this;
-                }
-                case Keys.KEY.PREV: {
-                    actor.getBrain().prevTarget();
-                    return this;
-                }
-                case Keys.KEY.TARGET: return () => {
-                    const target = actor.getBrain().getTarget();
-                    if (target) {
-                        const spellCast = new Component.SpellCast();
-                        spellCast.setSource(actor);
-                        spellCast.setSpell(spell);
-                        spellCast.setArgs({src: actor, target});
-                        actor.add(spellCast);
-                        actor.getBrain().cancelTargeting();
-                    }
-                };
-                default: {
-                    return null;
-                }
-            }
-        },
-        showMenu: () => false
-    };
-    */
 };
 
 Spell.Missile.prototype.aiShouldCastSpell = function(args, cb) {
