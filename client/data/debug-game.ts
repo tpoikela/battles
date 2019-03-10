@@ -345,6 +345,10 @@ DebugGame.prototype.createArena = function(obj, game, player) {
         cell.setBaseElem(ELEM.BED);
     }
 
+    // Testing of Charm
+    const charmComp = new Component.Charm({level: 10});
+    player.add(charmComp);
+
     const loreComp = new Component.Lore({});
     loreComp.addTopic('quests',
         giver.getName() + ' is looking for someone.');
