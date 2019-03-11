@@ -13,7 +13,7 @@ import * as Component from './component';
 import {Dice} from './dice';
 import {Spell} from '../data/spells';
 
-import {IShell, StringMap} from '../data/actor-gen';
+import {ActorGen, IShell, StringMap} from '../data/actor-gen';
 
 const RNG = Random.getRNG();
 export const ObjectShell: any = {};
@@ -1288,6 +1288,11 @@ export const Parser = function() {
         return null;
     };
 
+    this.toJSON = function(): any {
+        return {
+            db: this._db
+        };
+    };
 
 };
 ObjectShell.Parser = Parser;
@@ -1315,6 +1320,9 @@ export const getParser = function() {
 
         parser.parseShellData(objectsNew);
         ObjectShell.parserInstance = parser;
+
+        const randActors = ActorGen.genActors(100);
+        parser.parseShellData({actors: randActors});
     }
     return ObjectShell.parserInstance;
 };
