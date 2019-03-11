@@ -108,6 +108,13 @@ export class ItemBase extends Entity {
     public setDamageType(type: string): void {this.get('Item').setDamageType(type);}
     public getDamageType(): string {return this.get('Item').getDamageType();}
 
+    public getNameWithCount(): string {
+        const name = this.getName();
+        const count = this.getCount();
+        return `${name} (x${count})`;
+    }
+
+
     /* Used when showing the item in inventory lists etc. */
     public toString(): string {
         let txt = this.getName() + ', ' + this.getType() + ', ';
