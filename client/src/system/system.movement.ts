@@ -391,14 +391,16 @@ export class SystemMovement extends SystemBase {
             }
             RG.gameInfo({cell, msg});
             if (ent.isPlayer()) {
-                const brain = ent.getBrain() as BrainPlayer;
-                brain.addMark();
+                const brain: unknown = ent.getBrain();
+                const brainPlayer = brain as BrainPlayer;
+                brainPlayer.addMark();
             }
         }
     }
 
     /* Checks if entity gets entrapped into the cell. */
     private _checkEntrapment(ent, cell): void {
+        // Need to re-check this, if exploreElem was removed, very subtle
         const elems = cell.getElements();
         if (!elems) {return;}
 
