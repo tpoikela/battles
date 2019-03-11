@@ -11,11 +11,12 @@ import {Random} from '../random';
 import {Geometry} from '../geometry';
 
 import {BrainBase} from './brain.base';
-import {Brain} from './brain';
+import {Brain, BrainSentient} from './brain';
 import {Memory} from './brain.memory';
 
 import {PlayerCmdInput} from '../interfaces';
 
+type ActionCallback = import('../time').ActionCallback;
 type BrainGoalOriented = import('./brain.goaloriented').BrainGoalOriented;
 type ItemBase = import('../item').ItemBase;
 
@@ -499,14 +500,15 @@ const CACHE_INVALID = null;
 
 /* This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
-export class BrainPlayer extends BrainBase {
+export class BrainPlayer extends BrainSentient {
 
-    public  _actor: SentientActor;
+    public _actor: SentientActor;
     public energy: number; // Consumed energy per action
     public _type: string;
 
-    public _guiCallbacks: {[key: string]: (number) => void};
-    private _memory: MemoryPlayer;
+    public _guiCallbacks: {[key: string]: (number) => ActionCallback};
+    protected _memory: MemoryPlayer;
+    protected _cache: {[key: string]: Cell[] | null};
 
     private _confirmCallback = null;
     private _wantConfirm: boolean;
@@ -521,7 +523,6 @@ export class BrainPlayer extends BrainBase {
     private _fsm: TargetingFSM;
     private _markList: MarkList;
 
-    private _cache: {[key: string]: Cell[] | null};
 
     // Not used to store anything, used only to map setters to components
     private _statBoosts: {[key: string]: {[key: string]: number}};
@@ -735,8 +736,8 @@ export class BrainPlayer extends BrainBase {
     /* Tries to open/close a door nearby the player. TODO: Handle multiple
      * doors. */
     public tryToToggleDoor() {
-        const cellsAround = Brain.getCellsAroundActor(this._actor);
-        const doorCells = cellsAround.filter(c => c.hasDoor());
+        const cellsAround: Cell[] = Brain.getCellsAroundActor(this._actor);
+        const doorCells: Cell[] = cellsAround.filter(c => c.hasDoor());
         if (doorCells.length === 1) {
             return this.openDoorFromCell(doorCells[0]);
         }
@@ -749,7 +750,7 @@ export class BrainPlayer extends BrainBase {
         return this.cmdNotPossible('There are no doors to open or close');
     }
 
-    public openDoorFromCell(doorCell) {
+    public openDoorFromCell(doorCell: Cell) {
         if (doorCell) {
             const door = doorCell.getPropType('door')[0];
             if (door) {
@@ -814,7 +815,7 @@ export class BrainPlayer extends BrainBase {
 
     /* Main function which returns next action as function. TODO: Refactor into
      * something bearable. It's 150 lines now! */
-    public decideNextAction(obj: PlayerCmdInput) {
+    public decideNextAction(obj: PlayerCmdInput): ActionCallback {
       this._cache.seen = CACHE_INVALID;
 
       // Workaround at the moment, because some commands are GUI-driven
@@ -1077,7 +1078,7 @@ export class BrainPlayer extends BrainBase {
         if (currMap.isPassable(x, y)) {
           return this.moveToCell(x, y, level);
         }
-        else if (currMap.getCell(x, y).hasDoor()) {
+        else if (currMap.getCell(x, y).hasClosedDoor()) {
           return this.tryToToggleDoor();
         }
         else if (currMap.getCell(x, y).hasActors()) {
