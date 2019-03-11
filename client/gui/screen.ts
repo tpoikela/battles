@@ -469,6 +469,7 @@ export class ScreenBuffered extends Screen {
 
     public invalidate(): void {
         this.isInitialized = false;
+        this.prevVisible = [];
     }
 
     public renderWithRLE(playX: number, playY: number, map: CellMap,
