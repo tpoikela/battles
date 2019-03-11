@@ -459,14 +459,16 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'dark warrior', char: 'h', type: 'humanoid',
         className: 'cell-actor-void',
-        attack: 6, defense: 4, damage: '2d5 + 3', range: 1, hp: 25,
+        attack: 6, defense: 4, protection: 2,
+        damage: '2d5 + 3', range: 1, hp: 25,
         enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
         spells: ['SummonFlyingEyes'], maxPP: 16, pp: 16, danger: 5
     },
     {
         name: 'dark archer', char: 'h', type: 'humanoid',
         className: 'cell-actor-void',
-        attack: 8, defense: 3, damage: '2d5', range: 1, hp: 30,
+        attack: 8, defense: 3, protection: 4,
+        damage: '2d5', range: 1, hp: 30,
         enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
         spells: ['SummonFlyingEyes'], maxPP: 16, pp: 16, danger: 7,
         equip: ['Iron bow', {name: 'Steel arrow', count: 8}],
@@ -475,7 +477,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'dark assassin', char: 'h', type: 'humanoid',
         className: 'cell-actor-void',
-        attack: 10, defense: 5, damage: '3d5 + 3', range: 1, hp: 50,
+        attack: 10, defense: 5, protection: 6, damage: '3d5 + 3', range: 1, hp: 50,
         enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
         spells: ['SummonFlyingEyes'], maxPP: 30, pp: 30, danger: 10,
         addComp: [resistance('POISON', 'IMMUNITY')],
@@ -484,7 +486,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'dark lord', char: 'h', type: 'humanoid',
         color: color('Yellow', 'Purple'),
-        attack: 12, defense: 10, damage: '4d5 + 5', range: 1, hp: 75,
+        attack: 12, defense: 10, protection: 8, damage: '4d5 + 5', range: 1, hp: 75,
         enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
         spells: ['SummonFlyingEyes', 'PoisonArrow'], maxPP: 60, pp: 60,
         danger: 15, addComp: [resistance('POISON', 'IMMUNITY')],
@@ -599,11 +601,12 @@ export const ActorsData: ActorShell[] = [
         name: 'UndeadBase', className: 'cell-actor-undead',
         color: color('White', 'Black'),
         dontCreate: true, addComp: 'Undead', brain: undeadBrain,
+        attack: 1, defense: 1, protection: 0,
         range: 1, enemies: RG.ACTOR_RACES, type: 'undead'
     },
     {
         name: 'skeletal dog', char: 'd', base: 'UndeadBase',
-        attack: 1, defense: 1, damage: '1d6', danger: 1,
+        damage: '1d6', danger: 1,
         brain: 'Animal',
         hp: 6
     },
@@ -752,16 +755,18 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'lich', char: 'L', base: 'UndeadBase',
-        attack: 4, defense: 8, damage: '1d8 + 6', danger: 12,
+        attack: 4, defense: 8, protection: 4,
+        damage: '1d8 + 6', danger: 12,
         hp: 50, brain: 'SpellCaster',
         spells: ['GraspOfWinter', 'SummonDead'], maxPP: 50, pp: 50
     },
     {
         name: 'lich king', char: 'L', base: 'UndeadBase',
         colorfg: 'Yellow',
-        attack: 8, defense: 8, damage: '2d8 + 2', danger: 17,
+        attack: 8, defense: 8, protection: 6,
+        damage: '2d8 + 2', danger: 17,
         hp: 75, brain: 'SpellCaster',
-        spells: ['SummonDead'], maxPP: 75, pp: 75,
+        spells: ['SummonDead', 'AnimateDead'], maxPP: 75, pp: 75,
         onHit: [
             meleeHitDamage(4, '1d6', 'NECRO')
         ],
@@ -1059,7 +1064,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'CatfolkBase', char: 'f', className: 'cell-actor-catfolk',
         type: 'catfolk', dontCreate: true,
-        attack: 1, defense: 1, damage: '1d6', range: 1,
+        attack: 1, defense: 1, protection: 1, damage: '1d6', range: 1,
         hp: 10, danger: 1, enemies: ['player', 'human', 'dogfolk', 'wolfclan'],
         brain: defaultBrain
     },
@@ -1102,7 +1107,8 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'catfolk king', base: 'CatfolkBase',
-        attack: 10, defense: 12, damage: '7d3 + 5', hp: 60, danger: 13,
+        attack: 10, defense: 12, protection: 6,
+        damage: '7d3 + 5', hp: 60, danger: 13,
         colorfg: 'Red'
     },
 
@@ -1162,6 +1168,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'DogfolkBase', dontCreate: true,
         className: 'cell-actor-dogfolk', char: 'd', type: 'dogfolk',
+        protection: 1,
         enemies: ['player', 'catfolk', 'wolfclan'],
         brain: defaultBrain
     },
@@ -1197,6 +1204,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'dogfolk king', base: 'DogfolkBase', danger: 13,
+        colorfg: 'red', colorbg: 'white',
         attack: 12, defense: 8, damage: '8d3+8', hp: 65
     },
 
@@ -1246,6 +1254,7 @@ export const ActorsData: ActorShell[] = [
     {
       name: 'HyrkhianBase', dontCreate: true, className: 'cell-actor-hyrkh',
       char: 'y', enemies: ['undead', 'demon', 'beast', 'animal'],
+      damage: '1d6',
       type: 'hyrkhian', brain: defaultBrain
     },
     {
@@ -1271,7 +1280,7 @@ export const ActorsData: ActorShell[] = [
     {
       name: 'Hyrkhian adept', base: 'HyrkhianBase',
       attack: 4, defense: 4, protection: 2, hp: 25,
-      danger: 7, pp: 30, brain: 'SpellCaster',
+      danger: 7, maxPP: 30, pp: 30, brain: 'SpellCaster',
       spells: ['Heal', 'MagicArmor']
     },
     {
@@ -1356,6 +1365,7 @@ export const ActorsData: ActorShell[] = [
         hp: 200, pp: 100, brain: defaultBrain,
         strength: 20, accuracy: 25, agility: 35, willpower: 15, perception: 25,
         magic: 10, attack: 30, defense: 30, protection: 10,
+        damage: '4d5',
         equip: ['Permaice axe', 'Permaice armour', 'Bow of Defense',
             {name: 'Runed arrow', count: 100}],
         addComp: ['SnowWalk', resistance('ICE', 'HIGH'), 'RegenEffect']
