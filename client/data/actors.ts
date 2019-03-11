@@ -651,7 +651,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'skeleton berserker', char: 'z', base: 'UndeadBase',
-        colorfg: 'Red',
+        colorfg: 'Pink',
         attack: 6, defense: 1, damage: '1d10 + 4', danger: 5,
         hp: 15
     },
@@ -660,6 +660,12 @@ export const ActorsData: ActorShell[] = [
         colorfg: 'LightGray',
         attack: 3, defense: 3, damage: '1d7 + 2', danger: 5,
         hp: 15, onHit: [{addComp: 'Paralysis', duration: '1d4'}]
+    },
+    {
+        name: 'crypt zombie', char: 'z', base: 'UndeadBase',
+        colorfg: 'Yellow',
+        attack: 2, defense: 2, protection: 4,
+        damage: '3d5', danger: 6, hp: 30,
     },
     {
         name: 'ghost', char: 'G', base: 'UndeadBase',
@@ -683,13 +689,13 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'specter', char: 'Z', base: 'UndeadBase',
         colorfg: 'Blue',
-        attack: 6, defense: 6, damage: '2d5 + 2', danger: 7,
-        addComp: 'Flying',
+        attack: 6, defense: 6, damage: '2d5 + 5', danger: 7,
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setMagic', value: -1}],
                 duration: '10d10'}
         ],
-        hp: 25
+        hp: 25,
+        addComp: ['Flying', resistance('ICE', 'HIGH')]
     },
     {
         name: 'boneclaw', char: 'B', base: 'UndeadBase',
@@ -715,6 +721,17 @@ export const ActorsData: ActorShell[] = [
                 duration: '3d10'}
         ],
         hp: 35
+    },
+    {
+        name: 'skeleton king', char: 'Z', base: 'UndeadBase',
+        colorfg: 'red',
+        attack: 6, defense: 6, damage: '3d5 + 5', danger: 9,
+        hp: 45,
+        addComp: [
+            resistance('PIERCE', 'HIGH'),
+            resistance('SLASH', 'HIGH'),
+            resistance('ICE', 'HIGH')
+        ]
     },
     {
         name: 'vampire', char: 'V', base: 'UndeadBase',
@@ -758,7 +775,8 @@ export const ActorsData: ActorShell[] = [
         attack: 4, defense: 8, protection: 4,
         damage: '1d8 + 6', danger: 12,
         hp: 50, brain: 'SpellCaster',
-        spells: ['GraspOfWinter', 'SummonDead'], maxPP: 50, pp: 50
+        spells: ['GraspOfWinter', 'SummonDead'], maxPP: 50, pp: 50,
+        addComp: [resistance('ICE', 'MEDIUM')]
     },
     {
         name: 'lich king', char: 'L', base: 'UndeadBase',
