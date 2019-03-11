@@ -126,7 +126,7 @@ Spell.AnimateDead.prototype.animateCallback = function(cell: Cell) {
     const corpse = corpseItem as Corpse;
 
     if (corpse.has('Undead')) {
-        const msg = `${caster.getName()} cannot reanimate undead remains`;
+        const msg = `${caster.getName()} fails to reanimate undead remains`;
         RG.gameMsg({cell: caster.getCell(), msg});
         return;
     }
