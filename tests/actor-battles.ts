@@ -276,10 +276,17 @@ ActorBattles.prototype.printCSV = function(tag) {
     let actorData: Array<[string, ActorEntry]> = Object.entries(histogram);
     actorData = actorData.sort((a, b) => {
         const [e1, e2]: [ActorEntry, ActorEntry] = [a[1], b[1]];
-        if (a[1].won > b[1].won) {
+        const won1 = a[1].won;
+        const lost1 = a[1].lost;
+        const won2 = b[1].won;
+        const lost2 = b[1].lost;
+        const winRatio1 = Math.round((won1 / (won1 + lost1)) * 100);
+        const winRatio2 = Math.round((won2 / (won2 + lost2)) * 100);
+
+        if (winRatio1 > winRatio2) {
             return -1;
         }
-        else if (a[1].won < b[1].won) {
+        else if (winRatio1 < winRatio2) {
             return 1;
         }
         return 0;
