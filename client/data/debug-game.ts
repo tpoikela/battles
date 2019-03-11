@@ -354,6 +354,9 @@ DebugGame.prototype.createArena = function(obj, game, player) {
         giver.getName() + ' is looking for someone.');
     level.add(loreComp);
 
+    const necrowurm = parser.createActor('necrowurm');
+    level.addActor(necrowurm, player.getX() - 1, player.getY());
+
     return game;
 };
 
