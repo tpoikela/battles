@@ -421,7 +421,7 @@ export class SystemDamage extends SystemBase {
 
         const maybeTypes = ['Undead'];
         if (actor.hasAny(maybeTypes)) {
-            compTypes.forEach(compType => {
+            maybeTypes.forEach(compType => {
                 if (actor.has(compType)) {
                     const comp = actor.get(compType).clone();
                     corpse.add(comp);
