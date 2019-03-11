@@ -232,24 +232,8 @@ export class BrainSentient extends BrainBase {
         // this._passableCallback = this._passableCallback.bind(this);
     }
 
-    public getType() {
-        return this._type;
-    }
-
-    public setType(type) {
-        this._type = type;
-    }
-
-    public getMemory() {
+    public getMemory(): Memory {
         return this._memory;
-    }
-
-    public setActor(actor) {
-        this._actor = actor;
-    }
-
-    public getActor() {
-        return this._actor;
     }
 
     public addEnemy(actor) {
@@ -265,7 +249,7 @@ export class BrainSentient extends BrainBase {
     }
 
     /* Main function for retrieving the actionable callback. */
-    public decideNextAction(): ActionCallback | null {
+    public decideNextAction(obj?: any): ActionCallback {
         this._cache.seen = null;
         RG.err('BrainSentient', 'decideNextAction',
             'Not implemented in this class');
@@ -294,7 +278,7 @@ export class BrainSentient extends BrainBase {
         return false;
     }
 
-    public findSeenCell(func): Cell[] {
+    public findSeenCell(func: (Cell) => boolean): Cell[] {
         const seenCells = this.getSeenCells();
         return seenCells.filter(func);
     }
@@ -341,7 +325,7 @@ export class BrainSentient extends BrainBase {
     }
 
     /* Finds a friend cell among seen cells.*/
-    public findFriendCell(seenCells) {
+    public findFriendCell(seenCells: Cell[]): Cell | null {
         const memory = this.getMemory();
         const cells = Brain.findCellsWithActors(this._actor, seenCells);
         for (let i = 0; i < cells.length; i++) {
@@ -351,7 +335,7 @@ export class BrainSentient extends BrainBase {
         return null;
     }
 
-    public toJSON() {
+    public toJSON(): any {
         return {
             type: this.getType(),
             memory: this.getMemory().toJSON()
@@ -367,7 +351,7 @@ export class BrainSentient extends BrainBase {
         return false;
     }
 
-    public pickupItem() {
+    public pickupItem(): () => void {
         return () => {
             const pickup = new Component.Pickup();
             this._actor.add(pickup);
@@ -375,7 +359,7 @@ export class BrainSentient extends BrainBase {
     }
 
     /* Takes action towards given enemy cell.*/
-    public actionTowardsEnemy(enemyCell) {
+    public actionTowardsEnemy(enemyCell: Cell): () => void {
         const level = this._actor.getLevel();
         const playX = enemyCell.getX();
         const playY = enemyCell.getY();
@@ -392,7 +376,7 @@ export class BrainSentient extends BrainBase {
         }
     }
 
-    public tryToMoveTowardsCell(cell) {
+    public tryToMoveTowardsCell(cell: Cell): () => void {
         // Simple dX,dY computation as first option
         const level = this._actor.getLevel();
         const [aX, aY] = this._actor.getXY();
@@ -490,14 +474,14 @@ export class BrainSentient extends BrainBase {
     /* Returns shortest path from actor to the given cell. Resulting cells are
      * returned in order: closest to the actor first. Thus moving to the
      * next cell can be done by taking the first returned cell.*/
-    public getShortestPathTo(cell) {
+    public getShortestPathTo(cell: Cell) {
         const [toX, toY] = cell.getXY();
         const map = this._actor.getLevel().getMap();
         return map.getShortestPathTo(this._actor, toX, toY);
     }
 
     /* Flees from the given cell or explores randomly if cannot. */
-    public fleeFromCell(cell, seenCells) {
+    public fleeFromCell(cell: Cell, seenCells: Cell[]): () => void {
         const x = cell.getX();
         const y = cell.getY();
         const thisX = this._actor.getX();
@@ -520,12 +504,12 @@ export class BrainSentient extends BrainBase {
     }
 
     /* Returns all free cells around the actor owning the brain.*/
-    public getFreeCellsAround() {
+    public getFreeCellsAround(): Cell[] {
         const cellsAround = Brain.getCellsAroundActor(this._actor);
         return cellsAround.filter(cell => cell.isFree());
     }
 
-    public getRandAdjacentFreeCell() {
+    public getRandAdjacentFreeCell(): Cell {
         const cellsAround = this.getFreeCellsAround();
         if (cellsAround.length > 0) {
             return RNG.arrayGetRand(cellsAround);
@@ -537,13 +521,13 @@ export class BrainSentient extends BrainBase {
 Brain.Sentient = BrainSentient;
 
 /* Brain object used by archers. */
+/*
 export class BrainArcher extends BrainSentient {
     constructor(actor) {
         super(actor);
         this.setType('Archer');
     }
 
-    /* Checks if the actor can attack given x,y coordinate.*/
     public canDoRangedAttack(): boolean {
         const seenCells = this.getSeenCells();
         const enemy = this.findEnemyCell(seenCells);
@@ -561,7 +545,6 @@ export class BrainArcher extends BrainSentient {
         return false;
     }
 
-    /* Performs a ranged attack on enemy cell. */
     public doRangedAttack(): () => void {
         const seenCells = this.getSeenCells();
         const enemy = this.findEnemyCell(seenCells);
@@ -587,3 +570,4 @@ export class BrainArcher extends BrainSentient {
     }
 }
 Brain.Archer = BrainArcher;
+*/
