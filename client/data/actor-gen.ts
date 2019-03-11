@@ -234,7 +234,6 @@ shellProps.roles = {
         knight: {
             danger: 4, hp: 15,
             strength: 4,
-
         },
         phalanx: {
             danger: 1, hp: 10,
@@ -273,7 +272,7 @@ shellProps.roles = {
             spells: [
                 'PowerDrain',
                 {random: ['WaterBolt', 'SlimeBolt', 'FrostBolt']},
-                {random: ['Heal', 'MagicArmor', 'FrostBolt']},
+                {random: ['Heal', 'MagicArmor', 'Charm']},
                 {random: ['IceArrow', 'PoisonArrow', 'ArrowOfWebs']},
             ]
         },
