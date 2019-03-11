@@ -331,7 +331,7 @@ shellProps.roles = {
         arbalist: {
             danger: 3, hp: 10,
             equip: ['Wooden crossbow', {name: 'Wooden bolt', count: 10}]
-        },
+       },
         archer: {
             danger: 3, hp: 5,
               equip: [
@@ -383,8 +383,7 @@ shellProps.roles = {
         rogue: {
         },
         scout: {
-            danger: 2,
-            fovrange: 7
+            danger: 2, speed: 10, fovrange: 7
         },
         thief: {
             danger: 2,
