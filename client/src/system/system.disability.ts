@@ -64,6 +64,14 @@ export class SystemDisability extends SystemBase {
                     this._emitMsg('Entrapped', 'UseStairs', ent);
                 }
             },
+            Fear: {
+                Attack: ent => {
+                    this._handleFear(ent, 'Attack');
+                },
+                Movement: ent => {
+                    this._handleFear(ent, 'Movement');
+                }
+            },
             Paralysis: {
                 Attack: ent => {
                     ent.remove('Attack');
@@ -173,6 +181,49 @@ export class SystemDisability extends SystemBase {
             ent.removeAll('Entrapped');
             const msg = `${ent.getName()} breaks free from traps!`;
             RG.gameMsg({cell, msg});
+        }
+    }
+
+    /* Handles Fear component in an actor. */
+    public _handleFear(ent, compType: string): void {
+        const fearComps = ent.getList('Fear');
+        const enemiesSeen = ent.getBrain().getSeenEnemies();
+
+        // TODO add a generic fear with type ie undead
+        let worstFearLevel = 0;
+        let worstFearEnemy = null;
+
+        // Determine the most feared enemy
+        fearComps.forEach(fearComp => {
+            const targetId = fearComp.getTarget();
+            const fearLevel = fearComp.getFearLevel();
+            const fearedEnemy = enemiesSeen.find(e => e.getID() === targetId);
+            if (fearedEnemy) {
+                if (worstFearLevel < fearLevel) {
+                    worstFearLevel = fearLevel;
+                    worstFearEnemy = fearedEnemy;
+                }
+            }
+        });
+
+        if (worstFearEnemy) {
+            const willpower = ent.getWillpower();
+            const fearSuccess = worstFearLevel / (willpower + worstFearLevel);
+            if (RG.isSuccess(fearSuccess)) {
+                ent.remove(compType);
+                const fleedXdY = RG.dXdY(worstFearEnemy.getXY(), ent.getXY());
+                const [nX, nY] = RG.newXYFromDir(fleedXdY, ent.getXY());
+                if (ent.getLevel().getMap().isPassable()) {
+                    const movComp = new Component.Movement(nX, nY, ent.getLevel());
+                    ent.add(movComp);
+                    const msg = `${ent.getName} panics, and runs away from ${worstFearEnemy.getName()}`;
+                    RG.gameMsg({cell: ent.getCell(), msg});
+                }
+                else {
+                    const msg = `${ent.getName} is paralysed by fear!`;
+                    RG.gameMsg({cell: ent.getCell(), msg});
+                }
+            }
         }
     }
 
