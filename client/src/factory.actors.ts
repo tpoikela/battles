@@ -79,7 +79,7 @@ export const FactoryActor = function() {
     };
 
     /* Factory method for non-player actors. */
-    this.createActor = function(name, obj: any = {}) {
+    this.createActor = function(name, obj: any = {}): Actor.SentientActor {
         const actor = new Actor.SentientActor(name);
         actor.setType(name);
 
@@ -101,25 +101,18 @@ export const FactoryActor = function() {
     /* Factory method for AI brain creation.*/
     this.createBrain = (actor, brainName) => {
         switch (brainName) {
-            // case 'Animal': return new Brain.BrainAnimal(actor);
-            case 'Archer': return new Brain.BrainArcher(actor);
-            // case 'Demon': return new Brain.BrainDemon(actor);
             case 'Flame': return new Brain.BrainFlame(actor);
             case 'GoalOriented': return new Brain.BrainGoalOriented(actor);
-            // case 'Human': return new Brain.BrainHuman(actor);
             case 'NonSentient': return new Brain.BrainNonSentient(actor);
             case 'SpellCaster': return new Brain.BrainSpellCaster(actor);
             case 'Spirit': return new Brain.BrainSpirit(actor);
-            // case 'Summoner': return new Brain.BrainSummoner(actor);
-            // case 'Undead': return new Brain.BrainUndead(actor);
-            // case 'Zombie': return new Brain.BrainZombie(actor);
             default: {
                 if (Brain[brainName]) {
                     return new Brain[brainName](actor);
                 }
                 else if (brainName && brainName !== '') {
                     let msg = `Warning. No brain type ${brainName} found`;
-                    msg += 'Using the default Brain.BrainRogue instead.';
+                    msg += 'Using the default Brain.BrainSentient instead.';
                     console.warn(msg);
                 }
                 return new Brain.BrainSentient(actor);
