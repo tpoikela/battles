@@ -185,6 +185,13 @@ export class Cell {
         return this.hasPropType('door');
     }
 
+    public hasClosedDoor(): boolean {
+        if (this.hasDoor()) {
+            const door: unknown = this.getPropType('door')[0];
+            return (door as Door).isClosed();
+        }
+    }
+
     public hasConnection(): boolean {
         return this.hasPropType('connection');
     }
