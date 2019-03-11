@@ -99,6 +99,7 @@ export class SystemBaseAction extends SystemBase {
                     RG.err('System.BaseAction', 'handlePickup', msg);
                 }
 
+
                 let itemStr = item.getName();
                 if (item.getCount() > 1) {
                     itemStr += ' x' + item.getCount();
@@ -108,6 +109,8 @@ export class SystemBaseAction extends SystemBase {
                     cell
                 };
                 RG.gameMsg(msgObj);
+                // Auto-equip if similar missile/ammo equipped
+                this._checkForAutoEquip(ent, item);
 
                 if (item.has('QuestTarget')) {
                     const qTarget = item.get('QuestTarget');
@@ -126,6 +129,19 @@ export class SystemBaseAction extends SystemBase {
             type: RG.EVT_ITEM_PICKED_UP
         };
         this._createEventComp(ent, evtArgs);
+    }
+
+    private _checkForAutoEquip(ent, item): void {
+        const missile = ent.getInvEq().getMissile();
+        if (missile) {
+            if (missile.equals(item)) {
+                if (ent.getInvEq().equipNItems(item, item.getCount())) {
+                    const iName = item.getNameWithCount();
+                    RG.gameMsg({cell: ent.getCell(), msg:
+                        `${ent.getName()} equips ${iName}`});
+                }
+            }
+        }
     }
 
     /* Handles command when actor uses stairs. */
