@@ -112,6 +112,7 @@
     "electron": "electron .",
     "hooks": "perl bin/deploy_hooks",
     "minimize": "uglifyjs --mangle --compress ./build/*.js",
+    "publish": "npm run build && ./bin/publish",
     "start": "python -m SimpleHTTPServer",
     "test": "ts-mocha 'tests/client/**/*.spec.ts'",
     "test:watch": "mocha --watch -r ts-node/register 'tests/client/**/*.spec.ts'",
