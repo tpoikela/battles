@@ -1371,7 +1371,7 @@ export const ActorsData: ActorShell[] = [
         name: 'Thabba, Son of Ice', base: 'UniqueBase',
         char: '@', danger: 200, enemies: ['human'], type: 'finalboss',
         spells: ['FrostBolt', 'RingOfFrost'], hp: 266, pp: 100,
-        brain: 'SpellCaster',
+        brain: 'SpellCaster', damage: '4d5',
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
         magic: 30, attack: 30, defense: 30, protection: 10,
         equip: ['Permaice katana', 'Permaice armour'],
