@@ -1,0 +1,22 @@
+#! /usr/bin/env perl
+
+my @cmds = (
+    "cp -f ./index.html docs/",
+    "cp -f ./build/bundle.js docs/build",
+    "cp -f ./build/style.css docs/build",
+    "rm docs/build/*worker*",
+    "cp build/*worker* docs/build"
+);
+
+my $error = 0;
+
+foreach my $cmd (@cmds) {
+    $error |= system($cmd);
+}
+
+if ($error != 0) {
+    die("Publish failed. Unable to move the files.");
+}
+
+system("git add docs/build/*");
+system("git commit -m 'Published new set of files' -a");
