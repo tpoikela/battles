@@ -115,29 +115,7 @@ shellProps.races = {
 
 const raceNames = Object.keys(shellProps.races);
 
-shellProps.roleBases = {
-    melee: {
-        attack: 2, defense: 2, protection: 2, danger: 1
-    },
-    magic: {
-        magic: 3, willpower: 2, danger: 2,
-        brain: 'SpellCaster', maxPP: 10, PP: 10,
-        addComp: ['RegenEffect']
-    },
-    ranged: {
-        accuracy: 3, agility: 1, danger: 2,
-        addComp: [{
-            random: [
-                'EagleEye', 'StrongShot', 'ThroughShot', 'LongRangeShot',
-                'RangedEvasion', 'CriticalShot'
-            ]
-        }]
-    },
-    stealth: {
-        agility: 3, perception: 2, danger: 1
-    }
-};
-
+/* One rank is chosen for each actor. This has a big impact on HP. */
 shellProps.ranks = {
     commoner: {
         danger: 1, hp: 5
@@ -205,7 +183,33 @@ shellProps.ranks = {
 };
 const rankNames = Object.keys(shellProps.ranks);
 
+shellProps.roleBases = {
+    melee: {
+        attack: 2, defense: 2, protection: 2, danger: 1
+    },
+    magic: {
+        magic: 3, willpower: 2, danger: 2,
+        brain: 'SpellCaster', maxPP: 10, PP: 10,
+        addComp: ['RegenEffect']
+    },
+    ranged: {
+        accuracy: 3, agility: 1, danger: 2,
+        addComp: [{
+            random: [
+                'EagleEye', 'StrongShot', 'ThroughShot', 'LongRangeShot',
+                'RangedEvasion', 'CriticalShot'
+            ]
+        }]
+    },
+    stealth: {
+        defense: 2,
+        agility: 3, perception: 2, danger: 1
+    }
+};
+
+/* Contains a list specific roles for each role base type. */
 shellProps.roles = {
+
     melee: {
         axeman: {
             danger: 2, hp: 10
@@ -262,6 +266,7 @@ shellProps.roles = {
             attack: 3, defense: 3
         }
     },
+
     magic: {
         adept: {
             danger: 1, pp: 3, maxPP: 3, hp: 5,
@@ -327,6 +332,7 @@ shellProps.roles = {
             ]
         },
     },
+
     ranged: {
         arbalist: {
             danger: 3, hp: 10,
@@ -371,6 +377,7 @@ shellProps.roles = {
             equip: [{name: 'Rock', count: 10}]
         }
     },
+
     stealth: {
         assassin: {
             danger: 3,
@@ -393,15 +400,15 @@ shellProps.roles = {
 };
 const roleTypes: string[] = Object.keys(shellProps.roles);
 
-/* Given a base shell, generates an array of actor object shells. */
-ActorGen.genActors = function(nActors: number): IShell[] {
-    const result = [];
-    for (let i = 0; i < nActors; i++) {
-        result.push(ActorGen.genRandShell());
-    }
-    return result;
-};
-
+/* Generates a random actor shell using the following formula:
+ * 1. Pick a race from shellProps.races
+ * 2. Pick a rank from shellProps.ranks
+ * 3. Pick up to 2 roles:
+ *   - Choose base type for role from shellProps.roleBases
+ *   - Choose actual role from shellProps.roles
+ * 4. Generate the full actor based based on 1. - 3.
+ * 5. Combine object data from 1. - 3. and return the result.
+ */
 ActorGen.genRandShell = function(): IShell {
     const numRoles = RNG.getUniformInt(1, 2);
     const raceName = RNG.arrayGetRand(raceNames);
@@ -440,3 +447,13 @@ ActorGen.genRandShell = function(): IShell {
     newShell.roles = roleNames;
     return newShell;
 };
+
+/* Generates the given number of actor shells from data in shellProps. */
+ActorGen.genActors = function(nActors: number): IShell[] {
+    const result = [];
+    for (let i = 0; i < nActors; i++) {
+        result.push(ActorGen.genRandShell());
+    }
+    return result;
+};
+
