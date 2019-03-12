@@ -1034,7 +1034,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'summoner', char: '@', base: 'human', hp: 50,
-        attack: 7, defense: 7, damage: '2d4',
+        attack: 7, defense: 7, protection: 3, damage: '2d4',
         brain: 'SpellCaster',
         spells: ['SummonKin'], maxPP: 30, pp: 30,
         danger: 10
