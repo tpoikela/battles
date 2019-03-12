@@ -16,6 +16,8 @@ import {ObjectShell} from './objectshellparser';
 import {DungeonGenerator} from './dungeon-generator';
 import {CaveGenerator} from './cave-generator';
 import {CastleGenerator} from './castle-generator';
+import {CryptGenerator} from './crypt-generator';
+
 import {QuestPopulate} from './quest';
 import {Level} from './level';
 import {DungeonFeatures} from './dungeon-features';
@@ -531,28 +533,26 @@ export const FactoryWorld = function() {
                     level = this.id2level[conf.levels[i]];
                 }
                 else {
+                    const [cols, rows] = [levelConf.x, levelConf.y];
+                    levelConf.markersPreserved = false;
                     if ((/(crypt)/i).test(dungeonType)) {
-                        // TODO implement Cave and Crypt generators
-                        level = this.factZone.createDungeonLevel(levelConf);
+                        const cryptGen = new CryptGenerator();
+                        level = cryptGen.create(cols, rows, levelConf);
+                        this.factZone.addItemsAndActors(level, levelConf);
+                        this.factZone.addExtraDungeonFeatures(level, levelConf);
                     }
                     else if ((/cave/).test(dungeonType)) {
                         const caveGen = new CaveGenerator();
-                        const [cols, rows] = [levelConf.x, levelConf.y];
-                        levelConf.markersPreserved = false;
                         level = caveGen.create(cols, rows, levelConf);
                         this.factZone.addItemsAndActors(level, levelConf);
                         this.factZone.addExtraDungeonFeatures(level, levelConf);
                     }
                     else if (/(fort|castle)/.test(dungeonType)) {
                         const castleGen = new CastleGenerator();
-                        const [cols, rows] = [levelConf.x, levelConf.y];
-                        levelConf.markersPreserved = false;
                         level = castleGen.create(cols, rows, levelConf);
                     }
                     else {
                         const dungGen = new DungeonGenerator();
-                        const [cols, rows] = [levelConf.x, levelConf.y];
-                        levelConf.markersPreserved = false;
                         level = dungGen.create(cols, rows, levelConf);
                     }
                     // For creating 'fixed' items and actors
