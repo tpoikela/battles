@@ -9,7 +9,8 @@ $padding-stats: 10px;
 $success-color-on-gray: #066;
 
 @import 'colors';
-@import '../node_modules/react-bootstrap-modal/lib/css/rbm-patch.css';
+// @import '../node_modules/react-bootstrap-modal/lib/css/rbm-patch.css';
+@import '../public/rbm-patch.css';
 
 //----------------------------
 // MIXINS
