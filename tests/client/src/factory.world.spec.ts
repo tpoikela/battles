@@ -291,8 +291,10 @@ describe('FactoryWorld', function() {
                     stairs: {getStairs: 0}}
             ]
         };
-        const areaLevel = factLevel.createLevel('empty', 100, 100, {});
+        const areaLevel = factLevel.createLevel('empty', 40, 40, {});
         const areaLevels = [[areaLevel]];
+
+        // Top-level Area configuration
         const areaConf: IF.AreaConf = {
             name: 'Area1x1', maxX: 1, maxY: 1, nCities: 1,
             presetLevels: {
@@ -316,6 +318,11 @@ describe('FactoryWorld', function() {
         const ql0 = qSide.getLevels()[0];
         const ql1 = qSide.getLevels()[1];
 
+        const tile00 = area.getTileXY(0, 0);
+        const tileLevel = tile00.getLevel();
+        ql1.debugPrintInASCII();
+        tileLevel.debugPrintInASCII();
+
         expect(ql0.getStairs()).to.have.length(1);
         expect(ql1.getStairs()).to.have.length(1);
 
@@ -324,8 +331,6 @@ describe('FactoryWorld', function() {
 
         // const qStairs = ql1.getStairs();
 
-        const tile00 = area.getTileXY(0, 0);
-        const tileLevel = tile00.getLevel();
         const tileConns = tileLevel.getConnections();
         const townConns = tileConns.filter(c => c.getName() === 'town');
         expect(townConns).to.have.length(3);
