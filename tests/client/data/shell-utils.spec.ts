@@ -42,13 +42,11 @@ describe('ActorGen', () => {
         expect(randShell).to.have.property('char');
         console.log(randShell);
 
-        const actorsGenerated = ActorGen.genActors(1000);
-
+        const actorsGenerated = ActorGen.genActors(200);
         const parser = ObjectShell.getParser();
         parser.parseShellData({actors: actorsGenerated});
 
         actorsGenerated.forEach(shell => {
-            console.log('Shell is now ', shell);
             const actor = parser.createActor(shell.name);
             expect(actor.getName()).to.equal(shell.name);
         });
