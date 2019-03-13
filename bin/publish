@@ -1,5 +1,15 @@
 #! /usr/bin/env perl
 
+use Getopt::Long;
+
+my %opt;
+GetOptions(
+    "dryrun" => \$opt{dryrun},
+    "build" => \$opt{build},
+);
+
+_cmd("npm run build:production") if defined $opt{build};
+
 my @cmds = (
     "cp -f ./index.html docs/",
     "cp -f ./build/bundle.js docs/build",
@@ -11,12 +21,22 @@ my @cmds = (
 my $error = 0;
 
 foreach my $cmd (@cmds) {
-    $error |= system($cmd);
+    $error |= _cmd($cmd);
 }
 
 if ($error != 0) {
     die("Publish failed. Unable to move the files.");
 }
 
-system("git add -f docs/build/*");
-system("git commit -m 'Published new set of files' -a");
+_cmd("git add -f docs/build/*");
+_cmd("git commit -m 'Published new set of files' -a");
+
+sub _cmd {
+    my ($cmd) = @_;
+    if (defined $opt{dryrun}) {
+        print "dryrun CMD: $cmd\n";
+    }
+    else {
+        return system($cmd);
+    }
+}
