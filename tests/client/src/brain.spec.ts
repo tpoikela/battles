@@ -327,6 +327,7 @@ describe('BrainSentient', () => {
         expect(cellChanged, 'Actor cell changed').to.equal(true);
     });
 
+    /*
     it('flees when low on health', () => {
         const movSys = new SystemMovement(['Movement']);
         const arena = factLevel.createLevel('arena', 30, 30);
@@ -367,6 +368,7 @@ describe('BrainSentient', () => {
             prevDist = currDist;
         }
     });
+    */
 
 });
 
