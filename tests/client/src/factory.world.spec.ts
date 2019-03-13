@@ -372,10 +372,10 @@ describe('FactoryWorld', function() {
 
     });
 
-    const towerName = 'Black tower';
     it('has createPresetLevels for creating all levels using factory', () => {
+        const towerName = 'Black tower';
         fact = new FactoryWorld();
-        const nLevels = 3;
+        const nLevels = 2;
         const towerConf: IF.DungeonConf = {
             name: towerName,
             x: 0, y: 0,
