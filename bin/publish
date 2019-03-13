@@ -14,8 +14,8 @@ my @cmds = (
     "cp -f ./index.html docs/",
     "cp -f ./build/bundle.js docs/build",
     "cp -f ./build/style.css docs/build",
-    "rm docs/build/*worker*",
-    "cp build/*worker* docs/build"
+    "rm docs/build/*worker.js",
+    "cp build/*worker.js docs/build"
 );
 
 my $error = 0;
