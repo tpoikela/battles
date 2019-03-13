@@ -18,5 +18,5 @@ if ($error != 0) {
     die("Publish failed. Unable to move the files.");
 }
 
-system("git add docs/build/*");
+system("git add -f docs/build/*");
 system("git commit -m 'Published new set of files' -a");
