@@ -27,6 +27,8 @@ build/
 build/Release
 public/config.js
 
+docs/_site
+
 # Dependency directories
 node_modules
 jspm_packages
