@@ -354,7 +354,7 @@ shellProps.roles = {
             equip: ['Rifle', {name: 'Steel bullet', count: 7}]
         },
         darter: {
-            danger: 2, hp: 5,
+            danger: 2, hp: 5, speed: 5,
             equip: [{name: 'Iron dart', count: 9}]
         },
         thrower: {
