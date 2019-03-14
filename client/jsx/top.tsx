@@ -573,7 +573,16 @@ export class BattlesTop extends React.Component {
         // if (false && this.canUseWorker()) {
         if (this.canUseWorker()) {
             this.showScreen('CreateScreen');
-            this.createGameWorker();
+            try {
+                this.createGameWorker();
+            }
+            catch (e) {
+                const msg = e.message + ' Creating game without worker..';
+                this.setState({msg});
+                const gameFactory = new FactoryGame();
+                this.game = gameFactory.createNewGame(this.gameConf);
+                this.initBeforeNewGame();
+            }
         }
         else {
             const gameFactory = new FactoryGame();
@@ -582,14 +591,14 @@ export class BattlesTop extends React.Component {
         }
     }
 
-    public canUseWorker() {
+    public canUseWorker(): boolean {
         return (typeof (window as any).Worker !== 'undefined') &&
             !this.pluginManager.anyPluginsEnabled();
     }
 
     /* Creates the new game using a worker to not block the main thread and
      * GUI updates. */
-    public createGameWorker() {
+    public createGameWorker(): void {
         /* eslint global-require: 0 */
         const worker = new MyWorkerImport();
         worker.onmessage = (e) => {
