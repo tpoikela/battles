@@ -16,7 +16,7 @@ import {Random} from '../../client/src/random';
 import {Cell} from '../../client/src/map.cell';
 import {SentientActor} from '../../client/src/actor';
 
-import {CmdInput, PlayerCmdInput} from '../../client/src/interfaces';
+import {CmdInput, IPlayerCmdInput} from '../../client/src/interfaces';
 
 type Stairs = import('../../client/src/element').ElementStairs;
 type Level = import('../../client/src/level').Level;
@@ -147,8 +147,8 @@ export class PlayerDriver extends DriverBase {
         if (cmdOrCode === null) {
             cmdOrCode = this.nextCmd();
         }
-        if ((cmdOrCode as PlayerCmdInput).code) {
-            return (cmdOrCode as PlayerCmdInput).code;
+        if ((cmdOrCode as IPlayerCmdInput).code) {
+            return (cmdOrCode as IPlayerCmdInput).code;
         }
         else {return cmdOrCode;}
     }
