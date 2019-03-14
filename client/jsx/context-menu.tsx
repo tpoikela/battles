@@ -5,8 +5,8 @@ import ContextMenuItems from './context-menu-items';
 import {Cell} from '../src/map.cell';
 
 export interface IGameContextMenuProps {
-  handleRightClick(evt: React.SyntheticEvent, data: any, cell: Cell): void;
   mouseOverCell: Cell;
+  handleRightClick(evt: React.SyntheticEvent, data: any, cell: Cell): void;
 }
 
 /* Menu items are defined as follows:
@@ -21,6 +21,7 @@ const allMenuItems = {
     {text: 'Attack', type: 'attack'},
     {text: 'Chat', type: 'chat'},
     {text: 'Order', type: 'order'},
+    {text: 'Shoot', type: 'shoot'},
   ],
   hasDoor: [
     {text: 'Open/close', type: 'door'},
@@ -58,7 +59,7 @@ export default class GameContextMenu extends React.Component {
 
   public props: IGameContextMenuProps;
 
-  render() {
+  public render() {
     return (
       <ContextMenuItems
         handleRightClick={this.props.handleRightClick}
