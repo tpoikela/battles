@@ -44,23 +44,24 @@ export default class CellClickHandler extends DriverBase {
 
     }
 
-    public handleAttack(x, y, cell) {
+    public handleAttack(x: number, y: number, cell: Cell): void {
         this._keyBuffer.push({cmd: 'attack', target: cell});
     }
 
-    public handleChat(x, y, cell) {
+    public handleChat(x: number, y: number, cell: Cell): void {
         const player = this._game.getPlayer();
         if (cell.hasActors()) {
             if (RG.withinRange(1, [x, y], player)) {
                 const dXdY = RG.dXdY([x, y], player);
                 const dirKey = dirToKeyCode(dXdY);
+                console.log('handleChat dXdY: ', dXdY, ' keyCode:', dirKey);
                 this._keyBuffer.push(Keys.KEY.CHAT);
                 this._keyBuffer.push(dirKey);
             }
         }
     }
 
-    public handleDoor(x, y, cell) {
+    public handleDoor(x: number, y: number, cell: Cell): void {
         const player = this._game.getPlayer();
         if (cell.hasDoor()) {
             this.moveTo(player, x, y);
@@ -68,7 +69,7 @@ export default class CellClickHandler extends DriverBase {
         }
     }
 
-    public handleMove(x, y, cell) {
+    public handleMove(x: number, y: number, cell: Cell): void {
         const player = this._game.getPlayer();
         const map = player.getLevel().getMap();
         if (map.hasXY(x, y)) {
@@ -81,7 +82,7 @@ export default class CellClickHandler extends DriverBase {
         }
     }
 
-    public handlePickup(x, y, cell) {
+    public handlePickup(x: number, y: number, cell: Cell): void {
         if (cell.hasItems()) {
             const player = this._game.getPlayer();
             this.moveTo(player, x, y);
@@ -89,25 +90,25 @@ export default class CellClickHandler extends DriverBase {
         }
     }
 
-    public handleShoot(x, y, cell) {
+    public handleShoot(x: number, y: number, cell: Cell): void {
         const cmd = {cmd: 'missile', target: cell};
         this._keyBuffer.push(cmd);
     }
 
-    public handleUseStairs(x, y, cell) {
+    public handleUseStairs(x: number, y: number, cell: Cell): void {
         const player = this._game.getPlayer();
         this.moveTo(player, x, y);
         this._keyBuffer.push(Keys.KEY.USE_STAIRS_DOWN);
     }
 
     // TODO move this into Player.Brain
-    public handleUseElement(x, y, cell) {
+    public handleUseElement(x: number, y: number, cell: Cell): void {
         const cmd = {cmd: 'use-element', target: cell};
         this._keyBuffer.push(cmd);
     }
 
     /* Tries to compute a path to given coordinate. Uses 2 different methods. */
-    public moveTo(player, toX, toY) {
+    public moveTo(player, toX: number, toY: number): void {
         let keyBuf = [];
         let [pX, pY] = [player.getX(), player.getY()];
         let pathPossible = true;
