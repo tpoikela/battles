@@ -4,7 +4,7 @@ const $DEBUG = 0;
 /* Main object of the package for encapsulating all other objects. */
 const RG: any = {};
 
-import {TCoord, DestOrSrc, PlayerCmdInput} from './interfaces';
+import {TCoord, DestOrSrc, IPlayerCmdInput} from './interfaces';
 
 // Import only types
 type BaseActor = import('./actor').BaseActor;
@@ -1409,19 +1409,19 @@ RG.printObjList = function(list: any[], funcs: string | string[], filterFunc) {
 };
 
 // To create player commands
-RG.getUseCmd = function(item, target): PlayerCmdInput {
+RG.getUseCmd = function(item, target): IPlayerCmdInput {
     return {cmd: 'use', item, target};
 };
 
-RG.getDropCmd = function(item, count): PlayerCmdInput {
+RG.getDropCmd = function(item, count): IPlayerCmdInput {
     return {cmd: 'drop', item, count};
 };
 
-RG.getEquipCmd = function(item, count): PlayerCmdInput {
+RG.getEquipCmd = function(item, count): IPlayerCmdInput {
     return {cmd: 'equip', item, count};
 };
 
-RG.getUnequipCmd = function(name, slotNumber, count): PlayerCmdInput {
+RG.getUnequipCmd = function(name, slotNumber, count): IPlayerCmdInput {
     return {cmd: 'unequip', slot: name, slotNumber, count};
 };
 
