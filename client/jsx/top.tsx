@@ -30,6 +30,8 @@ const debug = dbg('bitn:top');
 import ROT from '../../lib/rot';
 import RG from '../src/rg';
 import {Keys} from '../src/keymap';
+
+import {GameManager} from '../src/game-manager';
 import {GameMain} from '../src/game';
 import {GameSave} from '../src/gamesave';
 import * as Verify from '../src/verify';
