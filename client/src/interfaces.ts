@@ -31,7 +31,7 @@ export type DestOrSrc = TCoord | Locatable;
 
 
 /* Used to pass player input (keys/mouse) to the game */
-export interface PlayerCmdInput {
+export interface IPlayerCmdInput {
     code?: number;
     cmd?: string;
     target?: Cell;
@@ -40,7 +40,7 @@ export interface PlayerCmdInput {
     slot?: string;
     slotNumber?: number;
 }
-export type CmdInput = PlayerCmdInput | number;
+export type CmdInput = IPlayerCmdInput | number;
 
 /* Used in message handler. */
 export interface IMessage {

@@ -14,7 +14,7 @@ import {BrainBase} from './brain.base';
 import {Brain, BrainSentient} from './brain';
 import {Memory} from './brain.memory';
 
-import {PlayerCmdInput} from '../interfaces';
+import {IPlayerCmdInput} from '../interfaces';
 
 type ActionCallback = import('../time').ActionCallback;
 type BrainGoalOriented = import('./brain.goaloriented').BrainGoalOriented;
@@ -815,7 +815,7 @@ export class BrainPlayer extends BrainSentient {
 
     /* Main function which returns next action as function. TODO: Refactor into
      * something bearable. It's 150 lines now! */
-    public decideNextAction(obj: PlayerCmdInput): ActionCallback {
+    public decideNextAction(obj: IPlayerCmdInput): ActionCallback {
       this._cache.seen = CACHE_INVALID;
 
       // Workaround at the moment, because some commands are GUI-driven
