@@ -8,12 +8,12 @@ GetOptions(
     "build" => \$opt{build},
 );
 
-_cmd("npm run build:production") if defined $opt{build};
+_cmd("npm run build") if defined $opt{build};
 
 my @cmds = (
-    "cp -f ./index.html docs/",
-    "cp -f ./build/bundle.js docs/build",
-    "cp -f ./build/style.css docs/build",
+    "cp -n ./index.html docs/",
+    "cp -n ./build/bundle.js docs/build",
+    "cp -n ./build/style.css docs/build",
     "rm docs/build/*worker.js",
     "cp build/*worker.js docs/build"
 );
