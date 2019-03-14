@@ -9,7 +9,7 @@ import {Level} from './level';
 import {Cell} from './map.cell';
 import {BaseActor, SentientActor} from './actor';
 import {MessageHandler} from './message-handler';
-import {IMessage} from './interfaces';
+import {IMessage, IPlayerCmdInput} from './interfaces';
 
 type BrainPlayer = import('./brain/brain.player').BrainPlayer;
 type Entity = import('./entity').Entity;
@@ -246,7 +246,7 @@ export class Engine {
 
     /* Updates the loop by executing one player command, then looping until
      * next player command.*/
-    public updateGameLoop(obj): void {
+    public updateGameLoop(obj: IPlayerCmdInput): void {
         this.playerCommand(obj);
         this.currPlayer = this.nextActor as SentientActor;
         this.nextActor = this.getNextActor();
@@ -278,7 +278,7 @@ export class Engine {
         this.sysMan.updateLoopSystems();
     }
 
-    public playerCommand(obj) {
+    public playerCommand(obj: IPlayerCmdInput) {
         if (this.nextActor.isPlayer() === false) {
             let msg = '';
             if (this.nextActor.hasOwnProperty('isEvent')) {
@@ -483,7 +483,7 @@ export class Engine {
 
     /* Main update command. Call this either with cmd to perform, or object
      * containing the pressed keycode. */
-    public update(obj) {
+    public update(obj: IPlayerCmdInput): void {
         if (!this.isGameOver()) {
             this.clearMessages();
 
