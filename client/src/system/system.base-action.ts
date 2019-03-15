@@ -4,10 +4,12 @@ import * as Menu from '../menu';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 
+import {Path} from '../path';
 import {SystemEffects} from './system.effects';
 import {SystemQuest} from './system.quest';
 import * as Component from '../component';
 import {Brain} from '../brain';
+import {Element} from '../element';
 
 const POOL = EventPool.getPool();
 
@@ -297,9 +299,9 @@ export class SystemBaseAction extends SystemBase {
                     }
                 }
             }
-            return RG.Element.canJumpOver(cell.getBaseElem().getType());
+            return Element.canJumpOver(cell.getBaseElem().getType());
         };
-        const path = RG.Path.getShortestActorPath(map, x0, y0, x1, y1,
+        const path = Path.getShortestActorPath(map, x0, y0, x1, y1,
             jumpPathCb);
         // TODO Verify that path is direct path
         if (path.length === jumpRange) {
