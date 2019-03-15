@@ -1,7 +1,8 @@
 import * as React from 'react';
+import RG from '../src/rg';
 import PlayerStats from './player-stats';
-
-const RG = require('../src/rg');
+import {VIEW_PLAYER, VIEW_MAP,
+    STATUS_COMPS_GUI, TPlayerStatusGUI} from '../browser/game-manager';
 
 interface IGameStatsProps {
   showMap: boolean;
@@ -12,24 +13,6 @@ interface IGameStatsProps {
   toggleScreen(any): void;
 }
 
-
-export const VIEW_MAP = 0;
-export const VIEW_PLAYER = 1;
-
-// Different player status can be defined here
-const statusComps = [
-    // Comp name, style   , text  , react-key
-    ['Charm', 'success', 'Charming', 'stat-coldness'],
-    ['Coldness', 'primary', 'Cold', 'stat-coldness'],
-    ['Ethereal', 'info', 'Ethereal', 'stat-ethereal'],
-    ['Entrapped', 'danger', 'Trapped', 'stat-trapped'],
-    ['Flying', 'primary', 'Flying', 'stat-flying'],
-    ['Paralysis', 'danger', 'Paralysed', 'stat-paralysis'],
-    ['Poison', 'danger', 'Poisoned', 'stat-poison'],
-    ['PowerDrain', 'success', 'Power drain', 'stat-power-drain'],
-    ['Stun', 'danger', 'Stunned', 'stat-stun'],
-    ['MindControl', 'danger', 'Mind controlled', 'stat-mind-ctrl']
-];
 
 /* Component for displaying character stats.*/
 export default class GameStats extends React.Component {
@@ -145,11 +128,11 @@ export default class GameStats extends React.Component {
 
   public getPlayerStatus(player) {
     const stat = [];
-    statusComps.forEach(array => {
+    STATUS_COMPS_GUI.forEach((array: TPlayerStatusGUI) => {
         const [compName, style, text, key] = array;
         if (player.has(compName)) {
-        stat.push(<p className={'text-' + style} key={key}>{text}</p>);
-      }
+            stat.push(<p className={'text-' + style} key={key}>{text}</p>);
+        }
     });
     return stat;
   }

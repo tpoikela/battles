@@ -13,6 +13,8 @@ import {WorldSimulation} from './world.simulation';
 import * as Component from './component';
 import * as World from './world';
 import {Dice} from './dice';
+import {SentientActor} from './actor';
+import {CellMap} from './map';
 
 type Level = import('./level').Level;
 
@@ -29,6 +31,10 @@ export interface PlaceObj {
 export interface IPlace {
     getLevels(): Level[];
     getName(): string;
+}
+
+export interface IGameMain {
+    getPlayer(): SentientActor;
 }
 
 /* Top-level main object for the game.  */
@@ -55,6 +61,7 @@ export const GameMain = function() {
     this._worldSim = new WorldSimulation(this._eventPool);
     this._engine.addRegularUpdate(this._worldSim);
 
+    this.visibleCells = [];
     this.globalConf = {};
 
     // } end of constructor
@@ -65,7 +72,7 @@ export const GameMain = function() {
     this.shownLevel = () => this._shownLevel;
     this.setShownLevel = (level) => {this._shownLevel = level;};
 
-    this.getPool = () => this._eventPool;
+    this.getPool = (): EventPool => this._eventPool;
 
     // GUI commands needed for some functions
     this.setGUICallbacks = (isGUICmd, doGUICmd: (code) => void) => {
@@ -105,7 +112,7 @@ export const GameMain = function() {
     };
 
     /* Returns player(s) of the game.*/
-    this.getPlayer = () => {
+    this.getPlayer = (): SentientActor => {
         return this._engine.getPlayer();
     };
 
@@ -380,7 +387,7 @@ export const GameMain = function() {
     this.hasPlaces = () => Object.keys(this._places).length > 0;
 
     /* Returns the visible map to be rendered by the GUI. */
-    this.getVisibleMap = () => {
+    this.getVisibleMap = (): CellMap => {
         const player = this.getPlayer();
         const map = player.getLevel().getMap();
         return map;
