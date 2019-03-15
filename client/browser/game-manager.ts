@@ -186,6 +186,9 @@ export class GameManager {
         }
         this.updateCb = updateCb;
 
+        this.doGUICommand = this.doGUICommand.bind(this);
+        this.isGUICommand = this.isGUICommand.bind(this);
+
         // For listening to game events
         this.notify = this.notify.bind(this);
         this.hasNotify = true;
@@ -370,14 +373,14 @@ export class GameManager {
         return this.recordedCommands;
     }
 
-    public disableKeys() {
+    public disableKeys(): void {
       if (this.keysEnabled) {
         document.removeEventListener('keypress', this.handleKeyDown, true);
         this.keysEnabled = false;
       }
     }
 
-    public isValidKey(keyCode) {
+    public isValidKey(keyCode: number): boolean {
         return Keys.isValidKey(keyCode) ||
             this.guiCommands[keyCode] ||
             Keys.isNumeric(keyCode);
@@ -427,13 +430,13 @@ export class GameManager {
     }
 
     /* Deletes a saved game from the list. */
-    public deleteGame(name: string, cb): void {
+    public deleteGame(name: string, afterCb: () => void): void {
         if (name) {
             const persist = new Persist(name);
             persist.deleteStorage(() => {
                 this.gameSave.deletePlayer(name);
                 this.savedPlayerList = this.gameSave.getPlayersAsList();
-                cb();
+                afterCb();
             });
         }
     }
@@ -478,11 +481,11 @@ export class GameManager {
 
     /* Sets up the event pool, GUI callbacks, animation frame and first
      * visible cells for a restored game. */
-    public initRestoredGame(game, updateCb): void {
+    public initRestoredGame(game): void {
         this.cancelAnim();
         this.resetGameState();
         this.game = game;
-        this.initBeforeNewGame(updateCb);
+        this.initBeforeNewGame();
     }
 
     /* Converts the current game into JSON. */
@@ -499,7 +502,7 @@ export class GameManager {
     }
 
     /* Loads a saved game from a JSON. */
-    public loadGame(playerName: string, cb: UpdateFunc): void {
+    public loadGame(playerName: string, updateCb: UpdateFunc): void {
         if (playerName) {
             const persist = new Persist(playerName);
             persist.fromStorage().then(result => {
@@ -515,7 +518,7 @@ export class GameManager {
                     this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
                     const confObj = this.gameSave.getPlayersAsObj()[playerName];
                     this.restoreGameConf(confObj);
-                    cb(restGame);
+                    updateCb(restGame);
                 }
             });
         }
@@ -530,7 +533,7 @@ export class GameManager {
 
     /* Sets the event listeners, GUI callbacks and debugging refs before
      * starting the game. */
-    public initBeforeNewGame(updateCb: UpdateFunc): void {
+    public initBeforeNewGame(): void {
         console.log('initBeforeNewGame starting also mainLoop');
 
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
@@ -549,10 +552,10 @@ export class GameManager {
         eventPool.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
 
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
-        updateCb({render: true});
+        this.updateCb({render: true});
     }
 
-    public mainLoop(updateCb: (any) => void): void {
+    public mainLoop(): void {
         if (this.keyPending === true || this.ctrlMode === 'AUTOMATIC') {
             console.log('GameManager mainLoop() active now');
             const code = this.getNextCode();
@@ -775,7 +778,7 @@ export class GameManager {
     }
 
     /* Creates a new game instance.*/
-    public createNewGame(updateCb: () => void): void {
+    public createNewGame(preCb: () => void): void {
         this.cancelAnim();
         this.resetGameState();
 
@@ -783,20 +786,21 @@ export class GameManager {
             this.gameConf.seed = new Date().getTime();
         }
 
+        preCb();
         if (this.canUseWorker()) {
             console.log('documentURI:', document.documentURI);
-            this.createGameWorker(updateCb);
+            this.createGameWorker();
         }
         else {
             const gameFactory = new FactoryGame();
             this.game = gameFactory.createNewGame(this.gameConf);
-            this.initBeforeNewGame(updateCb);
+            this.initBeforeNewGame();
         }
     }
 
     /* Creates the new game using a worker to not block the main thread and
      * GUI updates. */
-    public createGameWorker(updateCb): void {
+    public createGameWorker(): void {
         /* eslint global-require: 0 */
         const worker = new MyWorkerImport();
         worker.onmessage = (e) => {
@@ -811,7 +815,7 @@ export class GameManager {
                 game = fromJSON.createGame(game, gameJSON);
 
                 this.game = game;
-                this.initBeforeNewGame(updateCb);
+                this.initBeforeNewGame();
             }
             else if (msg.error) {
                 throw new Error('Worker threw error: ' + msg.error);
@@ -821,7 +825,7 @@ export class GameManager {
     }
 
     /* Creates game from editor data. */
-    public createGameFromLevels(levels: Level[], updateCb: UpdateFunc): void {
+    public createGameFromLevels(levels: Level[]): void {
         this.cancelAnim();
         this.resetGameState();
         if (this.game !== null) {
@@ -833,7 +837,7 @@ export class GameManager {
 
         const gameFactory = new FactoryGame();
         this.game = gameFactory.createNewGame(conf);
-        this.initBeforeNewGame(updateCb);
+        this.initBeforeNewGame();
     }
 
     public useClickHandler(x, y, cell, cmd): void {
@@ -897,7 +901,7 @@ export class GameManager {
 
     /* Called when a JSON file is imported. This can be a save game or a
      * plugin */
-    public onLoadCallback(jsonData, updateCb): void {
+    public onLoadCallback(jsonData, updateCb: () => void): void {
         if (jsonData.plugin) {
             const entry = this.pluginManager.readJSON(jsonData);
             const parser = RG.ObjectShell.getParser();
@@ -910,14 +914,16 @@ export class GameManager {
             const restGame = fromJSON.createGame(game, jsonData);
             const player = restGame.getPlayer();
             if (player !== null) {
-                this.initRestoredGame(restGame, updateCb);
+                this.initRestoredGame(restGame);
             }
         }
+        updateCb();
     }
 
     /* Calls a GUI command corresponding to the code.*/
     public doGUICommand(code, ...args) {
         if (this.guiCommands.hasOwnProperty(code)) {
+            console.log('doGUICommand() Calling GUI command with code', code);
             this.guiCommands[code](code);
         }
         else if (Keys.KeyMap.isGoto(code)) {
