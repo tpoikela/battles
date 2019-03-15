@@ -728,7 +728,7 @@ RG.energy = {
     REST: 5,
     RUN: 20,
     USE: 5,
-    SPELL: 10
+    SPELL: 15
 };
 
 // Actor biases for different goals
