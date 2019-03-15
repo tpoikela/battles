@@ -51,7 +51,6 @@ export interface IBattlesTopState {
     invMsgStyle: string;
     levelSize: string;
     loadFromEditor: boolean;
-    loadInProgress: boolean;
     mouseOverCell: Cell;
     playerClass: string;
     playerRace: string;
@@ -106,7 +105,6 @@ export class BattlesTop extends React.Component {
             invMsgStyle: '',
             levelSize: 'Medium',
             loadFromEditor: false,
-            loadInProgress: false,
             mouseOverCell: null,
             playMode: 'OverWorld',
             playerClass: '',
@@ -189,7 +187,6 @@ export class BattlesTop extends React.Component {
         this.hideScreen('StartScreen');
 
         if (this.state.loadFromEditor) {
-            console.log('Creating newGame from editor contents');
             this.createGameFromEditor();
         }
         else {
@@ -201,9 +198,7 @@ export class BattlesTop extends React.Component {
     /* Creates game from editor data. */
     public createGameFromEditor(): void {
         const levels = this.state.editorData.levelsToPlay;
-        this.gameManager.createGameFromLevels(levels, (updates) => {
-            this.setState(updates);
-        });
+        this.gameManager.createGameFromLevels(levels);
     }
 
     /* Saves the game position.*/
@@ -216,18 +211,9 @@ export class BattlesTop extends React.Component {
     /* Loads a saved game from a JSON. */
     public loadGame(playerName: string): void {
         this.gameManager.loadGame(playerName, (restGame) => {
-            this.initRestoredGame(restGame);
+            this.gameManager.initRestoredGame(restGame);
         });
         // this.setState({showLoadScreen: false, showStartScreen: false,
-        // loadInProgress: true});
-    }
-
-    /* Sets up the event pool, GUI callbacks, animation frame and first
-     * visible cells for a restored game. */
-    public initRestoredGame(game): void {
-        this.gameManager.initRestoredGame(game, () => {
-            this.setState({render: true, loadInProgress: false});
-        });
     }
 
     /* Deletes a saved game from the list. */
@@ -237,20 +223,10 @@ export class BattlesTop extends React.Component {
         });
     }
 
-
     /* Creates a new game instance.*/
     public createNewGame(): void {
         this.gameManager.createNewGame(() => {
             this.showScreen('CreateScreen');
-        });
-    }
-
-
-    /* Sets the event listeners, GUI callbacks and debugging refs before
-     * starting the game. */
-    public initBeforeNewGame(): void {
-        this.gameManager.initBeforeNewGame(() => {
-            this.setState({render: true});
         });
     }
 
@@ -323,7 +299,7 @@ export class BattlesTop extends React.Component {
      * plugin */
     public onLoadCallback(jsonData): void {
         this.gameManager.onLoadCallback(jsonData, () => {
-            this.setState({render: true, loadInProgress: false});
+            this.setState({render: true});
         });
     }
 
