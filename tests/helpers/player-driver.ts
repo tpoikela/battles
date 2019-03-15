@@ -168,7 +168,7 @@ export class PlayerDriver extends DriverBase {
     //   2. Prefer going to north always if possible
     //   3. If any passages in sight, and level not visited, go there
     //      - Start a counter. When that expires, go back up.
-    public nextCmd() {
+    public nextCmd(): IPlayerCmdInput {
         this.action = '';
 
         // Record current x,y as visited
@@ -536,20 +536,21 @@ export class PlayerDriver extends DriverBase {
 
     }
 
-    public findVisitedCells(func): Cell[] {
+    public findVisitedCells(func: (Cell) => boolean): Cell[] {
         const map = this.player.getLevel().getMap();
         const id = this.player.getLevel().getID();
         const cellObjs = Object.values(this.state.visited[id]);
-        const cells = cellObjs.map((obj: any) => map.getCell(obj.x, obj.y));
+        const cells: Cell[] = cellObjs.map((obj: any) => map.getCell(obj.x, obj.y));
         return cells.filter(func);
     }
 
     /* Returns the command (or code) give to game.update(). */
-    public getPlayerCmd() {
+    public getPlayerCmd(): IPlayerCmdInput {
         const enemy = this.enemy;
-        let keycodeOrCmd = null;
         const map = this.player.getLevel().getMap();
         const [pX, pY] = this.player.getXY();
+        let keycodeOrCmd = null;
+
         if (this.action === 'attack') {
             const [eX, eY] = [enemy.getX(), enemy.getY()];
             const dX = eX - pX;
