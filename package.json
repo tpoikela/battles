@@ -114,7 +114,7 @@
     "minimize": "uglifyjs --mangle --compress ./build/*.js",
     "publish": "npm run build && ./bin/publish",
     "start": "python -m SimpleHTTPServer",
-    "test": "ts-mocha 'tests/client/**/*.spec.ts'",
+    "test": "ts-mocha --exclude 'tests/client/browser/*.ts' 'tests/client/**/*.spec.ts'",
     "test:watch": "mocha --watch -r ts-node/register 'tests/client/**/*.spec.ts'",
     "test:tsx": "mocha -r ts-node/register --require tests/helpers/browser.ts 'tests/client/**/*.spec.tsx'",
     "test:jsx": "NODE_ENV=test mocha --require tests/helpers/browser.js --compilers .:babel-core/register tests/client/jsx/*.jsx"
