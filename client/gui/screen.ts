@@ -474,6 +474,9 @@ export class ScreenBuffered extends Screen {
 
     public renderWithRLE(playX: number, playY: number, map: CellMap,
                          visibleCells: Cell[], anim?, funcClassSrc?, funcCharSrc?) {
+        if (!visibleCells) {
+            RG.err('ScreenBuffered', 'renderWithRLE', 'undef visibleCells');
+        }
         if (!this.isInitialized) {
             this.initializeFullMap(map, visibleCells);
         }
