@@ -1415,5 +1415,5 @@ export class GoalCommunicate extends GoalBase {
 Goal.Communicate = GoalCommunicate;
 
 function statusToString(status: GoalStatus): string {
-    return Goal.StatusString[status];
+    return Goal.StatusStrings[status];
 }
