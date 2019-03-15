@@ -18,10 +18,7 @@ export interface Action {
     doAction: () => void;
 }
 
-export interface Actor {
-    nextAction: (any?) => Action;
-    isPlayer: () => boolean;
-}
+type Actor = BaseActor | Time.GameEvent;
 
 interface EngineCache {
     visibleCoord: {[key: string]: boolean};
@@ -256,10 +253,12 @@ export class Engine {
 
         // Next/act until player found, then go back waiting for key...
         while (!this.nextActor.isPlayer() && !this.isGameOver()) {
+
+            // TODO refactor R1
             const action = this.nextActor.nextAction();
             this.doAction(action);
-
             this.sysMan.updateSystems(); // All systems for each actor
+            this._scheduler.setAction(action);
 
             this.nextActor = this.getNextActor();
             if (RG.isNullOrUndef([this.nextActor])) {
@@ -274,38 +273,39 @@ export class Engine {
 
     }
 
-    public updateLoopSystems() {
-        this.sysMan.updateLoopSystems();
-    }
-
-    public playerCommand(obj: IPlayerCmdInput) {
+    public playerCommand(obj: IPlayerCmdInput): void {
         if (this.nextActor.isPlayer() === false) {
-            let msg = '';
-            if (this.nextActor.hasOwnProperty('isEvent')) {
-                msg = 'Expected player, got an event: ';
-            }
-            else {
-                const actor = this.nextActor as BaseActor;
-                msg = 'Expected player, got: ' + actor.getName();
-            }
-            msg += '\n' + JSON.stringify(this.nextActor);
-            RG.err('Engine', 'playerCommand', msg);
+            this.nextActorNotPlayerError();
         }
-        const action = this.nextActor.nextAction(obj);
+        const player = this.nextActor as SentientActor;
+
+        // TODO refactor R1
+        const action = player.nextAction(obj);
         this.doAction(action);
         this.sysMan.updateSystems();
-        this.playerCommandCallback(this.nextActor as SentientActor);
+
+        // Need to check if any of the systems invalidated the command
+        if (!player.has('ImpossibleCmd')) {
+            this._scheduler.setAction(action);
+        }
+        else {
+            player.remove('ImpossibleCmd');
+        }
+
+        this.playerCommandCallback(player);
     }
 
-    /* Simulates the game without a player.*/
-    public simulateGame(nTurns = 1) {
+    /* Simulates the game without a player. Crashes if player is encountered. */
+    public simulateGame(nTurns = 1): void {
         for (let i = 0; i < nTurns; i++) {
             this.nextActor = this.getNextActor();
 
             if (!this.nextActor.isPlayer()) {
+                // TODO refactor R1
                 const action = this.nextActor.nextAction();
                 this.doAction(action);
                 this.sysMan.updateSystems();
+                this._scheduler.setAction(action);
             }
             else {
                 RG.err('Engine', 'simulateGame',
@@ -316,7 +316,7 @@ export class Engine {
 
     /* Adds one level to the engine. Throws an error if level has already been
      * added. */
-    public addLevel(level) {
+    public addLevel(level: Level): void {
         const id = level.getID();
         if (!this._levelMap.hasOwnProperty(id)) {
             this._levelMap[level.getID()] = level;
@@ -329,8 +329,8 @@ export class Engine {
 
     /* Removes the given levels from the engine. Throws error if that level
      * has not been added to engine. */
-    public removeLevels(levels) {
-        levels.forEach(level => {
+    public removeLevels(levels: Level[]): void {
+        levels.forEach((level: Level) => {
             const id = level.getID();
             if (this._levelMap.hasOwnProperty(id)) {
                 const index = this._activeLevels.indexOf(id);
@@ -355,7 +355,7 @@ export class Engine {
     }
 
     /* Adds an active level. Only these levels are simulated.*/
-    public addActiveLevel(level) {
+    public addActiveLevel(level: Level): void {
         const levelID = level.getID();
         const index = this._activeLevels.indexOf(levelID);
 
@@ -531,7 +531,7 @@ export class Engine {
     }
 
     /* Adds an event to the scheduler.*/
-    public addEvent(gameEvent) {
+    public addEvent(gameEvent: Time.GameEvent): void {
         const repeat = gameEvent.getRepeat();
         const offset = gameEvent.getOffset();
         this._scheduler.add(gameEvent, repeat, offset);
@@ -539,7 +539,6 @@ export class Engine {
 
     /* Performs one game action.*/
     public doAction(action) {
-        this._scheduler.setAction(action);
         action.doAction();
         if (action.hasOwnProperty('energy')) {
             if (action.hasOwnProperty('actor')) {
@@ -549,5 +548,19 @@ export class Engine {
                 }
             }
         }
+    }
+
+    /* Throws an error using RG.err because next actor was not player. */
+    protected nextActorNotPlayerError(): void {
+        let msg = '';
+        if (this.nextActor.hasOwnProperty('isEvent')) {
+            msg = 'Expected player, got an event: ';
+        }
+        else {
+            const actor = this.nextActor as BaseActor;
+            msg = 'Expected player, got: ' + actor.getName();
+        }
+        msg += '\n' + JSON.stringify(this.nextActor);
+        RG.err('Engine', 'playerCommand', msg);
     }
 }
