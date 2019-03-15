@@ -5,6 +5,9 @@ import {EventPool} from '../src/eventpool';
 
 const POOL = EventPool.getPool();
 
+type BaseActor = import('./actor').BaseActor;
+type Level = import('./level').Level;
+
 export const Time = {};
 
 export type ActionCallback = () => void;
@@ -15,16 +18,16 @@ export class Action {
     private _cb: ActionCallback;
     private _energy: number;
 
-    constructor(dur, cb) {
+    constructor(dur: number, cb: ActionCallback) {
         this._duration = dur;
         this._cb = cb; // Action callback
         this._energy = 0;
     }
 
-    setEnergy(en) {this._energy = en;};
-    getEnergy() {return this._energy;};
-    getDuration() {return this._duration;};
-    doAction() {this._cb();};
+    public setEnergy(en) {this._energy = en;}
+    public getEnergy() {return this._energy;}
+    public getDuration() {return this._duration;}
+    public doAction() {this._cb();}
 }
 
 //---------------------------------------------------------------------------
@@ -33,71 +36,72 @@ export class Action {
 
 /* Event is something that is scheduled and takes place but it's not an actor.
  * An example is regeneration or poison effect.*/
-export const GameEvent = function(dur, cb, repeat, offset) {
+export class GameEvent {
+    public isEvent: boolean;
+    public cb: () => void;
+    public dur: number;
+    protected _repeat: boolean;
+    protected _offset: number;
+    protected _level: Level;
 
-    // var _cb = cb;
-    let _repeat = repeat;
-    // var _nTimes = 1;
-    let _offset = offset;
-
-    let _level = null; // Level associated with the event, if null, global
-
-    this.isEvent = true; // Needed for the scheduler
+    constructor(dur: number, cb: () => void, repeat: boolean, offset: number) {
+        this.isEvent = true; // Needed for the scheduler
+        this.dur = dur;
+        this.cb = cb;
+        this._repeat = repeat;
+        this._offset = offset;
+        this._level = null; // Level associated with the event, if null, global
+    }
 
     /* Clunky for events, but must implement for the scheduler.*/
-    this.isPlayer = () => false;
+    public isPlayer() {return false;}
 
-    this.nextAction = () => new Action(dur, cb);
+    public nextAction(): Action {return new Action(this.dur, this.cb);}
 
-    this.getRepeat = () => _repeat;
-    this.setRepeat = repeat => {_repeat = repeat;};
+    public getRepeat(): boolean {return this._repeat;}
+    public setRepeat(repeat: boolean): void {this._repeat = repeat;}
 
-    this.getOffset = () => _offset;
-    this.setOffset = offset => {_offset = offset;};
+    public getOffset(): number {return this._offset;}
+    public setOffset(offset: number): void {this._offset = offset;}
 
-    this.setLevel = level => {_level = level;};
-    this.getLevel = () => _level;
+    public setLevel(level: Level): void {this._level = level;}
+    public getLevel(): Level {return this._level;}
 
-};
+}
 
 /* Regeneration event. Initialized with an actor. */
-export const RegenEvent = function(actor, dur) {
-    this._dur = dur; // Duration between events
-
-    const _regenerate = () => {
-        actor.get('Health').addHP(1);
-    };
-
-    GameEvent.call(this, this._dur, _regenerate, true);
-};
-RG.extend2(RegenEvent, GameEvent);
+export class RegenEvent extends GameEvent {
+    constructor(actor, dur) {
+        const _regenerate = () => {
+            actor.get('Health').addHP(1);
+        };
+        super(dur, _regenerate, true, 0);
+    }
+}
 
 /* Regeneration power points event. Initialized with an actor. */
-export const RegenPPEvent = function(actor, dur) {
-    this._dur = dur; // Duration between events
-
-    const _regeneratePower = () => {
-        actor.get('SpellPower').addPP(1);
-    };
-
-    GameEvent.call(this, this._dur, _regeneratePower, true);
-};
-RG.extend2(RegenPPEvent, GameEvent);
+export class RegenPPEvent extends GameEvent {
+    constructor(actor: BaseActor, dur: number) {
+        const _regeneratePower = () => {
+            actor.get('SpellPower').addPP(1);
+        };
+        super(dur, _regeneratePower, true, 0);
+    }
+}
 
 /* Event that is executed once after an offset.*/
-export const OneShotEvent = function(cb, offset, msg) {
-
-    // Wraps the callback into function and emits a message
-    var _cb = () => {
-        if (!RG.isNullOrUndef([msg])) {
-            RG.gameMsg(msg);
-        }
-        cb();
-    };
-
-    GameEvent.call(this, 0, _cb, false, offset);
-};
-RG.extend2(OneShotEvent, GameEvent);
+export class OneShotEvent extends GameEvent {
+    constructor(cb: () => void, offset: number, msg?: string) {
+        // Wraps the callback into function and emits a message
+        const _cb = () => {
+            if (!RG.isNullOrUndef([msg])) {
+                RG.gameMsg(msg);
+            }
+            cb();
+        };
+        super(0, _cb, false, offset);
+    }
+}
 
 /* Scheduler for the game actions. Time-based scheduler where each actor/event
 * is scheduled based on speed.  */
