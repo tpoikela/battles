@@ -26,6 +26,9 @@ const NO_TYPE = Object.freeze('');
 
 type Cell = import('../map.cell').Cell;
 
+/* Placed on player if any system sees an impossible cmd being done. */
+export const ImpossibleCmd = UniqueTagComponent('ImpossibleCmd');
+
 /* Action component is added to all schedulable acting entities.*/
 export const Action = UniqueTransientDataComponent('Action',
     {energy: 0, active: false});
