@@ -557,12 +557,13 @@ export class BrainPlayer extends BrainSentient {
                 setProtection: 0
             },
             StatsMods: {
-                setSpeed: 0,
                 setAccuracy: 0,
-                setWillpower: 0,
-                setStrength: 0,
                 setAgility: 0,
-                setMagic: 0
+                setMagic: 0,
+                setPerception: 0,
+                setSpeed: 0,
+                setStrength: 0,
+                setWillpower: 0
             }
         };
     }
@@ -594,7 +595,6 @@ export class BrainPlayer extends BrainSentient {
         }
     }
 
-
     public isRunModeEnabled() {return this._runModeEnabled;}
 
     public cmdNotPossible(msg) {
@@ -623,7 +623,7 @@ export class BrainPlayer extends BrainSentient {
 
     /* Returned for keypresses when no action is taken.*/
     public noAction() {
-        this.energy = 0;
+        // this.energy = 0;
         return ACTION_ZERO_ENERGY;
     }
 
@@ -831,6 +831,7 @@ export class BrainPlayer extends BrainSentient {
       }
 
       // Stop here, if action must be confirmed by player by pressing Y
+      // TODO should be changed to use menu mechanism
       if (this._wantConfirm && this._confirmCallback !== null) {
           return this.processConfirm(code);
       }
@@ -1029,7 +1030,6 @@ export class BrainPlayer extends BrainSentient {
     }
 
     public processMenuSelection(code) {
-        // if (this._selectionObject) {
         if (Menu.isMenuItem(this._selectionObject)) {
           if (this._selectionObject.showMsg) {
               this._selectionObject.showMsg();
@@ -1215,10 +1215,10 @@ export class BrainPlayer extends BrainSentient {
         menu.setCallback(this.jumpCallback.bind(this));
         this.setSelectionObject(menu);
         RG.gameMsg('Please select direction to jump');
+        this.energy = RG.energy.JUMP;
     }
 
     public jumpCallback(dXdY): void {
-        this.energy = RG.energy.JUMP;
         const [x, y] = dXdY;
         const jumpCmp = new Component.Jump();
         jumpCmp.setX(x);
