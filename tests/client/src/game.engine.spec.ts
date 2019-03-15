@@ -78,7 +78,7 @@ describe('Game.Engine', () => {
         const energyBefore = hunger.getEnergy();
         for (let i = 0; i < 10; i++) {
             engine.simulateGame();
-            engine.updateLoopSystems();
+            engine.sysMan.updateLoopSystems();
         }
         const energyAfter = hunger.getEnergy();
         expect(energyAfter).to.be.below(energyBefore);

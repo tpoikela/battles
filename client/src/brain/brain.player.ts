@@ -532,11 +532,11 @@ export class BrainPlayer extends BrainSentient {
         this._guiCallbacks = {}; // For attaching GUI callbacks
         this._type = 'Player';
         this._memory = new MemoryPlayer(actor);
-        this.energy = 1; // Consumed energy per action
+        this.energy = 0; // Consumed energy per action
 
         this._confirmCallback = null;
         this._wantConfirm = false;
-        this._confirmEnergy = 1;
+        this._confirmEnergy = 0;
 
         this._wantSelection = false;
         this._selectionObject = null;
@@ -632,6 +632,7 @@ export class BrainPlayer extends BrainSentient {
 
     /* Toggle between walking/running modes.*/
     public toggleRunMode(): void {
+        this.energy = 0;
         if (this._runModeEnabled) {
             this._restoreBaseSpeed();
         }
@@ -717,7 +718,7 @@ export class BrainPlayer extends BrainSentient {
 
     /* Returns all stats to their nominal values.*/
     public resetBoosts(): void {
-        this.energy = 1;
+        this.energy = 0;
         for (const compName in this._statBoosts) {
             if (compName) {
                 const setters = this._statBoosts[compName];
@@ -1130,7 +1131,7 @@ export class BrainPlayer extends BrainSentient {
         };
     }
 
-    public setWantConfirm(energy, callback, msg) {
+    public setWantConfirm(energy: number, callback: () => void, msg): void {
         this._confirmEnergy = energy;
         this._wantConfirm = true;
         this._confirmCallback = callback;

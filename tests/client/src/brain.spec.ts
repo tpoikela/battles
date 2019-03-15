@@ -134,10 +134,7 @@ describe('BrainPlayer', () => {
         const brain = new BrainPlayer(player);
         brain.toggleFightMode();
 
-        // var attack = player.getAttack();
-        // var speed = player.getSpeed();
-
-        expect(brain.energy).to.equal(1);
+        expect(brain.energy).to.equal(0);
         let attackCallback = brain.decideNextAction({code: Keys.VK_x});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
         attackCallback();
