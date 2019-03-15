@@ -6,19 +6,20 @@ import {Cell} from '../src/map.cell';
 import {CmdInput} from '../src/interfaces';
 import {DriverBase} from '../../tests/helpers/player-driver';
 
-const dirToKeyCode = Keys.KeyMap.dirToKeyCode;
+import {IGameMain} from '../src/game';
 
+const dirToKeyCode = Keys.KeyMap.dirToKeyCode;
 
 /* This class handles various actions when player clicks a cell.
  * It creates a key buffer corresponding to the automated command, and then game
  * loop can request these keys.
  * */
-export default class CellClickHandler extends DriverBase {
+export class CellClickHandler extends DriverBase {
 
-    public _game: any;
+    public _game: IGameMain;
     protected _keyBuffer: CmdInput[];
 
-    constructor(player?, game?) {
+    constructor(player?, game?: IGameMain) {
         super(player, game);
         this._game = game;
         this._keyBuffer = []; // Stores keys for the pending command
