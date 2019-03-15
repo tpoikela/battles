@@ -557,7 +557,6 @@ export class GameManager {
 
     public mainLoop(): void {
         if (this.keyPending === true || this.ctrlMode === 'AUTOMATIC') {
-            console.log('GameManager mainLoop() active now');
             const code = this.getNextCode();
             if ((code as IPlayerCmdInput).cmd) {
                 this.game.update(code);
@@ -646,6 +645,7 @@ export class GameManager {
             (window as any).GAME = this.game; // For debugging
             const player = this.game.getPlayer();
             (window as any).PLAYER = player; // For debugging
+            (window as any).RG = RG; // For debugging
         }
     }
 
