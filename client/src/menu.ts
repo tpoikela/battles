@@ -386,6 +386,7 @@ export class MenuSelectDir extends MenuBase {
         this._showMenu = false;
     }
 
+    /* Returns a callback bound to the dXdY of selection code. */
     public select(code) {
         if (KeyMap.inMoveCodeMap(code)) {
             const dXdY = Keys.KeyMap.getDir(code);
