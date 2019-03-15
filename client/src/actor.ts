@@ -104,15 +104,15 @@ export class BaseActor extends Entity {
         if (cb !== null) {
             const duration = Math.round(SPEED_COEFF / this.getSpeed());
             action = new Time.Action(duration, cb);
+            if (this._brain.hasOwnProperty('energy')) {
+                const bp = this._brain as unknown;
+                action.energy = (bp as BrainPlayer).energy;
+            }
         }
         else {
             action = new Time.Action(0, ACTOR_NO_ACTION);
         }
 
-        if (this._brain.hasOwnProperty('energy')) {
-            const bp = this._brain as unknown;
-            action.energy = (bp as BrainPlayer).energy;
-        }
         action.actor = this;
         return action;
     }
