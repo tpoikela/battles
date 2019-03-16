@@ -8,6 +8,9 @@ GetOptions(
     "build" => \$opt{build},
 );
 
+my $github_url = "https://tpoikela.github.io/battles";
+my $build_url = $github_url . "/build";
+
 _cmd("npm run build") if defined $opt{build};
 
 my @cmds = (
@@ -28,6 +31,8 @@ if ($error != 0) {
     die("Publish failed. Unable to move the files.");
 }
 
+replace_worker_path();
+
 _cmd("git add -f docs/build/*");
 _cmd("git commit -m 'Published new set of files' -a");
 
@@ -35,8 +40,33 @@ sub _cmd {
     my ($cmd) = @_;
     if (defined $opt{dryrun}) {
         print "dryrun CMD: $cmd\n";
+        return 0;
     }
     else {
         return system($cmd);
     }
 }
+
+sub replace_worker_path {
+    my $worker_tmp = "build.js.tmp";
+    #my $pattern_to_find = qr/new Worker\(n.p\+"(\d+)\.worker\.js"/;
+    my $pattern_to_find  = qr/new Worker\(n\.p\+"(\w+)\.worker.js"/;
+    #my @files = glob("docs/build/.js"); # Should find only 1
+    my $bundle_js = "docs/build/bundle.js";
+
+    open(my $IFILE, "<", $bundle_js) or die $!;
+    open(my $OFILE, ">", $worker_tmp) or die $!;
+
+    print "build_url is $build_url.\n";
+
+    while (<$IFILE>) {
+        my $line = $_;
+        $line =~ s/$pattern_to_find/new Worker("$build_url\/$1.worker.js"/;
+        print $OFILE $line;
+    }
+    close $IFILE;
+    close $OFILE;
+
+    _cmd("mv -v $worker_tmp $bundle_js");
+}
+
