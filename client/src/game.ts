@@ -15,6 +15,7 @@ import * as World from './world';
 import {Dice} from './dice';
 import {SentientActor} from './actor';
 import {CellMap} from './map';
+import {TCoord} from './interfaces';
 
 type Level = import('./level').Level;
 
@@ -590,11 +591,7 @@ export const GameMain = function() {
 
     /* Returns true if the menu is shown instead of the level. */
     this.isMenuShown = () => {
-        const player = this.getPlayer();
-        if (player) {
-            return player.getBrain().isMenuShown();
-        }
-        return false;
+        return this._engine.isMenuShown();
     };
 
     /* Returns the current menu object. */
@@ -628,10 +625,10 @@ export const GameMain = function() {
     this.disableAnimations = () => {this._engine.disableAnimations();};
 
     /* Returns the player tile position in overworld map. */
-    this.getPlayerOwPos = () => {
+    this.getPlayerOwPos = (): TCoord | null => {
         const player = this.getPlayer();
         if (!this._overworld || !player) {
-            return [];
+            return null;
         }
 
         const overworld = this._overworld;
