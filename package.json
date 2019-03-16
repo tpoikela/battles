@@ -103,7 +103,7 @@
     "build": "npm run build:sass && npm run build:production",
     "build:production": "npm run create-config-prod && NODE_ENV=production webpack",
     "build:sass": "sass scss/style.scss --style compressed > build/style.css",
-    "clean": "bin/clean.sh",
+    "clean": "rm -rf build/",
     "create-config-prod": "cp -n client/config/production.js public/config.js",
     "create-config-devel": "cp -n client/config/devel.js public/config.js",
     "coverage": "perl bin/cov_test.pl",
@@ -116,8 +116,7 @@
     "start": "python -m SimpleHTTPServer",
     "test": "ts-mocha --exclude 'tests/client/browser/*.ts' 'tests/client/**/*.spec.ts'",
     "test:watch": "mocha --watch -r ts-node/register 'tests/client/**/*.spec.ts'",
-    "test:tsx": "mocha -r ts-node/register --require tests/helpers/browser.ts 'tests/client/**/*.spec.tsx'",
-    "test:jsx": "NODE_ENV=test mocha --require tests/helpers/browser.js --compilers .:babel-core/register tests/client/jsx/*.jsx"
+    "test:tsx": "mocha -r ts-node/register --require tests/helpers/browser.ts 'tests/client/**/*.spec.tsx'"
   },
   "license": "MIT",
   "bugs": {
