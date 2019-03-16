@@ -21,6 +21,7 @@ import {CryptGenerator} from './crypt-generator';
 import {QuestPopulate} from './quest';
 import {Level} from './level';
 import {DungeonFeatures} from './dungeon-features';
+import {OWMap} from './overworld.map';
 
 import * as Element from './element';
 import * as IF from './interfaces';
@@ -112,7 +113,7 @@ export const FactoryWorld = function() {
 
     // Can be used to pass already created levels to different zones. For
     // example, after restore game, no new levels should be created
-    this.id2level = {};
+    this.id2level = {} as IF.ID2LevelMap;
     this.id2levelSet = false;
     this.id2entity = {};
 
@@ -124,7 +125,7 @@ export const FactoryWorld = function() {
     };
 
 
-    this.setPresetLevels = function(levels) {
+    this.setPresetLevels = function(levels: Level[]): void {
         this.presetLevels = levels;
         this.debug('PresetLevels were set.');
     };
@@ -132,7 +133,7 @@ export const FactoryWorld = function() {
     /* If id2level is set, factory does not construct any levels. It uses
      * id2level as a lookup table instead. This is mainly used when restoring a
      * saved game. */
-    this.setId2Level = function(id2level) {
+    this.setId2Level = function(id2level: IF.ID2LevelMap) {
         if (Object.keys(id2level).length === 0) {
             RG.warn('FactoryWorld', 'setId2Level',
                 'There are no levels/keys present in id2level map. Bug?');
@@ -144,18 +145,18 @@ export const FactoryWorld = function() {
 
     /* Pushes the hier name and configuration on the stack. Config can be
     * queried with getConf(). */
-    this.pushScope = function(conf) {
+    this.pushScope = function(conf): void {
         this._conf.pushScope(conf);
     };
 
     /* Removes given config and the name it contains from stacks. Reports an
     * error if removed name does not match the name in conf. */
-    this.popScope = function(conf) {
+    this.popScope = function(conf): void {
         this._conf.popScope(conf);
     };
 
     /* Initializes the global configuration such as level size. */
-    this.setGlobalConf = function(conf: any = {}) {
+    this.setGlobalConf = function(conf: any = {}): void {
         const levelSize = conf.levelSize || 'Medium';
         const sqrPerActor = conf.sqrPerActor || RG.ACTOR_MEDIUM_SQR;
         const globalConf: GlobalConf = {
@@ -170,24 +171,24 @@ export const FactoryWorld = function() {
         this.debug('globalConf set to ' + JSON.stringify(globalConf));
     };
 
-    this.getGlobalConf = function() {
+    this.getGlobalConf = function(): any {
         return this._conf.getGlobalConf();
     };
 
     /* Returns a config value. */
-    this.getConf = function(keys) {
+    this.getConf = function(keys: string) {
         return this._conf.getConf(keys);
     };
 
-    this.setOverWorld = function(overworld) {
+    this.setOverWorld = function(overworld: OWMap) {
         this.overworld = overworld;
     };
 
     /* Returns the full hierarchical name of the zone. */
-    this.getHierName = () => this._conf.getScope().join('.');
+    this.getHierName = (): string => this._conf.getScope().join('.');
 
     /* Creates a world using given configuration. */
-    this.createWorld = function(conf): World.WorldTop {
+    this.createWorld = function(conf: IF.WorldConf): World.WorldTop {
         this._verif.verifyConf('createWorld', conf, ['name', 'nAreas']);
         if (!this.getGlobalConf().set) {
             this.setGlobalConf({});
@@ -250,7 +251,7 @@ export const FactoryWorld = function() {
         return area;
     };
 
-    this.restoreCreatedZones = (world: WorldTop, area: Area, areaConf): void => {
+    this.restoreCreatedZones = (world: WorldTop, area: Area, areaConf: IF.AreaConf): void => {
         Object.keys(areaConf.zonesCreated).forEach(keyXY => {
             const [xStr, yStr] = keyXY.split(',');
             const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
@@ -262,7 +263,7 @@ export const FactoryWorld = function() {
     };
 
     /* Creates zones for given area tile x,y with located in area areaName. */
-    this.createZonesForTile = (world: WorldTop, area: Area, x, y): void => {
+    this.createZonesForTile = (world: WorldTop, area: Area, x: number, y: number): void => {
         // Setup the scope & conf stacks
         if (!area.tileHasZonesCreated(x, y)) {
             this.debug(`Creating Area ${x},${y} zones (not created yet)`);
