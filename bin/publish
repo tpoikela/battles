@@ -1,16 +1,24 @@
 #! /usr/bin/env perl
 
+# A script for creating a published version of the game. At the moment, This
+# is used to create the bundle for github pages. To be expanded on itch.io.
+
 use Getopt::Long;
 
 my %opt;
 GetOptions(
     "dryrun" => \$opt{dryrun},
     "build" => \$opt{build},
+    "url=s" => \$opt{url},
 );
 
-my $github_url = "https://tpoikela.github.io/battles";
-my $build_url = $github_url . "/build";
+my $base_url = "https://tpoikela.github.io/battles";
+if ($opt{url}) {
+    $base_url = $opt{url};
+}
+my $build_url = $base_url . "/build";
 
+_cmd("npm run clean") if defined $opt{build};
 _cmd("npm run build") if defined $opt{build};
 
 my @cmds = (
@@ -47,14 +55,15 @@ sub _cmd {
     }
 }
 
+# Replaces the worker path to be absolute URL. This corrects the 404 EVAL_ERROR
+# in github pages.
 sub replace_worker_path {
     my $worker_tmp = "build.js.tmp";
-    #my $pattern_to_find = qr/new Worker\(n.p\+"(\d+)\.worker\.js"/;
     my $pattern_to_find  = qr/new Worker\(n\.p\+"(\w+)\.worker.js"/;
-    #my @files = glob("docs/build/.js"); # Should find only 1
-    my $bundle_js = "docs/build/bundle.js";
+    my $src_bundle_js = "build/bundle.js";
+    my $dest_bundle_js = "docs/build/bundle.js";
 
-    open(my $IFILE, "<", $bundle_js) or die $!;
+    open(my $IFILE, "<", $src_bundle_js) or die $!;
     open(my $OFILE, ">", $worker_tmp) or die $!;
 
     print "build_url is $build_url.\n";
@@ -67,6 +76,6 @@ sub replace_worker_path {
     close $IFILE;
     close $OFILE;
 
-    _cmd("mv -v $worker_tmp $bundle_js");
+    _cmd("mv -v $worker_tmp $dest_bundle_js");
 }
 
