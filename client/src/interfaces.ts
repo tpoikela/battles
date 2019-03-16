@@ -72,6 +72,9 @@ export interface TemplateData {
 
 }
 
+export interface ID2LevelMap {
+    [key: number]: Level;
+}
 
 export interface SubZoneConf {
     name: string;
@@ -188,6 +191,7 @@ export interface AreaConf {
     nDungeons?: number;
     nMountains?: number;
     presetLevels?: {[key: string]: Level[][]};
+    zonesCreated?: boolean;
 }
 
 export interface PlayerStart {
