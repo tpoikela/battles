@@ -8,7 +8,7 @@ import dbg = require('debug');
 const debug = dbg('bitn:OW');
 
 import RG from './rg';
-import {TCoord, BBox} from './interfaces';
+import {TCoord, BBox, OWMapConf} from './interfaces';
 
 import {CellMap} from './map';
 import {Geometry} from './geometry';
@@ -22,21 +22,6 @@ import {ElementMarker} from './element';
 type OWSubLevel = import('./overworld').OWSubLevel;
 
 const getRNG = Random.getRNG;
-
-export interface OWMapConf {
-    yFirst?: boolean;
-    topToBottom?: boolean;
-    printResult?: boolean;
-    owTilesX?: number;
-    owTilesY?: number;
-    nLevelsX?: number;
-    nLevelsY?: number;
-    playerX?: number;
-    playerY?: number;
-    playerRace?: string;
-    createTerritory?: boolean;
-}
-
 
 //---------------------------------------------
 /* OWMap: Data struct for overworld. */
@@ -681,7 +666,7 @@ function createOverWorldTerritories(ow, conf) {
 /* Adds features like water, cities etc into the world. This feature only
  * designates the x,y coordinate on overworld map, but does not give details
  * for the Map.Level sublevels. */
-function addOverWorldFeatures(ow: OWMap, conf) {
+function addOverWorldFeatures(ow: OWMap, conf: OWMapConf): void {
     const sizeX = ow.getSizeX();
     const sizeY = ow.getSizeY();
     const area = sizeX * sizeY;
@@ -738,9 +723,9 @@ function addOverWorldFeatures(ow: OWMap, conf) {
     addDungeonsToOverWorld(ow, nDungeonsCenter, cmdBetweenHWalls);
     addDungeonsToOverWorld(ow, nDungeonsNorth, cmdAboveNorthWall);
 
-    const nCitySouth = Math.floor(numFlatTiles * 0.5 / 80);
-    const nCityCenter = Math.floor(numFlatTiles * 0.2 / 100);
-    const nCityNorth = Math.floor(numFlatTiles * 0.2 / 80);
+    const nCitySouth = conf.nCitySouth || Math.floor(numFlatTiles * 0.5 / 80);
+    const nCityCenter = conf.nCityCenter || Math.floor(numFlatTiles * 0.2 / 100);
+    const nCityNorth = conf.nCityNorth || Math.floor(numFlatTiles * 0.2 / 80);
 
     // Distribute mountains
     addMountainsToOverWorld(ow, nMountainsSouth, cmdSouthernArea);
