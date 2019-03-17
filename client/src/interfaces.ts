@@ -180,9 +180,11 @@ export interface MountainConf extends ZoneConf {
 }
 
 export interface AreaConf {
-    maxX: number;
-    maxY: number;
+    maxX: number; // Number of area tiles in x-dir
+    maxY: number; // Number of area tiles in y-dir
     name: string;
+    cols: number; // Cols per each area tile level
+    rows: number; // Rows per each area tile level
 
     city?: CityConf[];
     dungeon?: DungeonConf[];
@@ -209,10 +211,39 @@ export interface WorldConf {
     playerStart?: PlayerStart;
 }
 
+export interface OWMapConf {
+    yFirst?: boolean;
+    topToBottom?: boolean;
+    printResult?: boolean;
+    owTilesX?: number;
+    owTilesY?: number;
+    nLevelsX?: number;
+    nLevelsY?: number;
+    playerX?: number;
+    playerY?: number;
+    playerRace?: string;
+    createTerritory?: boolean;
+    nDungeonsSouth?: number;
+    nDungeonsNorth?: number;
+    nDungeonsCenter?: number;
+    nMountainsNorth?: number;
+    nMountainsMiddle?: number;
+    nMountainsSouth?: number;
+    nCitySouth?: number;
+    nCityCenter?: number;
+    nCityNorth?: number;
+}
+
 export interface IFactoryGameConf {
     seed?: number;
     sqrPerItem: number;
     sqrPerActor: number;
     playMode: string;
+    playerLevel: string;
+    playerName: string;
+    playerRace: string;
+    owMultiplier?: number;
+    xMult?: number;
+    yMult?: number;
+    owConf?: OWMapConf;
 }
-
