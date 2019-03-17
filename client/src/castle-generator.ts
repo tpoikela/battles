@@ -33,7 +33,10 @@ interface CastleOpts {
     surroundY: number;
     maxValue: number;
     preserveMarkers: boolean;
+    centralCorridors: boolean;
 }
+
+type GateFunc = () => void;
 
 type PartialCastleOpts = Partial<CastleOpts>;
 
@@ -104,6 +107,10 @@ export class CastleGenerator extends LevelGenerator {
         const gateFunc = getGateDirFunction(conf);
         if (gateFunc) {
             levelConf.startRoomFunc = gateFunc;
+        }
+
+        if (conf.centralCorridors) {
+            levelConf.constraintFunc = Castle.constraintFuncCross;
         }
 
         const mapObj = mapgen.createCastle(cols, rows, levelConf);
@@ -293,9 +300,10 @@ const markers = {
 
 /* Returns the function to generate castle cased based on surrounding
  * cells. */
-function getGateDirFunction(conf) {
+function getGateDirFunction(conf): GateFunc | null {
     if (conf.cellsAround) {
         const {cellsAround} = conf;
+        // TODO should randomize the entrace direction
         if (!cellBlocked(cellsAround.N)) {
             return Castle.startRoomFuncNorth;
         }
@@ -308,11 +316,25 @@ function getGateDirFunction(conf) {
         else if (!cellBlocked(cellsAround.W)) {
             return Castle.startRoomFuncWest;
         }
+        else if (!cellBlocked(cellsAround.NE)) {
+            return Castle.startRoomFuncNorthEast;
+        }
+        else if (!cellBlocked(cellsAround.NW)) {
+            return Castle.startRoomFuncNorthWest;
+        }
+        else if (!cellBlocked(cellsAround.SE)) {
+            return Castle.startRoomFuncSouthEast;
+        }
+        else if (!cellBlocked(cellsAround.SW)) {
+            return Castle.startRoomFuncSouthWest;
+        }
+        RG.warn('CastleGenerator', 'getGateDirFunction',
+            'No free cellsAround ' + JSON.stringify(cellsAround));
     }
     return null;
 }
 
-function cellBlocked(type) {
+function cellBlocked(type): boolean {
     switch (type) {
         case 'wallmount': return true;
         case 'water': return true;
