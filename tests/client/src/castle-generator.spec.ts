@@ -24,4 +24,15 @@ describe('CastleGenerator', () => {
         expect(items.length).to.be.above(4);
         expect(castleGen.nItemsAdded).to.be.above(2);
     });
+
+    it('can create castle with central corridors', () => {
+        for (let i = 0; i < 5; i++) {
+            const conf = CastleGenerator.getOptions();
+            conf.centralCorridors = true;
+            conf.templates = 'residential';
+            const level = castleGen.create(90, 60, conf);
+            expect(level).to.be.an.instanceof(Level);
+        }
+    });
+
 });
