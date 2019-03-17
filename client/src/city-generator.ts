@@ -4,6 +4,7 @@ import RG from './rg';
 import {LevelGenerator} from './level-generator';
 import {MapGenerator} from './map.generator';
 import {DungeonPopulate} from './dungeon-populate';
+import {LevelSurroundings} from './level-surroundings';
 import {Random} from './random';
 import {Level} from './level';
 import {ELEM} from '../data/elem-constants';
@@ -23,10 +24,13 @@ export class CityGenerator extends LevelGenerator {
         this.shouldRemoveMarkers = true;
     }
 
-    public create(cols, rows, conf): Level {
-        const level = this.createLevel(cols, rows, conf);
-
+    public create(cols: number, rows: number, conf): Level {
+        let level = this.createLevel(cols, rows, conf);
         this.populateCityLevel(level, conf);
+
+        if (conf.cellsAround) {
+            level = this.createCitySurroundings(level, conf);
+        }
         // TODO populate level with actors based on conf
         return level;
     }
@@ -98,6 +102,12 @@ export class CityGenerator extends LevelGenerator {
         houses.forEach(house => {
             dungPopul.populateHouse(level, house, conf);
         });
+    }
+
+    public createCitySurroundings(level: Level, conf) {
+        const levelSurround = new LevelSurroundings();
+        console.log('cityGen cellsAround', conf.cellsAround);
+        return levelSurround.surround(level, conf);
     }
 }
 
