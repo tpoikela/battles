@@ -821,6 +821,9 @@ RG.DAY = {
     NIGHT: 'NIGHT'
 };
 
+RG.AREA_LEVEL_COLS = 100;
+RG.AREA_LEVEL_ROWS = 100;
+
 /* Converts a direction (N, S, ...) to 2-d vector. If already,
  * a vector, returns it. */
 RG.dirTodXdY = function(dir: TCoord | string): TCoord | null {
