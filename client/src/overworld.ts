@@ -787,24 +787,31 @@ function addDungeonToSubLevel(owSubLevel: OWSubLevel, subLevel: Level) {
     }
 }
 
-function addFortToSubLevel(owSubLevel: OWSubLevel, subLevel: Level) {
+function addFortToSubLevel(owSubLevel: OWSubLevel, subLevel: Level): void {
     const coord: TCoord[] = getAccessibleMountainCoord(subLevel, false);
     if (coord && coord.length > 0) {
-        const [x, y] = coord[0];
-        const coordAround: TCoord[] = Geometry.getBoxAround(x, y, 1);
-        const map = subLevel.getMap();
-        const cellsAround: Cell[] = map.getCellsWithCoord(coordAround);
-
         const fort = new OWSubFeature('fort', coord);
-        const cellMap = {};
-        cellsAround.forEach(c => {
-            const dXdY = RG.dXdYUnit(c, coord[0]);
-            const dir = RG.dXdYToDir(dXdY);
-            cellMap[dir] = c.getBaseElem().getType();
-        });
-        fort.cellsAround = cellMap;
+        const [x, y] = coord[0];
+        setCellsAroundFeature(subLevel, fort, x, y);
         owSubLevel.addFeature(fort);
     }
+}
+
+function setCellsAroundFeature(
+    subLevel: Level,feat: OWSubFeature, x: number, y: number
+): void {
+    const coordAround: TCoord[] = Geometry.getBoxAround(x, y, 1);
+    const map = subLevel.getMap();
+    const cellsAround: Cell[] = map.getCellsWithCoord(coordAround);
+    const xy: TCoord = [x, y];
+
+    const cellMap: {[key: string]: string} = {};
+    cellsAround.forEach((c: Cell) => {
+        const dXdY = RG.dXdYUnit(c, xy);
+        const dir = RG.dXdYToDir(dXdY);
+        cellMap[dir] = c.getBaseElem().getType();
+    });
+    feat.cellsAround = cellMap;
 }
 
 function getAccessibleMountainCoord(subLevel: Level, edges = true): TCoord[] {
@@ -923,6 +930,8 @@ function addVillageToSubLevel(feat, owSubLevel: OWSubLevel, subLevel: Level) {
         const coord: TCoord = getRNG().arrayGetRand(freeXY);
         const village = new OWSubFeature('village', [coord]);
         village.alignment = getAlignment(feat);
+        const [x, y] = coord;
+        setCellsAroundFeature(subLevel, village, x, y);
         owSubLevel.addFeature(village);
     }
     else {
