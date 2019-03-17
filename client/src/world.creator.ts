@@ -457,6 +457,7 @@ export class WorldCreator {
 
         return {
             name: this.getName('area'),
+            cols: RG.AREA_LEVEL_COLS, rows: RG.AREA_LEVEL_ROWS,
             maxX,
             maxY,
             nDungeons: dungeons.length,
