@@ -171,7 +171,7 @@ export const FactoryWorld = function() {
         this.debug('globalConf set to ' + JSON.stringify(globalConf));
     };
 
-    this.getGlobalConf = function(): any {
+    this.getGlobalConf = function(): GlobalConf {
         return this._conf.getGlobalConf();
     };
 
@@ -180,7 +180,7 @@ export const FactoryWorld = function() {
         return this._conf.getConf(keys);
     };
 
-    this.setOverWorld = function(overworld: OWMap) {
+    this.setOverWorld = function(overworld: OWMap): void {
         this.overworld = overworld;
     };
 
@@ -216,7 +216,7 @@ export const FactoryWorld = function() {
 
 
     /* Creates an area which can be added to a world. */
-    this.createArea = function(conf): World.Area {
+    this.createArea = function(conf: IF.AreaConf): World.Area {
         this._verif.verifyConf('createArea', conf,
             ['name', 'maxX', 'maxY']);
         this.pushScope(conf);
@@ -320,8 +320,8 @@ export const FactoryWorld = function() {
             actor: actor => (
                 actor.danger <= maxDanger
             ),
-            gold: () => false,
-            food: () => false,
+            gold: () => false, // No gold on the ground
+            food: () => false, // No food on the ground
             maxValue,
             actorsPerLevel, maxDanger
         };
