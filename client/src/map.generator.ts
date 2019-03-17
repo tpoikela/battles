@@ -511,13 +511,23 @@ export class MapGenerator {
         const rows = bbox.lry - bbox.uly;
         this.setGen('lakes', cols, rows);
         const lakeMap = this.createLakes(conf).map;
+        this.addElementsToMap(map, lakeMap, 'water', conf, bbox);
+    }
 
-        RG.forEach2D(lakeMap._map, (x, y) => {
+    public addForest(map: CellMap, conf, bbox: BBox): void {
+        this.cols = bbox.lrx - bbox.ulx;
+        this.rows = bbox.lry - bbox.uly;
+        const forestMap = this.createForest(conf).map;
+        this.addElementsToMap(map, forestMap, 'tree', conf, bbox);
+    }
+
+    public addElementsToMap(map, srcMap, elem, conf, bbox): void {
+        RG.forEach2D(srcMap._map, (x, y) => {
             const nX = x + bbox.ulx;
             const nY = y + bbox.uly;
             if (Geometry.isInBbox(nX, nY, bbox) && map.hasXY(nX, nY)) {
-                const baseElem = lakeMap.getBaseElemXY(x, y);
-                if (baseElem.getType() === 'water') {
+                const baseElem = srcMap.getBaseElemXY(x, y);
+                if (baseElem.getType() === elem) {
                     if (conf.skipTypes) {
                         const elemType = map.getBaseElemXY(nX, nY).getType();
                         if (!conf.skipTypes.hasOwnProperty(elemType)) {
@@ -531,6 +541,7 @@ export class MapGenerator {
             }
         });
     }
+
 
     public createWall(cols, rows, conf) {
         const map: CellMap = new CellMap(cols, rows, this.defaultMapElem);
