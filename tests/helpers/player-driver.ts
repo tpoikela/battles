@@ -560,7 +560,12 @@ export class PlayerDriver extends DriverBase {
             if (this.canCastSpell()) {
                 keycodeOrCmd = {code: KEY.POWER};
                 const spellCode = this.getCodeForSpell();
-                this._keyBuffer = [spellCode, code];
+                if (spellCode >= 0) {
+                    this._keyBuffer = [spellCode, code];
+                }
+                else {
+                    keycodeOrCmd = {code};
+                }
             }
             else {
                 keycodeOrCmd = {code};
@@ -839,15 +844,18 @@ export class PlayerDriver extends DriverBase {
     private getCodeForSpell(): number {
         const book = this.player.getBook();
         const spells = book.getSpells();
+
+        // Check if we have any damaging spells, if not then terminate
+        const dmgSpells = spells.filter(spell => spell.hasDice('damage'));
+        if (dmgSpells.length === 0) {return -1;}
+
         const dmgIndices = {};
         let totalPower = 0;
-        spells.forEach((spell, i) => {
-            if (spell.hasDice('damage')) {
-                if (spell.canCast()) {
-                    const castPower = spell.getCastingPower();
-                    totalPower += castPower;
-                    dmgIndices[i] = castPower;
-                }
+        dmgSpells.forEach((spell, i) => {
+            if (spell.canCast()) {
+                const castPower = spell.getCastingPower();
+                totalPower += castPower;
+                dmgIndices[i] = castPower;
             }
         });
 
