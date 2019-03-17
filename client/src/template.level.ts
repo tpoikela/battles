@@ -17,7 +17,6 @@ const debugVerbosity = 20;
 
 type ElemTemplate = any; // TODO
 
-
 type GenParams = number[];
 
 interface ParamsMap {
@@ -119,7 +118,7 @@ export class TemplateLevel {
     }
 
     /* Sets the filler tile used to fill the map first. */
-    setFiller(fillerTempl) {
+    public setFiller(fillerTempl) {
         if (typeof fillerTempl === 'string') {
             this.filler = Template.createTemplate(fillerTempl);
             this.filler.setProp('name', 'FILLER');
@@ -131,7 +130,7 @@ export class TemplateLevel {
     }
 
     /* Sets the room templates that are used. */
-    setTemplates(asciiTiles) {
+    public setTemplates(asciiTiles) {
         this.templates = [];
         if (typeof asciiTiles[0] === 'string') {
             this.templates = asciiTiles.map(t => Template.createTemplate(t));
@@ -142,7 +141,7 @@ export class TemplateLevel {
     }
 
     /* Adds one ASCII/room template to the list of usable templates. */
-    addTemplate(asciiTile) {
+    public addTemplate(asciiTile) {
         if (typeof asciiTile === 'string') {
               this.templates.push(Template.createTemplate(asciiTile));
         }
@@ -152,31 +151,31 @@ export class TemplateLevel {
     }
 
     /* Sets the generator parameters for expansion. */
-    setGenParams(arr) {
+    public setGenParams(arr) {
         this.genParams = arr;
     }
 
     /* Sets the target room count. -1 fills until no more well-connected
      * rooms are possible. */
-    setRoomCount(count) {
+    public setRoomCount(count) {
         this.roomCount = count;
     }
 
     /* Sets the callback for constraint. This callback is called with
      * (x, y, exitReqd), and exposes this._sortedByExit.
      */
-    setConstraintFunc(func) {
+    public setConstraintFunc(func) {
         this.constraintFunc = func.bind(this);
     }
 
     /* Can be used to set a start room function, which picks the first room
      * to use. This function must return the room, and not place it. */
-    setStartRoomFunc(func) {
+    public setStartRoomFunc(func) {
         this.startRoomFunc = func.bind(this);
     }
 
     /* Adds a callback to the generator. */
-    addCallback(name, cb) {
+    public addCallback(name, cb) {
         if (this.callbacks.hasOwnProperty(name)) {
             if (typeof cb === 'function') {
                 this.callbacks[name] = cb;
@@ -193,7 +192,7 @@ export class TemplateLevel {
     }
 
     /* Calls as many setters above as possible from given object. */
-    use(obj) {
+    public use(obj) {
         const setterList = ['constraintFunc', 'startRoomFunc', 'roomCount',
         'genParams'];
         setterList.forEach(p => {
@@ -214,7 +213,7 @@ export class TemplateLevel {
 
     /* Creates the level. Result is in this.map.
      * This is the Main function you want to call. */
-    create() {
+    public create() {
         if (this.templates.length === 0) {
             RG.err('TemplateLevel', 'create',
                 'No templates set. Use setTemplates() before create()');
@@ -305,7 +304,7 @@ export class TemplateLevel {
     }
 
     /* Sort data into lists based on different directions */
-    _sortDataIntoListsByLocation() {
+    public _sortDataIntoListsByLocation() {
         const dirRegex = this._possibleDirections.map(dir => new RegExp(dir));
         this.templates.forEach(templ => {
             const dir = templ.getProp('dir');
@@ -329,7 +328,7 @@ export class TemplateLevel {
 
     /* Expands the templates with generator params and creates the final 2d-tile
      * map from the 2d template map. */
-    expandTemplates() {
+    public expandTemplates() {
         // Create gen params for each tile
         this.genParamsX = [];
         this.genParamsY = [];
@@ -395,12 +394,12 @@ export class TemplateLevel {
         }
     }
 
-    getPlacedData() {
+    public getPlacedData() {
         return this.placedTileData;
     }
 
     /* Returns the generated map (found also in this.map). */
-    getMap() {
+    public getMap() {
         if (!this.map) {
             RG.warn('TemplateLevel', 'getMap',
                 'Not not generated. Call create() first');
@@ -410,7 +409,7 @@ export class TemplateLevel {
 
     /* Finds a template based on prop name and val, and returns a random
      * template among the found templates. Returns null if none are found. */
-    findTemplate(query) {
+    public findTemplate(query) {
         const result = [];
         Object.keys(query).forEach(key => {
             this.templates.forEach(t => {
@@ -427,7 +426,7 @@ export class TemplateLevel {
 
     /* Removes the templates matching the given query. This is useful, if for
      * example after starting conditions you want to remove some tiles. */
-    removeTemplate(query) {
+    public removeTemplate(query) {
         const key = Object.keys(query)[0];
         const index = this.templates.findIndex(t => (
             t.getProp(key) === query[key]
@@ -440,7 +439,7 @@ export class TemplateLevel {
     /* Adds a room (template) to fixed position. This can be called from user
      * callbacks. Can be used to place any amount of rooms prior to calling
      * create(). */
-    addRoom(templ, x, y) {
+    public addRoom(templ, x, y) {
         const room = {x, y, room: templ};
         this._addRoomData(room);
         this._removeExitsOfAbuttingRooms(room);
@@ -452,7 +451,7 @@ export class TemplateLevel {
     // PRIVATE
     //----------------------------------------------------------------
 
-    _getNextTemplate(x, y, exitReqd) {
+    public _getNextTemplate(x, y, exitReqd) {
         ++this._ind;
         let next = null;
         if (typeof this.constraintFunc === 'function') {
@@ -491,7 +490,7 @@ export class TemplateLevel {
 
     /* Returns random template from the given list. Uses random weights if any
      * are given. */
-    _getRandTemplate(list) {
+    public _getRandTemplate(list) {
         if (!this.weights) {
             return RNG.arrayGetRand(list);
         }
@@ -511,14 +510,14 @@ export class TemplateLevel {
         return list[nameToIndex[chosenName]];
     }
 
-    _getRoomWithUnusedExits() {
+    public _getRoomWithUnusedExits() {
         if (this._unusedExits.length > 0) {
             return RNG.arrayGetRand(this._unusedExits);
         }
         return null;
     }
 
-    _getFreeExits(room) {
+    public _getFreeExits(room) {
         const {x, y} = room;
         const key = x + ',' + y;
         if (this._freeExits[key]) {
@@ -531,7 +530,7 @@ export class TemplateLevel {
         return null;
     }
 
-    _removeChosenExit(x, y, chosen) {
+    public _removeChosenExit(x, y, chosen) {
         const key = x + ',' + y;
         const exits = this._freeExits[key];
         this.dbg(JSON.stringify(this._freeExits));
@@ -566,7 +565,7 @@ export class TemplateLevel {
         }
     }
 
-    _isRoomLegal(x, y) {
+    public _isRoomLegal(x, y) {
         if (x >= 0 && x < this.tilesX && y >= 0 && y < this.tilesY) {
             return true;
         }
@@ -575,7 +574,7 @@ export class TemplateLevel {
 
     /* Places 1st room using startRoomFunc, or randomly if no function is
      * specified. */
-    _placeStartRoom() {
+    public _placeStartRoom() {
         ++this._ind;
         let room = null;
         if (typeof this.startRoomFunc === 'function') {
@@ -610,7 +609,7 @@ export class TemplateLevel {
     }
 
     /* Places one room into the map. */
-    _placeRoom(x, y, chosen, newX, newY, exitReqd, templMatch) {
+    public _placeRoom(x, y, chosen, newX, newY, exitReqd, templMatch) {
         // Remove chosen exit (old room) from unused exits
         this._removeChosenExit(x, y, chosen);
 
@@ -631,7 +630,7 @@ export class TemplateLevel {
 
     }
 
-    _addRoomData(room) {
+    public _addRoomData(room) {
         const dirProp = room.room.getProp('dir');
         if (dirProp) {
             this._unusedExits.push(room);
@@ -643,7 +642,7 @@ export class TemplateLevel {
     }
 
     /* Returns the matching (opposite) exit for the chosen exit. */
-    getMatchingExit(chosen) {
+    public getMatchingExit(chosen) {
         if (this.matchMap) {
             if (this.matchMap.hasOwnProperty(chosen)) {
                 return this.matchMap[chosen];
@@ -660,7 +659,7 @@ export class TemplateLevel {
 
     /* Returns new X value based on the direction. Remaps custom dir to NSEW
     * first. */
-    _getNewX(x, dir) {
+    public _getNewX(x, dir) {
         let remapped = dir;
         if (this.dir2NSEWRemap) {
             if (this.dir2NSEWRemap[dir]) {
@@ -675,7 +674,7 @@ export class TemplateLevel {
 
     /* Returns new Y value based on the direction. Remaps custom dir to NSEW
     * first. */
-    _getNewY(y, dir) {
+    public _getNewY(y, dir) {
         let remapped = dir;
         if (this.dir2NSEWRemap) {
             if (this.dir2NSEWRemap[dir]) {
@@ -687,13 +686,13 @@ export class TemplateLevel {
         return y;
     }
 
-    getRandomTemplate() {
+    public getRandomTemplate() {
         return RNG.arrayGetRand(this.templates);
     }
 
     /* Removes exits from tiles which are placed in any borders of the map.
      *  Prevents out-of-bounds expansion. */
-    _removeBorderExits(room) {
+    public _removeBorderExits(room) {
         const {x, y} = room;
         if (x === 0) {
             if (this._hasExit('W', x, y)) {
@@ -735,7 +734,7 @@ export class TemplateLevel {
 
     /* Receives NSEW directions and uses nsew2DirRemap remapping to remove the
      * custom exits. */
-    _removeExitsRemapped(x, y, dir) {
+    public _removeExitsRemapped(x, y, dir) {
         const remapped = this.nsew2DirRemap[dir];
         if (this._hasExit(remapped, x, y)) {
             this._removeChosenExit(x, y, remapped);
@@ -744,7 +743,7 @@ export class TemplateLevel {
 
     /* Checks for rooms already in place around the placed room, and removes all
      * matching exits. */
-    _removeExitsOfAbuttingRooms(room) {
+    public _removeExitsOfAbuttingRooms(room) {
         const {x, y} = room;
 
         this.dbg(`CheckAbut ${x},${y}`);
@@ -798,19 +797,19 @@ export class TemplateLevel {
 
     }
 
-    _isFiller(x, y) {
+    public _isFiller(x, y) {
         const filler = this.templMap[x][y].getProp('name') === 'FILLER';
         this.dbg(`isFiller x,y ${x},${y}: ${filler}`);
         return filler;
     }
 
-    _removeExitByXY(dir, x, y) {
+    public _removeExitByXY(dir, x, y) {
         if (this._hasExit(dir, x, y)) {
             this._removeChosenExit(x, y, dir);
         }
     }
 
-    _hasExit(dir, x, y) {
+    public _hasExit(dir, x, y) {
         const key = x + ',' + y;
         if (this._freeExits[key]) {
             return this._freeExits[key].indexOf(dir) >= 0;
@@ -818,14 +817,14 @@ export class TemplateLevel {
         return false;
     }
 
-    _cleanupAndTryAgain() {
+    public _cleanupAndTryAgain() {
         // Initialize a map with filler cells
         this._initMapWithFillerCells();
         this._freeExits = {};
         this._unusedExits = [];
     }
 
-    _initMapWithFillerCells() {
+    public _initMapWithFillerCells() {
         this.templMap = [];
         for (let x = 0; x < this.tilesX; x++) {
             this.templMap[x] = [];
@@ -845,7 +844,7 @@ export class TemplateLevel {
     *   1. matchMap = {U: 'D', D: 'U', L: 'R', R: 'R'} - how to math new exits
     *   2. nsew2DirRemap = {N: 'U', S: 'D', W: 'L', E: 'R'}
     * */
-    setExitMap(matchMap, nsew2DirRemap) {
+    public setExitMap(matchMap, nsew2DirRemap) {
         this._possibleDirections = Object.keys(matchMap);
         this._sortedByExit = {};
         this._possibleDirections.forEach(dir => {
@@ -866,7 +865,7 @@ export class TemplateLevel {
 
     /* Returns all exits which are required @x,y to match all surrounding
      * tiles. */
-    getAllRequiredExits(x, y) {
+    public getAllRequiredExits(x, y) {
         ++this._ind;
         const any = [];
         const exits = [];
@@ -1018,7 +1017,7 @@ export class TemplateLevel {
         return [any, exits, excluded];
     }
 
-    _getMatchWithExits(exitsReqd) {
+    public _getMatchWithExits(exitsReqd) {
         const [any, exits, excluded] = exitsReqd;
         this.dbg(`GOT: any:${any}, req:${exits}, excl:${excluded}`);
         const keys = Object.keys(this._sortedWithAllExits);
@@ -1047,7 +1046,7 @@ export class TemplateLevel {
         return result;
     }
 
-    _arrayContainsArray(superSet, subSet) {
+    public _arrayContainsArray(superSet, subSet) {
         return subSet.every(value => {
             return superSet.indexOf(value) >= 0;
         });
@@ -1055,7 +1054,7 @@ export class TemplateLevel {
 
     /* Prints the debug msg when debug() is enabled. Adds some verbosity options
      * for filtering some debug messages out. */
-    dbg(msg, verb = 10) {
+    public dbg(msg, verb = 10) {
         if (debug.enabled) {
             if (debugVerbosity >= verb) {
                 const _ind = ' '.repeat(this._ind);
@@ -1064,7 +1063,7 @@ export class TemplateLevel {
         }
     }
 
-    printTile(x, y) {
+    public printTile(x, y) {
         if (x === 4 && y === 3) {
             const tile = this.templMap[x][y];
             console.log(`Tile @{x},${y}`);
