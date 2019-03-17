@@ -150,7 +150,7 @@ describe('ChunkManager', function() {
     it('loads/restores chunks when player moves', () => {
         game.addPlayer(player);
         const manager = game.getChunkManager();
-        expect(manager).to.exist;
+        expect(manager).to.be.an.instanceof(ChunkManager);
 
         const playerLevel = player.getLevel();
         const POOL = EventPool.getPool();
@@ -158,7 +158,7 @@ describe('ChunkManager', function() {
             target: playerLevel});
 
         const playerPos = game.getPlayerOwPos();
-        expect(playerPos).to.deep.equal([]);
+        expect(playerPos).to.equal(null);
 
         game.movePlayer(3, 3);
         expect(manager.getLoadState(3, 3)).to.equal(LOAD.LOADED);
@@ -174,7 +174,7 @@ describe('ChunkManager', function() {
         const levels = area.getLevels();
         levels.forEach(level => {
             const msg = `Level ${level.getID()} has parent`;
-            expect(level.getParent(), msg).to.exist;
+            expect(!RG.isNullOrUndef([level.getParent()]), msg).to.equal(true);
         });
     });
 
@@ -184,7 +184,7 @@ describe('ChunkManager', function() {
         game.addPlayer(player);
 
         const manager = game.getChunkManager();
-        expect(manager).to.exist;
+        expect(manager).to.be.an.instanceof(ChunkManager);
 
         let levels = game.getLevels();
         expect(levels.length).to.equal(16);
