@@ -47,7 +47,7 @@ Keys.KeyMap = {
     moveKeyMap: { },
 
     // Start from W, go clock wise on keyboard
-    initMap() {
+    initMap(): void {
         this.moveKeyMap[Keys.KEY.MOVE_N] = 0;
         this.moveKeyMap[Keys.KEY.MOVE_NE] = 1;
         this.moveKeyMap[Keys.KEY.MOVE_E] = 2;
@@ -67,36 +67,38 @@ Keys.KeyMap = {
         this.moveKeyMap[ROT.VK_7] = 7;
     },
 
-    inMoveCodeMap(code) {
+    inMoveCodeMap(code: number): boolean {
         return this.moveKeyMap.hasOwnProperty(code);
     },
 
-    isRest: code => (code === Keys.VK_s || code === Keys.VK_PERIOD),
-    isPickup: code => code === Keys.KEY.PICKUP,
-    isUseStairs: code => (
+    isRest: (code: number): boolean => (
+        (code === Keys.VK_s || code === Keys.VK_PERIOD)
+    ),
+    isPickup: (code: number): boolean => code === Keys.KEY.PICKUP,
+    isUseStairs: (code: number): boolean => (
         code === Keys.KEY.USE_STAIRS_DOWN || code === Keys.KEY.USE_STAIRS_UP
     ),
-    isChat: code => code === Keys.KEY.CHAT,
-    isConfirmYes: code => code === Keys.KEY.YES,
-    isFightMode: code => code === Keys.KEY.FIGHT,
-    isGive: code => code === Keys.KEY.GIVE,
-    isGoto: code => code === Keys.KEY.GOTO,
-    isJump: code => code === Keys.KEY.JUMP,
-    isIssueOrder: code => code === Keys.KEY.ORDER,
-    isLook: code => code === Keys.KEY.LOOK,
-    isMark: code => code === Keys.KEY.MARK,
-    isNextItem: code => code === Keys.KEY.NEXT_ITEM,
-    isNextTarget: code => code === Keys.KEY.NEXT,
-    isPrevTarget: code => code === Keys.KEY.PREV,
-    isRead: code => code === Keys.KEY.READ,
-    isRunMode: code => code === Keys.KEY.RUN,
-    isSelect: code => code === Keys.KEY.SELECT,
-    isSelectAll: code => code === Keys.KEY.SELECT_ALL,
-    isTargetMode: code => code === Keys.KEY.TARGET,
-    isToggleDoor: code => code === Keys.KEY.DOOR,
-    isUsePower: code => code === Keys.KEY.POWER,
-    isUseAbility: code => code === Keys.KEY.ABILITY,
-    isMultiPurpose: code => code === Keys.KEY.MULTI,
+    isChat: (code: number): boolean => code === Keys.KEY.CHAT,
+    isConfirmYes: (code: number): boolean => code === Keys.KEY.YES,
+    isFightMode: (code: number): boolean => code === Keys.KEY.FIGHT,
+    isGive: (code: number): boolean => code === Keys.KEY.GIVE,
+    isGoto: (code: number): boolean => code === Keys.KEY.GOTO,
+    isJump: (code: number): boolean => code === Keys.KEY.JUMP,
+    isIssueOrder: (code: number): boolean => code === Keys.KEY.ORDER,
+    isLook: (code: number): boolean => code === Keys.KEY.LOOK,
+    isMark: (code: number): boolean => code === Keys.KEY.MARK,
+    isNextItem: (code: number): boolean => code === Keys.KEY.NEXT_ITEM,
+    isNextTarget: (code: number): boolean => code === Keys.KEY.NEXT,
+    isPrevTarget: (code: number): boolean => code === Keys.KEY.PREV,
+    isRead: (code: number): boolean => code === Keys.KEY.READ,
+    isRunMode: (code: number): boolean => code === Keys.KEY.RUN,
+    isSelect: (code: number): boolean => code === Keys.KEY.SELECT,
+    isSelectAll: (code: number): boolean => code === Keys.KEY.SELECT_ALL,
+    isTargetMode: (code: number): boolean => code === Keys.KEY.TARGET,
+    isToggleDoor: (code: number): boolean => code === Keys.KEY.DOOR,
+    isUsePower: (code: number): boolean => code === Keys.KEY.POWER,
+    isUseAbility: (code: number): boolean => code === Keys.KEY.ABILITY,
+    isMultiPurpose: (code: number): boolean => code === Keys.KEY.MULTI,
 
     /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
@@ -116,9 +118,10 @@ Keys.KeyMap = {
     },
 
     /* Returns a direction vector for given keycode. */
-    getDir(code) {
+    getDir(code: number): TCoord | null {
         if (this.moveKeyMap.hasOwnProperty(code)) {
-            return ROT.DIRS[8][this.moveKeyMap[code]];
+            const selIndex = this.moveKeyMap[code];
+            return ROT.DIRS[8][selIndex] as TCoord;
         }
         else if (this.isRest(code)) {
             return [0, 0];
@@ -127,16 +130,17 @@ Keys.KeyMap = {
     },
 
     /* Converts a direction vector to keycode. */
-    dirToKeyCode(dXArg, dYArg) {
+    dirToKeyCode(dXArg: number | TCoord, dYArg?: number): number {
         // Normalize first to unit vector (-1,0 or 1)
-        let dX = dXArg;
+        let dX = dXArg as number;
         let dY = dYArg;
         if (Array.isArray(dXArg)) {
-            dX = dXArg[0];
+            dX = dXArg[0] as number;
             dY = dXArg[1];
         }
         if (dX !== 0) {dX = dX / Math.abs(dX);}
         if (dY !== 0) {dY = dY / Math.abs(dY);}
+
         switch (dX) {
             case -1:
                 switch (dY) {
@@ -171,7 +175,7 @@ Keys.KeyMap = {
         return null;
     },
 
-    keyCodeToCardinalDir(code) {
+    keyCodeToCardinalDir(code: number): string {
         switch (code) {
             case Keys.KEY.MOVE_NW: return 'NW';
             case Keys.KEY.MOVE_W: return 'W';
@@ -197,7 +201,7 @@ Keys.menuIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f',
 Keys.EXIT_INDEX = Keys.menuIndices.indexOf('Q');
 
 /* Given key code, returns the corresponding character in menu indices. */
-Keys.codeToMenuChar = code => {
+Keys.codeToMenuChar = (code: number): string | number => {
     const index = Keys.codeToIndex(code);
     return Keys.menuIndices[index];
 };
@@ -207,29 +211,29 @@ const reCharUC = /[A-Z]/;
 
 /* Convert a selection index into a keycode. For example, if user presses 'a',
  * this function should return keycode for a, ie Keys.VK_a. */
-Keys.selectIndexToCode = indexChar => {
+Keys.selectIndexToCode = (indexChar: string | number): number => {
     const arrayIndex = Keys.menuIndices.findIndex(val => val === indexChar);
     if (arrayIndex >= 0) {
         if (arrayIndex >= 0 && arrayIndex <= 9) {
             return ROT.VK_0 + arrayIndex;
         }
-        else if (reCharLC.test(indexChar)) {
+        else if (reCharLC.test(indexChar as string)) {
             const addToCode = arrayIndex - Keys.menuIndices.indexOf('a');
             return Keys.VK_a + addToCode;
         }
-        else if (reCharUC.test(indexChar)) {
+        else if (reCharUC.test(indexChar as string)) {
             const addToCode = arrayIndex - Keys.menuIndices.indexOf('A');
             return ROT.VK_A + addToCode;
         }
     }
     RG.err('RG', 'selectIndexToCode',
-        `Inv. select index |${indexChar}|`);
+        `Invalid select index |${indexChar}|`);
     return -1;
 
 };
 
 /* Converts the keycode into a selection index starting from 0. */
-Keys.codeToIndex = (code): number => {
+Keys.codeToIndex = (code: number): number => {
     if (code >= ROT.VK_0 && code <= ROT.VK_9) {
         return code - ROT.VK_0;
     }
@@ -243,7 +247,7 @@ Keys.codeToIndex = (code): number => {
 };
 
 /* Returns true if keyCode corresponds to a numeric key. */
-Keys.isNumeric = keyCode => {
+Keys.isNumeric = (keyCode: number): boolean => {
     return keyCode >= ROT.VK_0 && keyCode <= ROT.VK_9;
 };
 
@@ -302,7 +306,7 @@ Keys.GUI.Map = Keys.VK_m;
 Keys.GUI.OwMap = ROT.VK_M;
 Keys.GUI.Use = Keys.VK_u;
 
-Keys.isValidKey = keyCode => {
+Keys.isValidKey = (keyCode: number): boolean => {
     let found = false;
     Object.keys(Keys.KEY).forEach(key => {
         found = found || Keys.KEY[key] === keyCode;
@@ -312,6 +316,6 @@ Keys.isValidKey = keyCode => {
 };
 
 /* Given keycode, returns the valid char for that key. */
-Keys.getChar = keyCode => {
+Keys.getChar = (keyCode: number): string => {
     return '`' + String.fromCharCode(keyCode) + '`';
 };
