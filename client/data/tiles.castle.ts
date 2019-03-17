@@ -1,7 +1,7 @@
 
 import RG from '../src/rg';
 import {Random} from '../src/random';
-import {Template} from '../src/template';
+import {Template, ElemTemplate} from '../src/template';
 import {Vault} from './tiles.vault';
 
 const RNG = Random.getRNG();
@@ -199,7 +199,63 @@ Y.#..##
 #....+.
 #..#.#.
 Y.##.##
-#.....#`
+#.....#`,
+
+`
+dir:SEW
+name:entrance_ne
+X=#
+Y=#
+
+##X#X##
+Y.#..##
+..##.#.
+.....+.
+...#.#.
+Y.##.##
+#.....#`,
+
+`
+dir:SEW
+name:entrance_nw
+X=#
+Y=#
+
+##X##X#
+Y###..#
+.####.#
+.+....#
+.####.#
+Y###..#
+###...#`,
+
+`
+dir:NEW
+name:entrance_se
+X=#
+Y=#
+
+##X.X##
+Y....##
+.....#.
+.....+.
+...#.#.
+Y.##.##
+#######`,
+
+`
+dir:NEW
+name:entrance_sw
+X=#
+Y=#
+
+##X..X#
+Y##...#
+.#....#
+.+....#
+.#....#
+Y###..#
+#######`,
 ];
 
 // Entrances
@@ -639,9 +695,18 @@ Y######
 Y######
 #######`;
 
+interface RoomPlace {
+    x: number;
+    y: number;
+    room: ElemTemplate;
+}
+
+type StartRoomFunc = () => RoomPlace;
+
+Castle.startFuncs = {} as {[key: string]: StartRoomFunc};
 
 /* Returns the starting room for castle generation. */
-Castle.startRoomFunc = function() {
+Castle.startRoomFunc = function(): RoomPlace {
     const midX = Math.floor(this.tilesX / 2);
     const north = RNG.getUniform() <= 0.5;
 
@@ -660,7 +725,7 @@ Castle.startRoomFunc = function() {
     };
 };
 
-Castle.startRoomFuncNorth = function() {
+Castle.startRoomFuncNorth = function(): RoomPlace {
   const y = 0;
   const x = Math.floor(this.tilesX / 2);
   const templ = this.findTemplate({name: 'entrance_n'});
@@ -668,8 +733,9 @@ Castle.startRoomFuncNorth = function() {
       x, y, room: templ
   };
 };
+Castle.startFuncs.N = Castle.startRoomFuncNorth;
 
-Castle.startRoomFuncSouth = function() {
+Castle.startRoomFuncSouth = function(): RoomPlace {
   const y = this.tilesY - 1;
   const x = Math.floor(this.tilesX / 2);
   const templ = this.findTemplate({name: 'entrance_s'});
@@ -677,8 +743,9 @@ Castle.startRoomFuncSouth = function() {
       x, y, room: templ
   };
 };
+Castle.startFuncs.S = Castle.startRoomFuncSouth;
 
-Castle.startRoomFuncWest = function() {
+Castle.startRoomFuncWest = function(): RoomPlace {
   const y = Math.floor(this.tilesY / 2);
   const x = 0;
   const templ = this.findTemplate({name: 'entrance_w'});
@@ -686,8 +753,9 @@ Castle.startRoomFuncWest = function() {
       x, y, room: templ
   };
 };
+Castle.startFuncs.W = Castle.startRoomFuncWest;
 
-Castle.startRoomFuncEast = function() {
+Castle.startRoomFuncEast = function(): RoomPlace {
   const y = Math.floor(this.tilesY / 2);
   const x = this.tilesX - 1;
   const templ = this.findTemplate({name: 'entrance_e'});
@@ -695,9 +763,43 @@ Castle.startRoomFuncEast = function() {
       x, y, room: templ
   };
 };
+Castle.startFuncs.E = Castle.startRoomFuncEast;
+
+Castle.startRoomFuncNorthEast = function(): RoomPlace {
+  const y = 0;
+  const x = this.tilesX - 1;
+  const templ = this.findTemplate({name: 'entrance_ne'});
+  return {x, y, room: templ};
+};
+Castle.startFuncs.NE = Castle.startRoomFuncNorthEast;
+
+Castle.startRoomFuncNorthWest = function(): RoomPlace {
+  const y = 0;
+  const x = 0;
+  const templ = this.findTemplate({name: 'entrance_nw'});
+  return {x, y, room: templ};
+};
+Castle.startFuncs.NW = Castle.startRoomFuncNorthWest;
+
+
+Castle.startRoomFuncSouthEast = function(): RoomPlace {
+  const y = this.tilesY - 1;
+  const x = this.tilesX - 1;
+  const templ = this.findTemplate({name: 'entrance_se'});
+  return {x, y, room: templ};
+};
+Castle.startFuncs.SE = Castle.startRoomFuncSouthEast;
+
+Castle.startRoomFuncSouthWest = function(): RoomPlace {
+  const y = this.tilesY - 1;
+  const x = 0;
+  const templ = this.findTemplate({name: 'entrance_sw'});
+  return {x, y, room: templ};
+};
+Castle.startFuncs.SW = Castle.startRoomFuncSouthWest;
 
 /* Start function if two fixed entrances are required. */
-Castle.startFuncTwoGates = function() {
+Castle.startFuncTwoGates = function(): RoomPlace {
   const midX = Math.floor(this.tilesX / 2);
   const gateN = this.findTemplate({name: 'entrance_n'});
   const gateS = this.findTemplate({name: 'entrance_s'});
@@ -730,7 +832,6 @@ Castle.startFuncFourGates = function() {
 
 /* Constraint function how to generate the castle level. */
 Castle.constraintFunc = function(x, y, exitReqd) {
-
     // Constraints for 4 corners
     if (x === 0 && y === 0) {
         return this.findTemplate({name: 'corner_nw'});
@@ -803,6 +904,59 @@ Castle.constraintFunc = function(x, y, exitReqd) {
         return corrNs;
     }
     return null;
+};
+
+// TODO does not work correctly, connection points between edge
+// and center corridors must be handled somehow
+Castle.constraintFuncCross = function(x, y, exitReqd) {
+    let res = Castle.constraintFunc.call(this, x, y, exitReqd);
+    const midX = Math.ceil(this.tilesX / 2);
+    const midY = Math.ceil(this.tilesY / 2);
+
+    if (res === null || x === midX || y === midY) {
+        if (x === 0 && y === midY) {
+            return this.findTemplate({name: 'corridor_nse'});
+        }
+        else if (x === this.tilesX - 1 && y === midY) {
+            return this.findTemplate({name: 'corridor_nsw'});
+        }
+        else if (y === 0 && x === midX) {
+            return this.findTemplate({name: 'corridor_sew'});
+        }
+        else if (y === this.tilesY - 1 && x === midX) {
+            return this.findTemplate({name: 'corridor_new'});
+        }
+        else if (x === midX && y === midY) {
+            res = this.findTemplate({name: 'FILLER'});
+        }
+        else if (x === midX) {
+            if (exitReqd === 'E') {
+                return this.findTemplate({name: 'corridor_nse'});
+            }
+            else if (exitReqd === 'W') {
+                return this.findTemplate({name: 'corridor_nsw'});
+            }
+            const corrE = this.findTemplate({name: 'corridor_east'});
+            const corrNsw = this.findTemplate({name: 'corridor_nsw'});
+            const corrW = this.findTemplate({name: 'corridor_west'});
+            const corrNse = this.findTemplate({name: 'corridor_nse'});
+            return RNG.arrayGetRand([corrE, corrNsw, corrW, corrNse]);
+        }
+        else if (y === midY) {
+            if (exitReqd === 'S') {
+                return this.findTemplate({name: 'corridor_sew'});
+            }
+            else if (exitReqd === 'N') {
+                return this.findTemplate({name: 'corridor_new'});
+            }
+            const corrN = this.findTemplate({name: 'corridor_north'});
+            const corrSew = this.findTemplate({name: 'corridor_sew'});
+            const corrS = this.findTemplate({name: 'corridor_south'});
+            const corrNew = this.findTemplate({name: 'corridor_new'});
+            return RNG.arrayGetRand([corrN, corrSew, corrN, corrNew]);
+        }
+    }
+    return res;
 };
 
 Castle.roomCount = -1; // Fill until no more exits
