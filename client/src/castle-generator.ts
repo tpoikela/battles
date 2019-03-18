@@ -47,6 +47,7 @@ export class CastleGenerator extends LevelGenerator {
         return {
             addItems: true,
             roomCount: -1,
+            centralCorridors: false,
             cellsAround: {
                 N: 'wallmount',
                 S: 'tree',
