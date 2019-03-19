@@ -2,10 +2,9 @@
  * session, plugins, loading and savings. This object must be created inside the
  * GUI framework (react/vue/angular/vanilla), and mainLoop() used to start the
  * game loop. More detailed sequence of functions required:
- *   1.
- *   2.
- *   3.
- *   4.
+ *   - createNewGame() creates a new GameMain instance and starts a
+ *      an animation using requestAnimationFrame()
+ *   - this.frameID can be used to stop it
  */
 
 import RG from '../src/rg';
@@ -32,6 +31,7 @@ import {Dice} from '../src/dice';
 import {OWMap} from '../src/overworld.map';
 import {KeyCode} from '../gui/keycode';
 import {ACTOR_CLASSES} from '../src/actor-class';
+import {ObjectShell} from '../src/objectshellparser';
 
 import {Persist} from '../src/persist';
 import md5 = require('js-md5');
@@ -64,10 +64,11 @@ export type TPlayerStatusGUI = [string, string, string, string];
 // Different player status can be defined here
 export const STATUS_COMPS_GUI: TPlayerStatusGUI[] = [
     // Comp name, style   , text  , react-key
-    ['Charm', 'success', 'Charming', 'stat-coldness'],
+    ['Charm', 'success', 'Charming', 'stat-charm'],
     ['Coldness', 'primary', 'Cold', 'stat-coldness'],
     ['Ethereal', 'info', 'Ethereal', 'stat-ethereal'],
     ['Entrapped', 'danger', 'Trapped', 'stat-trapped'],
+    ['Fear', 'danger', 'Afraid', 'stat-fear'],
     ['Flying', 'primary', 'Flying', 'stat-flying'],
     ['Paralysis', 'danger', 'Paralysed', 'stat-paralysis'],
     ['Poison', 'danger', 'Poisoned', 'stat-poison'],
@@ -188,6 +189,7 @@ export class GameManager {
 
         this.doGUICommand = this.doGUICommand.bind(this);
         this.isGUICommand = this.isGUICommand.bind(this);
+        this.mainLoop = this.mainLoop.bind(this);
 
         // For listening to game events
         this.notify = this.notify.bind(this);
@@ -348,6 +350,12 @@ export class GameManager {
         if (this.frameID) {
             cancelAnimationFrame(this.frameID);
         }
+    }
+
+    /* Restarts the main loop */
+    public restartMainLoop(): void {
+        this.cancelAnim();
+        this.frameID = requestAnimationFrame(this.mainLoop);
     }
 
     public setPlayerName(name: string): void {
@@ -551,7 +559,7 @@ export class GameManager {
         eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         eventPool.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
 
-        this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+        this.frameID = requestAnimationFrame(this.mainLoop);
         this.updateCb({render: true});
     }
 
@@ -601,7 +609,7 @@ export class GameManager {
             this.keyPending = false;
             this.checkIfAutoModeDone();
         }
-        this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+        this.frameID = requestAnimationFrame(this.mainLoop);
     }
 
     /* Checks and makes adjustments if auto-ctrl mode should be terminated.
@@ -646,6 +654,7 @@ export class GameManager {
             const player = this.game.getPlayer();
             (window as any).PLAYER = player; // For debugging
             (window as any).RG = RG; // For debugging
+            (window as any).PARSER = ObjectShell.getParser(); // For debugging
         }
     }
 
