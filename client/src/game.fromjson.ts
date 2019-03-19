@@ -528,6 +528,12 @@ FromJSON.prototype.createBrain = function(brainJSON, ent) {
         if (brainJSON.constraint) {
             brainObj.setConstraint(brainJSON.constraint);
         }
+        if (brainJSON.placeConstraint) {
+            brainObj.setPlaceConstraint(brainJSON.constraint);
+        }
+        if (brainJSON.spawnProb) {
+            brainObj.spawnProb = brainJSON.spawnProb;
+        }
 
         // Create the memory (if any)
         const memObj = brainObj.getMemory();
