@@ -305,32 +305,39 @@ function getGateDirFunction(conf): GateFunc | null {
     if (conf.cellsAround) {
         const {cellsAround} = conf;
         // TODO should randomize the entrace direction
+        const funcs = [];
         if (!cellBlocked(cellsAround.N)) {
-            return Castle.startRoomFuncNorth;
+            funcs.push(Castle.startRoomFuncNorth);
         }
-        else if (!cellBlocked(cellsAround.S)) {
-            return Castle.startRoomFuncSouth;
+        if (!cellBlocked(cellsAround.S)) {
+            funcs.push(Castle.startRoomFuncSouth);
         }
-        else if (!cellBlocked(cellsAround.E)) {
-            return Castle.startRoomFuncEast;
+        if (!cellBlocked(cellsAround.E)) {
+            funcs.push(Castle.startRoomFuncEast);
         }
-        else if (!cellBlocked(cellsAround.W)) {
-            return Castle.startRoomFuncWest;
+        if (!cellBlocked(cellsAround.W)) {
+            funcs.push(Castle.startRoomFuncWest);
         }
-        else if (!cellBlocked(cellsAround.NE)) {
-            return Castle.startRoomFuncNorthEast;
+        if (!cellBlocked(cellsAround.NE)) {
+            funcs.push(Castle.startRoomFuncNorthEast);
         }
-        else if (!cellBlocked(cellsAround.NW)) {
-            return Castle.startRoomFuncNorthWest;
+        if (!cellBlocked(cellsAround.NW)) {
+            funcs.push(Castle.startRoomFuncNorthWest);
         }
-        else if (!cellBlocked(cellsAround.SE)) {
-            return Castle.startRoomFuncSouthEast;
+        if (!cellBlocked(cellsAround.SE)) {
+            funcs.push(Castle.startRoomFuncSouthEast);
         }
-        else if (!cellBlocked(cellsAround.SW)) {
-            return Castle.startRoomFuncSouthWest;
+        if (!cellBlocked(cellsAround.SW)) {
+            funcs.push(Castle.startRoomFuncSouthWest);
         }
-        RG.warn('CastleGenerator', 'getGateDirFunction',
-            'No free cellsAround ' + JSON.stringify(cellsAround));
+
+        if (funcs.length === 0) {
+            RG.warn('CastleGenerator', 'getGateDirFunction',
+                'No free cellsAround ' + JSON.stringify(cellsAround));
+        }
+        else {
+            return RNG.arrayGetRand(funcs);
+        }
     }
     return null;
 }
@@ -338,7 +345,7 @@ function getGateDirFunction(conf): GateFunc | null {
 function cellBlocked(type): boolean {
     switch (type) {
         case 'wallmount': return true;
-        case 'water': return true;
+        // case 'water': return true;
         default: return false;
     }
 }
