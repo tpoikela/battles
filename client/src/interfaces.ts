@@ -72,6 +72,17 @@ export interface TemplateData {
 
 }
 
+export interface ICellDirMap {
+    N: string;
+    S: string;
+    E: string;
+    W: string;
+    NE: string;
+    NW: string;
+    SE: string;
+    SW: string;
+}
+
 export interface ID2LevelMap {
     [key: number]: Level;
 }
