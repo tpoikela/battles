@@ -130,27 +130,27 @@ Names.item = {
     }
 };
 
-Names.getItemToStealName = () => {
+Names.getItemToStealName = (): string => {
     const names = Names.item.steal;
     const first: string = RNG.arrayGetRand(names.adjective);
     const second: string = RNG.arrayGetRand(names.substantive);
     return first.capitalize() + ' ' + second;
 };
 
-Names.getItemToGather = () => {
+Names.getItemToGather = (): string => {
     const names = Names.item.gather;
     const first: string = RNG.arrayGetRand(names.adjective);
     const second: string = RNG.arrayGetRand(names.substantive);
     return first.capitalize() + ' ' + second;
 };
 
-Names.getVillageType = () => {
+Names.getVillageType = (): string => {
     return RNG.arrayGetRand(['Village', 'Hamlet', 'Town', 'Township']);
 };
 
 Names.alreadyUsed = new Set(['']);
 
-Names.getUniqueName = type => {
+Names.getUniqueName = (type: string): string => {
     const names = Names.place.unique[type];
     if (names) {
         let fullName = '';
@@ -168,13 +168,13 @@ Names.getUniqueName = type => {
     return '';
 };
 
-Names.getGenericPlaceName = (type) => {
+Names.getGenericPlaceName = (type: string): string => {
     const arr = Names.place.generic[type];
     return RNG.arrayGetRand(arr);
 };
 
 Names.actorCount = 0;
-Names.getActorName = () => {
+Names.getActorName = (): string => {
     let fullName = 'RandActor' + Names.actorCount++;
     while (Names.alreadyUsed.has(fullName)) {
         fullName = 'RandActor' + Names.actorCount++;
@@ -199,7 +199,7 @@ const bookNameGen = {
     ]
 };
 
-Names.getBookName = () => {
+Names.getBookName = (): string => {
     let fullName = '';
     while (Names.alreadyUsed.has(fullName)) {
         let prefix = RNG.arrayGetRand(bookNameGen.prefix);
