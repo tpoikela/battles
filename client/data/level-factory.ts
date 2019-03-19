@@ -4,15 +4,12 @@ import {BlackTower} from './black-tower';
 import {Capital} from './capital';
 import {DwarvenCity} from './dwarven-city';
 import {Level} from '../src/level';
+import {LevelObj} from '../src/interfaces';
 
 import RG from '../src/rg';
 
 type LevelArgs = [number, number, any];
 
-interface LevelObj {
-    nLevel: number;
-    level: Level;
-}
 
 /* Factory for creating levels by specifying their name. */
 export class LevelFactory {
