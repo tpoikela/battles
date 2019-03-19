@@ -798,20 +798,10 @@ function addFortToSubLevel(owSubLevel: OWSubLevel, subLevel: Level): void {
 }
 
 function setCellsAroundFeature(
-    subLevel: Level,feat: OWSubFeature, x: number, y: number
+    subLevel: Level, feat: OWSubFeature, x: number, y: number
 ): void {
-    const coordAround: TCoord[] = Geometry.getBoxAround(x, y, 1);
     const map = subLevel.getMap();
-    const cellsAround: Cell[] = map.getCellsWithCoord(coordAround);
-    const xy: TCoord = [x, y];
-
-    const cellMap: {[key: string]: string} = {};
-    cellsAround.forEach((c: Cell) => {
-        const dXdY = RG.dXdYUnit(c, xy);
-        const dir = RG.dXdYToDir(dXdY);
-        cellMap[dir] = c.getBaseElem().getType();
-    });
-    feat.cellsAround = cellMap;
+    feat.cellsAround = Geometry.getCellsAround(map, map.getCell(x, y));
 }
 
 function getAccessibleMountainCoord(subLevel: Level, edges = true): TCoord[] {
