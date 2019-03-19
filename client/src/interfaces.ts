@@ -85,6 +85,11 @@ export interface SubZoneConf {
 
 export type LevelConnection = [string, string, number, number];
 
+export interface LevelObj {
+    nLevel: number;
+    level: Level;
+}
+
 export interface LevelSpecStub {
     stub: boolean;
     new: string;
@@ -120,6 +125,8 @@ export interface IConstraint {
 export interface ConstraintMap {
     actor?: IConstraint;
 }
+
+export type TConstraintArg = IConstraint | IConstraint[];
 
 export interface ZoneConf {
     connectLevels?: LevelConnection[];
