@@ -31,6 +31,8 @@ interface PlacedTileData extends BBoxOld {
     type: string;
 }
 
+export type ConstraintFunc = (x: number, y: number, exits: string[]) => void;
+
 /* This object can be used to create levels from ASCII-based templates. Each
  * template should be abuttable in a reasonable way, and connections between
  * tiles
@@ -61,7 +63,7 @@ export class TemplateLevel {
     public filler: ElemTemplate;
     public templates: ElemTemplate[];
 
-    public constraintFunc: (x: number, y: number, exits: string[]) => void;
+    public constraintFunc: ConstraintFunc;
     public startRoomFunc: () => void;
 
     public matchMap: {[key: string]: string};
@@ -151,20 +153,20 @@ export class TemplateLevel {
     }
 
     /* Sets the generator parameters for expansion. */
-    public setGenParams(arr) {
+    public setGenParams(arr): void {
         this.genParams = arr;
     }
 
     /* Sets the target room count. -1 fills until no more well-connected
      * rooms are possible. */
-    public setRoomCount(count) {
+    public setRoomCount(count: number): void {
         this.roomCount = count;
     }
 
     /* Sets the callback for constraint. This callback is called with
      * (x, y, exitReqd), and exposes this._sortedByExit.
      */
-    public setConstraintFunc(func) {
+    public setConstraintFunc(func: ConstraintFunc) {
         this.constraintFunc = func.bind(this);
     }
 
@@ -517,7 +519,7 @@ export class TemplateLevel {
         return null;
     }
 
-    public _getFreeExits(room) {
+    public _getFreeExits(room): string[] | null {
         const {x, y} = room;
         const key = x + ',' + y;
         if (this._freeExits[key]) {
@@ -530,7 +532,7 @@ export class TemplateLevel {
         return null;
     }
 
-    public _removeChosenExit(x, y, chosen) {
+    public _removeChosenExit(x: number, y: number, chosen: string): void {
         const key = x + ',' + y;
         const exits = this._freeExits[key];
         this.dbg(JSON.stringify(this._freeExits));
@@ -565,7 +567,7 @@ export class TemplateLevel {
         }
     }
 
-    public _isRoomLegal(x, y) {
+    public _isRoomLegal(x: number, y: number): boolean {
         if (x >= 0 && x < this.tilesX && y >= 0 && y < this.tilesY) {
             return true;
         }
@@ -574,7 +576,7 @@ export class TemplateLevel {
 
     /* Places 1st room using startRoomFunc, or randomly if no function is
      * specified. */
-    public _placeStartRoom() {
+    public _placeStartRoom(): void {
         ++this._ind;
         let room = null;
         if (typeof this.startRoomFunc === 'function') {
@@ -797,13 +799,13 @@ export class TemplateLevel {
 
     }
 
-    public _isFiller(x, y) {
+    public _isFiller(x: number, y: number): boolean {
         const filler = this.templMap[x][y].getProp('name') === 'FILLER';
         this.dbg(`isFiller x,y ${x},${y}: ${filler}`);
         return filler;
     }
 
-    public _removeExitByXY(dir, x, y) {
+    public _removeExitByXY(dir, x, y): void {
         if (this._hasExit(dir, x, y)) {
             this._removeChosenExit(x, y, dir);
         }
@@ -824,7 +826,7 @@ export class TemplateLevel {
         this._unusedExits = [];
     }
 
-    public _initMapWithFillerCells() {
+    public _initMapWithFillerCells(): void {
         this.templMap = [];
         for (let x = 0; x < this.tilesX; x++) {
             this.templMap[x] = [];
