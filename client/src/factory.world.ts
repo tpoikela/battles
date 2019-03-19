@@ -1,6 +1,7 @@
 
 import RG from './rg';
 import {LevelFactory} from '../data/level-factory';
+import {ActorGen} from '../data/actor-gen';
 import {Constraints} from './constraints';
 
 const dbg = require('debug');
@@ -11,6 +12,7 @@ import {ConfStack} from './conf-stack';
 import * as World from './world';
 import {Factory, FactoryBase} from './factory';
 import {FactoryZone} from './factory.zone';
+import {FactoryActor} from './factory.actors';
 import {ObjectShell} from './objectshellparser';
 
 import {DungeonGenerator} from './dungeon-generator';
@@ -31,6 +33,7 @@ const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
 
 type Random = import('./random').Random;
 type Stairs = Element.ElementStairs;
+type WorldBase = World.WorldBase;
 type WorldTop = World.WorldTop;
 type Area = World.Area;
 type ConcreteSubZone = World.Branch | World.CityQuarter |
@@ -105,7 +108,7 @@ export const FactoryWorld = function() {
     // Creates all zones when the area is created if true. Setting it to true
     // makes creation of game very slow, as the full game is built in one go
     this.createAllZones = true;
-    this.worldElemByID = {}; // Stores world elements by ID
+    this.worldElemByID = {} as {[key: number]: WorldBase}; // Stores world elements by ID
 
     this.presetLevels = {};
 
@@ -331,6 +334,8 @@ export const FactoryWorld = function() {
         fact.addNRandItems(level, parser, levelConf);
         levelConf.func = levelConf.actor;
         fact.addNRandActors(level, parser, levelConf);
+
+        this.addActorSpawner(level, parser, levelConf);
     };
 
     this._createAllZones = (area, conf, tx = -1, ty = -1): void => {
@@ -588,7 +593,7 @@ export const FactoryWorld = function() {
 
     /* Returns a level from presetLevels if any exist for the current level
      * number. */
-    this.getFromPresetLevels = (i, presetLevels): Level =>  {
+    this.getFromPresetLevels = (i, presetLevels: IF.LevelObj[]): Level | null =>  {
         let foundLevel = null;
         if (presetLevels.length > 0) {
             const levelObj = presetLevels.find(lv => lv.nLevel === i);
@@ -736,7 +741,7 @@ export const FactoryWorld = function() {
     };
 
     /* Returns preset levels (if any) for the current zone. */
-    this.getPresetLevels = function(hierName, subZoneConf) {
+    this.getPresetLevels = function(hierName: string, subZoneConf) {
 
         // First check the configuration
         const presetLevels = this.getConf('presetLevels');
@@ -1412,6 +1417,16 @@ FactoryWorld.prototype.createAreaZoneConnection = function(
         });
     }
 
+};
+
+FactoryWorld.prototype.addActorSpawner = function(level, parser, conf): void {
+    const maxDanger = conf.maxDanger + 1;
+    const constr = [
+        {op: 'eq', prop: 'type', value: ActorGen.getRaces()}
+    ];
+    const factActor = new FactoryActor();
+    const spawner = factActor.createActorSpawner(maxDanger, constr);
+    level.addVirtualProp(RG.TYPE_ACTOR, spawner);
 };
 
 /* Used for printing debug messages only. Can be enabled with
