@@ -475,7 +475,8 @@ FactoryGame.prototype.createPlayerHome = function(
             ],
             shop: [
                 {op: '<=', prop: 'value', value: 50}
-            ]
+            ],
+            cellsAround: Geometry.getCellsAround(level.getMap(), cell)
         },
         quarter: [{
             name: 'Square',
