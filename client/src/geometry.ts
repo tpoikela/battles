@@ -1,7 +1,7 @@
 
 import RG from './rg';
 import {Random} from './random';
-import {TCoord, BBox} from './interfaces';
+import {TCoord, BBox, ICellDirMap} from './interfaces';
 
 const RNG = Random.getRNG();
 
@@ -13,6 +13,7 @@ export interface BBoxOld {
 }
 
 type Cell = import('./map.cell').Cell;
+type CellMap = import('./map').CellMap;
 type Level = import('./level').Level;
 
 type BBoxType = BBox | BBoxOld;
@@ -281,6 +282,22 @@ export const Geometry: any = {
         return nFound;
     },
 
+    /* Given a map and a cell, returns a map of cell types around the given
+     * cell. Keys are directions N, S, E, W...
+     */
+    getCellsAround(map: CellMap, cell: Cell): ICellDirMap {
+        const xy = cell.getXY();
+        const coordAround: TCoord[] = this.getBoxAround(xy[0], xy[1], 1);
+        const cellsAround: Cell[] = map.getCellsWithCoord(coordAround);
+
+        const cellMap = {} as ICellDirMap;
+        cellsAround.forEach((c: Cell) => {
+            const dXdY = RG.dXdYUnit(c, xy);
+            const dir = RG.dXdYToDir(dXdY);
+            cellMap[dir] = c.getBaseElem().getType();
+        });
+        return cellMap;
+    },
 
     /* Tiles the list of levels to main level l1. Tiled levels placed
      * side-by-side and aligned based on the conf. 'alignRight' will be
