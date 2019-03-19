@@ -12,6 +12,7 @@ type Cell = import('../map.cell').Cell;
 
 const spawnProb = 0.10;
 const RNG = Random.getRNG();
+const NO_ACTION = (): void => {};
 
 /* Brains for virtual actors such as spawners. */
 export class BrainVirtual extends BrainBase {
@@ -63,17 +64,18 @@ export class BrainSpawner extends BrainVirtual {
 
     /* Spawns an actor to the current level (if any). */
     public decideNextAction(): () => void {
-        console.log('BrainSpawner trying to spawn a new actor now');
         if (RG.isSuccess(this.spawnProb)) {
-            return () => {
+            return (): void => {
                 const level = this.getActor().getLevel();
                 let freeCell = null;
 
                 if (this.placeConstraint) {
+                    let watchdog = 100;
                     const freeCells = level.getMap().getFree();
                     freeCell = RNG.arrayGetRand(freeCells);
                     while (!this._placeConstraintFunc(freeCell)) {
                         freeCell = RNG.arrayGetRand(freeCells);
+                        if (--watchdog === 0) {break;}
                     }
                 }
                 else {
@@ -91,7 +93,7 @@ export class BrainSpawner extends BrainVirtual {
                 }
             };
         }
-        return () => {};
+        return NO_ACTION;
     }
 
     public toJSON() {
