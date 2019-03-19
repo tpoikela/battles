@@ -7,7 +7,7 @@ import * as ObjectShell from './objectshellparser';
 import {ActorMods} from '../data/actor-mods';
 import {Spell} from './spell';
 import * as Component from './component';
-import {VirtualActor} from './actor.virtual';
+import {VirtualActor, SpawnerActor} from './actor.virtual';
 import {BrainSpawner} from './brain/brain.virtual';
 
 import dbg = require('debug');
@@ -195,11 +195,10 @@ FactoryActor.prototype.generateNActors = function(nActors, func, maxDanger) {
 
 /* Creates a spawner with given constraints. */
 FactoryActor.prototype.createActorSpawner = function(maxDanger, constr: any[]) {
-    const vActor = new VirtualActor('spawner');
-    const spawnBrain = new BrainSpawner(vActor);
+    const spawner = new SpawnerActor('spawner');
+    const spawnBrain = spawner.getBrain() as BrainSpawner;
     const spawnConstr = [
-        {op: 'lt', prop: 'danger', value: maxDanger}].concat(constr);
+        {op: 'lte', prop: 'danger', value: maxDanger}].concat(constr);
     spawnBrain.setConstraint(spawnConstr);
-    vActor.setBrain(spawnBrain);
-    return vActor;
+    return spawner;
 };
