@@ -457,3 +457,7 @@ ActorGen.genActors = function(nActors: number): IShell[] {
     return result;
 };
 
+ActorGen.getRaces = function(): string[] {
+    return raceNames;
+};
+
