@@ -1384,7 +1384,7 @@ const Items: ObjectShell[] = [
 
 // Maps the weapon type to damage type. Default is RG.DMG.BLUNT, unless
 // specified otherwise here
-const dmgTypes = {
+export const dmgTypes = {
     sword: RG.DMG.SLASH,
     spear: RG.DMG.PIERCE,
     dagger: RG.DMG.SLASH,
