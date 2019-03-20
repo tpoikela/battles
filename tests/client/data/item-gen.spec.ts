@@ -14,6 +14,10 @@ describe('ItemGen', () => {
         const allShells = [baseShell, daggerShell, sharpShell];
         const sharpDaggerShell = mixNewShell(allShells);
         expect(sharpDaggerShell.damage).to.equal('2d6 + 5');
+
+        const adder = {addDamage: '2d10 + 3'};
+        const addedDaggerShell = mixNewShell([daggerShell, adder]);
+        expect(addedDaggerShell.damage).to.equal('3d16 + 3');
     });
 
     it('has function generate random item shells', () => {
