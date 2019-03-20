@@ -33,7 +33,8 @@ const alwaysIncrProps = new Set<string>(
 );
 
 const alwaysTransform = {
-    damage: transformDamage
+    damage: transformDamage,
+    addDamage: transformAddDamage,
 };
 
 const alwaysMultProps = new Set<string>(
@@ -126,6 +127,17 @@ function transformDamage(p, shell, newShell): void {
     }
     else {
         newShell[p] = dmg;
+    }
+}
+
+
+function transformAddDamage(p, shell, newShell): void {
+    const addDamage = shell[p];
+    if (newShell.damage) {
+        const dice1 = Dice.create(addDamage);
+        const dice2 = Dice.create(newShell.damage);
+        const newDice = Dice.addDice(dice1, dice2);
+        newShell.damage = newDice.toString();
     }
 
 }
