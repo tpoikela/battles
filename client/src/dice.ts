@@ -80,6 +80,19 @@ export class Dice {
         return [];
     }
 
+    /* Combines two Dice together. mod is simply added. The actual dice value
+     * is calculated using weighted average, ie 1d6 & 2d4 yields 3d(14/3) =
+     * 3d5.
+     */
+    public static combine(d1: Dice, d2: Dice): Dice {
+        const totalNum = d1.getNum() + d2.getNum();
+        const num = d1.getNum() + d2.getNum();
+        let newDice = (d1.getNum() * d1.getDice()) + (d2.getNum() * d2.getDice());
+        newDice = Math.round(newDice / totalNum);
+        const newMod = d1.getMod() + d2.getMod();
+        return new Dice(num, newDice, newMod);
+    }
+
     private _num: number;
     private _dice: number;
     private _mod: number;
@@ -108,7 +121,7 @@ export class Dice {
 
     public toString(): string {
         let modStr = '+ ' + this._mod;
-        if (this._mod < 0) {modStr = '- ' + this._mod;}
+        if (this._mod < 0) {modStr = '- ' + Math.abs(this._mod);}
         else if (this._mod === 0) {modStr = '';}
         return this._num + 'd' + this._dice + ' ' + modStr;
     }
