@@ -86,11 +86,17 @@ export class Dice {
      */
     public static combine(d1: Dice, d2: Dice): Dice {
         const totalNum = d1.getNum() + d2.getNum();
-        const num = d1.getNum() + d2.getNum();
         let newDice = (d1.getNum() * d1.getDice()) + (d2.getNum() * d2.getDice());
         newDice = Math.round(newDice / totalNum);
         const newMod = d1.getMod() + d2.getMod();
-        return new Dice(num, newDice, newMod);
+        return new Dice(totalNum, newDice, newMod);
+    }
+
+    public static addDice(d1: Dice, d2: Dice): Dice {
+        const totalNum = d1.getNum() + d2.getNum();
+        const newDice = d1.getDice() + d2.getDice();
+        const newMod = d1.getMod() + d2.getMod();
+        return new Dice(totalNum, newDice, newMod);
     }
 
     private _num: number;
@@ -107,10 +113,11 @@ export class Dice {
     public getNum(): number {return this._num;}
     public setNum(num: number): void {this._num = num;}
     public getDice() {return this._dice;}
-    public setDice(dice) {this._dice = dice;}
-    public getMod() {return this._mod;}
-    public setMod(mod) {this._mod = mod;}
+    public setDice(dice: number): void {this._dice = dice;}
+    public getMod(): number {return this._mod;}
+    public setMod(mod: number): void {this._mod = mod;}
 
+    /* Rolls the die and returns the value. */
     public roll(): number {
         let res = 0;
         for (let i = 0; i < this._num; i++) {
@@ -126,7 +133,7 @@ export class Dice {
         return this._num + 'd' + this._dice + ' ' + modStr;
     }
 
-    public copy(rhs): void {
+    public copy(rhs: Dice): void {
         this._num = rhs.getNum();
         this._dice = rhs.getDice();
         this._mod = rhs.getMod();
@@ -137,7 +144,7 @@ export class Dice {
     }
 
     /* Returns true if dice are equal.*/
-    public equals(rhs): boolean {
+    public equals(rhs: Dice): boolean {
         let res = this._num === rhs.getNum();
         res = res && (this._dice === rhs.getDice());
         res = res && (this._mod === rhs.getMod());
