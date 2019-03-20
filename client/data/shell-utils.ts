@@ -2,6 +2,7 @@
  * shells. */
 
 import RG from '../src/rg';
+import {Dice} from '../src/dice';
 
 export const meleeHitDamage = (dmg, dur, dmgType) => {
     return {
@@ -25,11 +26,19 @@ const alwaysMergeProps = new Set<string>(
 
 const alwaysIncrProps = new Set<string>(
     ['hp', 'maxHP', 'pp', 'maxPP', 'defense',
-        'protection', 'attack', 'danger', 'speed'
+        'protection', 'attack', 'danger', 'speed',
+        'rarity'
     ]
     .concat(RG.STATS_LC)
 );
 
+const alwaysTransform = {
+    damage: transformDamage
+};
+
+const alwaysMultProps = new Set<string>(
+    ['weight', 'value', 'rarity']
+);
 
 interface OverrideConf {
     override: {[key: string]: boolean};
@@ -52,7 +61,7 @@ export const mixNewShell = function(shells: any[], conf?: OverrideConf): any {
 };
 
 /* Adds a property to the shell. */
-function addShellProp(p, shell, newShell, conf?: OverrideConf): void {
+function addShellProp(p: string, shell, newShell, conf?: OverrideConf): void {
     if (alwaysMergeProps.has(p)) {
         if (newShell.hasOwnProperty(p)) {
             newShell[p] = newShell[p].concat(shell[p]);
@@ -72,6 +81,12 @@ function addShellProp(p, shell, newShell, conf?: OverrideConf): void {
             if (alwaysIncrProps.has(p)) {
                 incrShellProp(p, shell, newShell);
             }
+            else if (alwaysMultProps.has(p)) {
+                multShellProp(p, shell, newShell);
+            }
+            else if (alwaysTransform.hasOwnProperty(p)) {
+                alwaysTransform[p](p, shell, newShell);
+            }
             else {
                 newShell[p] = shell[p];
             }
@@ -87,4 +102,30 @@ function incrShellProp(p, shell, newShell): void {
     else {
         newShell[p] = shell[p];
     }
+}
+
+/* Multiplies a shell property. */
+function multShellProp(p, shell, newShell): void {
+    if (newShell.hasOwnProperty(p)) {
+        newShell[p] *= shell[p];
+    }
+    else {
+        newShell[p] = shell[p];
+    }
+}
+
+/* Transforms damage property. */
+function transformDamage(p, shell, newShell): void {
+    const dmg = shell[p];
+    if (newShell[p]) {
+        const baseDmg = newShell[p];
+        const dice1 = Dice.create(dmg);
+        const dice2 = Dice.create(baseDmg);
+        const newDice = Dice.combine(dice1, dice2);
+        newShell[p] = newDice.toString();
+    }
+    else {
+        newShell[p] = dmg;
+    }
+
 }
