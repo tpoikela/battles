@@ -15,6 +15,8 @@ import {Spell} from '../data/spells';
 
 import {ActorGen, IShell, StringMap} from '../data/actor-gen';
 
+import {IAddCompObj} from './interfaces';
+
 const RNG = Random.getRNG();
 export const ObjectShell: any = {};
 
@@ -326,7 +328,16 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         });
     };
 
-    this.processAddComp = (onHit, obj, isEquip = false) => {
+    this.processAddComp = (onHit: IAddCompObj, obj, isEquip = false) => {
+        // Create the comp to be returned
+        let addOnHit = null;
+        if (isEquip) {
+            addOnHit = new Component.AddOnEquip();
+        }
+        else {
+            addOnHit = new Component.AddOnHit();
+        }
+
         if (onHit.addComp) {
             const comp = this.createComponent(onHit.addComp);
             if (comp.setSource) {
@@ -354,24 +365,30 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
             // component into Duration to make it transient
             const addedComp = comp;
 
-            let addOnHit = null;
-            if (isEquip) {
-                addOnHit = new Component.AddOnEquip();
-            }
-            else {
-                addOnHit = new Component.AddOnHit();
-            }
-
             if (onHit.duration) {
                 const durDie = Dice.create(onHit.duration);
                 const durComponent = new Component.Duration();
                 durComponent.setDurationDie(durDie);
                 durComponent.setComp(addedComp);
                 addOnHit.setComp(durComponent);
+
+                // Set the message for comp expiration, if any are given
+                // in the obj shell
+                if (onHit.expireMsg) {
+                    durComponent.setExpireMsg(onHit.expireMsg);
+                }
             }
             else {
                 addOnHit.setComp(addedComp);
             }
+            obj.add(addOnHit);
+            return addOnHit;
+        }
+        else if (onHit.transientComp) {
+            // If createComp given, use the object as it is without creating
+            // a new Component
+
+            addOnHit.setComp(JSON.parse(JSON.stringify(onHit)));
             obj.add(addOnHit);
             return addOnHit;
         }
@@ -1191,9 +1208,12 @@ export const Parser = function() {
     };
 
     /* Creates actual game object from obj shell in given category.*/
-    this.createFromShell = (categ, obj) => (
-        this._creator.createFromShell(categ, obj)
-    );
+    this.createFromShell = (categ, obj) => {
+        if (!this.dbExists(categ, obj.name)) {
+            this.parseObjShell(categ, obj);
+        }
+        return this._creator.createFromShell(categ, obj);
+    };
 
     //--------------------------------------------------------------------
     // Query methods for object shells
