@@ -3,9 +3,10 @@
 
 import RG from '../src/rg';
 import {Dice} from '../src/dice';
+import {IAddCompObj} from '../src/interfaces';
 
-export const meleeHitDamage = (dmg, dur, dmgType) => {
-    return {
+export const meleeHitDamage = (dmg, dur, dmgType, msg?): IAddCompObj => {
+    const obj: IAddCompObj = {
         addComp: 'DirectDamage', func: [
             {setter: 'setDamage', value: dmg},
             {setter: 'setDamageType', value: RG.DMG[dmgType]},
@@ -13,6 +14,22 @@ export const meleeHitDamage = (dmg, dur, dmgType) => {
         ],
         duration: dur
     };
+    if (msg) {
+        obj.expireMsg = msg;
+    }
+    return obj;
+};
+
+export const directDamage = (dmg, dur, dmgType, prob, msg?): IAddCompObj => {
+    const obj = meleeHitDamage(dmg, dur, dmgType);
+    obj.func[2].value = RG.DMG.DIRECT;
+    if (prob) {
+        obj.func.push({setter: 'setProb', value: prob});
+    }
+    if (msg) {
+        obj.expireMsg = msg;
+    }
+    return obj;
 };
 
 export const color = function(fg, bg) {
@@ -21,7 +38,7 @@ export const color = function(fg, bg) {
 
 // TODO these should always be extended in mixNewShell instead of override
 const alwaysMergeProps = new Set<string>(
-    ['addComp', 'spells', 'inv', 'equip']
+    ['addComp', 'spells', 'inv', 'equip', 'onAttackHit']
 );
 
 const alwaysIncrProps = new Set<string>(
