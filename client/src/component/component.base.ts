@@ -2,6 +2,11 @@
 import RG from '../rg';
 import '../utils';
 
+export const C = {
+    ID: {},
+    ID2TYPE: {}
+};
+
 export const Component: any = {};
 Component.createdCompDecls = {};
 
@@ -15,6 +20,8 @@ Component.NO_SERIALISATION = NO_SERIALISATION as any;
 const staticAttr = new Set<string>([
   'description'
 ]);
+
+let compTypeID = 1;
 
 /* Can be used to create simple Component object constructors with no other data
  * fields. Usage:
@@ -50,6 +57,8 @@ function handleCompAttrib(CompDecl: any, compAttrib: any) {
 function addNewCompDecl(type: string, CompDecl: any) {
     if (!Component.hasOwnProperty(type)) {
         Component[type] = CompDecl;
+        C.ID[type] = compTypeID++;
+        C.ID2TYPE[C.ID[type]] = type;
     }
     else {
         RG.err('Component', 'addCompDecl',
@@ -318,8 +327,12 @@ ComponentBase.prototype.changeEntity = function(newEntity) {
 
 ComponentBase.prototype.isUnique = function() {return this._isUnique;};
 
-ComponentBase.prototype.getType = function() {return this._type;};
-ComponentBase.prototype.setType = function(type) {this._type = type;};
+ComponentBase.prototype.getType = function(): string {
+    return this._type;
+};
+ComponentBase.prototype.setType = function(type: string): void {
+    this._type = type;
+};
 
 // Called when a component is added to the entity
 ComponentBase.prototype.entityAddCallback = function(entity) {
@@ -399,6 +412,14 @@ ComponentBase.prototype.equals = function(rhs) {
     return this.getType() === rhs.getType();
 };
 
+/* Safe checker which is same as this.getType() === type. */
+ComponentBase.prototype.is = function(type: string): boolean {
+    if (!Component[type]) {
+        RG.err('ComponentBase', 'is', `Unknown type: ${type}`);
+    }
+    return this._type === type;
+};
+
 ComponentBase.prototype.toString = function() {
     return 'Component: ' + this.getType();
 };
@@ -430,6 +451,37 @@ Component.Base = ComponentBase;
 export interface ComponentBase {
     getEntity(): any;
 }
+
+interface SetterObj {
+    [key: string]: any;
+}
+
+/* Creates a new component from a list of setters. Two format accepted:
+ * [{setter: 'setB', value: 'b'}...] or [{setB: 'b'}]
+ */
+export const createFromObj = function(
+    compName: string, setters: SetterObj[] // TODO add ...args support if needed
+): void {
+    if (Component[compName]) {
+        const newComp = new Component[compName]();
+        setters.forEach(obj => {
+            if (obj.setter && obj.value) {
+                newComp[obj.setter](obj.value);
+            }
+            else {
+                Object.keys(obj).forEach((setFunc: string) => {
+                    const valueToSet = obj[setFunc];
+                    newComp[setFunc](valueToSet);
+                });
+            }
+        });
+        return newComp;
+    }
+    RG.err('Component', 'createFromObj',
+        `Comp type |${compName}| does not exist. Args: ${setters}`);
+    return null;
+};
+Component.createFromObj = createFromObj;
 
 /* Factory function that should be used instead of new Component[varName]. */
 export const create = function(compName: string, ...args) {
