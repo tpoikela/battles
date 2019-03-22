@@ -100,7 +100,7 @@ export class SystemTimeEffects extends SystemBase {
     }
 
     /* Applies direct damage effect to given entity. */
-    public _applyDirectDamage(ent: Entity): void {
+    public _applyDirectDamage(ent): void {
         const ddList = ent.getList('DirectDamage');
         ddList.forEach(ddComp => {
 
@@ -114,12 +114,17 @@ export class SystemTimeEffects extends SystemBase {
                 }
             }
             else if (RG.isSuccess(ddComp.getProb())) {
-                const ddCompDmg = ddComp.getDamage();
+                const ddCompDmg: number = ddComp.rollDamage();
                 const dmgComp = new Component.Damage(ddCompDmg,
                     ddComp.getDamageType());
                 dmgComp.setDamageCateg(ddComp.getDamageCateg());
                 dmgComp.setSource(ddComp.getSource());
                 ent.add(dmgComp);
+
+                const msg = ddComp.getMsg();
+                if (msg) {
+                    RG.gameMsg({cell: ent.getCell(), msg});
+                }
             }
         });
     }
