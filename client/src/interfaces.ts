@@ -265,3 +265,31 @@ export interface IFactoryGameConf {
     yMult?: number;
     owConf?: OWMapConf;
 }
+
+//-------------
+// COMPONENTS
+//-------------
+
+export interface ICompSetterObj {
+    setter: string;
+    value: any;
+}
+
+export interface ICompSetterMap {
+    [key: string]: any;
+}
+
+export interface IAddCompObj {
+    // These 3 are mutex, choose one to use
+    comp?: string;
+    transientComp?: string; // Defers comp creation until needed
+    addComp?: string;
+    expireMsg?: string;
+
+    func?: ICompSetterObj[] | ICompSetterMap;
+    duration?: number | string;
+}
+
+type AddCompType = string | IAddCompObj;
+
+export type TAddCompSpec = AddCompType[];
