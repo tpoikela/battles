@@ -5,7 +5,7 @@ import {Random} from './random';
 // RNG used for dynamic "micro" stuff like damage rolls etc level ups
 
 // Can be either '1d6 + 4' or [1, 6, 4] for example
-type IDiceInputArg = string | [number, number, number];
+type IDiceInputArg = number | string | [number, number, number];
 
 type DiceValue = Dice | IDiceInputArg;
 
@@ -29,7 +29,7 @@ export class Dice {
     }
 
 
-    public static getValue(strOrNumOrDie: DiceValue) {
+    public static getValue(strOrNumOrDie: DiceValue): number {
         if (typeof strOrNumOrDie === 'number') {
             if (Number.isInteger((strOrNumOrDie as number))) {
                 return strOrNumOrDie;
@@ -46,11 +46,13 @@ export class Dice {
         }
     }
 
-
     /* Parses die expression like '2d4' or '3d5 + 4' and returns it as an array [2,
      * 4, 0] or [3, 5, 4]. Returns empty array for invalid expressions.*/
     public static parseDieSpec(strOrArray: IDiceInputArg): number[] {
-        if (typeof strOrArray === 'object') {
+        if (typeof strOrArray === 'number') {
+            return [0, 0, strOrArray];
+        }
+        else if (typeof strOrArray === 'object') {
             if (strOrArray.length >= 3) {
                 return [strOrArray[0], strOrArray[1], strOrArray[2]];
             }
