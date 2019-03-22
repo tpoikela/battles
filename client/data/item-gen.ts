@@ -4,7 +4,7 @@
 
 import RG from '../src/rg';
 import {IShell, StringMap} from './actor-gen';
-import {meleeHitDamage} from './shell-utils';
+import {meleeHitDamage, directDamage} from './shell-utils';
 import {Random} from '../src/random';
 import {mixNewShell} from './shell-utils';
 
@@ -17,8 +17,17 @@ interface ItemProps {
     armour: StringMap<IShell>;
 }
 
+interface Names {
+    materials: string[];
+    weapon: string[];
+    weaponTypes: string[];
+    prefix: StringMap<string[]>;
+    suffix: StringMap<string[]>;
+}
+
 const shellProps: any = {};
-const names: {[key: string]: string[]} = {};
+ItemGen.shellProps = shellProps;
+const names = {} as Names;
 
 const weaponTypes = {
     melee: [
@@ -39,38 +48,105 @@ const weaponTypes = {
     ]
 };
 names.weaponTypes = Object.keys(weaponTypes);
+ItemGen.names = names;
 
 const prefix: any = {
     weapon: {
-        name: 'sharp', attack: 2
+        heavy: {
+            weight: 1.5, value: 1.2, damage: '1d2 + 2', rarity: 1.5
+        },
+        light: {
+            weight: 0.6, value: 1.2, rarity: 2.0
+        },
+        poisoned: {
+            value: 3.0, rarity: 3.0,
+            onAttackHit: [meleeHitDamage(2, '1d4 + 1', 'POISON')],
+            colorfg: 'Green'
+        },
+        sharp: {
+            damage: '2', value: 1.1, rarity: 1.5
+        },
     }
 };
+ItemGen.prefix = prefix;
 names.prefix = {
     weapon: Object.keys(prefix.weapon)
 };
 
 const suffix: any = {
     weapon: {
-        ofVoid: {
-            name: 'of Void',
-            onAttackHit: [meleeHitDamage(2, '1d8 + 1', 'VOID')],
-            rarity: 4, value: 4
+        ofDefense: {
+            name: 'of Defense', defense: 5,
+            rarity: 3, value: 3
         },
         ofFire: {
             name: 'of Fire',
             onAttackHit: [meleeHitDamage(2, '1d6 + 1', 'FIRE')],
             rarity: 3, value: 3
-        }
+        },
+        ofMight: {
+            name: 'of Might', strength: 4,
+            rarity: 3, value: 3
+        },
+        ofNecropotence: {
+            name: 'of Necropotence',
+            onAttackHit: [
+                {transientComp: 'DrainStat', func: [
+                    {setter: 'setDrainAmount', value: 1},
+                    {setter: 'setSourceComp', value: 'Health'},
+                    {setter: 'setSourceGetter', value: 'getHP'},
+                    {setter: 'setSourceSetter', value: 'setHP'},
+                    {setter: 'setTargetComp', value: 'SpellPower'},
+                    {setter: 'setTargetGetter', value: 'getPP'},
+                    {setter: 'setTargetSetter', value: 'setPP'},
+                    {setter: 'setDrainMsg', value: 'drains life from'},
+                ]}
+            ],
+            onEquip: [
+                directDamage(1, '1d1 + 3', 'NECRO', 1.0,
+                    'You feel slightly easier'),
+                {addComp: 'DirectDamage', func: [
+                    {setter: 'setDamage', value: 1},
+                    {setter: 'setDamageType', value: RG.DMG.NECRO},
+                    {setter: 'setDamageCateg', value: RG.DMG.DIRECT},
+                    {setter: 'setProb', value: 0.05},
+                    {setter: 'setMsg', value: 'Necropotence demands blood!'},
+                ]}
+            ],
+            rarity: 4, value: 4
+        },
+        ofFrost: {
+            name: 'of Frost',
+            onAttackHit: [meleeHitDamage(2, '1d6 + 1', 'ICE')],
+            rarity: 3, value: 3
+        },
+        ofPerception: {
+            name: 'of Perception', perception: 5,
+            rarity: 3, value: 3
+        },
+        ofProtection: {
+            name: 'of Protection', protection: 5,
+            rarity: 3, value: 3
+        },
+        ofSpeed: {
+            name: 'of Speed', speed: 10,
+            rarity: 3, value: 3
+        },
+        ofVoid: {
+            name: 'of Void',
+            onAttackHit: [meleeHitDamage(2, '1d8 + 1', 'VOID')],
+            rarity: 4, value: 4
+        },
     }
 };
+ItemGen.suffix = suffix;
 names.suffix = {
     weapon: Object.keys(suffix.weapon)
 };
 
 const baseShells: StringMap<IShell> = {
     weapon: {
-        range: 1, value: 1, weight: 0.1,
-        attack: 0, defense: 0
+        type: 'weapon', range: 1, value: 1, attack: 0, defense: 0
     }
 };
 
@@ -80,7 +156,7 @@ shellProps.weapon = {
         value: 10,
     },
     sword: {
-        damage: '1d9 + 1', attack: 2, defense: 1, weight: 0.8,
+        damage: '1d8 + 2', attack: 2, defense: 1, weight: 0.8,
         rarity: 2,
         value: 20,
     },
@@ -106,6 +182,24 @@ shellProps.weapon = {
 };
 names.weapon = Object.keys(shellProps.weapon);
 
+shellProps.armour = {
+    robe: {
+        armourType: 'chest'
+    },
+    boots: {
+        armourType: 'feet'
+    },
+    helmet: {
+        armourType: 'head'
+    },
+    collar: {
+        armourType: 'neck'
+    },
+    shield: {
+        armourType: 'shield'
+    }
+};
+
 shellProps.material = {
     leather: {
         weight: 1.0, value: 1.0, rarity: 1.0
@@ -114,7 +208,10 @@ shellProps.material = {
         weight: 1.0, value: 1.0, rarity: 1.0
     },
     iron: {
-        weight: 1.7, value: 1.2, rarity: 1.0
+        weight: 1.7, value: 1.2, rarity: 1.0,
+        weapon: {
+            damage: '1d2 + 1'
+        }
     },
     steel: {
         weight: 1.5, value: 1.4, rarity: 1.5
@@ -136,7 +233,7 @@ shellProps.material = {
     }
 };
 
-const materials = Object.keys(shellProps.material);
+names.materials = Object.keys(shellProps.material);
 
 /* Generates a random item shell according to the following rules:
  * 1.
@@ -147,36 +244,34 @@ ItemGen.genRandShell = function(type: string): IShell {
     let prefixName = '';
     let suffixName = '';
 
-    const material = RNG.arrayGetRand(materials);
+    const material = RNG.arrayGetRand(names.materials);
     const materialShell = shellProps.material[material];
+    let materialItemShell = null;
+    if (materialShell[type]) {
+        // If we have type-specific shell in material, use it
+        materialItemShell = materialShell[type];
+    }
 
-    const weaponName = RNG.arrayGetRand(names[type]);
+    const weaponName = RNG.arrayGetRand(names[type] as string[]);
     const itemShell = shellProps[type][weaponName];
 
     const allShells = [baseShells[type], itemShell, materialShell];
+    if (materialItemShell) {
+        allShells.push(materialItemShell);
+    }
 
     let fullName = material + ' ' + weaponName;
     if (hasPrefix) {
-        prefixName = RNG.arrayGetRand(names.prefix.weapon);
+        prefixName = RNG.arrayGetRand(names.prefix[type]);
         const prefixShell = prefix[type][prefixName];
         allShells.push(prefixShell);
-        if (prefixShell.name) {
-            fullName = prefixShell.name + ' ' + fullName;
-        }
-        else {
-            fullName = prefixName + ' ' + fullName;
-        }
+        fullName = addNamePrefix(fullName, prefixName, prefixShell);
     }
     if (hasSuffix) {
-        suffixName = RNG.arrayGetRand(names.suffix.weapon);
+        suffixName = RNG.arrayGetRand(names.suffix[type]);
         const suffixShell = suffix[type][suffixName];
         allShells.push(suffixShell);
-        if (suffixShell.name) {
-            fullName = fullName + ' ' + suffixShell.name;
-        }
-        else {
-            fullName = fullName + ' ' + suffixName;
-        }
+        fullName = addNameSuffix(fullName, suffixName, suffixShell);
     }
 
     const newShell = mixNewShell(allShells);
@@ -184,11 +279,76 @@ ItemGen.genRandShell = function(type: string): IShell {
     return newShell;
 };
 
+type NameMap = StringMap<string>;
+
+/* Given an input map, builds a shell based on values. For example:
+ * {name: 'sword', type: 'weapon', material: 'iron', suffix...}
+ * will mix the specified shells and return a new one.
+ */
+ItemGen.buildShell = function(nameMap: NameMap): IShell {
+    const {type} = nameMap;
+    if (!type) {
+        RG.err('ItemGen', 'buildShell', 'No type was given');
+    }
+    const baseShell = baseShells[type];
+    const materialShell = shellProps.material[nameMap.material];
+    let materialItemShell = null;
+    if (materialShell[type]) {
+        // If we have type-specific shell in material, use it
+        materialItemShell = materialShell[type];
+    }
+
+    const prefixShell = prefix[type][nameMap.prefix];
+    const suffixShell = suffix[type][nameMap.suffix];
+    const itemShell = shellProps[type][nameMap.name];
+    const usedShells = [baseShell, materialShell, itemShell];
+    if (materialItemShell) {
+        usedShells.push(materialItemShell);
+    }
+
+    let fullName = nameMap.material + ' ' + nameMap.name;
+    if (prefixShell) {
+        usedShells.push(prefixShell);
+        fullName = addNamePrefix(fullName, nameMap.prefix, prefixShell);
+    }
+    if (suffixShell) {
+        usedShells.push(suffixShell);
+        fullName = addNameSuffix(fullName, nameMap.suffix, suffixShell);
+    }
+
+    const newShell = mixNewShell(usedShells);
+    newShell.name = fullName;
+    return newShell;
+};
+
 /* Generates the given number of actor shells from data in shellProps. */
 ItemGen.genItems = function(nItems: number): IShell[] {
     const result = [];
-    for (let i = 0; i < nActors; i++) {
+    for (let i = 0; i < nItems; i++) {
         result.push(ItemGen.genRandShell());
     }
     return result;
 };
+
+
+function addNamePrefix(fullName: string, prefixName: string, prefixShell: IShell): string {
+    let name = fullName;
+    if (prefixShell.name) {
+        name = prefixShell.name + ' ' + fullName;
+    }
+    else {
+        name = prefixName + ' ' + fullName;
+    }
+    return name;
+}
+
+function addNameSuffix(fullName: string, suffixName: string, suffixShell: IShell): string {
+    let name = fullName;
+    if (suffixShell.name) {
+        name = fullName + ' ' + suffixShell.name;
+    }
+    else {
+        name = fullName + ' ' + suffixName;
+    }
+    return name;
+}
