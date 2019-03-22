@@ -11,9 +11,9 @@ import {Engine} from '../../../client/src/engine';
 import {Actor, SentientActor} from '../../../client/src/actor';
 import {Keys} from '../../../client/src/keymap';
 import * as Component from '../../../client/src/component';
-import { EventPool } from "../../../client/src/eventpool";
-import { FactoryLevel } from "../../../client/src/factory.level";
-import { Dice } from "../../../client/src/dice";
+import { EventPool } from '../../../client/src/eventpool';
+import { FactoryLevel } from '../../../client/src/factory.level';
+import { Dice } from '../../../client/src/dice';
 
 /* Creates a game engine with 2 actors scheduled for actions.*/
 const EngineWithActors = function(pool) {
