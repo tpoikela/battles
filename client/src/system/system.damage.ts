@@ -7,9 +7,6 @@ import * as Item from '../item';
 
 type Cell = import('../map.cell').Cell;
 
-const POOL = EventPool.getPool();
-const NO_DAMAGE_SRC = RG.NO_DAMAGE_SRC;
-
 /* Processes entities with damage component.*/
 export class SystemDamage extends SystemBase {
 
@@ -17,7 +14,7 @@ export class SystemDamage extends SystemBase {
         super(RG.SYS.DAMAGE, compTypes, pool);
     }
 
-    public processDamageComp(ent, dmgComp) {
+    public processDamageComp(ent, dmgComp): void {
         const health = ent.get('Health');
         if (health) {
             let totalDmg = this._getDamageModified(ent, dmgComp);
@@ -49,18 +46,21 @@ export class SystemDamage extends SystemBase {
             }
 
             if (health.isDead() && !ent.has('Dead')) {
-                if (ent.has('Loot')) {
-                    const entCell: Cell = ent.getCell();
-                    ent.get('Loot').dropLoot(entCell);
+                if (!ent.has('DeathEvent')) {
+                    const deathComp = new Component.DeathEvent();
+                    deathComp.setSource(damageSrc);
+                    if (dmgComp.isType(RG.DMG.POISON)) {
+                        const msg = ent.getName() + ' dies horribly of poisoning';
+                        deathComp.setMsg(msg);
+                    }
+                    ent.add(deathComp);
                 }
-                this._dropInvAndEq(ent);
-                this._killActor(damageSrc, ent, dmgComp);
             }
 
             // Emit ACTOR_DAMAGED
             // Emitted only for player for efficiency reasons
 
-            if (damageSrc) {
+            if (damageSrc && RG.isActor(damageSrc)) {
                 if (damageSrc.isPlayer() || ent.isPlayer()) {
                     if (!RG.isNullOrUndef([damageSrc, ent])) {
                         const evtComp = new Component.Event();
@@ -142,14 +142,18 @@ export class SystemDamage extends SystemBase {
             RG.gameInfo({cell, msg});
             return dmg;
         }
+
+        // Magical/direct damage bypasses Protection
+        const dmgCateg = dmgComp.getDamageCateg();
+        if (dmgCateg === RG.DMG.MAGIC) {
+            return dmg;
+        }
+        else if (dmgCateg === RG.DMG.DIRECT) {
+            return dmg;
+        }
         else if (this.isProtectionBypassed(ent, src)) {
             const msg = `${src.getName()} hits ${ent.getName()} through armor.`;
             RG.gameDanger({cell, msg});
-            return dmg;
-        }
-
-        const dmgCateg = dmgComp.getDamageCateg();
-        if (dmgCateg === RG.DMG.MAGIC) {
             return dmg;
         }
 
@@ -258,7 +262,7 @@ export class SystemDamage extends SystemBase {
         const weapon = dmgComp.getWeapon();
         if (weapon && weapon.has) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
-                const comp = weapon.get('AddOnHit').getComp();
+                const comp = weapon.get('AddOnHit').getCompToAdd();
                 SystemBase.addCompToEntAfterHit(comp, ent, dmgComp.getSource());
             }
         }
@@ -271,164 +275,12 @@ export class SystemDamage extends SystemBase {
         else { // No weapon was used
             const src = dmgComp.getSource();
             if (src && src.has('AddOnHit')) {
-                const comp = src.get('AddOnHit').getComp();
+                const comp = src.get('AddOnHit').getCompToAdd();
                 SystemBase.addCompToEntAfterHit(comp, ent, src);
             }
         }
     }
 
-    public _dropInvAndEq(actor) {
-        const [x, y] = actor.getXY();
-        if (!actor.getInvEq) {
-            return;
-        }
-        const invEq = actor.getInvEq();
-        const items = invEq.getInventory().getItems();
-        const actorLevel = actor.getLevel();
-
-        items.forEach(item => {
-            if (invEq.removeNItems(item, item.getCount())) {
-                const rmvItem = invEq.getRemovedItem();
-                actorLevel.addItem(rmvItem, x, y);
-            }
-        });
-
-        const eqItems = invEq.getEquipment().getItems();
-        eqItems.forEach(item => {
-            actorLevel.addItem(item, x, y);
-        });
-    }
-
-    /* Removes actor from current level and emits Actor killed event.*/
-    public _killActor(src, actor, dmgComp) {
-        const level = actor.getLevel();
-        const cell = actor.getCell();
-        const [x, y] = actor.getXY();
-
-        actor.add(new Component.Dead());
-
-        if (level.removeActor(actor)) {
-            const nameKilled = actor.getName();
-
-            if (actor.has('Experience')) {
-                this._giveExpToSource(src, actor);
-            }
-            const dmgType = dmgComp.getDamageType();
-            if (dmgType === 'poison') {
-                RG.gameDanger({cell,
-                    msg: nameKilled + ' dies horribly of poisoning!'});
-            }
-
-            let killVerb = 'killed';
-            if (actor.has('NonSentient')) {
-                killVerb = 'destroyed';
-            }
-
-            let killMsg = nameKilled + ' was ' + killVerb;
-            if (src !== NO_DAMAGE_SRC) {killMsg += ' by ' + src.getName();}
-
-            RG.gameDanger({cell, msg: killMsg});
-            POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor});
-
-            const evtComp = new Component.Event();
-            evtComp.setArgs({type: RG.EVT_ACTOR_KILLED,
-                cause: src});
-            actor.add(evtComp);
-
-            // Finally drop a corpse
-            if (actor.has('Corporeal')) {
-                const corpse = new Item.Corpse(nameKilled + ' corpse');
-                corpse.setActorName(actor.get('Named').getBaseName());
-                this._cloneComponentsToCorpse(actor, corpse);
-
-                // TODO move some components like stats, resistance etc
-                // This way, eating corpse can move these around
-
-                // Update rendering info for corpse item
-                const cssClass = RG.getCssClass(RG.TYPE_ACTOR, nameKilled);
-                RG.addCellStyle(RG.TYPE_ITEM, corpse.getName(), cssClass);
-
-                level.addItem(corpse, x, y);
-                if (actor.has('QuestTarget')) {
-                    const qEvent = new Component.QuestTargetEvent();
-                    qEvent.setEventType('kill');
-                    qEvent.setArgs({corpse});
-                    qEvent.setTargetComp(actor.get('QuestTarget'));
-                    src.add(qEvent);
-                }
-            }
-            this._cleanUpComponents(actor);
-        }
-        else {
-            RG.err('System.Damage', 'killActor', 'Couldn\'t remove actor');
-        }
-    }
-
-    /* When an actor is killed, gives experience to damage's source.*/
-    public _giveExpToSource(att, def) {
-        if (att !== NO_DAMAGE_SRC && !att.has('Dead')) {
-            const defLevel = def.get('Experience').getExpLevel();
-            const defDanger = def.get('Experience').getDanger();
-            const expPoints = new Component.ExpPoints(defLevel + defDanger);
-            att.add(expPoints);
-
-            // Give additional battle experience
-            if (att.has('InBattle')) {
-                this._giveBattleExpToSource(att);
-            }
-        }
-    }
-
-    /* Adds additional battle experience given if actor is in a battle. */
-    public _giveBattleExpToSource(att) {
-        if (!att.has('BattleExp')) {
-            const inBattleComp = att.get('InBattle');
-            const data = inBattleComp.getData();
-            if (data) {
-                const name = data.name;
-                const comp = new Component.BattleExp();
-                comp.setData({kill: 0, name});
-                att.add(comp);
-            }
-            else {
-                const msg = `Actor: ${JSON.stringify(att)}`;
-                RG.err('System.Damage', '_giveBattleExpToSource',
-                    `InBattle data is null. Actor: ${msg}`);
-            }
-        }
-        att.get('BattleExp').getData().kill += 1;
-    }
-
-    public _cleanUpComponents(actor): void {
-        const compTypes = ['Coldness', 'Expiration', 'Fading'];
-        compTypes.forEach(compType => {
-            const compList = actor.getList(compType);
-            compList.forEach(comp => {
-                if (typeof comp.cleanup === 'function') {
-                    comp.cleanup();
-                }
-                actor.remove(comp);
-            });
-        });
-    }
-
-    public _cloneComponentsToCorpse(actor, corpse): void {
-        const compTypes = ['Named', 'Health', 'Stats', 'Combat', 'Experience'];
-        compTypes.forEach(compType => {
-            const comp = actor.get(compType).clone();
-            corpse.add(comp);
-        });
-
-        const maybeTypes = ['Undead'];
-        if (actor.hasAny(maybeTypes)) {
-            maybeTypes.forEach(compType => {
-                if (actor.has(compType)) {
-                    const comp = actor.get(compType).clone();
-                    corpse.add(comp);
-                }
-            });
-        }
-    }
 
     public updateEntity(ent): void {
         const dmgComps = ent.getList('Damage');
