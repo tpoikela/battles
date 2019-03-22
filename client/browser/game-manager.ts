@@ -1030,10 +1030,13 @@ export class GameManager {
 
     /* When an ASCII menu item is clicked, this function should be called. */
     public menuItemClicked(key: string): void {
-        let result = -1;
+        let result: number | string = -1;
         if (key) {
             if (/\d+/.test(key)) {
                 result = parseInt(key, 10);
+            }
+            else {
+                result = key;
             }
             const keyCode = Keys.selectIndexToCode(result);
             if (keyCode >= 0) {
