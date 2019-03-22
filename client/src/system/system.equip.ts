@@ -2,6 +2,7 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
+import * as Component from '../component/component';
 
 export class SystemEquip extends SystemBase {
     constructor(compTypes, pool?) {
@@ -57,7 +58,7 @@ export class SystemEquip extends SystemBase {
         }
     }
 
-    public equipItem(ent, obj) {
+    public equipItem(ent, obj): void {
         const invEq = ent.getInvEq();
         const item = obj.item;
         let result = false;
@@ -88,10 +89,20 @@ export class SystemEquip extends SystemBase {
         }
     }
 
-    public handleAddOnEquip(ent, addComp, equip = true) {
+    public handleAddOnEquip(ent, addComp, equip = true): void {
         if (equip) {
             const comp = addComp.getComp();
-            ent.add(comp);
+            if (comp.setSource) {
+                comp.setSource(addComp.getEntity());
+            }
+            if (comp.is('Duration')) {
+                const dur = comp.rollDuration();
+                const msg = comp.getExpireMsg();
+                Component.addToExpirationComp(ent, comp, dur, msg);
+            }
+            else {
+                ent.add(comp);
+            }
             addComp.setAddedToActor(true);
         }
         else {
