@@ -20,7 +20,7 @@ export class SystemAttack extends SystemBase {
         });
     }
 
-    public processAttackComp(ent, attComp) {
+    public processAttackComp(ent, attComp): void {
         const att = ent;
         const def = attComp.getTarget();
         const aName = att.getName();
@@ -208,13 +208,13 @@ export class SystemAttack extends SystemBase {
         return isSuccess;
     }
 
-    public _applyAddOnHitComp(att, def) {
+    public _applyAddOnHitComp(att, def): void {
         const weapon = att.getWeapon();
         if (weapon && weapon.has) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
                 const addOnHit = weapon.get('AddOnHit');
                 if (addOnHit.getOnAttackHit()) {
-                    const comp = addOnHit.getComp();
+                    const comp = addOnHit.getCompToAdd();
                     SystemBase.addCompToEntAfterHit(comp, def, att);
                 }
             }
@@ -228,7 +228,7 @@ export class SystemAttack extends SystemBase {
             if (src && src.has('AddOnHit')) {
                 const addOnHit = src.get('AddOnHit');
                 if (addOnHit.getOnAttackHit()) {
-                    const comp = addOnHit.getComp();
+                    const comp = addOnHit.getCompToAdd();
                     SystemBase.addCompToEntAfterHit(comp, def, src);
                 }
             }
