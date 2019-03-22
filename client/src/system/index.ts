@@ -41,6 +41,14 @@ import {SystemDamage} from './system.damage';
 export {SystemDamage} from './system.damage';
 System.Damage = SystemDamage;
 
+import {SystemDeath} from './system.death';
+export {SystemDeath} from './system.death';
+System.Death = SystemDeath;
+
+import {SystemDrainStats} from './system.drain-stats';
+export {SystemDrainStats} from './system.drain-stats';
+System.DrainStats = SystemDrainStats;
+
 import {SystemDisability} from './system.disability';
 export {SystemDisability} from './system.disability';
 System.Disability = SystemDisability;
