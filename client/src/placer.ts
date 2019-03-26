@@ -20,15 +20,16 @@ Placer.addPropsToFreeCells = function(level, props, type) {
  * that all props are of given type (placement function is different for
  * different types. */
 Placer.addPropsToCells = function(level: Level, cells: Cell[], props, type) {
+    let ok = props.length > 0 && cells.length > 0;
     for (let i = 0; i < props.length; i++) {
         if (cells.length > 0) {
             const index = RNG.randIndex(cells);
             const cell = cells[index];
             if (type === RG.TYPE_ACTOR) {
-                level.addActor(props[i], cell.getX(), cell.getY());
+                ok = ok && level.addActor(props[i], cell.getX(), cell.getY());
             }
             else if (type === RG.TYPE_ITEM) {
-                level.addItem(props[i], cell.getX(), cell.getY());
+                ok = ok && level.addItem(props[i], cell.getX(), cell.getY());
             }
             else {
                 RG.err('Placer', 'addPropsToCells',
@@ -37,9 +38,10 @@ Placer.addPropsToCells = function(level: Level, cells: Cell[], props, type) {
             cells.splice(index, 1); // remove used cell
         }
     }
+    return ok;
 };
 
-Placer.addPropsToRoom = function(level: Level, room, props) {
+Placer.addPropsToRoom = function(level: Level, room, props): boolean {
     if (!Array.isArray(props)) {
         RG.err('Placer', 'addPropsToRoom',
             `props must be an array. Got: ${props}`);
@@ -47,31 +49,32 @@ Placer.addPropsToRoom = function(level: Level, room, props) {
     const bbox: BBox = room.getBbox();
     const prop = props[0];
     if (RG.isActor(prop)) {
-        Placer.addActorsToBbox(level, bbox, props);
+        return Placer.addActorsToBbox(level, bbox, props);
     }
     else if (RG.isItem(prop)) {
-        Placer.addItemsToBbox(level, bbox, props);
+        return Placer.addItemsToBbox(level, bbox, props);
     }
     else {
         RG.err('Placer', 'addPropsToRoom',
             `Prop type not supported: ${prop}`);
     }
+    return false;
 };
 
-Placer.addActorsToBbox = function(level: Level, bbox: BBox, actors) {
+Placer.addActorsToBbox = function(level: Level, bbox: BBox, actors): boolean {
     const nActors = actors.length;
     const freeCells = level.getMap().getFreeInBbox(bbox);
     if (freeCells.length < nActors) {
         RG.warn('Factory', 'addActorsToBbox',
             'Not enough free cells');
     }
-    Placer.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
+    return Placer.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
 };
 
 
-Placer.addItemsToBbox = function(level: Level, bbox: BBox, items) {
+Placer.addItemsToBbox = function(level: Level, bbox: BBox, items): boolean {
     const freeCells = level.getMap().getFreeInBbox(bbox);
-    Placer.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
+    return Placer.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
 };
 
 /* Adds entity to a random cell of matching filterFunc. Returns true if success,
