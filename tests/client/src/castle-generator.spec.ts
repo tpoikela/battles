@@ -20,9 +20,11 @@ describe('CastleGenerator', () => {
         const elements = level.getElements();
         expect(elements.length).to.be.above(0);
 
+        const extras = level.getExtras();
+        const rooms = extras.room;
         const items = level.getItems();
-        expect(items.length).to.be.above(4);
-        expect(castleGen.nItemsAdded).to.be.above(2);
+        expect(castleGen.nItemsAdded).to.be.at.least(rooms.length);
+        expect(items.length).to.be.at.least(rooms.length);
     });
 
     it('can create castle with central corridors', () => {
