@@ -139,17 +139,19 @@ export class CastleGenerator extends LevelGenerator {
         const factItem = new FactoryItem();
         storerooms.forEach(room => {
             const itemsPlaced = factItem.generateItems(itemConf);
-            Placer.addPropsToRoom(level, room, itemsPlaced);
-            nAdded += itemsPlaced.length;
+            if (Placer.addPropsToRoom(level, room, itemsPlaced)) {
+                nAdded += itemsPlaced.length;
+            }
         });
 
         // One of the storerooms can contain gold as well
         if (RG.isSuccess(GOLD_VAULT_CHANCE)) {
             const goldRoom = RNG.arrayGetRand(storerooms);
-            const wealth = RNG.getUniformInt(1, 6);
+            const wealth = RNG.getUniformInt(6, 12);
             const goldItems = factItem.generateGold({nGold: 5, nLevel: wealth});
-            Placer.addPropsToRoom(level, goldRoom, goldItems);
-            nAdded += goldItems.length;
+            if (Placer.addPropsToRoom(level, goldRoom, goldItems)) {
+                nAdded += goldItems.length;
+            }
         }
 
         const normalRooms = extras.room as LevelExtraType[];
@@ -157,8 +159,9 @@ export class CastleGenerator extends LevelGenerator {
         const items = factItem.generateItems(itemConf);
         items.forEach(item => {
             const room = RNG.arrayGetRand(normalRooms);
-            Placer.addPropsToRoom(level, room, [item]);
-            nAdded += 1;
+            if (Placer.addPropsToRoom(level, room, [item])) {
+                nAdded += 1;
+            }
         });
         return nAdded;
     }
@@ -186,13 +189,13 @@ export class CastleGenerator extends LevelGenerator {
             else if (re.corridor.test(tile.name)) {
                 this.addToExtras(level, tile, 'corridor');
             }
-            else {
+            else if (!re.filler.test(tile.name)) {
                 this.addToExtras(level, tile, 'room');
             }
         });
     }
 
-    public addToExtras(level: Level, tile, name): void {
+    public addToExtras(level: Level, tile, name: string): void {
         const bbox = Geometry.convertBbox(tile);
         const cells = level.getMap().getFreeInBbox(bbox);
         cells.forEach(cell => {
@@ -274,9 +277,12 @@ export class CastleGenerator extends LevelGenerator {
         }
     }
 
-    public createCastleSurroundings(level, conf) {
+    public createCastleSurroundings(level: Level, conf) {
         const levelSurround = new LevelSurroundings();
-        return levelSurround.surround(level, conf);
+        const extras = level.getExtras();
+        const surroundLevel = levelSurround.surround(level, conf);
+        surroundLevel.setExtras(extras);
+        return surroundLevel;
     }
 }
 
@@ -288,7 +294,8 @@ const re = {
     corridor: /(corridor|corner)/,
     entrance: /entrance/,
     storeroom: /storeroom/,
-    vault: /vault/
+    vault: /vault/,
+    filler: /filler/i
 };
 
 const markers = {
