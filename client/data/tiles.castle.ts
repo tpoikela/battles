@@ -668,6 +668,23 @@ Y::::##
 
 ];
 
+Castle.tiles.crossCenter = [
+`
+name:cross_center1
+dir:NSEW
+X=.
+Y=.
+
+#X...X#
+##...##
+Y..#...
+..###..
+Y..#...
+##...##
+##...##`
+];
+
+
 // Filler cell
 Castle.tiles.fillerFloor = `
 name:FILLER
@@ -909,9 +926,9 @@ Castle.constraintFunc = function(x, y, exitReqd) {
 // TODO does not work correctly, connection points between edge
 // and center corridors must be handled somehow
 Castle.constraintFuncCross = function(x, y, exitReqd) {
-    let res = Castle.constraintFunc.call(this, x, y, exitReqd);
-    const midX = Math.ceil(this.tilesX / 2);
-    const midY = Math.ceil(this.tilesY / 2);
+    const res = Castle.constraintFunc.call(this, x, y, exitReqd);
+    const midX = Math.floor(this.tilesX / 2);
+    const midY = Math.floor(this.tilesY / 2);
 
     if (res === null || x === midX || y === midY) {
         if (x === 0 && y === midY) {
@@ -927,7 +944,10 @@ Castle.constraintFuncCross = function(x, y, exitReqd) {
             return this.findTemplate({name: 'corridor_new'});
         }
         else if (x === midX && y === midY) {
-            res = this.findTemplate({name: 'FILLER'});
+            const asciiTile = RNG.arrayGetRand(Castle.tiles.crossCenter);
+            const templ = Template.createTemplate(asciiTile);
+            return templ;
+            // res = this.findTemplate({name: 'FILLER'});
         }
         else if (x === midX) {
             if (exitReqd === 'E') {
