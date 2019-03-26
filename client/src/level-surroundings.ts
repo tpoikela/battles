@@ -9,9 +9,15 @@ import {CellMap} from './map';
 import {MapGenerator} from './map.generator';
 import {ELEM} from '../data/elem-constants';
 
+import {TCoord} from './interfaces';
+
 const RNG = Random.getRNG();
 
 export class LevelSurroundings {
+
+    public offsetFunc: (x, y) => TCoord;
+    public adjustCoord: (xy: TCoord[]) => TCoord[];
+
     /* Surrounds the given level with features based on different params:
      * conf: {
      *     surroundX,surroundY: <size of the padding>
@@ -68,8 +74,13 @@ export class LevelSurroundings {
         });
 
         Geometry.mergeLevels(mountLevel, level, xSize / 2, ySize / 2);
-        return mountLevel;
 
+        // This can be used to adjust coord external to this object
+        this.offsetFunc = (x, y) => [x + xSize , y + ySize];
+        this.adjustCoord = (coord: TCoord[]): TCoord[] => (
+            coord.map(xy => this.offsetFunc(xy[0], xy[1])
+        ));
+        return mountLevel;
     }
 
     public getWallConfFromCells(conf, xSize, ySize): any {
