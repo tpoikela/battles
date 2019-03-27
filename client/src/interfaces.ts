@@ -5,9 +5,12 @@
  * a file containing particular type.
  */
 
+import {Locatable} from './mixin';
+
 type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
 type ElementStairs = import('./element').ElementStairs;
+type ElementBase = import('./element').ElementBase;
 type Locatable = import('./mixin').Locatable;
 type ElemTemplate = import('./template').ElemTemplate;
 
@@ -28,7 +31,7 @@ export interface BBox {
 }
 
 export type DestOrSrc = TCoord | Locatable;
-
+export type TLocatableElement = ElementBase & Locatable;
 
 /* Used to pass player input (keys/mouse) to the game */
 export interface IPlayerCmdInput {
