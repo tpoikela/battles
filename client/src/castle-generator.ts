@@ -16,7 +16,7 @@ import {LevelSurroundings} from './level-surroundings';
 import {FactoryItem} from './factory.items';
 import {Placer} from './placer';
 import {Random} from './random';
-import { Geometry } from './geometry';
+import {Geometry} from './geometry';
 
 const RNG = Random.getRNG();
 const Room = ROT.Map.Feature.Room;
@@ -76,7 +76,7 @@ export class CastleGenerator extends LevelGenerator {
 
     /* Returns a fully populated castle-level. */
     public create(cols, rows, conf: PartialCastleOpts): Level {
-        let castleLevel = this.createLevel(cols, rows, conf);
+        const castleLevel = this.createLevel(cols, rows, conf);
         conf.preserveMarkers = false;
         this.removeMarkers(castleLevel, conf);
 
@@ -84,9 +84,7 @@ export class CastleGenerator extends LevelGenerator {
             this.nItemsAdded = this.addItemsToCastle(castleLevel, conf);
         }
 
-        if (conf.cellsAround) {
-            castleLevel = this.createCastleSurroundings(castleLevel, conf);
-        }
+        this.populateStoreRooms(castleLevel, conf);
 
         // TODO populate level with actors based on conf
         return castleLevel;
@@ -115,11 +113,15 @@ export class CastleGenerator extends LevelGenerator {
         }
 
         const mapObj = mapgen.createCastle(cols, rows, levelConf);
-
-        const level = new Level();
-        level.setMap(mapObj.map);
+        let level = new Level();
+        level.setMap(mapObj.map, mapObj);
         this.addMarkersFromTiles(level, mapObj.tiles);
 
+        if (conf.cellsAround) {
+            level = this.createCastleSurroundings(level, conf);
+        }
+
+        // Note that markers must be preserved in MapGenerator for this to work
         this.createDoorsAndLevers(level);
         return level;
     }
@@ -198,7 +200,7 @@ export class CastleGenerator extends LevelGenerator {
     public addToExtras(level: Level, tile, name: string): void {
         const bbox = Geometry.convertBbox(tile);
         const cells = level.getMap().getFreeInBbox(bbox);
-        cells.forEach(cell => {
+        cells.forEach((cell: Cell) => {
             const [x, y] = cell.getXY();
             const marker = new Element.ElementMarker(markers[name]);
             marker.setTag(name);
@@ -216,10 +218,11 @@ export class CastleGenerator extends LevelGenerator {
         const doorPos = {};
         const levers = [];
 
+        // Note that markers must be preserved in MapGenerator for this to work
         cells.forEach(cell => {
             if (cell.hasElements()) {
-
                 const [x, y] = cell.getXY();
+
                 if (cell.hasMarker('leverdoor')) {
                     const door = new Element.ElementLeverDoor();
                     map.getCell(x, y).removeProps(RG.TYPE_ELEM);
@@ -277,12 +280,13 @@ export class CastleGenerator extends LevelGenerator {
         }
     }
 
-    public createCastleSurroundings(level: Level, conf) {
+    public createCastleSurroundings(level: Level, conf): Level {
         const levelSurround = new LevelSurroundings();
         const extras = level.getExtras();
-        const surroundLevel = levelSurround.surround(level, conf);
-        surroundLevel.setExtras(extras);
-        return surroundLevel;
+        const newLevel = levelSurround.surround(level, conf);
+        newLevel.setExtras(extras);
+        levelSurround.scaleExtras(newLevel);
+        return newLevel;
     }
 }
 
