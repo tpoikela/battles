@@ -5,8 +5,6 @@
  * a file containing particular type.
  */
 
-import {Locatable} from './mixin';
-
 type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
 type ElementStairs = import('./element').ElementStairs;
