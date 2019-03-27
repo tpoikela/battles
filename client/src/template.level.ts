@@ -9,7 +9,7 @@ import './utils';
 import dbg = require('debug');
 const debug = dbg('bitn:TemplateLevel');
 
-const fillerTempl = Crypt.tiles.filler;
+const FILLER_TEMPL = Crypt.tiles.filler;
 const RNG = Random.getRNG();
 
 const DEFAULT_CALLBACK = () => {};
@@ -77,7 +77,7 @@ export class TemplateLevel {
     private _freeExits: {[key: string]: string[]};
     private _sortedWithAllExits: {[key: string]: ElemTemplate[]};
 
-    constructor(tilesX, tilesY) {
+    constructor(tilesX: number, tilesY: number) {
         this.tilesX = tilesX;
         this.tilesY = tilesY;
 
@@ -90,7 +90,7 @@ export class TemplateLevel {
             afterInit: DEFAULT_CALLBACK
         };
 
-        this.filler = Template.createTemplate(fillerTempl);
+        this.filler = Template.createTemplate(FILLER_TEMPL);
         this.templates = [];
 
         // Finds always best match for exits
@@ -120,7 +120,7 @@ export class TemplateLevel {
     }
 
     /* Sets the filler tile used to fill the map first. */
-    public setFiller(fillerTempl) {
+    public setFiller(fillerTempl): void {
         if (typeof fillerTempl === 'string') {
             this.filler = Template.createTemplate(fillerTempl);
             this.filler.setProp('name', 'FILLER');
@@ -132,7 +132,7 @@ export class TemplateLevel {
     }
 
     /* Sets the room templates that are used. */
-    public setTemplates(asciiTiles) {
+    public setTemplates(asciiTiles): void {
         this.templates = [];
         if (typeof asciiTiles[0] === 'string') {
             this.templates = asciiTiles.map(t => Template.createTemplate(t));
@@ -143,7 +143,7 @@ export class TemplateLevel {
     }
 
     /* Adds one ASCII/room template to the list of usable templates. */
-    public addTemplate(asciiTile) {
+    public addTemplate(asciiTile): void {
         if (typeof asciiTile === 'string') {
               this.templates.push(Template.createTemplate(asciiTile));
         }
@@ -177,7 +177,7 @@ export class TemplateLevel {
     }
 
     /* Adds a callback to the generator. */
-    public addCallback(name, cb) {
+    public addCallback(name: string, cb): void {
         if (this.callbacks.hasOwnProperty(name)) {
             if (typeof cb === 'function') {
                 this.callbacks[name] = cb;
@@ -215,7 +215,7 @@ export class TemplateLevel {
 
     /* Creates the level. Result is in this.map.
      * This is the Main function you want to call. */
-    public create() {
+    public create(): void {
         if (this.templates.length === 0) {
             RG.err('TemplateLevel', 'create',
                 'No templates set. Use setTemplates() before create()');
@@ -306,7 +306,7 @@ export class TemplateLevel {
     }
 
     /* Sort data into lists based on different directions */
-    public _sortDataIntoListsByLocation() {
+    public _sortDataIntoListsByLocation(): void {
         const dirRegex = this._possibleDirections.map(dir => new RegExp(dir));
         this.templates.forEach(templ => {
             const dir = templ.getProp('dir');
@@ -330,7 +330,7 @@ export class TemplateLevel {
 
     /* Expands the templates with generator params and creates the final 2d-tile
      * map from the 2d template map. */
-    public expandTemplates() {
+    public expandTemplates(): void {
         // Create gen params for each tile
         this.genParamsX = [];
         this.genParamsY = [];
@@ -428,7 +428,7 @@ export class TemplateLevel {
 
     /* Removes the templates matching the given query. This is useful, if for
      * example after starting conditions you want to remove some tiles. */
-    public removeTemplate(query) {
+    public removeTemplate(query): void {
         const key = Object.keys(query)[0];
         const index = this.templates.findIndex(t => (
             t.getProp(key) === query[key]
@@ -441,7 +441,7 @@ export class TemplateLevel {
     /* Adds a room (template) to fixed position. This can be called from user
      * callbacks. Can be used to place any amount of rooms prior to calling
      * create(). */
-    public addRoom(templ, x, y) {
+    public addRoom(templ, x: number, y: number): void {
         const room = {x, y, room: templ};
         this._addRoomData(room);
         this._removeExitsOfAbuttingRooms(room);
@@ -1048,7 +1048,7 @@ export class TemplateLevel {
         return result;
     }
 
-    public _arrayContainsArray(superSet, subSet) {
+    public _arrayContainsArray(superSet, subSet): boolean {
         return subSet.every(value => {
             return superSet.indexOf(value) >= 0;
         });
@@ -1056,7 +1056,7 @@ export class TemplateLevel {
 
     /* Prints the debug msg when debug() is enabled. Adds some verbosity options
      * for filtering some debug messages out. */
-    public dbg(msg, verb = 10) {
+    public dbg(msg, verb = 10): void {
         if (debug.enabled) {
             if (debugVerbosity >= verb) {
                 const _ind = ' '.repeat(this._ind);
@@ -1065,7 +1065,7 @@ export class TemplateLevel {
         }
     }
 
-    public printTile(x, y) {
+    public printTile(x: number, y: number): void {
         if (x === 4 && y === 3) {
             const tile = this.templMap[x][y];
             console.log(`Tile @{x},${y}`);
