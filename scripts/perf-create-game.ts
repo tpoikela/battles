@@ -62,18 +62,21 @@ log('Map printed from perf-create-game.js:\n', overworld.mapToString());
 log('perf-create-game.js:\n', terrMap.mapToString());
 
 if (jsonTest) {
-    const json = game.toJSON();
-    const jsonStr = JSON.stringify(json);
-    console.log('JSON length of game is ' + jsonStr.length);
+    for (let i = 0; i < 2; i++) {
+        const json = game.toJSON();
+        const jsonStr = JSON.stringify(json);
+        console.log('JSON length of game is ' + jsonStr.length);
 
-    const fromJSON = new RG.FromJSON();
-    let newGame = new RG.GameMain();
-    newGame = fromJSON.createGame(newGame, json);
-    const newJSON = newGame.toJSON();
-    const newJSONStr = JSON.stringify(newJSON);
-    console.log('JSON length of NEW game is ' + newJSONStr.length);
+        const fromJSON = new RG.FromJSON();
+        let newGame = new RG.GameMain();
+        newGame = fromJSON.createGame(newGame, json);
+        const newJSON = newGame.toJSON();
+        const newJSONStr = JSON.stringify(newJSON);
+        console.log('JSON length of NEW game is ' + newJSONStr.length);
 
-    fs.writeFileSync('results/perf-create-game.json', newJSONStr);
+        const fname = `perf-create-game${i}.json`;
+        fs.writeFileSync('results/' + fname, newJSONStr);
+    }
 }
 
 function log(...args) {
