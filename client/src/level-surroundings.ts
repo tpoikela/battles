@@ -17,6 +17,7 @@ export class LevelSurroundings {
 
     public offsetFunc: (x, y) => TCoord;
     public adjustCoord: (xy: TCoord[]) => TCoord[];
+    public lastLevelID: number;
 
     /* Surrounds the given level with features based on different params:
      * conf: {
@@ -76,10 +77,11 @@ export class LevelSurroundings {
         Geometry.mergeLevels(mountLevel, level, xSize / 2, ySize / 2);
 
         // This can be used to adjust coord external to this object
-        this.offsetFunc = (x, y) => [x + xSize , y + ySize];
+        this.offsetFunc = (x, y) => [x + xSize / 2, y + ySize / 2];
         this.adjustCoord = (coord: TCoord[]): TCoord[] => (
             coord.map(xy => this.offsetFunc(xy[0], xy[1])
         ));
+        this.lastLevelID = mountLevel.getID();
         return mountLevel;
     }
 
@@ -119,4 +121,26 @@ export class LevelSurroundings {
         });
         return hasMount;
     }
+
+    public scaleExtras(level: Level): void {
+        if (this.lastLevelID !== level.getID()) {
+            RG.err('LevelSurroundings', 'scaleExtras',
+                'Previous surrounded level not given. Scaling will not work');
+        }
+        const extras = level.getExtras();
+        const props = ['corridor', 'entrance', 'room', 'storeroom',
+            'vault'];
+        props.forEach(prop => {
+            this.scaleRooms(extras[prop] as any[]);
+        });
+    }
+
+    /* Scales all Room objects to the new level. */
+    public scaleRooms(rooms: any[]): void {
+        rooms.forEach(room => {
+            [room._x1, room._y1] = this.offsetFunc(room._x1, room._y1);
+            [room._x2, room._y2] = this.offsetFunc(room._x2, room._y2);
+        });
+    }
+
 }
