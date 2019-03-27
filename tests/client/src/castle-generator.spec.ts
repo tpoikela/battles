@@ -28,12 +28,23 @@ describe('CastleGenerator', () => {
     });
 
     it('can create castle with central corridors', () => {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 1; i++) {
             const conf = CastleGenerator.getOptions();
+            conf.preserveMarkers = true;
             conf.centralCorridors = true;
             conf.templates = 'residential';
+            conf.maxDanger = 10;
             const level = castleGen.create(90, 60, conf);
+            // level.debugPrintInASCII();
             expect(level).to.be.an.instanceof(Level);
+
+            const storerooms = level.getExtras().storeroom;
+            const levers = level.getElements().filter(e => e.getType() === 'lever');
+            const leverDoors = level.getElements().filter(
+                e => e.getType() === 'leverdoor');
+            expect(levers.length, 'All levers created').to.equal(storerooms.length);
+            expect(leverDoors.length, 'All levers created')
+                .to.equal(storerooms.length);
         }
     });
 
