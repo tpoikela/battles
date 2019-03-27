@@ -258,6 +258,7 @@ export const FactoryZone = function() {
     this.createFortLevel = function(cols, rows, levelConf) {
         const castleGen = new CastleGenerator();
         levelConf.roomCount = -1; // Fill all castle tiles
+        if (!levelConf.maxDanger) {levelConf.maxDanger = 6;}
         const level = castleGen.create(100, 84, levelConf);
         this.populateCityLevel(level, levelConf);
         return level;
