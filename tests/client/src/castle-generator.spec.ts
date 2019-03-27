@@ -14,6 +14,7 @@ describe('CastleGenerator', () => {
 
     it('can create castle levels with default config', () => {
         const conf = CastleGenerator.getOptions();
+        conf.maxDanger = 5;
         const level = castleGen.create(80, 50, conf);
         expect(level).to.be.an.instanceof(Level);
 
