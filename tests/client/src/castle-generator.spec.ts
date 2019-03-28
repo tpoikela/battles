@@ -14,12 +14,16 @@ describe('CastleGenerator', () => {
 
     it('can create castle levels with default config', () => {
         const conf = CastleGenerator.getOptions();
+        conf.shouldRemoveMarkers = false;
         conf.maxDanger = 5;
         const level = castleGen.create(80, 50, conf);
         expect(level).to.be.an.instanceof(Level);
 
         const elements = level.getElements();
         expect(elements.length).to.be.above(0);
+
+        const markers = elements.filter(e => e.getType() === 'marker');
+        expect(markers.length).to.be.above(10);
 
         const extras = level.getExtras();
         const rooms = extras.room;
