@@ -13,14 +13,13 @@ import * as Component from './component';
 import {Dice} from './dice';
 import {Spell} from '../data/spells';
 
-import {ActorGen, IShell, StringMap} from '../data/actor-gen';
+import {ActorGen} from '../data/actor-gen';
 
-import {IAddCompObj} from './interfaces';
+import {IAddCompObj, IShell, StringMap, TShellFunc} from './interfaces';
 
 const RNG = Random.getRNG();
 export const ObjectShell: any = {};
 
-type AcceptFunc = (IShell) => boolean;
 type BaseActor = Actor.BaseActor;
 type ItemBase = Item.ItemBase;
 
@@ -42,11 +41,13 @@ export interface IShellDbDanger {
     [key: number]: IShellDb;
 }
 
+// Used when querying objects from the shell database, using func is preferred
+// because it can implement all behaviour the rest are offering
 export interface IQueryDB {
-    name?: string;
+    name?: string; // Specific name sought after
     categ?: string; // actors, items, elements
     danger?: number;
-    func?: AcceptFunc; // Acceptance func for query
+    func?: TShellFunc; // Acceptance func for query
 }
 
 export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
@@ -819,7 +820,7 @@ export const ProcGen = function(db, dbDanger, dbByName) {
      *   2.func(obj) {if (obj.hp > 25) return true;}.
      *   And it can be as complex as needed of course.
      * */
-    this.filterCategWithFunc = function(categ, func: AcceptFunc): IShell[] {
+    this.filterCategWithFunc = function(categ, func: TShellFunc): IShell[] {
         const objects: StringMap<IShell> = this.dbGet({categ});
         const res: IShell[] = [];
         const keys = Object.keys(objects);
@@ -882,7 +883,7 @@ export const ProcGen = function(db, dbDanger, dbByName) {
      *  const item = createRandomItem({func: funcValueSel});
      *  // Above returns item with value > 100.
      */
-    this.getRandomItem = function(obj: IQueryDB | AcceptFunc) {
+    this.getRandomItem = function(obj: IQueryDB | TShellFunc) {
         if (typeof obj === 'function') {
             const res = this.filterCategWithFunc(RG.TYPE_ITEM, obj);
             return RNG.arrayGetRand(res);
@@ -1300,7 +1301,7 @@ export const Parser = function() {
      *  const item = createRandomItem({func: funcValueSel});
      *  // Above returns item with value > 100.
      *  */
-    this.createRandomItem = (obj: IQueryDB | AcceptFunc) => {
+    this.createRandomItem = (obj: IQueryDB | TShellFunc) => {
         const randShell = this._procgen.getRandomItem(obj);
         if (randShell) {
             return this._creator.createFromShell('items', randShell);
