@@ -6,7 +6,39 @@ import {Level} from './level';
 
 import {TCoord} from './interfaces';
 
+export interface ILevelGenOpts {
+    addActors: boolean;
+    addItems: boolean;
+    cellsAround: {[key: string]: string};
+    surroundX: number;
+    surroundY: number;
+    maxValue: number;
+    maxDanger: number;
+    shouldRemoveMarkers: boolean;
+}
+
 export abstract class LevelGenerator {
+
+    public static getOptions(): ILevelGenOpts {
+        return {
+            addActors: false,
+            addItems: true,
+            cellsAround: {
+                N: 'wallmount',
+                S: 'tree',
+                E: 'grass',
+                W: 'snow',
+                NW: 'water',
+                SE: 'water'
+            },
+            surroundX: 10,
+            surroundY: 10,
+            maxValue: 100,
+            maxDanger: 5,
+            shouldRemoveMarkers: true
+        };
+    }
+
     public shouldRemoveMarkers: boolean;
 
     constructor() {
@@ -34,7 +66,8 @@ export abstract class LevelGenerator {
 
     /* Removes the markers which are used during PCG, but should not be visible
      * to player. */
-    public removeMarkers(level: Level, conf): void {
+    public removeMarkers(level: Level, conf): number {
+        let nRemoved = 0;
         let markersPreserved = ['start_point', 'end_point', 'critical_path'];
         if (conf.markersPreserved) {
             markersPreserved = markersPreserved.concat(conf.markersPreserved);
@@ -52,11 +85,13 @@ export abstract class LevelGenerator {
                 if (e.getTag) {
                     const tag = e.getTag();
                     if (markersPreserved.indexOf(tag) < 0) {
+                        ++nRemoved;
                         return true;
                     }
                 }
                 return false;
             });
         }
+        return nRemoved;
     }
 }
