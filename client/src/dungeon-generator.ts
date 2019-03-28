@@ -2,7 +2,7 @@
 import RG from './rg';
 import ROT from '../../lib/rot';
 
-import {LevelGenerator} from './level-generator';
+import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {CellMap} from './map';
 import {Level} from './level';
 import {Geometry} from './geometry';
@@ -70,23 +70,39 @@ const BigRoom = function(type, room) {
     this.type = type;
 };
 
+interface DungeonOpts extends ILevelGenOpts {
+    levelType: string;
+    nBigRooms: number;
+    bigRoomX: string[];
+    bigRoomY: string[];
+    bigRoomWidth: number[];
+    bigRoomHeight: number[];
+    minNumRooms: number;
+    options: {[key: string]: any};
+    rerunOnFailure: boolean;
+    errorOnFailure: boolean;
+}
+
+type PartialDungeonOpts = Partial<DungeonOpts>;
+
 /* This class is used to generate different dungeon levels. */
 export class DungeonGenerator extends LevelGenerator {
 
     public static mapOptions: {[key: string]: any}; // TODO fix typings
 
     /* Returns the default options for dungeon level generation. */
-    public static getOptions(type = 'digger') {
+    public static getOptions(type = 'digger'): DungeonOpts {
+        const opts = LevelGenerator.getOptions();
         const levelOpts = {
             levelType: type, nBigRooms: 1,
             bigRoomX: ['cen'], bigRoomY: ['cen'],
             bigRoomWidth: [10], bigRoomHeight: [10],
-            maxDanger: 5, maxValue: 100,
-            minNumRooms: 3
+            minNumRooms: 3,
+            rerunOnFailure: true, errorOnFailure: false
         };
         // Options specific to map gen (ie digger or uniform)
         const mapOpts = {options: mapOptions[type]};
-        return Object.assign(levelOpts, mapOpts);
+        return Object.assign(levelOpts, mapOpts, opts);
     }
 
     public addDoors: boolean;
@@ -99,7 +115,7 @@ export class DungeonGenerator extends LevelGenerator {
 
     /* Creates the actual Map.Level. User should call this function with desired
      * size (X * Y) and configuration. */
-    public create(cols: number, rows: number, conf): Level {
+    public create(cols: number, rows: number, conf: PartialDungeonOpts): Level {
         // Creates the Map.Level with rooms, walls and floor
         const level = this._createLevel(cols, rows, conf);
 
