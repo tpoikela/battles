@@ -7,7 +7,7 @@ import RG from './rg';
 import ROT from '../../lib/rot';
 
 import * as Element from './element';
-import {LevelGenerator} from './level-generator';
+import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {MapGenerator} from './map.generator';
 import {Level, LevelExtraType} from './level';
 import {DungeonPopulate} from './dungeon-populate';
@@ -25,14 +25,8 @@ import {TCoord} from './interfaces';
 type CellList = import('./map').CellMap;
 type Cell = import('./map.cell').Cell;
 
-interface CastleOpts {
-    addItems: boolean;
+interface CastleOpts extends ILevelGenOpts {
     roomCount: number;
-    cellsAround: {[key: string]: string};
-    surroundX: number;
-    surroundY: number;
-    maxValue: number;
-    preserveMarkers: boolean;
     centralCorridors: boolean;
 }
 
@@ -43,24 +37,12 @@ type PartialCastleOpts = Partial<CastleOpts>;
 /* This class is used to generate different dungeon levels. */
 export class CastleGenerator extends LevelGenerator {
 
+    /* Return default options for castle generation. Used in editor mainly. */
     public static getOptions(): CastleOpts {
-        return {
-            addItems: true,
-            roomCount: -1,
-            centralCorridors: false,
-            cellsAround: {
-                N: 'wallmount',
-                S: 'tree',
-                E: 'grass',
-                W: 'snow',
-                NW: 'water',
-                SE: 'water'
-            },
-            surroundX: 10,
-            surroundY: 10,
-            maxValue: 100,
-            preserveMarkers: false
-        };
+        const opts = LevelGenerator.getOptions() as CastleOpts;
+        opts.centralCorridors = false;
+        opts.roomCount = -1;
+        return opts;
     }
 
     public addDoors: boolean;
@@ -77,7 +59,6 @@ export class CastleGenerator extends LevelGenerator {
     /* Returns a fully populated castle-level. */
     public create(cols, rows, conf: PartialCastleOpts): Level {
         const castleLevel = this.createLevel(cols, rows, conf);
-        conf.preserveMarkers = false;
         this.removeMarkers(castleLevel, conf);
 
         if (conf.addItems) {
@@ -87,6 +68,10 @@ export class CastleGenerator extends LevelGenerator {
         this.populateStoreRooms(castleLevel, conf);
 
         // TODO populate level with actors based on conf
+        if (conf.addActors) {
+            RG.err('CastleGenerator', 'create',
+               'addActors == true not supported yet');
+        }
         return castleLevel;
     }
 
@@ -96,10 +81,10 @@ export class CastleGenerator extends LevelGenerator {
     ): Level {
         const levelConf: any = Object.assign({
             dungeonType: 'castle',
-            preserveMarkers: true,
             wallType: 'wallcastle'
             }, conf
         );
+        levelConf.preserveMarkers = true;
         const mapgen = new MapGenerator();
 
         // Determine direction of castle exit
