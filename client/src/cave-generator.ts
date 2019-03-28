@@ -8,7 +8,7 @@ import {CellMap} from './map';
 import {Level, LevelExtras} from './level';
 // const Random = require('./random');
 import {DungeonPopulate} from './dungeon-populate';
-import {LevelGenerator} from './level-generator';
+import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {Path} from './path';
 import {Geometry} from './geometry';
 import {Random} from './random';
@@ -47,14 +47,21 @@ interface MapOpts {
     addMiners?: Miner[];
 }
 
+interface CaveOpts extends ILevelGenOpts {
+    dungeonType: string;
+    isCollapsed: boolean;
+}
+
+type PartialCaveOpts = Partial<CaveOpts>;
+
 
 export class CaveGenerator extends LevelGenerator {
-    public static getOptions() {
-        return {
+    public static getOptions(): CaveOpts {
+        const opts = LevelGenerator.getOptions();
+        return Object.assign(opts, {
             dungeonType: 'Lair',
-            maxDanger: 5, maxValue: 100,
             isCollapsed: false
-        };
+        });
     }
 
     constructor() {
@@ -63,7 +70,7 @@ export class CaveGenerator extends LevelGenerator {
     }
 
     /* Main function to call when a cave is created. */
-    public create(cols: number, rows: number, conf): Level {
+    public create(cols: number, rows: number, conf: PartialCaveOpts): Level {
         if (RG.isNullOrUndef([cols, rows])) {
             RG.err('CaveGenerator', 'create',
                 `cols or rows not defined: cols: ${cols} / rows: ${rows}`);
@@ -76,7 +83,6 @@ export class CaveGenerator extends LevelGenerator {
 
         this._addEncounters(level, conf);
 
-        conf.preserveMarkers = false;
         this.removeMarkers(level, conf);
         return level;
     }
