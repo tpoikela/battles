@@ -806,5 +806,21 @@ describe('Data query functions for objects', function() {
 
     });
 
+    it('can add goals to actors using shells', () => {
+        const demonShell = parser.dbGet({name: 'Winter demon'})[0];
+        demonShell.goals = [{name: 'GoHome', setArgs: {xy: [0, 0]}}, {name: 'Thief'}];
+        const winterDemon = parser.createFromShell(RG.TYPE_ACTOR, demonShell);
+
+        const brain = winterDemon.getBrain();
+        const goal = brain.getGoal();
+        const homeEval = goal.getEvaluator('GoHome');
+        const thiefEval = goal.getEvaluator('Thief');
+        const evaluators = [homeEval, thiefEval];
+        const soughtEvals = evaluators.filter(ee => (
+            ee.getType().match(/(GoHome|Thief)/)
+        ));
+        expect(soughtEvals).to.have.length(2);
+    });
+
 });
 
