@@ -100,6 +100,8 @@ export class Level extends Entity {
         return Entity.createEntityID();
     }
 
+    public editorID: number; // Used in editor only
+
     private _map: CellMap;
     private _parent: any;
     private _p: LevelProps;
@@ -109,6 +111,7 @@ export class Level extends Entity {
 
     // Non-serializable property used during PCG
     private _extras: LevelExtras;
+
 
     constructor() {
         super();
