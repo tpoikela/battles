@@ -41,7 +41,7 @@ export interface IGameMain {
 /* Top-level main object for the game.  */
 export const GameMain = function() {
     this._players = []; // List of players
-    this._places = {}; // List of all places
+    this._places = {};
     this._shownLevel = null; // One per game only
     this._gameOver = false;
     this.actorsKilled = {};
@@ -103,6 +103,14 @@ export const GameMain = function() {
     this.getLevels = (): Level[] => this._engine.getLevels();
     this.getComponents = (): number[] => this._engine.getComponents();
     this.getPlaces = () => this._places;
+
+    this.getLevelsInAllPlaces = (): Level[] => {
+        let levels = [];
+        Object.values(this._places).forEach((place: any) => {
+            levels = levels.concat(place.getLevels());
+        });
+        return levels;
+    };
 
     this.setEnableChunkUnload = (enable = true) => {
         this._enableChunkUnload = enable;
