@@ -16,15 +16,18 @@ describe('CityGenerator', () => {
     it('can create city levels with default config', () => {
         const conf = CityGenerator.getOptions();
         conf.nShops = 1;
+        conf.actorFunc = (shell) => shell.type === 'bearfolk';
         const cityLevel = cityGen.create(80, 50, conf);
+        // cityLevel.debugPrintInASCII();
 
         const elements = cityLevel.getElements();
         const shops = elements.filter(e => e.getType() === 'shop');
         expect(shops.length).to.be.above(0);
 
         const actors = cityLevel.getActors();
-        const keeper = actors.filter(a => a.has('Shopkeeper'));
-        expect(keeper.length).to.equal(conf.nShops);
+        const keepers = actors.filter(a => a.has('Shopkeeper'));
+        expect(keepers.length).to.equal(conf.nShops);
+        // expect(keepers[0].getType()).to.equal('bearfolk');
     });
 
 });
