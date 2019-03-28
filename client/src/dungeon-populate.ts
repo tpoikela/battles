@@ -352,6 +352,9 @@ export class DungeonPopulate {
                         level.addActor(keeper, xy[0], xy[1]);
                     }
 
+                    if (!conf.parser) {
+                        conf.parser = ObjectShell.getParser();
+                    }
                     const item = this._itemFact.getShopItem(n, conf);
                     if (!item) {
                         const msg = 'item null. ' +
