@@ -12,6 +12,7 @@ import {Path} from './path';
 import {DungeonPopulate} from './dungeon-populate';
 import {Random} from './random';
 import {ELEM} from '../data/elem-constants';
+import {LevelGenerator, ILevelGenOpts} from './level-generator';
 
 const RNG = Random.getRNG();
 
@@ -25,24 +26,36 @@ const preferredActorTypes = [
 ];
 */
 
+interface MountainOpts extends ILevelGenOpts {
+    nRoadTurns: number; // How many times mountain path turns
+    ratio: number;
+}
+
+type PartialMountainOpts = Partial<MountainOpts>;
+
 export class MountainGenerator {
 
     public static options: {[key: string]: any}; // TODO fix typings
 
-    static getSummitOptions() {
-        return MountainGenerator.options.summit;
+    public static getSummitOptions(): PartialMountainOpts {
+        const opts = LevelGenerator.getOptions();
+        return Object.assign({}, MountainGenerator.options.summit, opts);
     }
 
-    static getFaceOptions() {
+    public static getFaceOptions(): PartialMountainOpts {
+        const opts = LevelGenerator.getOptions();
         const mapOpts = MapGenerator.getOptions('mountain');
-        const opts = Object.assign({}, mapOpts, MountainGenerator.options.face);
-        // Usually overridden by top-level conf
-        opts.maxDanger = 5;
-        opts.maxValue = 100;
-        return opts;
+        return Object.assign({}, mapOpts, MountainGenerator.options.face, opts);
     }
 
-    createFace(cols, rows, conf) {
+    /* This creates 2 mountain levels: summit and the face. */
+    public createMountain(cols, rows, conf: MountainOpts): Level[] {
+        const face = this.createFace(cols, rows, conf);
+        const summit = this.createSummit(cols, rows, conf);
+        return [face, summit];
+    }
+
+    public createFace(cols, rows, conf: PartialMountainOpts): Level {
         const mapgen = new MapGenerator();
         const level = new Level();
         mapgen.setGen('mountain', cols, rows);
@@ -57,7 +70,7 @@ export class MountainGenerator {
         return level;
     }
 
-    createSummit(cols, rows, conf) {
+    public createSummit(cols, rows, conf: PartialMountainOpts): Level {
         const mapgen = new MapGenerator();
         const level = new Level();
         mapgen.setGen('mountain', cols, rows);
@@ -68,7 +81,7 @@ export class MountainGenerator {
     }
 
     /* Creates the most difficult part of the level. */
-    createCrux(level, conf) {
+    public createCrux(level: Level, conf): void {
         const map = level.getMap();
         const cols = map.cols;
         const wallRows = Math.round(map.rows / 6);
@@ -140,15 +153,15 @@ export class MountainGenerator {
     };*/
 
     /* Carves a path between x0,y0 and x1,y1 using a shortest distance. */
-    carvePath(map, x0, y0, x1, y1) {
+    public carvePath(map, x0, y0, x1, y1) {
         const result = [];
         const path = Path.getShortestPath(x0, y0, x1, y1);
         path.forEach(xy => {
             const brush = Geometry.getCrossAround(xy.x, xy.y, 2, true);
-            brush.forEach(xy => {
-                const [x, y] = xy;
+            brush.forEach(bXY => {
+                const [x, y] = bXY;
                 if (map.hasXY(x, y)) {
-                    result.push(xy);
+                    result.push(bXY);
                     map.setBaseElemXY(x, y, ELEM.STONE);
                 }
             });
