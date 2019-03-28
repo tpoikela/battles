@@ -10,10 +10,15 @@ import {Level} from './level';
 import {ELEM} from '../data/elem-constants';
 import {ElementDoor} from './element';
 
+import {TShellFunc} from './interfaces';
+
 const RNG = Random.getRNG();
 
 export interface CityOpts extends ILevelGenOpts {
     hasWall: boolean; // Create a wall around the city
+    nShops: number;
+    shopFunc: TShellFunc[];
+    shopType: string | string[];
 }
 type PartialCityOpts = Partial<CityOpts>;
 
@@ -25,6 +30,9 @@ export class CityGenerator extends LevelGenerator {
     public static getOptions(): CityOpts {
         const opts = LevelGenerator.getOptions() as CityOpts;
         opts.hasWall = false;
+        opts.nShops = 1;
+        opts.shopFunc = [() => true];
+        opts.shopType = ['potion'];
         return opts;
     }
 
@@ -43,6 +51,8 @@ export class CityGenerator extends LevelGenerator {
         if (conf.cellsAround) {
             level = this.createCitySurroundings(level, conf);
         }
+
+        this.removeMarkers(level, conf);
         // TODO populate level with actors based on conf
         return level;
     }
