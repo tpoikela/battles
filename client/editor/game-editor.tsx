@@ -13,28 +13,28 @@ import EditorClickHandler from './editor-click-handler';
 
 import RG from '../src/rg';
 import ROT from '../../lib/rot';
-import {Capital} from '../data/capital';
 import {AbandonedFort, abandonedFortConf} from '../data/abandoned-fort';
-import {DwarvenCity, dwarvenCityConf} from '../data/dwarven-city';
-import {MapWall} from '../../lib/map.wall';
-import {FactoryLevel} from '../src/factory.level';
-import {Geometry} from '../src/geometry';
-import {Level} from '../src/level';
-import {Cell} from '../src/map.cell';
+import {Capital} from '../data/capital';
 import {CellMap} from '../src/map';
-import {Screen} from '../gui/screen';
-import {OWMap} from '../src/overworld.map';
-import {OverWorld} from '../src/overworld';
-import {FactoryWorld} from '../src/factory.world';
-import {WorldConf} from '../src/world.creator';
-import {ObjectShell} from '../src/objectshellparser';
-import {ZoneBase, SubZoneBase} from '../src/world';
-import {Keys} from '../src/keymap';
-import {GameMain} from '../src/game';
-import {FromJSON} from '../src/game.fromjson';
+import {Cell} from '../src/map.cell';
+import {DwarvenCity, dwarvenCityConf} from '../data/dwarven-city';
 import {Factory, FactoryBase} from '../src/factory';
+import {FactoryGame} from '../src/factory.game';
+import {FactoryLevel} from '../src/factory.level';
+import {FactoryWorld} from '../src/factory.world';
+import {FromJSON} from '../src/game.fromjson';
+import {GameMain} from '../src/game';
+import {Geometry} from '../src/geometry';
+import {Keys} from '../src/keymap';
+import {Level} from '../src/level';
+import {MapWall} from '../../lib/map.wall';
+import {OWMap} from '../src/overworld.map';
+import {ObjectShell} from '../src/objectshellparser';
+import {OverWorld} from '../src/overworld';
 import {Path} from '../src/path';
-
+import {Screen} from '../gui/screen';
+import {WorldConf} from '../src/world.creator';
+import {ZoneBase, SubZoneBase} from '../src/world';
 import {MapGenerator} from '../src/map.generator';
 import {DungeonGenerator} from '../src/dungeon-generator';
 import {CaveGenerator} from '../src/cave-generator';
@@ -48,6 +48,7 @@ const KeyMap = Keys.KeyMap;
 const NO_VISIBLE_CELLS = [];
 
 const editorLevelTypes: string[] = [
+  'FullGame',
   'Castle', 'Cave', 'CaveBr', 'City', 'Dungeon', 'MountainFace', 'MountainSummit',
   '------------',
   'abandoned_fort', 'capital', 'dwarven_city',
@@ -288,6 +289,7 @@ export default class GameEditor extends Component {
 
     this.generateWorld = this.generateWorld.bind(this);
     this.generateZone = this.generateZone.bind(this);
+    this.generateGame = this.generateGame.bind(this);
     this.onChangeZoneType = this.onChangeZoneType.bind(this);
 
     this.generateLevel = this.generateLevel.bind(this);
@@ -519,14 +521,14 @@ export default class GameEditor extends Component {
 
 
   /* Returns current level. */
-  public getLevel() {
+  public getLevel(): Level | null {
     if (this.state.levelList.length) {
       return this.state.levelList[this.state.levelIndex];
     }
     return null;
   }
 
-  public onCellClick(x, y) {
+  public onCellClick(x, y): void {
     const map = this.getCurrMap();
     if (map.hasXY(x, y)) {
       const cell = map.getCell(x, y);
@@ -569,6 +571,11 @@ export default class GameEditor extends Component {
     this.addLevelToEditor(worldLevel);
   }
 
+  public generateGame(): void {
+      const factGame = new FactoryGame();
+      this.game = factGame.createNewGame(this.state.levelConf.FullGame);
+  }
+
   public generateZone() {
     const zoneType = this.state.zoneType;
     const fact = new FactoryWorld();
@@ -593,14 +600,17 @@ export default class GameEditor extends Component {
   }
 
   /* Generates a new level map and adds it to the editor.  */
-  public generateLevel() {
+  public generateLevel(): void {
     const levelType = this.state.levelType;
     const level = this.createLevel(levelType);
     this.addLevelToEditor(level);
+    if (levelType === 'FullGame') {
+        this.setState({levelList: this.game.getLevelsInAllPlaces()});
+    }
   }
 
   /* Creates the level of given type. */
-  public createLevel(levelType) {
+  public createLevel(levelType): Level {
     let conf: any = {};
     if (this.state.levelConf.hasOwnProperty(levelType)) {
       conf = this.state.levelConf[levelType];
@@ -639,6 +649,10 @@ export default class GameEditor extends Component {
     }
     else if (levelType === 'MountainSummit') {
       level = new MountainGenerator().createSummit(cols, rows, conf);
+    }
+    else if (levelType === 'FullGame') {
+        this.generateGame();
+        level = this.game.shownLevel();
     }
     else {
       const factLevel = new FactoryLevel();
@@ -1056,6 +1070,12 @@ export default class GameEditor extends Component {
     }
     else if (value === 'MountainSummit') {
       return MountainGenerator.getSummitOptions();
+    }
+    else if (value === 'FullGame') {
+      const owConf = FactoryGame.getOwConf();
+      const gameConf = FactoryGame.getGameConf();
+      gameConf.world = owConf;
+      return gameConf;
     }
     else {
       return {};
