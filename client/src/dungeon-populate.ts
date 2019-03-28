@@ -451,7 +451,7 @@ export class DungeonPopulate {
             else {
                 const trainerConf = {
                     maxDanger: 5,
-                    actorFunc: actor => RG.ALL_RACES.findIndex(actor.type) >= 0
+                    actorFunc: actor => RG.ALL_RACES.indexOf(actor.type) >= 0
                 };
                 trainer = this.createActor(trainerConf);
             }
@@ -483,9 +483,13 @@ export class DungeonPopulate {
             const actor = this.createActor(conf);
             if (actor.getBrain().getGoal) {
                 const evalHome = new Evaluator.GoHome(1.5);
-                const xy = house.getCenter();
+                const xy = house.getFloorCenter();
                 evalHome.setArgs({xy});
                 actor.getBrain().getGoal().addEvaluator(evalHome);
+
+                const homeMarker = new Element.ElementMarker('H');
+                homeMarker.setTag('home');
+                level.addElement(homeMarker, xy[0], xy[1]);
             }
             const floorXY = RNG.arrayGetRand(house.floor);
             level.addActor(actor, floorXY[0], floorXY[1]);
