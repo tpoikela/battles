@@ -78,6 +78,10 @@ export type LevelExtras = Extras & {
     startPoint?: TCoord;
     houses?: House[];
     shops?: WorldShop[];
+    bigRooms?: any[];
+    terms?: any[];
+    rooms?: any[];
+    endPoint?: TCoord;
     /* connectEdges?: boolean;
     isCollapsed?: boolean;*/
 };
