@@ -32,7 +32,7 @@ export class EvaluatorBase {
     public actorBias: number;
     public type: string;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         /* if (!Number.isFinite(actorBias)) {
             RG.err('EvaluatorBase', 'constructor',
                 `bias must number. Got: ${actorBias}`);
@@ -41,7 +41,7 @@ export class EvaluatorBase {
         this.type = 'Base';
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         throw new Error('Pure virtual function');
     }
 
@@ -84,12 +84,12 @@ export class EvaluatorAttackActor extends EvaluatorBase {
 
     public enemyActor: SentientActor;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'AttackActor';
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         const brain = actor.getBrain();
         const seenCells = brain.getSeenCells();
         const enemyCell = brain.findEnemyCell(seenCells);
@@ -116,12 +116,12 @@ Evaluator.hist.AttackActor = 0;
 /* Evaluator to check if an actor should resort to exploring the area. */
 export class EvaluatorExplore extends EvaluatorBase {
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Explore';
     }
 
-    public calculateDesirability(/* actor */) {
+    public calculateDesirability(/* actor */): number {
         /* const enemyCells = RG.Brain.getEnemyCellsAround(actor);
         if (enemyCells.length > 0) {
             return 0.01;
@@ -138,12 +138,12 @@ export class EvaluatorFlee extends EvaluatorBase {
 
     public enemyActor: SentientActor;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Flee';
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         const enemies = actor.getBrain().getSeenEnemies();
         if (enemies.length > 0) {
             const health = actor.get('Health');
@@ -201,7 +201,7 @@ export class EvaluatorPatrol extends EvaluatorBase {
         this.coords = coords;
     }
 
-    public calculateDesirability() {
+    public calculateDesirability(): number {
         return this.actorBias;
     }
 
@@ -256,7 +256,7 @@ export class EvaluatorGuard extends EvaluatorBase {
         this.setXY(xy);
     }
 
-    public calculateDesirability() {
+    public calculateDesirability(): number {
         return this.actorBias;
     }
 
@@ -283,7 +283,7 @@ export class EvaluatorOrders extends EvaluatorBase {
     public srcActor: SentientActor;
     public subEval: EvaluatorBase;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Orders';
         this.goal = null;
@@ -295,7 +295,7 @@ export class EvaluatorOrders extends EvaluatorBase {
         this.srcActor = args.srcActor;
     }
 
-    public calculateDesirability() {
+    public calculateDesirability(): number {
         // TODO evaluate srcActor status
         // Evaluate difficulty of goal
         const commanderMult = 1.0;
@@ -347,7 +347,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
     public spell: any; // TODO fix to correct type
     public spellArgs: SpellArgs;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'CastSpell';
         this._castingProb = 0.2;
@@ -361,7 +361,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
         return this._castingProb;
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         this.spell = this.getRandomSpell(actor);
         if (!this.spell) {return 0;}
 
@@ -442,12 +442,12 @@ export class EvaluatorShopkeeper extends EvaluatorBase {
     public x: number;
     public y: number;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Shopkeeper';
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         // TODO calculate dist from shop etc
         if (actor.has('Shopkeeper')) {
             return this.actorBias;
@@ -489,7 +489,7 @@ export class EvaluatorGoHome extends EvaluatorBase {
     public x: number;
     public y: number;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'GoHome';
         this.timeToHomeSick = RNG.getUniformInt(20, 40);
@@ -497,7 +497,7 @@ export class EvaluatorGoHome extends EvaluatorBase {
         this.maxDistHome = 5;
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         if (this.timeToHomeSick > 0) {
             this.timeToHomeSick -= 1;
             return 0.0;
@@ -550,12 +550,12 @@ Evaluator.hist.GoHome = 0;
 
 export class EvaluatorThief extends EvaluatorBase {
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Thief';
     }
 
-    public calculateDesirability(/* actor */) {
+    public calculateDesirability(/* actor */): number {
         return this.actorBias;
     }
 
@@ -565,7 +565,7 @@ Evaluator.hist.Thief = 0;
 
 export class EvaluatorCommunicate extends EvaluatorBase {
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Communicate';
     }
