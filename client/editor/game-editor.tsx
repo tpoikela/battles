@@ -41,16 +41,19 @@ import {CaveGenerator} from '../src/cave-generator';
 import {CaveBrGenerator} from '../src/cave-br-generator';
 import {MountainGenerator} from '../src/mountain-generator';
 import {CastleGenerator} from '../src/castle-generator';
+import {CityGenerator} from '../src/city-generator';
 
 const KeyMap = Keys.KeyMap;
 
 const NO_VISIBLE_CELLS = [];
 
 const editorLevelTypes: string[] = [
-  'Castle', 'Cave', 'CaveBr', 'Dungeon', 'MountainFace', 'MountainSummit',
-  'abandoned_fort',
-  'arena', 'castle', 'capital', 'cellular', 'cave', 'crypt',
-  'digger', 'divided', 'dungeon', 'dwarven_city',
+  'Castle', 'Cave', 'CaveBr', 'City', 'Dungeon', 'MountainFace', 'MountainSummit',
+  '------------',
+  'abandoned_fort', 'capital', 'dwarven_city',
+  '------------',
+  'arena', 'castle',  'cellular', 'cave', 'crypt',
+  'digger', 'divided', 'dungeon',
   'eller', 'empty', 'forest', 'icey', 'miner',
   'mountain', 'uniform', 'rogue',
   'ruins', 'rooms', 'summit', 'town', 'townwithwall', 'wall'
@@ -628,6 +631,9 @@ export default class GameEditor extends Component {
     else if (levelType === 'Castle') {
       level = new CastleGenerator().create(cols, rows, conf);
     }
+    else if (levelType === 'City') {
+      level = new CityGenerator().create(cols, rows, conf);
+    }
     else if (levelType === 'MountainFace') {
       level = new MountainGenerator().createFace(cols, rows, conf);
     }
@@ -1035,6 +1041,9 @@ export default class GameEditor extends Component {
     }
     else if (value === 'Castle') {
       return CastleGenerator.getOptions();
+    }
+    else if (value === 'City') {
+      return CityGenerator.getOptions();
     }
     else if (value === 'cave') {
       const caveGen = new ROT.Map.Miner();
