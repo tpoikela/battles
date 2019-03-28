@@ -14,6 +14,7 @@ import * as Element from './element';
 import {ObjectShell} from './objectshellparser';
 import {SentientActor} from './actor';
 import {BrainGoalOriented} from './brain/brain.goaloriented';
+import {ItemGen} from '../data/item-gen';
 
 const MIN_ACTORS_ROOM = 2;
 const RNG = Random.getRNG();
@@ -30,6 +31,8 @@ interface PopulConf {
     maxDanger?: number;
     maxValue?: number;
 }
+
+const probSpecialItem = 0.5;
 
 export class DungeonPopulate {
 
@@ -223,7 +226,11 @@ export class DungeonPopulate {
         return guardian;
     }
 
-    public addMainLoot(level, center, maxValue) {
+    /* Adds a loot item to the given coord. This item will be higher in value
+     * than the normal values of items in this level. Note that maxValue given
+     * will be internally scaled in the function from the given number.
+     */
+    public addMainLoot(level: Level, center: TCoord, maxValue: number): boolean {
         const [cx, cy] = center;
         // Add main loot
         // 1. Scale is from 2-4 normal value, this scales the
@@ -231,10 +238,19 @@ export class DungeonPopulate {
         const scaleLoot = RNG.getUniformInt(2, 3);
         const maxPrizeValue = scaleLoot * maxValue;
         const minPrizeValue = (scaleLoot - 1) * maxValue;
-        const lootPrize = this._itemFact.createItem(
-            {func: item => item.value >= minPrizeValue
-                && item.value <= maxPrizeValue}
-        );
+
+        const lootFunc = item => (item.value >= minPrizeValue
+            && item.value <= maxPrizeValue);
+
+        let lootPrize = null;
+        if (RG.isSuccess(probSpecialItem)) {
+            const parser = ObjectShell.getParser();
+            const shell = ItemGen.genRandShellWith(lootFunc);
+            lootPrize = parser.createFromShell(RG.TYPE_ITEM, shell);
+        }
+        else {
+            lootPrize = this._itemFact.createItem({func: lootFunc});
+        }
         if (lootPrize) {
             level.addItem(lootPrize, cx, cy);
             return true;
