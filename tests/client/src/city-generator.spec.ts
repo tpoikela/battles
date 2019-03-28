@@ -21,6 +21,10 @@ describe('CityGenerator', () => {
         const elements = cityLevel.getElements();
         const shops = elements.filter(e => e.getType() === 'shop');
         expect(shops.length).to.be.above(0);
+
+        const actors = cityLevel.getActors();
+        const keeper = actors.filter(a => a.has('Shopkeeper'));
+        expect(keeper.length).to.equal(conf.nShops);
     });
 
 });
