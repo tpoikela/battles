@@ -1,7 +1,7 @@
 /* Contains code for better city level generation. */
 
 import RG from './rg';
-import {LevelGenerator} from './level-generator';
+import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {MapGenerator} from './map.generator';
 import {DungeonPopulate} from './dungeon-populate';
 import {LevelSurroundings} from './level-surroundings';
@@ -12,10 +12,22 @@ import {ElementDoor} from './element';
 
 const RNG = Random.getRNG();
 
+export interface CityOpts extends ILevelGenOpts {
+    hasWall: boolean; // Create a wall around the city
+}
+type PartialCityOpts = Partial<CityOpts>;
+
 /* Object for the city generator. */
 export class CityGenerator extends LevelGenerator {
 
     public static options: {[key: string]: any};
+
+    public static getOptions(): CityOpts {
+        const opts = LevelGenerator.getOptions() as CityOpts;
+        opts.hasWall = false;
+        return opts;
+    }
+
     public addDoors: boolean;
 
     constructor() {
@@ -24,7 +36,7 @@ export class CityGenerator extends LevelGenerator {
         this.shouldRemoveMarkers = true;
     }
 
-    public create(cols: number, rows: number, conf): Level {
+    public create(cols: number, rows: number, conf: PartialCityOpts): Level {
         let level = this.createLevel(cols, rows, conf);
         this.populateCityLevel(level, conf);
 
@@ -104,9 +116,8 @@ export class CityGenerator extends LevelGenerator {
         });
     }
 
-    public createCitySurroundings(level: Level, conf) {
+    public createCitySurroundings(level: Level, conf): Level {
         const levelSurround = new LevelSurroundings();
-        console.log('cityGen cellsAround', conf.cellsAround);
         return levelSurround.surround(level, conf);
     }
 }
