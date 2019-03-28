@@ -1,17 +1,14 @@
 
 import RG from './rg';
-import {LevelGenerator} from './level-generator';
+import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {MapGenerator} from './map.generator';
 import {Level} from './level';
 
-export interface CryptOpts {
-    preserveMarkers: boolean;
+export interface CryptOpts extends ILevelGenOpts {
     tilesX: number;
     tilesY: number;
     genParams: [number, number, number, number];
     roomCount: number;
-    maxValue: number;
-    maxDanger: number;
 }
 
 type PartialCryptOpts = Partial<CryptOpts>;
@@ -20,13 +17,13 @@ type PartialCryptOpts = Partial<CryptOpts>;
 export class CryptGenerator extends LevelGenerator {
 
     public static getOptions(): CryptOpts {
-        return {
-            preserveMarkers: true,
+        let opts = LevelGenerator.getOptions() as CryptOpts;
+        opts = Object.assign(opts, {
             tilesX: 12, tilesY: 7,
             genParams: [2, 2, 2, 2],
-            roomCount: 40,
-            maxDanger: 1, maxValue: 50
-        };
+            roomCount: 40
+        });
+        return opts;
     }
 
     constructor() {
