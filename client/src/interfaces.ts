@@ -267,6 +267,20 @@ export interface IFactoryGameConf {
     owConf?: OWMapConf;
 }
 
+//--------------------------------
+// ITEM/ACTOR GENERATION, SHELLS
+//--------------------------------
+
+export interface IShell {
+    [key: string]: any;
+}
+
+export interface StringMap<T> {
+    [key: string]: T;
+}
+
+export type TShellFunc = (shell: IShell) => boolean;
+
 //-------------
 // COMPONENTS
 //-------------
