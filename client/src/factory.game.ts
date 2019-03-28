@@ -31,6 +31,7 @@ import {SentientActor} from './actor';
 
 import {IFactoryGameConf, OWMapConf} from './interfaces';
 
+import {ACTOR_CLASSES} from '../src/actor-class';
 const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
 
@@ -676,3 +677,29 @@ FactoryGame.getOwConf = function(mult = 1, obj: any = {}): OWMapConf {
     console.log('owConf is', owConf);
     return owConf;
 };
+
+FactoryGame.getGameConf = function() {
+    return {
+        cols: 60,
+        rows: 30,
+        levels: 2,
+
+        seed: new Date().getTime(),
+
+        playerLevel: 'Medium',
+        levelSize: 'Medium',
+        playerClass: ACTOR_CLASSES[0],
+        playerRace: RG.ACTOR_RACES[0],
+
+        sqrPerActor: 120,
+        sqrPerItem: 120,
+        playMode: 'OverWorld',
+        loadedPlayer: null,
+        loadedLevel: null,
+        playerName: 'Player',
+        world: WorldConf,
+        xMult: 2,
+        yMult: 3
+    };
+};
+
