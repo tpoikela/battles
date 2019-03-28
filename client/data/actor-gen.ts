@@ -5,6 +5,7 @@ import RG from '../src/rg';
 import {Random} from '../src/random';
 import {mixNewShell} from './shell-utils';
 import {BypassComp, resistance} from './actors';
+import {IShell, StringMap} from '../src/interfaces';
 
 export const ActorGen: any = {};
 
@@ -38,14 +39,6 @@ const randWeights = {
     },
 
 };
-
-export interface IShell {
-    [key: string]: any;
-}
-
-export interface StringMap<T> {
-    [key: string]: T;
-}
 
 interface ShellProps {
     races: StringMap<IShell>;

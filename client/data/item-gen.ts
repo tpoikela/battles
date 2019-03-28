@@ -3,10 +3,10 @@
  */
 
 import RG from '../src/rg';
-import {IShell, StringMap} from './actor-gen';
 import {meleeHitDamage, directDamage} from './shell-utils';
 import {Random} from '../src/random';
 import {mixNewShell} from './shell-utils';
+import {IShell, StringMap} from '../src/interfaces';
 
 const RNG = Random.getRNG();
 
