@@ -33,7 +33,7 @@ describe('CastleGenerator', () => {
     });
 
     it('can create castle with central corridors', () => {
-        for (let i = 0; i < 1; i++) {
+        for (let i = 0; i < 10; i++) {
             const conf = CastleGenerator.getOptions();
             conf.preserveMarkers = true;
             conf.centralCorridors = true;
