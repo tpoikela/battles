@@ -18,6 +18,7 @@ interface ItemProps {
 }
 
 interface Names {
+    armour: string[];
     materials: string[];
     weapon: string[];
     weaponTypes: string[];
@@ -68,9 +69,15 @@ const prefix: any = {
         },
     }
 };
+prefix.armour = {
+    light: prefix.weapon.light,
+    heavy: {weight: 1.5, value: 1.2, protection: 2, rarity: 1.5},
+    plated: {weight: 1.2, value: 1.3, protection: 2, rarity: 1.3},
+};
 ItemGen.prefix = prefix;
 names.prefix = {
-    weapon: Object.keys(prefix.weapon)
+    weapon: Object.keys(prefix.weapon),
+    armour: Object.keys(prefix.armour)
 };
 
 const suffix: any = {
@@ -139,14 +146,45 @@ const suffix: any = {
         },
     }
 };
+suffix.armour = {
+    ofSpeed: suffix.weapon.ofSpeed,
+    ofProtection: suffix.weapon.ofProtection,
+    ofPerception: suffix.weapon.ofPerception,
+    ofDefense: suffix.weapon.ofProtection,
+    ofMight: suffix.weapon.ofMight,
+    ofLevitation: {
+        onEquip: [{addComp: 'Flying'}], rarity: 5, value: 5
+    },
+    ofNecropotence: {
+        onEquip: [
+            {addComp: 'RegenEffect', func: [
+                {setter: 'setHP', value: 0},
+                {setter: 'setMaxWaitPP', value: 25}
+            ]},
+            {addComp: 'DirectDamage', func: [
+                {setter: 'setDamage', value: 1},
+                {setter: 'setDamageType', value: RG.DMG.NECRO},
+                {setter: 'setDamageCateg', value: RG.DMG.DIRECT},
+                {setter: 'setProb', value: 0.05},
+                {setter: 'setMsg', value: 'Necropotence demands blood!'},
+            ]}
+        ]
+    }
+
+};
 ItemGen.suffix = suffix;
 names.suffix = {
-    weapon: Object.keys(suffix.weapon)
+    weapon: Object.keys(suffix.weapon),
+    armour: Object.keys(suffix.armour)
 };
 
 const baseShells: StringMap<IShell> = {
     weapon: {
         type: 'weapon', range: 1, value: 1, attack: 0, defense: 0
+    },
+    armour: {
+        type: 'armour', value: 1, attack: 0, defense: 0,
+        protection: 0
     }
 };
 
@@ -184,21 +222,31 @@ names.weapon = Object.keys(shellProps.weapon);
 
 shellProps.armour = {
     robe: {
-        armourType: 'chest'
+        armourType: 'chest', weight: 1.0,
+        protection: 0, defense: 0
+    },
+    cuirass: {
+        armourType: 'chest', weight: 2.0,
+        protection: 3, defense: -1, attack: -1
     },
     boots: {
-        armourType: 'feet'
+        armourType: 'feet', weight: 0.5,
+        protection: 1, defense: 0, attack: 0
     },
     helmet: {
-        armourType: 'head'
+        armourType: 'head', weight: 0.3,
+        protection: 1, defense: 0, attack: 0
     },
     collar: {
-        armourType: 'neck'
+        armourType: 'neck', weight: 0.2,
+        protection: 1, defense: 0, attack: 0
     },
     shield: {
-        armourType: 'shield'
+        armourType: 'shield', weight: 0.8,
+        protection: 2, defense: 1, attack: 0
     }
 };
+names.armour = Object.keys(shellProps.armour);
 
 shellProps.material = {
     leather: {
@@ -234,6 +282,8 @@ shellProps.material = {
 };
 
 names.materials = Object.keys(shellProps.material);
+
+const itemTypes = ['armour', 'weapon'];
 
 /* Generates a random item shell according to the following rules:
  * 1.
@@ -325,9 +375,23 @@ ItemGen.buildShell = function(nameMap: NameMap): IShell {
 ItemGen.genItems = function(nItems: number): IShell[] {
     const result = [];
     for (let i = 0; i < nItems; i++) {
-        result.push(ItemGen.genRandShell());
+        const itemType = RNG.arrayGetRand(itemTypes);
+        result.push(ItemGen.genRandShell(itemType));
     }
     return result;
+};
+
+/* Generates a random shell and accepts it with given function. */
+ItemGen.genRandShellWith = function(constrOrFunc): IShell {
+    let maxTries = 100;
+    let shell = null;
+    while (maxTries >= 0) {
+        const itemType = RNG.arrayGetRand(itemTypes);
+        --maxTries;
+        shell = ItemGen.genRandShell(itemType);
+        if (constrOrFunc(shell)) {break;}
+    }
+    return shell;
 };
 
 
