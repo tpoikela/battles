@@ -4,10 +4,11 @@ import RG from './rg';
 import {ElementMarker, ElementDoor} from './element';
 import {Level} from './level';
 
-import {TCoord} from './interfaces';
+import {TCoord, TShellFunc} from './interfaces';
 
 export interface ILevelGenOpts {
     addActors: boolean;
+    actorFunc: TShellFunc;
     addItems: boolean;
     cellsAround: {[key: string]: string};
     surroundX: number;
@@ -22,6 +23,7 @@ export abstract class LevelGenerator {
     public static getOptions(): ILevelGenOpts {
         return {
             addActors: false,
+            actorFunc: (shell) => shell.danger <= 5,
             addItems: true,
             cellsAround: {
                 N: 'wallmount',
