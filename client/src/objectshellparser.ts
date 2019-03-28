@@ -12,6 +12,7 @@ import {ElementBase} from './element';
 import * as Component from './component';
 import {Dice} from './dice';
 import {Spell} from '../data/spells';
+import {Evaluator} from './evaluators';
 
 import {ActorGen} from '../data/actor-gen';
 
@@ -288,6 +289,10 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
             this.addOnEquipProperties(shell, newObj);
         }
 
+        if (shell.hasOwnProperty('goals')) {
+            this.addGoalsToObject(shell, newObj);
+        }
+
         // TODO map different props to function calls
         return newObj;
     };
@@ -416,6 +421,24 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
                 RG.err('Creator', 'addSpellbookAndSpells', msg);
             }
         });
+    };
+
+
+    this.addGoalsToObject = (shell: IShell, newObj) => {
+        if (RG.isActor(newObj)) {
+            const {goals} = shell;
+            goals.forEach(goal => {
+                const {name, bias} = goal;
+                const newEval = new Evaluator[name](bias);
+                Object.keys(goal).forEach(prop => {
+                    // Call each setter given with {name: 'AAA', setter: 0...}
+                    if (prop !== 'name' && prop !== 'bias') {
+                        newEval[prop](goal[prop]);
+                    }
+                });
+                newObj.getBrain().getGoal().addEvaluator(newEval);
+            });
+        }
     };
 
     this.getUsedObject = (strOrObj) => {
