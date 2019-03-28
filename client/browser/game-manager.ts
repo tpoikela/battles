@@ -30,7 +30,6 @@ import {EventPool} from '../src/eventpool';
 import {Dice} from '../src/dice';
 import {OWMap} from '../src/overworld.map';
 import {KeyCode} from '../gui/keycode';
-import {ACTOR_CLASSES} from '../src/actor-class';
 import {ObjectShell} from '../src/objectshellparser';
 
 import {Persist} from '../src/persist';
@@ -238,29 +237,8 @@ export class GameManager {
         this.recordedCommands = [];
 
         // Simple configuration for the game
-        this.gameConf = {
-            cols: 60,
-            rows: 30,
-            levels: 2,
-
-            seed: new Date().getTime(),
-
-            playerLevel: 'Medium',
-            levelSize: 'Medium',
-            playerClass: ACTOR_CLASSES[0],
-            playerRace: RG.ACTOR_RACES[0],
-
-            sqrPerActor: 120,
-            sqrPerItem: 120,
-            playMode: 'OverWorld',
-            loadedPlayer: null,
-            loadedLevel: null,
-            playerName: 'Player',
-            world: WorldConf,
-            xMult: 2,
-            yMult: 3
-        };
-
+        this.gameConf = FactoryGame.getGameConf();
+        this.gameConf.world = WorldConf;
         this.handleKeyDown = this.handleKeyDown.bind(this);
     }
 
