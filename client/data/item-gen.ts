@@ -82,6 +82,14 @@ names.prefix = {
 
 const suffix: any = {
     weapon: {
+        ofAccuracy: {
+            name: 'of Accuracy', accuracy: 5,
+            rarity: 2.5, value: 2.5
+        },
+        ofAgility: {
+            name: 'of Agility', agility: 5,
+            rarity: 2.5, value: 2.5
+        },
         ofDefense: {
             name: 'of Defense', defense: 5,
             rarity: 3, value: 3
@@ -127,6 +135,10 @@ const suffix: any = {
             onAttackHit: [meleeHitDamage(2, '1d6 + 1', 'ICE')],
             rarity: 3, value: 3
         },
+        ofMagic: {
+            name: 'of Magic', magic: 5,
+            rarity: 2.5, value: 2.5
+        },
         ofPerception: {
             name: 'of Perception', perception: 5,
             rarity: 3, value: 3
@@ -144,14 +156,21 @@ const suffix: any = {
             onAttackHit: [meleeHitDamage(2, '1d8 + 1', 'VOID')],
             rarity: 4, value: 4
         },
+        ofWillpower: {
+            name: 'of Willpower', willpower: 6,
+            rarity: 3, value: 3
+        },
     }
 };
 suffix.armour = {
-    ofSpeed: suffix.weapon.ofSpeed,
-    ofProtection: suffix.weapon.ofProtection,
-    ofPerception: suffix.weapon.ofPerception,
+    ofAccuracy: suffix.weapon.ofAccuracy,
+    ofAgility: suffix.weapon.ofAgility,
     ofDefense: suffix.weapon.ofProtection,
+    ofMagic: suffix.weapon.ofMagic,
     ofMight: suffix.weapon.ofMight,
+    ofPerception: suffix.weapon.ofPerception,
+    ofProtection: suffix.weapon.ofProtection,
+    ofSpeed: suffix.weapon.ofSpeed,
     ofLevitation: {
         onEquip: [{addComp: 'Flying'}], rarity: 5, value: 5
     },
@@ -169,8 +188,8 @@ suffix.armour = {
                 {setter: 'setMsg', value: 'Necropotence demands blood!'},
             ]}
         ]
-    }
-
+    },
+    ofWillpower: suffix.weapon.ofWillpower
 };
 ItemGen.suffix = suffix;
 names.suffix = {
