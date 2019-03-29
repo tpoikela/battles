@@ -15,11 +15,12 @@ import {ObjectShell} from './objectshellparser';
 import {SentientActor} from './actor';
 import {BrainGoalOriented} from './brain/brain.goaloriented';
 import {ItemGen} from '../data/item-gen';
+import {ActorGen} from '../data/actor-gen';
 
 const MIN_ACTORS_ROOM = 2;
 const RNG = Random.getRNG();
 
-import {TCoord, TShellFunc, BBox} from './interfaces';
+import {TCoord, TShellFunc, BBox, IShell} from './interfaces';
 type Level = import('./level').Level;
 type House = import('./houses').House;
 
@@ -79,14 +80,22 @@ export class DungeonPopulate {
                     func: actor => actor.danger <= maxDanger + 2,
                     nActors: 0 // To be set later
                 };
+
+                let addOk = false;
                 if (/cross/.test(type)) {
                     // Cross has lower density as its huge
                     actorConf.nActors = Math.floor(areaSize / 6);
-                    this.addActorsToBbox(level, bbox, actorConf);
+                    addOk = this.addActorsToBbox(level, bbox, actorConf);
                 }
                 else {
                     actorConf.nActors = Math.floor(areaSize / 3);
-                    this.addActorsToBbox(level, bbox, actorConf);
+                    addOk = this.addActorsToBbox(level, bbox, actorConf);
+                }
+
+                if (!addOk) {
+                    const msg = 'Failed to add actors to bbox ';
+                    RG.warn('DungeonPopulate', 'populateLevel',
+                        msg + JSON.stringify(bbox));
                 }
 
                 // Add main loot
@@ -259,7 +268,7 @@ export class DungeonPopulate {
     }
 
     /* Given level and x,y coordinate, tries to populate that point with content. */
-    public populatePoint(level, point, conf) {
+    public populatePoint(level: Level, point: TCoord, conf): void {
         const {maxDanger} = conf;
         const type = RNG.arrayGetRand(popOptions);
         // const [pX, pY] = point;
@@ -282,20 +291,20 @@ export class DungeonPopulate {
     };*/
 
     /* Adds an element into the given point. */
-    public addElementToPoint(level, point, conf) {
+    public addElementToPoint(level: Level, point: TCoord, conf) {
         if (conf.true) {
             // console.log('DungeonPopulate', level, conf, point); // TODO
         }
     }
 
     /* Creates a corpse to the given point, and adds some related loot there. */
-    public addCorpseToPoint(level, point, conf) {
+    public addCorpseToPoint(level: Level, point: TCoord, conf) {
         if (conf.true) {
             // console.log('DungeonPopulate', level, conf, point); // TODO
         }
     }
 
-    public addLootToPoint(level, point) {
+    public addLootToPoint(level: Level, point: TCoord) {
         const maxValue = this.maxValue;
         const lootTypes = [RG.ITEM_POTION, RG.ITEM_SPIRITGEM, RG.ITEM_AMMUNITION,
             RG.ITEM_POTION, RG.ITEM_RUNE];
@@ -553,19 +562,38 @@ export class DungeonPopulate {
         return actor;
     }
 
-    public addActorsToBbox(level: Level, bbox: BBox, conf) {
+    public addActorsToBbox(level: Level, bbox: BBox, conf): boolean {
         const nActors = conf.nActors || 4;
         const {maxDanger, func} = conf;
         const actors = this._actorFact.generateNActors(nActors, func, maxDanger);
-        Placer.addActorsToBbox(level, bbox, actors);
+        return Placer.addActorsToBbox(level, bbox, actors);
     }
 
     /* Adds N items to the given level in bounding box coordinates. */
-    public addItemsToBbox(level: Level, bbox: BBox, conf) {
+    public addItemsToBbox(level: Level, bbox: BBox, conf): boolean {
         const nItems = conf.nItems || 4;
         const itemConf = Object.assign({itemsPerLevel: nItems}, conf);
         const items = this._itemFact.generateItems(itemConf);
-        Placer.addItemsToBbox(level, bbox, items);
+        return Placer.addItemsToBbox(level, bbox, items);
+    }
+
+    /* Adds a unique adventurer to the given level. */
+    public addToughAdventurer(level: Level, point: TCoord, conf): boolean {
+        const {maxDanger} = conf.maxDanger;
+        const minDanger = maxDanger - 1;
+        const actorFunc: TShellFunc = (shell: IShell) => (
+            shell.danger <= (maxDanger + 4) && shell.danger >= minDanger
+        );
+        const advShell = ActorGen.genRandShellWith(actorFunc);
+        if (advShell) {
+            const [aX, aY] = point;
+            const parser = ObjectShell.getParser();
+            const actor = parser.createFromShell(RG.TYPE_ACTOR, advShell);
+            if (actor && level.addActor(actor, aX, aY)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
