@@ -60,7 +60,7 @@ export class SystemMovement extends SystemBase {
 
     constructor(compTypes, pool?) {
         super(RG.SYS.MOVEMENT, compTypes, pool);
-        this.somethingSpecial = ['QuestTarget', 'Named'];
+        this.somethingSpecial = ['QuestTarget'];
         this.climbRe = /highrock/;
 
         /* These are applied when an actor enters a cell with given type of base
