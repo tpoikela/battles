@@ -4,6 +4,7 @@ import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import * as Component from '../component';
 import * as Item from '../item';
+import {ObjectShell} from '../objectshellparser';
 
 const NO_DAMAGE_SRC = RG.NO_DAMAGE_SRC;
 type Cell = import('../map.cell').Cell;
@@ -90,6 +91,8 @@ export class SystemDeath extends SystemBase {
                     qEvent.setTargetComp(actor.get('QuestTarget'));
                     src.add(qEvent);
                 }
+
+                this._addSpawnableUndeadActor(actor);
             }
             this._cleanUpComponents(actor);
         }
@@ -186,4 +189,35 @@ export class SystemDeath extends SystemBase {
             });
         }
     }
+
+    /* When an actor dies, it can be spawned as undead. */
+    public _addSpawnableUndeadActor(actor): void {
+        if (actor.getType() === 'undead' || actor.has('Undead')) {
+            return;
+        }
+        const baseName = actor.get('Named').getBaseName();
+        const parser = ObjectShell.getParser();
+        const found = parser.dbGet({name: baseName,
+            categ: RG.TYPE_ACTOR});
+        if (found) {
+            const shell = found;
+            const newShell = JSON.parse(JSON.stringify(shell));
+            newShell.type = 'undead';
+            if (newShell.addComp) {
+                if (Array.isArray(newShell.addComp)) {
+                    newShell.addComp.push('Undead');
+                }
+                else {
+                    newShell.addComp = [newShell.addComp, 'Undead'];
+                }
+            }
+            else {
+                newShell.addComp = ['Undead'];
+            }
+            newShell.name = 'undead ' + newShell.name;
+            parser.parseObjShell(RG.TYPE_ACTOR, newShell);
+            console.log('Added new actor ', newShell.name, 'to parser');
+        }
+    }
+
 }
