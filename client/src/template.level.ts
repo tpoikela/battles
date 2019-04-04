@@ -1,10 +1,11 @@
 
 import RG from './rg';
-import {Random, RandWeights} from './random';
+import {Random} from './random';
 import {Template} from './template';
 import {Crypt} from '../data/tiles.crypt';
 import {BBoxOld} from './geometry';
 import './utils';
+import {RandWeights} from './interfaces';
 
 import dbg = require('debug');
 const debug = dbg('bitn:TemplateLevel');
