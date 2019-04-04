@@ -1130,6 +1130,10 @@ export class QuestPopulate {
         const named = target.get('Named');
         if (RG.isActor(target)) {
             named.setUniqueName(Names.getActorName());
+            const name = target.getName();
+            const firstChar = name[0];
+            RG.addCharStyle(RG.TYPE_ACTOR, name, firstChar);
+            RG.addCellStyle(RG.TYPE_ACTOR, name, 'cell-actor-unique');
         }
         else if (RG.isItem(target)) {
             // TODO add proper random name generation
