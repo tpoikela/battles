@@ -1003,6 +1003,9 @@ FromJSON.prototype.setGlobalConfAndObjects = function(game, gameJSON) {
         this.actorsKilled = gameJSON.actorsKilled;
         game.actorsKilled = gameJSON.actorsKilled;
     }
+    if (gameJSON.objectShellParser) {
+        ObjectShell.restoreParser(gameJSON.objectShellParser);
+    }
 };
 
 
