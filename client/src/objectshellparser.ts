@@ -785,10 +785,9 @@ Creator.prototype.createBrain = function(actor, brainName: string): void {
 
 /* Object handling the procedural generation. It has an object "database" and
  * objects can be pulled randomly from it. */
-export const ProcGen = function(db, dbDanger, dbByName) {
+export const ProcGen = function(db, dbDanger) {
     this._db = db;
     this._dbDanger = dbDanger;
-    this._dbByName = dbByName;
 
     // Internal cache for proc generation
     const _cache = {
@@ -797,17 +796,18 @@ export const ProcGen = function(db, dbDanger, dbByName) {
 
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
-    this.dbGet = (query: IQueryDB): IShell[] | StringMap<IShell> => {
+    this.dbGet = (query: IQueryDB): IShell | StringMap<IShell> => {
         const name = query.name;
         const categ = query.categ;
         const danger = query.danger;
 
         // Specifying name returns an array
         if (!RG.isNullOrUndef([name])) {
-            if (this._dbByName.hasOwnProperty(name)) {
-                return this._dbByName[name];
+            if (!categ) {
+                RG.err('ProcGen', 'dbGet', 
+                    'Both name and categ must be given!');
             }
-            else {return [];}
+            return this._db[categ][name];
         }
 
         if (!RG.isNullOrUndef([danger])) {
@@ -834,7 +834,6 @@ export const ProcGen = function(db, dbDanger, dbByName) {
             }
         }
         return {};
-
     };
 
     /* Filters given category with a function. Func gets each object as arg,
@@ -975,7 +974,6 @@ export const Parser = function() {
     } as IShellDb;
 
     this._dbDanger = {} as IShellDbDanger; // All entries indexed by danger
-    this._dbByName = {} as StringMap<IShell>; // All entries indexed by name
 
     this._dbNoRandom = {
         actors: {},
@@ -984,8 +982,7 @@ export const Parser = function() {
     } as IShellDb; // All entries excluded from random generation
 
     this._creator = new Creator(this._db, this._dbNoRandom);
-    this._procgen = new ProcGen(this._db, this._dbDanger,
-        this._dbByName);
+    this._procgen = new ProcGen(this._db, this._dbDanger);
 
     this.getCreator = function() {
         return this._creator;
@@ -1084,14 +1081,6 @@ export const Parser = function() {
                 this._dbNoRandom[categ][obj.name] = obj;
             }
             else if (!obj.hasOwnProperty('dontCreate')) {
-                if (this._dbByName.hasOwnProperty(obj.name)) {
-                    this._dbByName[obj.name].push(obj);
-                }
-                else {
-                    const newArr = [];
-                    newArr.push(obj);
-                    this._dbByName[obj.name] = newArr;
-                }
 
                 this._db[categ][obj.name] = obj;
                 if (obj.hasOwnProperty('danger')) {
@@ -1258,6 +1247,14 @@ export const Parser = function() {
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
     this.dbGet = (query: IQueryDB) => this._procgen.dbGet(query);
+    this.dbGetActor = (query: IQueryDB) => {
+        const newQuery = {name: query.name, categ: RG.TYPE_ACTOR};
+        return this._procgen.dbGet(newQuery);
+    };
+    this.dbGetItem = (query: IQueryDB) => {
+        const newQuery = {name: query.name, categ: RG.TYPE_ITEM};
+        return this._procgen.dbGet(newQuery);
+    };
 
     this.dbGetRand = (query: IQueryDB) => this._procgen.dbGetRand(query);
 
@@ -1333,13 +1330,33 @@ export const Parser = function() {
     };
 
     this.toJSON = function(): any {
-        return {
-            db: this._db
+        const json = {
+            _base: {},
+            _db: {},
+            _dbDanger: this._dbDanger,
+            _dbNoRandom: this._dbNoRandom
         };
+        ['actors', 'items', 'elements'].forEach(prop => {
+            json._base[prop] = this._base[prop];
+            json._db[prop] = this._db[prop];
+        });
+        return json;
+    };
+
+    /* Restore the parser from an existing DB. For save games mainly. */
+    this.restoreFromDb = function(db): void {
+        // TODO dbByName
+        const props = ['_base', '_db', '_dbDanger', '_dbNoRandom'];
+        props.forEach(dbName => {
+            Object.keys(db[dbName]).forEach(key => {
+                this[dbName][key] = db[dbName][key];
+            });
+        });
     };
 
 };
 ObjectShell.Parser = Parser;
+
 
 export const createItem = function(nameOrShell: string | IShell) {
     const parser = ObjectShell.getParser();
@@ -1371,3 +1388,11 @@ export const getParser = function() {
     return ObjectShell.parserInstance;
 };
 ObjectShell.getParser = getParser;
+
+export const restoreParser = function(json): void {
+    const parser = new Parser();
+    parser.restoreFromDb(json);
+    parser.parseShellData(Effects);
+    ObjectShell.parserInstance = parser;
+};
+ObjectShell.restoreParser = restoreParser;
