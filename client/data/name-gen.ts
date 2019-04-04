@@ -5,6 +5,7 @@
 export const Names: any = {};
 import RG from '../src/rg';
 import {Random} from '../src/random';
+import {ActorNames} from './actor-names';
 
 const RNG = Random.getRNG();
 
@@ -173,13 +174,8 @@ Names.getGenericPlaceName = (type: string): string => {
     return RNG.arrayGetRand(arr);
 };
 
-Names.actorCount = 0;
 Names.getActorName = (): string => {
-    let fullName = 'RandActor' + Names.actorCount++;
-    while (Names.alreadyUsed.has(fullName)) {
-        fullName = 'RandActor' + Names.actorCount++;
-    }
-    return fullName;
+    return ActorNames.getName();
 };
 
 const bookNameGen = {
