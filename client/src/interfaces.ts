@@ -95,6 +95,10 @@ export interface SubZoneConf {
     constraint?: ConstraintMap;
 }
 
+export interface RandWeights {
+    [key: string]: number;
+}
+
 export type LevelConnection = [string, string, number, number];
 
 export interface LevelObj {
