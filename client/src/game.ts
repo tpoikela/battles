@@ -16,6 +16,7 @@ import {Dice} from './dice';
 import {SentientActor} from './actor';
 import {CellMap} from './map';
 import {TCoord} from './interfaces';
+import {ObjectShell} from './objectshellparser';
 
 type Level = import('./level').Level;
 
@@ -547,6 +548,7 @@ export const GameMain = function() {
 
     /* Serializes the game object into JSON. */
     this.toJSON = () => {
+        const parser = ObjectShell.getParser();
         const obj: any = { // TODO fix typings
             engine: {},
             gameMaster: this._master.toJSON(),
@@ -558,7 +560,8 @@ export const GameMain = function() {
             charStyles: RG.charStyles,
             cellStyles: RG.cellStyles,
             actorsKilled: this.actorsKilled,
-            enableChunkUnload: this._enableChunkUnload
+            enableChunkUnload: this._enableChunkUnload,
+            objectShellParser: parser.toJSON()
         };
 
         if (!this.hasPlaces()) {
