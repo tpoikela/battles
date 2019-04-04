@@ -53,7 +53,7 @@ describe('ObjectShell.Parser', () => {
         expect(superWolf.attack).to.equal(15);
         expect(superWolf.defense).to.equal(20);
 
-        const objWolf = parser.dbGet({name: 'wolf'})[0];
+        const objWolf = parser.dbGetActor({name: 'wolf'});
         expect(objWolf).to.equal(wolfNew);
 
         const wolfPack = parser.dbGet({categ: 'actors', danger: 3});
@@ -257,7 +257,7 @@ describe('ObjectShell.Parser', () => {
             {name: 'Gelee', energy: 500,
             weight: 0.2, value: 100, base: 'foodBase'});
 
-        const geleeObj = parser.dbGet({name: 'Gelee'})[0];
+        const geleeObj = parser.dbGetItem({name: 'Gelee'});
         expect(geleeObj.char).to.equal('%');
         expect(geleeObj.value).to.equal(expFood.value);
 
@@ -574,8 +574,8 @@ describe('Data query functions for objects', function() {
     });
 
     it('can filter query with category/function', () => {
-        const actor = parser.dbGet({name: 'Winter demon'});
-        expect(actor[0].name).to.equal('Winter demon');
+        const actor = parser.dbGetActor({name: 'Winter demon'});
+        expect(actor.name).to.equal('Winter demon');
 
         const items = parser.dbGet({categ: 'items'});
         expect(Object.keys(items)).to.have.length.above(10);
@@ -807,7 +807,7 @@ describe('Data query functions for objects', function() {
     });
 
     it('can add goals to actors using shells', () => {
-        const demonShell = parser.dbGet({name: 'Winter demon'})[0];
+        const demonShell = parser.dbGetActor({name: 'Winter demon'});
         demonShell.goals = [{name: 'GoHome', setArgs: {xy: [0, 0]}}, {name: 'Thief'}];
         const winterDemon = parser.createFromShell(RG.TYPE_ACTOR, demonShell);
 
