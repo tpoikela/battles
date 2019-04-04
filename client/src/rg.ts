@@ -827,6 +827,12 @@ RG.DAY = {
 RG.AREA_LEVEL_COLS = 100;
 RG.AREA_LEVEL_ROWS = 100;
 
+RG.LETTERS = ['a', 'b', 'c', 'd', 'e', 'f',
+    'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+    'u', 'v', 'w', 'x', 'y', 'z'
+];
+RG.LETTERS_UC = RG.LETTERS.map(l => l.toUpperCase());
+
 /* Converts a direction (N, S, ...) to 2-d vector. If already,
  * a vector, returns it. */
 RG.dirTodXdY = function(dir: TCoord | string): TCoord | null {
