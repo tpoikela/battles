@@ -189,3 +189,4 @@ function isNameOk(name: string): boolean {
     }
     return false;
 }
+ActorNames.isNameOk = isNameOk;
