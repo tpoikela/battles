@@ -8,7 +8,8 @@ describe('ActorNames', () => {
         for (let i = 0; i < 500; i++) {
             // const name = ActorNames.getName();
             const name = ActorNames.getModName();
-            console.log(name);
+            const msg = `Name ${name} is OK`;
+            expect(ActorNames.isNameOk(name), msg).to.equal(true);
         }
 
     });
