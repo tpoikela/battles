@@ -131,8 +131,18 @@ export class LevelSurroundings {
         const props = ['corridor', 'entrance', 'room', 'storeroom',
             'vault'];
         props.forEach(prop => {
-            this.scaleRooms(extras[prop] as any[]);
+            if (prop in extras) {
+                this.scaleRooms(extras[prop] as any[]);
+            }
         });
+
+        if (extras.hasOwnProperty('houses')) {
+            Object.values(extras.houses).forEach(house => {
+                const bbox = house.getBbox();
+                const [nX, nY] = this.offsetFunc(bbox.ulx, bbox.uly);
+                house.adjustCoord(nX, nY);
+            });
+        }
     }
 
     /* Scales all Room objects to the new level. */
