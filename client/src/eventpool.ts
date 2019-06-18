@@ -40,18 +40,7 @@ export class EventPool  { // {{{2
     private cannotRemove: boolean;
 
     constructor() {
-        this._listeners = {};
-        this._nListeners = 0;
-        this._listenerID = 0;
-
-        this._lastEmitted = null;
-        this._lastRemoved = null;
-
-        this.pendingRemoves = [];
-
-        // Tracks that notify() call stack is fully unwound before
-        // listeners can be removed
-        this.notifyStackSize = 0;
+        this.reset();
     }
 
 
@@ -210,9 +199,25 @@ export class EventPool  { // {{{2
 
         }
         else {
-            RG.err('EventPool', 'removeAll', 
+            RG.err('EventPool', 'removeAll',
                 'Cannot remove listeners. cannotRemove is set');
         }
+    }
+
+    /* Resets the EventPool to initial status after new. */
+    public reset(): void {
+        this._listeners = {};
+        this._nListeners = 0;
+        this._listenerID = 0;
+
+        this._lastEmitted = null;
+        this._lastRemoved = null;
+
+        this.pendingRemoves = [];
+
+        // Tracks that notify() call stack is fully unwound before
+        // listeners can be removed
+        this.notifyStackSize = 0;
     }
 
     /* Returns listeners for the given event. */

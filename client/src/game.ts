@@ -50,7 +50,7 @@ export const GameMain = function() {
     this._enableChunkUnload = false;
     this._chunkManager = null;
     this._eventPool = POOL;
-    POOL.removeAll();
+    POOL.reset();
     // this._eventPool = new EventPool();
     // POOL = this._eventPool;
 
