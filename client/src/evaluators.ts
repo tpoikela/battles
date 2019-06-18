@@ -33,10 +33,6 @@ export class EvaluatorBase {
     public type: string;
 
     constructor(actorBias: number) {
-        /* if (!Number.isFinite(actorBias)) {
-            RG.err('EvaluatorBase', 'constructor',
-                `bias must number. Got: ${actorBias}`);
-        }*/
         this.actorBias = actorBias;
         this.type = 'Base';
     }
@@ -45,7 +41,7 @@ export class EvaluatorBase {
         throw new Error('Pure virtual function');
     }
 
-    public setActorGoal(actor, ...args) {
+    public setActorGoal(actor, ...args): void {
         const topGoal = actor.getBrain().getGoal();
         if (Goal[this.type]) {
             const goal = new Goal[this.type](actor, ...args);
@@ -58,11 +54,11 @@ export class EvaluatorBase {
         }
     }
 
-    public isOrder() {return false;}
+    public isOrder(): boolean {return false;}
 
-    public getType() {return this.type;}
+    public getType(): string {return this.type;}
 
-    public setBias(bias) {
+    public setBias(bias: number): void {
         this.actorBias = bias;
     }
 
@@ -74,7 +70,7 @@ export class EvaluatorBase {
     }
 
     /* Called by FromJSON. */
-    public setArgs(args) {}
+    public setArgs(args): void {}
 
 }
 Evaluator.Base = EvaluatorBase;
@@ -103,10 +99,6 @@ export class EvaluatorAttackActor extends EvaluatorBase {
 
     public setActorGoal(actor) {
         super.setActorGoal(actor, this.enemyActor);
-        /* const topGoal = actor.getBrain().getGoal();
-        const goal = new Goal.AttackActor(actor, this.enemyActor);
-        topGoal.addGoal(goal);
-        ++Evaluator.hist[this.type];*/
     }
 
 }
@@ -246,12 +238,12 @@ export class EvaluatorGuard extends EvaluatorBase {
         if (xy) {this.setXY(xy);}
     }
 
-    public setXY(xy) {
+    public setXY(xy): void {
         this.x = xy[0];
         this.y = xy[1];
     }
 
-    public setArgs(args) {
+    public setArgs(args): void {
         const {xy} = args;
         this.setXY(xy);
     }
@@ -457,7 +449,7 @@ export class EvaluatorShopkeeper extends EvaluatorBase {
         return 0;
     }
 
-    public setActorGoal(actor) {
+    public setActorGoal(actor): void {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.Shopkeeper(actor, this.x, this.y);
         topGoal.addGoal(goal);
