@@ -46,11 +46,10 @@ export class CityGenerator extends LevelGenerator {
 
     public create(cols: number, rows: number, conf: PartialCityOpts): Level {
         let level = this.createLevel(cols, rows, conf);
-        this.populateCityLevel(level, conf);
-
         if (conf.cellsAround) {
             level = this.createCitySurroundings(level, conf);
         }
+        this.populateCityLevel(level, conf);
 
         this.removeMarkers(level, conf);
         // TODO populate level with actors based on conf
@@ -128,7 +127,10 @@ export class CityGenerator extends LevelGenerator {
 
     public createCitySurroundings(level: Level, conf): Level {
         const levelSurround = new LevelSurroundings();
-        return levelSurround.surround(level, conf);
+        const newLevel = levelSurround.surround(level, conf);
+        newLevel.setExtras(level.getExtras());
+        levelSurround.scaleExtras(newLevel);
+        return newLevel;
     }
 }
 
