@@ -113,6 +113,9 @@ export class SystemDeath extends SystemBase {
             // Give additional battle experience
             if (att.has('InBattle')) {
                 this._giveBattleExpToSource(att);
+                if (def.has('InBattle')) {
+                    this._checkIfKillerIsTraitor(att, def);
+                }
             }
         }
     }
@@ -135,6 +138,14 @@ export class SystemDeath extends SystemBase {
             }
         }
         att.get('BattleExp').getData().kill += 1;
+    }
+
+    public _checkIfKillerIsTraitor(att, def): void {
+        const attData = att.get('InBattle').getData();
+        const defData = def.get('InBattle').getData();
+        if (attData.army === defData.army) {
+            attData.isTraitor = true;
+        }
     }
 
     public _dropInvAndEq(actor): void {
