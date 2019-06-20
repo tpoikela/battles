@@ -83,6 +83,7 @@ export class BattlesTop extends React.Component {
 
     public state: IBattlesTopState;
     public loadScriptId: string;
+    public loadFromScriptId: string;
     public levelInputId: string;
     public gameManager: GameManager;
 
@@ -91,6 +92,7 @@ export class BattlesTop extends React.Component {
 
         // Some IDs needed for this component
         this.loadScriptId = '#load-script-input';
+        this.loadFromScriptId = '#load-from-script-input';
         this.levelInputId = '#level-file-input';
 
         this.gameManager = new GameManager(this.setState.bind(this));
@@ -150,12 +152,11 @@ export class BattlesTop extends React.Component {
             showEditor: !this.state.showEditor});
     }
 
-    public selectSaveGame(name) {
+    public selectSaveGame(name: string): void {
         this.setState({selectedGame: name});
     }
 
-
-    public setPlayerName(name) {
+    public setPlayerName(name: string): void {
         this.gameManager.setPlayerName(name);
         this.setState({playerName: name});
     }
@@ -234,6 +235,10 @@ export class BattlesTop extends React.Component {
         this.setState({progress: msg});
     }
 
+    public loadFromScript(): void {
+        const fInput = document.querySelector(this.loadFromScriptId);
+        (fInput as HTMLInputElement).click();
+    }
 
     public selectItemTop(item): void {
         this.setState({selectedItem: item});
@@ -284,12 +289,17 @@ export class BattlesTop extends React.Component {
         });
     }
 
+    public onLoadFromScript() {
+        this.gameManager.onLoadFromScript(this.loadFromScriptId, () => {
+            this.setState({render: true});
+        });
+    }
+
     public updatePluginList() {
         this.setState({showPlugins: true,
             plugins: this.gameManager.getPlugins()
         });
     }
-
 
     public setPlayerDriver(): void {
         this.gameManager.setPlayerDriver();
@@ -535,6 +545,10 @@ export class BattlesTop extends React.Component {
                 <HiddenFileInput
                     inputId='load-script-input'
                     onLoadScript={this.onLoadScript}
+                />
+                <HiddenFileInput
+                    inputId='load-from-script-input'
+                    onLoadScript={this.onLoadFromScript}
                 />
             </div>
         );
@@ -805,6 +819,7 @@ export class BattlesTop extends React.Component {
         this.menuItemClicked = this.menuItemClicked.bind(this);
 
         this.onLoadScript = this.onLoadScript.bind(this);
+        this.onLoadFromScript = this.onLoadFromScript.bind(this);
         this.loadScript = this.loadScript.bind(this);
         this.updatePluginList = this.updatePluginList.bind(this);
     }
