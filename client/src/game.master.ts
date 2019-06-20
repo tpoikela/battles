@@ -43,7 +43,7 @@ export class GameMaster {
     public hasNotify: boolean;
     public world: WorldTop;
 
-    constructor(game, pool = POOL) {
+    constructor(game, pool: EventPool = POOL) {
         this.player = null;
         this.game = game;
         this.fact = new FactoryBattle();
@@ -64,7 +64,7 @@ export class GameMaster {
         this.battles = battles;
     }
 
-    public setPool(pool) {this.pool = pool;}
+    public setPool(pool: EventPool) {this.pool = pool;}
     public setGame(game) {this.game = game;}
 
     public setPlayer(player) {
@@ -139,8 +139,8 @@ export class GameMaster {
         }
     }
 
-        /* Returns the bbox for the battle. This is coordinates for the battle
-         * inside the tile level. It corresponds to player's current owPos. */
+    /* Returns the bbox for the battle. This is coordinates for the battle
+     * inside the tile level. It corresponds to player's current owPos. */
     public getLevelBbox(ow, area, tileXY, owPos, level) {
         // Info needed:
         // local ow pos
@@ -305,6 +305,7 @@ export class GameMaster {
                 if (actor.isInLevel(level)) {
 
                     if (!actor.isPlayer()) {
+                        // TODO should move actor using systems
                         if (level.removeActor(actor)) {
                             targetLevel.addActorToFreeCell(actor);
                         }
@@ -378,13 +379,15 @@ export class GameMaster {
     public getSelLeaveBattle(player, level) {
         const leaveFunc = () => {
           const exit = level.getConnections()[0];
-          if (!exit.useStairs(player)) {
-            RG.err('GameMaster', 'moveActorsOutOfBattle',
-              'Cannot move player via useStairs');
+          if (level.moveActorTo(player, exit.getX(), exit.getY())) {
+              const useStairs = new Component.UseStairs();
+              player.add(useStairs);
+              const name = player.getName();
+              RG.gameMsg(`${name} leaves the battlefield`);
           }
           else {
-            const name = player.getName();
-            RG.gameMsg(`${name} leaves the battlefield`);
+              RG.err('GameMaster', 'moveActorsOutOfBattle',
+                  'Cannot move player to stairs cell');
           }
         };
         const choices = [
