@@ -10,6 +10,11 @@ export interface PluginData {
     [key: string]: any;
 }
 
+export interface GameEntry {
+    levels: any[];
+    game: any;
+}
+
 const PLUGIN_TYPES = [
     'plugin', 'items', 'actors', 'elements', 'system', 'spell'
 ];
@@ -192,6 +197,42 @@ export class PluginManager {
                 this.unsetGlobalRefs();
             }
             /* eslint-enable */
+        }
+        catch (e) {
+            this._errorMsg = e.message;
+            if (this._globalRefsWereSet) {
+                this.unsetGlobalRefs();
+            }
+            throw e;
+        }
+        return entry;
+    }
+
+    public loadGameFromScript(text: string): GameEntry {
+        const entry = {
+            levels: null, game: null
+        };
+        try {
+
+            /* tslint:disable */
+            let game = null;
+            let levels = null;
+            this.setGlobalRefs();
+            eval(text);
+            /* tslint:enable */
+
+            if (game) {
+                entry.game = game;
+            }
+            else if (levels) {
+                entry.levels = levels;
+            }
+            else {
+                throw new Error('Script must set game or levels!');
+            }
+            if (this._globalRefsWereSet) {
+                this.unsetGlobalRefs();
+            }
         }
         catch (e) {
             this._errorMsg = e.message;
