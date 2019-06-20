@@ -821,6 +821,7 @@ export class GameManager {
         // Prepare game configuration
         const conf = Object.assign({}, this.gameConf);
         conf.levels = levels;
+        conf.playMode = 'from_levels';
 
         const gameFactory = new FactoryGame();
         this.game = gameFactory.createNewGame(conf);
@@ -957,6 +958,41 @@ export class GameManager {
                 const text = reader.result.toString();
                 this.pluginManager.loadScript(text);
                 updateCb();
+            };
+            reader.readAsText(file);
+        }
+    }
+
+    public onLoadFromScript(id: string, updateCb): void {
+        console.log('onLoadFromScript called here');
+        this.readTextFromFile(id, (text) => {
+            try {
+                const entry = this.pluginManager.loadGameFromScript(text);
+                if (entry.levels) {
+                    this.createGameFromLevels(entry.levels);
+                }
+                else if (entry.game) {
+                    this.cancelAnim();
+                    this.resetGameState();
+                    this.game = entry.game;
+                    this.initBeforeNewGame();
+                }
+            }
+            catch (e) {
+                console.error(e, e.message);
+            }
+        });
+    }
+
+    public readTextFromFile(id: string, cb): void {
+        const fileElem = document.querySelector(id);
+        const fileList = (fileElem as HTMLInputElement).files;
+        const file = fileList[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const text = reader.result.toString();
+                cb(text);
             };
             reader.readAsText(file);
         }
