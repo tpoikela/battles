@@ -1057,6 +1057,7 @@ export const Transaction = TransientDataComponent('Transaction', {args: null});
 //--------------------------------------------
 
 // Added to all entities inside a battle
+
 export const InBattle = function() {
     ComponentBase.call(this, 'InBattle');
     this._isUnique = true;
@@ -1100,6 +1101,7 @@ export const BattleBadge = function() {
 
     this.isWon = () => _data.status === 'Won';
     this.isLost = () => _data.status === 'Lost';
+    this.isTraitor = () => _data.status === 'Traitor';
 };
 RG.extend2(BattleBadge, ComponentBase);
 Component.BattleBadge = BattleBadge;
