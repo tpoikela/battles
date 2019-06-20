@@ -32,6 +32,10 @@ export class SystemBattle extends SystemBase {
 
                 }
 
+                if (data.isTraitor) {
+                    badge.updateDate({status: 'Traitor'});
+                }
+
                 // Add some reputation for winner
                 if (badge.isWon()) {
                     let rep = null;
