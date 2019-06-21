@@ -22,7 +22,7 @@ export interface BattleJSON {
     name: string;
     level: number;
     armies: ArmyJSON[];
-    stats: {[key: string]: number};
+    stats: BattleStats;
     finished: boolean;
 }
 
@@ -36,8 +36,10 @@ export class Army {
     private _battle: Battle;
     private _casualties: number;
     private _defeatThreshold: number;
+    private _alignment: Map<string, number>;
 
-    constructor(name) {
+
+    constructor(name: string) {
         this._name = name;
         this._actors = []; // All actors inside this army
 
@@ -45,6 +47,7 @@ export class Army {
         this._casualties = 0;
         this._defeatThreshold = 0;
         this.hasNotify = true;
+        this._alignment = new Map();
         POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
     }
 
@@ -52,40 +55,44 @@ export class Army {
         return this._name;
     }
 
-    public setDefeatThreshold(numActors) {
+    public addAlignment(key: string, value: number): void {
+        this._alignment.set(key, value);
+    }
+
+    public setDefeatThreshold(numActors: number): void {
         this._defeatThreshold = numActors;
     }
 
         /* Default defeat is when all actors have been eliminated.*/
-    public isDefeated() {
+    public isDefeated(): boolean {
         if (this._actors.length <= this._defeatThreshold) {
             return true;
         }
         return false;
     }
 
-    public setBattle(battle) {this._battle = battle;}
+    public setBattle(battle: Battle): void {this._battle = battle;}
 
-    public getBattle() {
+    public getBattle(): Battle {
         return this._battle;
     }
 
-    public getCasualties() {
+    public getCasualties(): number {
         return this._casualties;
     }
 
-    public getActors() {
+    public getActors(): SentientActor[] {
         return this._actors.slice();
     }
 
-    public hasActor(sought) {
+    public hasActor(sought: SentientActor): boolean {
         const id = sought.getID();
         const index = this._actors.findIndex(actor => actor.getID() === id);
         return index >= 0;
     }
 
         /* Tries to add an actor and returns true if success.*/
-    public addActor(actor) {
+    public addActor(actor: SentientActor): boolean {
         if (!this.hasActor(actor)) {
             this._actors.push(actor);
             return true;
@@ -98,7 +105,7 @@ export class Army {
     }
 
         /* Removes an actor from the army.*/
-    public removeActor(actor) {
+    public removeActor(actor: SentientActor): boolean {
         const index = this._actors.findIndex(
             a => a.getID() === actor.getID()
         );
@@ -111,10 +118,10 @@ export class Army {
         }
     }
 
-    public removeAllActors() {this._actors = [];}
+    public removeAllActors(): void {this._actors = [];}
 
         /* Monitor killed actors and remove them from the army.*/
-    public notify(evtName, msg) {
+    public notify(evtName, msg): void {
         if (evtName === RG.EVT_ACTOR_KILLED) {
             debug(`${this._name} got EVT_ACTOR_KILLED`);
             const actor = msg.actor;
@@ -158,10 +165,15 @@ export class Army {
     }
 }
 
+interface BattleStats {
+    casualties: number;
+    survivors: number;
+    duration: number;
+}
+
 /* Battle is contains all information in one battle between two or more armies.
  */
 export class Battle {
-
 
     public hasNotify: boolean;
     public finished: boolean;
@@ -169,14 +181,13 @@ export class Battle {
     private _name: string;
     private _armies: Army[]; // All actors inside this army
     private _level: Level;
-    private _stats: {[key: string]: number};
+    private _stats: BattleStats;
 
-    constructor(name) {
+    constructor(name: string) {
         this._name = name;
         this._armies = [];
         this._level = null;
         this.finished = false;
-
 
         // Keeps track of battles statistics
         this._stats = {
@@ -188,40 +199,41 @@ export class Battle {
         POOL.listenEvent(RG.EVT_ARMY_EVENT, this);
     }
 
-    public getType() {
+    public getType(): string {
         return 'battle';
     }
 
-    public getArmies() {
+    public getArmies(): Army[] {
         return this._armies.slice();
     }
 
-    public setArmies(armies) {
+    public setArmies(armies: Army[]): void {
         this._armies = armies;
         this._armies.forEach(army => {
             army.setBattle(this);
         });
     }
 
-    public getName() {
+    public getName(): string {
         return this._name;
     }
 
-    public setLevel(level) {
+    public setLevel(level: Level): void {
         this._level = level;
         this._level.setParent(this);
     }
-    public getLevel() {
+    public getLevel(): Level {
         return this._level;
     }
 
-    public getStats() {
+    public getStats(): BattleStats {
         return this._stats;
     }
 
-    public setStats(stats) {this._stats = stats;}
+    public setStats(stats: BattleStats): void {this._stats = stats;}
+
     /* Adds an army to given x,y location.*/
-    public addArmy(army, x, y, conf) {
+    public addArmy(army: Army, x: number, y: number, conf): void {
         const horizontal = conf.horizontal ? true : false;
         const numRows = conf.numRows > 0 ? conf.numRows : 1;
 
@@ -260,7 +272,7 @@ export class Battle {
 
     /* Adds actor to the battle level. Changes underlying base element if actor
      * would get stuck otherwise. */
-    public addActor(actor, x, y) {
+    public addActor(actor, x, y): void {
         const cell = this._level.getMap().getCell(x, y);
         // TODO workaround for mountain level
         if (!cell.isPassable()) {
@@ -272,13 +284,13 @@ export class Battle {
         }
     }
 
-    public armyInThisBattle(army) {
+    public armyInThisBattle(army: Army): boolean {
         const index = this._armies.indexOf(army);
         return index >= 0;
     }
 
     /* Returns true if the battle is over.*/
-    public isOver() {
+    public isOver(): boolean {
         if (this._armies.length > 1) {
             let numArmies = 0;
             this._armies.forEach(army => {
@@ -327,7 +339,7 @@ export class Battle {
         };
     }
 
-    public removeListeners() {
+    public removeListeners(): void {
         this._armies.forEach(army => {
             POOL.removeListener(army);
         });
