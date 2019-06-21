@@ -42,13 +42,6 @@ export interface IMenu {
     [key: string]: string | string[];
 }
 
-/*
-export type IMenu = {
-    pre?: string[];
-    post?: string[];
-} & IMenuObj;
-*/
-
 export interface SelectionObject {
     showMenu: () => boolean;
     getMenu?: () => IMenu;
