@@ -392,7 +392,7 @@ class MarkList {
         if (!this._marks[id]) {this._marks[id] = [];}
         if (!this.markExists(id, x, y)) {
             this._marks[id].push(markObj);
-            RG.gameMsg('Added a mark to the current location.');
+            RG.gameMsg('Added a mark to the current location. Press "g" to view them');
         }
     }
 
@@ -421,12 +421,13 @@ class MarkList {
         });
 
         const menu = new Menu.WithState();
+        menu.addPre('Choose a mark for travelling:');
         menu.addItem(Keys.KEY.DELETE, ['Delete mark', Menu.NEXT_STATE]);
 
         menu.addState('', selectMenuArgs);
         menu.addState('DELETE', deleteMenuArgs);
         menu.addTransition('DELETE', Keys.KEY.DELETE);
-        menu.addPre('Choose a mark to delete', 'DELETE');
+        menu.addPreState('Choose a mark to delete', 'DELETE');
         return menu;
     }
 
