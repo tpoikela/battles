@@ -60,18 +60,18 @@ export class GameMaster {
         this.pool.listenEvent(RG.EVT_CREATE_BATTLE, this);
     }
 
-    public setBattles(battles) {
+    public setBattles(battles): void {
         this.battles = battles;
     }
 
-    public setPool(pool: EventPool) {this.pool = pool;}
-    public setGame(game) {this.game = game;}
+    public setPool(pool: EventPool): void {this.pool = pool;}
+    public setGame(game): void {this.game = game;}
 
-    public setPlayer(player) {
+    public setPlayer(player): void {
         this.player = player;
     }
 
-    public setWorld(world) {this.world = world;}
+    public setWorld(world: WorldTop): void {this.world = world;}
 
     public notify(evtName: string, args) {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
@@ -87,6 +87,8 @@ export class GameMaster {
             }
         }
         else if (evtName === RG.EVT_CREATE_BATTLE) {
+            // With this event, a creation of new battle can be requested. The
+            // resulting battle is placed into args.response
             debug('EVT_CREATE_BATTLE');
             const {areaTile} = args;
             if (args.response) {
@@ -317,7 +319,7 @@ export class GameMaster {
 
                     }
                     else {
-                        const selObj = this.getSelLeaveBattle(actor, level);
+                        const selObj = this.getLeaveBattleMenu(actor, level);
                         actor.getBrain().setSelectionObject(selObj);
                     }
                 }
@@ -376,9 +378,10 @@ export class GameMaster {
         return menu;
     }
 
-    public getSelLeaveBattle(player, level) {
+    public getLeaveBattleMenu(player, level) {
         const leaveFunc = () => {
           const exit = level.getConnections()[0];
+          // UseStairs work only on top of stairs cell, move player there
           if (level.moveActorTo(player, exit.getX(), exit.getY())) {
               const useStairs = new Component.UseStairs();
               player.add(useStairs);
