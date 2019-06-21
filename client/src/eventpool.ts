@@ -1,14 +1,14 @@
 
 import RG from './rg';
 
-export interface Listener {
-    hasNotify: boolean;
-    notify: (evtName: string, args) => void;
-    listenerID?: number; // Added in EventPool
-}
-
 export interface EvtArgs {
     [key: string]: any;
+}
+
+export interface Listener {
+    hasNotify: boolean;
+    notify: (evtName: string, args: EvtArgs) => void;
+    listenerID?: number; // Added in EventPool
 }
 
 /* Event pool can be used to emit events and register callbacks for listeners.
