@@ -674,13 +674,13 @@ export class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(ComponentBase)) 
         this._prob = 0.05; // Prob. of poison kicking in
     }
 
-    public getProb() {return this._prob;}
-    public setProb(prob) {this._prob = prob;}
+    public getProb(): number {return this._prob;}
+    public setProb(prob: number): void {this._prob = prob;}
 
     public getSource() {return this._src;}
-    public setSource(src) {this._src = src;}
+    public setSource(src): void {this._src = src;}
 
-    public copy(rhs) {
+    public copy(rhs): void {
         super.copy(rhs);
         this._prob = rhs.getProb();
         this._src = rhs.getSource();
