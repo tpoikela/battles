@@ -281,22 +281,41 @@ shellProps.material = {
         }
     },
     steel: {
-        weight: 1.5, value: 1.4, rarity: 1.5
+        weight: 1.5, value: 1.4, rarity: 1.5,
+        weapon: {
+            damage: '1d3 + 2'
+        }
     },
     mithril: {
-        weight: 0.9, value: 3.0, rarity: 2.0
+        weight: 0.9, value: 3.0, rarity: 2.0,
+        weapon: {
+            damage: '2d2 + 3'
+        }
     },
     rubyglass: {
-        weight: 0.5, value: 5.0, rarity: 3.0
+        weight: 0.5, value: 5.0, rarity: 3.0,
+        weapon: {
+            damage: '2d3 + 3'
+        }
     },
     permaice: {
-        weight: 3.0, value: 8.0, rarity: 4.0
+        weight: 3.0, value: 8.0, rarity: 4.0,
+        weapon: {
+            damage: '2d3 + 6'
+        }
     },
     forium: {
-        weight: 1.2, value: 7.0, rarity: 5.0
+        weight: 1.2, value: 7.0, rarity: 5.0,
+        weapon: {
+            damage: '2d2 + 4'
+        }
     },
     void: { // No one knows the material really, not even dev
-        weight: 1.4, value: 10.0, rarity: 8.0
+        weight: 1.4, value: 10.0, rarity: 8.0,
+        weapon: {
+            damage: '2d2 + 6',
+            onAttackHit: [meleeHitDamage(2, '1d6 + 1', 'VOID')],
+        }
     }
 };
 
