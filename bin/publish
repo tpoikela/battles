@@ -2,6 +2,8 @@
 
 # A script for creating a published version of the game. At the moment, This
 # is used to create the bundle for github pages. To be expanded on itch.io.
+# Typical usage for github pages is:
+#  $> bin/publish -build
 
 use Getopt::Long;
 

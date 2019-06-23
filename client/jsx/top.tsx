@@ -676,7 +676,9 @@ export class BattlesTop extends React.Component {
           this.setState({[key]: true});
         }
         else {
-          console.error(`showScreen: key ${key} not found in state`);
+          const msg = `showScreen: key ${key} not found in state`;
+          console.error(msg);
+          RG.gameIntError(`Screen for ${key} not implemented yet`);
         }
     }
 

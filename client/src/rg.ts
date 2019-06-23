@@ -1876,6 +1876,11 @@ RG.gameDanger = function(msg: GameMsg) {
     this.emitMsgEvent('danger', msg);
 };
 
+/* To signal an internal error using the "normal" message interface */
+RG.gameIntError = function(msg: GameMsg) {
+    this.emitMsgEvent('bg-danger text-white', msg);
+};
+
 /* Emits message event with cell origin, style and message. */
 RG.emitMsgEvent = function(style: string, msg: GameMsg): void {
     let newMsg = '';

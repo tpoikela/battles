@@ -30,7 +30,10 @@ export default class GameMessages extends React.Component {
     let msgList = [<span>Saving the game...</span>];
     if (!this.props.saveInProgress) {
         msgList = message.map((val, itemIndex) => {
-        const className = styles[val.style];
+        let className = styles[val.style];
+        if (!className) {
+            className = val.style;
+        }
         let index = 1;
 
         if (showAll) {
