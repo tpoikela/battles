@@ -15,6 +15,7 @@ export interface ArmyJSON {
     name: string;
     actors: number[];
     defeatThreshold: number;
+    alignment: {[key: string]: number};
 }
 
 export interface BattleJSON {
@@ -36,7 +37,7 @@ export class Army {
     private _battle: Battle;
     private _casualties: number;
     private _defeatThreshold: number;
-    private _alignment: Map<string, number>;
+    private _alignment: {[key: string]: number};
 
 
     constructor(name: string) {
@@ -47,7 +48,7 @@ export class Army {
         this._casualties = 0;
         this._defeatThreshold = 0;
         this.hasNotify = true;
-        this._alignment = new Map();
+        this._alignment = {};
         POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
     }
 
@@ -56,7 +57,7 @@ export class Army {
     }
 
     public addAlignment(key: string, value: number): void {
-        this._alignment.set(key, value);
+        this._alignment[key] = value;
     }
 
     public setDefeatThreshold(numActors: number): void {
@@ -160,7 +161,8 @@ export class Army {
         return {
             name: this._name,
             actors: this._actors.map(actor => actor.getID()),
-            defeatThreshold: this._defeatThreshold
+            defeatThreshold: this._defeatThreshold,
+            alignment: this._alignment
         };
     }
 }
