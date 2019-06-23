@@ -181,6 +181,7 @@ export class FactoryBattle {
         const maxDanger = conf.danger || 5;
 
         const army = new Army(faction);
+        army.addAlignment(faction, 1);
         const constr = [
             {op: 'eq', prop: 'type', value: faction},
             {op: 'lte', prop: 'danger', value: maxDanger}
