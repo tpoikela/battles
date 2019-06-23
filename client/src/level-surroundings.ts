@@ -85,26 +85,37 @@ export class LevelSurroundings {
         return mountLevel;
     }
 
+    /* TODO does not support E/W or N/S walls yet. */
     public getWallConfFromCells(conf, xSize, ySize): any {
         const {cellsAround} = conf;
         const wallConf: any = {};
-        if (cellsAround.N === 'wallmount') {
-            wallConf.alignVertical = 'top';
-        }
-        else if (cellsAround.S === 'wallmount') {
-            wallConf.alignVertical = 'bottom';
-        }
 
         if (cellsAround.E === 'wallmount') {
             wallConf.alignHorizontal = 'right';
+            wallConf.east = false;
+            wallConf.west = false;
             wallConf.north = true;
             wallConf.south = true;
         }
         else if (cellsAround.W === 'wallmount') {
             wallConf.alignHorizontal = 'left';
+            wallConf.east = false;
+            wallConf.west = false;
             wallConf.north = true;
             wallConf.south = true;
         }
+
+        if (cellsAround.N === 'wallmount') {
+            wallConf.alignVertical = 'top';
+            wallConf.east = true;
+            wallConf.west = true;
+        }
+        else if (cellsAround.S === 'wallmount') {
+            wallConf.alignVertical = 'bottom';
+            wallConf.east = true;
+            wallConf.west = true;
+        }
+
         wallConf.meanWx = RNG.getUniformInt(5, xSize);
         wallConf.meanWy = RNG.getUniformInt(5, ySize);
         wallConf.wallElem = ELEM.WALL_MOUNT;
