@@ -20,8 +20,11 @@ if ($opt{url}) {
 }
 my $build_url = $base_url . "/build";
 
-_cmd("npm run clean") if defined $opt{build};
-_cmd("npm run build") if defined $opt{build};
+if (defined $opt{build}) {
+    _cmd("npm run clean");
+    _cmd("mkdir build");
+    _cmd("npm run build");
+}
 
 my @cmds = (
     "cp -n ./index.html docs/",
