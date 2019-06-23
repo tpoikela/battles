@@ -5,6 +5,7 @@ import RG from '../src/rg';
 import {Random} from '../src/random';
 import {mixNewShell} from './shell-utils';
 import {BypassComp, resistance} from './actors';
+import {IShell, StringMap, TShellFunc} from '../src/interfaces';
 
 export const ActorGen: any = {};
 
@@ -38,14 +39,6 @@ const randWeights = {
     },
 
 };
-
-export interface IShell {
-    [key: string]: any;
-}
-
-export interface StringMap<T> {
-    [key: string]: T;
-}
 
 interface ShellProps {
     races: StringMap<IShell>;
@@ -455,5 +448,21 @@ ActorGen.genActors = function(nActors: number): IShell[] {
         result.push(ActorGen.genRandShell());
     }
     return result;
+};
+
+/* Generates a random shell using acceptance function. */
+ActorGen.getRandShellWith = function(constrOrFunc: TShellFunc): IShell {
+    let maxTries = 100;
+    let shell = null;
+    while (maxTries >= 0) {
+        shell = ActorGen.genRandShell();
+        if (constrOrFunc(shell)) {break;}
+        --maxTries;
+    }
+    return shell;
+};
+
+ActorGen.getRaces = function(): string[] {
+    return raceNames;
 };
 

@@ -9,9 +9,10 @@ import {verifyLevelCache} from './verify';
 import * as Mixin from './mixin';
 import {ELEM} from '../data/elem-constants';
 import * as Component from './component/component';
+import {MapObj} from './map.generator';
 
 // Import types only
-import {TCoord, BBox} from './interfaces';
+import {TCoord, BBox, TLocatableElement} from './interfaces';
 type ZoneBase = import('./world').ZoneBase;
 type SubZoneBase = import('./world').SubZoneBase;
 type Battle = import('./game.battle').Battle;
@@ -62,7 +63,6 @@ export class LevelCallback {
     }
 }
 
-type LocatableElement = ElementBase & Mixin.Locatable;
 
 type LevelParent = Battle | SubZoneBase;
 
@@ -78,13 +78,17 @@ export type LevelExtras = Extras & {
     startPoint?: TCoord;
     houses?: House[];
     shops?: WorldShop[];
+    bigRooms?: any[];
+    terms?: any[];
+    rooms?: any[];
+    endPoint?: TCoord;
     /* connectEdges?: boolean;
     isCollapsed?: boolean;*/
 };
 
 interface LevelProps {
     actors: BaseActor[];
-    elements: LocatableElement[];
+    elements: TLocatableElement[];
     items: ItemBase[];
 }
 
@@ -96,6 +100,8 @@ export class Level extends Entity {
         return Entity.createEntityID();
     }
 
+    public editorID: number; // Used in editor only
+
     private _map: CellMap;
     private _parent: any;
     private _p: LevelProps;
@@ -105,6 +111,7 @@ export class Level extends Entity {
 
     // Non-serializable property used during PCG
     private _extras: LevelExtras;
+
 
     constructor() {
         super();
@@ -207,7 +214,13 @@ export class Level extends Entity {
         return (/stairs(Down|Up)/).test(elem.getName());
     }
 
-    public setMap(map: CellMap): void {this._map = map;}
+    public setMap(map: CellMap, mapObj?: MapObj): void {
+        this._map = map;
+        if (mapObj) {
+            if (mapObj.elements) {this._p.elements = mapObj.elements;}
+            this._p.elements.forEach(elem => {elem.setLevel(this);});
+        }
+    }
     public getMap(): CellMap {return this._map;}
 
     /* Given a level, returns stairs which lead to that level.*/

@@ -184,6 +184,10 @@ Health.prototype._init = function(hp) {
 /* Tag component to mark Dead actors (different from Undead) */
 export const Dead = UniqueTagComponent('Dead');
 
+export const DeathEvent = UniqueTransientDataComponent('DeathEvent', {
+    msg: '', source: null
+});
+
 /* Tag component for entities with physical body. */
 export const Corporeal = UniqueTagComponent('Corporeal');
 
@@ -199,14 +203,33 @@ Damage.prototype._init = function(dmg, type) {
     this.damageType = type;
 };
 
+Damage.prototype.isType = function(dmgType: string): boolean {
+    return this.damageType === dmgType;
+};
+
 /* In contrast to Damage (which is transient), DirectDamage can be
  * combined with Comp.AddOnHit to inflict additional damage
  * to an actor. */
 export const DirectDamage = DataComponent('DirectDamage', {
     damage: 0, damageType: '', damageCateg: '', prob: 1.0,
-    source: null
+    source: null, msg: ''
 });
 
+DirectDamage.prototype.rollDamage = function(): number {
+    return this.damage.roll();
+};
+
+DirectDamage.prototype.setDamage = function(dmgOrStr): void {
+    if (typeof dmgOrStr === 'number') {
+        this.damage = new Dice(0, 0, dmgOrStr);
+    }
+    else if (typeof dmgOrStr === 'object') {
+        this.damage = dmgOrStr.clone();
+    }
+    else {
+        this.damage = Dice.create(dmgOrStr);
+    }
+};
 
 DirectDamage.prototype.toJSON = function() {
     const obj = ComponentBase.prototype.toJSON.call(this);
@@ -216,6 +239,7 @@ DirectDamage.prototype.toJSON = function() {
     else {
         delete obj.setSource;
     }
+    obj.setDamage = this.damage.toString();
     return obj;
 };
 
@@ -650,13 +674,13 @@ export class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(ComponentBase)) 
         this._prob = 0.05; // Prob. of poison kicking in
     }
 
-    public getProb() {return this._prob;}
-    public setProb(prob) {this._prob = prob;}
+    public getProb(): number {return this._prob;}
+    public setProb(prob: number): void {this._prob = prob;}
 
     public getSource() {return this._src;}
-    public setSource(src) {this._src = src;}
+    public setSource(src): void {this._src = src;}
 
-    public copy(rhs) {
+    public copy(rhs): void {
         super.copy(rhs);
         this._prob = rhs.getProb();
         this._src = rhs.getSource();
@@ -1033,6 +1057,7 @@ export const Transaction = TransientDataComponent('Transaction', {args: null});
 //--------------------------------------------
 
 // Added to all entities inside a battle
+
 export const InBattle = function() {
     ComponentBase.call(this, 'InBattle');
     this._isUnique = true;
@@ -1076,6 +1101,7 @@ export const BattleBadge = function() {
 
     this.isWon = () => _data.status === 'Won';
     this.isLost = () => _data.status === 'Lost';
+    this.isTraitor = () => _data.status === 'Traitor';
 };
 RG.extend2(BattleBadge, ComponentBase);
 Component.BattleBadge = BattleBadge;
@@ -1140,15 +1166,26 @@ export const AddOnHit = DataComponent('AddOnHit', {
     onAttackHit: false // Apply on successful hit (damage irrelevant)
 });
 
+AddOnHit.prototype.getCompToAdd = function() {
+    if (this.comp.toJSON) {
+        return this.comp;
+    }
+    return Component.createFromObj(this.comp.transientComp, this.comp.func);
+};
+
 AddOnHit.prototype.toJSON = function() {
-    const jsonComp = this.comp.toJSON();
-    return {
+    const obj: any  = {
         setID: this.getID(),
         setType: this.getType(),
-        setComp: {createComp: jsonComp},
+        setComp: this.comp, // Might be in object format already
         setOnDamage: this.onDamage,
         setOnAttackHit: this.onAttackHit
     };
+    // But check here if we need to convert to JSON
+    if (this.comp.toJSON) {
+        obj.setComp = {createComp: this.comp.toJSON()};
+    }
+    return obj;
 };
 
 /* Used to equip/unequip items. */
@@ -1344,21 +1381,23 @@ Expiration.prototype.addEffect = function(comp, dur, msg) {
 /* Decreases duration of all time-based effects.*/
 Expiration.prototype.decrDuration = function() {
     for (const compIDStr in this.duration) {
-        const compID: number = parseInt(compIDStr, 10);
-        if (compID >= 0) {
-            this.duration[compID] -= 1;
-            if (this.duration[compID] === 0) {
-                const ent = this.getEntity();
-                if (this.expireMsg && this.expireMsg[compID]) {
-                    const msg = this.expireMsg[compID];
-                    RG.gameMsg({cell: ent.getCell(), msg});
+        if (this.duration[compIDStr]) {
+            const compID: number = parseInt(compIDStr, 10);
+            if (compID >= 0) {
+                this.duration[compID] -= 1;
+                if (this.duration[compID] === 0) {
+                    const ent = this.getEntity();
+                    if (this.expireMsg && this.expireMsg[compID]) {
+                        const msg = this.expireMsg[compID];
+                        RG.gameMsg({cell: ent.getCell(), msg});
+                    }
+                    else {
+                        const msg = 'An effect wears of from ' + ent.getName();
+                        RG.gameMsg({cell: ent.getCell(), msg});
+                    }
+                    ent.remove(compID);
+                    delete this.duration[compID];
                 }
-                else {
-                    const msg = 'An effect wears of from ' + ent.getName();
-                    RG.gameMsg({cell: ent.getCell(), msg});
-                }
-                ent.remove(compID);
-                delete this.duration[compID];
             }
         }
     }
@@ -1403,10 +1442,19 @@ export class Duration extends Mixin.DurationRoll(ComponentBase) {
         this._source = null;
         // Behaves differently when on actor
         this._addedOnActor = false;
+        this._expireMsg = '';
     }
 
-    public setSource(source ) {
+    public setSource(source): void {
         this._source = source;
+    }
+
+    public setExpireMsg(msg: string): void {
+        this._expireMsg = msg;
+    }
+
+    public getExpireMsg(): string {
+        return this._expireMsg;
     }
 
     public getSource() {
@@ -1736,4 +1784,27 @@ Lore.prototype.addTopic = function(key: string, msg: any): void {
 
 Lore.prototype._init = function() {
     this.topics = {};
+};
+
+export const DrainStat = TransientDataComponent('DrainStat', {
+    drainAmount: 1, sourceComp: '', sourceGetter: '', sourceSetter: '',
+    targetComp: '', targetGetter: '', targetSetter: '', source: null,
+    drainMsg: ''
+});
+
+DrainStat.prototype.applyComp = function(): boolean {
+    const ent = this.getEntity();
+    const srcComp = ent.get(this.sourceComp);
+    if (srcComp) {
+        const origValue = srcComp[this.sourceGetter]();
+        srcComp[this.sourceSetter](origValue - this.drainAmount);
+
+        const tComp = this.source.get(this.targetComp);
+        if (tComp) {
+            const origTValue = tComp[this.targetGetter]();
+            tComp[this.targetSetter](origTValue + this.drainAmount);
+            return true;
+        }
+    }
+    return false;
 };

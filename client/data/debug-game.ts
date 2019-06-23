@@ -22,6 +22,7 @@ import {Spell} from '../src/spell';
 import {Texts} from '../data/texts';
 import {VirtualActor, WeatherActor} from '../src/actor.virtual';
 import {ELEM} from '../data/elem-constants';
+import {ItemGen} from '../data/item-gen';
 import * as IF from '../src/interfaces';
 
 import {Quest, QuestPopulate} from '../src/quest';
@@ -356,6 +357,12 @@ DebugGame.prototype.createArena = function(obj, game, player) {
 
     const necrowurm = parser.createActor('necrowurm');
     level.addActor(necrowurm, player.getX() - 1, player.getY());
+
+    const necroSwordShell = ItemGen.buildShell({
+        type: 'weapon', name: 'sword', material: 'steel', suffix: 'ofNecropotence'
+    });
+    const necroSword = parser.createFromShell(RG.TYPE_ITEM, necroSwordShell);
+    player.getInvEq().addItem(necroSword);
 
     return game;
 };

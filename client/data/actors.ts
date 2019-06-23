@@ -4,6 +4,7 @@
 import RG from '../src/rg';
 import {meleeHitDamage, color} from './shell-utils';
 // const Colors = require('./colors');
+import {IAddCompObj, TAddCompSpec} from '../src/interfaces';
 
 const defaultBrain = 'GoalOriented';
 const demonBrain = 'GoalOriented';
@@ -64,7 +65,7 @@ export interface ActorShell {
     // TODO more complex typings
     onHit?: any;
     onAttackHit?: any;
-    addComp?: any;
+    addComp?: TAddCompSpec | string;
     poison?: any;
     equip?: Item[];
     inv?: Item[];
@@ -1567,7 +1568,7 @@ export const adjustActorValues = (actorsData, order = Actors.modOrder) => {
     });
 };
 
-export function resistance(type, level) {
+export function resistance(type, level): IAddCompObj {
     return {
         comp: 'Resistance', func: {
             setEffect: RG.DMG[type.toUpperCase()],
@@ -1576,7 +1577,7 @@ export function resistance(type, level) {
     };
 }
 
-export function BypassComp(value) {
+export function BypassComp(value): IAddCompObj {
     return {comp: 'BypassProtection', func: {setChance: value}};
 }
 

@@ -12,6 +12,8 @@ import * as Brain from './brain';
 import * as Component from './component';
 import * as GoalsTop from './goals-top';
 import * as Element from './element';
+import {LevelSurroundings} from './level-surroundings';
+import {Geometry} from './geometry';
 
 import {BBox} from './interfaces';
 
@@ -57,8 +59,45 @@ export class FactoryBattle {
         const id = parentLevel ? parentLevel.getID() : 0;
         const name = conf.name || 'Battle of level ' + id;
 
+        let battleLevel = this.createBattleLevel(cols, rows, conf);
+        if (parentLevel) {
+            // Add connecting stairs between battle and area
+            const stairsArea = new ElementStairs('battle', parentLevel);
+            const map = parentLevel.getMap();
+
+            // TODO randomize this position
+            if (conf.bbox) {
+                const {bbox} = conf;
+                let xy = RNG.getRandInBbox(bbox);
+                let cell = map.getCell(xy[0], xy[1]);
+                let watchdog = RG.WATCHDOG;
+                while (cell.hasProps()) {
+                    xy = RNG.getRandInBbox(bbox);
+                    cell = map.getCell(xy[0], xy[1]);
+                    if (--watchdog === 0) {break;}
+                }
+                parentLevel.addStairs(stairsArea, xy[0], xy[1]);
+
+                const cellsAround = Geometry.getCellsAround(map, cell);
+                const levelSurround = new LevelSurroundings();
+                battleLevel = levelSurround.surround(battleLevel, {cellsAround});
+            }
+            else {
+                parentLevel.addStairs(stairsArea, 4, 4);
+            }
+
+            World.addExitsToEdge(battleLevel);
+
+            const battleExits: Stairs[] = battleLevel.getConnections();
+            stairsArea.connect(battleExits[0]);
+            for (let i = 1; i < battleExits.length; i++) {
+                battleExits[i].setTargetLevel(parentLevel);
+                battleExits[i].setTargetStairs(stairsArea);
+            }
+
+        }
+
         const battle = new Battle(name);
-        const battleLevel = this.createBattleLevel(cols, rows, conf);
         battle.setLevel(battleLevel);
 
         const [fact1, fact2] = this.getFactions(conf);
@@ -116,38 +155,6 @@ export class FactoryBattle {
 
         this.makeArmiesAsEnemies(armies);
 
-        if (parentLevel) {
-            // Add connecting stairs between battle and area
-            const stairsArea = new ElementStairs('battle', parentLevel);
-            const map = parentLevel.getMap();
-
-            // TODO randomize this position
-            if (conf.bbox) {
-                const {bbox} = conf;
-                let xy = RNG.getRandInBbox(bbox);
-                let cell = map.getCell(xy[0], xy[1]);
-                let watchdog = RG.WATCHDOG;
-                while (cell.hasProps()) {
-                    xy = RNG.getRandInBbox(bbox);
-                    cell = map.getCell(xy[0], xy[1]);
-                    if (--watchdog === 0) {break;}
-                }
-                parentLevel.addStairs(stairsArea, xy[0], xy[1]);
-            }
-            else {
-                parentLevel.addStairs(stairsArea, 4, 4);
-            }
-
-            World.addExitsToEdge(battleLevel);
-
-            const battleExits: Stairs[] = battleLevel.getConnections();
-            stairsArea.connect(battleExits[0]);
-            for (let i = 1; i < battleExits.length; i++) {
-                battleExits[i].setTargetLevel(parentLevel);
-                battleExits[i].setTargetStairs(stairsArea);
-            }
-
-        }
         return battle;
     }
 
@@ -174,6 +181,7 @@ export class FactoryBattle {
         const maxDanger = conf.danger || 5;
 
         const army = new Army(faction);
+        army.addAlignment(faction, 1);
         const constr = [
             {op: 'eq', prop: 'type', value: faction},
             {op: 'lte', prop: 'danger', value: maxDanger}
@@ -246,6 +254,7 @@ export class FactoryBattle {
         const forestConf = RG.getForestConf(cols, rows);
         const battleLevel = FactoryLevel.createLevel(levelType, cols, rows,
             forestConf);
+        // TODO add surrounding of the level
         return battleLevel;
     }
 

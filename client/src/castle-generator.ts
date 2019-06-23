@@ -7,7 +7,7 @@ import RG from './rg';
 import ROT from '../../lib/rot';
 
 import * as Element from './element';
-import {LevelGenerator} from './level-generator';
+import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {MapGenerator} from './map.generator';
 import {Level, LevelExtraType} from './level';
 import {DungeonPopulate} from './dungeon-populate';
@@ -16,7 +16,7 @@ import {LevelSurroundings} from './level-surroundings';
 import {FactoryItem} from './factory.items';
 import {Placer} from './placer';
 import {Random} from './random';
-import { Geometry } from './geometry';
+import {Geometry} from './geometry';
 
 const RNG = Random.getRNG();
 const Room = ROT.Map.Feature.Room;
@@ -25,38 +25,24 @@ import {TCoord} from './interfaces';
 type CellList = import('./map').CellMap;
 type Cell = import('./map.cell').Cell;
 
-interface CastleOpts {
-    addItems: boolean;
+interface CastleOpts extends ILevelGenOpts {
     roomCount: number;
-    cellsAround: {[key: string]: string};
-    surroundX: number;
-    surroundY: number;
-    maxValue: number;
-    preserveMarkers: boolean;
+    centralCorridors: boolean;
 }
+
+type GateFunc = () => void;
 
 type PartialCastleOpts = Partial<CastleOpts>;
 
 /* This class is used to generate different dungeon levels. */
 export class CastleGenerator extends LevelGenerator {
 
+    /* Return default options for castle generation. Used in editor mainly. */
     public static getOptions(): CastleOpts {
-        return {
-            addItems: true,
-            roomCount: -1,
-            cellsAround: {
-                N: 'wallmount',
-                S: 'tree',
-                E: 'grass',
-                W: 'snow',
-                NW: 'water',
-                SE: 'water'
-            },
-            surroundX: 10,
-            surroundY: 10,
-            maxValue: 100,
-            preserveMarkers: false
-        };
+        const opts = LevelGenerator.getOptions() as CastleOpts;
+        opts.centralCorridors = false;
+        opts.roomCount = -1;
+        return opts;
     }
 
     public addDoors: boolean;
@@ -72,19 +58,20 @@ export class CastleGenerator extends LevelGenerator {
 
     /* Returns a fully populated castle-level. */
     public create(cols, rows, conf: PartialCastleOpts): Level {
-        let castleLevel = this.createLevel(cols, rows, conf);
-        conf.preserveMarkers = false;
+        const castleLevel = this.createLevel(cols, rows, conf);
         this.removeMarkers(castleLevel, conf);
 
         if (conf.addItems) {
             this.nItemsAdded = this.addItemsToCastle(castleLevel, conf);
         }
 
-        if (conf.cellsAround) {
-            castleLevel = this.createCastleSurroundings(castleLevel, conf);
-        }
+        this.populateStoreRooms(castleLevel, conf);
 
         // TODO populate level with actors based on conf
+        if (conf.addActors) {
+            RG.err('CastleGenerator', 'create',
+               'addActors == true not supported yet');
+        }
         return castleLevel;
     }
 
@@ -94,10 +81,10 @@ export class CastleGenerator extends LevelGenerator {
     ): Level {
         const levelConf: any = Object.assign({
             dungeonType: 'castle',
-            preserveMarkers: true,
             wallType: 'wallcastle'
             }, conf
         );
+        levelConf.preserveMarkers = true;
         const mapgen = new MapGenerator();
 
         // Determine direction of castle exit
@@ -106,12 +93,20 @@ export class CastleGenerator extends LevelGenerator {
             levelConf.startRoomFunc = gateFunc;
         }
 
-        const mapObj = mapgen.createCastle(cols, rows, levelConf);
+        if (conf.centralCorridors) {
+            levelConf.constraintFunc = Castle.constraintFuncCross;
+        }
 
-        const level = new Level();
-        level.setMap(mapObj.map);
+        const mapObj = mapgen.createCastle(cols, rows, levelConf);
+        let level = new Level();
+        level.setMap(mapObj.map, mapObj);
         this.addMarkersFromTiles(level, mapObj.tiles);
 
+        if (conf.cellsAround) {
+            level = this.createCastleSurroundings(level, conf);
+        }
+
+        // Note that markers must be preserved in MapGenerator for this to work
         this.createDoorsAndLevers(level);
         return level;
     }
@@ -131,17 +126,19 @@ export class CastleGenerator extends LevelGenerator {
         const factItem = new FactoryItem();
         storerooms.forEach(room => {
             const itemsPlaced = factItem.generateItems(itemConf);
-            Placer.addPropsToRoom(level, room, itemsPlaced);
-            nAdded += itemsPlaced.length;
+            if (Placer.addPropsToRoom(level, room, itemsPlaced)) {
+                nAdded += itemsPlaced.length;
+            }
         });
 
         // One of the storerooms can contain gold as well
         if (RG.isSuccess(GOLD_VAULT_CHANCE)) {
             const goldRoom = RNG.arrayGetRand(storerooms);
-            const wealth = RNG.getUniformInt(1, 6);
+            const wealth = RNG.getUniformInt(6, 12);
             const goldItems = factItem.generateGold({nGold: 5, nLevel: wealth});
-            Placer.addPropsToRoom(level, goldRoom, goldItems);
-            nAdded += goldItems.length;
+            if (Placer.addPropsToRoom(level, goldRoom, goldItems)) {
+                nAdded += goldItems.length;
+            }
         }
 
         const normalRooms = extras.room as LevelExtraType[];
@@ -149,8 +146,9 @@ export class CastleGenerator extends LevelGenerator {
         const items = factItem.generateItems(itemConf);
         items.forEach(item => {
             const room = RNG.arrayGetRand(normalRooms);
-            Placer.addPropsToRoom(level, room, [item]);
-            nAdded += 1;
+            if (Placer.addPropsToRoom(level, room, [item])) {
+                nAdded += 1;
+            }
         });
         return nAdded;
     }
@@ -178,16 +176,16 @@ export class CastleGenerator extends LevelGenerator {
             else if (re.corridor.test(tile.name)) {
                 this.addToExtras(level, tile, 'corridor');
             }
-            else {
+            else if (!re.filler.test(tile.name)) {
                 this.addToExtras(level, tile, 'room');
             }
         });
     }
 
-    public addToExtras(level: Level, tile, name): void {
+    public addToExtras(level: Level, tile, name: string): void {
         const bbox = Geometry.convertBbox(tile);
         const cells = level.getMap().getFreeInBbox(bbox);
-        cells.forEach(cell => {
+        cells.forEach((cell: Cell) => {
             const [x, y] = cell.getXY();
             const marker = new Element.ElementMarker(markers[name]);
             marker.setTag(name);
@@ -205,10 +203,11 @@ export class CastleGenerator extends LevelGenerator {
         const doorPos = {};
         const levers = [];
 
+        // Note that markers must be preserved in MapGenerator for this to work
         cells.forEach(cell => {
             if (cell.hasElements()) {
-
                 const [x, y] = cell.getXY();
+
                 if (cell.hasMarker('leverdoor')) {
                     const door = new Element.ElementLeverDoor();
                     map.getCell(x, y).removeProps(RG.TYPE_ELEM);
@@ -263,12 +262,23 @@ export class CastleGenerator extends LevelGenerator {
                 const cPoint: TCoord = room.getCenter();
                 dungPopul.addPointGuardian(level, cPoint, maxDanger);
             });
+
+            // Add another main loot + guardian
+            const mainLootRoom: any = RNG.arrayGetRand(storerooms);
+            const cMain: TCoord = mainLootRoom.getCenter();
+            if (dungPopul.addMainLoot(level, cMain, conf.maxValue)) {
+                dungPopul.addPointGuardian(level, cMain, maxDanger + 4);
+            }
         }
     }
 
-    public createCastleSurroundings(level, conf) {
+    public createCastleSurroundings(level: Level, conf): Level {
         const levelSurround = new LevelSurroundings();
-        return levelSurround.surround(level, conf);
+        const extras = level.getExtras();
+        const newLevel = levelSurround.surround(level, conf);
+        newLevel.setExtras(extras);
+        levelSurround.scaleExtras(newLevel);
+        return newLevel;
     }
 }
 
@@ -280,7 +290,8 @@ const re = {
     corridor: /(corridor|corner)/,
     entrance: /entrance/,
     storeroom: /storeroom/,
-    vault: /vault/
+    vault: /vault/,
+    filler: /filler/i
 };
 
 const markers = {
@@ -293,29 +304,51 @@ const markers = {
 
 /* Returns the function to generate castle cased based on surrounding
  * cells. */
-function getGateDirFunction(conf) {
+function getGateDirFunction(conf): GateFunc | null {
     if (conf.cellsAround) {
         const {cellsAround} = conf;
+        // TODO should randomize the entrace direction
+        const funcs = [];
         if (!cellBlocked(cellsAround.N)) {
-            return Castle.startRoomFuncNorth;
+            funcs.push(Castle.startRoomFuncNorth);
         }
-        else if (!cellBlocked(cellsAround.S)) {
-            return Castle.startRoomFuncSouth;
+        if (!cellBlocked(cellsAround.S)) {
+            funcs.push(Castle.startRoomFuncSouth);
         }
-        else if (!cellBlocked(cellsAround.E)) {
-            return Castle.startRoomFuncEast;
+        if (!cellBlocked(cellsAround.E)) {
+            funcs.push(Castle.startRoomFuncEast);
         }
-        else if (!cellBlocked(cellsAround.W)) {
-            return Castle.startRoomFuncWest;
+        if (!cellBlocked(cellsAround.W)) {
+            funcs.push(Castle.startRoomFuncWest);
+        }
+        if (!cellBlocked(cellsAround.NE)) {
+            funcs.push(Castle.startRoomFuncNorthEast);
+        }
+        if (!cellBlocked(cellsAround.NW)) {
+            funcs.push(Castle.startRoomFuncNorthWest);
+        }
+        if (!cellBlocked(cellsAround.SE)) {
+            funcs.push(Castle.startRoomFuncSouthEast);
+        }
+        if (!cellBlocked(cellsAround.SW)) {
+            funcs.push(Castle.startRoomFuncSouthWest);
+        }
+
+        if (funcs.length === 0) {
+            RG.warn('CastleGenerator', 'getGateDirFunction',
+                'No free cellsAround ' + JSON.stringify(cellsAround));
+        }
+        else {
+            return RNG.arrayGetRand(funcs);
         }
     }
     return null;
 }
 
-function cellBlocked(type) {
+function cellBlocked(type): boolean {
     switch (type) {
         case 'wallmount': return true;
-        case 'water': return true;
+        // case 'water': return true;
         default: return false;
     }
 }

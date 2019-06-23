@@ -1,6 +1,7 @@
 
 import RG from './rg';
 import {LevelFactory} from '../data/level-factory';
+import {ActorGen} from '../data/actor-gen';
 import {Constraints} from './constraints';
 
 const dbg = require('debug');
@@ -11,6 +12,7 @@ import {ConfStack} from './conf-stack';
 import * as World from './world';
 import {Factory, FactoryBase} from './factory';
 import {FactoryZone} from './factory.zone';
+import {FactoryActor} from './factory.actors';
 import {ObjectShell} from './objectshellparser';
 
 import {DungeonGenerator} from './dungeon-generator';
@@ -21,6 +23,7 @@ import {CryptGenerator} from './crypt-generator';
 import {QuestPopulate} from './quest';
 import {Level} from './level';
 import {DungeonFeatures} from './dungeon-features';
+import {OWMap} from './overworld.map';
 
 import * as Element from './element';
 import * as IF from './interfaces';
@@ -30,6 +33,7 @@ const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
 
 type Random = import('./random').Random;
 type Stairs = Element.ElementStairs;
+type WorldBase = World.WorldBase;
 type WorldTop = World.WorldTop;
 type Area = World.Area;
 type ConcreteSubZone = World.Branch | World.CityQuarter |
@@ -104,7 +108,7 @@ export const FactoryWorld = function() {
     // Creates all zones when the area is created if true. Setting it to true
     // makes creation of game very slow, as the full game is built in one go
     this.createAllZones = true;
-    this.worldElemByID = {}; // Stores world elements by ID
+    this.worldElemByID = {} as {[key: number]: WorldBase}; // Stores world elements by ID
 
     this.presetLevels = {};
 
@@ -112,7 +116,7 @@ export const FactoryWorld = function() {
 
     // Can be used to pass already created levels to different zones. For
     // example, after restore game, no new levels should be created
-    this.id2level = {};
+    this.id2level = {} as IF.ID2LevelMap;
     this.id2levelSet = false;
     this.id2entity = {};
 
@@ -124,7 +128,7 @@ export const FactoryWorld = function() {
     };
 
 
-    this.setPresetLevels = function(levels) {
+    this.setPresetLevels = function(levels: Level[]): void {
         this.presetLevels = levels;
         this.debug('PresetLevels were set.');
     };
@@ -132,7 +136,7 @@ export const FactoryWorld = function() {
     /* If id2level is set, factory does not construct any levels. It uses
      * id2level as a lookup table instead. This is mainly used when restoring a
      * saved game. */
-    this.setId2Level = function(id2level) {
+    this.setId2Level = function(id2level: IF.ID2LevelMap) {
         if (Object.keys(id2level).length === 0) {
             RG.warn('FactoryWorld', 'setId2Level',
                 'There are no levels/keys present in id2level map. Bug?');
@@ -144,18 +148,18 @@ export const FactoryWorld = function() {
 
     /* Pushes the hier name and configuration on the stack. Config can be
     * queried with getConf(). */
-    this.pushScope = function(conf) {
+    this.pushScope = function(conf): void {
         this._conf.pushScope(conf);
     };
 
     /* Removes given config and the name it contains from stacks. Reports an
     * error if removed name does not match the name in conf. */
-    this.popScope = function(conf) {
+    this.popScope = function(conf): void {
         this._conf.popScope(conf);
     };
 
     /* Initializes the global configuration such as level size. */
-    this.setGlobalConf = function(conf: any = {}) {
+    this.setGlobalConf = function(conf: any = {}): void {
         const levelSize = conf.levelSize || 'Medium';
         const sqrPerActor = conf.sqrPerActor || RG.ACTOR_MEDIUM_SQR;
         const globalConf: GlobalConf = {
@@ -170,24 +174,24 @@ export const FactoryWorld = function() {
         this.debug('globalConf set to ' + JSON.stringify(globalConf));
     };
 
-    this.getGlobalConf = function() {
+    this.getGlobalConf = function(): GlobalConf {
         return this._conf.getGlobalConf();
     };
 
     /* Returns a config value. */
-    this.getConf = function(keys) {
+    this.getConf = function(keys: string) {
         return this._conf.getConf(keys);
     };
 
-    this.setOverWorld = function(overworld) {
+    this.setOverWorld = function(overworld: OWMap): void {
         this.overworld = overworld;
     };
 
     /* Returns the full hierarchical name of the zone. */
-    this.getHierName = () => this._conf.getScope().join('.');
+    this.getHierName = (): string => this._conf.getScope().join('.');
 
     /* Creates a world using given configuration. */
-    this.createWorld = function(conf): World.WorldTop {
+    this.createWorld = function(conf: IF.WorldConf): World.WorldTop {
         this._verif.verifyConf('createWorld', conf, ['name', 'nAreas']);
         if (!this.getGlobalConf().set) {
             this.setGlobalConf({});
@@ -215,7 +219,7 @@ export const FactoryWorld = function() {
 
 
     /* Creates an area which can be added to a world. */
-    this.createArea = function(conf): World.Area {
+    this.createArea = function(conf: IF.AreaConf): World.Area {
         this._verif.verifyConf('createArea', conf,
             ['name', 'maxX', 'maxY']);
         this.pushScope(conf);
@@ -250,7 +254,7 @@ export const FactoryWorld = function() {
         return area;
     };
 
-    this.restoreCreatedZones = (world: WorldTop, area: Area, areaConf): void => {
+    this.restoreCreatedZones = (world: WorldTop, area: Area, areaConf: IF.AreaConf): void => {
         Object.keys(areaConf.zonesCreated).forEach(keyXY => {
             const [xStr, yStr] = keyXY.split(',');
             const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
@@ -262,7 +266,7 @@ export const FactoryWorld = function() {
     };
 
     /* Creates zones for given area tile x,y with located in area areaName. */
-    this.createZonesForTile = (world: WorldTop, area: Area, x, y): void => {
+    this.createZonesForTile = (world: WorldTop, area: Area, x: number, y: number): void => {
         // Setup the scope & conf stacks
         if (!area.tileHasZonesCreated(x, y)) {
             this.debug(`Creating Area ${x},${y} zones (not created yet)`);
@@ -319,8 +323,8 @@ export const FactoryWorld = function() {
             actor: actor => (
                 actor.danger <= maxDanger
             ),
-            gold: () => false,
-            food: () => false,
+            gold: () => false, // No gold on the ground
+            food: () => false, // No food on the ground
             maxValue,
             actorsPerLevel, maxDanger
         };
@@ -330,6 +334,8 @@ export const FactoryWorld = function() {
         fact.addNRandItems(level, parser, levelConf);
         levelConf.func = levelConf.actor;
         fact.addNRandActors(level, parser, levelConf);
+
+        this.addActorSpawner(level, parser, levelConf);
     };
 
     this._createAllZones = (area, conf, tx = -1, ty = -1): void => {
@@ -587,7 +593,7 @@ export const FactoryWorld = function() {
 
     /* Returns a level from presetLevels if any exist for the current level
      * number. */
-    this.getFromPresetLevels = (i, presetLevels): Level =>  {
+    this.getFromPresetLevels = (i, presetLevels: IF.LevelObj[]): Level | null =>  {
         let foundLevel = null;
         if (presetLevels.length > 0) {
             const levelObj = presetLevels.find(lv => lv.nLevel === i);
@@ -735,7 +741,7 @@ export const FactoryWorld = function() {
     };
 
     /* Returns preset levels (if any) for the current zone. */
-    this.getPresetLevels = function(hierName, subZoneConf) {
+    this.getPresetLevels = function(hierName: string, subZoneConf) {
 
         // First check the configuration
         const presetLevels = this.getConf('presetLevels');
@@ -1411,6 +1417,16 @@ FactoryWorld.prototype.createAreaZoneConnection = function(
         });
     }
 
+};
+
+FactoryWorld.prototype.addActorSpawner = function(level, parser, conf): void {
+    const maxDanger = conf.maxDanger + 1;
+    const constr = [
+        {op: 'eq', prop: 'type', value: ActorGen.getRaces()}
+    ];
+    const factActor = new FactoryActor();
+    const spawner = factActor.createActorSpawner(maxDanger, constr);
+    level.addVirtualProp(RG.TYPE_ACTOR, spawner);
 };
 
 /* Used for printing debug messages only. Can be enabled with

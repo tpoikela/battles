@@ -1,4 +1,4 @@
-/* Contains code for thief goal. */
+/* Contains code for thief goal and its related sub-goals. */
 
 import RG from './rg';
 import {Goal, GoalStatus} from './goals';
@@ -6,8 +6,10 @@ import {Random} from './random';
 import {Cell} from './map.cell';
 import {Brain} from './brain';
 import * as Component from './component';
+import {TCoord} from './interfaces';
 
 type ItemBase = import('./item').ItemBase;
+type SentientActor = import('./actor').SentientActor;
 
 const {
     GOAL_ACTIVE,
@@ -19,8 +21,10 @@ const RNG = Random.getRNG();
 export class GoalSearchHouse extends Goal.Base {
 
     public floorCells: Cell[];
+    public door: TCoord;
+    public searchTime: number;
 
-    constructor(actor) {
+    constructor(actor: SentientActor) {
         super(actor);
         this.setType('GoalSearchHouse');
         const cell = actor.getCell();
@@ -139,7 +143,7 @@ export class GoalThief extends Goal.Base {
         return this.status;
     }
 
-    public isInActiveShop() {
+    public isInActiveShop(): boolean {
         const cell = this.actor.getCell();
         if (cell.hasShop()) {
             const shop = cell.getShop();
@@ -151,7 +155,7 @@ export class GoalThief extends Goal.Base {
         return false;
     }
 
-    public tryToSellItem() {
+    public tryToSellItem(): void {
         const inventory = this.actor.getInvEq().getInventory();
         const itemToSell: ItemBase = RNG.arrayGetRand(inventory.getItems());
         const actorCell = this.actor.getCell();
@@ -191,7 +195,7 @@ export class GoalThief extends Goal.Base {
         return nextGoal;
     }
 
-    public chooseThiefTask() {
+    public chooseThiefTask(): void {
         const inventory = this.actor.getInvEq().getInventory();
         const hasItems = !inventory.isEmpty();
         let nextGoal = null;
@@ -246,7 +250,7 @@ export class GoalThief extends Goal.Base {
     }
 
     /* Callback given to Goal.Explore for each x,y explored. */
-    public exploreCallback(x, y) {
+    public exploreCallback(x, y): void {
         const map = this.actor.getLevel().getMap();
         if (map.hasXY(x, y)) {
             const cell = map.getCell(x, y);
@@ -256,7 +260,7 @@ export class GoalThief extends Goal.Base {
         }
     }
 
-    public thiefSeesHouse() {
+    public thiefSeesHouse(): boolean {
         const seenCells = this.actor.getBrain().getSeenCells();
         const floorCells = seenCells.filter(c => (
             c.getBaseElem().getType() === 'floorhouse'

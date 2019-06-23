@@ -197,10 +197,10 @@ export const FactoryItem = function() {
 
     /* Returns a shop item based on the configuration. */
     this.getShopItem = (n, conf) => {
-        let item = null;
+        let shopItem = null;
         if (conf.shopFunc) {
             if (typeof conf.shopFunc[n] === 'function') {
-                item = conf.parser.createRandomItem({
+                shopItem = conf.parser.createRandomItem({
                     func: conf.shopFunc[n]
                 });
             }
@@ -210,22 +210,22 @@ export const FactoryItem = function() {
             }
         }
         else if (Array.isArray(conf.shopType)) {
-            item = conf.parser.createRandomItem({
+            shopItem = conf.parser.createRandomItem({
                 func: item => item.type === conf.shopType[n]
             });
         }
         else if (typeof conf.shopType === 'string') {
-            item = conf.parser.createRandomItem({
+            shopItem = conf.parser.createRandomItem({
                 func: item => item.type === conf.shopType
             });
         }
         else { // Fallback, if no config
-            item = conf.parser.createRandomItem({
+            shopItem = conf.parser.createRandomItem({
                 func: item => item.value <= 50 + n * 100
             });
         }
-        _doItemSpecificAdjustments(item, 50 + n * 100);
-        return item;
+        _doItemSpecificAdjustments(shopItem, 50 + n * 100);
+        return shopItem;
     };
 
     this.addItemsToCells = function(level, parser, cells, conf) {

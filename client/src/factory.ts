@@ -115,12 +115,11 @@ export const FactoryBase = function() {
 
     /* Adds N random monsters to the level based on given danger level.
      * Returns the number of actors added. */
-    this.addNRandActors = (level, parser, conf) => {
+    this.addNRandActors = (level: Level, parser, conf): number => {
         this._verif.verifyConf('addNRandActors', conf,
             ['maxDanger', 'actorsPerLevel']);
         // Generate the enemies randomly for this level
         const maxDanger = conf.maxDanger;
-
         const actors = this.generateNActors(conf.actorsPerLevel, conf.func,
             maxDanger);
         if (!actors) {

@@ -22,7 +22,7 @@ import {MapMiner} from '../../lib/map.miner';
 import {MapMountain} from '../../lib/map.mountain';
 import {MapWall} from '../../lib/map.wall';
 import * as Element from './element';
-import {BBox, TCoord} from './interfaces';
+import {TCoord, BBox, TLocatableElement} from './interfaces';
 
 const ElementMarker = Element.ElementMarker;
 type ElementBase = Element.ElementBase;
@@ -56,13 +56,14 @@ export interface MapConf {
     rng?: Random;
 }
 
-interface MapObj {
+export interface MapObj {
     map: CellMap;
     tiles?: any;
     paths?: any[];
     mapGen?: any;
     houses?: House[];
     unused?: any[];
+    elements?: TLocatableElement[];
 }
 
 interface HouseObj extends BBox {
@@ -145,14 +146,7 @@ export class MapGenerator {
         for (let x = 0; x < cols; x++) {
             for (let y = 0; y < rows; y++) {
                 const char = asciiMap[x][y];
-                if (char === '+') {
-                    const marker = new Element.ElementMarker('+');
-                    marker.setTag('door');
-                    // door.setXY(x, y);
-                    map.setBaseElemXY(x, y, asciiToElem['.'] as ElementBase);
-                    map.setElemXY(x, y, marker);
-                }
-                else if (asciiToElem.hasOwnProperty(char)) {
+                if (asciiToElem.hasOwnProperty(char)) {
                     const value = asciiToElem[char];
                     if (typeof value !== 'function') {
                         map.setBaseElemXY(x, y, value);
@@ -160,6 +154,13 @@ export class MapGenerator {
                     else {
                         value(map, x, y);
                     }
+                }
+                else if (char === '+') {
+                    const marker = new Element.ElementMarker('+');
+                    marker.setTag('door');
+                    // door.setXY(x, y);
+                    map.setBaseElemXY(x, y, asciiToElem['.'] as ElementBase);
+                    map.setElemXY(x, y, marker);
                 }
             }
         }
@@ -511,13 +512,23 @@ export class MapGenerator {
         const rows = bbox.lry - bbox.uly;
         this.setGen('lakes', cols, rows);
         const lakeMap = this.createLakes(conf).map;
+        this.addElementsToMap(map, lakeMap, 'water', conf, bbox);
+    }
 
-        RG.forEach2D(lakeMap._map, (x, y) => {
+    public addForest(map: CellMap, conf, bbox: BBox): void {
+        this.cols = bbox.lrx - bbox.ulx;
+        this.rows = bbox.lry - bbox.uly;
+        const forestMap = this.createForest(conf).map;
+        this.addElementsToMap(map, forestMap, 'tree', conf, bbox);
+    }
+
+    public addElementsToMap(map, srcMap, elem, conf, bbox): void {
+        RG.forEach2D(srcMap._map, (x, y) => {
             const nX = x + bbox.ulx;
             const nY = y + bbox.uly;
             if (Geometry.isInBbox(nX, nY, bbox) && map.hasXY(nX, nY)) {
-                const baseElem = lakeMap.getBaseElemXY(x, y);
-                if (baseElem.getType() === 'water') {
+                const baseElem = srcMap.getBaseElemXY(x, y);
+                if (baseElem.getType() === elem) {
                     if (conf.skipTypes) {
                         const elemType = map.getBaseElemXY(nX, nY).getType();
                         if (!conf.skipTypes.hasOwnProperty(elemType)) {
@@ -531,6 +542,7 @@ export class MapGenerator {
             }
         });
     }
+
 
     public createWall(cols, rows, conf) {
         const map: CellMap = new CellMap(cols, rows, this.defaultMapElem);
@@ -824,12 +836,15 @@ export class MapGenerator {
     /* Creates the actual castle Map.CellList after ascii has been generated from
      * the template. */
     public createCastleMapObj(level, conf): MapObj {
+        const elements = [];
         const createLeverMarker = (map, x, y) => {
             map.setBaseElemXY(x, y, MapGenerator.getFloorElem(conf.floorType));
             if (conf.preserveMarkers) {
                 const marker = new ElementMarker('&');
                 marker.setTag('lever');
                 map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
+                marker.setXY(x, y);
+                elements.push(marker);
             }
         };
 
@@ -839,6 +854,8 @@ export class MapGenerator {
                 const marker = new ElementMarker('|');
                 marker.setTag('leverdoor');
                 map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
+                marker.setXY(x, y);
+                elements.push(marker);
             }
         };
 
@@ -848,6 +865,19 @@ export class MapGenerator {
                 const marker = new ElementMarker(':');
                 marker.setTag('living_quarter');
                 map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
+                marker.setXY(x, y);
+                elements.push(marker);
+            }
+        };
+
+        const createDoor = (map, x, y) => {
+            map.setBaseElemXY(x, y, MapGenerator.getFloorElem(conf.floorType));
+            if (conf.preserveMarkers) {
+                const marker = new ElementMarker('+');
+                marker.setTag('door');
+                map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
+                marker.setXY(x, y);
+                elements.push(marker);
             }
         };
 
@@ -856,10 +886,12 @@ export class MapGenerator {
             '.': MapGenerator.getFloorElem(conf.floorType),
             '&': createLeverMarker,
             '|': createLeverDoorMarker,
-            ':': createLivingQuarterMarker
+            ':': createLivingQuarterMarker,
+            '+': createDoor
         };
         const mapObj: MapObj = MapGenerator.fromAsciiMap(level.map, asciiToElem);
         mapObj.tiles = level.getPlacedData();
+        mapObj.elements = elements;
         return mapObj;
     }
 

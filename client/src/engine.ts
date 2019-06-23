@@ -106,10 +106,12 @@ export class Engine {
 
     /* Returns true if the menu is shown instead of the level. */
     public isMenuShown(): boolean {
-        if (this.nextActor.isPlayer()) {
-            const actor = this.nextActor as SentientActor;
-            const brain = actor.getBrain() as BrainPlayer;
-            return brain.isMenuShown();
+        if (!this.hasAnimation()) {
+            if (this.nextActor.isPlayer()) {
+                const actor = this.nextActor as SentientActor;
+                const brain = actor.getBrain() as BrainPlayer;
+                return brain.isMenuShown();
+            }
         }
         return false;
     }

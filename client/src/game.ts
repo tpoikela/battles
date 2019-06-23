@@ -15,6 +15,8 @@ import * as World from './world';
 import {Dice} from './dice';
 import {SentientActor} from './actor';
 import {CellMap} from './map';
+import {TCoord} from './interfaces';
+import {ObjectShell} from './objectshellparser';
 
 type Level = import('./level').Level;
 
@@ -40,7 +42,7 @@ export interface IGameMain {
 /* Top-level main object for the game.  */
 export const GameMain = function() {
     this._players = []; // List of players
-    this._places = {}; // List of all places
+    this._places = {};
     this._shownLevel = null; // One per game only
     this._gameOver = false;
     this.actorsKilled = {};
@@ -48,7 +50,7 @@ export const GameMain = function() {
     this._enableChunkUnload = false;
     this._chunkManager = null;
     this._eventPool = POOL;
-    POOL.removeAll();
+    POOL.reset();
     // this._eventPool = new EventPool();
     // POOL = this._eventPool;
 
@@ -102,6 +104,14 @@ export const GameMain = function() {
     this.getLevels = (): Level[] => this._engine.getLevels();
     this.getComponents = (): number[] => this._engine.getComponents();
     this.getPlaces = () => this._places;
+
+    this.getLevelsInAllPlaces = (): Level[] => {
+        let levels = [];
+        Object.values(this._places).forEach((place: any) => {
+            levels = levels.concat(place.getLevels());
+        });
+        return levels;
+    };
 
     this.setEnableChunkUnload = (enable = true) => {
         this._enableChunkUnload = enable;
@@ -538,6 +548,7 @@ export const GameMain = function() {
 
     /* Serializes the game object into JSON. */
     this.toJSON = () => {
+        const parser = ObjectShell.getParser();
         const obj: any = { // TODO fix typings
             engine: {},
             gameMaster: this._master.toJSON(),
@@ -549,7 +560,8 @@ export const GameMain = function() {
             charStyles: RG.charStyles,
             cellStyles: RG.cellStyles,
             actorsKilled: this.actorsKilled,
-            enableChunkUnload: this._enableChunkUnload
+            enableChunkUnload: this._enableChunkUnload,
+            objectShellParser: parser.toJSON()
         };
 
         if (!this.hasPlaces()) {
@@ -590,11 +602,7 @@ export const GameMain = function() {
 
     /* Returns true if the menu is shown instead of the level. */
     this.isMenuShown = () => {
-        const player = this.getPlayer();
-        if (player) {
-            return player.getBrain().isMenuShown();
-        }
-        return false;
+        return this._engine.isMenuShown();
     };
 
     /* Returns the current menu object. */
@@ -628,10 +636,10 @@ export const GameMain = function() {
     this.disableAnimations = () => {this._engine.disableAnimations();};
 
     /* Returns the player tile position in overworld map. */
-    this.getPlayerOwPos = () => {
+    this.getPlayerOwPos = (): TCoord | null => {
         const player = this.getPlayer();
         if (!this._overworld || !player) {
-            return [];
+            return null;
         }
 
         const overworld = this._overworld;

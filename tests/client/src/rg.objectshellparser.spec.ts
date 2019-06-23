@@ -6,6 +6,7 @@ import {Objects} from '../../../client/data/battles_objects';
 import {RGTest} from '../../roguetest';
 import {RGUnitTests} from '../../rg.unit-tests';
 import {Effects} from '../../../client/data/effects';
+import {ItemGen} from '../../../client/data/item-gen';
 import {chaiBattles} from '../../helpers/chai-battles';
 import {SentientActor } from '../../../client/src/actor';
 import {ObjectShell} from '../../../client/src/objectshellparser';
@@ -52,7 +53,7 @@ describe('ObjectShell.Parser', () => {
         expect(superWolf.attack).to.equal(15);
         expect(superWolf.defense).to.equal(20);
 
-        const objWolf = parser.dbGet({name: 'wolf'})[0];
+        const objWolf = parser.dbGetActor({name: 'wolf'});
         expect(objWolf).to.equal(wolfNew);
 
         const wolfPack = parser.dbGet({categ: 'actors', danger: 3});
@@ -256,7 +257,7 @@ describe('ObjectShell.Parser', () => {
             {name: 'Gelee', energy: 500,
             weight: 0.2, value: 100, base: 'foodBase'});
 
-        const geleeObj = parser.dbGet({name: 'Gelee'})[0];
+        const geleeObj = parser.dbGetItem({name: 'Gelee'});
         expect(geleeObj.char).to.equal('%');
         expect(geleeObj.value).to.equal(expFood.value);
 
@@ -573,8 +574,8 @@ describe('Data query functions for objects', function() {
     });
 
     it('can filter query with category/function', () => {
-        const actor = parser.dbGet({name: 'Winter demon'});
-        expect(actor[0].name).to.equal('Winter demon');
+        const actor = parser.dbGetActor({name: 'Winter demon'});
+        expect(actor.name).to.equal('Winter demon');
 
         const items = parser.dbGet({categ: 'items'});
         expect(Object.keys(items)).to.have.length.above(10);
@@ -784,6 +785,41 @@ describe('Data query functions for objects', function() {
         const addOnEquip = boots.get('AddOnEquip');
         const addComp = addOnEquip.getComp();
         expect(addComp.getType()).to.equal('Flying');
+    });
+
+    it('can create addOnHit item with transient comp', () => {
+        const swordShell = ItemGen.buildShell({type: 'weapon',
+            name: 'sword', suffix: 'ofNecropotence', material: 'steel'});
+        const necroSword = parser.createFromShell(RG.TYPE_ITEM, swordShell);
+        expect(necroSword).to.have.component('AddOnEquip');
+        expect(necroSword).to.have.component('AddOnHit');
+        const addOnHit = necroSword.get('AddOnHit');
+
+        const compToAdd = addOnHit.getComp();
+        expect(compToAdd.transientComp).to.equal('DrainStat');
+
+        const realComp = addOnHit.getCompToAdd();
+        expect(realComp.getType()).to.equal('DrainStat');
+
+        const onEquipComps = necroSword.getList('AddOnEquip');
+        console.log(onEquipComps);
+
+    });
+
+    it('can add goals to actors using shells', () => {
+        const demonShell = parser.dbGetActor({name: 'Winter demon'});
+        demonShell.goals = [{name: 'GoHome', setArgs: {xy: [0, 0]}}, {name: 'Thief'}];
+        const winterDemon = parser.createFromShell(RG.TYPE_ACTOR, demonShell);
+
+        const brain = winterDemon.getBrain();
+        const goal = brain.getGoal();
+        const homeEval = goal.getEvaluator('GoHome');
+        const thiefEval = goal.getEvaluator('Thief');
+        const evaluators = [homeEval, thiefEval];
+        const soughtEvals = evaluators.filter(ee => (
+            ee.getType().match(/(GoHome|Thief)/)
+        ));
+        expect(soughtEvals).to.have.length(2);
     });
 
 });

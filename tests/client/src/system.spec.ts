@@ -24,6 +24,7 @@ import {Dice} from '../../../client/src/dice';
 import {FromJSON} from '../../../client/src/game.fromjson';
 import {Spell} from '../../../client/src/spell';
 import {BrainPlayer} from '../../../client/src/brain/brain.player';
+import {ItemGen} from '../../../client/data/item-gen';
 
 const Stairs = Element.ElementStairs;
 const expect = chai.expect;
@@ -120,7 +121,9 @@ describe('System.Attack', () => {
 
     it('can apply AddOnHit components', function() {
         const damageSystem = new System.Damage(['Damage']);
+        const deathSystem = new System.Death(['DeathEvent']);
         systems.push(damageSystem);
+        systems.push(deathSystem);
         const timeSys = new System.TimeEffects(['DirectDamage']);
         systems.push(timeSys);
 
@@ -214,7 +217,8 @@ describe('System.Damage', () => {
         const human = factActor.createActor('Human', humanStats);
 
         const dSystem = new System.Damage(['Damage']);
-        const systems = [dSystem];
+        const deathSystem = new System.Death(['DeathEvent']);
+        const systems = [dSystem, deathSystem];
 
         const lootItem = new Item.ItemBase('Loot item');
         const loot = new Component.Loot(lootItem);
@@ -505,6 +509,7 @@ describe('System.TimeEffects', () => {
     it('processes Coldness effects into damage', () => {
         const timeSys = new System.TimeEffects(['Expiration', 'Coldness']);
         const damageSystem = new System.Damage(['Damage']);
+        const deathSystem = new System.Death(['DeathEvent']);
 
         const ghoul = new SentientActor('ghoul');
         const actor = new SentientActor('frozen');
@@ -524,7 +529,7 @@ describe('System.TimeEffects', () => {
         actor.add(new Component.Coldness());
 
         for (let i = 0; i < 13; i++) {
-            updateSystems([timeSys, damageSystem]);
+            updateSystems([timeSys, damageSystem, deathSystem]);
         }
         expect(actor.get('Health').isDead()).to.equal(true);
         expect(actor).not.to.have.component('Coldness');
@@ -532,7 +537,7 @@ describe('System.TimeEffects', () => {
         expect(actor).not.to.have.component('Paralysis');
 
         for (let i = 0; i < 5; i++) {
-            updateSystems([timeSys, damageSystem]);
+            updateSystems([timeSys, damageSystem, deathSystem]);
         }
     });
 
@@ -791,3 +796,44 @@ describe('System.BaseAction', () => {
     });
 });
 
+
+describe('System.Equip', () => {
+    it('it handles onEquip hooks on items', () => {
+        const parser = new ObjectShell.Parser();
+        const sysEquip = new System.Equip(['Equip']);
+        const sysAttack = new System.Attack(['Attack']);
+        const sysDamage = new System.Damage(['Damage']);
+        const equipper = new SentientActor('equipper');
+
+        // Create the sword and check creation is OK
+        const necroSwordShell = ItemGen.buildShell({
+            type: 'weapon', name: 'sword', material: 'steel',
+            suffix: 'ofNecropotence'});
+        const necroSword = parser.createFromShell(RG.TYPE_ITEM, necroSwordShell);
+        expect(necroSword).to.have.component('AddOnEquip');
+        expect(necroSword).to.have.component('AddOnHit');
+
+        // Equip the sword
+        equipper.getInvEq().addItem(necroSword);
+        const equipComp = new Component.Equip();
+        equipComp.setArgs({item: necroSword});
+        equipper.add(equipComp);
+        sysEquip.update();
+        expect(equipper).to.have.component('DirectDamage');
+        expect(equipper).to.have.component('Duration');
+        expect(equipper).to.have.component('Expiration');
+
+        // Create a victim and attack with necro sword
+        const victim = new SentientActor('victim');
+        victim.get('Combat').setDefense(0);
+        const attComp = new Component.Attack();
+        attComp.setTarget(victim);
+        equipper.add(attComp);
+
+        // Test hitting with the draining sword
+        equipper.get('Combat').setAttack(100);
+        sysAttack.update();
+        expect(victim).to.have.component('DrainStat');
+
+    });
+});

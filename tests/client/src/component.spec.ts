@@ -1,12 +1,12 @@
 
 import { expect } from 'chai';
 import RG from '../../../client/src/rg';
-import {Entity}  from '../../../client/src/entity';
+import {Entity} from '../../../client/src/entity';
 import * as Component from '../../../client/src/component';
 import {TagComponent, DataComponent, NO_SERIALISATION
 } from '../../../client/src/component/component.base';
 import {SentientActor} from '../../../client/src/actor';
-import { FactoryActor } from "../../../client/src/factory.actors";
+import { FactoryActor } from '../../../client/src/factory.actors';
 
 const ComponentBase = Component.ComponentBase;
 const CompDefs = Component.Component;
@@ -20,6 +20,16 @@ describe('Component', () => {
 
         Component.undefineComponent('TripleStrike');
         expect(CompDefs).to.not.have.property('TripleStrike');
+    });
+
+    it('has function to create components', () => {
+        const compArgs = [
+            {setStrength: 19},
+            {setter: 'setMagic', value: 11}
+        ];
+        const statsComp = Component.createFromObj('Stats', compArgs);
+        expect(statsComp.getStrength()).to.equal(19);
+        expect(statsComp.getMagic()).to.equal(11);
     });
 });
 

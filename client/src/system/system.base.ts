@@ -90,7 +90,7 @@ export abstract class SystemBase {
         for (let i = 0; i < this.compTypes.length; i++) {
             if (!Component.hasOwnProperty(this.compTypes[i])) {
                 RG.err('System.Base', 'new',
-                    `Comp type ${this.compTypes[i]} not in Component`);
+                    `Comp type |${this.compTypes[i]}| not in Component`);
             }
 
             if (pool) {
@@ -161,11 +161,16 @@ export abstract class SystemBase {
 
     /* For printing out debug information. */
     public dbg(msg): void {
-        if (debug.enabled) {
+        if (this.debugEnabled) {
             const nEnt = Object.keys(this.entities).length;
             let descr = `[System ${this.type.toString()}]`;
             descr += ` nEntities: ${nEnt}`;
-            debug(`${descr} ${msg}`);
+            if (debug.enabled) {
+                debug(`${descr} ${msg}`);
+            }
+            else {
+                console.log(`${descr} ${msg}`);
+            }
         }
     }
 }

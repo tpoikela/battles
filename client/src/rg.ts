@@ -747,6 +747,9 @@ RG.FMODE_NORMAL = 0;
 RG.FMODE_FAST = 1;
 RG.FMODE_SLOW = 2;
 
+RG.ITEM_SUFFIX_CHANCE = 0.1;
+RG.ITEM_PREFIX_CHANCE = 0.1;
+
 RG.PROT_BYPASS_CHANCE = 0.05;
 RG.MISSILE_CRITICAL_SHOT = 0.1;
 
@@ -821,6 +824,15 @@ RG.DAY = {
     NIGHT: 'NIGHT'
 };
 
+RG.AREA_LEVEL_COLS = 100;
+RG.AREA_LEVEL_ROWS = 100;
+
+RG.LETTERS = ['a', 'b', 'c', 'd', 'e', 'f',
+    'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+    'u', 'v', 'w', 'x', 'y', 'z'
+];
+RG.LETTERS_UC = RG.LETTERS.map(l => l.toUpperCase());
+
 /* Converts a direction (N, S, ...) to 2-d vector. If already,
  * a vector, returns it. */
 RG.dirTodXdY = function(dir: TCoord | string): TCoord | null {
@@ -874,6 +886,7 @@ RG.DMG = {
     ACID: 'ACID',
     BLUNT: 'BLUNT',
     COLD: 'COLD',
+    DIRECT: 'DIRECT',
     ENERGY: 'ENERGY',
     FIRE: 'FIRE',
     HUNGER: 'HUNGER',
@@ -1552,7 +1565,9 @@ RG.SYS.BASE_ACTION = Symbol('BASE_ACTION');
 RG.SYS.CHAT = Symbol('CHAT');
 RG.SYS.COMMUNICATION = Symbol('COMMUNICATION');
 RG.SYS.DAMAGE = Symbol('DAMAGE');
+RG.SYS.DEATH = Symbol('DEATH');
 RG.SYS.DISABILITY = Symbol('DISABILITY');
+RG.SYS.DRAIN_STATS = Symbol('DRAIN_STATS');
 RG.SYS.EQUIP = Symbol('EQUIP');
 RG.SYS.EVENTS = Symbol('EVENTS');
 RG.SYS.EXP_POINTS = Symbol('EXP_POINTS');

@@ -44,7 +44,6 @@ export class SystemEvents extends SystemBase {
             [RG.EVT_ACTOR_DAMAGED]: this._handleActorDamaged.bind(this),
             [RG.EVT_ACTOR_ATTACKED]: this._handleActorAttacked.bind(this),
             [RG.EVT_ACTOR_USED_STAIRS]: this._handleActorUsedStairs.bind(this)
-            // ACTOR_KILLED: this._handleActorKilled.bind(this)
         };
     }
 

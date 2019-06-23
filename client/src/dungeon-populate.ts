@@ -12,11 +12,15 @@ import {WorldShop} from './world';
 import * as Item from './item';
 import * as Element from './element';
 import {ObjectShell} from './objectshellparser';
+import {SentientActor} from './actor';
+import {BrainGoalOriented} from './brain/brain.goaloriented';
+import {ItemGen} from '../data/item-gen';
+import {ActorGen} from '../data/actor-gen';
 
 const MIN_ACTORS_ROOM = 2;
 const RNG = Random.getRNG();
 
-import {TCoord} from './interfaces';
+import {TCoord, TShellFunc, BBox, IShell} from './interfaces';
 type Level = import('./level').Level;
 type House = import('./houses').House;
 
@@ -29,9 +33,11 @@ interface PopulConf {
     maxValue?: number;
 }
 
+const probSpecialItem = 0.5;
+
 export class DungeonPopulate {
 
-    public actorFunc: (shell) => boolean;
+    public actorFunc: TShellFunc;
 
     private theme: string;
     private maxDanger: number;
@@ -56,7 +62,7 @@ export class DungeonPopulate {
     *   3. bigRooms: spawn depending on theme
     *   4. Critical path: Gold coins?
     */
-    public populateLevel(level) {
+    public populateLevel(level: Level): void {
         const extras = level.getExtras();
         const maxDanger = this.maxDanger;
         const maxValue = this.maxValue;
@@ -74,14 +80,22 @@ export class DungeonPopulate {
                     func: actor => actor.danger <= maxDanger + 2,
                     nActors: 0 // To be set later
                 };
+
+                let addOk = false;
                 if (/cross/.test(type)) {
                     // Cross has lower density as its huge
                     actorConf.nActors = Math.floor(areaSize / 6);
-                    this.addActorsToBbox(level, bbox, actorConf);
+                    addOk = this.addActorsToBbox(level, bbox, actorConf);
                 }
                 else {
                     actorConf.nActors = Math.floor(areaSize / 3);
-                    this.addActorsToBbox(level, bbox, actorConf);
+                    addOk = this.addActorsToBbox(level, bbox, actorConf);
+                }
+
+                if (!addOk) {
+                    const msg = 'Failed to add actors to bbox ';
+                    RG.warn('DungeonPopulate', 'populateLevel',
+                        msg + JSON.stringify(bbox));
                 }
 
                 // Add main loot
@@ -164,7 +178,7 @@ export class DungeonPopulate {
         }
     }
 
-    public setActorFunc(func) {
+    public setActorFunc(func: TShellFunc): void {
         if (typeof func === 'function') {
             this.actorFunc = func;
         }
@@ -174,7 +188,7 @@ export class DungeonPopulate {
         }
     }
 
-    public addPointGuardian(level: Level, point: TCoord, maxDanger) {
+    public addPointGuardian(level: Level, point: TCoord, maxDanger): void {
         const eXY = point;
         if (RG.isNullOrUndef([maxDanger]) || maxDanger < 1) {
             RG.err('DungeonPopulate', 'addPointGuardian',
@@ -195,24 +209,37 @@ export class DungeonPopulate {
         }
     }
 
-    public getEndPointGuardian(maxDanger) {
+    public getEndPointGuardian(maxDanger: number) {
         let currDanger = maxDanger;
         let guardian = null;
-        let actorFunc = actor => actor.danger <= currDanger;
+
+        // Constraint func with min/max danger limits
+        let createActorFunc = minDanger => actor => (
+            actor.danger <= maxDanger && actor.danger >= minDanger);
         if (this.actorFunc) {
-            actorFunc = actor => (
+            createActorFunc = minDanger => actor => (
                 this.actorFunc(actor) && actor.danger <= currDanger
+                && actor.danger >= minDanger
             );
         }
+
+        // Try to create actor with highest danger possible (within maxDanger).
+        // If not possible, gradually reduce the currDanger level, and always
+        // create a new constraint function using createActorFunc
         while (!guardian && currDanger > 0) {
             // TODO add some theming for the guardian
-            guardian = this._actorFact.createRandomActor({func: actorFunc});
+            guardian = this._actorFact.createRandomActor({
+                func: createActorFunc(currDanger)});
             --currDanger;
         }
         return guardian;
     }
 
-    public addMainLoot(level, center, maxValue) {
+    /* Adds a loot item to the given coord. This item will be higher in value
+     * than the normal values of items in this level. Note that maxValue given
+     * will be internally scaled in the function from the given number.
+     */
+    public addMainLoot(level: Level, center: TCoord, maxValue: number): boolean {
         const [cx, cy] = center;
         // Add main loot
         // 1. Scale is from 2-4 normal value, this scales the
@@ -220,10 +247,19 @@ export class DungeonPopulate {
         const scaleLoot = RNG.getUniformInt(2, 3);
         const maxPrizeValue = scaleLoot * maxValue;
         const minPrizeValue = (scaleLoot - 1) * maxValue;
-        const lootPrize = this._itemFact.createItem(
-            {func: item => item.value >= minPrizeValue
-                && item.value <= maxPrizeValue}
-        );
+
+        const lootFunc = item => (item.value >= minPrizeValue
+            && item.value <= maxPrizeValue);
+
+        let lootPrize = null;
+        if (RG.isSuccess(probSpecialItem)) {
+            const parser = ObjectShell.getParser();
+            const shell = ItemGen.genRandShellWith(lootFunc);
+            lootPrize = parser.createFromShell(RG.TYPE_ITEM, shell);
+        }
+        else {
+            lootPrize = this._itemFact.createItem({func: lootFunc});
+        }
         if (lootPrize) {
             level.addItem(lootPrize, cx, cy);
             return true;
@@ -232,7 +268,7 @@ export class DungeonPopulate {
     }
 
     /* Given level and x,y coordinate, tries to populate that point with content. */
-    public populatePoint(level, point, conf) {
+    public populatePoint(level: Level, point: TCoord, conf): void {
         const {maxDanger} = conf;
         const type = RNG.arrayGetRand(popOptions);
         // const [pX, pY] = point;
@@ -255,20 +291,20 @@ export class DungeonPopulate {
     };*/
 
     /* Adds an element into the given point. */
-    public addElementToPoint(level, point, conf) {
+    public addElementToPoint(level: Level, point: TCoord, conf) {
         if (conf.true) {
             // console.log('DungeonPopulate', level, conf, point); // TODO
         }
     }
 
     /* Creates a corpse to the given point, and adds some related loot there. */
-    public addCorpseToPoint(level, point, conf) {
+    public addCorpseToPoint(level: Level, point: TCoord, conf) {
         if (conf.true) {
             // console.log('DungeonPopulate', level, conf, point); // TODO
         }
     }
 
-    public addLootToPoint(level, point) {
+    public addLootToPoint(level: Level, point: TCoord) {
         const maxValue = this.maxValue;
         const lootTypes = [RG.ITEM_POTION, RG.ITEM_SPIRITGEM, RG.ITEM_AMMUNITION,
             RG.ITEM_POTION, RG.ITEM_RUNE];
@@ -352,6 +388,9 @@ export class DungeonPopulate {
                         level.addActor(keeper, xy[0], xy[1]);
                     }
 
+                    if (!conf.parser) {
+                        conf.parser = ObjectShell.getParser();
+                    }
                     const item = this._itemFact.getShopItem(n, conf);
                     if (!item) {
                         const msg = 'item null. ' +
@@ -382,10 +421,10 @@ export class DungeonPopulate {
                     RG.addCellStyle(RG.TYPE_ACTOR, name,
                         'cell-actor-shopkeeper');
                     const randXY = RNG.arrayGetRand(shopCoord);
-                    if (keeper.getBrain().getGoal) {
+                    if ((keeper.getBrain() as BrainGoalOriented).getGoal) {
                         const evalShop = new Evaluator.Shopkeeper(1.5);
                         evalShop.setArgs({xy: randXY});
-                        keeper.getBrain().getGoal().addEvaluator(evalShop);
+                        (keeper.getBrain() as BrainGoalOriented).getGoal().addEvaluator(evalShop);
                     }
                 }
 
@@ -402,7 +441,7 @@ export class DungeonPopulate {
     }
 
     /* Creates a shopkeeper actor. */
-    public createShopkeeper(conf) {
+    public createShopkeeper(conf): SentientActor {
         let keeper = null;
         if (conf.parser) {
             if (conf.actor) {
@@ -418,6 +457,9 @@ export class DungeonPopulate {
                     }
                     RG.err('Factory', 'createShopkeeper', msg);
                 }
+                const name = keeper.getType() + ' shopkeeper';
+                keeper.setName(name);
+                RG.addCellStyle(RG.TYPE_ACTOR, name, 'cell-actor-shopkeeper');
             }
             else {
                 keeper = conf.parser.createActor('shopkeeper');
@@ -437,7 +479,6 @@ export class DungeonPopulate {
             keeperLevel = 2 * conf.maxDanger;
         }
         RG.levelUpActor(keeper, keeperLevel);
-
         return keeper;
     }
 
@@ -451,7 +492,7 @@ export class DungeonPopulate {
             else {
                 const trainerConf = {
                     maxDanger: 5,
-                    actorFunc: actor => RG.ALL_RACES.findIndex(actor.type) >= 0
+                    actorFunc: actor => RG.ALL_RACES.indexOf(actor.type) >= 0
                 };
                 trainer = this.createActor(trainerConf);
             }
@@ -483,9 +524,13 @@ export class DungeonPopulate {
             const actor = this.createActor(conf);
             if (actor.getBrain().getGoal) {
                 const evalHome = new Evaluator.GoHome(1.5);
-                const xy = house.getCenter();
+                const xy = house.getFloorCenter();
                 evalHome.setArgs({xy});
                 actor.getBrain().getGoal().addEvaluator(evalHome);
+
+                const homeMarker = new Element.ElementMarker('H');
+                homeMarker.setTag('home');
+                level.addElement(homeMarker, xy[0], xy[1]);
             }
             const floorXY = RNG.arrayGetRand(house.floor);
             level.addActor(actor, floorXY[0], floorXY[1]);
@@ -517,19 +562,38 @@ export class DungeonPopulate {
         return actor;
     }
 
-    public addActorsToBbox(level, bbox, conf) {
+    public addActorsToBbox(level: Level, bbox: BBox, conf): boolean {
         const nActors = conf.nActors || 4;
         const {maxDanger, func} = conf;
         const actors = this._actorFact.generateNActors(nActors, func, maxDanger);
-        Placer.addActorsToBbox(level, bbox, actors);
+        return Placer.addActorsToBbox(level, bbox, actors);
     }
 
     /* Adds N items to the given level in bounding box coordinates. */
-    public addItemsToBbox(level, bbox, conf) {
+    public addItemsToBbox(level: Level, bbox: BBox, conf): boolean {
         const nItems = conf.nItems || 4;
         const itemConf = Object.assign({itemsPerLevel: nItems}, conf);
         const items = this._itemFact.generateItems(itemConf);
-        Placer.addItemsToBbox(level, bbox, items);
+        return Placer.addItemsToBbox(level, bbox, items);
+    }
+
+    /* Adds a unique adventurer to the given level. */
+    public addToughAdventurer(level: Level, point: TCoord, conf): boolean {
+        const {maxDanger} = conf.maxDanger;
+        const minDanger = maxDanger - 1;
+        const actorFunc: TShellFunc = (shell: IShell) => (
+            shell.danger <= (maxDanger + 4) && shell.danger >= minDanger
+        );
+        const advShell = ActorGen.genRandShellWith(actorFunc);
+        if (advShell) {
+            const [aX, aY] = point;
+            const parser = ObjectShell.getParser();
+            const actor = parser.createFromShell(RG.TYPE_ACTOR, advShell);
+            if (actor && level.addActor(actor, aX, aY)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

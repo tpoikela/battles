@@ -5,8 +5,11 @@ import RG from '../../../client/src/rg';
 import {FactoryGame} from '../../../client/src/factory.game';
 import {OWMap} from '../../../client/src/overworld.map';
 import { OverWorld, CoordMap } from '../../../client/src/overworld';
+import {IFactoryGameConf} from '../../../client/src/interfaces';
 
-describe('Factory.Game', () => {
+describe('Factory.Game', function() {
+    this.timeout(8000);
+
     it('can generate worldConf based on territory map', () => {
         const gameFact = new FactoryGame();
 
@@ -65,8 +68,29 @@ describe('Factory.Game', () => {
             }
         });
 
-        // console.log(overworld.mapToString());
-        // console.log(terrMap.mapToString());
+    });
+
+
+    it('can generate a fully populated overworld area', () => {
+        const gameFact = new FactoryGame();
+        const owConf: OWMapConf = {
+            nDungeonsSouth: 1,
+            nDungeonsNorth: 1,
+            nDungeonsCenter: 1,
+            nMountainsNorth: 1,
+            nMountainsMiddle: 1,
+            nMountainsSouth: 1,
+            nCitySouth: 1,
+            nCityCenter: 1,
+            nCityNorth: 1
+        };
+        const gameConf: IFactoryGameConf = {
+            playMode: 'OverWorld', sqrPerItem: 100, sqrPerActor: 100,
+            seed: 0, playerLevel: 'Medium', playerName: 'Hero',
+            playerRace: 'dwarf', owMultiplier: 0.5, owConf
+        };
+        const game = gameFact.createNewGame(gameConf);
 
     });
+
 });

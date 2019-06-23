@@ -8,6 +8,7 @@
 type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
 type ElementStairs = import('./element').ElementStairs;
+type ElementBase = import('./element').ElementBase;
 type Locatable = import('./mixin').Locatable;
 type ElemTemplate = import('./template').ElemTemplate;
 
@@ -28,7 +29,7 @@ export interface BBox {
 }
 
 export type DestOrSrc = TCoord | Locatable;
-
+export type TLocatableElement = ElementBase & Locatable;
 
 /* Used to pass player input (keys/mouse) to the game */
 export interface IPlayerCmdInput {
@@ -72,6 +73,20 @@ export interface TemplateData {
 
 }
 
+export interface ICellDirMap {
+    N: string;
+    S: string;
+    E: string;
+    W: string;
+    NE: string;
+    NW: string;
+    SE: string;
+    SW: string;
+}
+
+export interface ID2LevelMap {
+    [key: number]: Level;
+}
 
 export interface SubZoneConf {
     name: string;
@@ -80,7 +95,16 @@ export interface SubZoneConf {
     constraint?: ConstraintMap;
 }
 
+export interface RandWeights {
+    [key: string]: number;
+}
+
 export type LevelConnection = [string, string, number, number];
+
+export interface LevelObj {
+    nLevel: number;
+    level: Level;
+}
 
 export interface LevelSpecStub {
     stub: boolean;
@@ -117,6 +141,8 @@ export interface IConstraint {
 export interface ConstraintMap {
     actor?: IConstraint;
 }
+
+export type TConstraintArg = IConstraint | IConstraint[];
 
 export interface ZoneConf {
     connectLevels?: LevelConnection[];
@@ -177,9 +203,11 @@ export interface MountainConf extends ZoneConf {
 }
 
 export interface AreaConf {
-    maxX: number;
-    maxY: number;
+    maxX: number; // Number of area tiles in x-dir
+    maxY: number; // Number of area tiles in y-dir
     name: string;
+    cols: number; // Cols per each area tile level
+    rows: number; // Rows per each area tile level
 
     city?: CityConf[];
     dungeon?: DungeonConf[];
@@ -188,6 +216,7 @@ export interface AreaConf {
     nDungeons?: number;
     nMountains?: number;
     presetLevels?: {[key: string]: Level[][]};
+    zonesCreated?: boolean;
 }
 
 export interface PlayerStart {
@@ -205,10 +234,81 @@ export interface WorldConf {
     playerStart?: PlayerStart;
 }
 
+export interface OWMapConf {
+    yFirst?: boolean;
+    topToBottom?: boolean;
+    printResult?: boolean;
+    owTilesX?: number;
+    owTilesY?: number;
+    nLevelsX?: number;
+    nLevelsY?: number;
+    playerX?: number;
+    playerY?: number;
+    playerRace?: string;
+    createTerritory?: boolean;
+    nDungeonsSouth?: number;
+    nDungeonsNorth?: number;
+    nDungeonsCenter?: number;
+    nMountainsNorth?: number;
+    nMountainsMiddle?: number;
+    nMountainsSouth?: number;
+    nCitySouth?: number;
+    nCityCenter?: number;
+    nCityNorth?: number;
+}
+
 export interface IFactoryGameConf {
     seed?: number;
     sqrPerItem: number;
     sqrPerActor: number;
     playMode: string;
+    playerLevel: string;
+    playerName: string;
+    playerRace: string;
+    owMultiplier?: number;
+    xMult?: number;
+    yMult?: number;
+    owConf?: OWMapConf;
 }
 
+//--------------------------------
+// ITEM/ACTOR GENERATION, SHELLS
+//--------------------------------
+
+export interface IShell {
+    [key: string]: any;
+}
+
+export interface StringMap<T> {
+    [key: string]: T;
+}
+
+export type TShellFunc = (shell: IShell) => boolean;
+
+//-------------
+// COMPONENTS
+//-------------
+
+export interface ICompSetterObj {
+    setter: string;
+    value: any;
+}
+
+export interface ICompSetterMap {
+    [key: string]: any;
+}
+
+export interface IAddCompObj {
+    // These 3 are mutex, choose one to use
+    comp?: string;
+    transientComp?: string; // Defers comp creation until needed
+    addComp?: string;
+    expireMsg?: string;
+
+    func?: ICompSetterObj[] | ICompSetterMap;
+    duration?: number | string;
+}
+
+type AddCompType = string | IAddCompObj;
+
+export type TAddCompSpec = AddCompType[];

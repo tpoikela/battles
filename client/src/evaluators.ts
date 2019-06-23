@@ -32,20 +32,16 @@ export class EvaluatorBase {
     public actorBias: number;
     public type: string;
 
-    constructor(actorBias) {
-        /* if (!Number.isFinite(actorBias)) {
-            RG.err('EvaluatorBase', 'constructor',
-                `bias must number. Got: ${actorBias}`);
-        }*/
+    constructor(actorBias: number) {
         this.actorBias = actorBias;
         this.type = 'Base';
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         throw new Error('Pure virtual function');
     }
 
-    public setActorGoal(actor, ...args) {
+    public setActorGoal(actor, ...args): void {
         const topGoal = actor.getBrain().getGoal();
         if (Goal[this.type]) {
             const goal = new Goal[this.type](actor, ...args);
@@ -58,11 +54,11 @@ export class EvaluatorBase {
         }
     }
 
-    public isOrder() {return false;}
+    public isOrder(): boolean {return false;}
 
-    public getType() {return this.type;}
+    public getType(): string {return this.type;}
 
-    public setBias(bias) {
+    public setBias(bias: number): void {
         this.actorBias = bias;
     }
 
@@ -74,7 +70,7 @@ export class EvaluatorBase {
     }
 
     /* Called by FromJSON. */
-    public setArgs(args) {}
+    public setArgs(args): void {}
 
 }
 Evaluator.Base = EvaluatorBase;
@@ -84,12 +80,12 @@ export class EvaluatorAttackActor extends EvaluatorBase {
 
     public enemyActor: SentientActor;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'AttackActor';
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         const brain = actor.getBrain();
         const seenCells = brain.getSeenCells();
         const enemyCell = brain.findEnemyCell(seenCells);
@@ -103,10 +99,6 @@ export class EvaluatorAttackActor extends EvaluatorBase {
 
     public setActorGoal(actor) {
         super.setActorGoal(actor, this.enemyActor);
-        /* const topGoal = actor.getBrain().getGoal();
-        const goal = new Goal.AttackActor(actor, this.enemyActor);
-        topGoal.addGoal(goal);
-        ++Evaluator.hist[this.type];*/
     }
 
 }
@@ -116,12 +108,12 @@ Evaluator.hist.AttackActor = 0;
 /* Evaluator to check if an actor should resort to exploring the area. */
 export class EvaluatorExplore extends EvaluatorBase {
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Explore';
     }
 
-    public calculateDesirability(/* actor */) {
+    public calculateDesirability(/* actor */): number {
         /* const enemyCells = RG.Brain.getEnemyCellsAround(actor);
         if (enemyCells.length > 0) {
             return 0.01;
@@ -138,12 +130,12 @@ export class EvaluatorFlee extends EvaluatorBase {
 
     public enemyActor: SentientActor;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Flee';
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         const enemies = actor.getBrain().getSeenEnemies();
         if (enemies.length > 0) {
             const health = actor.get('Health');
@@ -201,7 +193,7 @@ export class EvaluatorPatrol extends EvaluatorBase {
         this.coords = coords;
     }
 
-    public calculateDesirability() {
+    public calculateDesirability(): number {
         return this.actorBias;
     }
 
@@ -246,17 +238,17 @@ export class EvaluatorGuard extends EvaluatorBase {
         if (xy) {this.setXY(xy);}
     }
 
-    public setXY(xy) {
+    public setXY(xy): void {
         this.x = xy[0];
         this.y = xy[1];
     }
 
-    public setArgs(args) {
+    public setArgs(args): void {
         const {xy} = args;
         this.setXY(xy);
     }
 
-    public calculateDesirability() {
+    public calculateDesirability(): number {
         return this.actorBias;
     }
 
@@ -283,7 +275,7 @@ export class EvaluatorOrders extends EvaluatorBase {
     public srcActor: SentientActor;
     public subEval: EvaluatorBase;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Orders';
         this.goal = null;
@@ -295,7 +287,7 @@ export class EvaluatorOrders extends EvaluatorBase {
         this.srcActor = args.srcActor;
     }
 
-    public calculateDesirability() {
+    public calculateDesirability(): number {
         // TODO evaluate srcActor status
         // Evaluate difficulty of goal
         const commanderMult = 1.0;
@@ -347,7 +339,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
     public spell: any; // TODO fix to correct type
     public spellArgs: SpellArgs;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'CastSpell';
         this._castingProb = 0.2;
@@ -361,7 +353,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
         return this._castingProb;
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         this.spell = this.getRandomSpell(actor);
         if (!this.spell) {return 0;}
 
@@ -442,12 +434,12 @@ export class EvaluatorShopkeeper extends EvaluatorBase {
     public x: number;
     public y: number;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Shopkeeper';
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         // TODO calculate dist from shop etc
         if (actor.has('Shopkeeper')) {
             return this.actorBias;
@@ -457,7 +449,7 @@ export class EvaluatorShopkeeper extends EvaluatorBase {
         return 0;
     }
 
-    public setActorGoal(actor) {
+    public setActorGoal(actor): void {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.Shopkeeper(actor, this.x, this.y);
         topGoal.addGoal(goal);
@@ -489,7 +481,7 @@ export class EvaluatorGoHome extends EvaluatorBase {
     public x: number;
     public y: number;
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'GoHome';
         this.timeToHomeSick = RNG.getUniformInt(20, 40);
@@ -497,7 +489,7 @@ export class EvaluatorGoHome extends EvaluatorBase {
         this.maxDistHome = 5;
     }
 
-    public calculateDesirability(actor) {
+    public calculateDesirability(actor): number {
         if (this.timeToHomeSick > 0) {
             this.timeToHomeSick -= 1;
             return 0.0;
@@ -550,12 +542,12 @@ Evaluator.hist.GoHome = 0;
 
 export class EvaluatorThief extends EvaluatorBase {
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Thief';
     }
 
-    public calculateDesirability(/* actor */) {
+    public calculateDesirability(/* actor */): number {
         return this.actorBias;
     }
 
@@ -565,7 +557,7 @@ Evaluator.hist.Thief = 0;
 
 export class EvaluatorCommunicate extends EvaluatorBase {
 
-    constructor(actorBias) {
+    constructor(actorBias: number) {
         super(actorBias);
         this.type = 'Communicate';
     }

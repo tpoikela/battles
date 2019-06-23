@@ -2,10 +2,9 @@
  * session, plugins, loading and savings. This object must be created inside the
  * GUI framework (react/vue/angular/vanilla), and mainLoop() used to start the
  * game loop. More detailed sequence of functions required:
- *   1.
- *   2.
- *   3.
- *   4.
+ *   - createNewGame() creates a new GameMain instance and starts a
+ *      an animation using requestAnimationFrame()
+ *   - this.frameID can be used to stop it
  */
 
 import RG from '../src/rg';
@@ -31,7 +30,7 @@ import {EventPool} from '../src/eventpool';
 import {Dice} from '../src/dice';
 import {OWMap} from '../src/overworld.map';
 import {KeyCode} from '../gui/keycode';
-import {ACTOR_CLASSES} from '../src/actor-class';
+import {ObjectShell} from '../src/objectshellparser';
 
 import {Persist} from '../src/persist';
 import md5 = require('js-md5');
@@ -64,10 +63,11 @@ export type TPlayerStatusGUI = [string, string, string, string];
 // Different player status can be defined here
 export const STATUS_COMPS_GUI: TPlayerStatusGUI[] = [
     // Comp name, style   , text  , react-key
-    ['Charm', 'success', 'Charming', 'stat-coldness'],
+    ['Charm', 'success', 'Charming', 'stat-charm'],
     ['Coldness', 'primary', 'Cold', 'stat-coldness'],
     ['Ethereal', 'info', 'Ethereal', 'stat-ethereal'],
     ['Entrapped', 'danger', 'Trapped', 'stat-trapped'],
+    ['Fear', 'danger', 'Afraid', 'stat-fear'],
     ['Flying', 'primary', 'Flying', 'stat-flying'],
     ['Paralysis', 'danger', 'Paralysed', 'stat-paralysis'],
     ['Poison', 'danger', 'Poisoned', 'stat-poison'],
@@ -188,6 +188,7 @@ export class GameManager {
 
         this.doGUICommand = this.doGUICommand.bind(this);
         this.isGUICommand = this.isGUICommand.bind(this);
+        this.mainLoop = this.mainLoop.bind(this);
 
         // For listening to game events
         this.notify = this.notify.bind(this);
@@ -199,19 +200,9 @@ export class GameManager {
         this.gameSave = new GameSave();
         this.pluginManager = new PluginManager();
 
-        this.multiHandler = new MultiKeyHandler();
-
-        // Used for request animation frame
-        this.frameID = null;
-
         // Params to control the auto-movement (when clicking a cell etc)
         this.finishAutoOnSight = true;
         this.finishAutoDist = 3;
-
-        this.keyPending = false;
-        this.keysEnabled = false;
-        this.autoModeKeyBuffer = [];
-        this.ctrlMode = 'MANUAL';
 
         // Holds game-state specific info for GUI (see resetGameState)
         this.resetGameState();
@@ -220,7 +211,7 @@ export class GameManager {
         this.viewportPlayerY = 15; // * 2
         this.viewportX = 35; // * 2
         this.viewportY = 15; // * 2
-        this.screen = new ScreenBuffered(this.viewportX, this.viewportY);
+        this.resetGameControls();
 
         this.gameSave.setStorage(window.localStorage);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
@@ -229,37 +220,24 @@ export class GameManager {
         this.finishAutoOnSight = true;
         this.finishAutoDist = 3;
 
+        // Simple configuration for the game
+        this.gameConf = FactoryGame.getGameConf();
+        this.gameConf.world = WorldConf;
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+    }
+
+    public resetGameControls(): void {
+        // Used for request animation frame
+        this.frameID = null;
+
+        this.multiHandler = new MultiKeyHandler();
+
+        this.screen = new ScreenBuffered(this.viewportX, this.viewportY);
         this.keyPending = false;
         this.keysEnabled = false;
         this.autoModeKeyBuffer = [];
         this.ctrlMode = 'MANUAL';
         this.recordedCommands = [];
-
-        // Simple configuration for the game
-        this.gameConf = {
-            cols: 60,
-            rows: 30,
-            levels: 2,
-
-            seed: new Date().getTime(),
-
-            playerLevel: 'Medium',
-            levelSize: 'Medium',
-            playerClass: ACTOR_CLASSES[0],
-            playerRace: RG.ACTOR_RACES[0],
-
-            sqrPerActor: 120,
-            sqrPerItem: 120,
-            playMode: 'OverWorld',
-            loadedPlayer: null,
-            loadedLevel: null,
-            playerName: 'Player',
-            world: WorldConf,
-            xMult: 2,
-            yMult: 3
-        };
-
-        this.handleKeyDown = this.handleKeyDown.bind(this);
     }
 
     public setGameSettings(name, value): void {
@@ -348,6 +326,12 @@ export class GameManager {
         if (this.frameID) {
             cancelAnimationFrame(this.frameID);
         }
+    }
+
+    /* Restarts the main loop */
+    public restartMainLoop(): void {
+        this.cancelAnim();
+        this.frameID = requestAnimationFrame(this.mainLoop);
     }
 
     public setPlayerName(name: string): void {
@@ -551,7 +535,7 @@ export class GameManager {
         eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         eventPool.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
 
-        this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+        this.frameID = requestAnimationFrame(this.mainLoop);
         this.updateCb({render: true});
     }
 
@@ -601,7 +585,7 @@ export class GameManager {
             this.keyPending = false;
             this.checkIfAutoModeDone();
         }
-        this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+        this.frameID = requestAnimationFrame(this.mainLoop);
     }
 
     /* Checks and makes adjustments if auto-ctrl mode should be terminated.
@@ -646,6 +630,7 @@ export class GameManager {
             const player = this.game.getPlayer();
             (window as any).PLAYER = player; // For debugging
             (window as any).RG = RG; // For debugging
+            (window as any).PARSER = ObjectShell.getParser(); // For debugging
         }
     }
 
@@ -781,6 +766,7 @@ export class GameManager {
     public createNewGame(preCb: () => void): void {
         this.cancelAnim();
         this.resetGameState();
+        this.resetGameControls();
 
         if (!!this.gameConf.seed) {
             this.gameConf.seed = new Date().getTime();
@@ -834,6 +820,7 @@ export class GameManager {
         // Prepare game configuration
         const conf = Object.assign({}, this.gameConf);
         conf.levels = levels;
+        conf.playMode = 'from_levels';
 
         const gameFactory = new FactoryGame();
         this.game = gameFactory.createNewGame(conf);
@@ -975,6 +962,41 @@ export class GameManager {
         }
     }
 
+    public onLoadFromScript(id: string, updateCb): void {
+        console.log('onLoadFromScript called here');
+        this.readTextFromFile(id, (text) => {
+            try {
+                const entry = this.pluginManager.loadGameFromScript(text);
+                if (entry.levels) {
+                    this.createGameFromLevels(entry.levels);
+                }
+                else if (entry.game) {
+                    this.cancelAnim();
+                    this.resetGameState();
+                    this.game = entry.game;
+                    this.initBeforeNewGame();
+                }
+            }
+            catch (e) {
+                console.error(e, e.message);
+            }
+        });
+    }
+
+    public readTextFromFile(id: string, cb): void {
+        const fileElem = document.querySelector(id);
+        const fileList = (fileElem as HTMLInputElement).files;
+        const file = fileList[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const text = reader.result.toString();
+                cb(text);
+            };
+            reader.readAsText(file);
+        }
+    }
+
     public updateGame(cmd): void {
         this.game.update(cmd);
     }
@@ -1021,10 +1043,13 @@ export class GameManager {
 
     /* When an ASCII menu item is clicked, this function should be called. */
     public menuItemClicked(key: string): void {
-        let result = -1;
+        let result: number | string = -1;
         if (key) {
             if (/\d+/.test(key)) {
                 result = parseInt(key, 10);
+            }
+            else {
+                result = key;
             }
             const keyCode = Keys.selectIndexToCode(result);
             if (keyCode >= 0) {

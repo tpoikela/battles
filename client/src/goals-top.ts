@@ -5,8 +5,7 @@ import RG from './rg';
 import {Goal, GoalStatus} from './goals';
 import {Random} from './random';
 
-// const GoalsBattle = require('./goals-battle');
-import {Evaluator, EvaluatorBase} from './evaluators';
+import {Evaluator, EvaluatorBase, EvaluatorOrders} from './evaluators';
 import {EvaluatorsBattle} from './evaluators-battle';
 const debug = require('debug')('bitn:goals-top');
 
@@ -19,6 +18,11 @@ const {
 const RNG = Random.getRNG();
 
 export const GoalsTop: any = {};
+
+interface IBiasMap {
+    [key: string]: number;
+}
+
 //---------------------------------------------------------------------------
 // TOP-LEVEL GOALS
 //---------------------------------------------------------------------------
@@ -27,6 +31,8 @@ export const GoalsTop: any = {};
  * arbitration.
  */
 export class GoalTop extends Goal.Base {
+
+    protected evaluators: EvaluatorBase[];
 
     constructor(actor) {
         super(actor);
@@ -50,7 +56,49 @@ export class GoalTop extends Goal.Base {
         return this.evaluators.find(e => e.getType() === type);
     }
 
-    public arbitrate(): void {
+    public process(): GoalStatus {
+        this.activateIfInactive();
+        const status = this.processSubGoals();
+        if (status === GOAL_COMPLETED || status === GOAL_FAILED) {
+            this.dbg(`process() COMPL/FAILED got status ${status}`);
+            return GOAL_INACTIVE;
+        }
+        this.removeFinishedOrFailed();
+        this.dbg(`process() got status ${status}`);
+        return status;
+    }
+
+    public setBias(biases: IBiasMap): void {
+        Object.keys(biases).forEach(bias => {
+            const evaluator = this.evaluators.find(e => e.getType() === bias);
+            if (evaluator) {
+                evaluator.setBias(biases[bias]);
+            }
+            else {
+                const list = this.evaluators.map(e => e.getType());
+                const msg = `Bias ${bias} not matching any evaluator: ${list}`;
+                RG.warn('GoalTop', 'setBias', msg);
+            }
+        });
+    }
+
+    public toJSON(): any {
+        const evals = [];
+        this.evaluators.forEach(ev => {
+            // Order difficult to serialize as it can contain reference to any
+            // arbitrary goal (can be top-level goal). That would require tons
+            // of object refs, and it's a lot of work
+            if (ev.getType() !== 'Order') {
+                evals.push(ev.toJSON());
+            }
+        });
+        return {
+            type: this.getType(),
+            evaluators: evals
+        };
+    }
+
+    protected arbitrate(): void {
         this.dbg('arbitrate() started');
         if (this.evaluators.length === 0) {
             RG.err('GoalTop', 'arbitrate',
@@ -75,47 +123,6 @@ export class GoalTop extends Goal.Base {
                 'No next goal found');
         }
         this.dbg('arbitrate() finished');
-    }
-
-    public process(): GoalStatus {
-        this.activateIfInactive();
-        const status = this.processSubGoals();
-        if (status === GOAL_COMPLETED || status === GOAL_FAILED) {
-            return GOAL_INACTIVE;
-        }
-        this.removeFinishedOrFailed();
-        this.dbg(`process() got status ${status}`);
-        return status;
-    }
-
-    public setBias(biases) {
-        Object.keys(biases).forEach(bias => {
-            const evaluator = this.evaluators.find(e => e.getType() === bias);
-            if (evaluator) {
-                evaluator.setBias(biases[bias]);
-            }
-            else {
-                const list = this.evaluators.map(e => e.getType());
-                const msg = `Bias ${bias} not matching any evaluator: ${list}`;
-                RG.warn('GoalTop', 'setBias', msg);
-            }
-        });
-    }
-
-    public toJSON() {
-        const evals = [];
-        this.evaluators.forEach(ev => {
-            // Order difficult to serialize as it can contain reference to any
-            // arbitrary goal (can be top-level goal). That would require tons
-            // of object refs, and it's a lot of work
-            if (ev.getType() !== 'Order') {
-                evals.push(ev.toJSON());
-            }
-        });
-        return {
-            type: this.getType(),
-            evaluators: evals
-        };
     }
 
 }
@@ -162,11 +169,12 @@ export class ThinkBasic extends GoalTop {
      * override the existing one. */
     public clearOrders() {
         const orders = this.evaluators.filter(ev => ev.isOrder());
-        orders.forEach(order => {
-            if (order.goal.isActive()) {
-                order.goal.terminate();
+        orders.forEach((order) => {
+            const evOrder = order as EvaluatorOrders;
+            if (evOrder.goal.isActive()) {
+                evOrder.goal.terminate();
             }
-            const index = this.evaluators.indexOf(order);
+            const index = this.evaluators.indexOf(evOrder);
             this.evaluators.splice(index, 1);
         });
     }

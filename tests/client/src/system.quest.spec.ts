@@ -25,6 +25,7 @@ describe('System.Quest', () => {
     let sysBaseAction = null;
     let sysQuest = null;
     let sysDamage = null;
+    let sysDeath = null;
     let pool = null;
     let quester = null;
     let area = null;
@@ -40,10 +41,12 @@ describe('System.Quest', () => {
 
         sysBaseAction = new System.BaseAction(['Pickup', 'Read', 'Give'], pool);
         sysDamage = new System.Damage(['Damage'], pool);
+        sysDeath = new System.Death(['DeathEvent'], pool);
         systems = [];
         systems.push(sysBaseAction);
         systems.push(sysQuest);
         systems.push(sysDamage);
+        systems.push(sysDeath);
 
         area = RGTest.createTestArea({rng});
         city = area.getTileXY(0, 0).getZones('City')[0];
@@ -137,6 +140,7 @@ describe('System.Quest', () => {
         dmg.setSource(quester);
         killTarget.add(dmg);
         sysDamage.update();
+        sysDeath.update();
         sysQuest.update();
 
         const newQuest = quester.getList('Quest')[1];

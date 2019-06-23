@@ -1,14 +1,11 @@
 
 import RG from './rg';
 import ROT from '../../lib/rot';
-import {TCoord, BBox} from './interfaces';
+import {TCoord, BBox, RandWeights} from './interfaces';
 
 const DIRS = [-1, 0, 1];
 const DIRS_NO_ZERO = [-1, 1];
 
-export interface RandWeights {
-    [key: string]: number;
-}
 
 /* A OO wrapper around ROT.RNG. Adds method for serialisation. */
 export class Random {

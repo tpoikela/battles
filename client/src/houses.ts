@@ -57,7 +57,7 @@ export class House {
         this.floor = this.coord[FLOOR];
         this.walls = this.coord[WALL];
 
-        const numFloor = Object.values(this.coord[WALL]).length;
+        const numFloor = Object.values(this.coord[FLOOR]).length;
         this.cX = Math.round(totalX / numFloor);
         this.cY = Math.round(totalY / numFloor);
         this.numFloor = numFloor;
@@ -65,6 +65,31 @@ export class House {
 
     public getCenter(): TCoord {
         return [this.cX, this.cY];
+    }
+
+    public isFloor(cXcY: TCoord): boolean {
+        const [cX, cY] = cXcY;
+        const index = this.floor.findIndex(
+            (xy) => xy[0] === cX && xy[1] === cY);
+        return index >= 0;
+    }
+
+    /* Returns a house center guaranteed to be a floor. */
+    public getFloorCenter(): TCoord {
+        let cXcY = this.getCenter();
+        if (this.isFloor(cXcY)) {return cXcY;}
+
+        const [cX, cY] = cXcY;
+        const coord: TCoord[] = Geometry.getBoxAround(cX, cY, 1);
+        coord.forEach((xy: TCoord) => {
+            if (this.isFloor(xy)) {
+                cXcY = xy;
+            }
+        });
+        if (!cXcY) {
+            RG.err('House', 'getFloorCenter', 'No floor centerpoint found');
+        }
+        return cXcY;
     }
 
     /* Returns the bounding box taken by this house. */

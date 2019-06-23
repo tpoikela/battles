@@ -19,7 +19,7 @@ import {FromJSON} from './game.fromjson';
 import {GameMain} from './game';
 import {Geometry} from './geometry';
 import {Builder} from './builder';
-import {OWMap, OWMapConf} from './overworld.map';
+import {OWMap} from './overworld.map';
 import {ObjectShell} from './objectshellparser';
 import {OverWorld, CoordMap} from './overworld';
 import {Random} from './random';
@@ -27,9 +27,11 @@ import {TerritoryMap} from '../data/territory-map';
 import {Territory} from './territory';
 import {WorldConf} from './world.creator';
 import {Level} from './level';
+import {SentientActor} from './actor';
 
-import {IFactoryGameConf} from './interfaces';
+import {IFactoryGameConf, OWMapConf} from './interfaces';
 
+import {ACTOR_CLASSES} from '../src/actor-class';
 const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
 
@@ -204,8 +206,9 @@ FactoryGame.prototype.setCallback = function(name, cb) {
     this.callbacks[name] = cb;
 };
 
-FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
-    const owConf: OWMapConf = FactoryGame.getOwConf(1, obj);
+FactoryGame.prototype.createOverWorldGame = function(obj: IFactoryGameConf, game, player) {
+    const owMult = obj.owMultiplier || 1;
+    const owConf: OWMapConf = FactoryGame.getOwConf(owMult, obj);
     const midX = Math.floor(owConf.nLevelsX / 2);
     const playerX = midX;
     const playerY = owConf.nLevelsY - 1;
@@ -242,7 +245,7 @@ FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
     const splitLevels = Builder.splitLevel(worldLevel, owConf);
     this.progress('DONE');
 
-    this.progress('Creating and connectting World.Area tiles...');
+    this.progress('Creating and connecting World.Area tiles...');
     const worldArea = new World.Area('Ravendark', owConf.nLevelsX,
         owConf.nLevelsY, 100, 100, splitLevels);
     worldArea.connectTiles();
@@ -284,7 +287,7 @@ FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
     return game;
 };
 
-FactoryGame.prototype.progress = function(msg) {
+FactoryGame.prototype.progress = function(msg: string): void {
     const timeNow = new Date().getTime();
     let durSec = 0;
     if (this.timePrev) {
@@ -301,7 +304,7 @@ FactoryGame.prototype.progress = function(msg) {
 };
 
 /* Places player into a free cell surrounded by other free cells. */
-FactoryGame.prototype.placePlayer = function(player, level) {
+FactoryGame.prototype.placePlayer = function(player: SentientActor, level: Level): void {
     const freeCells = level.getMap().getFree();
     const freeLUT = {};
     freeCells.forEach(c => {
@@ -391,8 +394,6 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
 
                         uniqueCreated[randUnique.name] = randUnique;
                         cityConf.quarter[0].create = createConf;
-                        console.log('Added UNIQ', randUnique.name, 'to',
-                            cityConf);
                         ++uniquesAdded;
                     }
                 }
@@ -439,8 +440,6 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
             }
         });
     });
-
-    console.log('Factory.Game uniques added', uniquesAdded);
 };
 
 FactoryGame.prototype.getDisposition = function() {
@@ -477,7 +476,8 @@ FactoryGame.prototype.createPlayerHome = function(
             ],
             shop: [
                 {op: '<=', prop: 'value', value: 50}
-            ]
+            ],
+            cellsAround: Geometry.getCellsAround(level.getMap(), cell)
         },
         quarter: [{
             name: 'Square',
@@ -491,6 +491,8 @@ FactoryGame.prototype.createPlayerHome = function(
     worldConf.area[0].city.push(homeConf);
 };
 
+/* Creates the procgen constraints for given area level. This is used in
+ * FactoryWorld when populating the levels with items/actors. */
 FactoryGame.prototype.createAreaLevelConstraints = function(
     worldConf, terrMap: Territory
 ) {
@@ -667,5 +669,37 @@ FactoryGame.getOwConf = function(mult = 1, obj: any = {}): OWMapConf {
         nTilesX: xMult * mult * 4,
         nTilesY: yMult * mult * 4
     };
+    if (obj.owConf) {
+        Object.keys(obj.owConf).forEach(key => {
+            owConf[key] = obj.owConf[key];
+        });
+    }
+    console.log('owConf is', owConf);
     return owConf;
 };
+
+FactoryGame.getGameConf = function() {
+    return {
+        cols: 60,
+        rows: 30,
+        levels: 2,
+
+        seed: new Date().getTime(),
+
+        playerLevel: 'Medium',
+        levelSize: 'Medium',
+        playerClass: ACTOR_CLASSES[0],
+        playerRace: RG.ACTOR_RACES[0],
+
+        sqrPerActor: 120,
+        sqrPerItem: 120,
+        playMode: 'OverWorld',
+        loadedPlayer: null,
+        loadedLevel: null,
+        playerName: 'Player',
+        world: WorldConf,
+        xMult: 2,
+        yMult: 3
+    };
+};
+

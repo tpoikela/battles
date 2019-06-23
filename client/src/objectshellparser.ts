@@ -12,13 +12,15 @@ import {ElementBase} from './element';
 import * as Component from './component';
 import {Dice} from './dice';
 import {Spell} from '../data/spells';
+import {Evaluator} from './evaluators';
 
-import {ActorGen, IShell, StringMap} from '../data/actor-gen';
+import {ActorGen} from '../data/actor-gen';
+
+import {IAddCompObj, IShell, StringMap, TShellFunc} from './interfaces';
 
 const RNG = Random.getRNG();
 export const ObjectShell: any = {};
 
-type AcceptFunc = (IShell) => boolean;
 type BaseActor = Actor.BaseActor;
 type ItemBase = Item.ItemBase;
 
@@ -40,11 +42,13 @@ export interface IShellDbDanger {
     [key: number]: IShellDb;
 }
 
+// Used when querying objects from the shell database, using func is preferred
+// because it can implement all behaviour the rest are offering
 export interface IQueryDB {
-    name?: string;
+    name?: string; // Specific name sought after
     categ?: string; // actors, items, elements
     danger?: number;
-    func?: AcceptFunc; // Acceptance func for query
+    func?: TShellFunc; // Acceptance func for query
 }
 
 export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
@@ -285,6 +289,10 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
             this.addOnEquipProperties(shell, newObj);
         }
 
+        if (shell.hasOwnProperty('goals')) {
+            this.addGoalsToObject(shell, newObj);
+        }
+
         // TODO map different props to function calls
         return newObj;
     };
@@ -326,7 +334,16 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         });
     };
 
-    this.processAddComp = (onHit, obj, isEquip = false) => {
+    this.processAddComp = (onHit: IAddCompObj, obj, isEquip = false) => {
+        // Create the comp to be returned
+        let addOnHit = null;
+        if (isEquip) {
+            addOnHit = new Component.AddOnEquip();
+        }
+        else {
+            addOnHit = new Component.AddOnHit();
+        }
+
         if (onHit.addComp) {
             const comp = this.createComponent(onHit.addComp);
             if (comp.setSource) {
@@ -354,24 +371,30 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
             // component into Duration to make it transient
             const addedComp = comp;
 
-            let addOnHit = null;
-            if (isEquip) {
-                addOnHit = new Component.AddOnEquip();
-            }
-            else {
-                addOnHit = new Component.AddOnHit();
-            }
-
             if (onHit.duration) {
                 const durDie = Dice.create(onHit.duration);
                 const durComponent = new Component.Duration();
                 durComponent.setDurationDie(durDie);
                 durComponent.setComp(addedComp);
                 addOnHit.setComp(durComponent);
+
+                // Set the message for comp expiration, if any are given
+                // in the obj shell
+                if (onHit.expireMsg) {
+                    durComponent.setExpireMsg(onHit.expireMsg);
+                }
             }
             else {
                 addOnHit.setComp(addedComp);
             }
+            obj.add(addOnHit);
+            return addOnHit;
+        }
+        else if (onHit.transientComp) {
+            // If createComp given, use the object as it is without creating
+            // a new Component
+
+            addOnHit.setComp(JSON.parse(JSON.stringify(onHit)));
             obj.add(addOnHit);
             return addOnHit;
         }
@@ -398,6 +421,24 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
                 RG.err('Creator', 'addSpellbookAndSpells', msg);
             }
         });
+    };
+
+
+    this.addGoalsToObject = (shell: IShell, newObj) => {
+        if (RG.isActor(newObj)) {
+            const {goals} = shell;
+            goals.forEach(goal => {
+                const {name, bias} = goal;
+                const newEval = new Evaluator[name](bias);
+                Object.keys(goal).forEach(prop => {
+                    // Call each setter given with {name: 'AAA', setter: 0...}
+                    if (prop !== 'name' && prop !== 'bias') {
+                        newEval[prop](goal[prop]);
+                    }
+                });
+                newObj.getBrain().getGoal().addEvaluator(newEval);
+            });
+        }
     };
 
     this.getUsedObject = (strOrObj) => {
@@ -744,10 +785,9 @@ Creator.prototype.createBrain = function(actor, brainName: string): void {
 
 /* Object handling the procedural generation. It has an object "database" and
  * objects can be pulled randomly from it. */
-export const ProcGen = function(db, dbDanger, dbByName) {
+export const ProcGen = function(db, dbDanger) {
     this._db = db;
     this._dbDanger = dbDanger;
-    this._dbByName = dbByName;
 
     // Internal cache for proc generation
     const _cache = {
@@ -756,17 +796,18 @@ export const ProcGen = function(db, dbDanger, dbByName) {
 
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
-    this.dbGet = (query: IQueryDB): IShell[] | StringMap<IShell> => {
+    this.dbGet = (query: IQueryDB): IShell | StringMap<IShell> => {
         const name = query.name;
         const categ = query.categ;
         const danger = query.danger;
 
         // Specifying name returns an array
         if (!RG.isNullOrUndef([name])) {
-            if (this._dbByName.hasOwnProperty(name)) {
-                return this._dbByName[name];
+            if (!categ) {
+                RG.err('ProcGen', 'dbGet', 
+                    'Both name and categ must be given!');
             }
-            else {return [];}
+            return this._db[categ][name];
         }
 
         if (!RG.isNullOrUndef([danger])) {
@@ -793,7 +834,6 @@ export const ProcGen = function(db, dbDanger, dbByName) {
             }
         }
         return {};
-
     };
 
     /* Filters given category with a function. Func gets each object as arg,
@@ -802,7 +842,7 @@ export const ProcGen = function(db, dbDanger, dbByName) {
      *   2.func(obj) {if (obj.hp > 25) return true;}.
      *   And it can be as complex as needed of course.
      * */
-    this.filterCategWithFunc = function(categ, func: AcceptFunc): IShell[] {
+    this.filterCategWithFunc = function(categ, func: TShellFunc): IShell[] {
         const objects: StringMap<IShell> = this.dbGet({categ});
         const res: IShell[] = [];
         const keys = Object.keys(objects);
@@ -865,7 +905,7 @@ export const ProcGen = function(db, dbDanger, dbByName) {
      *  const item = createRandomItem({func: funcValueSel});
      *  // Above returns item with value > 100.
      */
-    this.getRandomItem = function(obj: IQueryDB | AcceptFunc) {
+    this.getRandomItem = function(obj: IQueryDB | TShellFunc) {
         if (typeof obj === 'function') {
             const res = this.filterCategWithFunc(RG.TYPE_ITEM, obj);
             return RNG.arrayGetRand(res);
@@ -934,7 +974,6 @@ export const Parser = function() {
     } as IShellDb;
 
     this._dbDanger = {} as IShellDbDanger; // All entries indexed by danger
-    this._dbByName = {} as StringMap<IShell>; // All entries indexed by name
 
     this._dbNoRandom = {
         actors: {},
@@ -943,8 +982,7 @@ export const Parser = function() {
     } as IShellDb; // All entries excluded from random generation
 
     this._creator = new Creator(this._db, this._dbNoRandom);
-    this._procgen = new ProcGen(this._db, this._dbDanger,
-        this._dbByName);
+    this._procgen = new ProcGen(this._db, this._dbDanger);
 
     this.getCreator = function() {
         return this._creator;
@@ -1043,14 +1081,6 @@ export const Parser = function() {
                 this._dbNoRandom[categ][obj.name] = obj;
             }
             else if (!obj.hasOwnProperty('dontCreate')) {
-                if (this._dbByName.hasOwnProperty(obj.name)) {
-                    this._dbByName[obj.name].push(obj);
-                }
-                else {
-                    const newArr = [];
-                    newArr.push(obj);
-                    this._dbByName[obj.name] = newArr;
-                }
 
                 this._db[categ][obj.name] = obj;
                 if (obj.hasOwnProperty('danger')) {
@@ -1191,9 +1221,12 @@ export const Parser = function() {
     };
 
     /* Creates actual game object from obj shell in given category.*/
-    this.createFromShell = (categ, obj) => (
-        this._creator.createFromShell(categ, obj)
-    );
+    this.createFromShell = (categ, obj) => {
+        if (!this.dbExists(categ, obj.name)) {
+            this.parseObjShell(categ, obj);
+        }
+        return this._creator.createFromShell(categ, obj);
+    };
 
     //--------------------------------------------------------------------
     // Query methods for object shells
@@ -1214,6 +1247,14 @@ export const Parser = function() {
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
     this.dbGet = (query: IQueryDB) => this._procgen.dbGet(query);
+    this.dbGetActor = (query: IQueryDB) => {
+        const newQuery = {name: query.name, categ: RG.TYPE_ACTOR};
+        return this._procgen.dbGet(newQuery);
+    };
+    this.dbGetItem = (query: IQueryDB) => {
+        const newQuery = {name: query.name, categ: RG.TYPE_ITEM};
+        return this._procgen.dbGet(newQuery);
+    };
 
     this.dbGetRand = (query: IQueryDB) => this._procgen.dbGetRand(query);
 
@@ -1280,7 +1321,7 @@ export const Parser = function() {
      *  const item = createRandomItem({func: funcValueSel});
      *  // Above returns item with value > 100.
      *  */
-    this.createRandomItem = (obj: IQueryDB | AcceptFunc) => {
+    this.createRandomItem = (obj: IQueryDB | TShellFunc) => {
         const randShell = this._procgen.getRandomItem(obj);
         if (randShell) {
             return this._creator.createFromShell('items', randShell);
@@ -1289,13 +1330,33 @@ export const Parser = function() {
     };
 
     this.toJSON = function(): any {
-        return {
-            db: this._db
+        const json = {
+            _base: {},
+            _db: {},
+            _dbDanger: this._dbDanger,
+            _dbNoRandom: this._dbNoRandom
         };
+        ['actors', 'items', 'elements'].forEach(prop => {
+            json._base[prop] = this._base[prop];
+            json._db[prop] = this._db[prop];
+        });
+        return json;
+    };
+
+    /* Restore the parser from an existing DB. For save games mainly. */
+    this.restoreFromDb = function(db): void {
+        // TODO dbByName
+        const props = ['_base', '_db', '_dbDanger', '_dbNoRandom'];
+        props.forEach(dbName => {
+            Object.keys(db[dbName]).forEach(key => {
+                this[dbName][key] = db[dbName][key];
+            });
+        });
     };
 
 };
 ObjectShell.Parser = Parser;
+
 
 export const createItem = function(nameOrShell: string | IShell) {
     const parser = ObjectShell.getParser();
@@ -1327,3 +1388,11 @@ export const getParser = function() {
     return ObjectShell.parserInstance;
 };
 ObjectShell.getParser = getParser;
+
+export const restoreParser = function(json): void {
+    const parser = new Parser();
+    parser.restoreFromDb(json);
+    parser.parseShellData(Effects);
+    ObjectShell.parserInstance = parser;
+};
+ObjectShell.restoreParser = restoreParser;

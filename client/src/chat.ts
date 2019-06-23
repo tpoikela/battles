@@ -21,11 +21,11 @@ const OPTION_GOODBYE = {
 };
 
 interface SelObject {
+    pre?: string[];
+    post?: string[];
     showMenu(): boolean;
     getMenu?(): any;
     select(code: number): void;
-    pre?: string[];
-    post?: string[];
 }
 
 
@@ -56,30 +56,30 @@ export class ChatBase {
     }
 
     /* Adds a chat object or an option into this object. */
-    add({name, option}) {
+    public add({name, option}) {
         this.options.push({name, option});
         if (option && option.setParent) {
             option.setParent(this);
         }
     }
 
-    clearOptions() {
+    public clearOptions() {
         this.options = [];
     }
 
-    setParent(parent) {
+    public setParent(parent) {
         this.parent = parent;
     }
 
-    getParent() {
+    public getParent() {
         return this.parent;
     }
 
-    getSelectionObject(): SelObject {
+    public getSelectionObject(): SelObject {
         const selObj: SelObject = {
             showMenu: () => true,
             getMenu: () => {
-                const menuObj = {pre: [], post: []};
+                const menuObj: any = {pre: [], post: []};
                 this.options.forEach((opt, i) => {
                     menuObj[Keys.menuIndices[i]] = opt.name;
                 });
@@ -89,7 +89,7 @@ export class ChatBase {
                 if (this.post) {
                     menuObj.post = this.post;
                 }
-                menuObj["Q"] = OPTION_GOODBYE.name;
+                menuObj.Q = OPTION_GOODBYE.name;
                 return menuObj;
             },
             select: code => {
@@ -131,11 +131,11 @@ export class ChatQuest extends ChatBase {
         this.add(refuseOpt);
     }
 
-    setQuestGiver(giver) {
+    public setQuestGiver(giver) {
         this.questGiver = giver;
     }
 
-    setTarget(target) {
+    public setTarget(target) {
         const giver = this.questGiver;
         this.chatter = target;
         const qLen = 'lengthy';
@@ -162,7 +162,7 @@ export class ChatQuest extends ChatBase {
         }
     }
 
-    questCallback() {
+    public questCallback() {
         if (RG.isNullOrUndef([this.chatter, this.questGiver])) {
             RG.err('ChatQuest', 'questCallback',
                 'target and questGiver must be defined');
@@ -173,7 +173,7 @@ export class ChatQuest extends ChatBase {
         this.chatter.add(giveQuestComp);
     }
 
-    rewardCallback() {
+    public rewardCallback() {
         const questCompl = new Component.QuestCompleted();
         questCompl.setGiver(this.questGiver);
         this.chatter.add(questCompl);
@@ -218,13 +218,13 @@ export class ChatTrainer extends ChatBase {
     }
 
     /* Sets the target to train. */
-    setTrainer(trainer) {
+    public setTrainer(trainer) {
         this.trainer = trainer;
     }
 
     /* Sets the target to train. Computes also the training costs based on the
      * stats of the target. */
-    setTarget(target) {
+    public setTarget(target) {
         this.chatter = target;
         this.costs = [];
         stats.forEach(stat => {
@@ -233,11 +233,11 @@ export class ChatTrainer extends ChatBase {
         });
     }
 
-    getSelectionObject() {
+    public getSelectionObject() {
         return this.selectionObject;
     }
 
-    trainCallback(statSel, cost) {
+    public trainCallback(statSel, cost) {
         const cb = () => {
             const gw = RG.valueToGoldWeight(cost);
             const taName = this.chatter.getName();
@@ -316,16 +316,16 @@ export class ChatWizard extends ChatBase {
     }
 
     /* Sets the target to train. */
-    setWizard(wizard) {
+    public setWizard(wizard) {
         this.wizard = wizard;
     }
 
-    getSelectionObject(): SelObject {
+    public getSelectionObject(): SelObject {
         return this.selectionObject;
     }
 
-    wizardCallback(index) {
-        const cost:number  = this.costs[index];
+    public wizardCallback(index) {
+        const cost: number  = this.costs[index];
         const cb = () => {
             if (!RG.hasEnoughGold(this.chatter, cost)) {
                 return;
@@ -341,15 +341,16 @@ export class ChatWizard extends ChatBase {
         return cb;
     }
 
-    restorePP(numPP) {
+    public restorePP(numPP) {
         const spellPower = this.wizard.get('SpellPower');
         spellPower.decrPP(numPP);
         const spTarget = this.chatter.get('SpellPower');
         spTarget.addPP(numPP);
     }
 
-    setRuneSelectionObject() {
-        // Create a list of possible runes to charge up
+    public setRuneSelectionObject() {
+        // TODO Create a list of possible runes to charge up and
+        // add associated callback for charging the rune
         const selObj = {};
         const brain = this.chatter.getBrain() as BrainPlayer;
         brain.setSelectionObject(selObj);

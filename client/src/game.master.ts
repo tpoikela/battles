@@ -43,7 +43,7 @@ export class GameMaster {
     public hasNotify: boolean;
     public world: WorldTop;
 
-    constructor(game, pool = POOL) {
+    constructor(game, pool: EventPool = POOL) {
         this.player = null;
         this.game = game;
         this.fact = new FactoryBattle();
@@ -60,20 +60,20 @@ export class GameMaster {
         this.pool.listenEvent(RG.EVT_CREATE_BATTLE, this);
     }
 
-    setBattles(battles) {
+    public setBattles(battles): void {
         this.battles = battles;
     }
 
-    setPool(pool) {this.pool = pool;}
-    setGame(game) {this.game = game;}
+    public setPool(pool: EventPool): void {this.pool = pool;}
+    public setGame(game): void {this.game = game;}
 
-    setPlayer(player) {
+    public setPlayer(player): void {
         this.player = player;
     }
 
-    setWorld(world) {this.world = world;}
+    public setWorld(world: WorldTop): void {this.world = world;}
 
-    notify(evtName: string, args) {
+    public notify(evtName: string, args) {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             debug('EVT_LEVEL_CHANGED');
             const {actor} = args;
@@ -87,6 +87,8 @@ export class GameMaster {
             }
         }
         else if (evtName === RG.EVT_CREATE_BATTLE) {
+            // With this event, a creation of new battle can be requested. The
+            // resulting battle is placed into args.response
             debug('EVT_CREATE_BATTLE');
             const {areaTile} = args;
             if (args.response) {
@@ -137,11 +139,11 @@ export class GameMaster {
             debug('GameMaster registered battle over');
             // TODO delete the battle (but keep the level)
         }
-    };
+    }
 
-        /* Returns the bbox for the battle. This is coordinates for the battle
-         * inside the tile level. It corresponds to player's current owPos. */
-    getLevelBbox(ow, area, tileXY, owPos, level) {
+    /* Returns the bbox for the battle. This is coordinates for the battle
+     * inside the tile level. It corresponds to player's current owPos. */
+    public getLevelBbox(ow, area, tileXY, owPos, level) {
         // Info needed:
         // local ow pos
         // one ow pos in level cells
@@ -163,10 +165,10 @@ export class GameMaster {
             lrx: (localOwX + 1) * oneOwTileInCols - 1,
             lry: (localOwY + 1) * oneOwTileInRows - 1
         };
-    };
+    }
 
         /* Adds player to the battle level. */
-    tryToAddPlayerToBattle(args) {
+    public tryToAddPlayerToBattle(args) {
         const {actor, target, src} = args;
         const srcID = src.getID();
         if (this.battles.hasOwnProperty(srcID)) {
@@ -196,31 +198,31 @@ export class GameMaster {
             }
         }
 
-    };
+    }
 
-    addBattle(parentId, battle) {
+    public addBattle(parentId, battle) {
         this.battles[parentId].push(battle);
-    };
+    }
 
-    getBattle(parentId) {
+    public getBattle(parentId) {
         const battle = this.battles[parentId][0];
         return battle;
-    };
+    }
 
-    getBattles(parentId) {
+    public getBattles(parentId) {
         return this.battles[parentId];
-    };
+    }
 
     /* Returns true if the actor can still enter the battle as an army member.
      * */
-    actorCanEnter(actor, battle) {
+    public actorCanEnter(actor, battle) {
         if (battle.isOver()) {return false;}
         if (this.actorDesertedBattle(actor, battle)) {return false;}
         return true;
     }
 
     /* Removes the player from a battle. */
-    removePlayerFromBattle(args) {
+    public removePlayerFromBattle(args) {
         const {actor, target, src} = args;
         const areaID = target.getID();
         const srcID = src.getID();
@@ -250,7 +252,7 @@ export class GameMaster {
     }
 
     /* Adds BattleBadges after a battle is over. */
-    addBadgesForActors(battle) {
+    public addBadgesForActors(battle) {
         const armies = battle.getArmies();
         armies.forEach(army => {
             const actors = army.getActors();
@@ -273,9 +275,9 @@ export class GameMaster {
                 }
             });
         });
-    };
+    }
 
-    actorDesertedBattle(actor, battle) {
+    public actorDesertedBattle(actor, battle) {
         const badgeList = actor.getList('BattleBadge');
         const badge = badgeList.find(b => (
             b.getData().name === battle.getName()
@@ -286,7 +288,7 @@ export class GameMaster {
 
     /* Moves actors out of the battle level into the parent level of the battle
      * (at the moment this is always Area.Tile level. */
-    moveActorsOutOfBattle(battle) {
+    public moveActorsOutOfBattle(battle) {
         const level = battle.getLevel();
         const conns = level.getConnections();
 
@@ -305,6 +307,7 @@ export class GameMaster {
                 if (actor.isInLevel(level)) {
 
                     if (!actor.isPlayer()) {
+                        // TODO should move actor using systems
                         if (level.removeActor(actor)) {
                             targetLevel.addActorToFreeCell(actor);
                         }
@@ -316,7 +319,7 @@ export class GameMaster {
 
                     }
                     else {
-                        const selObj = this.getSelLeaveBattle(actor, level);
+                        const selObj = this.getLeaveBattleMenu(actor, level);
                         actor.getBrain().setSelectionObject(selObj);
                     }
                 }
@@ -326,7 +329,7 @@ export class GameMaster {
     }
 
     /* Returns the selection object for player to select an army. */
-    getSelArmyObject(player, battle: Battle) {
+    public getSelArmyObject(player, battle: Battle) {
         const armies = battle.getArmies();
         const selArmyFunc = selection => {
             const army = armies[selection];
@@ -375,16 +378,19 @@ export class GameMaster {
         return menu;
     }
 
-    getSelLeaveBattle(player, level) {
+    public getLeaveBattleMenu(player, level) {
         const leaveFunc = () => {
           const exit = level.getConnections()[0];
-          if (!exit.useStairs(player)) {
-            RG.err('GameMaster', 'moveActorsOutOfBattle',
-              'Cannot move player via useStairs');
+          // UseStairs work only on top of stairs cell, move player there
+          if (level.moveActorTo(player, exit.getX(), exit.getY())) {
+              const useStairs = new Component.UseStairs();
+              player.add(useStairs);
+              const name = player.getName();
+              RG.gameMsg(`${name} leaves the battlefield`);
           }
           else {
-            const name = player.getName();
-            RG.gameMsg(`${name} leaves the battlefield`);
+              RG.err('GameMaster', 'moveActorsOutOfBattle',
+                  'Cannot move player to stairs cell');
           }
         };
         const choices = [
@@ -397,7 +403,7 @@ export class GameMaster {
     }
 
     /* Serializes the object into JSON. */
-    toJSON() {
+    public toJSON() {
         const keys = Object.keys(this.battles);
         const battles = {};
         keys.forEach(id => {
@@ -431,7 +437,7 @@ export class GameMaster {
 
     /* Used by the ChunkManager to serialize the battle when player move far
      * enough from the tile. */
-    unloadBattles(tileLevel: Level) {
+    public unloadBattles(tileLevel: Level) {
         const id = tileLevel.getID();
         if (this.battles.hasOwnProperty(id)) {
             const battles = this.getBattles(id);
@@ -453,7 +459,7 @@ export class GameMaster {
         }
     }
 
-    biomeToLevelType(biome) {
+    public biomeToLevelType(biome) {
         switch (biome) {
             case OW.BIOME.ARCTIC: return 'arctic';
             case OW.BIOME.TUNDRA: return 'arctic';
@@ -463,7 +469,7 @@ export class GameMaster {
         }
     }
 
-    getBattleLevels(): Level[] {
+    public getBattleLevels(): Level[] {
         const levels = [];
         // TODO fix typings
         Object.values(this.battles).forEach((battlesPerID) => {
@@ -477,7 +483,7 @@ export class GameMaster {
 
     }
 
-    createBattleIntoAreaTileLevel(parentLevel: Level) {
+    public createBattleIntoAreaTileLevel(parentLevel: Level) {
         if (!parentLevel) {
             RG.err('GameMaster', 'createBattleIntoAreaTileLevel',
                 `Parent level is null`);
@@ -509,7 +515,7 @@ export class GameMaster {
             debug(`${msg} , danger: ${maxDanger}`);
 
             const owPos = this.game.getPlayerOwPos();
-            if (owPos && owPos.length > 1) {
+            if (owPos) {
                 const biome = ow.getBiome(owPos[0], owPos[1]);
                 levelType = this.biomeToLevelType(biome);
                 debug('Creating battle on tile ' + xy);

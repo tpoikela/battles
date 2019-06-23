@@ -27,6 +27,8 @@ export default class GameTopMenu extends React.Component {
       this.props.menuCallback(cmd, split);
     }
 
+    /* eventKey should match function name in parent component, and args are
+     * separated by #. setXX#a#b would call parent.setXX('a', 'b') */
     public render() {
       return (
       <div className='game-top-menu'>
@@ -34,6 +36,7 @@ export default class GameTopMenu extends React.Component {
           <NavDropdown eventKey='game' id='dropdown-game' title='Game' >
             <MenuItem eventKey='showScreen#StartScreen'>New</MenuItem>
             <MenuItem eventKey='showScreen#LoadScreen'>Load</MenuItem>
+            <MenuItem eventKey='loadFromScript'>Load from script</MenuItem>
             <MenuItem eventKey='saveGame#saveGame'>Save</MenuItem>
             <MenuItem eventKey='importJSON'>Import JSON</MenuItem>
             <MenuItem eventKey='game-export'>Export JSON</MenuItem>

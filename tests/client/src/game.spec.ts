@@ -3,7 +3,8 @@
  * long sequence with GUI, but this module makes sure that basics are working.
  */
 
-import {expect} from 'chai';
+import chai from 'chai';
+import {chaiBattles} from '../../helpers/chai-battles';
 import RG from '../../../client/src/rg';
 import {RGTest} from '../../roguetest';
 import {GameMain} from '../../../client/src/game';
@@ -20,6 +21,9 @@ import * as Brain from '../../../client/src/brain';
 const checkXY = RGTest.checkActorXY;
 const Actor = SentientActor;
 const POOL = EventPool.getPool();
+
+const expect = chai.expect;
+chai.use(chaiBattles);
 
 import {Objects} from '../../../client/data/battles_objects';
 import {Effects} from '../../../client/data/effects';
@@ -41,7 +45,6 @@ function getNewLevel(cols, rows) {
     const factLevel = new FactoryLevel();
     return factLevel.createLevel('arena', cols, rows);
 }
-
 
 describe('Game.Main', () => {
     let game = null;
@@ -163,12 +166,11 @@ describe('How combat should evolve', () => {
         expect(def2.get('Health').isAlive()).to.equal(true);
 
         comSystem.update();
-        expect(def2.has('Damage')).to.equal(true);
+        expect(def2).to.have.component('Damage');
         dmgSystem.update();
-        expect(def2.has('Damage')).to.equal(false);
+        expect(def2).not.to.have.component('Damage');
 
         expect(def2.get('Health').getHP() < 20).to.equal(true);
-
         expect(def2.get('Health').isAlive()).to.equal(true);
 
         attacker.add(attComp2);
@@ -178,10 +180,12 @@ describe('How combat should evolve', () => {
         expect(def2.get('Health').isAlive()).to.equal(true);
 
         const killListen = new KillListener(def2);
+        let watchdog = 100;
         while (killListen.isAlive) {
             attacker.add(attComp2);
             comSystem.update();
             dmgSystem.update();
+            if (--watchdog === 0) {break;}
         }
         expect(def2.get('Health').isAlive()).to.equal(false);
 

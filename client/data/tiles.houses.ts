@@ -5,7 +5,8 @@
 
 import RG from '../src/rg';
 import {Template, ElemTemplate} from '../src/template';
-import {Random, RandWeights} from '../src/random';
+import {Random} from '../src/random';
+import {RandWeights} from '../src/interfaces';
 
 interface HouseData {
     tiles: {[key: string]: string[]};

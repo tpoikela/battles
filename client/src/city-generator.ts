@@ -1,20 +1,41 @@
 /* Contains code for better city level generation. */
 
 import RG from './rg';
-import {LevelGenerator} from './level-generator';
+import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {MapGenerator} from './map.generator';
 import {DungeonPopulate} from './dungeon-populate';
+import {LevelSurroundings} from './level-surroundings';
 import {Random} from './random';
 import {Level} from './level';
 import {ELEM} from '../data/elem-constants';
 import {ElementDoor} from './element';
 
+import {TShellFunc} from './interfaces';
+
 const RNG = Random.getRNG();
+
+export interface CityOpts extends ILevelGenOpts {
+    hasWall: boolean; // Create a wall around the city
+    nShops: number;
+    shopFunc: TShellFunc[];
+    shopType: string | string[];
+}
+type PartialCityOpts = Partial<CityOpts>;
 
 /* Object for the city generator. */
 export class CityGenerator extends LevelGenerator {
 
     public static options: {[key: string]: any};
+
+    public static getOptions(): CityOpts {
+        const opts = LevelGenerator.getOptions() as CityOpts;
+        opts.hasWall = false;
+        opts.nShops = 1;
+        opts.shopFunc = [() => true];
+        opts.shopType = ['potion'];
+        return opts;
+    }
+
     public addDoors: boolean;
 
     constructor() {
@@ -23,10 +44,14 @@ export class CityGenerator extends LevelGenerator {
         this.shouldRemoveMarkers = true;
     }
 
-    public create(cols, rows, conf): Level {
-        const level = this.createLevel(cols, rows, conf);
-
+    public create(cols: number, rows: number, conf: PartialCityOpts): Level {
+        let level = this.createLevel(cols, rows, conf);
+        if (conf.cellsAround) {
+            level = this.createCitySurroundings(level, conf);
+        }
         this.populateCityLevel(level, conf);
+
+        this.removeMarkers(level, conf);
         // TODO populate level with actors based on conf
         return level;
     }
@@ -98,6 +123,14 @@ export class CityGenerator extends LevelGenerator {
         houses.forEach(house => {
             dungPopul.populateHouse(level, house, conf);
         });
+    }
+
+    public createCitySurroundings(level: Level, conf): Level {
+        const levelSurround = new LevelSurroundings();
+        const newLevel = levelSurround.surround(level, conf);
+        newLevel.setExtras(level.getExtras());
+        levelSurround.scaleExtras(newLevel);
+        return newLevel;
     }
 }
 

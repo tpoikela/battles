@@ -3,6 +3,7 @@
 import RG from '../src/rg';
 import {Colors} from './colors';
 import {meleeHitDamage, color} from './shell-utils';
+import {IAddCompObj} from '../src/interfaces';
 
 const scaleAll = 1.0;
 
@@ -27,12 +28,6 @@ function value(type: string | number, val?): number {
         retVal = type;
     }
     return Math.floor(scaleAll * retVal);
-}
-
-interface AddCompSpec {
-    addComp: string;
-    func?: any[];
-    duration?: number | string;
 }
 
 interface ColorSpec {
@@ -81,8 +76,8 @@ interface UseSpec {
 interface ObjectShell {
     damageType?: string;
     ammoType?: string;
-    onEquip?: AddCompSpec | AddCompSpec[];
-    onAttackHit?: AddCompSpec | AddCompSpec[];
+    onEquip?: IAddCompObj | IAddCompObj[];
+    onAttackHit?: IAddCompObj | IAddCompObj[];
     noRandom?: boolean;
     base?: string;
     addComp?: any;
@@ -101,7 +96,7 @@ interface ObjectShell {
     range?: number;
     protection?: number;
     energy?: number;
-    use?: string | UseSpec | AddCompSpec;
+    use?: string | UseSpec | IAddCompObj;
     uses?: number;
     type?: string;
     value?: number;
@@ -1384,7 +1379,7 @@ const Items: ObjectShell[] = [
 
 // Maps the weapon type to damage type. Default is RG.DMG.BLUNT, unless
 // specified otherwise here
-const dmgTypes = {
+export const dmgTypes = {
     sword: RG.DMG.SLASH,
     spear: RG.DMG.PIERCE,
     dagger: RG.DMG.SLASH,
