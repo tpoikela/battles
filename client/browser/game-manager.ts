@@ -200,19 +200,9 @@ export class GameManager {
         this.gameSave = new GameSave();
         this.pluginManager = new PluginManager();
 
-        this.multiHandler = new MultiKeyHandler();
-
-        // Used for request animation frame
-        this.frameID = null;
-
         // Params to control the auto-movement (when clicking a cell etc)
         this.finishAutoOnSight = true;
         this.finishAutoDist = 3;
-
-        this.keyPending = false;
-        this.keysEnabled = false;
-        this.autoModeKeyBuffer = [];
-        this.ctrlMode = 'MANUAL';
 
         // Holds game-state specific info for GUI (see resetGameState)
         this.resetGameState();
@@ -221,7 +211,7 @@ export class GameManager {
         this.viewportPlayerY = 15; // * 2
         this.viewportX = 35; // * 2
         this.viewportY = 15; // * 2
-        this.screen = new ScreenBuffered(this.viewportX, this.viewportY);
+        this.resetGameControls();
 
         this.gameSave.setStorage(window.localStorage);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
@@ -230,16 +220,24 @@ export class GameManager {
         this.finishAutoOnSight = true;
         this.finishAutoDist = 3;
 
+        // Simple configuration for the game
+        this.gameConf = FactoryGame.getGameConf();
+        this.gameConf.world = WorldConf;
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+    }
+
+    public resetGameControls(): void {
+        // Used for request animation frame
+        this.frameID = null;
+
+        this.multiHandler = new MultiKeyHandler();
+
+        this.screen = new ScreenBuffered(this.viewportX, this.viewportY);
         this.keyPending = false;
         this.keysEnabled = false;
         this.autoModeKeyBuffer = [];
         this.ctrlMode = 'MANUAL';
         this.recordedCommands = [];
-
-        // Simple configuration for the game
-        this.gameConf = FactoryGame.getGameConf();
-        this.gameConf.world = WorldConf;
-        this.handleKeyDown = this.handleKeyDown.bind(this);
     }
 
     public setGameSettings(name, value): void {
@@ -768,6 +766,7 @@ export class GameManager {
     public createNewGame(preCb: () => void): void {
         this.cancelAnim();
         this.resetGameState();
+        this.resetGameControls();
 
         if (!!this.gameConf.seed) {
             this.gameConf.seed = new Date().getTime();
