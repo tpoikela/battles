@@ -155,11 +155,11 @@ MapWall.prototype.create = function(callback) {
     }
 
     // Service the callback finally
-	for (let i = 0; i < this._width; i++) {
-		for (let j = 0; j < this._height; j++) {
-			callback(i, j, map[i][j]);
-		}
-	}
+    for (let i = 0; i < this._width; i++) {
+        for (let j = 0; j < this._height; j++) {
+            callback(i, j, map[i][j]);
+        }
+    }
 
 };
 
