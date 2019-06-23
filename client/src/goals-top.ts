@@ -5,8 +5,7 @@ import RG from './rg';
 import {Goal, GoalStatus} from './goals';
 import {Random} from './random';
 
-// const GoalsBattle = require('./goals-battle');
-import {Evaluator, EvaluatorBase} from './evaluators';
+import {Evaluator, EvaluatorBase, EvaluatorOrders} from './evaluators';
 import {EvaluatorsBattle} from './evaluators-battle';
 const debug = require('debug')('bitn:goals-top');
 
@@ -23,6 +22,7 @@ export const GoalsTop: any = {};
 interface IBiasMap {
     [key: string]: number;
 }
+
 //---------------------------------------------------------------------------
 // TOP-LEVEL GOALS
 //---------------------------------------------------------------------------
@@ -31,6 +31,8 @@ interface IBiasMap {
  * arbitration.
  */
 export class GoalTop extends Goal.Base {
+
+    protected evaluators: EvaluatorBase[];
 
     constructor(actor) {
         super(actor);
@@ -167,11 +169,12 @@ export class ThinkBasic extends GoalTop {
      * override the existing one. */
     public clearOrders() {
         const orders = this.evaluators.filter(ev => ev.isOrder());
-        orders.forEach(order => {
-            if (order.goal.isActive()) {
-                order.goal.terminate();
+        orders.forEach((order) => {
+            const evOrder = order as EvaluatorOrders;
+            if (evOrder.goal.isActive()) {
+                evOrder.goal.terminate();
             }
-            const index = this.evaluators.indexOf(order);
+            const index = this.evaluators.indexOf(evOrder);
             this.evaluators.splice(index, 1);
         });
     }
