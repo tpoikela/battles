@@ -4,7 +4,7 @@ const debug = dbg('bitn:Game.FromJSON');
 
 import RG from './rg';
 import {OWMap} from './overworld.map';
-import {Battle, Army} from './game.battle';
+import {Battle, BattleJSON, Army, ArmyJSON} from './game.battle';
 import {GoalsTop} from './goals-top';
 import {Evaluator} from './evaluators';
 import {EvaluatorsBattle} from './evaluators-battle';
@@ -1088,7 +1088,7 @@ FromJSON.prototype.restoreGameMaster = function(game, json) {
     return gameMaster;
 };
 
-FromJSON.prototype.restoreBattle = function(json) {
+FromJSON.prototype.restoreBattle = function(json: BattleJSON) {
     const battleLevel = this.getLevelOrFatal(json.level, 'restoreBattle');
     if (battleLevel) {
         ++this.IND;
@@ -1097,7 +1097,7 @@ FromJSON.prototype.restoreBattle = function(json) {
         battle.setLevel(battleLevel);
         battle.setStats(json.stats);
         battle.finished = json.finished;
-        const armies = [];
+        const armies = [] as Army[];
         json.armies.forEach(armyJSON => {
             armies.push(this.restoreArmy(armyJSON));
         });
@@ -1119,7 +1119,7 @@ FromJSON.prototype.restoreBattle = function(json) {
     return null;
 };
 
-FromJSON.prototype.restoreArmy = function(json) {
+FromJSON.prototype.restoreArmy = function(json: ArmyJSON): Army {
     const army = new Army(json.name);
     json.actors.forEach(id => {
         if (this.id2entity[id]) {
@@ -1127,7 +1127,10 @@ FromJSON.prototype.restoreArmy = function(json) {
         }
     });
     army.setDefeatThreshold(json.defeatThreshold);
-
+    Object.entries(json.alignment).forEach((pair) => {
+        const [key, value] = pair;
+        army.addAlignment(key, value);
+    });
     return army;
 };
 
