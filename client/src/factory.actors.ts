@@ -48,7 +48,7 @@ ActorRandomizer.prototype.adjustActor = function(actor) {
         const {stats} = ActorMods[type];
         Object.keys(stats).forEach(statName => {
             const setter = RG.formatSetterName(statName);
-            const getter = RG.formatSetterName(statName);
+            const getter = RG.formatGetterName(statName);
             const statVal = actor.get('Stats')[getter];
             const newValue = statVal + stats[statName];
             actor.get('Stats')[setter](newValue);
