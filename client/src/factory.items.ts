@@ -5,7 +5,9 @@ import RG from './rg';
 import {Random} from './random';
 import {Placer} from './placer';
 import {ObjectShell} from './objectshellparser';
+import {Dice} from './dice';
 import * as Component from './component';
+import {ItemConstr} from './interfaces';
 
 const RNG = Random.getRNG();
 
@@ -238,16 +240,10 @@ export const FactoryItem = function() {
     };
 };
 
-FactoryItem.addItemsToActor = function(actor, items) {
-    const parser = ObjectShell.getParser();
+FactoryItem.addItemsToActor = function(actor, items: ItemConstr[]) {
     let createdItem = null;
     items.forEach(item => {
-        if (typeof item === 'string') {
-            createdItem = parser.createItem(item);
-        }
-        else if (typeof item === 'object') {
-            createdItem = parser.createItem(item.name);
-        }
+        createdItem = FactoryItem.createItemFromConstr(item);
         if (createdItem) {
             actor.getInvEq().addItem(createdItem);
         }
@@ -278,19 +274,11 @@ FactoryItem.equipWeaponOfType = function(actor, type) {
 
 /* Tries to equip the list of given items to actor. Each item can be a
  * string or {name: 'xxx', count: 3} object. */
-FactoryItem.equipItemsToActor = function(actor, items) {
-    const parser = ObjectShell.getParser();
+FactoryItem.equipItemsToActor = function(actor, items: ItemConstr[]) {
     let createdItem = null;
     let ok = true;
     items.forEach(item => {
-        if (typeof item === 'string') {
-            createdItem = parser.createItem(item);
-        }
-        else if (typeof item === 'object') {
-            createdItem = parser.createItem(item.name);
-            const itemCount = item.count || 1;
-            createdItem.setCount(itemCount);
-        }
+        createdItem = FactoryItem.createItemFromConstr(item);
         if (createdItem) {
             const count = createdItem.getCount();
             actor.getInvEq().addItem(createdItem);
@@ -298,4 +286,25 @@ FactoryItem.equipItemsToActor = function(actor, items) {
         }
     });
     return ok;
+};
+
+
+FactoryItem.createItemFromConstr = function(item: ItemConstr) {
+    const parser = ObjectShell.getParser();
+    let createdItem = null;
+    if (typeof item === 'string') {
+        createdItem = parser.createItem(item);
+    }
+    else if (typeof item === 'object') {
+        if (item.func) {
+            createdItem = parser.createRandomItem({func: item.func});
+        }
+        else {
+            createdItem = parser.createItem(item.name);
+        }
+        if (createdItem && item.count) {
+            createdItem.setCount(Dice.getValue(item.count));
+        }
+    }
+    return createdItem;
 };
