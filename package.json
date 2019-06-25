@@ -108,7 +108,7 @@
     "create-config-devel": "cp -n client/config/devel.js public/config.js",
     "coverage": "perl bin/cov_test.pl",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
-    "dev": "webpack-dev-server",
+    "dev": "npm run create-config-devel && webpack-dev-server",
     "electron": "electron .",
     "hooks": "perl bin/deploy_hooks",
     "minimize": "uglifyjs --mangle --compress ./build/*.js",
