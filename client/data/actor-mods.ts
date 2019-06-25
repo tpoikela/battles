@@ -1,10 +1,7 @@
 /* This file contains modifications that are applied to specific actors. */
 
-export interface IActorMods {
-    description?: string;
-    stats: {[key: string]: number};
-    player: {[key: string]: number};
-}
+import {ItemConstr, ItemConstrMap, IActorMods} from '../src/interfaces';
+
 
 export const ActorMods: {[key: string]: IActorMods} = {};
 
@@ -15,6 +12,11 @@ ActorMods.bearfolk = {
         strength: 3
     },
     player: { // Player only section
+        startingItems: [
+        ],
+        equipment: [
+            {name: 'Chain boots', count: 1}
+        ]
     }
 };
 
@@ -25,6 +27,10 @@ ActorMods.catfolk = {
         strength: -2
     },
     player: { // Player only section
+        startingItems: [
+        ],
+        equipment: [
+        ]
     }
 };
 
@@ -34,6 +40,15 @@ ActorMods.dogfolk = {
         perception: 3
     },
     player: { // Player only section
+        Spellsinger: {
+            startingItems: [
+                {func: item => item.type === 'rune', count: 1}
+            ],
+        },
+        startingItems: [
+        ],
+        equipment: [
+        ]
     }
 };
 
@@ -44,6 +59,17 @@ ActorMods.dwarf = {
         willpower: 1
     },
     player: { // Player only section
+        Adventurer: {
+        },
+        Blademaster: {
+            equipment: [
+                {name: 'Battle axe', count: 1}
+            ]
+        },
+        startingItems: [
+        ],
+        equipment: [
+        ]
     }
 };
 
@@ -53,6 +79,12 @@ ActorMods.goblin = {
         agility: 2
     },
     player: { // Player only section
+        startingItems: [
+            {name: 'Rock', count: 5}
+        ],
+        equipment: [
+            {name: 'Rock', count: 3}
+        ]
     }
 };
 
@@ -63,6 +95,10 @@ ActorMods.human = {
         willpower: 1
     },
     player: { // Player only section
+        startingItems: [
+        ],
+        equipment: [
+        ]
     }
 };
 
@@ -72,6 +108,16 @@ ActorMods.hyrkhian = {
         willpower: 2
     },
     player: { // Player only section
+        Cryomancer: {
+            startingItems: [
+                {name: 'Potion of power', count: '2d2'}
+            ],
+        },
+        startingItems: [
+            {name: 'Lesser spirit gem', count: 1}
+        ],
+        equipment: [
+        ]
     }
 };
 
@@ -82,6 +128,10 @@ ActorMods.wildling = {
         perception: 4
     },
     player: { // Player only section
+        startingItems: [
+        ],
+        equipment: [
+        ]
     }
 };
 
@@ -92,5 +142,9 @@ ActorMods.wolfclan = {
         willpower: 2
     },
     player: { // Player only section
+        startingItems: [
+        ],
+        equipment: [
+        ]
     }
 };
