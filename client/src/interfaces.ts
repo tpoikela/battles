@@ -144,6 +144,38 @@ export interface ConstraintMap {
 
 export type TConstraintArg = IConstraint | IConstraint[];
 
+//-------------------------------------------------------------
+// Interfaces used in actor classes to specify starting items
+//-------------------------------------------------------------
+
+export interface ItemConstr {
+    name?: string;
+    count?: number;
+    func?: (item) => boolean;
+}
+
+export interface ItemConstrMap {
+    [key: string]: ItemConstr[];
+}
+
+export interface IActorMods {
+    description?: string;
+    stats: {[key: string]: number};
+    player: {
+        startingItems?: ItemConstr[];
+        equipment?: ItemConstr[];
+        Adventurer?: any;
+        Blademaster?: any;
+        Cryomancer?: any;
+        Spellsinger?: any;
+        Marksman?: any;
+    };
+}
+
+//-------------------------------------------------------------
+// Interfaces in world generation
+//-------------------------------------------------------------
+
 export interface ZoneConf {
     connectLevels?: LevelConnection[];
     connectToAreaXY?: AreaConnection[];

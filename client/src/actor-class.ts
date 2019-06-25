@@ -8,6 +8,7 @@ import {Ability} from './abilities';
 import {EquipSlot} from './equipment';
 import {SentientActor} from './actor';
 import {ObjectShell} from './objectshellparser';
+import {ItemConstr, ItemConstrMap} from './interfaces';
 
 const {Abilities} = Ability;
 
@@ -63,15 +64,6 @@ ActorClass.addAbility = function(abilName, actor): void {
     }
 };
 
-export interface ItemConstr {
-    name?: string;
-    count?: number;
-    func?: (item) => boolean;
-}
-
-export interface ItemConstrMap {
-    [key: string]: ItemConstr[];
-}
 
 const startingItems: ItemConstrMap = {
     Alpinist: [
