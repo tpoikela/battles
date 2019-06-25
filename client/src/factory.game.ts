@@ -7,6 +7,7 @@ import * as Verify from './verify';
 import * as World from './world';
 import {ActorClass} from './actor-class';
 import {ActorsData} from '../data/actors';
+import {ActorMods} from '../data/actor-mods';
 import {DebugGame} from '../data/debug-game';
 import {Disposition} from './disposition';
 import {Entity} from './entity';
@@ -29,7 +30,7 @@ import {WorldConf} from './world.creator';
 import {Level} from './level';
 import {SentientActor} from './actor';
 
-import {IFactoryGameConf, OWMapConf} from './interfaces';
+import {IFactoryGameConf, OWMapConf, IActorMods} from './interfaces';
 
 import {ACTOR_CLASSES} from '../src/actor-class';
 const POOL = EventPool.getPool();
@@ -131,6 +132,8 @@ FactoryGame.prototype.createPlayerUnlessLoaded = function(obj) {
         player.setType(obj.playerRace);
         player.add(new Component.Health(pConf.hp));
         this.addActorClass(obj, player);
+
+        this.addRaceStuff(obj, player);
         player.add(new Component.Skills());
         player.add(new Component.GameInfo());
         player.add(new Component.BodyTemp());
@@ -199,6 +202,28 @@ FactoryGame.prototype.addActorClass = function(obj, player) {
     else {
         RG.err('Factory.Game', 'addActorClass',
             `${obj.playerClass} not found in ActorClass.`);
+    }
+};
+
+FactoryGame.prototype.addRaceStuff = function(obj, player) {
+    const {playerRace} = obj;
+    if (!ActorMods[playerRace]) {return;}
+    const raceMods = (ActorMods[playerRace] as IActorMods).player;
+    // First add generic items for the given race
+    const items = raceMods.startingItems;
+    const eqs = raceMods.equipment;
+    FactoryItem.addItemsToActor(player, items);
+    FactoryItem.equipItemsToActor(player, eqs);
+
+    // Then add some flavor with specific race-actor class, if applicable
+    // Each race could have 1-2 preferred classes to get better items
+    const {playerClass} = obj;
+    if (raceMods.hasOwnProperty(playerClass)) {
+        const mods = raceMods[playerClass];
+        const classItems = mods.startingItems;
+        const classEqs = mods.equipment;
+        FactoryItem.addItemsToActor(player, classItems);
+        FactoryItem.equipItemsToActor(player, classEqs);
     }
 };
 
