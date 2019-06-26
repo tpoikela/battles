@@ -140,7 +140,7 @@ describe('Items in map cells', () => {
         expect(food.getOwner()).to.equal(container);
         expect(container.isEmpty()).to.equal(false);
         expect(container.hasItem(food)).to.equal(true);
-        expect(container.hasItem(weapon)).to.equal(false);
+        expect(container.hasItem(weapon as any)).to.equal(false);
         expect(container.first()).to.equal(food);
         expect(container.next()).to.equal(null);
 
@@ -164,7 +164,7 @@ describe('Items in map cells', () => {
         const openDoor = new Element.ElementDoor(true);
         openDoor.openDoor();
         const doorCell = new Cell(0, 1, new Element.ElementBase('floor'));
-        doorCell.setProp('elements', openDoor);
+        doorCell.setProp('elements', openDoor as any);
         expect(doorCell.hasDoor()).to.equal(true);
         RGUnitTests.checkChar(openDoor, '/');
         expect(doorCell.lightPasses()).to.equal(true);
