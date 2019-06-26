@@ -145,7 +145,7 @@ describe('Items in map cells', () => {
         expect(container.next()).to.equal(null);
 
         // Add new weapon, then remove food
-        container.addItem(weapon);
+        container.addItem(weapon as any);
         expect(container.first()).to.equal(food);
         expect(container.next()).to.equal(weapon);
 
@@ -293,7 +293,7 @@ describe('ElementShop', () => {
         const shopElem = new Element.ElementShop();
         const shopCell = map.getCell(1, 1);
         shopElem.setShopkeeper(shopkeeper);
-        shopCell.setProp('elements', shopElem);
+        shopCell.setProp('elements', shopElem as any);
         expect(shopCell.hasShop()).to.equal(true);
 
         const soldItem = new Item.Weapon('Fancy Sword');
