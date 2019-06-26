@@ -49,6 +49,7 @@ if (not -e $nyc) {
 
 #my $cmd = "$nyc -n client/src mocha $comp_babel tests/client/src";
 my $cmd = "$nyc mocha $comp_babel tests/client/src/*.ts";
+#my $cmd = "$nyc ts-mocha tests/client/src/*.ts"; # Would be faster, but not working
 _cmd($cmd, "Running coverage for unit tests.");
 
 if (0) {
