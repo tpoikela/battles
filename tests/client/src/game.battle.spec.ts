@@ -26,7 +26,7 @@ describe('Game.Army', () => {
         const a1 = new SentientActor('soldier');
         const a2 = new SentientActor('pacifist');
         army.addActor(a1);
-        army.setBattle(MockBattle);
+        army.setBattle(MockBattle as any);
 
         POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: a2});
         expect(army.isDefeated()).to.equal(false);

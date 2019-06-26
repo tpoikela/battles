@@ -5,7 +5,7 @@ import RG from '../../../client/src/rg';
 import {FactoryGame} from '../../../client/src/factory.game';
 import {OWMap} from '../../../client/src/overworld.map';
 import { OverWorld, CoordMap } from '../../../client/src/overworld';
-import {IFactoryGameConf} from '../../../client/src/interfaces';
+import {IFactoryGameConf, OWMapConf} from '../../../client/src/interfaces';
 
 describe('Factory.Game', function() {
     this.timeout(8000);
@@ -24,7 +24,6 @@ describe('Factory.Game', function() {
         const worldAndConf = OverWorld.createOverWorldLevel(
           overworld, owConf);
         const [worldLevel, worldConf] = worldAndConf;
-        expect(worldLevel).to.not.be.empty;
 
         gameFact.mapZonesToTerritoryMap(overworld.getTerrMap(), worldConf);
 

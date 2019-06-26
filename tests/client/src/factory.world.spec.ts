@@ -213,7 +213,7 @@ describe('FactoryWorld', function() {
             name: 'ww',
             nAreas: 1,
             area: [
-                { name: 'a1', maxX: 2, maxY: 2, nCities: 1,
+                { name: 'a1', maxX: 2, maxY: 2, nCities: 1, cols: 100, rows: 100,
                     city: [
                         { x: 0, y: 0, levelX: 4, levelY: 7,
                             name: 'Ravendark', nQuarters: 1,
@@ -297,6 +297,7 @@ describe('FactoryWorld', function() {
         // Top-level Area configuration
         const areaConf: IF.AreaConf = {
             name: 'Area1x1', maxX: 1, maxY: 1, nCities: 1,
+            cols: 100, rows: 100,
             presetLevels: {
                 Area1x1: areaLevels
             },
@@ -408,6 +409,7 @@ describe('FactoryWorld', function() {
             createAllZones: true,
             area: [
                 {name: 'area for black tower', maxX: 2, maxY: 2, nDungeons: 1,
+                    cols: 100, rows: 100,
                     dungeon: [
                         towerConf
                     ]

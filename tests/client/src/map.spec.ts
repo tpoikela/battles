@@ -61,7 +61,7 @@ describe('Map.Cell', () => {
     it('can have doors', () => {
         const cell = new Cell(0, 0, new ElementBase('floor'));
         const door = new Element.ElementDoor(true);
-        cell.setProp(RG.TYPE_ELEM, door);
+        cell.setProp(RG.TYPE_ELEM, door as any);
         expect(cell.hasDoor(), 'Cell should have a door').to.equal(true);
     });
 });
