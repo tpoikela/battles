@@ -16,6 +16,7 @@ export interface ILevelGenOpts {
     maxValue: number;
     maxDanger: number;
     shouldRemoveMarkers: boolean;
+    preserveMarkers: boolean;
 }
 
 export abstract class LevelGenerator {
@@ -37,7 +38,8 @@ export abstract class LevelGenerator {
             surroundY: 10,
             maxValue: 100,
             maxDanger: 5,
-            shouldRemoveMarkers: true
+            shouldRemoveMarkers: true,
+            preserveMarkers: false
         };
     }
 
