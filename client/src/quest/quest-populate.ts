@@ -384,7 +384,7 @@ export class QuestPopulate {
         let ok = false;
 
         if (this.checkImplemented && !tasksImplemented.has(taskType)) {
-            console.log(`TaskType |${taskType}| not implemented. Bailing out...`);
+            // console.log(`TaskType |${taskType}| not implemented. Bail out..`);
             return false;
         }
 
