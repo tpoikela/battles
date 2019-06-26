@@ -285,7 +285,9 @@ FactoryGame.prototype.createOverWorldGame = function(obj: IFactoryGameConf, game
     worldConf.createAllZones = false;
     this.progress('Creating places and local zones...');
     const playerLevel = splitLevels[playerX][playerY];
-    this.createPlayerHome(worldConf, player, playerLevel, playerX, playerY);
+
+    this.createCityConfForPlayerHome(worldConf, player, playerLevel,
+        playerX, playerY);
     this.createAreaLevelConstraints(worldConf, overworld.getTerrMap());
     const world = factWorld.createWorld(worldConf);
     game.addPlace(world);
@@ -309,6 +311,7 @@ FactoryGame.prototype.createOverWorldGame = function(obj: IFactoryGameConf, game
     this.progress('World generation took ' + totalDur + ' ms.');
     // RG.Verify.verifyStairsConnections(game, 'Factory.Game');
     // this.progress('Stairs connections verified');
+    RG.gameMsg('You have decided to venture outside your home village');
     return game;
 };
 
@@ -329,7 +332,15 @@ FactoryGame.prototype.progress = function(msg: string): void {
 };
 
 /* Places player into a free cell surrounded by other free cells. */
-FactoryGame.prototype.placePlayer = function(player: SentientActor, level: Level): void {
+FactoryGame.prototype.placePlayer = function(player: SentientActor,
+                                             level: Level): void {
+    // Check if the location has already been set
+    const [pX, pY] = player.getXY();
+    if (pX >= 0 && pY >= 0) {
+        level.addActor(player, pX, pY);
+        return;
+    }
+
     const freeCells = level.getMap().getFree();
     const freeLUT = {};
     freeCells.forEach(c => {
@@ -479,7 +490,7 @@ FactoryGame.prototype.getAreaXYFromOWTileXY = function(owX, owY) {
 };
 
 /* Creates the starting home village for the player. */
-FactoryGame.prototype.createPlayerHome = function(
+FactoryGame.prototype.createCityConfForPlayerHome = function(
     worldConf, player, level, playerX, playerY
 ) {
     let cell = level.getFreeRandCell();
@@ -487,10 +498,20 @@ FactoryGame.prototype.createPlayerHome = function(
         cell = level.getFreeRandCell();
     }
 
+    let [lX, lY] = cell.getXY();
+    const [pX, pY] = player.getXY();
+    if (pX >= 0 && pY >= 0) {
+        lX = pX;
+        lY = pY;
+    }
+    else {
+        console.error('createCityConfForPlayerHome: Player XY not defined yet');
+    }
+
     const homeConf = {
         name: 'Home town of ' + player.getName(),
         x: playerX, y: playerY,
-        levelX: cell.getX(), levelY: cell.getY(),
+        levelX: lX, levelY: lY,
         nQuarters: 1,
         groupType: 'village',
         friendly: true,
@@ -512,7 +533,8 @@ FactoryGame.prototype.createPlayerHome = function(
         }]
     };
 
-    console.log('Hometown located @ ', cell.getX(), cell.getY());
+    console.log('Hometown located @ ', lX, lY);
+    player.setXY(lX, lY);
     worldConf.area[0].city.push(homeConf);
 };
 
