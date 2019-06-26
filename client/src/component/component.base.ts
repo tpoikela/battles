@@ -461,7 +461,7 @@ interface SetterObj {
  */
 export const createFromObj = function(
     compName: string, setters: SetterObj[] // TODO add ...args support if needed
-): void {
+): any {
     if (Component[compName]) {
         const newComp = new Component[compName]();
         setters.forEach(obj => {
