@@ -70,6 +70,14 @@ Location.prototype.setXY = function(x, y): void {
     this.y = y;
 };
 
+Location.prototype.isValid = function(): boolean {
+    if (!this.level) {
+        return this.x >= 0 && this.y >= 0;
+    }
+    // TODO check level max boundaries
+    return this.x >= 0 && this.y >= 0;
+};
+
 Location.prototype.unsetLevel = function() {
     if (this.level) {
         this.level = null;
