@@ -28,6 +28,7 @@ type Cell = import('./map.cell').Cell;
 interface CastleOpts extends ILevelGenOpts {
     roomCount: number;
     centralCorridors: boolean;
+    templates?: any;
 }
 
 type GateFunc = () => void;
