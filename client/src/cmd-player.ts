@@ -8,8 +8,6 @@ import * as Component from './component/component';
 
 type BrainPlayer = import('./brain/brain.player').BrainPlayer;
 type SentientActor = import ('./actor').SentientActor;
-type ItemAmmo = import('./item').Ammo;
-type MissileWeapon = import('./item').MissileWeapon;
 
 export const Cmd: any = {};
 
@@ -63,68 +61,10 @@ Cmd.Attack = CmdAttack;
 export class CmdMissile extends CmdBase {
 
     public execute(obj) {
-        const invEq = this._actor.getInvEq();
-        let fireRate = 1;
-        if (this._actor.has('DoubleShot')) {
-            fireRate = 2;
-        }
-
-        // Fires one missile comp each firerate increment
-        for (let i = 0; i < fireRate; i++) {
-
-            // TODO changes to fire more than 1 missile
-            const missile = invEq.unequipAndGetItem('missile', 1, 0);
-            if (!RG.isNullOrUndef([missile])) {
-
-                // Check for missile weapon for ammunition
-                if (missile.has('Ammo')) {
-                    const missWeapon = invEq.getEquipment()
-                        .getEquipped('missileweapon') as unknown;
-                    if (missWeapon === null) {
-                        const msg = 'No missile weapon equipped.';
-                        return this.brain.cmdNotPossible(msg);
-                    }
-                    else { // Check ammo/weapon compatibility
-                        const ammo = missile as unknown;
-                        const ammoType = (ammo as ItemAmmo).getAmmoType();
-                        const weaponType = (missWeapon as MissileWeapon).getWeaponType();
-                        if (this._actor.has('MixedShot')) {
-                            const re = /bow/;
-                            if (!re.test(ammoType) || !re.test(weaponType)) {
-                                if (ammoType !== weaponType) {
-                                    const msg = 'Ammo/weapon not compatible.';
-                                    return this.brain.cmdNotPossible(msg);
-                                }
-                            }
-                        }
-                        else if (ammoType !== weaponType) {
-                            const msg = 'Ammo/weapon not compatible.';
-                            return this.brain.cmdNotPossible(msg);
-                        }
-                    }
-                }
-
-                if (!RG.isNullOrUndef([obj.target])) {
-                    const [x, y] = obj.target.getXY();
-                    const mComp = new Component.Missile(this._actor);
-                    mComp.setTargetXY(x, y);
-                    mComp.setDamage(RG.getMissileDamage(this._actor, missile));
-                    mComp.setAttack(RG.getMissileAttack(this._actor, missile));
-                    mComp.setRange(RG.getMissileRange(this._actor, missile));
-                    missile.add(mComp);
-
-                    this.brain.energy = RG.energy.MISSILE;
-                }
-                else {
-                    RG.err('Brain.Player', 'handleCommand',
-                        'No x,y given for missile.');
-                }
-            }
-            else {
-                return this.brain.cmdNotPossible('No missile equipped.');
-            }
-        }
-
+        const attComp = new Component.AttackMissile();
+        attComp.setAttacker(this._actor);
+        attComp.setTarget(obj.target);
+        this._actor.add(attComp);
         return ACTION_ALREADY_DONE;
     }
 
