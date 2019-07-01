@@ -13,7 +13,7 @@ export class SystemAttackRanged extends SystemBase {
     }
 
     public updateEntity(ent): void {
-        const attComp = ent.get('AttackMissile');
+        const attComp = ent.get('AttackRanged');
         const target = attComp.getTarget();
         const actor = attComp.getAttacker();
         const invEq = actor.getInvEq();
