@@ -110,7 +110,7 @@ ActorMods.hyrkhian = {
     player: { // Player only section
         Cryomancer: {
             startingItems: [
-                {name: 'Potion of power', count: '2d2'}
+                {name: 'Potion of power', count: '1d2'}
             ],
         },
         startingItems: [
