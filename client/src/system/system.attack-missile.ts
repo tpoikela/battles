@@ -6,10 +6,10 @@ import * as Component from '../component';
 type ItemAmmo = import('../item').Ammo;
 type MissileWeapon = import('../item').MissileWeapon;
 
-export class SystemAttackMissile extends SystemBase {
+export class SystemAttackRanged extends SystemBase {
 
     constructor(compTypes, pool?) {
-        super(RG.SYS.ATTACK_MISSILE, compTypes, pool);
+        super(RG.SYS.ATTACK_RANGED, compTypes, pool);
     }
 
     public updateEntity(ent): void {

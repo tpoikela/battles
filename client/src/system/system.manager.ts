@@ -141,7 +141,7 @@ export class SystemManager {
 
 SystemManager.systemOrder = [
     'AreaEffects', 'Disability', 'SpiritBind', 'BaseAction',
-    'Equip', 'Attack', 'AttackMissile', 'Chat', 'Shop', 'SpellCast', 'SpellEffect',
+    'Equip', 'Attack', 'AttackRanged', 'Chat', 'Shop', 'SpellCast', 'SpellEffect',
     'Missile', 'Movement', 'Effects', 'Animation', 'DrainStats', 'Damage', 'Death',
     'Battle',
     'Skills', 'Quest', 'ExpPoints', 'Communication', 'Events',
@@ -163,7 +163,7 @@ SystemManager.systems = {
     Chat: ['Chat'],
     Shop: ['Transaction'],
     Attack: ['Attack'],
-    AttackMissile: ['AttackMissile'],
+    AttackRanged: ['AttackRanged'],
     Missile: ['Missile'],
     Movement: ['Movement'],
     DrainStats: ['DrainStat'],

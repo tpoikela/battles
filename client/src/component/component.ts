@@ -396,7 +396,7 @@ export const Perception = UniqueDataComponent('Perception',
  * attack is the entity having Attack component. */
 export const Attack = TransientDataComponent('Attack', {target: null});
 
-export const AttackMissile = TransientDataComponent('AttackMissile', {
+export const AttackRanged = TransientDataComponent('AttackRanged', {
     target: null, attacker: null
 });
 

@@ -21,9 +21,9 @@ import {SystemAttack} from './system.attack';
 export {SystemAttack} from './system.attack';
 System.Attack = SystemAttack;
 
-import {SystemAttackMissile} from './system.attack-missile';
-export {SystemAttackMissile} from './system.attack-missile';
-System.AttackMissile = SystemAttackMissile;
+import {SystemAttackRanged} from './system.attack-missile';
+export {SystemAttackRanged} from './system.attack-missile';
+System.AttackRanged = SystemAttackRanged;
 
 import {SystemBaseAction} from './system.base-action';
 export {SystemBaseAction} from './system.base-action';

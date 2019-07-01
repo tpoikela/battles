@@ -61,7 +61,7 @@ Cmd.Attack = CmdAttack;
 export class CmdMissile extends CmdBase {
 
     public execute(obj) {
-        const attComp = new Component.AttackMissile();
+        const attComp = new Component.AttackRanged();
         attComp.setAttacker(this._actor);
         attComp.setTarget(obj.target);
         this._actor.add(attComp);

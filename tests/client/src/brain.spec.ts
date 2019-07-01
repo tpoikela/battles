@@ -91,7 +91,7 @@ describe('BrainPlayer', () => {
         const cell = new Cell(0, 0, new Element.ElementBase('floor'));
         RGTest.equipItem(player, new Item.Missile('Arrow'));
         brain.decideNextAction({cmd: 'missile', target: cell});
-        expect(brain.energy).to.equal(RG.energy.MISSILE);
+        expect(player).to.have.component('AttackRanged');
 
         const sword = new Item.Weapon('sword');
         brain.decideNextAction({cmd: 'use', item: sword});
