@@ -7,10 +7,14 @@ import {Entity} from './entity';
 import {EventPool} from '../src/eventpool';
 import {Dice} from './dice';
 import {TCoord} from './interfaces';
+import {Cell} from './map.cell';
 
 type SentientActor = import('./actor').SentientActor;
+type Level = import('./level').Level;
 
 const POOL = EventPool.getPool();
+
+type Owner = SentientActor | ItemBase | Cell;
 
 //---------------------------------------------------------------------------
 // ITEMS
@@ -25,7 +29,7 @@ export class ItemBase extends Entity {
     public isOwnable: boolean;
     public useArgs: any;
     public isUsable: boolean;
-    protected _owner: SentientActor | ItemBase;
+    protected _owner: Owner;
     private _name: string;
 
     constructor(name: string) {
@@ -39,7 +43,7 @@ export class ItemBase extends Entity {
         this.add(new Component.Physical());
     }
 
-    public setOwner(owner): void {
+    public setOwner(owner: Owner): void {
         if (RG.isNullOrUndef([owner])) {
             RG.err('ItemBase', 'setOwner', 'Owner cannot be null.');
         }
@@ -50,7 +54,7 @@ export class ItemBase extends Entity {
 
     /* Returns the top-level owner. Used mainly to recover actor owner of items
      * inside inventory. */
-    public getTopOwner() {
+    public getTopOwner(): Owner {
         let owner = this._owner;
         while ((owner as ItemBase).getOwner) {
             owner = (owner as ItemBase).getOwner();
@@ -59,7 +63,7 @@ export class ItemBase extends Entity {
     }
 
     /* Returns the direct owner of this object.*/
-    public getOwner() {return this._owner;}
+    public getOwner(): Owner {return this._owner;}
 
     public getX(): number {
         if (this._owner) {return this._owner.getX();}
@@ -76,13 +80,17 @@ export class ItemBase extends Entity {
         return null;
     }
 
-    public getLevel() {
-        if (this._owner) {return this._owner.getLevel();}
+    /*public getLevel(): Level | null {
+        if (this._owner) {
+            if (this._owner.getLevel) {
+                return this._owner.getLevel();
+            }
+        }
         return null;
-    }
+    }*/
 
-    public setName(name) {this._name = name;}
-    public getName() {return this._name;}
+    public setName(name: string): void {this._name = name;}
+    public getName(): string {return this._name;}
 
     public setWeight(weight: number): void {
         this.get('Physical').setWeight(weight);
@@ -478,12 +486,18 @@ export class Potion extends ItemBase {
                 if (target.has('Health')) {
                     target.get('Health').addHP(pt);
                     const owner = (this.getOwner() as ItemBase).getOwner();
-                    const useItemComp = new Component.UseItem();
-                    useItemComp.setTarget(target);
-                    useItemComp.setItem(this);
-                    useItemComp.setUseType(RG.USE.DRINK);
-                    owner.add(useItemComp);
-                    return false;
+                    if (RG.isActor(owner)) {
+                        const useItemComp = new Component.UseItem();
+                        useItemComp.setTarget(target);
+                        useItemComp.setItem(this);
+                        useItemComp.setUseType(RG.USE.DRINK);
+                        (owner as SentientActor).add(useItemComp);
+                        return false;
+                    }
+                    else {
+                        RG.err('Item.Potion', 'useItem',
+                           `Non-actor user encountered: ${owner}`);
+                    }
                 }
             }
             else {
@@ -922,7 +936,7 @@ for (let i = 0; i < RG.GET_STATS.length; i++) {
 /* Mineral */
 //------------------
 export class Mineral extends ItemBase {
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType(RG.ITEM.MINERAL);
     }
@@ -938,48 +952,48 @@ export class Book extends ItemBase {
     public text: string[];
     public metaData: BookData;
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType(RG.ITEM.BOOK);
         this.text = []; // Shown to player
         this.metaData = {}; // Used in quests etc
     }
 
-    public addMetaData(key, obj) {
+    public addMetaData(key: string, obj: any): void {
         if (!this.metaData.hasOwnProperty[key]) {
             this.metaData[key] = [];
         }
         this.metaData[key].push(obj);
     }
 
-    public setMetaData(data) {
+    public setMetaData(data: BookData): void {
         this.metaData = data;
     }
 
-    public getMetaData(key) {
+    public getMetaData(key: string): any {
         return this.metaData[key];
     }
 
     public useItem(): boolean {
         const owner = this.getTopOwner();
-        if (owner) {
+        if (RG.isActor(owner)) {
             const compRead = new Component.Read();
             compRead.setReadTarget(this);
-            owner.add(compRead);
+            (owner as SentientActor).add(compRead);
             return true;
         }
         return false;
     }
 
-    public getText() {
+    public getText(): string[] {
         return this.text;
     }
 
-    public addText(textLine) {
+    public addText(textLine: string): void {
         this.text.push(textLine);
     }
 
-    public setText(text) {
+    public setText(text: string[]): void {
         this.text = text;
     }
 
