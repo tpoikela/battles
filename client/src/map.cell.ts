@@ -81,7 +81,7 @@ export class Cell {
     public getBaseElem(): Element.ElementBase { return this._baseElem; }
 
     /* Returns true if the cell has props of given type.*/
-    public hasProp(prop): boolean {
+    public hasProp(prop: string): boolean {
         return this._p.hasOwnProperty(prop);
     }
 
@@ -200,7 +200,7 @@ export class Cell {
         return this._baseElem.getType() === 'floorhouse';
     }
 
-    public hasConnectionType(type): boolean {
+    public hasConnectionType(type: string): boolean {
         if (this.hasConnection()) {
             const connection = this.getConnection();
             return connection.getName() === type;
@@ -370,12 +370,12 @@ export class Cell {
         }
     }
 
-    public removeProps(propType): void {
+    public removeProps(propType: string): void {
         delete this._p[propType];
     }
 
     /* Removes the given object from cell properties.*/
-    public removeProp(prop: string, obj): boolean {
+    public removeProp(prop: string, obj: PropsType): boolean {
         if (this.hasProp(prop)) {
             const props = this._p[prop];
             const index = props.indexOf(obj);
@@ -447,7 +447,7 @@ export class Cell {
      * myCell.hasPropType("wall"). Doesn't check for basic props like "actors",
      * RG.TYPE_ITEM etc.
      */
-    public hasPropType(propType) {
+    public hasPropType(propType: string): boolean {
         if (this._baseElem.getType() === propType) {return true;}
 
         const keys = Object.keys(this._p);
@@ -464,7 +464,7 @@ export class Cell {
     }
 
     /* Returns all props with given type in the cell.*/
-    public getPropType(propType): PropsType[] {
+    public getPropType(propType: string): PropsType[] {
         const props = [];
         if (this._baseElem.getType() === propType) {return [this._baseElem];}
         Object.keys(this._p).forEach(prop => {
