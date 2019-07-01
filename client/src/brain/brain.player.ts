@@ -1,6 +1,6 @@
 
 import RG from '../rg';
-import {Menu, SelectionObject} from '../menu';
+import {Menu, MenuWithState, SelectionObject} from '../menu';
 import {Keys} from '../keymap';
 import {Cell} from '../map.cell';
 import * as GoalsBattle from '../goals-battle';
@@ -10,7 +10,6 @@ import {BaseActor, SentientActor} from '../actor';
 import {Random} from '../random';
 import {Geometry} from '../geometry';
 
-import {BrainBase} from './brain.base';
 import {Brain, BrainSentient} from './brain';
 import {Memory} from './brain.memory';
 
@@ -122,7 +121,7 @@ class TargetingFSM {
     public _state: string;
     public selectedCells: Cell[] | null;
 
-    constructor(brain) {
+    constructor(brain: BrainPlayer) {
         this._brain = brain;
         this._targetList = [];
         this.targetIndex = -1;
@@ -374,7 +373,7 @@ class MarkList {
     public _actor: SentientActor;
     public _marks: {[key: string]: MarkObject[]};
 
-    constructor(brain) {
+    constructor(brain: BrainPlayer) {
         this._brain = brain;
         this._actor = brain._actor;
         this._marks = {};
@@ -383,7 +382,7 @@ class MarkList {
 
     /* Adds a mark to current actor's location, and adds a tag, which
      * can be shown in the mark list. */
-    public addMark(tag?: string) {
+    public addMark(tag?: string): void {
         const [x, y] = this._actor.getXY();
         const level = this._actor.getLevel();
         const id = level.getID();
@@ -397,7 +396,7 @@ class MarkList {
     }
 
     /* Should return a menu object with all possible marks shown. */
-    public getMenu() {
+    public getMenu(): MenuWithState {
         const id = this._actor.getLevel().getID();
         const markList = this._marks[id] || [];
         const selectMenuArgs = markList.map(mark => {
@@ -420,7 +419,7 @@ class MarkList {
             return [listMsg, boundFunc];
         });
 
-        const menu = new Menu.WithState();
+        const menu = new MenuWithState();
         menu.addPre('Choose a mark for travelling:');
         menu.addItem(Keys.KEY.DELETE, ['Delete mark', Menu.NEXT_STATE]);
 
@@ -432,7 +431,7 @@ class MarkList {
     }
 
     /* Deletes a mark from the mark list. */
-    public deleteMark(id, x, y) {
+    public deleteMark(id: number, x: number, y: number): void {
         if (this._marks[id]) {
             const index = this._marks[id].findIndex(obj => (
                 obj.id === id && obj.x === x && obj.y === y
