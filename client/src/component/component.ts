@@ -31,7 +31,7 @@ export const ImpossibleCmd = UniqueTagComponent('ImpossibleCmd');
 
 /* Action component is added to all schedulable acting entities.*/
 export const Action = UniqueTransientDataComponent('Action',
-    {energy: 0, active: false});
+    {energy: 0, active: false, msg: '', status: 0});
 
 
 Action.prototype.addEnergy = function(energy) {
@@ -395,6 +395,10 @@ export const Perception = UniqueDataComponent('Perception',
 /* Attack component is added to the actor when it attacks. Thus, source of the
  * attack is the entity having Attack component. */
 export const Attack = TransientDataComponent('Attack', {target: null});
+
+export const AttackMissile = TransientDataComponent('AttackMissile', {
+    target: null, attacker: null
+});
 
 /* Transient component added to a moving entity.*/
 export const Movement = TransientDataComponent('Movement', {
