@@ -293,6 +293,11 @@ export class Engine {
         else {
             player.remove('ImpossibleCmd');
         }
+        const msg = player.get('Action').getMsg();
+        if (msg !== '') {
+            RG.gameDanger({cell: player.getCell(), msg});
+            player.get('Action').setMsg('');
+        }
 
         this.playerCommandCallback(player);
     }
