@@ -17,7 +17,7 @@ const RNG = Random.getRNG();
 export const ActorClass: any = {};
 
 /* Factory function for actor classes. */
-ActorClass.create = function(name, entity) {
+ActorClass.create = function(name: string, entity): ActorClassBase {
     if (ActorClass.hasOwnProperty(name)) {
         const actorClass = new ActorClass[name](entity);
         return actorClass;
@@ -33,7 +33,9 @@ ActorClass.create = function(name, entity) {
 
 /* Returns the object used to render level up menu. This shows messages related
  * to the level up such as stats increases. */
-ActorClass.getLevelUpObject = function(level, actorClass): MenuInfoOnly {
+ActorClass.getLevelUpObject = function(level: number,
+                                       actorClass: ActorClassBase
+                                      ): MenuInfoOnly {
     const selObj = new MenuInfoOnly();
     const actor = actorClass.getActor();
     const className = actorClass.getClassName();
@@ -46,7 +48,7 @@ ActorClass.getLevelUpObject = function(level, actorClass): MenuInfoOnly {
 
 /* Adds a given ability for the actor. Creates also the component to store all
  * the abilities if it's not found. */
-ActorClass.addAbility = function(abilName, actor): void {
+ActorClass.addAbility = function(abilName: string, actor): void {
     let abilities = null;
     if (!actor.has('Abilities')) {
         abilities = new Abilities();
@@ -132,13 +134,13 @@ const equipment: ItemConstrMap = {
 };
 ActorClass.equipment = equipment;
 
-ActorClass.getEquipment = function(name): ItemConstr[] {
+ActorClass.getEquipment = function(name: string): ItemConstr[] {
     const items = ActorClass.equipment[name];
     const result = substituteConstraints(items);
     return result;
 };
 
-ActorClass.getStartingItems = function(name): ItemConstr[] {
+ActorClass.getStartingItems = function(name: string): ItemConstr[] {
     const items = ActorClass.startingItems[name];
     const result = substituteConstraints(items);
     return result;
@@ -154,7 +156,7 @@ export class ActorClassBase {
     protected _lastStateIncr: string;
     protected _advances: {[key: string]: () => void};
 
-    constructor(actor, name) {
+    constructor(actor, name: string) {
         this._actor = actor;
         actor.setActorClass(this);
         this._className = name;
@@ -162,11 +164,11 @@ export class ActorClassBase {
 
     public getActor() {return this._actor;}
 
-    public getClassName() {
+    public getClassName(): string {
         return this._className;
     }
 
-    public getLevelUpMsg(level) {
+    public getLevelUpMsg(level: number): string {
         let msg = '';
         if (this._messages.hasOwnProperty(level)) {
             msg += this._messages[level];
@@ -177,7 +179,7 @@ export class ActorClassBase {
 
     /* Called when a level is advanced by the actor. Checks for messages, and if
      * the next ability is triggered. */
-    public advanceLevel() {
+    public advanceLevel(): void {
         const newLevel = this._actor.get('Experience').getExpLevel();
         if (this._messages.hasOwnProperty(newLevel)) {
             const cell = this._actor.getCell();
@@ -191,7 +193,7 @@ export class ActorClassBase {
         this.incrStats(newLevel);
     }
 
-    public incrStats(newLevel) {
+    public incrStats(newLevel: number): void {
         const actor = this._actor;
         this._lastStateIncr = '';
 
@@ -255,14 +257,14 @@ export class Alpinist extends ActorClassBase {
 
     }
 
-    public setStartingStats() {
+    public setStartingStats(): void {
         const stats = this._actor.get('Stats');
         stats.incrStat('perception', 3);
         stats.incrStat('agility', 3);
         stats.incrStat('magic', -2);
     }
 
-    public incrStats(newLevel) {
+    public incrStats(newLevel: number): void {
         const stats = this._actor.get('Stats');
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
@@ -303,7 +305,7 @@ export class Adventurer extends ActorClassBase {
 
     /* Called when a level is advanced by the actor. Checks for messages, and if
      * the next ability is triggered. */
-    public advanceLevel() {
+    public advanceLevel(): void {
         super.advanceLevel();
         const newLevel = this._actor.get('Experience').getExpLevel();
         if (newLevel % 4 === 0 && !this._advances.hasOwnProperty(newLevel)) {
@@ -315,7 +317,7 @@ export class Adventurer extends ActorClassBase {
         }
     }
 
-    public setStartingStats() {
+    public setStartingStats(): void {
         const stats = this._actor.get('Stats');
         for (let i = 0; i < 3; i++) {
             let statName: string = RNG.arrayGetRand(RG.STATS);
@@ -324,7 +326,7 @@ export class Adventurer extends ActorClassBase {
         }
     }
 
-    public incrStats(newLevel) {
+    public incrStats(newLevel: number): void {
         super.incrStats(newLevel);
         const statName = RNG.arrayGetRand(RG.STATS);
         this._lastStateIncr += `\n${statName} was increased.`;
@@ -393,12 +395,12 @@ export class Blademaster extends ActorClassBase {
         stats.incrStat('magic', -3);
     }
 
-    public getLevelUpMsg(level) {
+    public getLevelUpMsg(level: number): string {
         const msg = super.getLevelUpMsg(level);
         return msg;
     }
 
-    public incrStats(newLevel) {
+    public incrStats(newLevel: number): void {
         const stats = this._actor.get('Stats');
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
