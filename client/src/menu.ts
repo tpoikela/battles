@@ -255,7 +255,7 @@ Menu.InfoOnly = MenuInfoOnly;
 export class MenuWithQuit extends MenuBase {
     public onQuit: VoidFunc | boolean;
 
-    constructor(args) {
+    constructor(args?) {
         super(args);
         const quitIndex = Keys.codeToIndex(Keys.KEY.QUIT_MENU);
         this.table[quitIndex] = ['Quit menu', Menu.EXIT_MENU];
@@ -466,7 +466,7 @@ export class MenuWithState extends MenuWithQuit {
     public stateToPost: {[key: string]: string};
     public stateToPre: {[key: string]: string};
 
-    constructor(args) {
+    constructor(args?) {
         super(args);
         this._showMenu = true;
 
