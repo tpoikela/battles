@@ -1448,21 +1448,21 @@ RG.isOneShotItem = (item: ItemBase): boolean => {
 };
 
 
-RG.isActor = (obj): obj is BaseActor => {
+RG.isActor = (obj: any): obj is BaseActor => {
     if (obj && obj.getPropType) {
         return obj.getPropType() === RG.TYPE_ACTOR;
     }
     return false;
 };
 
-RG.isElement = (obj): obj is ElementBase => {
+RG.isElement = (obj: any): obj is ElementBase => {
     if (obj && obj.getPropType) {
         return obj.getPropType() === RG.TYPE_ELEM;
     }
     return false;
 };
 
-RG.isItem = (obj): obj is ItemBase => {
+RG.isItem = (obj: any): obj is ItemBase => {
     if (obj && obj.getPropType) {
         return obj.getPropType() === RG.TYPE_ITEM;
     }
@@ -1471,7 +1471,7 @@ RG.isItem = (obj): obj is ItemBase => {
 
 /* Returns true if given object is an entity. Can return false results
  * sometimes. */
-RG.isEntity = (obj): obj is Entity => {
+RG.isEntity = (obj: any): obj is Entity => {
     if (obj.comps && obj.compsByType && obj.add && obj.get) {
         return true;
     }
@@ -1484,14 +1484,21 @@ RG.isActorActive = (target: Entity): boolean => {
     return target && !target.has('Dead');
 };
 
+interface TargetWrapper {
+    target: Target;
+}
+type Target = Cell | BaseActor | TargetWrapper;
+
 /* Returns the use type (ie drink or dig or hit...) for a item/target pair. */
-RG.getItemUseType = (item: ItemBase, targetOrObj): string => {
+RG.getItemUseType = (item: ItemBase, targetOrObj: Target): string => {
     let target = targetOrObj;
-    if (targetOrObj.target) {
-        target = targetOrObj.target;
-        if (target.getActors) {
-            if (target.hasActors()) {
-                target = target.getActors()[0];
+    if ((targetOrObj as TargetWrapper).target) {
+        const tWrap = targetOrObj as TargetWrapper;
+        target = tWrap.target;
+        if ((target as Cell).getActors) {
+            const tCell = target as Cell;
+            if (tCell.hasActors()) {
+                target = tCell.getActors()[0];
             }
         }
     }
@@ -1509,7 +1516,9 @@ RG.getItemUseType = (item: ItemBase, targetOrObj): string => {
 };
 
 /* Given gold weight, returns the equivalent in coins.*/
-RG.getGoldInCoins = weight => Math.round(weight / RG.GOLD_COIN_WEIGHT);
+RG.getGoldInCoins = (weight: number): number => (
+    Math.round(weight / RG.GOLD_COIN_WEIGHT)
+);
 
 // These determine the size of one block in a level. These numbers are important
 // because they determine a sub-area used for procedural generation of shops,
@@ -1585,7 +1594,6 @@ RG.SYS.WEATHER = Symbol('WEATHER');
 
 RG.NO_DAMAGE_SRC = null;
 
-
 RG.getCardinalDirection = (level: Level, cell: Cell): string => {
     const cols = level.getMap().cols;
     const rows = level.getMap().rows;
@@ -1653,7 +1661,7 @@ type MapCb<T> = (x: number, y: number, val?: T) => T;
 /* Similar to Array.map, but maps a 2D array to an array of values. */
 RG.map2D = <T>(arr: T[][], func: MapCb<T>): T[] => {
     const res = [];
-    RG.forEach2D(arr, (i, j, val) => {
+    RG.forEach2D(arr, (i: number, j: number, val) => {
         res.push(func(i, j, val));
     });
     return res;
