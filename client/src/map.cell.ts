@@ -289,7 +289,7 @@ export class Cell {
         return this._baseElem.isSpellPassable();
     }
 
-    public setExplored() {this._explored = true;}
+    public setExplored(): void {this._explored = true;}
     public isExplored(): boolean {return this._explored;}
 
     /* Returns true if it's possible to move to this cell.*/
@@ -390,7 +390,7 @@ export class Cell {
     }
 
     /* Returns string representation of the cell.*/
-    public toString() {
+    public toString(): string {
         let str = 'Map.Cell ' + this._x + ', ' + this._y;
         str += ' explored: ' + this._explored;
         str += ' passes light: ' + this.lightPasses();
