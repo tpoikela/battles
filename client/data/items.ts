@@ -1064,6 +1064,11 @@ const Items: ObjectShell[] = [
         value: value(200)
     },
     {
+        name: 'Potion of perception', base: 'PotionBase',
+        use: {modifyStat: {value: 1, statName: 'perception'}},
+        value: value(200)
+    },
+    {
         name: 'Potion of strength', base: 'PotionBase',
         use: {modifyStat: {value: 1, statName: 'strength'}},
         value: value(200)
