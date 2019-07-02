@@ -8,7 +8,7 @@ import {EventPool} from '../eventpool';
 import {Entity} from '../entity';
 import {Dice} from '../dice';
 import {Geometry} from '../geometry';
-import {TCoord} from '../interfaces';
+import {TCoord, ILoreTopics} from '../interfaces';
 
 const POOL = EventPool.getPool();
 
@@ -1796,6 +1796,10 @@ Lore.prototype.addTopic = function(key: string, msg: any): void {
 
 Lore.prototype._init = function() {
     this.topics = {};
+};
+
+Lore.prototype.getLoreTopics = function(): ILoreTopics {
+    return this.topics;
 };
 
 export const DrainStat = TransientDataComponent('DrainStat', {
