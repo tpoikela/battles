@@ -1616,7 +1616,7 @@ RG.getTextualDir = (dest: DestOrSrc, src: DestOrSrc, tol = 10): string => {
     const dYNew = dY / 10;
     if (dYNew > 0) {res += 'south';}
     else if (dYNew < 0) {res += 'north';}
-    if (dXNew > 0) {res += ' east';}
+    if (dXNew > 0) {res += 'east';}
     else if (dXNew < 0) {res += 'west';}
 
     if (res === '') {res = 'nearby from here';}
@@ -1679,7 +1679,7 @@ RG.copy2D = <T>(arr: T[][]): T[][] => {
     return copy;
 };
 
-RG.colsToRows = arr => {
+RG.colsToRows = (arr: any[][]): any[][] => {
     const res = [];
     const sizeY = arr[0].length;
     const sizeX = arr.length;
@@ -1694,7 +1694,7 @@ RG.colsToRows = arr => {
 
 /* Given 2D array of elements, flattens all arrays inside each [x][y]
  * positions. */
-RG.flattenTo2D = arr => {
+RG.flattenTo2D = (arr: any): any[][] => {
     const sizeY = arr.length;
     const res = [];
     for (let y = 0; y < sizeY; y++) {
@@ -1702,7 +1702,7 @@ RG.flattenTo2D = arr => {
         row = flat(row);
         res.push(row);
     }
-    function flat(data) {
+    function flat(data: any): any[] {
         let r = [];
         data.forEach(e => {
             if (Array.isArray(e)) {
@@ -1733,17 +1733,17 @@ RG.uniquifyCoord = (arr: TCoord[]): TCoord[] => {
 
 // ARRAY Funcs end
 
-RG.setAllExplored = (level, isExplored) => {
+RG.setAllExplored = (level: Level): void => {
     const map = level.getMap();
     for (let x = 0; x < map.cols; x++) {
         for (let y = 0; y < map.rows; y++) {
             const cell = map._map[x][y];
-            cell.setExplored(isExplored);
+            cell.setExplored();
         }
     }
 };
 
-RG.inSameLevel = (ent1, ent2) => {
+RG.inSameLevel = (ent1, ent2): boolean => {
     return ent1.getLevel().getID() === ent2.getLevel().getID();
 };
 
@@ -1777,14 +1777,14 @@ RG.formatLocationName = (level): string => {
 import {Random} from './random';
 
 /* Function to check if given action succeeds given it's probability. */
-RG.isSuccess = function(prob) {
+RG.isSuccess = function(prob: number): boolean {
     const rng = Random.getRNG();
     return rng.getUniform() <= prob;
 };
 
 
 /* A debug function which prints info about given entity. */
-RG.ent = function(whatever) {
+RG.ent = function(whatever: any) {
     if ((window as any).PLAYER) {
         const level = (window as any).PLAYER.getLevel();
         if (Number.isInteger(whatever)) {
@@ -1832,7 +1832,7 @@ RG.comp = function(compID, entID = -1) {
     return null;
 };
 
-RG.while = function(testFunc, loopBody, timeout = -1) {
+RG.while = function(testFunc: () => boolean, loopBody: () => void, timeout = -1) {
     let numTries = timeout;
     while (testFunc()) {
         loopBody();
