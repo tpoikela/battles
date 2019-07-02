@@ -408,6 +408,7 @@ describe('Brain.Human', () => {
 
 describe('Brain.GoalOriented', () => {
     it('can do ranged attacks on enemies', () => {
+        const attRangedSystem = new System.AttackRanged(['AttackRanged']);
         const missSystem = new System.Missile(['Missile']);
         const player = new SentientActor('player');
         player.setIsPlayer(true);
@@ -428,6 +429,7 @@ describe('Brain.GoalOriented', () => {
         const action = archer.nextAction();
         action.doAction();
 
+        attRangedSystem.update();
         missSystem.update();
         expect(level.getItems().length, '1 arrow was shot').to.equal(1);
     });
