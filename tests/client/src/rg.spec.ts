@@ -28,4 +28,14 @@ describe('RG', () => {
         const meleeInfo = RG.getMeleeAttackInfo(archer);
         expect(meleeInfo).to.match(/D: \d+/);
     });
+
+    it('has functions for getting textual direction', () => {
+        let dir = RG.getTextualDir([10, 10], [0, 0]);
+        expect(dir).to.equal('southeast');
+
+        dir = RG.getTextualDir([10, 0], [0, 0]);
+        expect(dir).to.match(/east$/);
+        dir = RG.getTextualDir([0, 10], [0, 0]);
+        expect(dir).to.match(/south$/);
+    });
 });
