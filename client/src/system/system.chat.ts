@@ -3,7 +3,7 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {Chat, ChatBase} from '../chat';
 import {SystemQuest} from './system.quest';
-import {TCoord} from '../interfaces';
+import {TCoord, ILoreTopics, ILoreOpt} from '../interfaces';
 import {BaseActor} from '../actor';
 
 const NO_ACTORS_FOUND = Object.freeze([]);
@@ -39,7 +39,6 @@ export class SystemChat extends SystemBase {
             this.addQuestSpecificItems(ent, actor, chatObj);
 
             if (ent.getLevel().has('Lore')) {
-                console.log('Level has some lore');
                 this.addLoreItems(ent, actor, chatObj);
             }
         });
@@ -198,7 +197,7 @@ export class SystemChat extends SystemBase {
         if (memory.hasSeen(id)) {
             resp = chatObj.getSelectionObject();
             const {x, y} = memory.getLastSeen(id);
-            const dir = RG.getTextualDxDy(actor, [x, y]);
+            const dir = RG.getTextualDir([x, y], actor);
             let msg = `${aName} says: I know where ${tName} is.`;
             msg += ` I saw ${tName} ${dir} from here.`;
             RG.gameInfo(msg);
@@ -219,14 +218,15 @@ export class SystemChat extends SystemBase {
     }
 
     /* Add lore-specific items to the chat object. */
-    public addLoreItems(ent, actor, chatObj: ChatBase): void {
+    public addLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
         const lore = actor.getLevel().get('Lore');
-        const topics = lore.getTopics();
+        const topics: ILoreTopics = lore.getLoreTopics();
         Object.keys(topics).forEach(name => {
             chatObj.add({
                 name: getTopicQuestion(name),
                 option: () => {
-                    const opt = this.rng.arrayGetRand(topics[name]);
+                    const chosenOpt = this.rng.arrayGetRand(topics[name]);
+                    const opt = getFormattedReply(actor, name, chosenOpt);
                     RG.gameInfo({cell: ent.getCell(), msg: opt});
                 }
             });
@@ -244,4 +244,23 @@ function getTopicQuestion(topicName: string): string {
         world: 'Do you have any rumors from faraway lands?'
     };
     return questions[topicName];
+}
+
+function getFormattedReply(actor: BaseActor, name: string, chosenOpt: ILoreOpt): string {
+    if (typeof chosenOpt === 'string') {
+        return chosenOpt;
+    }
+    let textualDir = '';
+    if (chosenOpt.xy) {
+        textualDir = RG.getTextualDir(chosenOpt.xy, actor);
+    }
+
+    let msg = '';
+    switch (name) {
+        case 'shops': {
+            msg = `${chosenOpt.name} should have a shop ${textualDir} from here.`;
+            break;
+        }
+    }
+    return msg;
 }
