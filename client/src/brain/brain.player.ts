@@ -318,6 +318,8 @@ class TargetingFSM {
                 return this._brain.noAction();
             }
             else {
+                const msg = 'Press [n/p] for next/prev target. [t] to fire.';
+                RG.gameMsg(msg);
                 this.startTargeting();
                 return this._brain.noAction();
             }
@@ -597,7 +599,7 @@ export class BrainPlayer extends BrainSentient {
 
     public isRunModeEnabled() {return this._runModeEnabled;}
 
-    public cmdNotPossible(msg) {
+    public cmdNotPossible(msg: string) {
         this.energy = 0;
         RG.gameWarn(msg);
         return ACTION_ZERO_ENERGY;
