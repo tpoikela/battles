@@ -10,16 +10,19 @@ import {Cell} from '../map.cell';
 const _msg = {
     Entrapped: {
         Attack: 'cannot attack while trapped',
+        AttackRanged: 'cannot attack while trapped',
         Movement: 'cannot move while trapped',
         SpellCast: 'cannot cast spells while trapped'
     },
     Paralysis: {
         Attack: 'cannot attack under paralysis',
+        AttackRanged: 'cannot attack while trapped',
         Movement: 'cannot move under paralysis',
         SpellCast: 'cannot cast spells under paralysis'
     },
     Stun: {
         Attack: 'is too stunned to attack',
+        AttackRanged: 'cannot attack while trapped',
         Movement: 'is stunned, and stumbles',
         SpellCast: 'is too stunned to cast spells'
     }
@@ -51,6 +54,10 @@ export class SystemDisability extends SystemBase {
                     ent.remove('Attack');
                     this._emitMsg('Paralysis', 'Attack', ent);
                 },
+                AttackRanged: ent => {
+                    ent.remove('AttackRanged');
+                    this._emitMsg('Entrapped', 'AttackRanged', ent);
+                },
                 // Entrapped does not directly remove Movement
                 Movement: ent => {
                     this._handleEntrapped(ent);
@@ -77,6 +84,10 @@ export class SystemDisability extends SystemBase {
                     ent.remove('Attack');
                     this._emitMsg('Paralysis', 'Attack', ent);
                 },
+                AttackRanged: ent => {
+                    ent.remove('AttackRanged');
+                    this._emitMsg('Paralysis', 'AttackRanged', ent);
+                },
                 Movement: ent => {
                     ent.remove('Movement');
                     this._emitMsg('Paralysis', 'Movement', ent);
@@ -94,6 +105,10 @@ export class SystemDisability extends SystemBase {
                 Attack: ent => {
                     ent.remove('Attack');
                     this._emitMsg('Stun', 'Attack', ent);
+                },
+                AttackRanged: ent => {
+                    ent.remove('AttackRanged');
+                    this._emitMsg('Stun', 'AttackRanged', ent);
                 },
                 // Stun moves actor to random direction if they try to attack
                 Movement: ent => {
@@ -124,7 +139,7 @@ export class SystemDisability extends SystemBase {
 
         // Processing order of the components
         this._compOrder = ['Paralysis', 'Entrapped', 'Stun'];
-        this._actComp = ['Attack', 'Movement', 'SpellCast'];
+        this._actComp = ['Attack', 'AttackRanged', 'Movement', 'SpellCast', 'UseStairs'];
     }
 
     public updateEntity(ent) {
