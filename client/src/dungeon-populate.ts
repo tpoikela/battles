@@ -16,6 +16,7 @@ import {SentientActor} from './actor';
 import {BrainGoalOriented} from './brain/brain.goaloriented';
 import {ItemGen} from '../data/item-gen';
 import {ActorGen} from '../data/actor-gen';
+import {Names} from '../data/name-gen';
 
 const MIN_ACTORS_ROOM = 2;
 const RNG = Random.getRNG();
@@ -428,6 +429,8 @@ export class DungeonPopulate {
                     }
                 }
 
+                this.addShopLoreItem(level, keeper);
+
                 shopObj.setShopkeeper(keeper);
                 shopObj.setLevel(level);
                 shopObj.setCoord(shopCoord);
@@ -474,12 +477,26 @@ export class DungeonPopulate {
         gold.setCount(RNG.getUniformInt(50, 200));
         keeper.getInvEq().addItem(gold);
 
+        const named = keeper.get('Named');
+        named.setUniqueName(Names.getActorName());
+
         let keeperLevel = 10;
         if (conf.maxDanger >= 6) {
             keeperLevel = 2 * conf.maxDanger;
         }
         RG.levelUpActor(keeper, keeperLevel);
         return keeper;
+    }
+
+    public addShopLoreItem(level: Level, keeper: SentientActor): void {
+        const nameComp = keeper.get('Named');
+        const lore = level.get('Lore');
+        const shopKeep = keeper.get('Shopkeeper');
+        const msg = {
+            name: nameComp.getFullName(),
+            xy: shopKeep.getDoorXY()
+        };
+        lore.addTopic('shops', msg);
     }
 
     public createTrainers(level, conf) {
