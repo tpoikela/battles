@@ -49,7 +49,7 @@ export abstract class LevelGenerator {
         this.shouldRemoveMarkers = true;
     }
 
-    public abstract create(cols, rows, conf): Level;
+    public abstract create(cols: number, rows: number, conf): Level;
 
     /* Adds markers for start and endpoint for given level. */
     public addStartAndEndPoint(level: Level, start: TCoord, end: TCoord): void {
