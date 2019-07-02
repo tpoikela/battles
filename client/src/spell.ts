@@ -26,7 +26,6 @@
 import RG from './rg';
 import {Keys} from './keymap';
 import * as Component from './component';
-import * as Element from './element';
 import {Random} from './random';
 import {SentientActor} from './actor';
 import {Dice} from './dice';
@@ -228,7 +227,7 @@ Spell.getSelectionObjectSelf = (spell, actor) => {
 };
 
 /* Returns selection object for spell which required choosing a direction. */
-Spell.getSelectionObjectDir = (spell, actor, msg) => {
+Spell.getSelectionObjectDir = (spell, actor, msg): SelectionObject => {
     RG.gameMsg(msg);
     return {
         // showMsg: () => RG.gameMsg(msg),
@@ -280,7 +279,7 @@ export interface SpellArgs {
 }
 
 /* Returns args object for directional spell. */
-const getDirSpellArgs = function(spell, args): SpellArgs {
+const getDirSpellArgs = function(spell: Spell, args): SpellArgs {
     const src = args.src;
     const obj = {
         from: src.getXY(),
@@ -292,7 +291,16 @@ const getDirSpellArgs = function(spell, args): SpellArgs {
 };
 Spell.getDirSpellArgs = getDirSpellArgs;
 
-type Spell = any;
+interface ISpell {
+    toString(): string;
+    toJSON(): any;
+    setCaster(actor: SentientActor): void;
+    equals(spell: ISpell): boolean;
+    getName(): string;
+    getSelectionObject(actor: SentientActor): SelectionObject;
+}
+// type Spell = any;
+type Spell = ISpell;
 
 //------------------------------------------------------
 /* @class SpellBook
@@ -557,7 +565,7 @@ SpellBase.prototype.rollDice = function(name: string): number {
     return 0;
 };
 
-SpellBase.prototype.aiShouldCastSpell = function(args, cb) {
+SpellBase.prototype.aiShouldCastSpell = function(args, cb): boolean {
     return false;
 };
 
@@ -581,7 +589,7 @@ SpellBase.prototype.toJSON = function(): any {
 /* @class Spell.AddComponent
  * Base class for spells which add components to entities. */
 //------------------------------------------------------
-Spell.AddComponent = function(name, power) {
+Spell.AddComponent = function(name: string, power: number) {
     SpellBase.call(this, name, power);
     this._compName = '';
     this._dice.duration = Dice.create('1d6 + 3');
@@ -589,19 +597,19 @@ Spell.AddComponent = function(name, power) {
 };
 RG.extend2(Spell.AddComponent, SpellBase);
 
-Spell.AddComponent.prototype.setDuration = function(die) {
+Spell.AddComponent.prototype.setDuration = function(die): void {
     this._dice.duration = die;
 };
 
-Spell.AddComponent.prototype.setCompName = function(name) {
+Spell.AddComponent.prototype.setCompName = function(name: string): void {
     this._compName = name;
 };
 
-Spell.AddComponent.prototype.getCompName = function() {
+Spell.AddComponent.prototype.getCompName = function(): string {
     return this._compName;
 };
 
-Spell.AddComponent.prototype.cast = function(args) {
+Spell.AddComponent.prototype.cast = function(args): void {
     const obj: SpellArgs = getDirSpellArgs(this, args);
 
     const compToAdd = create(this._compName);
@@ -619,7 +627,7 @@ Spell.AddComponent.prototype.cast = function(args) {
     args.src.add(spellComp);
 };
 
-Spell.AddComponent.prototype.getSelectionObject = function(actor) {
+Spell.AddComponent.prototype.getSelectionObject = function(actor): SelectionObject {
     const msg = 'Select a direction for the spell:';
     return Spell.getSelectionObjectDir(this, actor, msg);
 };
@@ -628,7 +636,7 @@ Spell.AddComponent.prototype.getSelectionObject = function(actor) {
 /* @class Spell.RemoveComponent
  * Base object for spells removing other components. */
 //------------------------------------------------------
-Spell.RemoveComponent = function(name, power) {
+Spell.RemoveComponent = function(name: string, power: number) {
     SpellBase.call(this, name, power);
     this._compNames = [];
 
@@ -642,7 +650,7 @@ Spell.RemoveComponent = function(name, power) {
     };
     this.getCompNames = () => this._compNames;
 
-    this.cast = function(args) {
+    this.cast = function(args): void {
         const obj: SpellArgs = getDirSpellArgs(this, args);
         obj.removeComp = this._compNames;
 
@@ -651,7 +659,7 @@ Spell.RemoveComponent = function(name, power) {
         args.src.add(spellComp);
     };
 
-    this.getSelectionObject = function(actor) {
+    this.getSelectionObject = function(actor): SelectionObject {
         const msg = 'Select a direction for the spell:';
         return Spell.getSelectionObjectDir(this, actor, msg);
     };
@@ -683,7 +691,7 @@ Spell.BoltBase = function(name, power) {
         args.src.add(rayComp);
     };
 
-    this.getSelectionObject = function(actor) {
+    this.getSelectionObject = function(actor): SelectionObject {
         RG.gameMsg('Select a direction for firing:');
         return {
             select: (code) => {
@@ -775,7 +783,7 @@ Spell.SummonBase = function(name, power) {
         args.src.add(spellComp);
     };
 
-    this.getSelectionObject = function(actor) {
+    this.getSelectionObject = function(actor): SelectionObject {
         const msg = 'Select a free cell for summoning:';
         return Spell.getSelectionObjectDir(this, actor, msg);
     };
@@ -871,7 +879,7 @@ Spell.Missile.prototype.cast = function(args) {
     args.src.add(missComp);
 };
 
-Spell.Missile.prototype.getSelectionObject = function(actor) {
+Spell.Missile.prototype.getSelectionObject = function(actor): SelectionObject {
     const msg = 'Press [n/p] for next/prev target. [t] to fire.';
     RG.gameMsg(msg);
     actor.getBrain().startTargeting();
@@ -880,7 +888,6 @@ Spell.Missile.prototype.getSelectionObject = function(actor) {
     const spellCb = () => {
         const target = actor.getBrain().getTarget();
         if (target) {
-            console.log('ZZZ Target is', target);
             const spellCast = new Component.SpellCast();
             spellCast.setSource(actor);
             spellCast.setSpell(this);
@@ -910,10 +917,10 @@ Spell.Missile.prototype.aiShouldCastSpell = function(args, cb) {
     return false;
 };
 
-Spell.AreaBase = function(name, power) {
+Spell.AreaBase = function(name: string, power: number) {
     Spell.Ranged.call(this, name, power);
 
-    this.getSelectionObject = function(actor) {
+    this.getSelectionObject = function(actor): SelectionObject {
         return Spell.getSelectionObjectSelf(this, actor);
     };
 
@@ -970,7 +977,7 @@ Spell.RingBase = function(name, power) {
         args.src.add(spellComp);
     };
 
-    this.getSelectionObject = function(actor) {
+    this.getSelectionObject = function(actor): SelectionObject {
         return Spell.getSelectionObjectSelf(this, actor);
     };
 
@@ -994,7 +1001,8 @@ Spell.RingBase = function(name, power) {
 RG.extend2(Spell.RingBase, SpellBase);
 
 /* Spell that has multiple spell effects. Note that only one effect
- * can have direction, and that will be applied to all multi-spells
+ * can have direction, and that direction will be applied to all
+ * multi-spells. For area spells etc, dir has no effect of course
  */
 Spell.MultiSpell = function(name, power) {
     SpellBase.call(this, name, power);
