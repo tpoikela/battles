@@ -752,7 +752,7 @@ export class GoalAttackActor extends GoalBase {
 
     }
 
-    public checkTargetStatus() {
+    public checkTargetStatus(): void {
         const healthComp = this.targetActor.get('Health');
         if (!healthComp) {
             const json = JSON.stringify(this.targetActor);
@@ -791,7 +791,7 @@ export class GoalHitActor extends GoalBase {
         this.targetActor = targetActor;
     }
 
-    public activate() {
+    public activate(): void {
         const level = this.actor.getLevel();
         const [aX, aY] = this.targetActor.getXY();
         const cell = level.getMap().getCell(aX, aY);
@@ -802,7 +802,7 @@ export class GoalHitActor extends GoalBase {
         this.status = GoalStatus.GOAL_ACTIVE;
     }
 
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         this.status = GoalStatus.GOAL_COMPLETED;
         return this.status;
@@ -822,27 +822,17 @@ export class GoalShootActor extends GoalBase {
         this.targetActor = targetActor;
     }
 
-    public activate() {
-        const invEq = this.actor.getInvEq();
-        const shotItem = invEq.unequipAndGetItem('missile', 1, 0);
-
-        if (!shotItem) {
-            return;
-        }
-
-        const [eX, eY] = this.targetActor.getXY();
-        const mComp = new Component.Missile(this.actor);
-        mComp.setTargetXY(eX, eY);
-        mComp.setDamage(RG.getMissileDamage(this.actor, shotItem));
-        mComp.setAttack(RG.getMissileAttack(this.actor, shotItem));
-        mComp.setRange(RG.getMissileRange(this.actor, shotItem));
-        shotItem.add(mComp);
+    public activate(): void {
+        const attComp = new Component.AttackRanged();
+        attComp.setAttacker(this.actor);
+        attComp.setTarget(this.targetActor);
+        this.actor.add(attComp);
 
         this.dbg(`${this.getType()} added Missile comp`);
         this.status = GoalStatus.GOAL_ACTIVE;
     }
 
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         this.status = GoalStatus.GOAL_COMPLETED;
         return this.status;
@@ -866,18 +856,18 @@ export class GoalExplore extends GoalBase {
         this.dur = dur;
     }
 
-    public activate() {
+    public activate(): void {
         this.setNewPassableDir();
         this.dbg(`activate Explore dX,dY: ${this.dX},${this.dY}`);
         this.status = GoalStatus.GOAL_ACTIVE;
     }
 
     /* Can be used to set the Explore callback called after each turn. */
-    public setCallback(cb) {
+    public setCallback(cb): void {
         this.exploreCb = cb;
     }
 
-    public setNewPassableDir() {
+    public setNewPassableDir(): void {
         let maxTries = 5;
         let [dX, dY] = RNG.getRandDir();
         while (maxTries > 0 && !this.isDirPassable(dX, dY)) {
@@ -890,14 +880,14 @@ export class GoalExplore extends GoalBase {
 
     /* Returns true if given dX,dY is passable direction from actor's current
      * location. */
-    public isDirPassable(dX, dY) {
+    public isDirPassable(dX: number, dY: number): boolean {
         const [aX, aY] = this.actor.getXY();
         const newX = aX + dX;
         const newY = aY + dY;
         return this.actor.getLevel().getMap().isPassable(newX, newY);
     }
 
-    public shouldMoveTo(map, x, y) {
+    public shouldMoveTo(map, x: number, y: number): boolean {
         const cell = map.getCell(x, y);
         if (cell.isPassable()) {
             return !cell.isDangerous();
@@ -905,7 +895,7 @@ export class GoalExplore extends GoalBase {
         return false;
     }
 
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         this.checkChangeDir();
         --this.dur;
@@ -935,7 +925,7 @@ export class GoalExplore extends GoalBase {
         return this.status;
     }
 
-    public canOpenDoorAt(map, x, y) {
+    public canOpenDoorAt(map, x: number, y: number): boolean {
         const cell = map.getCell(x, y);
         if (cell.hasDoor()) {
             const door = cell.getPropType('door')[0];
@@ -950,7 +940,7 @@ export class GoalExplore extends GoalBase {
     }
 
     /* Checks if the actor should change movement direction. */
-    public checkChangeDir() {
+    public checkChangeDir(): void {
         const changeDir = RNG.getUniform();
         if (changeDir <= 0.07) {
             const newDx = this.changeDir(this.dX);
