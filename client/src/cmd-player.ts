@@ -149,9 +149,7 @@ export class CmdDropItem extends CmdBase {
           const shopElem = actorCell.getPropType('shop')[0];
           const price = shopElem.getItemPriceForSelling(obj.item, dropCount);
 
-          // this.brain._wantConfirm = true;
           const confirmCb = () => {
-              // const sellOk = shopElem.sellItem(obj.item, this._actor);
               const trans = new Component.Transaction();
               trans.setArgs({item: obj.item, seller: this._actor,
                   shop: shopElem, callback: obj.callback,
@@ -181,7 +179,6 @@ export class CmdEquipItem extends CmdBase {
 
     public execute(obj) {
         const eqComp = new Component.Equip();
-        // eqComp.setItem(obj.item);
         eqComp.setArgs(obj);
         eqComp.setIsRemove(false);
         this._actor.add(eqComp);
