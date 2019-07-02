@@ -344,3 +344,24 @@ export interface IAddCompObj {
 type AddCompType = string | IAddCompObj;
 
 export type TAddCompSpec = AddCompType[];
+
+//------------------
+// Lore interfaces
+//------------------
+
+export interface ILoreData {
+    topics: ILoreTopics;
+}
+
+export interface ILoreTopics {
+    quests: any;
+    places: any;
+    shops: any;
+    people: any;
+    world: any;
+}
+
+export interface ILoreOpt {
+    xy?: TCoord;
+    name?: string;
+}
