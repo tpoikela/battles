@@ -17,7 +17,6 @@ import * as Item from '../item';
 import * as Component from '../component';
 import {Entity} from '../entity';
 import {Level} from '../level';
-import {ElementExploration} from '../element';
 
 import {QuestData, QuestTargetObj, QuestObjSurrogate} from './quest-data';
 import {Quest, Task} from './quest-task';
@@ -71,14 +70,14 @@ interface QuestFlags {
 
 export class QuestPopulate {
 
-    public static supportedKeys: Set<string>;
+    public static legalKeys: Set<string>;
 
     public pool: EventPool;
     public currTile: AreaTile;
     public questList: QuestData[];
     public conf: {[key: string]: any};
     public maxTriesPerZone: number;
-    public questTargetCallback: {[key: string]: (target) => void};
+    public questTargetCallback: {[key: string]: (target: any) => void};
     public checkImplemented: boolean;
     public IND: number;
     public debug: boolean;
@@ -954,7 +953,7 @@ export class QuestPopulate {
             questData.resetIter();
 
             questData.keys().forEach(key => {
-                if (QuestPopulate.supportedKeys.has(key)) {
+                if (QuestPopulate.legalKeys.has(key)) {
                     let target: QuestTargetObj = questData.next(key);
                     while (target) {
                         // Custom create function can be given such as createBattle
@@ -1275,6 +1274,7 @@ export class QuestPopulate {
     }
 }
 
+/* A list of which quests are currently supported/implemented. */
 const tasksImplemented = new Set([
     'damage',
     'escort',
@@ -1298,24 +1298,11 @@ function isOkForQuest(actor: BaseActor): boolean {
     );
 }
 
-//---------------------------------------------------------------------------
-// ADDING QUEST-RELATED COMPONENTS (last stage)
-// - should be done only if mapping of quest to resources succeeds
-//---------------------------------------------------------------------------
 
-QuestPopulate.supportedKeys = new Set([
+QuestPopulate.legalKeys = new Set([
     'defend', 'capture', 'explore',
     'kill', 'location', 'listen', 'give', 'report', 'reportListen',
     'get', 'steal', 'use',
     'repair', 'damage', 'winbattle', 'finishbattle', 'escort', 'spy',
     'exchange', 'read', 'experiment', 'subquest'
 ]);
-
-/*
-function isEntity(obj: any): obj is Entity {
-    if ((obj as Entity).comps && (obj as Entity).compsByType && (obj as Entity).add && (obj as Entity).get) {
-        return true;
-    }
-    return false;
-}
-*/
