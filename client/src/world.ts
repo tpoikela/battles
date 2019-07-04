@@ -8,7 +8,6 @@ const debug = dbg('bitn:world');
 
 import RG from './rg';
 import * as Element from './element';
-import {GameObject} from './game-object';
 import {EventPool} from './eventpool';
 import {Random} from './random';
 import {Level} from './level';
@@ -580,7 +579,7 @@ export class ZoneBase extends WorldBase {
     }
 
     public getPlaceEntities(): Entity[] {
-        let res: Entity[] = [this];
+        const res: Entity[] = [this];
         this._subZones.forEach(subFeat => {
             res.push(subFeat);
         });
@@ -620,7 +619,7 @@ export class ZoneBase extends WorldBase {
     }
 
     public toJSON(): IZoneBaseJSON {
-        const json = <IZoneBaseJSON>super.toJSON();
+        const json = super.toJSON() as IZoneBaseJSON;
         json.x = this.tileX;
         json.y = this.tileY;
         return json;
@@ -745,7 +744,7 @@ export class SubZoneBase extends WorldBase {
     }
 
     public toJSON(): ISubZoneBaseJSON {
-        const json = <ISubZoneBaseJSON>super.toJSON();
+        const json = super.toJSON() as ISubZoneBaseJSON;
         json.nLevels = this._levels.length;
         json.levels = this._levels.map(level => level.getID());
         return json;
@@ -1904,7 +1903,7 @@ export class WorldTop extends WorldBase {
         return res;
     }
 
-    /* Returns all entities related to places in world hierarchy. This excludes all 
+    /* Returns all entities related to places in world hierarchy. This excludes all
      * actors, items, levels and elements. */
     public getPlaceEntities(): Entity[] {
         let entities: Entity[] = [this];
