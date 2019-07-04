@@ -1,9 +1,15 @@
 
 import { expect } from 'chai';
 import {Constraints} from '../../../client/src/constraints';
+import {SentientActor} from '../../../client/src/actor';
 
 // const RG = require('../../../client/src/battles');
-// const RGTest = require('../../roguetest.js');
+import {RGTest} from '../../roguetest';
+
+function Actor(name) {
+    this.name = name;
+    this.getName = () => this.name;
+}
 
 describe('Constraints', () => {
 
@@ -66,5 +72,46 @@ describe('Constraints', () => {
 
         expect(funcIsNotWinterBeing(wildling)).to.equal(false);
         expect(funcIsNotWinterBeing(goblin)).to.equal(true);
+    });
+
+    it('supports query object props via getter funcs', () => {
+        const cc = [
+            {op: 'eq', func: 'getName', value: 'goblin'}
+        ];
+        const funcNameIsGoblin = fact.getConstraints(cc);
+        const actor = new Actor('goblin');
+        const actor2 = new Actor('orc');
+        expect(funcNameIsGoblin(actor)).to.equal(true);
+        expect(funcNameIsGoblin(actor2)).to.equal(false);
+
+        const ccAggr = [
+            {op: 'eq', func: 'getName', value: ['goblin', 'orc']}
+        ];
+        const funcNameAggr = fact.getConstraints(ccAggr);
+        expect(funcNameAggr(actor)).to.equal(true);
+        expect(funcNameAggr(actor2)).to.equal(true);
+
+        const compCC = [
+            {op: '==', value: 10, comp: ['Stats', 'getStrength']}
+        ];
+        const funcNameComp = fact.getConstraints(compCC);
+        expect(funcNameComp.bind(actor)).to.throw(Error);
+
+    });
+
+    it('supports quering component values', () => {
+        const compCC = [
+            {op: '>=', value: 10, comp: ['Stats', 'getStrength']},
+            {op: 'match', value: ['orc', 'goblin'], comp: ['Named', 'getFullName']}
+        ];
+        const funcCC = fact.getConstraints(compCC);
+        const goblin = new SentientActor('goblin');
+        const orc = new SentientActor('orc');
+        const elf = new SentientActor('elf');
+        goblin.get('Stats').setStrength(11);
+        elf.get('Stats').setStrength(12);
+        expect(funcCC(goblin)).to.equal(true);
+        expect(funcCC(elf)).to.equal(false);
+        expect(funcCC(orc)).to.equal(false);
     });
 });
