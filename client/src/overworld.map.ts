@@ -12,7 +12,6 @@ import {TCoord, BBox, OWMapConf} from './interfaces';
 
 import {CellMap} from './map';
 import {Geometry} from './geometry';
-import {Level} from './level';
 import {OW} from './ow-constants';
 import {Random} from './random';
 import {TerritoryMap} from '../data/territory-map';
@@ -76,24 +75,24 @@ export class OWMap {
         this._terrMap = null;
     }
 
-    public getSizeXY() {
+    public getSizeXY(): TCoord {
         return [this.getSizeX(), this.getSizeY()];
     }
 
-    public getCenterX() {
+    public getCenterX(): number {
         return Math.round(this.getSizeX() / 2);
     }
 
-    public getCenterY() {
+    public getCenterY(): number {
         return Math.round(this.getSizeY() / 2);
     }
 
-    public isWallTile(x, y) {
+    public isWallTile(x: number, y: number): boolean {
         const tile = this._baseMap[x][y];
         return OW.ALL_WALLS_LUT.hasOwnProperty(tile);
     }
 
-    public numTiles(tile) {
+    public numTiles(tile: string): number {
         let numFound = 0;
         const [sizeX, sizeY] = this.getSizeXY();
         for (let x = 0; x < sizeX; x++) {
@@ -106,7 +105,7 @@ export class OWMap {
         return numFound;
     }
 
-    public numWallTiles() {
+    public numWallTiles(): number {
         let numWalls = 0;
         const [sizeX, sizeY] = this.getSizeXY();
         for (let x = 0; x < sizeX; x++) {
@@ -123,7 +122,7 @@ export class OWMap {
         return this._biomeMap;
     }
 
-    public getBiome(x, y): string {
+    public getBiome(x: number, y: number): string {
         const key = x + ',' + y;
         if (this._biomeMap.hasOwnProperty(key)) {
             return this._biomeMap[x + ',' + y];
@@ -159,7 +158,7 @@ export class OWMap {
         return this._vWalls;
     }
 
-    public setMap(map): void {
+    public setMap(map: string[][]): void {
         const sizeX = map.length;
         this._baseMap = map;
         for (let x = 0; x < sizeX; x++) {
@@ -202,7 +201,7 @@ export class OWMap {
         this._featuresByXY[keyXY].push(type);
     }
 
-    public addFeatureData(xy: TCoord, data: FeatData) {
+    public addFeatureData(xy: TCoord, data: FeatData): void {
         const keyXY = xy[0] + ',' + xy[1];
         if (!this._featureData.hasOwnProperty(keyXY)) {
             this._featureData[keyXY] = [];
@@ -285,7 +284,7 @@ export class OWMap {
         return json;
     }
 
-    public getOWMap(useExplored = false) {
+    public getOWMap(useExplored = false): string[][] {
         const map = JSON.parse(JSON.stringify(this._baseMap));
         const sizeY = map[0].length;
         const sizeX = map.length;
@@ -312,7 +311,7 @@ export class OWMap {
 
     /* Returns the OWMap represented as Map.CellList. Marker elements are used to
      * show the visible cells. */
-    public getCellList() {
+    public getCellList(): CellMap {
         const map = this.getOWMap();
         const sizeY = map[0].length;
         const sizeX = map.length;
@@ -335,7 +334,7 @@ export class OWMap {
     }
 
     /* Converts the OWMap into string. */
-    public mapToString(useExplored = false) {
+    public mapToString(useExplored = false): string[] {
         const map = this.getOWMap(useExplored);
         const sizeY = map[0].length;
         const sizeX = map.length;
