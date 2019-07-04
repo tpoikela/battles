@@ -6,6 +6,8 @@ import {SystemQuest} from './system.quest';
 import {TCoord, ILoreTopics, ILoreOpt} from '../interfaces';
 import {BaseActor} from '../actor';
 import {Lore} from '../../data/lore';
+import {Constraints} from '../constraints';
+const ejs = require('ejs');
 
 const NO_ACTORS_FOUND = Object.freeze([]);
 
@@ -243,31 +245,48 @@ export class SystemChat extends SystemBase {
         });
     }
 
-
     public addGenericLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
-        const rumorLevel = this.getRumorLevel(ent, actor);
+        const maxTries = 3;
+        let tries = 0;
         const topic = this.rng.arrayGetRand(Object.keys(Lore));
-        const availableOpts: string[] = [];
-        Object.keys(topic).forEach(ll => {
-            if (rumorLevel >= parseInt(ll,10)) {
-                availableOpts.concat(topic[ll]);
+        const availableOpts: any[] = Lore[topic];
+
+        let chosenText = '';
+        while (tries < maxTries) {
+            const chosenOpt = this.rng.arrayGetRand(availableOpts);
+            if (this.meetsAllReq(chosenOpt, ent, actor)) {
+                chosenText = this.rng.arrayGetRand(chosenOpt.text);
+                break;
             }
-        });
+            ++tries;
+        }
+
+        const level = ent.getLevel();
+        const msg = ejs.compile(chosenText)({level, target: actor, asker: ent});
         chatObj.add({
             name: 'Have you heard anything interesting lately?',
             option: () => {
-                const msg = this.rng.arrayGetRand(availableOpts);
                 RG.gameInfo({cell: ent.getCell(), msg});
             }
         });
     }
 
-    public getRumorLevel(ent, actor): number {
-        if (ent.has('Experience')) {
-            const expComp = ent.get('Experience');
-            return expComp.getExpLevel() + expComp.getDanger();
+    public meetsAllReq(chosenOpt, ent, actor): boolean {
+        const fact = new Constraints();
+        let allOk = true;
+        if (chosenOpt.level) {
+            const constrFunc = fact.getConstraints(chosenOpt.level);
+            allOk = allOk && constrFunc(ent.getLevel());
         }
-        return 1;
+        if (chosenOpt.target) {
+            const constrFunc = fact.getConstraints(chosenOpt.target);
+            allOk = allOk && constrFunc(actor);
+        }
+        if (chosenOpt.asker) {
+            const constrFunc = fact.getConstraints(chosenOpt.asker);
+            allOk = allOk && constrFunc(ent);
+        }
+        return allOk;
     }
 
 }
@@ -305,3 +324,4 @@ function getFormattedReply(actor: BaseActor, name: string, chosenOpt: ILoreOpt):
     }
     return msg;
 }
+
