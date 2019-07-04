@@ -146,20 +146,21 @@ export class Constraints {
             switch (op) {
                 case '==': // fall
                 case '===': // fall
-                case 'eq': retFunc = (obj: any) => obj[func](...args) === value; break;
+                case 'eq': retFunc = (obj: any) => getFuncVal(obj, func, args) === value; break;
                 case '!=':
                 case '!==':
-                case 'neq': retFunc = (obj: any) => obj[func](...args) !== value; break;
+                case 'neq': retFunc = (obj: any) => getFuncVal(obj, func, args) !== value; break;
                 case '>=':
-                case 'gte': retFunc = (obj: any) => obj[func](...args) >= value; break;
+                // case 'gte': retFunc = (obj: any) => obj[func](...args) >= value; break;
+                case 'gte': retFunc = (obj: any) => getFuncVal(obj, func, args) >= value; break;
                 case '<=':
-                case 'lte': retFunc = (obj: any) => obj[func](...args) <= value; break;
+                case 'lte': retFunc = (obj: any) => getFuncVal(obj, func, args) <= value; break;
                 case '>':
-                case 'gt': retFunc = (obj: any) => obj[func](...args) > value; break;
+                case 'gt': retFunc = (obj: any) => getFuncVal(obj, func, args) > value; break;
                 case '<':
-                case 'lt': retFunc = (obj: any) => obj[func](...args) < value; break;
+                case 'lt': retFunc = (obj: any) => getFuncVal(obj, func, args) < value; break;
                 case 'match':
-                    retFunc = (obj: any) => new RegExp(value).test(obj[func](...args)); break;
+                    retFunc = (obj: any) => new RegExp(value).test(getFuncVal(obj, func, args)); break;
                 default: RG.err('Constraints', 'getFunc',
                     `Unsupported op ${op} given`);
             }
@@ -185,7 +186,7 @@ export class Constraints {
             return aggrFunc;
         }
         else {
-            if (!Array.isArray(comp) && comp.length >= 2) {
+            if (!Array.isArray(comp) || comp.length <= 1) {
                 const str = JSON.stringify(comp);
                 RG.err('Constraints', 'getFuncWithComp',
                     'comp must be an array [CompName, getterName]. Got: ' + str);
@@ -218,5 +219,14 @@ export class Constraints {
         }
     }
 
+}
 
+
+function getFuncVal(obj: any, func: string, args: any[]): any {
+    const funcs = func.split('.');
+    let currVal = obj;
+    funcs.forEach(fName => {
+        currVal = currVal[fName](...args);
+    });
+    return currVal;
 }
