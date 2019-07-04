@@ -274,7 +274,11 @@ export const Opaque = UniqueTagComponent('Opaque');
 
 /* Component used in entities gaining experience.*/
 export const Experience = UniqueDataComponent('Experience',
-    {exp: 0, expLevel: 1, danger: 1});
+    {exp: 0, expLevel: 1, danger: 1, numKilled: 0});
+
+Experience.prototype.incrNumKilled = function() {
+    this.numKilled += 1;
+};
 
 /* This component is added when entity gains experience. It is removed after
 * system evaluation and added to Experience component. */
@@ -1126,27 +1130,23 @@ export const Commander = TagComponent('Commander');
 
 /* This component is added to entity when it gains reputation in some event, and
  * it keeps track of the amount and type of reputation. */
-export const Reputation = function() {
-    ComponentBase.call(this, 'Reputation');
-
-    let _data = null;
-
-    this.setData = data => {_data = data;};
-    this.getData = () => _data;
-    this.updateData = data => {_data = Object.assign(_data, data);};
-
-    this.addToFame = nFame => {
-        if (!_data) {_data = {};}
-        if (_data.hasOwnProperty('fame')) {
-            _data.fame += nFame;
-        }
-        else {
-            _data.fame = nFame;
-        }
+export const Reputation = UniqueDataComponent('Reputation', {
+    data: null
+});
+Reputation.prototype._init = function() {
+    this.data = {
+        fame: 0,
+        numFriendsAttacked: 0
     };
 };
-RG.extend2(Reputation, ComponentBase);
-Component.Reputation = Reputation;
+
+Reputation.prototype.updateData = function(data) {
+    this.data = Object.assign(this.data, data);
+};
+
+Reputation.prototype.addToFame = function(nFame) {
+    this.data.fame += nFame;
+};
 
 /* Component used to pass data between systems. */
 export const Event = TransientDataComponent('Event', {args: null});
