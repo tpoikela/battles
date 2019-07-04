@@ -229,7 +229,7 @@ export class OWSubLevel {
     }
 
     /* Returns one wall (or null) if none found. */
-    public getWall() {
+    public getWall(): OWWall {
         const hLen = this._hWalls.length;
         const vLen = this._vWalls.length;
         if (hLen === 0 && vLen === 0) {return null;}
@@ -253,7 +253,7 @@ export class OWSubLevel {
         });
     }
 
-    public getFeaturesByType(type) {
+    public getFeaturesByType(type: string): OWSubFeature[] {
         if (this._features.hasOwnProperty(type)) {
             return this._features[type];
         }
