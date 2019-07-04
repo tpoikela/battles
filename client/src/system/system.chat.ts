@@ -5,13 +5,21 @@ import {Chat, ChatBase} from '../chat';
 import {SystemQuest} from './system.quest';
 import {TCoord, ILoreTopics, ILoreOpt} from '../interfaces';
 import {BaseActor} from '../actor';
+import {Lore} from '../../data/lore';
 
 const NO_ACTORS_FOUND = Object.freeze([]);
 
 /* This system handles all entity movement.*/
 export class SystemChat extends SystemBase {
+    protected loreData: {[key: string]: any};
+
     constructor(compTypes, pool?) {
         super(RG.SYS.CHAT, compTypes, pool);
+    }
+
+    /* More lore can be added for chatting. */
+    public addLore(key: string, loreData: any): void {
+        this.loreData[key] = loreData;
     }
 
     public updateEntity(ent): void {
@@ -39,8 +47,10 @@ export class SystemChat extends SystemBase {
             this.addQuestSpecificItems(ent, actor, chatObj);
 
             if (ent.getLevel().has('Lore')) {
-                this.addLoreItems(ent, actor, chatObj);
+                this.addLevelLoreItems(ent, actor, chatObj);
             }
+
+            this.addGenericLoreItems(ent, actor, chatObj);
         });
 
         if (chatObj) {
@@ -218,7 +228,7 @@ export class SystemChat extends SystemBase {
     }
 
     /* Add lore-specific items to the chat object. */
-    public addLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
+    public addLevelLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
         const lore = actor.getLevel().get('Lore');
         const topics: ILoreTopics = lore.getLoreTopics();
         Object.keys(topics).forEach(name => {
@@ -233,7 +243,38 @@ export class SystemChat extends SystemBase {
         });
     }
 
+
+    public addGenericLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
+        const rumorLevel = this.getRumorLevel(ent, actor);
+        const topic = this.rng.arrayGetRand(Object.keys(Lore));
+        const availableOpts: string[] = [];
+        Object.keys(topic).forEach(ll => {
+            if (rumorLevel >= parseInt(ll,10)) {
+                availableOpts.concat(topic[ll]);
+            }
+        });
+        chatObj.add({
+            name: 'Have you heard anything interesting lately?',
+            option: () => {
+                const msg = this.rng.arrayGetRand(availableOpts);
+                RG.gameInfo({cell: ent.getCell(), msg});
+            }
+        });
+    }
+
+    public getRumorLevel(ent, actor): number {
+        if (ent.has('Experience')) {
+            const expComp = ent.get('Experience');
+            return expComp.getExpLevel() + expComp.getDanger();
+        }
+        return 1;
+    }
+
 }
+
+//------------------
+// HELPER FUNCTIONS
+//------------------
 
 function getTopicQuestion(topicName: string): string {
     const questions = {
@@ -241,7 +282,7 @@ function getTopicQuestion(topicName: string): string {
         places: 'Do you know what places are nearby?',
         shops:  'Is there a place for trading?',
         people: 'What can you tell me about people here?',
-        world: 'Do you have any rumors from faraway lands?'
+        world: 'Do you have any rumors from faraway lands?',
     };
     return questions[topicName];
 }
