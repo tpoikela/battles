@@ -134,8 +134,11 @@ export interface AreaConnection {
 /* Used in procedural constraints to specify conditions. */
 export interface IConstraint {
     op: string;
-    prop: string;
+    prop?: string;
+    func?: string;
+    comp?: string[];
     value: any;
+    args?: any;
 }
 
 export interface ConstraintMap {
