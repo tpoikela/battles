@@ -114,4 +114,18 @@ describe('Constraints', () => {
         expect(funcCC(elf)).to.equal(false);
         expect(funcCC(orc)).to.equal(false);
     });
+
+    it('supports getting values using dot notation', () => {
+        const hierCC = [
+            {op: '>=', func: 'get.getStrength', args: ['Stats'], value: 10},
+            {op: 'match', func: 'get.getFullName', args: ['Named'], value: 'goblin'}
+        ];
+        const funcCC = fact.getConstraints(hierCC);
+        const goblin = new SentientActor('goblin');
+        goblin.get('Stats').setStrength(11);
+        const goblin2 = new SentientActor('goblin2');
+        expect(funcCC(goblin)).to.equal(true);
+        expect(funcCC(goblin2)).to.equal(false);
+
+    });
 });
