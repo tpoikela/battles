@@ -103,12 +103,12 @@ export class SystemDeath extends SystemBase {
 
     /* When an actor is killed, gives experience to damage's source.*/
     public _giveExpToSource(att, def) {
-        console.log('_giveExpToSource att is ', att);
         if (att !== NO_DAMAGE_SRC && !att.has('Dead')) {
             const defLevel = def.get('Experience').getExpLevel();
             const defDanger = def.get('Experience').getDanger();
             const expPoints = new Component.ExpPoints(defLevel + defDanger);
             att.add(expPoints);
+            att.get('Experience').incrNumKilled();
 
             // Give additional battle experience
             if (att.has('InBattle')) {
