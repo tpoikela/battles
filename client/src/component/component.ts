@@ -1769,6 +1769,10 @@ export const WeatherEffect = TransientDataComponent('WeatherEffect', {
     effectType: 'clear'
 });
 
+export const WorldSimEvent = TransientDataComponent('WorldSimEvent', {
+    eventType: '', eventData: null
+});
+
 /* Added to elements that are indoors. */
 export const Indoor = UniqueTagComponent('Indoor');
 
