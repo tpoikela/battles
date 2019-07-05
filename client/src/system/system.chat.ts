@@ -5,9 +5,8 @@ import {Chat, ChatBase} from '../chat';
 import {SystemQuest} from './system.quest';
 import {TCoord, ILoreTopics, ILoreOpt} from '../interfaces';
 import {BaseActor} from '../actor';
-import {Lore} from '../../data/lore';
+import {Lore, format} from '../../data/lore';
 import {Constraints} from '../constraints';
-const ejs = require('ejs');
 
 const NO_ACTORS_FOUND = Object.freeze([]);
 
@@ -52,7 +51,9 @@ export class SystemChat extends SystemBase {
                 this.addLevelLoreItems(ent, actor, chatObj);
             }
 
-            this.addGenericLoreItems(ent, actor, chatObj);
+            if (ent.getLevel().getParentZone()) {
+                this.addGenericLoreItems(ent, actor, chatObj);
+            }
         });
 
         if (chatObj) {
@@ -262,7 +263,7 @@ export class SystemChat extends SystemBase {
         }
 
         const level = ent.getLevel();
-        const msg = ejs.compile(chosenText)({level, target: actor, asker: ent});
+        const msg = format(chosenText, {level, target: actor, asker: ent});
         chatObj.add({
             name: 'Have you heard anything interesting lately?',
             option: () => {
