@@ -113,6 +113,10 @@ import {SystemTimeEffects} from './system.time-effects';
 export {SystemTimeEffects} from './system.time-effects';
 System.TimeEffects = SystemTimeEffects;
 
+import {SystemWorldSim} from './system.world-sim';
+export {SystemWorldSim} from './system.world-sim';
+System.WorldSim = SystemWorldSim;
+
 import {SystemWeather} from './system.weather';
 export {SystemWeather} from './system.weather';
 System.Weather = SystemWeather;
