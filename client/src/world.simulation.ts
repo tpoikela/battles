@@ -9,6 +9,8 @@ import {SeasonManager} from './season-manager';
 import {DayManager} from './day-manager';
 import * as Component from './component/component';
 import {EventPool} from './eventpool';
+import {BaseActor} from './actor';
+import {TCoord} from './interfaces';
 
 type OWMap = import('./overworld.map').OWMap;
 type Level = import('./level').Level;
@@ -20,24 +22,28 @@ export class WorldSimulation {
     public seasonMan: SeasonManager;
     public dayMan: DayManager;
     protected currLevel: Level;
-	protected pool: EventPool;
+    protected pool: EventPool;
+    protected worldEntity: BaseActor;
 
     constructor(pool?: EventPool) {
         this.dayMan = new DayManager(pool);
         this.seasonMan = new SeasonManager(pool);
+        this.worldEntity = new BaseActor('WorldEntity');
     }
 
     public setLevel(level: Level): void {
         this.currLevel = level;
     }
 
-    public setOwPos(xy): void {
+    /* Sets the current OW position of interest. Usually where player is. */
+    public setOwPos(xy: TCoord): void {
         this.seasonMan.setOwPos(xy);
     }
 
     /* Updates all sub-components. */
     public update(): void {
         this.dayMan.update();
+        this.worldEntity.add(new Component.WorldSimEvent());
 
         if (this.dayMan.phaseChanged()) {
             this.seasonMan.changeWeather();
@@ -85,18 +91,6 @@ export class WorldSimulation {
         this.dayMan.setUpdateRate(rate);
     }
 
-    public changed(prop: string): boolean {
-        switch (prop) {
-            case 'day': return this.dayMan.dayChanged();
-            case 'month': return this.seasonMan.monthChanged();
-            case 'season': return this.seasonMan.seasonChanged();
-            case 'year': return this.seasonMan.yearChanged();
-            case 'weather': return this.seasonMan.weatherChanged();
-            default: throw new Error('No change for ' + prop);
-        }
-        return false;
-    }
-
     public setPool(pool: EventPool): void {
         this.dayMan.setPool(pool);
         this.seasonMan.setPool(pool);
@@ -113,6 +107,26 @@ export class WorldSimulation {
         };
     }
 
+    public toString(): string {
+        return (
+            'Day:    ' + this.dayMan.toString() + '\n' +
+            'Season: ' + this.seasonMan.toString()
+        );
+    }
+
+    /* Returns true if any changes were in the world simulation */
+    protected changed(prop: string): boolean {
+        switch (prop) {
+            case 'day': return this.dayMan.dayChanged();
+            case 'month': return this.seasonMan.monthChanged();
+            case 'season': return this.seasonMan.seasonChanged();
+            case 'year': return this.seasonMan.yearChanged();
+            case 'weather': return this.seasonMan.weatherChanged();
+            default: throw new Error('No change for ' + prop);
+        }
+        return false;
+    }
+
 }
 
 WorldSimulation.fromJSON = function(json: any): WorldSimulation {
@@ -120,4 +134,4 @@ WorldSimulation.fromJSON = function(json: any): WorldSimulation {
     ws.dayMan = DayManager.fromJSON(json.dayManager);
     ws.seasonMan = SeasonManager.fromJSON(json.seasonManager);
     return ws;
-}
+};
