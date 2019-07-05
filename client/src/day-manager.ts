@@ -3,13 +3,13 @@ import RG from './rg';
 import {EventPool} from './eventpool';
 
 const phasesOfDay = {
-    DAWN: {dur: 1.0, visibility: -1},
-    MORNING: {dur: 3.0},
-    NOON: {dur: 3.0},
-    AFTERNOON: {dur: 3.0},
-    EVENING: {dur: 3.0, visibility: -1},
-    DUSK: {dur: 1.0, visibility: -2},
-    NIGHT: {dur: 7.0, visibility: -3},
+    DAWN: {dur: 100, visibility: -1},
+    MORNING: {dur: 300},
+    NOON: {dur: 300},
+    AFTERNOON: {dur: 300},
+    EVENING: {dur: 300, visibility: -1},
+    DUSK: {dur: 100, visibility: -2},
+    NIGHT: {dur: 700, visibility: -3},
 };
 
 export class DayManager {
@@ -26,20 +26,27 @@ export class DayManager {
     constructor(pool?: EventPool) {
         this._currPhase = RG.DAY.MORNING;
         this._currPhaseLeft = phasesOfDay[this._currPhase].dur;
-        this._updateRate = 0.05;
+        this._updateRate = 5;
         this._dayChanged = false;
         this._phaseChanged = false;
         this.pool = pool;
     }
 
     public setUpdateRate(rate: number): void {
-        this._updateRate = rate;
+        if (rate >= 1) {
+            this._updateRate = rate;
+        }
+        else {
+            RG.warn('DayManager', 'setUpdateRate',
+                `Rate must be >= 1. Got ${rate}`);
+        }
     }
 
     public update(): void {
         this._dayChanged = false;
         this._phaseChanged = false;
         this._currPhaseLeft -= this._updateRate;
+        console.log(`==> Left: ${this._currPhaseLeft}, rate: ${this._updateRate}`);
         if (this._currPhaseLeft <= 0) {
             this.nextPhase();
             this._phaseChanged = true;
@@ -94,6 +101,13 @@ export class DayManager {
         this.pool = pool;
     }
 
+    public toString(): string {
+        return (`Curr phase: ${this._currPhase}, left: ${this._currPhaseLeft},`
+            + (this._phaseChanged ? ' *PHASE CHANGED*' : '')
+            + (this._dayChanged ? ' *DAY CHANGED*' : '')
+        );
+    }
+
 }
 
 DayManager.fromJSON = function(json: any): DayManager {
@@ -104,5 +118,5 @@ DayManager.fromJSON = function(json: any): DayManager {
     dayMan._dayChanged = json.dayChanged;
     dayMan._phaseChanged = json.phaseChanged;
     return dayMan;
-}
+};
 
