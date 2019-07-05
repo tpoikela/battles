@@ -94,6 +94,10 @@ export class Engine {
         this._eventPool.listenEvent(RG.EVT_ANIMATION, this);
     }
 
+    public setSystemArgs(args: {[key: string]: any}): void {
+        this.sysMan.setSystemArgs(args);
+    }
+
     public getMessages(): IMessage[] {
         return this._msg.getMessages();
     }
@@ -212,7 +216,7 @@ export class Engine {
         this.addEvent(updateEvent);
     }
 
-    /* Can schedule any object to be updated on certain periodic interval. */
+    /* Can schedule any object to be updated on a certain periodic interval. */
     public addRegularUpdate(obj: UpdateObj, interval = 100): void {
         // Must schedule the system to activate it
         const updateEvent = new Time.GameEvent(interval,
