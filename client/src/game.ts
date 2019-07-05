@@ -13,12 +13,13 @@ import {WorldSimulation} from './world.simulation';
 import * as Component from './component';
 import * as World from './world';
 import {Dice} from './dice';
-import {SentientActor} from './actor';
 import {CellMap} from './map';
 import {TCoord} from './interfaces';
 import {ObjectShell} from './objectshellparser';
 
 type Level = import('./level').Level;
+type Battle = import('./game.battle').Battle;
+type SentientActor = import('./actor').SentientActor;
 
 const POOL = EventPool.getPool();
 
@@ -51,8 +52,6 @@ export const GameMain = function() {
     this._chunkManager = null;
     this._eventPool = POOL;
     POOL.reset();
-    // this._eventPool = new EventPool();
-    // POOL = this._eventPool;
 
     this.currPlaceIndex = 0; // Add support for more worlds
 
@@ -62,6 +61,7 @@ export const GameMain = function() {
 
     this._worldSim = new WorldSimulation(this._eventPool);
     this._engine.addRegularUpdate(this._worldSim);
+    this._engine.setSystemArgs({worldSim: this._worldSim});
 
     this.visibleCells = [];
     this.globalConf = {};
@@ -162,21 +162,23 @@ export const GameMain = function() {
         return levelOK;
     };
 
-    /* Debug function for taking over controls of given actor. */
+    /* Debug function for taking over controls of a given actor. */
     this.useAsPlayer = (actorOrID) => {
         let actor = actorOrID;
         if (Number.isInteger(actorOrID)) {
             actor = RG.ent(actorOrID);
         }
         if (!actor) {actor = RG.CLICKED_ACTOR;}
-        actor.setIsPlayer(true);
-        actor.add(new Component.Player());
-        this.addPlayer(actor);
+        if (actor) {
+            actor.setIsPlayer(true);
+            actor.add(new Component.Player());
+            this.addPlayer(actor);
+        }
     };
 
     /* Moves player to specified area tile. This is used for debugging purposes
-     * mainly. Maybe to be used with quick travel. */
-    this.movePlayer = (tileX, tileY, levelX = 0, levelY = 0) => {
+     * mainly. Maybe to be used with quick travel system oneday. */
+    this.movePlayer = (tileX: number, tileY: number, levelX = 0, levelY = 0): void => {
         const player = this.getPlayer();
         const world: World.WorldTop = this.getCurrentWorld();
         const area: World.Area = world.getAreas()[0];
@@ -224,7 +226,7 @@ export const GameMain = function() {
         }
     };
 
-    const _addPlayerToFirstLevel = (player, levels) => {
+    const _addPlayerToFirstLevel = (player: SentientActor, levels: Level[]) => {
         let levelOK = false;
         if (levels.length > 0) {
             levelOK = levels[0].addActorToFreeCell(player);
@@ -287,6 +289,13 @@ export const GameMain = function() {
         if (area && (areaLevels.length === 2) && area.hasTiles(areaLevels)) {
             POOL.emitEvent(RG.EVT_TILE_CHANGED,
                 {actor, target, src});
+        }
+
+        if (this.isTileLevel(target)) {
+            POOL.emitEvent(RG.EVT_TILE_ENTERED, {actor, target, src});
+        }
+        else if (this.isTileLevel(src)) {
+            POOL.emitEvent(RG.EVT_TILE_LEFT, {actor, target, src});
         }
     };
 
@@ -375,6 +384,7 @@ export const GameMain = function() {
                         `Place ${name} has no levels!`);
                 }
                 this._places[name] = place;
+                this._engine.setSystemArgs({worldTop: place});
 
                 if (this.getArea(0)) {
                     const area = this.getCurrentWorld().getCurrentArea();
@@ -482,18 +492,28 @@ export const GameMain = function() {
 
                     fact.createZonesForTile(world, area, x, y);
                     const levels = world.getLevels();
-                    levels.forEach((l) => {this.addLevelUnlessExists(l);});
+                    levels.forEach((l: Level) => {
+                        this.addLevelUnlessExists(l);
+                    });
                 }
             }
+        }
+        else if (evtName === RG.EVT_TILE_ENTERED) {
+            this._worldSim.setUpdateRates(30);
+        }
+        else if (evtName === RG.EVT_TILE_LEFT) {
+            this._worldSim.setUpdateRates(5);
         }
     };
     this._eventPool.listenEvent(RG.EVT_ACTOR_KILLED, this);
     this._eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
     this._eventPool.listenEvent(RG.EVT_TILE_CHANGED, this);
+    this._eventPool.listenEvent(RG.EVT_TILE_ENTERED, this);
+    this._eventPool.listenEvent(RG.EVT_TILE_LEFT, this);
 
     /* Adds one battle to the game. If active = true, battle level is activated
      * and battle started immediately. */
-    this.addBattle = (battle, id = -1, active = false): void => {
+    this.addBattle = (battle: Battle, id = -1, active = false): void => {
         const level = battle.getLevel();
         this.addLevel(level);
         if (active) {
@@ -505,7 +525,7 @@ export const GameMain = function() {
     };
 
     /* Creates a new zone and adds it into area. */
-    this._addBattleZoneToArea = (battle, parentID) => {
+    this._addBattleZoneToArea = (battle: Battle, parentID) => {
         const level = battle.getLevel();
         const zoneName = 'Zone of ' + battle.getName();
         const battleZone = new World.BattleZone(zoneName);
@@ -539,11 +559,13 @@ export const GameMain = function() {
     this.setOverWorld = (ow) => {
       this._overworld = ow;
       this._worldSim.setOverWorld(ow);
+      this._engine.setSystemArgs({owMap: ow});
     };
 
     this.setWorldSim = (ws: WorldSimulation) => {
         ws.setPool(this._eventPool);
         this._worldSim = ws;
+        this._engine.setSystemArgs({worldSim: this._worldSim});
     };
 
     /* Serializes the game object into JSON. */
