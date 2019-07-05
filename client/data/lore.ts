@@ -1,6 +1,8 @@
 
 /* tslint:disable */
 
+const ejs = require('ejs');
+
 export interface LoreData {
     generic: any[];
     mainQuest: any;
@@ -74,11 +76,9 @@ Lore.mainQuest = [
     },
 ];
 
-console.log(JSON.stringify(Lore.generic));
-
 /* Use this to preprocess template literals with your favourite js template
  * engine. */
-function prep(strings, ...args) {
+export function prep(strings: TemplateStringsArray, ...args: any[]) {
     let s = strings[0];
     for (let i = 0; i < args.length; i++) {
         s += '<%= ' + args[i] + ' %>';
@@ -87,3 +87,12 @@ function prep(strings, ...args) {
     // Could pre-compile also templates and return them as functions?
     return s;
 }
+
+export function compile(text: string): (arg: any) => string {
+    return ejs.compile(text);
+}
+
+export function format(text: string, args: any): string {
+    return ejs.compile(text)(args);
+};
+
