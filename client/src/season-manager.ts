@@ -235,6 +235,14 @@ export class SeasonManager {
         };
     }
 
+    public toString(): string {
+        return (
+            'Weather: ' + this._currWeather + ',' +
+            'Month left: ' + this._monthLeft + ',' +
+            'Season: ' + this._currSeason + '(' + this._seasonLeft + ')'
+        );
+    }
+
     protected _checkMsgEmits(): void {
         if (this.seasonChanged()) {
             if (this._currSeason === RG.SEASON.AUTUMN_WINTER) {
