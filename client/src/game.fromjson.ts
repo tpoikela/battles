@@ -8,7 +8,6 @@ import {Battle, BattleJSON, Army, ArmyJSON} from './game.battle';
 import {GoalsTop} from './goals-top';
 import {Evaluator} from './evaluators';
 import {EvaluatorsBattle} from './evaluators-battle';
-import {Territory} from './territory';
 import {GameObject} from './game-object';
 import {QuestData} from './quest';
 import {WorldFromJSON} from './world.fromjson';
@@ -38,7 +37,6 @@ import { BrainSpawner } from './brain/brain.virtual';
 type IAreaTileJSON = World.IAreaTileJSON;
 type Stairs = Element.ElementStairs;
 type ElementBase = Element.ElementBase;
-type Cell = import('./map.cell').Cell;
 
 const POOL = EventPool.getPool();
 const SentientActor = Actor.Sentient;
