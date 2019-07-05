@@ -137,6 +137,12 @@ export class SystemManager {
             system.setRNG(rng);
         });
     }
+
+    public setSystemArgs(args: {[key: string]: any}): void {
+        Object.values(this.systems).forEach(sys => {
+            sys.setArgs(args);
+        });
+    }
 }
 
 SystemManager.systemOrder = [
@@ -145,7 +151,7 @@ SystemManager.systemOrder = [
     'Missile', 'Movement', 'Effects', 'Animation', 'DrainStats', 'Damage', 'Death',
     'Battle',
     'Skills', 'Quest', 'ExpPoints', 'Communication', 'Events',
-    'Weather'
+    'Weather', 'WorldSim'
 ];
 
 
@@ -182,5 +188,6 @@ SystemManager.systems = {
     ExpPoints: ['ExpPoints', 'Experience'],
     Communication: ['Communication'],
     Quest: ['GiveQuest', 'QuestCompleted', 'QuestTargetEvent'],
-    Weather: ['WeatherEffect']
+    Weather: ['WeatherEffect'],
+    WorldSim: ['WorldSimEvent']
 };
