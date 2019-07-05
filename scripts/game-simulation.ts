@@ -2,18 +2,19 @@
 /* eslint no-process-exit: 0 */
 /* A script to simulate actual game player with a player driver. */
 
-require('babel-register');
+import * as RG from '../client/src/battles';
+import {RGTest} from '../tests/roguetest';
+import {FactoryGame} from '../client/src/factory.game';
+import {Random} from '../client/src/random';
 
-const RG = require('../client/src/battles');
-RG.Verify = require('../client/src/verify');
-const RGTest = require('../tests/roguetest');
-RG.Factory.Game = require('../client/src/factory.game');
+import ROT from '../lib/rot';
+import {PlayerDriver} from '../tests/helpers/player-driver';
+import {UtilsSim} from './utils-sim';
 
-const ROT = require('../lib/rot.js');
-const PlayerDriver = require('../tests/helpers/player-driver');
 const fs = require('fs');
 const cmdLineArgs = require('command-line-args');
-const UtilsSim = require('./utils-sim');
+
+const RNG = Random.getRNG();
 
 function main() {
 
@@ -26,8 +27,6 @@ function main() {
     }
 
     ROT.RNG.setSeed(opts.seed);
-    RG.RAND = new RG.Random();
-    RG.RAND.setSeed(opts.seed);
 
     let newGame = null;
     let driver = null;
@@ -54,7 +53,7 @@ function main() {
             playerName: pName
         };
 
-        const gameFact = new RG.Factory.Game();
+        const gameFact = new FactoryGame();
         newGame = gameFact.createNewGame(conf);
         driver = new PlayerDriver();
         const player = newGame.getPlayer();
@@ -188,11 +187,13 @@ function saveGameToFile(fname, nTurn, game, driver) {
     fs.writeFileSync(fname, jsonStr);
 }
 
-function restoreGameFromFile(fname) {
+function restoreGameFromFile(fname: string) {
     const buf = fs.readFileSync(fname);
     const jsonParsed = JSON.parse(buf);
-    const fromJSON = new RG.Game.FromJSON();
-    const game = fromJSON.createGame(jsonParsed);
+    const fromJSON = new RG.FromJSON();
+
+    let game = new RG.Game();
+    game = fromJSON.createGame(game, jsonParsed);
 
     let driver = null;
     if (jsonParsed.driver) {
