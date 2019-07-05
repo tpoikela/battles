@@ -69,6 +69,8 @@ export abstract class SystemBase {
     public debugEnabled: boolean;
     public rng: Random;
 
+    protected legalArgs: string[];
+
     constructor(type: string, compTypes: string[], pool?: EventPool) {
         if (!Array.isArray(compTypes)) {
             RG.err('System.Base', 'new',
@@ -85,6 +87,8 @@ export abstract class SystemBase {
 
         /* Listens to add/removes for each component type in compTypes.*/
         this.hasNotify = true;
+
+        this.legalArgs = [];
 
         // Add a listener for each specified component type
         for (let i = 0; i < this.compTypes.length; i++) {
@@ -107,6 +111,14 @@ export abstract class SystemBase {
 
     public setRNG(rng: Random): void {
         this.rng = rng;
+    }
+
+    public setArgs(args: {[key: string]: any}): void {
+        this.legalArgs.forEach((arg: string) => {
+            if (args.hasOwnProperty(arg)) {
+                this[arg] = args[arg];
+            }
+        });
     }
 
     public addEntity(entity: Entity): void {
