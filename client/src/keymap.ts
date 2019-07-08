@@ -34,6 +34,33 @@ Keys.VK_w = ROT.VK_W + 32;
 Keys.VK_x = ROT.VK_X + 32;
 Keys.VK_y = ROT.VK_Y + 32;
 Keys.VK_z = ROT.VK_Z + 32;
+
+Keys.VK_A = ROT.VK_A;
+Keys.VK_B = ROT.VK_B;
+Keys.VK_C = ROT.VK_C;
+Keys.VK_D = ROT.VK_D;
+Keys.VK_E = ROT.VK_E;
+Keys.VK_F = ROT.VK_F;
+Keys.VK_G = ROT.VK_G;
+Keys.VK_H = ROT.VK_H;
+Keys.VK_I = ROT.VK_I;
+Keys.VK_J = ROT.VK_J;
+Keys.VK_K = ROT.VK_K;
+Keys.VK_L = ROT.VK_L;
+Keys.VK_M = ROT.VK_M;
+Keys.VK_N = ROT.VK_N;
+Keys.VK_O = ROT.VK_O;
+Keys.VK_P = ROT.VK_P;
+Keys.VK_Q = ROT.VK_Q;
+Keys.VK_R = ROT.VK_R;
+Keys.VK_S = ROT.VK_S;
+Keys.VK_T = ROT.VK_T;
+Keys.VK_U = ROT.VK_U;
+Keys.VK_V = ROT.VK_V;
+Keys.VK_W = ROT.VK_W;
+Keys.VK_X = ROT.VK_X;
+Keys.VK_Y = ROT.VK_Y;
+Keys.VK_Z = ROT.VK_Z;
 /* eslint-enable */
 
 Keys.VK_COMMA = 44;

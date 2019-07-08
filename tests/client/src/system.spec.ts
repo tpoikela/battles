@@ -4,8 +4,6 @@ import ROT from '../../../lib/rot';
 import RG from '../../../client/src/rg';
 
 import {Entity} from '../../../client/src/entity';
-import {Cell} from '../../../client/src/map.cell';
-import {Level} from '../../../client/src/level';
 
 import {RGTest} from '../../roguetest';
 import {RGUnitTests} from '../../rg.unit-tests';
@@ -14,11 +12,10 @@ import {SentientActor } from '../../../client/src/actor';
 import * as Item from '../../../client/src/item';
 import * as Component from '../../../client/src/component';
 import * as Element from '../../../client/src/element';
-import { ELEM } from '../../../client/data/elem-constants';
+// import { ELEM } from '../../../client/data/elem-constants';
 import {System} from '../../../client/src/system';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {FactoryActor} from '../../../client/src/factory.actors';
-import {MapGenerator} from '../../../client/src/map.generator';
 import {ObjectShell} from '../../../client/src/objectshellparser';
 import {Dice} from '../../../client/src/dice';
 import {FromJSON} from '../../../client/src/game.fromjson';
@@ -26,7 +23,6 @@ import {Spell} from '../../../client/src/spell';
 import {BrainPlayer} from '../../../client/src/brain/brain.player';
 import {ItemGen} from '../../../client/data/item-gen';
 
-const Stairs = Element.ElementStairs;
 const expect = chai.expect;
 chai.use(chaiBattles);
 const Factory = new FactoryLevel();
@@ -363,6 +359,37 @@ describe('System.Chat', () => {
         actionCb();
 
         expect(chatter).to.have.accuracy(accBefore + 1);
+    });
+
+    it('can handle multi-chat per actor', () => {
+        const chatSys = new System.Chat(['Chat']);
+        const chatter = new SentientActor('chatter');
+        chatter.setIsPlayer(true);
+
+        const wizTrainer = new SentientActor('wizTrainer');
+        wizTrainer.add(new Component.Trainer());
+        wizTrainer.add(new Component.QuestGiver());
+        RGUnitTests.wrapIntoLevel([chatter, wizTrainer]);
+
+        RGUnitTests.moveEntityTo(chatter, 1, 1);
+        RGUnitTests.moveEntityTo(wizTrainer, 2, 2);
+        const chatComp = new Component.Chat();
+        const args = {dir: [1, 1]};
+        chatComp.setArgs(args);
+        chatter.add(chatComp);
+
+        updateSystems([chatSys]);
+
+        const brain = chatter.getBrain() as BrainPlayer;
+        expect(brain.isMenuShown()).to.equal(true);
+        let opts = brain.getMenu();
+
+        let actionCb = brain.decideNextAction({code: ROT.VK_0});
+        expect(brain.isMenuShown()).to.equal(true);
+        opts = brain.getMenu();
+        expect(Object.keys(opts)).to.have.length(6 + 1 + 1);
+        actionCb = brain.decideNextAction({code: ROT.VK_Q});
+
     });
 });
 

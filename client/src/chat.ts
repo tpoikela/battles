@@ -28,6 +28,8 @@ interface SelObject {
     select(code: number): void;
 }
 
+Chat.TOP_MENU = 'TOP_MENU';
+
 
 /* Trades the given gold weight from given to another actor. */
 Chat.tradeGoldWeightFromTo = (gw, actorFrom, actorTo) => {
@@ -49,10 +51,20 @@ export class ChatBase {
     public pre: string[];
     public post: string[];
     public selectionObject: SelObject;
+    public name: string;
 
     constructor() {
         this.options = [];
         this.parent = null;
+        this.name = '';
+    }
+
+    public setName(name: string): void {
+        this.name = name;
+    }
+
+    public getName(): string {
+        return this.name;
     }
 
     /* Adds a chat object or an option into this object. */
@@ -89,7 +101,7 @@ export class ChatBase {
                 if (this.post) {
                     menuObj.post = this.post;
                 }
-                menuObj.Q = OPTION_GOODBYE.name;
+                addGoodbyeOption(menuObj);
                 return menuObj;
             },
             select: code => {
@@ -192,15 +204,17 @@ export class ChatTrainer extends ChatBase {
         super();
         this.selectionObject = {
             showMenu: () => true,
-            pre: ['Please select a stat to train:'],
+            // pre: ['Please select a stat to train:'],
             getMenu: () => {
                 // RG.gameMsg('');
                 const indices = Keys.menuIndices.slice(0, 6);
-                const menuObj = {};
+                const menuObj: any = {};
+                menuObj.pre = ['Please select a stat to train:'];
                 stats.forEach((stat, index) => {
                     menuObj[indices[index]] = stats[index];
                     menuObj[indices[index]] += ` (${this.costs[index]} gold)`;
                 });
+                addGoodbyeOption(menuObj);
                 return menuObj;
 
             },
@@ -211,7 +225,7 @@ export class ChatTrainer extends ChatBase {
                     const cost = this.costs[selection];
                     return this.trainCallback(statSel, cost);
                 }
-                return null;
+                return EXIT_MENU;
             }
         };
         this.trainCallback = this.trainCallback.bind(this);
@@ -358,3 +372,21 @@ export class ChatWizard extends ChatBase {
 
 }
 Chat.Wizard = ChatWizard;
+
+
+class ChatComposite extends ChatBase {
+
+    protected subChats: ChatBase[];
+
+    constructor() {
+        super();
+    }
+
+    public addChat(chat: ChatBase): void {
+        this.subChats.push(chat);
+    }
+}
+
+function addGoodbyeOption(menuObj): void {
+    menuObj.Q = OPTION_GOODBYE.name;
+}

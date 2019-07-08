@@ -13,9 +13,15 @@ const NO_ACTORS_FOUND = Object.freeze([]);
 /* This system handles all entity movement.*/
 export class SystemChat extends SystemBase {
     protected loreData: {[key: string]: any};
+    protected factFuncs: {[key: string]: () => any};
+    protected registeredObjs: {[key: string]: boolean};
 
     constructor(compTypes, pool?) {
         super(RG.SYS.CHAT, compTypes, pool);
+        this.factFuncs = {};
+        this.registeredObjs = {
+            Trainer: true, QuestGiver: true
+        };
     }
 
     /* More lore can be added for chatting. */
@@ -30,18 +36,26 @@ export class SystemChat extends SystemBase {
         const actors = this.getActorsInDirection(ent, dir);
         let chatObj = null;
         actors.forEach(actor => {
-            if (actor.has('Trainer')) {
-                chatObj = this.getChatObject(ent, actor, 'Trainer');
-            }
-            else if (actor.has('QuestGiver')) {
-                chatObj = this.getChatObject(ent, actor, 'QuestGiver');
-            }
-            else {
+            // First, we need to create the Chat object for the Menu
+            Object.keys(this.registeredObjs).forEach((chatType: string) => {
+                if (actor.has(chatType)) {
+                    if (chatObj) {
+                        // Need to get return type, as new TOP_MENU can be returned
+                        chatObj = this.appendToChatObj(chatObj, ent, actor, chatType);
+                    }
+                    else {
+                        chatObj = this.getChatObject(ent, actor, chatType);
+                    }
+                }
+            });
+            if (!chatObj) {
                 // TODO spirits react differently
                 chatObj = this.getGenericChatObject(ent, actor);
                 const msg = `You chat with ${actor.getName()} for a while.`;
                 RG.gameMsg({cell: ent.getCell(), msg});
             }
+
+            // Then, we add relevant chat options for that object
             if (actor.has('QuestTarget')) {
                 this.addQuestTargetItems(ent, actor, chatObj);
             }
@@ -89,7 +103,42 @@ export class SystemChat extends SystemBase {
         return NO_ACTORS_FOUND as BaseActor[];
     }
 
+    /* Chat object has two options. Either it's a persistent with the actor, or
+     * new object can be created with factory function.
+     */
+    public registerChatObject(compType: string, factFunc?: () => any): void {
+        if (typeof factFunc === 'function') {
+            this.factFuncs[compType] = factFunc;
+        }
+        this.registeredObjs[compType] = true;
+    }
+
+    public appendToChatObj(chatObj, ent, srcActor, compType): ChatBase {
+        let topObj = chatObj;
+        if (chatObj.getName() !== Chat.TOP_MENU) {
+            topObj = new ChatBase();
+            topObj.setName(Chat.TOP_MENU);
+            topObj.add({name: 'Do you offer any special services?',
+                        option: chatObj
+            });
+        }
+        const newChatObj = this.getChatObject(ent, srcActor, compType);
+        if (newChatObj) {
+            topObj.add({name: 'Do you know anything about ' + compType + '?',
+                        option: newChatObj
+            });
+        }
+        else {
+            RG.err('System.Chat', 'appendToChatObj',
+                 'Failed to add new chat object with compType ' + compType);
+        }
+        return topObj;
+    }
+
     public getChatObject(ent, srcActor, compType): ChatBase {
+        if (this.factFuncs.hasOwnProperty(compType)) {
+            return this.factFuncs[compType]();
+        }
         const chatObj = srcActor.get(compType).getChatObj();
         chatObj.setTarget(ent);
         const selObj = chatObj.getSelectionObject();
@@ -105,15 +154,11 @@ export class SystemChat extends SystemBase {
     }
 
     public getGenericChatObject(ent, actor): ChatBase {
-        // if (ent.has('Quest')) {
-            const chatObj = new Chat.ChatBase();
-            const aName = actor.getName();
-            chatObj.pre = `${aName} greets you. What do you say?`;
-            return chatObj;
-        // }
-        // return null;
+        const chatObj = new Chat.ChatBase();
+        const aName = actor.getName();
+        chatObj.pre = `${aName} greets you. What do you say?`;
+        return chatObj;
     }
-
 
     /* Adds additional chat items related to various quest objectives. */
     public addQuestTargetItems(ent, actor, chatObj: ChatBase): void {

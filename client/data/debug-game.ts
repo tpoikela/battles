@@ -312,6 +312,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     const giverComp = giver.get('QuestGiver');
     giverComp.setReward({type: 'item', name: 'Ruby glass mace'});
     level.moveActorTo(giver, pX + 1, pY);
+    giver.add(new Component.Trainer());
 
     // Move all quest targets close to player for easier access and make them
     // slow
