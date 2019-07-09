@@ -31,7 +31,7 @@ describe('ChatBase', () => {
 
         const statsObj = trainObj.getMenu();
         const keys = Object.keys(statsObj);
-        expect(keys).to.have.length(6);
+        expect(keys).to.have.length(8);
 
         const cbFunc = trainObj.select(ROT.VK_1);
         expect(cbFunc).to.be.a('function');

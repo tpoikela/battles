@@ -16,11 +16,11 @@ class Listener {
         this.notified = false;
     }
 
-    notify(evt: any): void {
+    public notify(evt: any): void {
         this.notified = true;
     }
 
-    reset(): void {
+    public reset(): void {
         this.notified = false;
     }
 }
@@ -43,9 +43,9 @@ describe('DayManager', () => {
         }
         const newPhase = dayMan.getCurrPhase();
         expect(newPhase).to.not.equal(startPhase);
-        expect(listener.notified).to.be.true;
+        expect(listener.notified).to.equal(true);
         listener.reset();
-        expect(listener.notified).to.be.false;
+        expect(listener.notified).to.equal(false);
 
         pool.removeListener(listener);
         pool.listenEvent(RG.EVT_DAY_CHANGED, listener);
@@ -55,7 +55,7 @@ describe('DayManager', () => {
         }
         const firstPhase = dayMan.getCurrPhase();
         expect(firstPhase).to.equal(RG.DAY.DAWN);
-        expect(listener.notified).to.be.true;
+        expect(listener.notified).to.equal(true);
     });
 
 });

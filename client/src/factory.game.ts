@@ -15,7 +15,6 @@ import {EventPool} from '../src/eventpool';
 import {FactoryBase} from './factory';
 import {FactoryItem} from './factory.items';
 import {FactoryWorld} from './factory.world';
-import {Factory} from './factory';
 import {FromJSON} from './game.fromjson';
 import {GameMain} from './game';
 import {Geometry} from './geometry';
@@ -27,7 +26,7 @@ import {Random} from './random';
 import {TerritoryMap} from '../data/territory-map';
 import {Territory} from './territory';
 import {WorldConf} from './world.creator';
-import {Level} from './level';
+import {Level, LevelCallback} from './level';
 import {SentientActor} from './actor';
 
 import {IFactoryGameConf, OWMapConf, IActorMods} from './interfaces';
@@ -304,6 +303,13 @@ FactoryGame.prototype.createOverWorldGame = function(obj: IFactoryGameConf, game
 
     player.setFOVRange(RG.PLAYER_FOV_RANGE);
     game.addPlayer(player); // Player already placed to level
+
+    let enterMsg = 'You have decided to venture outside your home village.';
+    enterMsg += ' You feel there is something drawing you towards the North.';
+    const levelCb = new LevelCallback('msg');
+    levelCb.msg = enterMsg;
+
+    player.getLevel().setOnFirstEnter(levelCb);
     this.progress('DONE');
 
     const endTime = new Date().getTime();
@@ -311,7 +317,6 @@ FactoryGame.prototype.createOverWorldGame = function(obj: IFactoryGameConf, game
     this.progress('World generation took ' + totalDur + ' ms.');
     // RG.Verify.verifyStairsConnections(game, 'Factory.Game');
     // this.progress('Stairs connections verified');
-    RG.gameMsg('You have decided to venture outside your home village');
     return game;
 };
 

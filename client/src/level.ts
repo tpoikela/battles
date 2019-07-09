@@ -43,7 +43,7 @@ export class LevelCallback {
     public cbType: string;
     public msg: string;
 
-    constructor(type) {
+    constructor(type: string) {
         this.cbType = type;
     }
 
@@ -51,11 +51,11 @@ export class LevelCallback {
         RG.gameMsg(this.msg);
     }
 
-    public getCbType() {
+    public getCbType(): string {
         return this.cbType;
     }
 
-    public toJSON() {
+    public toJSON(): any {
         return {
             cbType: this.getCbType(),
             msg: this.msg

@@ -46,7 +46,6 @@ export class DayManager {
         this._dayChanged = false;
         this._phaseChanged = false;
         this._currPhaseLeft -= this._updateRate;
-        console.log(`==> Left: ${this._currPhaseLeft}, rate: ${this._updateRate}`);
         if (this._currPhaseLeft <= 0) {
             this.nextPhase();
             this._phaseChanged = true;

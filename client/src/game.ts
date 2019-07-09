@@ -299,9 +299,12 @@ export const GameMain = function() {
         }
     };
 
-    this.isTileLevel = (level) => {
+    this.isTileLevel = (level: Level): boolean => {
         const area = this.getArea(0);
-        return area.hasTiles([level]);
+        if (area) {
+            return area.hasTiles([level]);
+        }
+        return false;
     };
 
     /* Checks if player exited an explored zone. */
