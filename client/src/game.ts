@@ -575,7 +575,7 @@ export const GameMain = function() {
     this.toJSON = () => {
         const parser = ObjectShell.getParser();
         const obj: any = { // TODO fix typings
-            engine: {},
+            engine: this._engine.toJSON(),
             gameMaster: this._master.toJSON(),
             gameObjectID: GameObject.ID,
             lastComponentID: Component.getIDCount(),
