@@ -217,14 +217,21 @@ export class SeasonManager {
 
         const key = this._owPos[0] + ',' + this._owPos[1];
         const currBiome = this._biomeMap[key];
-        const possibleSeason = biomePossibleSeasons[currBiome];
+        if (currBiome) {
+            console.log('currBiome found was ' + currBiome);
+            const possibleSeason = biomePossibleSeasons[currBiome];
 
-        if (possibleSeason[0] === 'all') {return this._currSeason;}
+            if (possibleSeason[0] === 'all') {return this._currSeason;}
+            else {
+                const index = possibleSeason.indexOf(this._currSeason);
+                if (index >= 0) {return this._currSeason;}
+                // TODO Compute distance between actual season and one from the list
+                return possibleSeason[0];
+            }
+        }
         else {
-            const index = possibleSeason.indexOf(this._currSeason);
-            if (index >= 0) {return this._currSeason;}
-            // TODO Compute distance between actual season and one from the list
-            return possibleSeason[0];
+            RG.err('SeasonManager', 'getSeasonModified',
+                `currBiome not found with key ${key}`);
         }
     }
 
