@@ -1924,5 +1924,24 @@ RG.destroyItemIfNeeded = item => {
     }
 };
 
+//-------------------------
+// Functions for entities
+//-------------------------
+
+/* Returns the name for given entity. */
+RG.getEntName = function(ent: Entity): string {
+    if (ent.has('Named')) {
+        return ent.get('Named').getFullName();
+    }
+    return '';
+};
+
+RG.getLevel = function(ent: Entity): Level | null {
+    if (ent.has('Location')) {
+        return ent.get('Location').getLevel();
+    }
+    return null;
+};
+
 /* eslint no-unused-vars: 0 */
 export default RG;
