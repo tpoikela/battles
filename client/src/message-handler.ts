@@ -9,11 +9,22 @@ import {IMessage} from './interfaces';
 
 /* Handles the game message listening and storing of the messages. */
 export class MessageHandler { // {{{2
+
+    public static fromJSON(json, pool: EventPool): MessageHandler {
+        const msg = new MessageHandler(pool);
+        msg._hasNew = json._hasNew as boolean;
+        msg._messages = json._messages as IMessage[];
+        msg._prevMessages = json._prevMessages as IMessage[];
+        msg._lastMsg = json._lastMsg as IMessage;
+        return msg;
+    }
+
+    public hasNotify: boolean;
+
     protected _lastMsg: IMessage;
     protected _messages: IMessage[];
     protected _prevMessages: IMessage[];
     protected _hasNew: boolean;
-    public hasNotify: boolean;
 
     constructor(pool: EventPool) {
         this._lastMsg = null;
@@ -63,5 +74,13 @@ export class MessageHandler { // {{{2
         this._messages = [];
     }
 
-}
+    public toJSON(): any {
+        return {
+            _lastMsg: this._lastMsg,
+            _messages: this._messages,
+            _prevMessages: this._prevMessages,
+            _hasNew: this._hasNew
+        };
+    }
 
+}
