@@ -14,14 +14,22 @@ const phasesOfDay = {
 
 export class DayManager {
 
-    public static fromJSON: (json: any) => DayManager;
+    public static fromJSON(json: any): DayManager {
+        const dayMan = new DayManager();
+        dayMan._currPhase = json.currPhase;
+        dayMan._currPhaseLeft = json.currPhaseLeft;
+        dayMan._updateRate = json.updateRate;
+        dayMan._dayChanged = json.dayChanged;
+        dayMan._phaseChanged = json.phaseChanged;
+        return dayMan;
+    }
 
-    public _currPhase: string;
-    public _currPhaseLeft: number;
-    public _updateRate: number;
-    public _dayChanged: boolean;
-    public _phaseChanged: boolean;
     public pool: EventPool;
+    protected _currPhase: string;
+    protected _currPhaseLeft: number;
+    protected _updateRate: number;
+    protected _dayChanged: boolean;
+    protected _phaseChanged: boolean;
 
     constructor(pool?: EventPool) {
         this._currPhase = RG.DAY.MORNING;
@@ -108,14 +116,3 @@ export class DayManager {
     }
 
 }
-
-DayManager.fromJSON = function(json: any): DayManager {
-    const dayMan = new DayManager();
-    dayMan._currPhase = json.currPhase;
-    dayMan._currPhaseLeft = json.currPhaseLef;
-    dayMan._updateRate = json.updateRate;
-    dayMan._dayChanged = json.dayChanged;
-    dayMan._phaseChanged = json.phaseChanged;
-    return dayMan;
-};
-

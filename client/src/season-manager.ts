@@ -62,22 +62,35 @@ interface StringMap {
 
 export class SeasonManager {
 
-    public static fromJSON: (json: any) => SeasonManager;
+    public static fromJSON(json: any): SeasonManager {
+        const seasonMan = new SeasonManager();
+        seasonMan._currSeason = json.currSeason;
+        seasonMan._currWeather = json.currWeather;
+        seasonMan._monthLeft = json.monthLeft;
+        seasonMan._seasonLeft = json.seasonLeft;
+        seasonMan._seasonChanged = json.seasonChanged;
+        seasonMan._weatherChanged = json.weatherChanged;
+        seasonMan._monthChanged = json.monthChanged;
+        seasonMan._yearChanged = json.yearChanged;
+        seasonMan._owPos = json.owPos;
+        seasonMan._biomeMap = json.biomeMap;
+        return seasonMan;
+    }
 
-    public _currSeason: string;
-    public _currWeather: string;
-    public _monthLeft: number;
-    public _seasonLeft: number;
-
-    public _seasonChanged: boolean;
-    public _weatherChanged: boolean;
-    public _monthChanged: boolean;
-    public _yearChanged: boolean;
     public pool: EventPool;
 
-    public _owPos: TCoord;
+    protected _currSeason: string;
+    protected _currWeather: string;
+    protected _monthLeft: number;
+    protected _seasonLeft: number;
 
-    public _biomeMap: StringMap;
+    protected _seasonChanged: boolean;
+    protected _weatherChanged: boolean;
+    protected _monthChanged: boolean;
+    protected _yearChanged: boolean;
+
+    protected _owPos: TCoord;
+    protected _biomeMap: StringMap;
 
     constructor(pool?: EventPool) {
         this._currSeason = RG.SEASON.AUTUMN;
@@ -255,18 +268,3 @@ export class SeasonManager {
     }
 
 }
-
-SeasonManager.fromJSON = function(json: any): SeasonManager {
-    const seasonMan = new SeasonManager();
-    seasonMan._currSeason = json.currSeason;
-    seasonMan._currWeather = json.currWeather;
-    seasonMan._monthLeft = json.monthLeft;
-    seasonMan._seasonLeft = json.seasonLeft;
-    seasonMan._seasonChanged = json.seasonChanged;
-    seasonMan._weatherChanged = json.weatherChanged;
-    seasonMan._monthChanged = json.monthChanged;
-    seasonMan._yearChanged = json.yearChanged;
-    seasonMan._owPos = json.owPos;
-    seasonMan._biomeMap = json.biomeMap;
-    return seasonMan;
-};
