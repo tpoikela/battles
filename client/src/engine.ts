@@ -561,6 +561,12 @@ export class Engine {
         }
     }
 
+    public toJSON(): any {
+        return {
+            msgHandler: this._msg.toJSON()
+        };
+    }
+
     /* Throws an error using RG.err because next actor was not player. */
     protected nextActorNotPlayerError(): void {
         let msg = '';
