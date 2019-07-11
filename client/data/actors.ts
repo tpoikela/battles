@@ -3,7 +3,6 @@
 
 import RG from '../src/rg';
 import {meleeHitDamage, color} from './shell-utils';
-// const Colors = require('./colors');
 import {IAddCompObj, TAddCompSpec} from '../src/interfaces';
 
 const defaultBrain = 'GoalOriented';
@@ -1505,11 +1504,24 @@ export const ActorsData: ActorShell[] = [
     // {type: 'hyrkhian'}
     // {type: 'wildling'}
 
+    {
+        name: 'Morkoe, the ancient frost bogey', type: 'creature',
+        base: 'UniqueBase', char: 'B', danger: 100,
+        damage: '3d7 + 3', hp: 133, pp: 78, brain: 'SpellCaster',
+        strength: 25, accuracy: 25, agility: 5, willpower: 30, perception: 10,
+        magic: 10, attack: 35, defense: 35, protection: 15,
+        fovrange: 5,
+        enemies: RG.ACTOR_RACES,
+        addComp: ['SnowWalk', resistance('ICE', 'IMMUNITY'),
+            resistance('NECRO', 'HIGH'), resistance('VOID', 'HIGH'),
+            'RegenEffect'],
+        onHit: [
+            meleeHitDamage(5, '1d8 + 4', 'ICE')
+        ],
+        spells: ['FrostBolt', 'GraspOfWinter'],
+    },
 
 ];
-
-// TODO here we can generate procedurally some actor shells to make things
-// more interesting. These can be pushed to the array
 
 //---------------------------------------------------------------------------
 // HELPER FUNCTIONS
