@@ -10,7 +10,7 @@ import {TCoord} from './interfaces';
 import {Cell} from './map.cell';
 
 type SentientActor = import('./actor').SentientActor;
-type Level = import('./level').Level;
+// type Level = import('./level').Level;
 
 const POOL = EventPool.getPool();
 
@@ -30,17 +30,18 @@ export class ItemBase extends Entity {
     public useArgs: any;
     public isUsable: boolean;
     protected _owner: Owner;
-    private _name: string;
 
     constructor(name: string) {
         super();
         this.isOwnable = true;
         this._owner = null;
-        this._name = name;
         this.isUsable = false;
         this.add(new Component.Typed(RG.ITEM.BASE, RG.TYPE_ITEM));
         this.add(new Component.Item());
         this.add(new Component.Physical());
+        const named = new Component.Named();
+        named.setName(name);
+        this.add(named);
     }
 
     public setOwner(owner: Owner): void {
@@ -80,17 +81,13 @@ export class ItemBase extends Entity {
         return null;
     }
 
-    /*public getLevel(): Level | null {
-        if (this._owner) {
-            if (this._owner.getLevel) {
-                return this._owner.getLevel();
-            }
-        }
-        return null;
-    }*/
+    public setName(name: string): void {
+        this.get('Named').setName(name);
+    }
 
-    public setName(name: string): void {this._name = name;}
-    public getName(): string {return this._name;}
+    public getName(): string {
+        return this.get('Named').getFullName();
+    }
 
     public setWeight(weight: number): void {
         this.get('Physical').setWeight(weight);
@@ -434,7 +431,6 @@ export class Armour extends Mixin.Defense(ItemBase) {
         super(name);
         this.setType(RG.ITEM.ARMOUR);
         this._armourType = null;
-
     }
 
     public setArmourType(type: string): void {this._armourType = type;}
