@@ -11,7 +11,7 @@ import RG from '../src/rg';
 import ROT from '../../lib/rot';
 
 import {Keys} from '../src/keymap';
-import {GameMain, IGameMain} from '../src/game';
+import {GameMain} from '../src/game';
 import {GameSave} from '../src/gamesave';
 import {ScreenBuffered} from '../gui/screen';
 import {MultiKeyHandler} from '../gui/multikey-handler';
@@ -26,7 +26,6 @@ import {WorldConf} from '../data/conf.world';
 import {CellClickHandler} from '../gui/cell-click-handler';
 import {Level} from '../src/level';
 import {FactoryGame} from '../src/factory.game';
-import {EventPool} from '../src/eventpool';
 import {Dice} from '../src/dice';
 import {OWMap} from '../src/overworld.map';
 import {KeyCode} from '../gui/keycode';
@@ -34,16 +33,14 @@ import {ObjectShell} from '../src/objectshellparser';
 
 import {Persist} from '../src/persist';
 import md5 = require('js-md5');
-
 import dbg = require('debug');
 
 import {TCoord, IMessage, IPlayerCmdInput, CmdInput} from '../src/interfaces';
 
-const POOL = EventPool.getPool();
 const {KeyMap} = Keys;
 const debug = dbg('bitn:game-manager');
 
-type UpdateFunc = (any) => void;
+type UpdateFunc = (arg: any) => void;
 
 export interface GameStateTop {
     visibleCells: Cell[];
@@ -87,8 +84,8 @@ export class TopLogic {
         const msg = 'You see ' + actor.getName();
         RG.gameMsg(msg);
       }
-      else if (cell.hasProp('items')) {
-        const items = cell.getProp('items');
+      else if (cell.hasItems()) {
+        const items = cell.getItems();
         if (items.length > 1) {
           RG.gameMsg('There are several items there');
           RG.gameMsg('You see ' + items[0].getName() + ' on top');
