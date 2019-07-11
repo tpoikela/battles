@@ -1,22 +1,21 @@
 
 import RG from './rg';
-import {Objects} from '../data/battles_objects';
-import {ActorsData, adjustActorValues} from '../data/actors';
 import * as Actor from './actor';
-import * as Item from './item';
-import {Effects} from '../data/effects';
-import {Brain} from './brain';
-// import * as Brain from './brain';
-import {Random} from './random';
-import {ElementBase} from './element';
 import * as Component from './component';
-import {Dice} from './dice';
-import {Spell} from '../data/spells';
+import * as Item from './item';
+import {Brain} from './brain';
+import {Effects} from '../data/effects';
+import {ElementBase} from './element';
 import {Evaluator} from './evaluators';
+import {Objects} from '../data/battles_objects';
+import {Random} from './random';
+import {Spell} from '../data/spells';
+import {adjustActorValues} from '../data/actors';
+import {ObjectShellComps} from './objectshellcomps';
 
 import {ActorGen} from '../data/actor-gen';
 
-import {IAddCompObj, IShell, StringMap, TShellFunc} from './interfaces';
+import {IShell, StringMap, TShellFunc} from './interfaces';
 
 const RNG = Random.getRNG();
 export const ObjectShell: any = {};
@@ -54,6 +53,8 @@ export interface IQueryDB {
 export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
     this._db = db;
     this._dbNoRandom = dbNoRandom;
+    this._compGen = new ObjectShellComps();
+
     /* Maps obj props to function calls. Essentially this maps bunch of setters
      * to different names. Following formats supported:
      *
@@ -144,25 +145,6 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         return this._db[categ][name];
     };
 
-    /* Creates a component of specified type.*/
-    this.createComponent = (type, val) => {
-        switch (type) {
-            case 'Combat': return new Component.Combat();
-            case 'Experience': return new Component.Experience();
-            case 'Health': return new Component.Health(val);
-            case 'Stats': return new Component.Stats();
-            default:
-                if (Component.hasOwnProperty(type)) {
-                    return new Component[type]();
-                }
-                else {
-                    RG.err('Creator', 'createComponent',
-                        'Component |' + type + '| does not exist.');
-                }
-        }
-        return null;
-    };
-
     /* Returns an actual game object when given category and name. Note that
      * the blueprint must exist already in the database (blueprints must have
      * been parsed before). */
@@ -182,7 +164,7 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
 
         // Example: {name: 'bat', addComp: 'Flying'}
         if (shell.hasOwnProperty('addComp')) {
-            this.addComponents(shell, newObj);
+            this._compGen.addComponents(shell, newObj);
         }
 
         // If propToCall table has the same key as shell property, call
@@ -196,7 +178,7 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
 
                     // 1. Add new component to the object
                     if (funcName.hasOwnProperty('comp')) {
-                        this.addCompToObj(newObj, funcName, shell[p]);
+                        this._compGen.addCompToObj(newObj, funcName, shell[p]);
                     }
                     // 2. Or use factory to create an object and add it to the
                     // object. Only 'brain' supported for now.
@@ -264,9 +246,8 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
             this.addLootComponents(shell, newObj);
         }
 
-
         if (shell.hasOwnProperty('poison')) {
-            this.addPoison(shell, newObj);
+            this._compGen.addPoison(shell, newObj);
         }
 
         if (shell.hasOwnProperty('enemies')) {
@@ -278,129 +259,23 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         }
 
         if (shell.hasOwnProperty('onHit')) {
-            this.addOnHitProperties(shell, newObj);
+            this._compGen.addOnHitProperties(shell, newObj);
         }
 
         if (shell.hasOwnProperty('onAttackHit')) {
-            this.addOnAttackHitProperties(shell, newObj);
+            this._compGen.addOnAttackHitProperties(shell, newObj);
         }
 
         if (shell.hasOwnProperty('onEquip')) {
-            this.addOnEquipProperties(shell, newObj);
+            this._compGen.addOnEquipProperties(shell, newObj);
         }
 
         if (shell.hasOwnProperty('goals')) {
             this.addGoalsToObject(shell, newObj);
         }
 
-        // TODO map different props to function calls
         return newObj;
     };
-
-    /* Adds Poison as addOnHit property. */
-    this.addPoison = (shell: IShell, obj): void => {
-        const poison = shell.poison;
-        const poisonComp = new Component.Poison();
-        poisonComp.setProb(poison.prob);
-        poisonComp.setSource(obj);
-        poisonComp.setDamageDie(Dice.create(poison.damage));
-
-        const dieDuration = Dice.create(poison.duration);
-        poisonComp.setDurationDie(dieDuration);
-        const addOnHit = new Component.AddOnHit();
-        addOnHit.setComp(poisonComp);
-        obj.add(addOnHit);
-    };
-
-    /* Adds any component as AddOnHit property. */
-    this.addOnHitProperties = (shell: IShell, obj) => {
-        shell.onHit.forEach(onHit => {
-            this.processAddComp(onHit, obj);
-        });
-    };
-
-    this.addOnAttackHitProperties = (shell: IShell, obj) => {
-        shell.onAttackHit.forEach(onHit => {
-            const addOnHitComp = this.processAddComp(onHit, obj);
-            addOnHitComp.setOnDamage(false);
-            addOnHitComp.setOnAttackHit(true);
-        });
-    };
-
-    this.addOnEquipProperties = (shell: IShell, newObj) => {
-        shell.onEquip.forEach(onEquip => {
-            const isEquip = true;
-            this.processAddComp(onEquip, newObj, isEquip);
-        });
-    };
-
-    this.processAddComp = (onHit: IAddCompObj, obj, isEquip = false) => {
-        // Create the comp to be returned
-        let addOnHit = null;
-        if (isEquip) {
-            addOnHit = new Component.AddOnEquip();
-        }
-        else {
-            addOnHit = new Component.AddOnHit();
-        }
-
-        if (onHit.addComp) {
-            const comp = this.createComponent(onHit.addComp);
-            if (comp.setSource) {
-                if (RG.isActor(obj)) {
-                    comp.setSource(obj);
-                }
-            }
-
-            // Set the values of added component using functions provided in
-            // func array
-            if (Array.isArray(onHit.func)) {
-                onHit.func.forEach(func => {
-                    if (typeof comp[func.setter] === 'function') {
-                        comp[func.setter](func.value);
-                    }
-                    else {
-                        const str = comp.toJSON();
-                        RG.err('ObjectShellParser', 'addOnHitProperties',
-                            `Not a func: ${func.setter} in comp ${str}`);
-                    }
-                });
-            }
-
-            // Then create the AddOnHit component and wrap the original
-            // component into Duration to make it transient
-            const addedComp = comp;
-
-            if (onHit.duration) {
-                const durDie = Dice.create(onHit.duration);
-                const durComponent = new Component.Duration();
-                durComponent.setDurationDie(durDie);
-                durComponent.setComp(addedComp);
-                addOnHit.setComp(durComponent);
-
-                // Set the message for comp expiration, if any are given
-                // in the obj shell
-                if (onHit.expireMsg) {
-                    durComponent.setExpireMsg(onHit.expireMsg);
-                }
-            }
-            else {
-                addOnHit.setComp(addedComp);
-            }
-            obj.add(addOnHit);
-            return addOnHit;
-        }
-        else if (onHit.transientComp) {
-            // If createComp given, use the object as it is without creating
-            // a new Component
-
-            addOnHit.setComp(JSON.parse(JSON.stringify(onHit)));
-            obj.add(addOnHit);
-            return addOnHit;
-        }
-        return null;
-    };
-
 
     this.addEnemies = (shell: IShell, obj) => {
         shell.enemies.forEach(enemyType => {
@@ -504,132 +379,6 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         return null;
     };
 
-    /* Adds a component to the newly created object, or updates existing
-     * component if it exists already.*/
-    this.addCompToObj = function(newObj, compData, val) {
-        if (compData.hasOwnProperty('func')) {
-
-            // This 1st branch is used by Health only (needed?)
-            if (Array.isArray(compData.func)) {
-                compData.func.forEach(fname => {
-                    const compName = compData.comp;
-                    if (newObj.has(compName)) {
-                        // 1. Call existing comp with setter (fname)
-                        if (typeof newObj.get(compName)[fname] === 'function') {
-                            newObj.get(compName)[fname](val);
-                        }
-                        else {
-                            this.noFuncError(compName, fname, compData);
-                        }
-                    }
-                    else { // 2. Or create a new component
-                        const comp = this.createComponent(compName);
-                        if (typeof comp[fname] === 'function') {
-                            comp[fname](val); // Then call comp setter
-                            newObj.add(comp);
-                        }
-                        else {
-                            this.noFuncError(compName, fname, compData);
-                        }
-                    }
-                });
-            }
-            else {
-                const fname = compData.func;
-                const compName = compData.comp;
-                if (newObj.has(compName) && typeof fname === 'string') {
-                    // 1. Call existing comp with setter (fname)
-                    newObj.get(compName)[fname](val);
-                }
-                else { // 2. Or create a new component
-                    const comp = this.createComponent(compName);
-                    newObj.add(comp);
-                    if (typeof comp[fname] === 'function') {
-                        comp[fname](val); // Then call comp setter
-                    }
-                    else if (typeof fname === 'object') {
-                        const funcNames = Object.keys(compData.func);
-                        funcNames.forEach(funcName => {
-                            const newCompData = {
-                                func: funcName,
-                                comp: compName
-                            };
-                            const newVal = compData.func[funcName];
-                            this.addCompToObj(newObj, newCompData, newVal);
-                        });
-                    }
-                    else {
-                        RG.log(JSON.stringify(fname));
-                        RG.err('ObjectShellParser', 'addCompToObj',
-                            `No function ${fname} in ${compName}`);
-                    }
-                }
-            }
-        }
-        else if (newObj.has(compData.comp)) {
-            RG.err('ObjectShellParser', 'xxx',
-                'Not implemented');
-        }
-        else {
-            newObj.add(this.createComponent(compData.comp, val));
-        }
-    };
-
-    this.noFuncError = (compName: string, fname: string, compData) => {
-        const json = 'compData ' + JSON.stringify(compData);
-        RG.err('ObjectShellParser', 'addCompToObj',
-           `Comp: ${compName} no func ${fname}, ${json}`);
-    };
-
-    /* This function makes a pile of mess if used on non-entities. */
-    this.addComponents = (shell: IShell, entity) => {
-        if (typeof shell.addComp === 'string') {
-            _addCompFromString(shell.addComp, entity);
-        }
-        else if (Array.isArray(shell.addComp)) {
-            shell.addComp.forEach(comp => {
-                let usedComp = comp;
-                if (comp.random) {
-                    usedComp = RNG.arrayGetRand(comp.random);
-                }
-                if (typeof usedComp === 'string') {
-                    _addCompFromString(usedComp, entity);
-                }
-                else {
-                    _addCompFromObj(entity, usedComp);
-                }
-            });
-        }
-        else if (typeof shell.addComp === 'object') {
-            let usedComp = shell.addComp;
-            if (shell.addComp.random) {
-                usedComp = RNG.arrayGetRand(shell.addComp.random);
-            }
-            _addCompFromObj(entity, usedComp);
-        }
-        else {
-            RG.err('Creator', 'addComponents',
-                'Giving up. shell.addComp must be string, array or object.');
-        }
-    };
-
-    const _addCompFromString = (compName, entity) => {
-        try {
-            const comp = new Component[compName]();
-            entity.add(comp);
-        }
-        catch (e) {
-            let msg = `shell.addComp |${compName}|`;
-            msg += 'Component names are capitalized.';
-            RG.err('Creator', '_addCompFromString',
-                `${e.message} - ${msg}`);
-        }
-    };
-
-    const _addCompFromObj = (entity, compObj) => {
-        this.addCompToObj(entity, compObj, null);
-    };
-
     // Adds the inventory items for the actors which are specified with 'inv'
     this.addInventoryItems = function(shell, actor) {
         const inv = shell.inv;
@@ -690,22 +439,22 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         if (typeof shell.use === 'object'
             && shell.use.hasOwnProperty('length')) {
             for (let i = 0; i < shell.use.length; i++) {
-                _addUseEffectToItem(shell, newObj, shell.use[i]);
+                this._addUseEffectToItem(shell, newObj, shell.use[i]);
             }
         }
         else if (typeof shell.use === 'object') {
             for (const p in shell.use) {
                 if (shell.use.hasOwnProperty(p)) {
-                    _addUseEffectToItem(shell, newObj, p);
+                    this._addUseEffectToItem(shell, newObj, p);
                 }
             }
         }
         else {
-            _addUseEffectToItem(shell, newObj, shell.use);
+            this._addUseEffectToItem(shell, newObj, shell.use);
         }
     };
 
-    const _addUseEffectToItem = (shell: IShell, item, useName) => {
+    this._addUseEffectToItem = (shell: IShell, item, useName) => {
         const useFuncName = useName;
         if (this._db.effects.hasOwnProperty(useFuncName)) {
             const useEffectShell = this._db.effects[useFuncName];
@@ -718,11 +467,11 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
                     const reqs = useEffectShell.requires;
                     if (typeof reqs === 'object') {
                         for (let i = 0; i < reqs.length; i++) {
-                            _verifyAndAddReq(shell.use[useName], item, reqs[i]);
+                            this._verifyAndAddReq(shell.use[useName], item, reqs[i]);
                         }
                     }
                     else {
-                        _verifyAndAddReq(shell.use[useName], item, reqs);
+                        this._verifyAndAddReq(shell.use[useName], item, reqs);
                     }
                 }
                 else {
@@ -749,7 +498,7 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
 
     /* Verifies that the shell has all requirements, and adds them to the
      * object, into useArgs.reqName. */
-    const _verifyAndAddReq = (obj, item, reqName) => {
+    this._verifyAndAddReq = (obj, item, reqName) => {
         if (obj.hasOwnProperty(reqName)) {
             item.useArgs[reqName] = obj[reqName];
         }
@@ -785,7 +534,7 @@ Creator.prototype.createBrain = function(actor, brainName: string): void {
 
 /* Object handling the procedural generation. It has an object "database" and
  * objects can be pulled randomly from it. */
-export const ProcGen = function(db, dbDanger) {
+export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
     this._db = db;
     this._dbDanger = dbDanger;
 
@@ -804,7 +553,7 @@ export const ProcGen = function(db, dbDanger) {
         // Specifying name returns an array
         if (!RG.isNullOrUndef([name])) {
             if (!categ) {
-                RG.err('ProcGen', 'dbGet', 
+                RG.err('ProcGen', 'dbGet',
                     'Both name and categ must be given!');
             }
             return this._db[categ][name];
