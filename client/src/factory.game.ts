@@ -306,10 +306,7 @@ FactoryGame.prototype.createOverWorldGame = function(obj: IFactoryGameConf, game
 
     let enterMsg = 'You have decided to venture outside your home village.';
     enterMsg += ' You feel there is something drawing you towards the North.';
-    const levelCb = new LevelCallback('msg');
-    levelCb.msg = enterMsg;
-
-    player.getLevel().setOnFirstEnter(levelCb);
+    RG.gameMsg(enterMsg);
     this.progress('DONE');
 
     const endTime = new Date().getTime();
@@ -509,9 +506,6 @@ FactoryGame.prototype.createCityConfForPlayerHome = function(
         lX = pX;
         lY = pY;
     }
-    else {
-        console.error('createCityConfForPlayerHome: Player XY not defined yet');
-    }
 
     const homeConf = {
         name: 'Home town of ' + player.getName(),
@@ -538,7 +532,6 @@ FactoryGame.prototype.createCityConfForPlayerHome = function(
         }]
     };
 
-    console.log('Hometown located @ ', lX, lY);
     player.setXY(lX, lY);
     worldConf.area[0].city.push(homeConf);
 };
@@ -726,7 +719,6 @@ FactoryGame.getOwConf = function(mult = 1, obj: any = {}): OWMapConf {
             owConf[key] = obj.owConf[key];
         });
     }
-    console.log('owConf is', owConf);
     return owConf;
 };
 
