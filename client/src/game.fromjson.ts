@@ -32,7 +32,9 @@ import {WorldSimulation} from './world.simulation';
 
 import {Brain} from './brain';
 import {BrainPlayer} from './brain/brain.player';
-import { BrainSpawner } from './brain/brain.virtual';
+import {BrainSpawner} from './brain/brain.virtual';
+import {MessageHandler} from './message-handler';
+import {JsonMap} from './interfaces';
 
 type IAreaTileJSON = World.IAreaTileJSON;
 type Stairs = Element.ElementStairs;
@@ -96,15 +98,15 @@ FromJSON.prototype.reset = function() {
     this.compsWithMissingRefs = {};
 };
 
-FromJSON.prototype.setChunkMode = function(enable) {
+FromJSON.prototype.setChunkMode = function(enable: boolean): void {
     this.chunkMode = enable;
 };
 
-FromJSON.prototype.getDungeonLevel = function() {
+FromJSON.prototype.getDungeonLevel = function(): number {
     return this._dungeonLevel;
 };
 
-FromJSON.prototype.addObjRef = function(type, obj, json) {
+FromJSON.prototype.addObjRef = function(type, obj, json): void {
     const id = obj.getID();
     if (!Number.isInteger(id)) {
         RG.err('FromJSON', 'addObjRef',
@@ -182,7 +184,6 @@ FromJSON.prototype.createGame = function(game, gameJSON) {
     this.dbg('createGame: Restoring now full game');
     this.IND = 1;
 
-    // const game = new RG.Game.Main();
     this.setGlobalConfAndObjects(game, gameJSON);
     if (gameJSON.chunkManager) {
         this.setChunkMode(true);
@@ -390,7 +391,8 @@ FromJSON.prototype.createComponent = function(name, compJSON) {
         RG.err('Game.FromJSON', 'createComponent', msg);
     }
     // TODO remove error check, change to Component.create(name)
-    const newCompObj = new Component[name]();
+    // const newCompObj = new Component[name]();
+    const newCompObj = Component.create(name);
     for (const setFunc in compJSON) {
         if (typeof newCompObj[setFunc] === 'function') {
             const valueToSet = compJSON[setFunc];
@@ -985,7 +987,7 @@ FromJSON.prototype.createBaseElem = function(cell: string) {
     return null;
 };
 
-FromJSON.prototype.setGlobalConfAndObjects = function(game, gameJSON) {
+FromJSON.prototype.setGlobalConfAndObjects = function(game, gameJSON: JsonMap) {
     if (gameJSON.globalConf) {
         this.dbg('Setting globalConf for game: '
             + JSON.stringify(gameJSON.globalConf, null, 1));
@@ -1003,6 +1005,12 @@ FromJSON.prototype.setGlobalConfAndObjects = function(game, gameJSON) {
     }
     if (gameJSON.objectShellParser) {
         ObjectShell.restoreParser(gameJSON.objectShellParser);
+    }
+    const engineJSON: JsonMap = gameJSON.engine as JsonMap;
+    if (engineJSON.msgHandler) {
+        const msgJSON = engineJSON.msgHandler;
+        const pool = game.getPool();
+        game._engine._msg = MessageHandler.fromJSON(msgJSON, pool);
     }
 };
 
@@ -1086,7 +1094,7 @@ FromJSON.prototype.restoreGameMaster = function(game, json) {
     return gameMaster;
 };
 
-FromJSON.prototype.restoreBattle = function(json: BattleJSON) {
+FromJSON.prototype.restoreBattle = function(json: BattleJSON): Battle {
     const battleLevel = this.getLevelOrFatal(json.level, 'restoreBattle');
     if (battleLevel) {
         ++this.IND;
