@@ -10,6 +10,7 @@ import {ItemGen} from '../../../client/data/item-gen';
 import {chaiBattles} from '../../helpers/chai-battles';
 import {SentientActor } from '../../../client/src/actor';
 import {ObjectShell} from '../../../client/src/objectshellparser';
+import {ObjectShellComps} from '../../../client/src/objectshellcomps';
 import {FactoryActor} from '../../../client/src/factory.actors';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {FactoryBase as Factory} from '../../../client/src/factory';
@@ -224,10 +225,11 @@ describe('ObjectShell.Parser', () => {
         const shell = parser.parseObjShell(RG.TYPE_ACTOR, bat);
         const batActor = new SentientActor('bat');
 
-        creator.addComponents(shell, batActor);
+        const compGen = new ObjectShellComps();
+        compGen.addComponents(shell, batActor);
         expect(batActor).to.have.component('Flying');
 
-        creator.addComponents({addComp: ['Flying', 'FirstStrike']},
+        compGen.addComponents({addComp: ['Flying', 'FirstStrike']},
             batActor);
         expect(batActor).to.have.component('FirstStrike');
         expect(batActor).to.have.component('Flying');
