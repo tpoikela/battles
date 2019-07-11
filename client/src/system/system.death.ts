@@ -226,8 +226,8 @@ export class SystemDeath extends SystemBase {
                 newShell.addComp = ['Undead'];
             }
             newShell.name = 'undead ' + newShell.name;
+            newShell.color = {fg: 'Cyan', bg: 'Black'};
             parser.parseObjShell(RG.TYPE_ACTOR, newShell);
-            console.log('Added new actor ', newShell.name, 'to parser');
         }
     }
 
