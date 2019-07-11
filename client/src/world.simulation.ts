@@ -15,6 +15,11 @@ import {TCoord} from './interfaces';
 type OWMap = import('./overworld.map').OWMap;
 type Level = import('./level').Level;
 
+export enum WS_EVENT {
+    'PHASE_CHANGED',
+    'DAY_CHANGED'
+}
+
 export class WorldSimulation {
 
     public static fromJSON: (json: any) => WorldSimulation;
@@ -43,9 +48,12 @@ export class WorldSimulation {
     /* Updates all sub-components. */
     public update(): void {
         this.dayMan.update();
-        this.worldEntity.add(new Component.WorldSimEvent());
 
         if (this.dayMan.phaseChanged()) {
+            const wsEvent = new Component.WorldSimEvent();
+            wsEvent.setEventType(WS_EVENT.PHASE_CHANGED);
+            wsEvent.setEventData({currPhase: this.dayMan.getCurrPhase()});
+            this.worldEntity.add(wsEvent);
             this.seasonMan.changeWeather();
         }
 
