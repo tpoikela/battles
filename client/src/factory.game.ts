@@ -221,8 +221,12 @@ FactoryGame.prototype.addRaceStuff = function(obj, player) {
         const mods = raceMods[playerClass];
         const classItems = mods.startingItems;
         const classEqs = mods.equipment;
-        FactoryItem.addItemsToActor(player, classItems);
-        FactoryItem.equipItemsToActor(player, classEqs);
+        if (classItems) {
+            FactoryItem.addItemsToActor(player, classItems);
+        }
+        if (classEqs) {
+            FactoryItem.equipItemsToActor(player, classEqs);
+        }
     }
 };
 
