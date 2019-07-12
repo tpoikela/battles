@@ -55,6 +55,9 @@ OW.biomeTypeMap = {
     grassland: 5
 };
 
+OW.PATH_WCAP_BTOWER = 'PATH_WCAP_BTOWER';
+OW.PATH_BEGIN_WCAP = 'PATH_BEGIN_WCAP';
+
 const elemStyles = RG.cellStyles.elements;
 // These styles will be used to render the OW map
 OW.classNames = {
@@ -75,6 +78,8 @@ OW.classNames = {
   default: 'cell-element-ow'
 
 };
+
+OW.PASSABLE_FORT = [OW.WCAPITAL, OW.WTOWER, OW.BTOWER, OW.BCAPITAL];
 
 OW.BIOME = {};
 OW.BIOME.ALPINE = 'alpine';

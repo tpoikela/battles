@@ -8,9 +8,10 @@ import dbg = require('debug');
 const debug = dbg('bitn:OW');
 
 import RG from './rg';
-import {TCoord, BBox, OWMapConf} from './interfaces';
+import {TCoord, BBox, OWMapConf, ICoordXY} from './interfaces';
 
 import {CellMap} from './map';
+import {Path} from './path';
 import {Geometry} from './geometry';
 import {OW} from './ow-constants';
 import {Random} from './random';
@@ -36,27 +37,48 @@ interface OWWall {
     type: string;
 }
 
+type FilterFunc = (x: number, y: number, feats: string[], isWall: boolean) => boolean;
+
 export class OWMap {
 
+    public static isPassable: (ow: OWMap, x: number, y: number) => boolean;
     public static createOverWorld: (conf) => OWMap;
-    public static fromJSON: (json) => OWMap;
+    public static getPath: (ow: OWMap, xy0: TCoord, xy1: TCoord) => ICoordXY[];
 
-    public _baseMap: string[][];
-    public _explored: {[key: string]: boolean};
-    public _subLevels: OWSubLevel[][];
-
-    public _hWalls: OWWall[];
-    public _vWalls: OWWall[];
-
-    public _features: {[key: string]: TCoord[]};
-    public _featureData: {[key: string]: FeatData[]};
-    public _featuresByXY: {[key: string]: string[]};
-
-    public _biomeMap: {[key: string]: string};
-
-    public _terrMap: Territory;
+    public static fromJSON(json): OWMap {
+        const ow = new OWMap();
+        ow.setMap(json.baseMap);
+        ow._features = json.features;
+        ow._featuresByXY = json.featuresByXY;
+        ow._vWalls = json.vWalls;
+        ow._hWalls = json.hWalls;
+        ow._biomeMap = json.biomeMap;
+        ow._explored = json.explored;
+        if (json.terrMap) {
+            ow._terrMap = Territory.fromJSON(json.terrMap);
+        }
+        return ow;
+    }
 
     public coordMap: any;
+
+    // Anything assigned here will be printed as last
+    public debugMap: {[key: string]: string};
+
+    protected _baseMap: string[][];
+    protected _explored: {[key: string]: boolean};
+    protected _subLevels: OWSubLevel[][];
+
+    protected _hWalls: OWWall[];
+    protected _vWalls: OWWall[];
+
+    protected _features: {[key: string]: TCoord[]};
+    protected _featureData: {[key: string]: FeatData[]};
+    protected _featuresByXY: {[key: string]: string[]};
+
+    protected _biomeMap: {[key: string]: string};
+    protected _terrMap: Territory;
+    protected _paths: {[key: string]: ICoordXY[]};
 
     constructor() {
         this._baseMap = [];
@@ -73,7 +95,12 @@ export class OWMap {
         this._biomeMap = {};
 
         this._terrMap = null;
+
+        this.debugMap = {};
+        this._paths = {};
     }
+
+    public hasTerrMap(): boolean {return !!this._terrMap;}
 
     public getSizeXY(): TCoord {
         return [this.getSizeX(), this.getSizeY()];
@@ -90,6 +117,10 @@ export class OWMap {
     public isWallTile(x: number, y: number): boolean {
         const tile = this._baseMap[x][y];
         return OW.ALL_WALLS_LUT.hasOwnProperty(tile);
+    }
+
+    public isTerm(x: number, y: number): boolean {
+        return this._baseMap[x][y] === OW.TERM;
     }
 
     public numTiles(tile: string): number {
@@ -150,6 +181,20 @@ export class OWMap {
         return this._vWalls.length;
     }
 
+    public getHWall(i: number): OWWall {
+        if (i < this._hWalls.length) {
+            return this._hWalls[i];
+        }
+        return null;
+    }
+
+    public getVWall(i: number): OWWall {
+        if (i < this._vWalls.length) {
+            return this._vWalls[i];
+        }
+        return null;
+    }
+
     public getHWalls(): OWWall[] {
         return this._hWalls;
     }
@@ -189,6 +234,11 @@ export class OWMap {
         this._hWalls.push(wall);
     }
 
+    public hasFeatureAt(xy: TCoord): boolean {
+        const keyXY = xy[0] + ',' + xy[1];
+        return this._featuresByXY.hasOwnProperty(keyXY);
+    }
+
     public addFeature(xy: TCoord, type: string): void {
         const keyXY = xy[0] + ',' + xy[1];
         if (!this._features.hasOwnProperty(type)) {
@@ -219,6 +269,21 @@ export class OWMap {
     public getFeaturesByXY(xy: TCoord): string[] {
         const keyXY = xy[0] + ',' + xy[1];
         return this._featuresByXY[keyXY];
+    }
+
+    public addPath(name: string, path: ICoordXY[]): void {
+        this._paths[name] = path;
+    }
+
+    public getFeaturesOnPath(path: ICoordXY[]): {[key: string]: string[]} {
+        const res = {};
+        path.forEach((xy: ICoordXY) => {
+            const {x, y} = xy;
+            if (this.hasFeatureAt([x, y])) {
+                res[x + ',' + y] = this.getFeaturesByXY([x, y]);
+            }
+        });
+        return res;
     }
 
     public addSubLevel(xy: TCoord, level: OWSubLevel): void {
@@ -306,13 +371,21 @@ export class OWMap {
             }
           }
         }
+
+        Object.keys(this.debugMap).forEach(xy => {
+            console.log('key is ' + xy);
+            const [x, y] = xy.split(',');
+            const xx = parseInt(x, 10);
+            const yy = parseInt(y, 10);
+            map[xx][yy] = this.debugMap[xy];
+        });
         return map;
     }
 
     /* Returns the OWMap represented as Map.CellList. Marker elements are used to
      * show the visible cells. */
     public getCellList(): CellMap {
-        const map = this.getOWMap();
+        const map: string[][] = this.getOWMap();
         const sizeY = map[0].length;
         const sizeX = map.length;
 
@@ -376,6 +449,42 @@ export class OWMap {
         result += '\n' + legend.join('\n');
         return result;
     }
+
+    public filter(func: FilterFunc): {[key: string]: string[]} {
+        const res = {};
+        const [sizeX, sizeY] = this.getSizeXY();
+        for (let x = 0; x < sizeX; x++) {
+            for (let y = 0; y < sizeY; y++) {
+                const isWall = this.isWallTile(x, y);
+                const feats = this.getFeaturesByXY([x, y]);
+                if (func(x, y, feats, isWall)) {
+                    res[x + ',' + y] = feats;
+                }
+            }
+        }
+        return res;
+    }
+
+    public addPathToDebug(path: ICoordXY[]): void {
+        path.forEach((xy, i) => {
+            if (i === 0) {
+                this.debugMap[xy.x + ',' + xy.y] = 'X';
+            }
+            else if (i === path.length - 1) {
+                this.debugMap[xy.x + ',' + xy.y] = '0';
+            }
+            else {
+                this.debugMap[xy.x + ',' + xy.y] = '*';
+            }
+        });
+    }
+
+    public getPath(name: string): ICoordXY[] {
+        if (this._paths[name]) {
+            return this._paths[name];
+        }
+        return [];
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -383,7 +492,7 @@ export class OWMap {
 //---------------------------------------------------------------------------
 
 /* Creates an empty map. */
-function createEmptyMap(sizeX, sizeY) {
+function createEmptyMap(sizeX: number, sizeY: number): string[][] {
     const map = [];
     for (let x = 0; x < sizeX; x++) {
         map[x] = [];
@@ -688,19 +797,19 @@ function addOverWorldFeatures(ow: OWMap, conf: OWMapConf): void {
 
     // City of B, + other wall fortresses
     if (numHorWalls > 1) {
-        addFeatureToWall(ow, ow._hWalls[1], OW.WCAPITAL);
-        addFeatureToWall(ow, ow._hWalls[0], OW.WTOWER);
+        addFeatureToWall(ow, ow.getHWall(1), OW.WCAPITAL);
+        addFeatureToWall(ow, ow.getHWall(0), OW.WTOWER);
     }
     if (numHorWalls > 2) {
         for (let i = 2; i < numHorWalls; i++) {
-            addFeatureToWall(ow, ow._hWalls[i], OW.VTUNNEL);
+            addFeatureToWall(ow, ow.getHWall(i), OW.VTUNNEL);
         }
     }
 
     const numVerWalls = ow.numVWalls();
     if (numVerWalls > 0) {
-        addFeatureToWall(ow, ow._vWalls[numVerWalls - 1], OW.BTOWER);
-        addFeatureToWall(ow, ow._vWalls[numVerWalls - 1], OW.BCAPITAL);
+        addFeatureToWall(ow, ow.getVWall(numVerWalls - 1), OW.BTOWER);
+        addFeatureToWall(ow, ow.getVWall(numVerWalls - 1), OW.BCAPITAL);
     }
 
     const cmdBetweenHWalls = {y: {start: ['wall', 0], end: ['wall', 1]}};
@@ -746,6 +855,45 @@ function addOverWorldFeatures(ow: OWMap, conf: OWMapConf): void {
     }
 
     // Adds roads for created features
+}
+
+function addOverWorldPaths(ow: OWMap, conf: OWMapConf): void {
+    const xyBT = ow.getFeaturesByType(OW.BTOWER);
+    const xyWC = ow.getFeaturesByType(OW.WCAPITAL);
+    const path = OWMap.getPath(ow, xyWC[0], xyBT[0]);
+    ow.addPath(OW.PATH_WCAP_BTOWER, path);
+
+    const featsOnPath = ow.getFeaturesOnPath(path);
+    const ratio = path.length / Object.keys(featsOnPath).length;
+    console.log('OW_CAP->BTOWER Path/feats ratio is ' + ratio);
+
+    // const xyBegin: TCoord = [1, ow.getSizeY() - 2];
+    const featsByXY = ow.filter((x, y, feats, isWall) => {
+        if (!feats) {return false;}
+        if (y === (ow.getSizeY() - 2)) {
+            if (cellMatches(OW.WVILLAGE, feats)) {
+                return true;
+            }
+            if (cellMatches(OW.BVILLAGE, feats)) {
+                return true;
+            }
+            if (ow.isTerm(x, y)) {
+                return true;
+            }
+        }
+        return false;
+    });
+    const key: string = getRNG().arrayGetRand(Object.keys(featsByXY));
+    if (key) {
+        const [xStr, yStr] = key.split(',');
+        const xyBegin: TCoord = [parseInt(xStr, 10), parseInt(yStr, 10)];
+        const pathBegin = OWMap.getPath(ow, xyBegin, xyWC[0]);
+        ow.addPath(OW.PATH_BEGIN_WCAP, pathBegin);
+    }
+    else {
+        RG.err('overworld.map', 'addOverWorldPaths',
+            'No path from BEGIN to WCAP found');
+    }
 }
 
 /* Adds a feature to the map based on the cardinal direction. */
@@ -1061,6 +1209,34 @@ function getBoundingBox(ow, cmd) {
 
 }
 
+OWMap.isPassable = function(ow: OWMap, x: number, y: number): boolean {
+    if (x < 0 || x >= ow.getSizeX()) {return false;}
+    if (y < 0 || y >= ow.getSizeY()) {return false;}
+    if (ow.isWallTile(x, y)) {
+        let found = false;
+        if (ow.hasFeatureAt([x, y])) {
+            const feats: string[] = ow.getFeaturesByXY([x, y]);
+            const passable = OW.PASSABLE_FORT;
+            feats.forEach((feat: string) => {
+                found = found || passable.indexOf(feat) >= 0;
+            });
+        }
+        return found;
+    }
+    return true;
+};
+
+OWMap.getPath = function(ow: OWMap, xy0: TCoord, xy1: TCoord): ICoordXY[] {
+    const [x0, y0] = xy0;
+    const [x1, y1] = xy1;
+
+    const passableCb = (x, y) => {
+        return OWMap.isPassable(ow, x, y);
+    };
+    const path = Path.getShortestPath(x0, y0, x1, y1, passableCb);
+    return path;
+};
+
 /* Creates the overworld map and returns the created map. */
 OWMap.createOverWorld = function(conf: OWMapConf = {}): OWMap {
     const yFirst = typeof conf.yFirst !== 'undefined' ? conf.yFirst : true;
@@ -1095,6 +1271,7 @@ OWMap.createOverWorld = function(conf: OWMapConf = {}): OWMap {
     overworld.setMap(owMap);
 
     addOverWorldFeatures(overworld, conf);
+    addOverWorldPaths(overworld, conf);
 
     // High-level overworld generation ends here
 
@@ -1104,17 +1281,3 @@ OWMap.createOverWorld = function(conf: OWMapConf = {}): OWMap {
     return overworld;
 };
 
-OWMap.fromJSON = function(json): OWMap {
-    const ow = new OWMap();
-    ow.setMap(json.baseMap);
-    ow._features = json.features;
-    ow._featuresByXY = json.featuresByXY;
-    ow._vWalls = json.vWalls;
-    ow._hWalls = json.hWalls;
-    ow._biomeMap = json.biomeMap;
-    ow._explored = json.explored;
-    if (json.terrMap) {
-        ow._terrMap = Territory.fromJSON(json.terrMap);
-    }
-    return ow;
-};
