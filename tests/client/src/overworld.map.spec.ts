@@ -9,7 +9,7 @@ import {ElementMarker} from '../../../client/src/element';
 describe('OWMap', () => {
     it('can be created', () => {
         const ow = new OWMap();
-        expect(ow).to.exist;
+        expect(ow.hasTerrMap()).to.equal(false);
     });
 
     it('can be created with factory function', () => {
@@ -26,14 +26,24 @@ describe('OWMap', () => {
 
     it('has biomes and features added', () => {
         const conf = {
-            owTilesX: 40,
+            owTilesX: 40 ,
             owTilesY: 20
         };
         const ow = OWMap.createOverWorld(conf);
-        expect(ow.getBiome(0, 1)).to.not.be.empty;
+        expect(ow.getBiome(0, 1)).to.match(/[a-zA-Z_]+/);
 
         const features = ow.getFeaturesByType(OW.WCAPITAL);
         expect(features).to.have.length(1);
+
+        const xyBT = ow.getFeaturesByType(OW.BTOWER);
+        const xyWC = ow.getFeaturesByType(OW.WCAPITAL);
+        const path = OWMap.getPath(ow, xyBT[0], xyWC[0]);
+        ow.addPathToDebug(path);
+        expect(path).to.have.length.above(0);
+        const beginPath = ow.getPath(OW.PATH_BEGIN_WCAP);
+        ow.addPathToDebug(beginPath);
+        expect(beginPath).to.have.length.above(2);
+        // console.log(ow.mapToString());
     });
 
     it('can be constructed as Map.CellList', function() {
