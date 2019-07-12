@@ -175,7 +175,7 @@ function getStairsOther(name: string, levels: Level[]): Stairs[] {
 
 /* Finds a level from a named zone such as city quarter, dungeon branch or
  * mountain face. */
-function findLevel(name: string, zones: ZoneObj[], nLevel): Level | null {
+function findLevel(name: string, zones: ZoneObj[], nLevel: number): Level | null {
     const zone = zones.find(z => {
         return z.getName() === name;
     });
@@ -984,7 +984,7 @@ export class AreaTile {
     }
 
     /* Connect this tile to east and south tiles */
-    public connect(eastTile, southTile) {
+    public connect(eastTile: AreaTile, southTile: AreaTile): void {
         const lastX = this.cols - 1;
         const lastY = this.rows - 1;
 
@@ -1059,6 +1059,7 @@ export class AreaTile {
         return zones;
     }
 
+    /* Returns levels in all zones contained in this AreaTile. */
     public getLevels(): Level[] {
         let res = [this._level];
         Object.keys(this.zones).forEach(type => {
