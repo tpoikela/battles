@@ -251,7 +251,7 @@ FactoryGame.prototype.createOverWorldGame = function(obj: IFactoryGameConf, game
     const overworld = OWMap.createOverWorld(owConf);
     this.progress('DONE');
 
-    if (!overworld._terrMap) {
+    if (!overworld.hasTerrMap()) {
         this.progress('Generating territory for clans/races...');
         const terrMap = this.createTerritoryMap(overworld, obj.playerRace,
             playerX, playerY);
