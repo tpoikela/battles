@@ -39,6 +39,7 @@ import {JsonMap} from './interfaces';
 type IAreaTileJSON = World.IAreaTileJSON;
 type Stairs = Element.ElementStairs;
 type ElementBase = Element.ElementBase;
+type Entity = import('./entity').Entity;
 
 const POOL = EventPool.getPool();
 const SentientActor = Actor.Sentient;
@@ -366,7 +367,7 @@ FromJSON.prototype.restoreLevelEntity = function(json, entity) {
 };
 
 /* Adds given components into Entity object. */
-FromJSON.prototype.addCompsToEntity = function(ent, comps) {
+FromJSON.prototype.addCompsToEntity = function(ent: Entity, comps) {
     for (const id in comps) {
         if (id) {
             const compJSON = comps[id];
