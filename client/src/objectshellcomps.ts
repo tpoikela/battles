@@ -7,6 +7,9 @@ import {IAddCompObj, IShell} from './interfaces';
 import {Random} from './random';
 import {Dice} from './dice';
 
+import dbg = require('debug');
+const debug = dbg('bitn:objectshellcomps');
+
 type Entity = import('./entity').Entity;
 const RNG = Random.getRNG();
 
@@ -25,7 +28,11 @@ interface IAddOnComp {
 
 export class ObjectShellComps {
 
-    constructor() {
+    protected debug: boolean;
+
+    constructor(args?: any) {
+        this.debug = debug.enabled;
+        if (args && args.debug) {this.debug = args.debug;}
     }
 
     /* This function makes a pile of mess if used on non-entities. */
@@ -270,7 +277,7 @@ export class ObjectShellComps {
         }
     }
 
-    protected _addCompFromObj(entity, compObj): void {
+    protected _addCompFromObj(entity: Entity, compObj): void {
         this.addCompToObj(entity, compObj, null);
     }
 }
