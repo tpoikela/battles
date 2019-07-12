@@ -14,6 +14,8 @@ import {Random} from './random';
 import {ObjectShell} from './objectshellparser';
 import * as Element from './element';
 
+type Level = import('./level').Level;
+
 const RNG = Random.getRNG();
 
 export interface ActorConf {
@@ -46,7 +48,7 @@ export const FactoryZone = function() {
         this.rng = rng;
     };
 
-    this.addItemsAndActors = function(level, conf) {
+    this.addItemsAndActors = function(level: Level, conf): void {
         this._verif.verifyConf('addItemsAndActors', conf,
             ['nLevel', 'sqrPerItem', 'sqrPerActor', 'maxValue']);
 
@@ -114,7 +116,7 @@ export const FactoryZone = function() {
 
     /* Creates dungeon level. Unless levelType is given, chooses the type
      * randomly. */
-    this.createDungeonLevel = function(conf) {
+    this.createDungeonLevel = function(conf): Level {
         this._verif.verifyConf('createDungeonLevel', conf, ['x', 'y']);
         let level = null;
         let levelType = this.getRandLevelType();
@@ -129,7 +131,7 @@ export const FactoryZone = function() {
     };
 
 
-    this.createMountainLevel = function(conf) {
+    this.createMountainLevel = function(conf): Level {
         let mountConf = Object.assign(MountainGenerator.getFaceOptions(),
             {
                 maxValue: 100,
@@ -143,13 +145,11 @@ export const FactoryZone = function() {
         const mountGen = new MountainGenerator();
         const mountainLevel = mountGen.createFace(conf.x, conf.y,
             mountConf);
-        /* const mountainLevel = this.createLevel('mountain',
-            conf.x, conf.y, mountConf);*/
         this.addItemsAndActors(mountainLevel, mountConf);
         return mountainLevel;
     };
 
-    this.createSummitLevel = function(conf) {
+    this.createSummitLevel = function(conf): Level {
         this._verif.verifyConf('createSummitLevel', conf, ['cols', 'rows']);
         let summitConf = {
             maxValue: 100,
@@ -174,7 +174,7 @@ export const FactoryZone = function() {
 
     /* Called for each nLevels of city quarter. Delegates the task to other
     * functions based on the type of city and quarter. */
-    this.createCityLevel = function(nLevel, conf) {
+    this.createCityLevel = function(nLevel: number, conf): Level {
         const levelConf = Factory.cityConfBase(conf);
         levelConf.parser = this._parser;
         let cityLevel = null;
@@ -235,7 +235,7 @@ export const FactoryZone = function() {
         return cityLevel;
     };
 
-    this.createVillageLevel = function(cols, rows, levelConf) {
+    this.createVillageLevel = function(cols: number, rows: number, levelConf): Level {
         levelConf.levelType = 'empty';
         levelConf.wallType = 'wooden';
 
@@ -255,7 +255,7 @@ export const FactoryZone = function() {
         return level;
     };
 
-    this.createFortLevel = function(cols, rows, levelConf) {
+    this.createFortLevel = function(cols: number, rows: number, levelConf): Level {
         const castleGen = new CastleGenerator();
         levelConf.roomCount = -1; // Fill all castle tiles
         if (!levelConf.maxDanger) {levelConf.maxDanger = 6;}
@@ -264,7 +264,7 @@ export const FactoryZone = function() {
         return level;
     };
 
-    this.createCapitalLevel = function(nLevel, cols, rows, levelConf) {
+    this.createCapitalLevel = function(nLevel: number, cols: number, rows: number, levelConf): Level {
         levelConf.levelType = 'miner';
         let level = null;
         if (nLevel === 0) {
@@ -278,14 +278,14 @@ export const FactoryZone = function() {
         return level;
     };
 
-    this.createStrongholdLevel = function(cols, rows, levelConf) {
+    this.createStrongholdLevel = function(cols: number, rows: number, levelConf): Level {
         levelConf.levelType = 'miner';
         const level = this.createLevel('town', 100, 84, levelConf);
         this.populateCityLevel(level, levelConf);
         return level;
     };
 
-    this.populateCityLevel = function(level, levelConf) {
+    this.populateCityLevel = function(level: Level, levelConf): void {
         let alignment = levelConf.alignment;
         if (!alignment) {
             alignment = this.rng.arrayGetRand(RG.ALIGNMENTS);
@@ -308,7 +308,7 @@ export const FactoryZone = function() {
     };
 
     /* Adds items to the city level in a reasonable way. */
-    this.addItemsToCityLevel = function(level, levelConf) {
+    this.addItemsToCityLevel = function(level: Level, levelConf): void {
         const map = level.getMap();
         const floorCells = map.getCells(cell => (
             cell.getBaseElem().getType() === 'floorhouse'
@@ -326,7 +326,7 @@ export const FactoryZone = function() {
         factItem.addItemsToCells(level, parser, floorCells, itemConf);
     };
 
-    this.populateWithActors = function(level, levelConf) {
+    this.populateWithActors = function(level: Level, levelConf): void {
         const actorConf = {
             actorsPerLevel: levelConf.actorsPerLevel || 100,
             maxDanger: levelConf.maxDanger || 10,
@@ -344,7 +344,7 @@ export const FactoryZone = function() {
         }
     };
 
-    this.populateWithHumans = function(level, levelConf) {
+    this.populateWithHumans = function(level: Level, levelConf): void {
         const actorConf = {
             actorsPerLevel: levelConf.actorsPerLevel || 100,
             maxDanger: levelConf.maxDanger || 10,
@@ -357,7 +357,7 @@ export const FactoryZone = function() {
         this.addNRandActors(level, this._parser, actorConf);
     };
 
-    this.populateWithEvil = function(level, levelConf) {
+    this.populateWithEvil = function(level: Level, levelConf): void {
         let allOK = false;
         while (!allOK) {
             const raceType = this.rng.arrayGetRand(RG.EVIL_RACES);
@@ -373,7 +373,7 @@ export const FactoryZone = function() {
         }
     };
 
-    this.populateWithNeutral = function(level, levelConf) {
+    this.populateWithNeutral = function(level: Level, levelConf): void {
         const raceType = this.rng.arrayGetRand(RG.NEUTRAL_RACES);
         const actorConf = {
             actorsPerLevel: levelConf.actorsPerLevel || 100,
@@ -386,7 +386,7 @@ export const FactoryZone = function() {
         this.addNRandActors(level, this._parser, actorConf);
     };
 
-    this.addActorToLevel = (actorName, level) => {
+    this.addActorToLevel = (actorName: string, level: Level): void => {
         const actor = this._parser.createActor(actorName);
         const cell = level.getFreeRandCell();
         level.addActor(actor, cell.getX(), cell.getY());
@@ -394,7 +394,7 @@ export const FactoryZone = function() {
 
     /* Adds some special features to dungeon levels to make them more
      * interestings. */
-    this.addExtraDungeonFeatures = (level, conf) => {
+    this.addExtraDungeonFeatures = (level: Level, conf): void => {
         const extras = level.getExtras();
         if (extras.rooms) {
             extras.rooms.forEach(room => {
