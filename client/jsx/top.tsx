@@ -586,6 +586,7 @@ export class BattlesTop extends React.Component {
     public initGUICommandTable() {
         const guiCommands: any = {};
         guiCommands[Keys.GUI.Help] = this.GUIHelp.bind(this);
+        guiCommands[Keys.GUI.Help2] = this.GUIHelp.bind(this);
         guiCommands[Keys.GUI.Inv] = this.GUIInventory.bind(this);
         guiCommands[Keys.GUI.Map] = this.GUIMap.bind(this);
         guiCommands[Keys.GUI.OwMap] = this.GUIOverWorldMap.bind(this);
