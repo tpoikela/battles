@@ -73,12 +73,15 @@ Battles manual
 ==============
 
 This is a short manual accompanying Battles game. It should get you started with
-controls and basic commands of the game.
+controls and basic commands of the game. Use your browser's Find (typical Control/Cmd-F)
+to search anything in this manual.
 
-At the moment, you need both mouse and keyboard to play the game. While all the
+At the moment, you need both the mouse and keyboard to play the game. While all the
 ASCII-based menus are clickable by mouse, you need keyboard to open some of the
 menus. Also, the Inventory menu cannot be used with keyboard at the moment.
 These limitations will be addressed in the future versions of the game.
+
+<!-- toc -->
 
 About the Game
 --------------
@@ -93,8 +96,9 @@ zones.
 Mouse controls
 --------------
 
-You can move to an explored cell (not necessarily visible) by left-clicking that
-cell. If an enemy is seen before that cell is reached, the movement will stop.
+You can move to an explored cell (non-black, but not necessarily visible) by
+left-clicking that cell. If an enemy is seen before the cell is reached,
+the movement will stop automatically.
 
 Right-clicking a cell will bring up a context menu, from which you can choose an
 available action.
@@ -104,7 +108,7 @@ Key controls
 
 ${keyControls}
 
-Alternatively, you can use the numpad keys to move.
+Alternatively, you can use the numpad keys to move around.
 
 Movement
 --------
@@ -203,4 +207,35 @@ TODO
 
 `; // END OF MANUAL //
 
-Manual.fullText = marked(fullManualMarkdown);
+const renderer = new marked.Renderer();
+const toc = []; // your table of contents as a list.
+const tocMd = []; // ToC as markdown
+
+renderer.heading = function(text: string, level): string {
+  const slug = text.toLowerCase().replace(/[^\w]+/g, '-');
+  toc.push({
+    level, slug,
+    title: text
+  });
+  if (level > 1) {
+      if (level === 2) {
+          tocMd.push(`- [${text}](#${slug})`);
+      }
+      else if (level === 3) {
+          tocMd.push(`  - [${text}](#${slug})`);
+      }
+      else {
+          tocMd.push(`    - [${text}](#${slug})`);
+      }
+  }
+  return `<h${level} id="${slug}"><a href="#${slug}" class="anchor"></a>${text}</h${level}>`;
+};
+
+const convertMarkdown = function(text: string): string {
+    return marked(text, {renderer});
+};
+
+Manual.fullText = convertMarkdown(fullManualMarkdown);
+const mdWithToC = fullManualMarkdown.replace('<!-- toc -->', tocMd.join('\n'));
+Manual.fullText = convertMarkdown(mdWithToC);
+
