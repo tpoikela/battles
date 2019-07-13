@@ -119,6 +119,7 @@ export class TopLogic {
   }
 
 }
+
 class ProxyListener {
     public hasNotify: boolean;
     public cbNotify: (evtName: string, obj) => void;
@@ -237,7 +238,7 @@ export class GameManager {
         this.recordedCommands = [];
     }
 
-    public setGameSettings(name, value): void {
+    public setGameSettings(name: string, value: any): void {
         this.gameConf[name] = value;
     }
 
@@ -281,7 +282,7 @@ export class GameManager {
         };
     }
 
-    public guiState(name: string, value?) {
+    public guiState(name: string, value?: any) {
         if (!value) {return this.gameGUIState[name];}
         else {
             console.log('guiState setting value', name, 'to', value);
@@ -290,7 +291,7 @@ export class GameManager {
         }
     }
 
-    public setGUICommands(guiCommands): void {
+    public setGUICommands(guiCommands: {[key: string]: (...args: any[]) => void}): void {
         this.guiCommands = guiCommands;
     }
 
@@ -339,9 +340,10 @@ export class GameManager {
         return this.screen;
     }
 
-    public getPlayersAsList() {
+    public getPlayersAsList(): string[] {
         return this.gameSave.getPlayersAsList();
     }
+
 
     public enableKeys() {
       if (!this.keysEnabled) {
@@ -368,7 +370,7 @@ export class GameManager {
     }
 
     /* Listens for player key presses and handles them.*/
-    public handleKeyDown(evt) {
+    public handleKeyDown(evt): void {
         evt.stopPropagation();
         evt.preventDefault();
         const keyCode = KeyCode.getKeyCode(evt);
@@ -531,6 +533,7 @@ export class GameManager {
         const eventPool = this.game.getPool();
         eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         eventPool.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
+        eventPool.listenEvent(RG.EVT_PLAYER_KILLED, this.listener);
 
         this.frameID = requestAnimationFrame(this.mainLoop);
         this.updateCb({render: true});
@@ -770,7 +773,7 @@ export class GameManager {
         }
 
         preCb();
-        if (false && this.canUseWorker()) {
+        if (this.canUseWorker()) {
             console.log('documentURI:', document.documentURI);
             this.createGameWorker();
         }
@@ -855,6 +858,11 @@ export class GameManager {
                 this.gameGUIState.visibleCells = actor.getBrain().getSeenCells();
                 this.updateCb({render: true});
             }
+        }
+        else if (evtName === RG.EVT_PLAYER_KILLED) {
+            this.deleteGame(obj.actor.getName(), () => {
+                this.updateCb({render: true});
+            });
         }
     }
 
