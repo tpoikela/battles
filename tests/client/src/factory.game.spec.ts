@@ -1,7 +1,6 @@
 
 import { expect } from 'chai';
 
-import RG from '../../../client/src/rg';
 import {FactoryGame} from '../../../client/src/factory.game';
 import {OWMap} from '../../../client/src/overworld.map';
 import { OverWorld, CoordMap } from '../../../client/src/overworld';
