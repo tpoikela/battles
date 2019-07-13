@@ -64,6 +64,9 @@ export class SystemDeath extends SystemBase {
 
             RG.gameDanger({cell, msg: killMsg});
             POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor});
+            if (actor.isPlayer()) {
+                POOL.emitEvent(RG.EVT_PLAYER_KILLED, {actor});
+            }
 
             const evtComp = new Component.Event();
             evtComp.setArgs({type: RG.EVT_ACTOR_KILLED,
