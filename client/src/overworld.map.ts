@@ -890,10 +890,6 @@ function addOverWorldPaths(ow: OWMap, conf: OWMapConf): void {
         const pathBegin = OWMap.getPath(ow, xyBegin, xyWC[0]);
         ow.addPath(OW.PATH_BEGIN_WCAP, pathBegin);
     }
-    else {
-        RG.err('overworld.map', 'addOverWorldPaths',
-            'No path from BEGIN to WCAP found');
-    }
 }
 
 /* Adds a feature to the map based on the cardinal direction. */
@@ -1278,6 +1274,24 @@ OWMap.createOverWorld = function(conf: OWMapConf = {}): OWMap {
     if (printResult) {
         RG.log('\n', overworld.mapToString().join('\n')); // Print result
     }
+    if (conf.verify) {
+        verifyOverWorld(overworld);
+    }
     return overworld;
 };
 
+/* Checks that overworld can be completed, ie there's path from start to end. */
+function verifyOverWorld(ow: OWMap): void {
+    let errMsg = '';
+    const verifyPaths = [OW.PATH_WCAP_BTOWER, OW.PATH_BEGIN_WCAP];
+    verifyPaths.forEach((name: string) => {
+        const path: ICoordXY[] = ow.getPath(name);
+        if (!path || path.length === 0) {
+            errMsg += `Path ${name} not OK: |${JSON.stringify(path)}|\n`;
+        }
+    });
+
+    if (errMsg !== '') {
+        RG.err('overworld.map.ts', 'verifyOverWorld', errMsg);
+    }
+}
