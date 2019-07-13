@@ -50,6 +50,8 @@ replace_worker_path();
 _cmd("git add -f docs/build/*");
 _cmd("git commit -m 'Published new set of files' -a");
 
+print "Files to publish have been committed. Use 'git push origin master' to publish the changes\n";
+
 sub _cmd {
     my ($cmd) = @_;
     if (defined $opt{dryrun}) {
