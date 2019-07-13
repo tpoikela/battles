@@ -327,6 +327,7 @@ Keys.GUI = {};
 Keys.GUI.CharInfo = ROT.VK_I;
 Keys.GUI.Goto = Keys.KEY.GOTO;
 Keys.GUI.Help = ROT.VK_H;
+Keys.GUI.Help2 = ROT.VK_QUESTION_MARK;
 Keys.GUI.Inv = Keys.VK_i;
 Keys.GUI.Look = Keys.VK_l;
 Keys.GUI.Map = Keys.VK_m;
