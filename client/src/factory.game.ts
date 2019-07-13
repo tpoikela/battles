@@ -244,6 +244,7 @@ FactoryGame.prototype.createOverWorldGame = function(obj: IFactoryGameConf, game
     owConf.playerY = playerY;
     owConf.playerRace = obj.playerRace;
     owConf.createTerritory = true;
+    owConf.verify = true;
 
     const startTime = new Date().getTime();
 
