@@ -60,5 +60,7 @@ vimproject
 # For some game specific custom files
 tmp
 save_dumps
+results_dir
+ts_tests
 
 .tern-port
