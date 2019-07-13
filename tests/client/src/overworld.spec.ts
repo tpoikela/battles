@@ -1,6 +1,6 @@
 
+import * as RG from '../../../client/src/battles';
 const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
 
 describe('OverWorld.createOverWorld', function() {
     this.timeout(7000);
