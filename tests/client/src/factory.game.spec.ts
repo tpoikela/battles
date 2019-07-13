@@ -81,7 +81,8 @@ describe('Factory.Game', function() {
             nMountainsSouth: 1,
             nCitySouth: 1,
             nCityCenter: 1,
-            nCityNorth: 1
+            nCityNorth: 1,
+            verify: false
         };
         const gameConf: IFactoryGameConf = {
             playMode: 'OverWorld', sqrPerItem: 100, sqrPerActor: 100,
