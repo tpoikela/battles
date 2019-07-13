@@ -290,6 +290,7 @@ export interface OWMapConf {
     nCitySouth?: number;
     nCityCenter?: number;
     nCityNorth?: number;
+    verify?: boolean;
 }
 
 export interface IFactoryGameConf {
