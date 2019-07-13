@@ -28,15 +28,11 @@ import RG from '../src/rg';
 import {Keys} from '../src/keymap';
 
 import {ItemBase} from '../src/item';
-import {GameManager, TopLogic, VIEW_MAP, VIEW_PLAYER} from '../browser/game-manager';
-import * as Verify from '../src/verify';
+import {GameManager, VIEW_MAP, VIEW_PLAYER} from '../browser/game-manager';
 import {Cell} from '../src/map.cell';
-import {IMessage, IPlayerCmdInput, CmdInput} from '../src/interfaces';
-import {ACTOR_CLASSES} from '../src/actor-class';
+import {IMessage} from '../src/interfaces';
 
-const {KeyMap} = Keys;
 const INV_SCREEN = 'Inventory';
-// (window as any).RG = RG;
 
 export interface EditorData {
     [key: string]: any;
@@ -167,13 +163,13 @@ export class BattlesTop extends React.Component {
     }
 
     /* Sets the size of the shown map.*/
-    public setViewSize(obj, xOrY) {
+    public setViewSize(obj, xOrY): void {
         this.gameManager.setViewSize(obj, xOrY);
         this.setState({render: true});
     }
 
     /* Toggles view between normal view and zoomed out map view. */
-    public setViewType(type) {
+    public setViewType(type: number): void {
         this.gameManager.setViewType(type);
         this.setState({
             render: true,
