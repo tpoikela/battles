@@ -244,7 +244,6 @@ FactoryGame.prototype.createOverWorldGame = function(obj: IFactoryGameConf, game
     owConf.playerY = playerY;
     owConf.playerRace = obj.playerRace;
     owConf.createTerritory = true;
-    owConf.verify = true;
 
     const startTime = new Date().getTime();
 
@@ -717,7 +716,8 @@ FactoryGame.getOwConf = function(mult = 1, obj: any = {}): OWMapConf {
         nLevelsX: xMult * mult * 4,
         nLevelsY: yMult * mult * 4,
         nTilesX: xMult * mult * 4,
-        nTilesY: yMult * mult * 4
+        nTilesY: yMult * mult * 4,
+        verify: true
     };
     if (obj.owConf) {
         Object.keys(obj.owConf).forEach(key => {

@@ -770,7 +770,7 @@ export class GameManager {
         }
 
         preCb();
-        if (this.canUseWorker()) {
+        if (false && this.canUseWorker()) {
             console.log('documentURI:', document.documentURI);
             this.createGameWorker();
         }
