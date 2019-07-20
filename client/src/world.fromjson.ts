@@ -1,7 +1,6 @@
 
 import RG from './rg';
 import {ConfStack} from './conf-stack';
-import {Factory} from './factory';
 import {FactoryWorld} from './factory.world';
 import {Entity} from './entity';
 import {Level} from './level';
@@ -10,6 +9,20 @@ import * as Verify from './verify';
 import dbg = require('debug');
 const debug = dbg('bitn:WorldFromJSON');
 import * as World from './world';
+
+import {IWorldElemMap} from './interfaces';
+
+type WorldBase = World.WorldBase;
+
+// type FromJSON = import('./game.fromjson').FromJSON;
+
+interface LevelMap {
+    [key: number]: Level;
+}
+
+interface EntityMap {
+    [key: number]: Entity;
+}
 
 /* This class converts a serialized world back to World.Top object. It supports
  * unloaded AreaTiles, and does not create them as objects when
@@ -22,16 +35,18 @@ import * as World from './world';
  */
 export class WorldFromJSON {
 
-    public id2level: {[key: string]: Level};
-    public id2entity: {[key: string]: Entity};
-    private _conf: any; // TODO ConfStack;
+    public id2level: LevelMap;
+    public id2entity: EntityMap;
     public _verif: any; // TODO VerifyConf;
-    public worldElemByID: {[key: string]: any}; // TODO fix typings
+    public worldElemByID: IWorldElemMap; // TODO fix typings
     public createAllZones: boolean;
+    public fromJSON: any;
+
+    private _conf: any; // TODO ConfStack;
     private _IND: 0;
     private fact: any; // TODO FactoryWorld;
 
-    constructor(id2level, id2entity) {
+    constructor(id2level: LevelMap, id2entity: EntityMap) {
         this.id2level = id2level;
         this.id2entity = id2entity;
         this._conf = new ConfStack();
@@ -41,11 +56,11 @@ export class WorldFromJSON {
         this._IND = 0; // Used for indenting debug messages
     }
 
-    createPlace(placeJSON) {
+    public createPlace(placeJSON) {
         switch (placeJSON.type) {
             case 'world': return this.createWorld(placeJSON);
             case 'quarter': {
-                const fact = new RG.Factory.World();
+                const fact = new FactoryWorld();
                 fact.setId2Level(this.id2level);
                 return fact.createCityQuarter(placeJSON);
             }
@@ -56,7 +71,7 @@ export class WorldFromJSON {
     }
 
     /* Main function to call with a serialized JSON of WorldTop. */
-    createWorld(placeJSON) {
+    public createWorld(placeJSON) {
         let world = null;
         if (placeJSON.conf) {
             this.dbg('Creating a restored world now');
@@ -68,6 +83,7 @@ export class WorldFromJSON {
             this.dbg('Creating world using Factory.World fully');
             const fact = new FactoryWorld();
             fact.setId2Level(this.id2level);
+            fact.fromJSON = this.fromJSON;
             world = fact.createWorld(placeJSON);
         }
         return world;
@@ -75,7 +91,7 @@ export class WorldFromJSON {
 
     /* Given a serialized WorldTop in JSON, returns the created
      * WorldTop object. */
-    createRestoredWorld(worldJSON) {
+    public createRestoredWorld(worldJSON) {
         if (!worldJSON.conf) {
             RG.err('WorldFromJSON', 'createRestoredWorld',
                 'No worldJSON.conf. Does not look like restored world.');
@@ -100,24 +116,25 @@ export class WorldFromJSON {
         return world;
     }
 
-    pushScope(json) {
+    public pushScope(json) {
         this._conf.pushScope(json);
         this.fact.pushScope(json);
         ++this._IND;
     }
 
-    popScope(json) {
+    public popScope(json) {
         this._conf.popScope(json);
         this.fact.popScope(json);
         --this._IND;
     }
 
-    getHierName() {return this._conf.getScope().join('.');}
+    public getHierName() {return this._conf.getScope().join('.');}
 
-    createWorldFromJSON(worldJSON) {
+    public createWorldFromJSON(worldJSON) {
         const fact = new FactoryWorld();
         fact.setId2Level(this.id2level);
         fact.id2entity = this.id2entity;
+        fact.fromJSON = this.fromJSON;
         this.fact = fact;
 
         this.verify('createWorld', worldJSON, ['name', 'nAreas']);
@@ -149,7 +166,7 @@ export class WorldFromJSON {
     }
 
     /* Restores WorldArea from JSON. */
-    restoreAreaFromJSON(areaJSON) {
+    public restoreAreaFromJSON(areaJSON) {
         this.verify('restoreAreaFromJSON', areaJSON,
             ['name', 'maxX', 'maxY']);
         this.pushScope(areaJSON);
@@ -182,7 +199,7 @@ export class WorldFromJSON {
         return area;
     }
 
-    restoreCreatedZones(world, area) {
+    public restoreCreatedZones(world, area) {
         Object.keys(area.zonesCreated).forEach(xy => {
             const [xStr, yStr] = xy.split(',');
             const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
@@ -193,7 +210,7 @@ export class WorldFromJSON {
         });
     }
 
-    restoreZonesForTile(world, area, x, y) {
+    public restoreZonesForTile(world, area, x, y) {
         const worldConf = world.getConf();
         this.pushScope(worldConf);
         const areaConf = area.getConf();
@@ -210,7 +227,7 @@ export class WorldFromJSON {
 
     /* Used when creating area from existing levels. Uses id2level lookup table
      * to construct 2-d array of levels.*/
-    getAreaLevels(areaJSON) {
+    public getAreaLevels(areaJSON) {
         this.verify('getAreaLevels', areaJSON, ['tilesLoaded']);
         ++this._IND;
         const levels = [];
@@ -245,7 +262,7 @@ export class WorldFromJSON {
         return levels;
     }
 
-    setTileJSONForUnloadedTiles(area, areaJSON) {
+    public setTileJSONForUnloadedTiles(area, areaJSON) {
         const tiles = area.getTiles();
         tiles.forEach((tileCol, x) => {
             tileCol.forEach((tile, y) => {
@@ -257,7 +274,7 @@ export class WorldFromJSON {
     }
 
     /* Adds a world ID to given world element. */
-    addWorldID(conf, worldElem) {
+    public addWorldID(conf, worldElem: WorldBase): void {
         if (!RG.isNullOrUndef([conf.id])) {
             worldElem.setID(conf.id);
         }
@@ -265,7 +282,7 @@ export class WorldFromJSON {
     }
 
     /* For printing debug messages. */
-    dbg(msg) {
+    public dbg(msg: string): void {
         if (debug.enabled) {
             const ind = ' '.repeat(this._IND);
             RG.diag(ind + 'WorldFromJSON: ' + msg);
@@ -273,11 +290,11 @@ export class WorldFromJSON {
     }
 
     /* Verifies that given config is OK. */
-    verify(funcName, conf, list) {
+    public verify(funcName: string, conf, list: any[]): void {
         this._verif.verifyConf(funcName, conf, list);
     }
 
-    printKeys(msg, obj) {
+    public printKeys(msg, obj): void {
         RG.diag(msg);
         RG.diag(Object.keys(obj));
     }
