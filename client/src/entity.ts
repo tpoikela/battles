@@ -20,6 +20,14 @@ const spliceOne = function(arr: any[], index: number): void {
     arr.length--;
 };
 
+interface IComponents {
+    [key: string]: any;
+}
+
+interface ICompsByType {
+    [key: string]: any[];
+}
+
 /* Entity is used to represent actors, items and elements. It can have any
  * arbitrary properties by attaching components to it. See the basic
  * methods add(), get(), has() and remove() particularly.
@@ -33,7 +41,7 @@ export class Entity extends GameObject {
         return GameObject.createObjectID();
     }
 
-    public static setPool(pool): void {
+    public static setPool(pool: EventPool): void {
         Entity.POOL = pool;
     }
 
@@ -41,8 +49,8 @@ export class Entity extends GameObject {
         return GameObject.ID;
     }
 
-    public comps: any;
-    public compsByType: any;
+    protected comps: IComponents;
+    protected compsByType: ICompsByType;
 
     constructor(...args: any[]) {
         super();
@@ -60,7 +68,7 @@ export class Entity extends GameObject {
      *    a) removes first comp of matching type.
      *    b) Uses parseInt() to convert it to ID, then uses this ID.
      */
-    public remove(nameOrCompOrId) {
+    public remove(nameOrCompOrId): void {
         ++Entity.num.remove;
         if (typeof nameOrCompOrId === 'object') {
             const id = nameOrCompOrId.getID();
@@ -164,7 +172,7 @@ export class Entity extends GameObject {
     }
 
     /* Returns true if entity has any of the components. */
-    public hasAny(compNames) {
+    public hasAny(compNames: string[]): boolean {
         ++Entity.num.hasAny;
         for (const compName of compNames) {
             if (this.compsByType.hasOwnProperty(compName)) {
@@ -174,12 +182,12 @@ export class Entity extends GameObject {
         return false;
     }
 
-    public hasNone(compNames) {
+    public hasNone(compNames: string[]): boolean {
         return !this.hasAny(compNames);
     }
 
     /* Returns true if entity has all of given comps. */
-    public hasAll(compNames) {
+    public hasAll(compNames: string[]): boolean {
         for (const compName of compNames) {
             if (!this.compsByType.hasOwnProperty(compName)) {
                 return false;
@@ -189,7 +197,7 @@ export class Entity extends GameObject {
     }
 
     /* Removes all components of the given type. */
-    public removeAll(nameOrComp) {
+    public removeAll(nameOrComp): void {
         ++Entity.num.removeAll;
         let compName = nameOrComp;
         if (typeof nameOrComp === 'object') {
@@ -202,7 +210,7 @@ export class Entity extends GameObject {
     }
 
     /* Replaces ALL components of the given type. */
-    public replace(nameOrComp, comp) {
+    public replace(nameOrComp, comp): void {
         this.removeAll(nameOrComp);
         if (comp) {
             this.add(comp);
@@ -212,7 +220,7 @@ export class Entity extends GameObject {
         }
     }
 
-    public getComponents() {
+    public getComponents(): IComponents {
         return this.comps;
     }
 
