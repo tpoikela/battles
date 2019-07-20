@@ -373,9 +373,9 @@ FromJSON.prototype.addCompsToEntity = function(ent: Entity, comps) {
             const compJSON = comps[id];
             const name = compJSON.setType;
             if (!name) {
-                const msg = 'No "name" in component: ';
+                const msg = 'No "setType" in component: ';
                 RG.err('Game.FromJSON', 'addCompsToEntity',
-                    msg + ': ' + JSON.stringify(compJSON));
+                    msg + JSON.stringify(compJSON));
 
             }
             const newCompObj = this.createComponent(name, compJSON);
@@ -1144,6 +1144,7 @@ FromJSON.prototype.restoreArmy = function(json: ArmyJSON): Army {
 /* Assume the place is World object for now. */
 FromJSON.prototype.restorePlace = function(place) {
     const worldJSON = new WorldFromJSON(this.id2level, this.id2entity);
+    worldJSON.fromJSON = this;
     const world = worldJSON.createPlace(place);
     this.id2Place = Object.assign(this.id2Place, world.getID2Place());
     return world;
