@@ -11,6 +11,10 @@ type ElementStairs = import('./element').ElementStairs;
 type ElementBase = import('./element').ElementBase;
 type Locatable = import('./mixin').Locatable;
 type ElemTemplate = import('./template').ElemTemplate;
+type WorldBase = import('./world').WorldBase;
+
+export type TPrim = number | string | boolean;
+export type TPrimArr = TPrim[];
 
 export type TCoord = [number, number];
 
@@ -48,7 +52,8 @@ export interface IMessage {
     msg: string;
     style?: string;
     count?: number;
-    cell?: any;
+    cell?: Cell;
+    // cell?: ICoordXY;
     seen?: boolean;
 }
 
@@ -147,6 +152,10 @@ export interface ConstraintMap {
 
 export type TConstraintArg = IConstraint | IConstraint[];
 
+export interface IWorldElemMap {
+    [key: number]: WorldBase;
+}
+
 //-------------------------------------------------------------
 // Interfaces used in actor classes to specify starting items
 //-------------------------------------------------------------
@@ -180,6 +189,7 @@ export interface IActorMods {
 //-------------------------------------------------------------
 
 export interface ZoneConf {
+    addComp?: {[key: string]: any};
     connectLevels?: LevelConnection[];
     connectToAreaXY?: AreaConnection[];
     constraint?: ConstraintMap;
@@ -312,6 +322,7 @@ export interface IFactoryGameConf {
 //--------------------------------
 
 export interface IShell {
+    // [key: string]: TPrim | TPrimArr | IShell | IShell[];
     [key: string]: any;
 }
 
