@@ -960,8 +960,8 @@ OverWorld.createWorldConf = function(
             `Illegal num of sublevels: ${msg}`);
     }
 
-    const xMap = nSubLevelsX / nTilesX; // SubLevels per tile level in x-dir
-    const yMap = nSubLevelsY / nTilesY; // SubLevels per tile level in y-dir
+    const xMap = nSubLevelsX / nTilesX; // SubLevels per AreaTile level in x-dir
+    const yMap = nSubLevelsY / nTilesY; // SubLevels per AreaTile level in y-dir
 
     debug(`nSubLevelsX: ${nSubLevelsX}, nTilesX: ${nTilesX}`);
     debug(`nSubLevelsY: ${nSubLevelsY}, nTilesY: ${nTilesY}`);
@@ -1011,11 +1011,10 @@ OverWorld.createWorldConf = function(
 
 /* Adds zone features to the given subLevel of ow located at x,y. Adds also
  * necessary information into areaConf which will be used by Factory. */
-function processSubLevel(ow: OWMap, x, y, coordObj, areaConf): void {
+function processSubLevel(ow: OWMap, x: number, y: number, coordObj, areaConf): void {
     const [pX, pY] = getPlayerPosition(coordObj);
     const subLevel = ow.getSubLevel([x, y]);
     const features: OWFeatureMap = subLevel.getFeatures();
-    const {aX, aY, slX, slY, subX, subY} = coordObj;
 
     const comps = getMainQuestComps(ow, x, y);
 
@@ -1029,66 +1028,75 @@ function processSubLevel(ow: OWMap, x, y, coordObj, areaConf): void {
                     `coord must exist. feat: ${JSON.stringify(feat)}`);
             }
 
+            let zoneConf = null;
             if (feat.type === 'capital') {
-                const conf = addCapitalConfToArea(feat, coordObj, areaConf);
-                addCompsToZone(conf, comps);
+                zoneConf = addCapitalConfToArea(feat, coordObj, areaConf);
             }
             else if (feat.type === 'dwarven city') { // WTOWER
-                const conf = addDwarvenCityConfToArea(feat, coordObj, areaConf);
-                addCompsToZone(conf, comps);
+                zoneConf = addDwarvenCityConfToArea(feat, coordObj, areaConf);
             }
             else if (feat.type === 'abandoned fort') {
-                const conf = addAbandonedFortToArea(feat, coordObj, areaConf);
-                addCompsToZone(conf, comps);
+                zoneConf = addAbandonedFortToArea(feat, coordObj, areaConf);
             }
             else if (feat.type === 'dark city') {
-                const conf = addCityConfToArea(feat, coordObj, areaConf);
-                addCompsToZone(conf, comps);
+                zoneConf = addCityConfToArea(feat, coordObj, areaConf);
             }
             else if (cityTypesRe.test(feat.type)) {
-                const conf = addCityConfToArea(feat, coordObj, areaConf);
-                addCompsToZone(conf, comps);
+                zoneConf = addCityConfToArea(feat, coordObj, areaConf);
             }
             else if (feat.type === 'dungeon') {
-                const coordD = feat.coord;
-
-                let featX = mapX(coordD[0][0], slX, subX);
-                let featY = mapY(coordD[0][1], slY, subY);
-                [featX, featY] = legalizeXY([featX, featY]);
-                const dName = Names.getGenericPlaceName('dungeon');
-
-                const dungeonConf = LevelGen.getDungeonConf(dName);
-                Object.assign(dungeonConf,
-                    {x: aX, y: aY, levelX: featX, levelY: featY,
-                        owX: x, owY: y});
-                areaConf.nDungeons += 1;
-                addMaxDangerAndValue(pX, pY, dungeonConf);
-                areaConf.dungeon.push(dungeonConf);
-                addCompsToZone(dungeonConf, comps);
+                zoneConf = addDungeonConfToArea(feat, coordObj, areaConf);
             }
             else if (feat.type === 'mountain') {
-                const coordM = feat.coord;
-
-                const featX = mapX(coordM[0][0], slX, subX);
-                const featY = mapY(coordM[0][1], slY, subY);
-                const mName = Names.getUniqueName('mountain');
-
-                const mountConf = LevelGen.getMountainConf(mName);
-                Object.assign(mountConf,
-                    {x: aX, y: aY, levelX: featX, levelY: featY,
-                        owX: x, owY: y
-                    });
-                addMaxDangerAndValue(pX, pY, mountConf);
-                areaConf.nMountains += 1;
-                areaConf.mountain.push(mountConf);
-                addCompsToZone(mountConf, comps);
+                zoneConf = addMountainConfToArea(feat, coordObj, areaConf);
             }
             else if (feat.type === 'blacktower') {
                 debug('Adding final blacktower now');
-                addBlackTowerConfToArea(feat, coordObj, areaConf);
+                zoneConf = addBlackTowerConfToArea(feat, coordObj, areaConf);
             }
+            addCompsToZone(zoneConf, comps);
         });
     });
+}
+
+function addDungeonConfToArea(feat, coordObj, areaConf) {
+    const [pX, pY] = getPlayerPosition(coordObj);
+    const coordD = feat.coord;
+    const {x, y, aX, aY, slX, slY, subX, subY} = coordObj;
+
+    let featX = mapX(coordD[0][0], slX, subX);
+    let featY = mapY(coordD[0][1], slY, subY);
+    [featX, featY] = moveXYFromBoundary([featX, featY]);
+    const dName = Names.getGenericPlaceName('dungeon');
+
+    const dungeonConf = LevelGen.getDungeonConf(dName);
+    Object.assign(dungeonConf,
+        {x: aX, y: aY, levelX: featX, levelY: featY,
+            owX: x, owY: y});
+    areaConf.nDungeons += 1;
+    addMaxDangerAndValue(pX, pY, dungeonConf);
+    areaConf.dungeon.push(dungeonConf);
+    return dungeonConf;
+}
+
+function addMountainConfToArea(feat, coordObj, areaConf) {
+    const [pX, pY] = getPlayerPosition(coordObj);
+    const coordM = feat.coord;
+    const {x, y, aX, aY, slX, slY, subX, subY} = coordObj;
+
+    const featX = mapX(coordM[0][0], slX, subX);
+    const featY = mapY(coordM[0][1], slY, subY);
+    const mName = Names.getUniqueName('mountain');
+
+    const mountConf = LevelGen.getMountainConf(mName);
+    Object.assign(mountConf,
+        {x: aX, y: aY, levelX: featX, levelY: featY,
+            owX: x, owY: y
+        });
+    addMaxDangerAndValue(pX, pY, mountConf);
+    areaConf.nMountains += 1;
+    areaConf.mountain.push(mountConf);
+    return mountConf;
 }
 
 /* Adds maxDanger and maxValue props into the configuration. At the moment, this
@@ -1365,6 +1373,7 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     };
     areaConf.nDungeons += 1;
     areaConf.dungeon.push(dungeonConf);
+    return dungeonConf;
 }
 
 /* For debugging. Adds the feature close to player starting position. */
@@ -1443,7 +1452,8 @@ function getSubBoxForAreaTile(x, y, xMap, yMap) {
     return [lx, ly, rx, ry];
 }
 
-function legalizeXY(xy) {
+/* Moves xy out of edge cells, if it resides there. */
+function moveXYFromBoundary(xy: TCoord): TCoord {
     let [x, y] = xy;
     if (x === 0) {x = 1;}
     if (x === TILE_SIZE_X - 1) {x -= 1;}
