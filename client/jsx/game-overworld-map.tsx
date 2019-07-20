@@ -160,7 +160,7 @@ export default class GameOverWorldMap extends React.Component {
   /* Returns a smaller region map centered on player position. */
   public renderRegionMap() {
     const ow = this.props.ow;
-    const map = ow.getCellList();
+    const map = ow.getCellMap();
 
     let [x, y] = [null, null];
     if (this.props.playerOwPos) {
