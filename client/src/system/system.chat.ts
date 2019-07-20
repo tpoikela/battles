@@ -68,6 +68,7 @@ export class SystemChat extends SystemBase {
 
             if (ent.getLevel().getParentZone()) {
                 this.addGenericLoreItems(ent, actor, chatObj);
+                this.addZoneLoreItems(ent, actor, chatObj);
             }
         });
 
@@ -276,7 +277,7 @@ export class SystemChat extends SystemBase {
         }
     }
 
-    /* Add lore-specific items to the chat object. */
+    /* Add lore-specific items belonging to Level to the chat object. */
     public addLevelLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
         const lore = actor.getLevel().get('Lore');
         const topics: ILoreTopics = lore.getLoreTopics();
@@ -316,6 +317,22 @@ export class SystemChat extends SystemBase {
                 RG.gameInfo({cell: ent.getCell(), msg});
             }
         });
+    }
+
+    public addZoneLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
+        const zone = actor.getLevel().getParentZone();
+        if (zone.has('Lore')) {
+            const loreComp = zone.get('Lore');
+            if (zone.hasTopic('mainQuest')) {
+                const msg = this.rng.arrayGetRand(loreComp.getTopics().mainQuest);
+                chatObj.add({
+                    name: 'Can you tell me anything about the North?',
+                    option: () => {
+                        RG.gameInfo({cell: ent.getCell(), msg});
+                    }
+                });
+            }
+        }
     }
 
     protected _meetsAllReq(chosenOpt, ent, actor): boolean {
