@@ -85,10 +85,10 @@ export class GoalTop extends Goal.Base {
     public toJSON(): any {
         const evals = [];
         this.evaluators.forEach(ev => {
-            // Order difficult to serialize as it can contain reference to any
+            // Orders difficult to serialize as it can contain reference to any
             // arbitrary goal (can be top-level goal). That would require tons
             // of object refs, and it's a lot of work
-            if (ev.getType() !== 'Order') {
+            if (ev.getType() !== 'Orders') {
                 evals.push(ev.toJSON());
             }
         });
