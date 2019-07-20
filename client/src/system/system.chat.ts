@@ -40,7 +40,7 @@ export class SystemChat extends SystemBase {
             Object.keys(this.registeredObjs).forEach((chatType: string) => {
                 if (actor.has(chatType)) {
                     if (chatObj) {
-                        // Need to get return type, as new TOP_MENU can be returned
+                        // Need to assign return value, new TOP_MENU can be returned
                         chatObj = this.appendToChatObj(chatObj, ent, actor, chatType);
                     }
                     else {
@@ -48,6 +48,7 @@ export class SystemChat extends SystemBase {
                     }
                 }
             });
+
             if (!chatObj) {
                 // TODO spirits react differently
                 chatObj = this.getGenericChatObject(ent, actor);
@@ -300,7 +301,7 @@ export class SystemChat extends SystemBase {
         let chosenText = '';
         while (tries < maxTries) {
             const chosenOpt = this.rng.arrayGetRand(availableOpts);
-            if (this.meetsAllReq(chosenOpt, ent, actor)) {
+            if (this._meetsAllReq(chosenOpt, ent, actor)) {
                 chosenText = this.rng.arrayGetRand(chosenOpt.text);
                 break;
             }
@@ -317,7 +318,7 @@ export class SystemChat extends SystemBase {
         });
     }
 
-    public meetsAllReq(chosenOpt, ent, actor): boolean {
+    protected _meetsAllReq(chosenOpt, ent, actor): boolean {
         const fact = new Constraints();
         let allOk = true;
         if (chosenOpt.level) {
