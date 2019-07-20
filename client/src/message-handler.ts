@@ -77,10 +77,23 @@ export class MessageHandler { // {{{2
     public toJSON(): any {
         return {
             _lastMsg: this._lastMsg,
-            _messages: this._messages,
-            _prevMessages: this._prevMessages,
+            _messages: msgToJSON(this._messages),
+            _prevMessages: msgToJSON(this._prevMessages),
             _hasNew: this._hasNew
         };
     }
 
 }
+
+/* Serializes the messages. Currently filters out messages with
+ * 'cell' specified as this cannot be serialised correctly. */
+function msgToJSON(messages: IMessage[]): any {
+    const res = [];
+    messages.forEach((msg: IMessage) => {
+        if (!msg.cell) {
+            res.push(msg);
+        }
+    });
+    return res;
+}
+
