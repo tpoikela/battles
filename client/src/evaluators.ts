@@ -273,7 +273,7 @@ export class EvaluatorOrders extends EvaluatorBase {
 
     public goal: GoalBase;
     public srcActor: SentientActor;
-    public subEval: EvaluatorBase;
+    // public subEval: EvaluatorBase;
 
     constructor(actorBias: number) {
         super(actorBias);
@@ -282,7 +282,7 @@ export class EvaluatorOrders extends EvaluatorBase {
     }
 
     /* Sets the arguments used for goal injection for commanded actor. */
-    public setArgs(args) {
+    public setArgs(args): void {
         this.goal = args.goal;
         this.srcActor = args.srcActor;
     }
@@ -300,17 +300,18 @@ export class EvaluatorOrders extends EvaluatorBase {
         return 0;
     }
 
-    public acceptsOrdersFromSource() {
+    public acceptsOrdersFromSource(): boolean {
         if (this.srcActor.has('Commander')) {
             return true;
         }
         else if (this.srcActor.isPlayer()) {
+            // TODO calculate some values here
             return true;
         }
         return false;
     }
 
-    public setActorGoal(actor) {
+    public setActorGoal(actor): void {
         if (this.goal) {
             const topGoal = actor.getBrain().getGoal();
             topGoal.addGoal(this.goal);
@@ -322,9 +323,11 @@ export class EvaluatorOrders extends EvaluatorBase {
         }
     }
 
+    /*
     public setSubEvaluator(evaluator) {
         this.subEval = evaluator;
     }
+    */
 
     public isOrder() {return true;}
 
