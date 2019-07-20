@@ -15,7 +15,7 @@ import {Cell} from './map.cell';
 import {SentientActor} from './actor';
 import {FactoryLevel} from './factory.level';
 import * as Component from './component';
-import {TCoord} from './interfaces';
+import {TCoord, IWorldElemMap} from './interfaces';
 import {Entity} from './entity';
 
 const POOL: EventPool = EventPool.getPool();
@@ -27,6 +27,8 @@ export const World: any = {};
 
 type SubZoneArg = SubZoneBase | string;
 export type SubZoneConn = [SubZoneArg, SubZoneArg, number, number];
+
+type SubZonePair = [SubZoneBase, SubZoneBase];
 
 type ZoneObj = SubZoneBase | ZoneBase;
 
@@ -180,7 +182,7 @@ function findLevel(name: string, zones: ZoneObj[], nLevel: number): Level | null
         return z.getName() === name;
     });
     if (zone) {
-        const levels = zone.getLevels();
+        const levels: Level[] = zone.getLevels();
         if (levels.length > nLevel) {
             return levels[nLevel];
         }
@@ -325,7 +327,7 @@ function connectLevelToStairs(levels: Level[], nLevel, stairs): boolean {
     return false;
 }
 
-function getSubZoneArgs(subZones, sz1Arg, sz2Arg): [SubZoneBase, SubZoneBase] {
+function getSubZoneArgs(subZones: SubZoneBase[], sz1Arg, sz2Arg): SubZonePair {
     let sz1 = sz1Arg;
     let sz2 = sz2Arg;
 
@@ -369,7 +371,7 @@ function connectSubZones(subZones: SubZoneBase[], sz1Arg, sz2Arg, l1, l2) {
 }
 
 /* Connects a random (unconnected) edge of two levels together. */
-function connectSubZoneEdges(subZones, sz1Arg, sz2Arg, l1, l2): boolean {
+function connectSubZoneEdges(subZones: SubZoneBase[], sz1Arg, sz2Arg, l1, l2): boolean {
     const edge1 = RNG.arrayGetRand(['north', 'south', 'east', 'west']);
     const edge2 = oppositeEdge[edge1];
     const [sz1, sz2] = getSubZoneArgs(subZones, sz1Arg, sz2Arg);
@@ -403,10 +405,10 @@ function connectSubZoneEdges(subZones, sz1Arg, sz2Arg, l1, l2): boolean {
     return true;
 }
 
-function getEntrance(levels, entrance): Stairs {
+function getEntrance(levels: Level[], entrance: Entrance): Stairs {
     if (entrance === null) {return null;}
     const {x, y} = entrance;
-    const entrLevel = levels[entrance.levelNumber];
+    const entrLevel: Level = levels[entrance.levelNumber];
     const entrCell = entrLevel.getMap().getCell(x, y);
     return entrCell.getStairs();
 }
@@ -462,18 +464,19 @@ export interface IZoneBaseJSON extends IWorldBaseJSON {
 export interface ISubZoneBaseJSON extends IWorldBaseJSON {
     nLevels: number;
     levels: number[];
+    entrance?: Entrance;
 }
 
 /* Base class for world places. Each place has name and type + full hierarchical
 * name to trace where the place is in hierarchy. */
 export class WorldBase extends Entity {
 
-    public name: string;
-    public hierName: string;
-    public type: string;
-    public parent: WorldBase | null;
+    protected name: string;
+    protected hierName: string;
+    protected type: string;
+    protected parent: WorldBase | null;
 
-    constructor(name) {
+    constructor(name: string) {
         super();
         this.name = name;
         this.type = 'base';
@@ -504,7 +507,7 @@ export class WorldBase extends Entity {
         return this.parent;
     }
 
-    public setParent(parent: WorldBase) {
+    public setParent(parent: WorldBase): void {
         this.parent = parent;
     }
 
@@ -534,12 +537,12 @@ export class ZoneBase extends WorldBase {
     public tileY: number;
     protected _subZones: SubZoneBase[];
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this._subZones = [];
     }
 
-    public getSubZoneArgs(s1Arg, s2Arg) {
+    public getSubZoneArgs(s1Arg, s2Arg): SubZonePair {
         return getSubZoneArgs(this._subZones, s1Arg, s2Arg);
     }
 
@@ -625,8 +628,8 @@ export class ZoneBase extends WorldBase {
         return json;
     }
 
-    public getID2Place(): {[key: number]: WorldBase} {
-        const res: {[key: number]: WorldBase} = {[this.getID()]: this};
+    public getID2Place(): IWorldElemMap {
+        const res: IWorldElemMap = {[this.getID()]: this};
         this._subZones.forEach(sz => {
             res[sz.getID()] = sz;
         });
@@ -655,11 +658,22 @@ export class SubZoneBase extends WorldBase {
         this._levelFeatures = new Map();
         this._levels = [];
         this._levelCount = 0;
+        this._entrance = null;
     }
 
     /* Returns entrance/exit for the branch.*/
     public getEntrance(): Stairs {
         return getEntrance(this._levels, this._entrance);
+    }
+
+    public setEntranceLocation(entrance: Entrance): void {
+        if (!RG.isNullOrUndef([entrance])) {
+            this._entrance = entrance;
+        }
+        else {
+            RG.err('SubZoneBase', 'setEntranceLocation',
+                'Arg |entrance| is null/undef.');
+        }
     }
 
     public getLevelN(nLevel: number): Level {
@@ -697,14 +711,14 @@ export class SubZoneBase extends WorldBase {
     }
 
     public addLevelFeature(feat): void {
-        const type = feat.getType();
+        const type: string = feat.getType();
         if (!this._levelFeatures.has(type)) {
             this._levelFeatures[type] = [];
         }
         this._levelFeatures[type].push(feat);
     }
 
-    public removeListeners() {
+    public removeListeners(): void {
         // Should be implemented in the derived class
         // Does nothing if there are no listeners to remove
     }
@@ -747,6 +761,9 @@ export class SubZoneBase extends WorldBase {
         const json = super.toJSON() as ISubZoneBaseJSON;
         json.nLevels = this._levels.length;
         json.levels = this._levels.map(level => level.getID());
+        if (this._entrance) {
+            json.entrance = this._entrance;
+        }
         return json;
     }
 }
@@ -764,7 +781,6 @@ export class Branch extends SubZoneBase {
     constructor(name: string) {
         super(name);
         this.setType('branch');
-        this._entrance = null;
     }
 
     public addEntrance(levelNumber: number): void {
@@ -795,34 +811,9 @@ export class Branch extends SubZoneBase {
         }
     }
 
-    public setEntranceLocation(entrance) {
-        if (!RG.isNullOrUndef([entrance])) {
-            this._entrance = entrance;
-        }
-        else {
-            RG.err('World.Branch', 'setEntranceLocation',
-                'Arg entrance is not defined.');
-        }
-    }
-
-    /* Returns entrance/exit for the branch.*/
-    public getEntrance(): Stairs {
-        return getEntrance(this._levels, this._entrance);
-    }
-
-
     /* Connects the added levels together.*/
     public connectLevels(): void {
         connectLevelsLinear(this._levels);
-    }
-
-    public toJSON() {
-        const json = super.toJSON();
-        const obj: any = {};
-        if (this._entrance) {
-            obj.entrance = this._entrance;
-        }
-        return Object.assign(obj, json);
     }
 
 }
@@ -1591,37 +1582,13 @@ World.Mountain = Mountain;
  * same. */
 export class MountainFace extends SubZoneBase {
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType('face');
-        this._entrance = null;
     }
 
     public setEntrance(stairs): void {
         this._entrance = stairs;
-    }
-
-    public setEntranceLocation(entrance): void {
-        if (!RG.isNullOrUndef([entrance])) {
-            this._entrance = entrance;
-        }
-        else {
-            RG.err('MountainFace', 'setEntranceLocation',
-                'Arg entrance is not defined.');
-        }
-    }
-
-    public getEntrance(): Stairs {
-        return getEntrance(this._levels, this._entrance);
-    }
-
-    public toJSON(): any {
-        const json = super.toJSON();
-        const obj: any = {};
-        if (this._entrance) {
-            obj.entrance = this._entrance;
-        }
-        return Object.assign(obj, json);
     }
 
     /* Entrance is created at the bottom by default. */
@@ -1683,16 +1650,16 @@ World.MountainSummit = MountainSummit;
 /* A city in the world. A special features of the city can be queried through
 * this object. */
 export class City extends ZoneBase {
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType('city');
     }
 
-    public getQuarters() {
-        return this._subZones;
+    public getQuarters(): CityQuarter[] {
+        return this._subZones as CityQuarter[];
     }
 
-    public addQuarter(quarter) {
+    public addQuarter(quarter: CityQuarter): void {
         if (!this.addSubZone(quarter)) {
             RG.err('World.City', 'addQuarter',
                 `City ${this.getName()} quarter not defined.`);
@@ -1704,7 +1671,7 @@ export class City extends ZoneBase {
         return res;
     }
 
-    public hasQuarter(q) {
+    public hasQuarter(q): boolean {
         return this.hasSubZone(q);
     }
 
@@ -1731,7 +1698,6 @@ export class CityQuarter extends SubZoneBase {
     constructor(name) {
         super(name);
         this.setType('quarter');
-        this._entrance = null;
         this._shops = [];
     }
 
@@ -1744,27 +1710,12 @@ export class CityQuarter extends SubZoneBase {
         });
     }
 
-    public addShop(shop) {
+    public addShop(shop: WorldShop): void {
         this._shops.push(shop);
     }
 
-    public getShops() {
+    public getShops(): WorldShop[] {
         return this._shops;
-    }
-
-    public setEntranceLocation(entrance) {
-        if (!RG.isNullOrUndef([entrance])) {
-            this._entrance = entrance;
-        }
-        else {
-            RG.err('CityQuarter', 'setEntranceLocation',
-                'Arg entrance is not defined.');
-        }
-    }
-
-    /* Returns entrance/exit for the quarter.*/
-    public getEntrance() {
-        return getEntrance(this._levels, this._entrance);
     }
 
     public addEntrance(levelNumber: number): void {
@@ -1780,7 +1731,6 @@ export class CityQuarter extends SubZoneBase {
         }
     }
 
-
     /* Connects levels in linear fashion 0->1->2->...->N. */
     public connectLevels() {
         connectLevelsLinear(this._levels);
@@ -1791,9 +1741,6 @@ export class CityQuarter extends SubZoneBase {
         const obj: any = {
             shops: this._shops.map(shop => shop.toJSON())
         };
-        if (this._entrance) {
-            obj.entrance = this._entrance;
-        }
         return Object.assign(obj, json);
     }
 }
@@ -1806,14 +1753,14 @@ World.CityQuarter = CityQuarter;
 export class BattleZone extends ZoneBase {
     private _levels: Level[];
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType('battlezone');
         this._levels = [];
     }
 
-    public addLevel(level) {
-        return this._levels.push(level);
+    public addLevel(level: Level): void {
+        this._levels.push(level);
     }
 
     public getLevels(): Level[] {
