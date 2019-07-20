@@ -30,6 +30,7 @@ import {Dice} from '../src/dice';
 import {OWMap} from '../src/overworld.map';
 import {KeyCode} from '../gui/keycode';
 import {ObjectShell} from '../src/objectshellparser';
+import {verifySaveData} from '../src/verify';
 
 import {Persist} from '../src/persist';
 import md5 = require('js-md5');
@@ -163,6 +164,7 @@ export class GameManager {
     public viewportY: number;
     public viewportPlayerX: number;
     public viewportPlayerY: number;
+    public verifySaveData: boolean;
     public playerDriver: DriverBase;
     public listener: ProxyListener;
     public autoModeKeyBuffer: number[];
@@ -210,6 +212,8 @@ export class GameManager {
         this.viewportX = 35; // * 2
         this.viewportY = 15; // * 2
         this.resetGameControls();
+
+        this.verifySaveData = true; // Checks JSON before saving if true
 
         this.gameSave.setStorage(window.localStorage);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
@@ -402,6 +406,9 @@ export class GameManager {
             const persist = new Persist(name);
 
             this.gameToJSON().then(json => {
+                if (this.verifySaveData) {
+                    verifySaveData(json);
+                }
                 persist.toStorage(json, () => {
                     this.gameSave.save(this.game, this.gameConf);
                     this.savedPlayerList = this.gameSave.getPlayersAsList();
