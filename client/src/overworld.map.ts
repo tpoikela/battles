@@ -37,6 +37,10 @@ interface OWWall {
     type: string;
 }
 
+interface IOWPaths {
+    [key: string]: ICoordXY[];
+}
+
 type FilterFunc = (x: number, y: number, feats: string[], isWall: boolean) => boolean;
 
 export class OWMap {
@@ -54,6 +58,7 @@ export class OWMap {
         ow._hWalls = json.hWalls;
         ow._biomeMap = json.biomeMap;
         ow._explored = json.explored;
+        ow._paths = json.paths;
         if (json.terrMap) {
             ow._terrMap = Territory.fromJSON(json.terrMap);
         }
@@ -78,7 +83,8 @@ export class OWMap {
 
     protected _biomeMap: {[key: string]: string};
     protected _terrMap: Territory;
-    protected _paths: {[key: string]: ICoordXY[]};
+    protected _paths: IOWPaths;
+    protected _pathsXY: {[key: string]: ICoordXY[]};
 
     constructor() {
         this._baseMap = [];
@@ -98,6 +104,7 @@ export class OWMap {
 
         this.debugMap = {};
         this._paths = {};
+        this._pathsXY = {};
     }
 
     public hasTerrMap(): boolean {return !!this._terrMap;}
@@ -273,6 +280,24 @@ export class OWMap {
 
     public addPath(name: string, path: ICoordXY[]): void {
         this._paths[name] = path;
+        path.forEach((xy: ICoordXY) => {
+            this._pathsXY[xy.x + ',' + xy.y] = path;
+        });
+    }
+
+    public getPathAtXY(xy: TCoord): ICoordXY[] {
+        if (this.hasPathAt(xy)) {
+            const [x, y] = xy;
+            const key = x + ',' + y;
+            return this._pathsXY[key];
+        }
+        return null;
+    }
+
+    public hasPathAt(xy: TCoord): boolean {
+        const [x, y] = xy;
+        const key = x + ',' + y;
+        return this._pathsXY.hasOwnProperty(key);
     }
 
     public getFeaturesOnPath(path: ICoordXY[]): {[key: string]: string[]} {
@@ -338,7 +363,8 @@ export class OWMap {
             featuresByXY: this._featuresByXY,
             vWalls: this._vWalls,
             hWalls: this._hWalls,
-            explored: this._explored
+            explored: this._explored,
+            paths: this._paths
         };
         if (this.coordMap) {
             json.coordMap = this.coordMap.toJSON();
@@ -382,9 +408,9 @@ export class OWMap {
         return map;
     }
 
-    /* Returns the OWMap represented as Map.CellList. Marker elements are used to
+    /* Returns the OWMap represented as Map.CellMap. Marker elements are used to
      * show the visible cells. */
-    public getCellList(): CellMap {
+    public getCellMap(): CellMap {
         const map: string[][] = this.getOWMap();
         const sizeY = map[0].length;
         const sizeX = map.length;
@@ -402,7 +428,6 @@ export class OWMap {
                 cellList.setProp(x, y, RG.TYPE_ELEM, marker);
             }
         }
-
         return cellList;
     }
 
@@ -477,6 +502,10 @@ export class OWMap {
                 this.debugMap[xy.x + ',' + xy.y] = '*';
             }
         });
+    }
+
+    public getPaths(): IOWPaths {
+        return this._paths;
     }
 
     public getPath(name: string): ICoordXY[] {
