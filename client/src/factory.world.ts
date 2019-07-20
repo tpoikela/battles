@@ -10,10 +10,11 @@ const debug = dbg('bitn:Factory.World');
 import * as Verify from './verify';
 import {ConfStack} from './conf-stack';
 import * as World from './world';
-import {Factory, FactoryBase} from './factory';
+import {FactoryBase} from './factory';
 import {FactoryZone} from './factory.zone';
 import {FactoryActor} from './factory.actors';
 import {ObjectShell} from './objectshellparser';
+import {ObjectShellComps} from './objectshellcomps';
 
 import {DungeonGenerator} from './dungeon-generator';
 import {CaveGenerator} from './cave-generator';
@@ -381,6 +382,7 @@ export const FactoryWorld = function() {
                     if (!this.id2levelSet) {
                         this.createAreaZoneConnection(area, zone, zoneConf);
                     }
+                    this.addZoneComps(zone, zoneConf);
                 }
             }
 
@@ -1429,9 +1431,26 @@ FactoryWorld.prototype.addActorSpawner = function(level, parser, conf): void {
     level.addVirtualProp(RG.TYPE_ACTOR, spawner);
 };
 
+
+FactoryWorld.prototype.addZoneComps = function(zone, zoneConf): void {
+    if (zoneConf.addComp) {
+        const compGen = new ObjectShellComps();
+        compGen.addComponents(zoneConf, zone);
+    }
+    else if (zoneConf.components) {
+        if (this.fromJSON) {
+            this.fromJSON.addCompsToEntity(zone, zoneConf.components);
+        }
+        else {
+            RG.err('FactoryWorld', 'addZoneComps',
+                'Failed to restore zone comps: fromJSON not set');
+        }
+    }
+};
+
 /* Used for printing debug messages only. Can be enabled with
  * DEBUG= env var. */
-FactoryWorld.prototype.debug = function(msg) {
+FactoryWorld.prototype.debug = function(msg: string): void {
     if (debug.enabled) {
         let scope = this.getHierName();
         if (!scope) {scope = 'EMPTY';}
