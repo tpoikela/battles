@@ -1791,6 +1791,10 @@ export const Lore = UniqueDataComponent('Lore', {
     topics: null
 });
 
+Lore.prototype._init = function() {
+    this.topics = {};
+};
+
 Lore.prototype.addTopic = function(key: string, msg: any): void {
     if (!this.topics[key]) {
         this.topics[key] = [];
@@ -1798,9 +1802,10 @@ Lore.prototype.addTopic = function(key: string, msg: any): void {
     this.topics[key].push(msg);
 };
 
-Lore.prototype._init = function() {
-    this.topics = {};
+Lore.prototype.hasTopic = function(key: string): boolean {
+    return this.topics.hasOwnProperty[key];
 };
+
 
 Lore.prototype.getLoreTopics = function(): ILoreTopics {
     return this.topics;
