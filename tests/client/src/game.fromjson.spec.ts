@@ -10,7 +10,6 @@ import {RGTest} from '../../roguetest';
 import {FromJSON} from '../../../client/src/game.fromjson';
 
 import {chaiBattles} from '../../helpers/chai-battles';
-import {Factory} from '../../../client/src/factory';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {FactoryBattle} from '../../../client/src/factory.battle';
 import * as Item from '../../../client/src/item';
@@ -24,7 +23,6 @@ import {RGUnitTests} from '../../rg.unit-tests';
 import {GameObject} from '../../../client/src/game-object';
 import {ObjectShell} from '../../../client/src/objectshellparser';
 import * as World from '../../../client/src/world';
-import { Entity } from '../../../client/src/entity';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -234,6 +232,10 @@ describe('Game.FromJSON', function() {
         mountain.addFace(f2);
         mountain.connectSubZones('f1', 'f2', 0, 0);
 
+        const loreComp = new Component.Lore();
+        loreComp.addTopic('mainQuest', 'A test topic');
+        mountain.add(loreComp);
+
         const jsonL1 = l1.toJSON();
         const jsonL2 = l2.toJSON();
         const json = mountain.toJSON();
@@ -254,7 +256,10 @@ describe('Game.FromJSON', function() {
         const factWorld = new FactoryWorld();
         factWorld.setId2Level(id2level);
         const newMountain = factWorld.createMountain(json);
+        factWorld.fromJSON = new FromJSON();
+        factWorld.addZoneComps(newMountain, json);
         expect(newMountain.getLevels()).to.have.length(2);
+        expect(newMountain).to.have.component('Lore');
     });
 
     it('can serialize/de-serialize spellcaster actors', () => {

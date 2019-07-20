@@ -52,7 +52,7 @@ describe('OWMap', () => {
             owTilesY: 20
         };
         const ow = OWMap.createOverWorld(conf);
-        const map = ow.getCellList();
+        const map = ow.getCellMap();
         // map.debugPrintInASCII();
         map.getCells(c => {
             c._explored = true;

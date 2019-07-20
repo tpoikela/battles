@@ -1,6 +1,5 @@
 
 import { expect } from 'chai';
-import RG from '../../../client/src/rg';
 import {RGTest} from '../../roguetest';
 import {ConfStack} from '../../../client/src/conf-stack';
 import {FactoryWorld} from '../../../client/src/factory.world';
