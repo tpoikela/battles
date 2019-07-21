@@ -32,7 +32,7 @@ export class EventPool  { // {{{2
     private _listeners: {[key: string]: Listener[]};
     private _nListeners: number;
     private _listenerID: number;
-    private _lastEmitted: any;
+    private _lastEmitted: string;
     private _lastRemoved: any;
     private pendingRemoves: any[];
     private notifyStackSize: number;
@@ -42,7 +42,6 @@ export class EventPool  { // {{{2
     constructor() {
         this.reset();
     }
-
 
     public getNumListeners(): number {
         return this._nListeners;
