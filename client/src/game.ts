@@ -14,7 +14,7 @@ import * as Component from './component';
 import * as World from './world';
 import {Dice} from './dice';
 import {CellMap} from './map';
-import {TCoord} from './interfaces';
+import {TCoord, IPlayerCmdInput} from './interfaces';
 import {ObjectShell} from './objectshellparser';
 
 type Level = import('./level').Level;
@@ -426,7 +426,7 @@ export const GameMain = function() {
 
     /* Must be called to advance the game by one player action. Non-player
      * actions are executed after the player action.*/
-    this.update = (obj) => {this._engine.update(obj);};
+    this.update = (obj: IPlayerCmdInput) => {this._engine.update(obj);};
 
     this.getArea = (index: number) => {
         const world = this.getCurrentWorld();
