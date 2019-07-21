@@ -2,7 +2,6 @@
 import RG from '../rg';
 
 import * as Mixin from '../mixin';
-import {ChatTrainer, ChatQuest} from '../chat';
 import {ComponentBase, Component} from './component.base';
 import {EventPool} from '../eventpool';
 import {Entity} from '../entity';
@@ -34,22 +33,17 @@ export const Action = UniqueTransientDataComponent('Action',
     {energy: 0, active: false, msg: '', status: 0});
 
 
-Action.prototype.addEnergy = function(energy) {
+Action.prototype.addEnergy = function(energy: number): void {
     this.energy += energy;
 };
 
-Action.prototype.resetEnergy = function() {this.energy = 0;};
+Action.prototype.resetEnergy = function(): void {this.energy = 0;};
 
 Action.prototype.enable = function() {
     if (this.active === false) {
         POOL.emitEvent(RG.EVT_ACT_COMP_ENABLED,
             {actor: this.getEntity()});
         this.active = true;
-    }
-    else {
-        const name = this.getEntity().getName();
-        const id = this.getEntity().getID();
-        const entInfo = `${name} ${id}`;
     }
 };
 
@@ -65,7 +59,7 @@ export const Location = UniqueDataComponent('Location', {
     x: -1, y: -1, level: null});
 
 Location.prototype.getXY = function(): TCoord {return [this.x, this.y];};
-Location.prototype.setXY = function(x, y): void {
+Location.prototype.setXY = function(x: number, y: number): void {
     this.x = x;
     this.y = y;
 };
@@ -78,7 +72,7 @@ Location.prototype.isValid = function(): boolean {
     return this.x >= 0 && this.y >= 0;
 };
 
-Location.prototype.unsetLevel = function() {
+Location.prototype.unsetLevel = function(): void {
     if (this.level) {
         this.level = null;
     }
@@ -89,7 +83,7 @@ Location.prototype.unsetLevel = function() {
 };
 
 /* Returns true if object is located at a position on a level.*/
-Location.prototype.isLocated = function() {
+Location.prototype.isLocated = function(): boolean {
     return (this.x >= 0) && (this.y >= 0)
         && (this.level !== null);
 };
@@ -426,23 +420,6 @@ Movement.prototype._init = function(x, y, level) {
 
 /* Transient component representing a chat action between actors. */
 export const Chat = TransientDataComponent('Chat', {args: null});
-
-/* Data component added to trainer actors. */
-export const Trainer = UniqueDataComponent('Trainer', {
-    chatObj: null
-});
-
-// Hack to prevent serialisation of chatObj
-delete Trainer.prototype.setChatObj;
-
-Trainer.prototype._init = function() {
-    this.chatObj = new ChatTrainer();
-
-    const _addCb = () => {
-      this.chatObj.setTrainer(this.getEntity());
-    };
-    this.addCallback('onAdd', _addCb);
-};
 
 /* Missile component is added to entities such as arrows and rocks
  * when they have been launched. */
@@ -920,55 +897,15 @@ export const PowerDrain = DataComponent('PowerDrain', {
 PowerDrain.description =
     'Counters any spell cast near you, gives you power and then disappears';
 
-export const SpellBase = function(type) {
-    ComponentBase.call(this, type);
-
-    let _spell = null;
-    let _src = null;
-    let _args = null;
-
-    this.getSpell = () => _spell;
-    this.setSpell = spell => {_spell = spell;};
-
-    this.getSource = () => _src;
-    this.setSource = src => {_src = src;};
-
-    this.getArgs = () => _args;
-    this.setArgs = args => {_args = args;};
-
-};
-RG.extend2(SpellBase, ComponentBase);
+const spellArgs = {spell: null, source: null, args: null};
 
 /* SpellCasting component which is added to an actor when it casts a spell. */
-export const SpellCast = function() {
-    SpellBase.call(this, 'SpellCast');
-};
-RG.extend2(SpellCast, SpellBase);
-
-export const SpellRay = function() {
-    SpellBase.call(this, 'SpellRay');
-};
-RG.extend2(SpellRay, SpellBase);
-
-export const SpellMissile = function() {
-    SpellBase.call(this, 'SpellMissile');
-};
-RG.extend2(SpellMissile, SpellBase);
-
-export const SpellCell = function() {
-    SpellBase.call(this, 'SpellCell');
-};
-RG.extend2(SpellCell, SpellBase);
-
-export const SpellArea = function() {
-    SpellBase.call(this, 'SpellArea');
-};
-RG.extend2(SpellArea, SpellBase);
-
-export const SpellSelf = function() {
-    SpellBase.call(this, 'SpellSelf');
-};
-RG.extend2(SpellSelf, SpellBase);
+export const SpellCast = TransientDataComponent('SpellCast', spellArgs);
+export const SpellRay = TransientDataComponent('SpellRay', spellArgs);
+export const SpellMissile = TransientDataComponent('SpellMissile', spellArgs);
+export const SpellCell = TransientDataComponent('SpellCell', spellArgs);
+export const SpellArea = TransientDataComponent('SpellArea', spellArgs);
+export const SpellSelf = TransientDataComponent('SpellSelf', spellArgs);
 
 /* Added to actors which stop spells from passing through. */
 export const SpellStop = UniqueTagComponent('SpellStop');
@@ -1012,47 +949,51 @@ export const SpiritItemCrafter = UniqueTagComponent('SpiritItemCrafter', {
 // Comps related to the skill system
 //--------------------------------------------
 
-export const Skills = function() {
-    ComponentBase.call(this, 'Skills');
-    this._isUnique = true;
+export const Skills = UniqueDataComponent('Skills', {skills: null});
+Skills.prototype._init = function() {
+    this.skills = {};
+};
 
-    this._skills = {};
+Skills.prototype.hasSkill = function(skill: string): boolean {
+    return this.skills.hasOwnProperty(skill);
+};
 
-    this.hasSkill = skill => this._skills.hasOwnProperty(skill);
-    this.addSkill = skill => {
-        this._skills[skill] = {name: skill, level: 1, points: 0};
-    };
+Skills.prototype.addSkill = function(skill: string): void {
+    this.skills[skill] = {name: skill, level: 1, points: 0};
+};
 
-    /* Returns the skill level, or 0 if no skill exists. */
-    this.getLevel = skill => {
-        if (this.hasSkill(skill)) {
-            return this._skills[skill].level;
-        }
-        return 0;
-    };
-    this.setLevel = (skill, level) => {this._skills[skill].level = level;};
-    this.getPoints = skill => this._skills[skill].points;
+/* Returns the skill level, or 0 if no skill exists. */
+Skills.prototype.getLevel = function(skill: string): number {
+    if (this.hasSkill(skill)) {
+        return this.skills[skill].level;
+    }
+    return 0;
+};
+Skills.prototype.setLevel = function(skill, level): void {
+    this.skills[skill].level = level;
+};
+Skills.prototype.getPoints = function(skill: string): number {
+    return this.skills[skill].points;
+};
 
-    this.resetPoints = skill => {this._skills[skill].points = 0;};
-    this.addPoints = (skill, points) => {
-        if (this.hasSkill(skill)) {
-            this._skills[skill].points += points;
-        }
-    };
+Skills.prototype.resetPoints = function(skill: string): void {
+    this.skills[skill].points = 0;
+};
 
-    this.getSkills = () => this._skills;
-    this.setSkills = skills => {this._skills = skills;};
+Skills.prototype.addPoints = function(skill: string, points: number): void {
+    if (this.hasSkill(skill)) {
+        this.skills[skill].points += points;
+    }
+};
 
-    this.toJSON = () => {
-        return {
-            setID: this.getID(),
-            setType: this.getType(),
-            setSkills: this._skills
-        };
+Skills.prototype.toJSON = function() {
+    return {
+        setID: this.getID(),
+        setType: this.getType(),
+        setSkills: this.skills
     };
 };
-RG.extend2(Skills, ComponentBase);
-Component.Skills = Skills;
+
 export const SkillsExp = TransientDataComponent('SkillsExp',
     {skill: '', points: 0});
 
@@ -1074,31 +1015,27 @@ export const Transaction = TransientDataComponent('Transaction', {args: null});
 
 // Added to all entities inside a battle
 
-export const InBattle = function() {
-    ComponentBase.call(this, 'InBattle');
-    this._isUnique = true;
-    let _data = null;
-    this.setData = data => {_data = data;};
-    this.getData = () => _data;
-    this.updateData = data => {_data = Object.assign(_data || {}, data);};
+export const InBattle = UniqueDataComponent('InBattle', {data: null});
+InBattle.prototype._init = function() {
+    this.data = {};
 };
-RG.extend2(InBattle, ComponentBase);
-Component.InBattle = InBattle;
+InBattle.prototype.updateData = function(data) {
+    Object.keys(data).forEach(key => {
+        this.data[key] = data[key];
+    });
+};
 
 /* Added to entity once it uses a skill or destroys an opposing actor inside a
  * battle. */
-export const BattleExp = function() {
-    ComponentBase.call(this, 'BattleExp');
-
-    let _data = null;
-
-    this.setData = data => {_data = data;};
-    this.getData = () => _data;
-    this.updateData = data => {_data = Object.assign(_data || {}, data);};
-
+export const BattleExp = DataComponent('BattleExp', {data: null});
+BattleExp.prototype._init = function() {
+    this.data = {};
 };
-RG.extend2(BattleExp, ComponentBase);
-Component.BattleExp = BattleExp;
+BattleExp.prototype.updateData = function(data) {
+    Object.keys(data).forEach(key => {
+        this.data[key] = data[key];
+    });
+};
 
 /* This component is placed on entities when the battle is over. It signals to
  * the Battle.System that experience should be processed now. After this, the
@@ -1106,21 +1043,21 @@ Component.BattleExp = BattleExp;
 export const BattleOver = UniqueTagComponent('BattleOver');
 
 /* Badges are placed on entities that survived a battle. */
-export const BattleBadge = function() {
-    ComponentBase.call(this, 'BattleBadge');
-
-    let _data = null;
-
-    this.setData = data => {_data = data;};
-    this.getData = () => _data;
-    this.updateData = data => {_data = Object.assign(_data, data);};
-
-    this.isWon = () => _data.status === 'Won';
-    this.isLost = () => _data.status === 'Lost';
-    this.isTraitor = () => _data.status === 'Traitor';
+export const BattleBadge = DataComponent('BattleBadge', {data: null});
+BattleBadge.prototype._init = function() {
+    this.data = {};
 };
-RG.extend2(BattleBadge, ComponentBase);
-Component.BattleBadge = BattleBadge;
+BattleBadge.prototype.updateData = function(data) {
+    Object.keys(data).forEach(key => {
+        this.data[key] = data[key];
+    });
+};
+
+BattleBadge.prototype.isWon = function() {return this.data.status === 'Won';};
+BattleBadge.prototype.isLost = function() {return this.data.status === 'Lost';};
+BattleBadge.prototype.isTraitor = function() {return this.data.status === 'Traitor';};
+BattleBadge.prototype.isTied = function() {return this.data.status === 'Tied';};
+BattleBadge.prototype.isEscaped = function() {return this.data.status === 'Fled';};
 
 /* An order given during battle. Used to give order to player at the moment. */
 export const BattleOrder = DataComponent('BattleOrder', {args: null});
@@ -1540,223 +1477,6 @@ export class Duration extends Mixin.DurationRoll(ComponentBase) {
 
 }
 Component.Duration = Duration;
-
-//--------------------------------------------
-// QUEST COMPONENTS
-//--------------------------------------------
-
-const NO_QUEST_REWARD = -1;
-const NO_SUB_QUEST = -1;
-
-/* QuestGiver is added to actors who can give quests. Only one comp
- * supported per actor. */
-export const QuestGiver = UniqueDataComponent('QuestGiver', {
-    hasGivenQuest: false, descr: '',
-    questID: -1, danger: 1, reward: NO_QUEST_REWARD,
-    hasGivenReward: false,
-    questTargets: null
-});
-
-QuestGiver.prototype._init = function(descr) {
-    this.chatObj = new ChatQuest();
-    this.descr = descr;
-    this.questID = this.getID();
-    this.questTargets = [];
-
-    const _addCb = () => {
-      this.chatObj.setQuestGiver(this.getEntity());
-    };
-    this.addCallback('onAdd', _addCb);
-};
-
-QuestGiver.prototype.hasReward = function() {
-    return this.reward && (this.reward !== NO_QUEST_REWARD);
-};
-
-QuestGiver.prototype.giveQuest = function(target) {
-    if (target) {
-        this.questGivenTo = target;
-        this.hasGivenQuest = true;
-    }
-    else {
-        this.hasGivenQuest = false;
-    }
-};
-
-QuestGiver.prototype.addTarget = function(targetType, target) {
-    if (!target) {
-        RG.err('QuestGiver', 'addTarget',
-            `No target given. Type ${targetType}`);
-    }
-    const name = RG.getName(target);
-    if (!RG.isEmpty(name)) {
-        const targetData = {
-            id: target.getID(), name, targetType,
-            subQuestID: -1
-        };
-        const qTarget = target.get('QuestTarget');
-        if (qTarget.getSubQuestID() !== NO_SUB_QUEST) {
-            targetData.subQuestID = qTarget.getSubQuestID();
-        }
-        this.questTargets.push(targetData);
-    }
-    else {
-        RG.err('QuestGiver', 'addTarget',
-            `Empty name got for target ${JSON.stringify(target)}`);
-    }
-};
-
-QuestGiver.prototype.toJSON = function() {
-    const json = BaseProto.toJSON.call(this);
-    // json.setQuestData = this.questData.toJSON();
-    if (this.questGivenTo) {
-        json.giveQuest = RG.getObjRef('entity', this.questGivenTo);
-    }
-    return json;
-};
-
-QuestGiver.prototype.getChatObj = function() {
-    return this.chatObj;
-};
-
-/* QuestTarget Comp is added to quest targets (items, actors etc). */
-export const QuestTarget = DataComponent('QuestTarget', {
-    targetType: '', target: null, isCompleted: false,
-    targetID: -1, questID: -1, subQuestID: NO_SUB_QUEST
-});
-
-QuestTarget.prototype.isKill = function() {
-    return this.targetType === 'kill';
-};
-
-QuestTarget.prototype.toString = function() {
-    let name = '';
-    if (this.target.getName) {
-        name = this.target.getName();
-    }
-    else if (this.target.getParent) {
-        const parent = this.target.getParent();
-        if (parent) {
-            name = parent.getName();
-        }
-        if (parent.getParent) {
-            const topParent = parent.getParent();
-            name += ' of ' + topParent.getName();
-        }
-    }
-    return `${this.targetType} ${name}`;
-};
-
-QuestTarget.prototype.toJSON = function() {
-    const json = BaseProto.toJSON.call(this);
-    json.setTargetType = this.targetType;
-    if (this.target.$objID) {
-        json.setTarget = RG.getObjRef('object', this.target);
-    }
-    else {
-        json.setTarget = RG.getObjRef('entity', this.target);
-    }
-    return json;
-};
-
-export const QuestEscortTarget = DataComponent('QuestEscortTarget', {
-    escortTo: -1, question: 'Can I help you safely somewhere?'
-});
-
-QuestEscortTarget.prototype.toJSON = function() {
-    const json = BaseProto.toJSON.call(this);
-    json.setEscortTo = RG.getObjRef('entity', this.escortTo);
-    return json;
-};
-
-/* Quest component contains all info related to a single quest. */
-export const Quest = DataComponent('Quest', {
-    giver: null, questTargets: null, questID: -1, descr: ''
-});
-
-Quest.prototype._init = function() {
-    this.questTargets = [];
-};
-
-Quest.prototype.addTarget = function(targetData) {
-    this.questTargets.push(targetData);
-};
-
-Quest.prototype.isInThisQuest = function(targetComp) {
-    return this.getQuestID() === targetComp.getQuestID();
-};
-
-Quest.prototype.getTargetsByType = function(targetType) {
-    return this.questTargets.filter(obj => (
-        obj.targetType === targetType
-    ));
-};
-
-/* Returns first quest target matching the given targetType. */
-Quest.prototype.first = function(targetType) {
-    const targetObj = this.questTargets.find(obj => (
-        obj.targetType === targetType
-    ));
-    if (targetObj) {return targetObj;}
-    return null;
-};
-
-/* Returns true if all QuestTarget comps have been completed. */
-Quest.prototype.isCompleted = function() {
-    return this.questTargets.reduce((acc, obj) => acc && obj.isCompleted,
-        true);
-};
-
-Quest.prototype.isTargetInQuest = function(targetComp) {
-    const target = targetComp.getTarget();
-    for (let i = 0; i < this.questTargets.length; i++) {
-        const curr = this.questTargets[i];
-        if (curr.id === target.getID()) {
-            return true;
-        }
-    }
-    return false;
-};
-
-Quest.prototype.toString = function() {
-    let res = '';
-    this.questTargets.forEach((obj, i) => {
-        if (i > 0) {res += '. ';}
-        if (obj.targetType === 'subquest') {
-            res += 'Talk to ' + obj.name;
-        }
-        else {
-            res += obj.targetType + ' ' + obj.name;
-        }
-    });
-    return res;
-};
-
-export const QuestInfo = DataComponent('QuestInfo', {
-    question: '', info: '',
-    givenBy: -1 // ID of the info source
-});
-
-export const QuestReport = DataComponent('QuestReport', {
-    expectInfoFrom: -2
-});
-
-export const QuestCompleted = TransientDataComponent('QuestCompleted',
-    {giver: null}
-);
-
-export const GiveQuest = TransientDataComponent('GiveQuest',
-    {target: null, giver: null}
-);
-
-export const QuestTargetEvent = TransientDataComponent('QuestTargetEvent',
-    {targetComp: null, args: null, eventType: ''}
-);
-
-QuestTargetEvent.prototype.setTargetComp = function(target) {
-    RG.assertType(target, 'QuestTarget');
-    this.targetComp = target;
-};
 
 //---------------------
 // Weather components

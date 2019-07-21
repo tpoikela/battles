@@ -18,7 +18,8 @@ Component.NO_SERIALISATION = NO_SERIALISATION as any;
 
 // These attributes are never assigned to component instances
 const staticAttr = new Set<string>([
-  'description'
+  'description',
+  '_isUnique'
 ]);
 
 let compTypeID = 1;
@@ -272,7 +273,7 @@ Component.compsToJSON = compsToJSON;
 
 Component.idCount = 0;
 
-export function getIDCount() {
+export function getIDCount(): number {
     return Component.idCount;
 }
 
@@ -287,7 +288,7 @@ export const ComponentBase = function(type: string) {
     this._type = type;
     this._entity = null;
     this._id = Component.idCount++;
-    this._isUnique = false;
+    // this._isUnique = false;
 
     this._onAddCallbacks = [];
     this._onRemoveCallbacks = [];
@@ -325,7 +326,10 @@ ComponentBase.prototype.changeEntity = function(newEntity) {
     }
 };
 
-ComponentBase.prototype.isUnique = function() {return this._isUnique;};
+ComponentBase.prototype.isUnique = function(): boolean {
+    return !!Component[this._type]._isUnique;
+    // return this._isUnique;
+};
 
 ComponentBase.prototype.getType = function(): string {
     return this._type;
@@ -350,7 +354,7 @@ ComponentBase.prototype.entityRemoveCallback = function() {
     this.setEntity(null);
 };
 
-ComponentBase.prototype.addCallback = function(name, cb) {
+ComponentBase.prototype.addCallback = function(name: string, cb: () => void): void {
     if (name === 'onAdd') {this._onAddCallbacks.push(cb);}
     else if (name === 'onRemove') {this._onRemoveCallbacks.push(cb);}
     else {
@@ -360,7 +364,7 @@ ComponentBase.prototype.addCallback = function(name, cb) {
 };
 
 /* Removes all callbacks of given type. */
-ComponentBase.prototype.removeCallbacks = function(name) {
+ComponentBase.prototype.removeCallbacks = function(name: string): void {
     if (name === 'onAdd') {
         this._onAddCallbacks = [];
     }
@@ -505,8 +509,9 @@ export const defineComponent = function(name: string, args) {
 };
 Component.defineComponent = defineComponent;
 
-export const undefineComponent = function(type) {
+export const undefineComponent = function(type: string): void {
     delete Component.createdCompDecls[type];
     delete Component[type];
 };
 Component.undefineComponent = undefineComponent;
+
