@@ -1012,7 +1012,6 @@ OverWorld.createWorldConf = function(
 /* Adds zone features to the given subLevel of ow located at x,y. Adds also
  * necessary information into areaConf which will be used by Factory. */
 function processSubLevel(ow: OWMap, x: number, y: number, coordObj, areaConf): void {
-    const [pX, pY] = getPlayerPosition(coordObj);
     const subLevel = ow.getSubLevel([x, y]);
     const features: OWFeatureMap = subLevel.getFeatures();
 
