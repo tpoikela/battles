@@ -5,6 +5,7 @@ import {EventPool} from './eventpool';
 import {SentientActor} from './actor';
 import {Level} from './level';
 import {ELEM} from '../data/elem-constants';
+import {Entity} from './entity';
 
 import dbg = require('debug');
 const debug = dbg('bitn:game.battle');
@@ -20,6 +21,7 @@ export interface ArmyJSON {
 
 export interface BattleJSON {
     isJSON: boolean;
+    id: number;
     name: string;
     level: number;
     armies: ArmyJSON[];
@@ -175,7 +177,7 @@ interface BattleStats {
 
 /* Battle is contains all information in one battle between two or more armies.
  */
-export class Battle {
+export class Battle extends Entity {
 
     public hasNotify: boolean;
     public finished: boolean;
@@ -186,6 +188,7 @@ export class Battle {
     private _stats: BattleStats;
 
     constructor(name: string) {
+        super();
         this._name = name;
         this._armies = [];
         this._level = null;
@@ -333,6 +336,7 @@ export class Battle {
     public toJSON(): BattleJSON {
         return {
             isJSON: true,
+            id: this.getID(),
             name: this._name,
             level: this._level.getID(),
             armies: this._armies.map(army => army.toJSON()),
