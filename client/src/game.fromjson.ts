@@ -16,7 +16,7 @@ import {ActorClass} from './actor-class';
 import {EventPool} from '../src/eventpool';
 import {Dice} from './dice';
 import {Spell} from './spell';
-import {ELEM, ELEM_MAP} from '../data/elem-constants';
+import {ELEM_MAP} from '../data/elem-constants';
 import {ObjectShell} from './objectshellparser';
 import {Component} from './component';
 import {Item} from './item';
@@ -1101,6 +1101,7 @@ FromJSON.prototype.restoreBattle = function(json: BattleJSON): Battle {
         ++this.IND;
         this.dbg(`\trestoreBattle found level ID ${json.level}`);
         const battle = new Battle(json.name);
+        battle.setID(json.id);
         battle.setLevel(battleLevel);
         battle.setStats(json.stats);
         battle.finished = json.finished;
