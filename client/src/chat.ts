@@ -5,7 +5,7 @@ import RG from './rg';
 import {Keys} from './keymap';
 import * as Menu from './menu';
 import * as Item from './item';
-import * as Component from './component/component';
+import * as Component from './component/component.quest';
 import {BrainPlayer} from './brain/brain.player';
 
 type SentientActor = import('./actor').SentientActor;
