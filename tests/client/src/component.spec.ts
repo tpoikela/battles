@@ -1,12 +1,11 @@
 
-import { expect } from 'chai';
-import RG from '../../../client/src/rg';
+import {expect} from 'chai';
 import {Entity} from '../../../client/src/entity';
 import * as Component from '../../../client/src/component';
 import {TagComponent, DataComponent, NO_SERIALISATION
 } from '../../../client/src/component/component.base';
 import {SentientActor} from '../../../client/src/actor';
-import { FactoryActor } from '../../../client/src/factory.actors';
+import {FactoryActor} from '../../../client/src/factory.actors';
 
 const ComponentBase = Component.ComponentBase;
 const CompDefs = Component.Component;
@@ -53,18 +52,18 @@ describe('ComponentBase', () => {
         expect(comp.getEntity().getID()).to.equal(entity.getID());
 
         comp.setEntity(null);
-        expect(comp.getEntity()).to.be.null;
+        expect(comp.getEntity()).to.equal(null);
     });
 
     it('can be copied, cloned, compared', () => {
         const comp = new ComponentBase('Base');
         const compClone = comp.clone();
-        expect(comp.equals(compClone)).to.be.true;
-        expect(compClone.equals(comp)).to.be.true;
+        expect(comp.equals(compClone)).to.equal(true);
+        expect(compClone.equals(comp)).to.equal(true);
 
         const compCopy = new ComponentBase('XXX');
         compCopy.copy(comp);
-        expect(comp.equals(compCopy)).to.be.true;
+        expect(comp.equals(compCopy)).to.equal(true);
         expect(comp.toString()).to.match(/Base/);
     });
 
@@ -101,24 +100,24 @@ describe('ComponentBase', () => {
         };
         expect(funcThatThrows).to.throw(Error);
 
-        expect(calledIllegal).to.be.false;
+        expect(calledIllegal).to.equal(false);
 
-        expect(calledAdd).to.be.false;
+        expect(calledAdd).to.equal(false);
         entity.add(comp);
-        expect(calledAdd).to.be.true;
-        expect(calledIllegal).to.be.false;
+        expect(calledAdd).to.equal(true);
+        expect(calledIllegal).to.equal(false);
         expect(entity.has('Base')).to.equal(true);
 
         const baseComp = entity.get('Base');
         expect(baseComp.getType()).to.equal('Base');
-        expect(calledRemove).to.be.false;
+        expect(calledRemove).to.equal(false);
         entity.remove('Base');
-        expect(calledRemove).to.be.true;
-        expect(calledIllegal).to.be.false;
+        expect(calledRemove).to.equal(true);
+        expect(calledIllegal).to.equal(false);
     });
 });
 
-describe('RG.TagComponent', () => {
+describe('TagComponent', () => {
 
     it('is used to create comp declarations with no data fields', () => {
         const conf = {_privateField: true, falseField: false,
@@ -127,8 +126,8 @@ describe('RG.TagComponent', () => {
         expect((UndeadNew as any).description).to.equal('Test');
         const undeadComp = new UndeadNew();
         expect(undeadComp.getType()).to.equal('UndeadNew');
-        expect(undeadComp._privateField).to.exist;
-        expect(undeadComp.falseField).to.be.false;
+        expect(undeadComp).to.have.property('_privateField');
+        expect(undeadComp.falseField).to.equal(false);
 
         expect(undeadComp.toJSON).to.be.a('function');
         expect(undeadComp.getType).to.be.a('function');
