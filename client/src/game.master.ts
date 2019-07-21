@@ -2,17 +2,15 @@
 import RG from './rg';
 
 import {FactoryBattle, BattleConf} from './factory.battle';
-import {OWMap} from './overworld.map';
 import {OW} from './ow-constants';
 import {Menu} from './menu';
 import {Random} from './random';
-import {Battle, BattleJSON, Army} from './game.battle';
+import {Battle, BattleJSON} from './game.battle';
 import {Level} from './level';
 import {SentientActor} from './actor';
-import {GameMain} from './game';
 import {WorldTop} from './world';
 
-import {EventPool} from './eventpool';
+import {EventPool, EvtArgs} from './eventpool';
 import * as Component from './component';
 
 const dbg = require('debug');
@@ -22,6 +20,10 @@ const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
 
 type BattleObj = Battle | BattleJSON;
+
+interface BattleObjMap {
+    [key: number]: BattleObj[];
+}
 
 /* GameMaster objects reacts to various events caused by player and other
  * actors, and shapes the game world based on them. For example,
@@ -35,7 +37,7 @@ export class GameMaster {
     public game: any ; // GameMain; TODO fix typings
     public fact: FactoryBattle;
     public pool: EventPool;
-    public battles: {[key: number]: BattleObj[]};
+    public battles: BattleObjMap;
 
     // Key is level ID of the battle level (NOT parent area level)
     public battlesDone: {[key: number]: boolean};
@@ -60,20 +62,24 @@ export class GameMaster {
         this.pool.listenEvent(RG.EVT_CREATE_BATTLE, this);
     }
 
-    public setBattles(battles): void {
+    public setDebug(enable: boolean): void {
+        debug.enabled = enable;
+    }
+
+    public setBattles(battles: BattleObjMap): void {
         this.battles = battles;
     }
 
     public setPool(pool: EventPool): void {this.pool = pool;}
     public setGame(game): void {this.game = game;}
 
-    public setPlayer(player): void {
+    public setPlayer(player: SentientActor): void {
         this.player = player;
     }
 
     public setWorld(world: WorldTop): void {this.world = world;}
 
-    public notify(evtName: string, args) {
+    public notify(evtName: string, args: EvtArgs) {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             debug('EVT_LEVEL_CHANGED');
             const {actor} = args;
@@ -88,14 +94,16 @@ export class GameMaster {
         }
         else if (evtName === RG.EVT_CREATE_BATTLE) {
             // With this event, a creation of new battle can be requested. The
-            // resulting battle is placed into args.response
+            // resulting battle is placed into args.response. notify() is
+            // synchronous, thus new battle is available after notifying the
+            // event
             debug('EVT_CREATE_BATTLE');
             const {areaTile} = args;
             if (args.response) {
                 RG.err('GameMaster', 'notify<EVT_CREATE_BATTLE>',
                     `Args has response already: ${JSON.stringify(args)}`);
             }
-            const parentLevel = areaTile.getLevel();
+            const parentLevel: Level = areaTile.getLevel();
             const battle = this.createBattleIntoAreaTileLevel(parentLevel);
             if (battle) {
                 args.response = {battle};
@@ -172,8 +180,9 @@ export class GameMaster {
         const {actor, target, src} = args;
         const srcID = src.getID();
         if (this.battles.hasOwnProperty(srcID)) {
-            const battle = this.getBattle(srcID);
-            if ((battle as BattleJSON).isJSON) {
+            debug('tryToAddPlayerToBattle', srcID, '->', target.getID());
+            const battle = this.getBattle(srcID, target.getID());
+            if (!battle || (battle as BattleJSON).isJSON) {
                 return; // Cannot join serialized battle anyway
             }
             const battleObj = battle as Battle;
@@ -200,33 +209,44 @@ export class GameMaster {
 
     }
 
-    public addBattle(parentId, battle) {
+    public addBattle(parentId: number, battle: BattleObj): void {
+        if (!this.battles.hasOwnProperty(parentId)) {
+            this.battles[parentId] = [];
+        }
         this.battles[parentId].push(battle);
     }
 
-    public getBattle(parentId) {
-        const battle = this.battles[parentId][0];
+    public getBattle(parentId: number, battleId: number): BattleObj {
+        const battle = this.battles[parentId].find(b => {
+            if ((b as BattleJSON).isJSON) {
+                return false;
+            }
+            else {
+                const id = (b as Battle).getLevel().getID();
+                return id === battleId;
+            }
+        });
         return battle;
     }
 
-    public getBattles(parentId) {
+    public getBattles(parentId: number): BattleObj[] {
         return this.battles[parentId];
     }
 
     /* Returns true if the actor can still enter the battle as an army member.
      * */
-    public actorCanEnter(actor, battle) {
+    public actorCanEnter(actor, battle: Battle): boolean {
         if (battle.isOver()) {return false;}
         if (this.actorDesertedBattle(actor, battle)) {return false;}
         return true;
     }
 
     /* Removes the player from a battle. */
-    public removePlayerFromBattle(args) {
+    public removePlayerFromBattle(args): void {
         const {actor, target, src} = args;
         const areaID = target.getID();
         const srcID = src.getID();
-        const battle = this.getBattle(areaID) as Battle;
+        const battle = this.getBattle(areaID, srcID) as Battle;
         const battleLevID = battle.getLevel().getID();
 
         const inBattleComp = actor.get('InBattle');
@@ -263,6 +283,7 @@ export class GameMaster {
                     const badge = new Component.BattleBadge();
                     const battleData = {
                         name: battle.getName(),
+                        id: battle.getID(),
                         army: army.getName(),
                         allies: ids,
                         status: army.isDefeated() ? 'Lost' : 'Won'
@@ -277,10 +298,10 @@ export class GameMaster {
         });
     }
 
-    public actorDesertedBattle(actor, battle) {
+    public actorDesertedBattle(actor, battle): boolean {
         const badgeList = actor.getList('BattleBadge');
         const badge = badgeList.find(b => (
-            b.getData().name === battle.getName()
+            b.getData().id === battle.getID()
         ));
         if (badge) {return true;}
         return false;
@@ -407,7 +428,7 @@ export class GameMaster {
         const keys = Object.keys(this.battles);
         const battles = {};
         keys.forEach(id => {
-            const battlesTile = this.getBattles(id);
+            const battlesTile = this.getBattles(parseInt(id, 10));
             battlesTile.forEach(battle => {
                 if (battles.hasOwnProperty(id)) {
                     RG.warn('Game.Master', 'toJSON',
@@ -483,7 +504,7 @@ export class GameMaster {
 
     }
 
-    public createBattleIntoAreaTileLevel(parentLevel: Level) {
+    public createBattleIntoAreaTileLevel(parentLevel: Level): Battle {
         if (!parentLevel) {
             RG.err('GameMaster', 'createBattleIntoAreaTileLevel',
                 `Parent level is null`);
@@ -527,13 +548,10 @@ export class GameMaster {
         battleConf.levelType = levelType;
         battleConf.bbox = bbox;
 
-        if (!this.battles.hasOwnProperty(parentId)) {
-            this.battles[parentId] = [];
-            const battle = this.fact.createBattle(parentLevel, battleConf);
-            this.addBattle(parentId, battle);
-            this.game.addBattle(this.getBattle(parentId), parentId);
-            return battle;
-        }
-        return null;
+        const battle = this.fact.createBattle(parentLevel, battleConf);
+        this.addBattle(parentId, battle);
+        const battleId = battle.getLevel().getID();
+        this.game.addBattle(this.getBattle(parentId, battleId), parentId);
+        return battle;
     }
 }
