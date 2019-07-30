@@ -66,7 +66,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     });
 
     const city = new World.City('Wrapper city for Debug quarter');
-    city.addQuarter(cityQuarter);
+    city.addSubZone(cityQuarter);
     city.tileX = 0;
     city.tileY = 0;
     const area = new World.Area('Wrapper area', 2, 2, 10, 10);
@@ -219,11 +219,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     }
 
     // For testing actor abilities and camouflage
-    const abilities = player.get('Abilities');
-    const camouflage = new Ability.Camouflage();
-    abilities.addAbility(camouflage);
-    const sharpener = new Ability.Sharpener();
-    abilities.addAbility(sharpener);
+    Ability.addAllAbilities(player);
 
     this.addGoblinWithLoot(level);
 
