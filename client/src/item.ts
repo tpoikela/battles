@@ -7,10 +7,10 @@ import {Entity} from './entity';
 import {EventPool} from '../src/eventpool';
 import {Dice} from './dice';
 import {TCoord} from './interfaces';
-import {Cell} from './map.cell';
 
 type SentientActor = import('./actor').SentientActor;
 // type Level = import('./level').Level;
+type Cell = import('./map.cell').Cell;
 
 const POOL = EventPool.getPool();
 
