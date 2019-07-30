@@ -26,10 +26,10 @@ import {Random} from './random';
 import {TerritoryMap} from '../data/territory-map';
 import {Territory} from './territory';
 import {WorldConf} from './world.creator';
-import {Level, LevelCallback} from './level';
+import {Level} from './level';
 import {SentientActor} from './actor';
 
-import {IFactoryGameConf, OWMapConf, IActorMods} from './interfaces';
+import * as IF from './interfaces';
 
 import {ACTOR_CLASSES} from '../src/actor-class';
 const POOL = EventPool.getPool();
@@ -64,7 +64,7 @@ FactoryGame.prototype.restoreGame = function(json) {
 
 /* Creates the game based on the selection. Main method that you want to
  * call. */
-FactoryGame.prototype.createNewGame = function(conf: IFactoryGameConf) {
+FactoryGame.prototype.createNewGame = function(conf: IF.IFactoryGameConf) {
     this._verif.verifyConf('createNewGame', conf,
         ['sqrPerItem', 'sqrPerActor', 'playMode']);
 
@@ -81,8 +81,6 @@ FactoryGame.prototype.createNewGame = function(conf: IFactoryGameConf) {
             return this.createArenaDebugGame(conf, game, player);
         case 'Battle':
             return this.createDebugBattle(conf, game, player);
-        case 'Creator':
-            return this.createWorldWithCreator(conf, game, player);
         case 'World':
             return this.createFullWorld(conf, game, player);
         case 'OverWorld':
@@ -207,7 +205,7 @@ FactoryGame.prototype.addActorClass = function(obj, player) {
 FactoryGame.prototype.addRaceStuff = function(obj, player) {
     const {playerRace} = obj;
     if (!ActorMods[playerRace]) {return;}
-    const raceMods = (ActorMods[playerRace] as IActorMods).player;
+    const raceMods = (ActorMods[playerRace] as IF.IActorMods).player;
     // First add generic items for the given race
     const items = raceMods.startingItems;
     const eqs = raceMods.equipment;
@@ -234,9 +232,9 @@ FactoryGame.prototype.setCallback = function(name, cb) {
     this.callbacks[name] = cb;
 };
 
-FactoryGame.prototype.createOverWorldGame = function(obj: IFactoryGameConf, game, player) {
+FactoryGame.prototype.createOverWorldGame = function(obj: IF.IFactoryGameConf, game, player) {
     const owMult = obj.owMultiplier || 1;
-    const owConf: OWMapConf = FactoryGame.getOwConf(owMult, obj);
+    const owConf: IF.OWMapConf = FactoryGame.getOwConf(owMult, obj);
     const midX = Math.floor(owConf.nLevelsX / 2);
     const playerX = midX;
     const playerY = owConf.nLevelsY - 1;
@@ -393,7 +391,7 @@ FactoryGame.prototype.createTerritoryMap = function(
 /* Matches each zone with territory map, and adds some generation
  * constraints.
  */
-FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
+FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf: IF.WorldConf) {
     const uniqueActors = ActorsData.filter(shell => shell.base === 'UniqueBase');
     const uniqueCreated = {};
     let uniquesAdded = 0;
@@ -401,8 +399,8 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
     const disposition = this.getDisposition();
 
     const terrMapXY = terrMap.getMap();
-    const citiesConf = worldConf.area[0].city;
-    citiesConf.forEach(cityConf => {
+    const citiesConf: IF.CityConf[] = worldConf.area[0].city;
+    citiesConf.forEach((cityConf: IF.CityConf) => {
         const {owX, owY} = cityConf;
         const char = terrMapXY[owX][owY];
         let name = terrMap.getName(char);
@@ -435,6 +433,7 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
                         createConf.actor.push(actorCreate);
 
                         uniqueCreated[randUnique.name] = randUnique;
+                        cityConf.hasUniques = true;
                         cityConf.quarter[0].create = createConf;
                         ++uniquesAdded;
                     }
@@ -485,7 +484,7 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
 };
 
 FactoryGame.prototype.getDisposition = function() {
-    const dispos = new Disposition(RG.ALL_RACES);
+    const dispos = new Disposition(RG.ALL_RACES, {});
     dispos.randomize();
     return dispos.getTable();
 };
@@ -584,17 +583,6 @@ FactoryGame.prototype.getConstrWeightsForAreaXY = function(aX, aY, terrMap) {
     });
     // types = types.map(typeChar => terrMap.getName(typeChar));
     return weights;
-};
-
-FactoryGame.prototype.createWorldWithCreator = function(obj, game, player) {
-    const creator = new WorldConf();
-
-    const conf = {name: 'World', worldSize: 'Small',
-        areaSize: 'Small'
-    };
-
-    obj.world = WorldConf.createWorldConf(conf);
-    return this.createFullWorld(obj, game, player);
 };
 
 FactoryGame.prototype.createFullWorld = function(obj, game, player) {
@@ -699,7 +687,7 @@ FactoryGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
 };
 
 
-FactoryGame.getOwConf = function(mult = 1, obj: any = {}): OWMapConf {
+FactoryGame.getOwConf = function(mult = 1, obj: any = {}): IF.OWMapConf {
     const xMult = obj.xMult || 1;
     const yMult = obj.yMult || 1;
     const owConf = {
