@@ -246,9 +246,7 @@ export class Cell {
 
     /* Returns true if light passes through this map cell.*/
     public lightPasses(): boolean {
-        // if (!this._baseElem.lightPasses()) {return false;}
         if (!this._lightPasses) {return false;}
-        // if (this.hasProp(TYPE_ELEM)) {
         const elems = this._p[TYPE_ELEM];
         if (elems) {
             if (elems.length === 1) {
@@ -495,5 +493,5 @@ export class Cell {
     public isOutdoors(): boolean {
         return !this._baseElem.has('Indoor');
     }
-} // }}} Map.Cell
+}
 
