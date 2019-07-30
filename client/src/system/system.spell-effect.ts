@@ -5,6 +5,8 @@ import * as Component from '../component';
 import {ObjectShell} from '../objectshellparser';
 import {Geometry} from '../geometry';
 
+type Entity = import('../entity').Entity;
+
 const {addSkillsExp} = SystemBase;
 
 const spellEffects = ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea',
@@ -14,7 +16,7 @@ const spellEffects = ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea',
  * dealing components etc. An example if FrostBolt which creates SpellRay
  * component for each cell it's travelling to. */
 export class SystemSpellEffect extends SystemBase {
-    private _dtable: {[key: string]: (ent, comp) => void};
+    private _dtable: {[key: string]: (ent: Entity, comp) => void};
 
     constructor(compTypes, pool?) {
         super(RG.SYS.SPELL_EFFECT, compTypes, pool);
@@ -34,7 +36,7 @@ export class SystemSpellEffect extends SystemBase {
 
     /* For each different spell effect, grabs a list of components (if any
      * exist), then calls the corresponding function in dtable. */
-    public updateEntity(ent) {
+    public updateEntity(ent: Entity): void {
         spellEffects.forEach(effName => {
             if (ent.has(effName)) {
                 const effCompList = ent.getList(effName);
@@ -47,7 +49,7 @@ export class SystemSpellEffect extends SystemBase {
         });
     }
 
-    public processSpellRay(ent, ray) {
+    public processSpellRay(ent, ray): void {
         const args = ray.getArgs();
         const map = ent.getLevel().getMap();
         const spell = args.spell;
@@ -119,7 +121,7 @@ export class SystemSpellEffect extends SystemBase {
         ent.add(animComp);
     }
 
-    public rayHitsActor(actor, rangeLeft) {
+    public rayHitsActor(actor: Entity, rangeLeft: number): boolean {
         if (!actor.has('Health')) {
             return false;
         }
