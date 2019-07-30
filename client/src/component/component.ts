@@ -295,7 +295,8 @@ ExpPoints.prototype.addExpPoints = function(exp) {
 
 /* Combat component holds all combat-related information for actors. */
 export const Combat = UniqueDataComponent('Combat', {
-    attack: 1, defense: 1, protection: 0, attackRange: 1, damageDie: null
+    attack: 1, defense: 1, protection: 0, attackRange: 1, damageDie: null,
+    numHits: 1
 });
 
 Combat.prototype._init = function() {
@@ -591,6 +592,7 @@ export const Damaging = DataComponent('Damaging', {
 
 /* Added to entities which are destroyed after use. */
 export const OneShot = UniqueTagComponent('OneShot');
+OneShot.description = 'Destroyed automatically after one use';
 
 /* Entities with physical components have weight and size.*/
 export const Physical = UniqueDataComponent('Physical',
@@ -1507,7 +1509,7 @@ export const Entrapping = UniqueDataComponent('Entrapping', {
 export const Entrapped = UniqueTagComponent('Entrapped');
 
 /* Component attached to Level/Places for Lore. */
-export const Lore = UniqueDataComponent('Lore', {
+export const Lore = DataComponent('Lore', {
     topics: null
 });
 
@@ -1519,11 +1521,23 @@ Lore.prototype.addTopic = function(key: string, msg: any): void {
     if (!this.topics[key]) {
         this.topics[key] = [];
     }
-    this.topics[key].push(msg);
+    if (Array.isArray(msg)) {
+        this.topics[key] = this.topics[key].concat(msg);
+    }
+    else {
+        this.topics[key].push(msg);
+    }
+};
+
+Lore.prototype.updateTopics = function(topics: {[key: string]: any}): void {
+    Object.keys(topics).forEach((name: string) => {
+        this.addTopic(name, topics[name]);
+    });
 };
 
 Lore.prototype.hasTopic = function(key: string): boolean {
-    return this.topics.hasOwnProperty[key];
+    console.log('hasTopic', this.topics);
+    return this.topics.hasOwnProperty(key);
 };
 
 
