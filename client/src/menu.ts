@@ -56,7 +56,8 @@ interface MenuCallObj {
     funcToCall: VoidFunc;
 }
 type MenuPair = [string, any];
-type MenuItem = MenuBase | VoidFunc | MenuPair | MenuCallObj;
+
+export type MenuItem = MenuBase | VoidFunc | MenuPair | MenuCallObj;
 
 interface MenuTable {
     [key: string]: MenuItem;
@@ -123,7 +124,8 @@ export class MenuBase {
     public post: string[];
     public parent: MenuBase | null;
     public table: MenuTable;
-    public callback: (any) => void;
+    public callback: (any) => void | null;
+    public returnMenu: MenuBase | null;
     protected _showMenu: boolean;
 
     constructor(args: MenuArg[] = []) {
@@ -134,6 +136,10 @@ export class MenuBase {
         this._showMenu = true;
 
         this.parent = null; // Parent menu for this object
+    }
+
+    public createTable(args: MenuArg[]): void {
+        this.table = createMenuTable(args);
     }
 
     public setName(name: string): void {
@@ -216,6 +222,11 @@ export class MenuBase {
                 return selection;
             }
         }
+    }
+
+    /* Called if this menu is selected from a parent menu. */
+    public onSelectCallback(cbArgs?: any): void {
+        console.log('onSelectCallback in menu', this.name);
     }
 }
 
@@ -383,12 +394,47 @@ export class MenuSelectDir extends MenuBase {
     public select(code) {
         if (KeyMap.inMoveCodeMap(code)) {
             const dXdY = Keys.KeyMap.getDir(code);
-            return this.callback.bind(null, dXdY);
+            if (this.callback) {
+                return this.callback.bind(null, dXdY);
+            }
+            else if (this.returnMenu) {
+                this.returnMenu.onSelectCallback(dXdY);
+                return this.returnMenu; // Can be object/Menu
+            }
         }
         return Menu.EXIT_MENU;
     }
 }
 Menu.SelectDir = MenuSelectDir;
+
+/* This menu can be used when direction selection is required. */
+export class MenuConfirm extends MenuBase {
+
+    constructor(args) {
+        super(args);
+        this._showMenu = false;
+        this.msg = 'Do you want to confirm the action [y/n]?';
+    }
+
+    /* Returns a callback bound to the dXdY of selection code. */
+    public select(code) {
+        if (KeyMap.isConfirmYes(code)) {
+            if (this.callback) {
+                return this.callback;
+            }
+            else if (this.returnMenu) {
+                this.returnMenu.onSelectCallback();
+                return this.returnMenu;
+            }
+            return Menu.EXIT_MENU;
+        }
+        else if (KeyMap.isConfirmNo(code)) {
+            return Menu.EXIT_MENU;
+        }
+        return this;
+    }
+}
+Menu.Confirm = MenuConfirm;
 
 /* This menu is used when player does missile targeting. */
 export class PlayerMissileMenu extends MenuSelectCell {
