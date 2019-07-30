@@ -9,10 +9,16 @@ interface VoronoiSite {
     voronoiId?: number;
 }
 
+interface Diagram {
+    [key: string]: any;
+}
+
+const CELL_NOT_FOUND = -1;
+
 /* Voronoi diagram wrapper. */
 export class BVoronoi {
 
-    public diagram: any;
+    public diagram: Diagram;
     public sites: VoronoiSite[];
     public sizeX: number;
     public sizeY: number;
@@ -20,7 +26,7 @@ export class BVoronoi {
     constructor() {
     }
 
-    public compute(sites: VoronoiSite[], bbox): any {
+    public compute(sites: VoronoiSite[], bbox): Diagram {
         const vor = new Voronoi();
         this.diagram = vor.compute(sites, bbox);
         this.sites = sites;
@@ -35,19 +41,19 @@ export class BVoronoi {
         for (let x = 0; x < this.sizeX; x++) {
             for (let y = 0; y < this.sizeY; y++) {
                 const xy: TCoord = [x, y];
-                const closestId = this.isInCell(xy);
-                if (!pointById[closestId]) {
-                    pointById[closestId] = [];
+                const cellId = this.getCellId(xy);
+                if (!pointById[cellId]) {
+                    pointById[cellId] = [];
                 }
-                pointById[closestId].push(xy);
+                pointById[cellId].push(xy);
 
             }
         }
         return pointById;
     }
 
-    public isInCell(xy: TCoord): number {
-        let closestId = -1;
+    public getCellId(xy: TCoord): number {
+        let closestId = CELL_NOT_FOUND;
         let d = Number.MAX_SAFE_INTEGER;
 
         this.sites.forEach(cell => {
