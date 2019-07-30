@@ -54,6 +54,18 @@ export class CellMap {
         return map;
     }
 
+    public static multiplyMap(map: CellMap, multX: number, multY: number): CellMap {
+        const newMap = new CellMap(multX * map.cols, multY * map.rows);
+        for (let x = 0; x < newMap.cols; x++) {
+            for (let y = 0; y < newMap.rows; y++) {
+                const oldX = Math.floor(x / multX);
+                const oldY = Math.floor(y / multY);
+                newMap.setBaseElemXY(x, y, map.getBaseElemXY(oldX, oldY));
+            }
+        }
+        return newMap;
+    }
+
     public _map: Cell[][];
     public cols: number;
     public rows: number;
