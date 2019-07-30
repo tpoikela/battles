@@ -29,6 +29,7 @@ import {Path} from './path';
 import {Builder} from './builder';
 import {MapGenerator} from './map.generator';
 import {OWMap} from './overworld.map';
+import {OWLore} from './overworld.lore';
 import {OW} from './ow-constants';
 import {ELEM} from '../data/elem-constants';
 import {Random} from './random';
@@ -36,6 +37,7 @@ import {FactoryLevel} from './factory.level';
 import {Geometry} from './geometry';
 import * as IF from './interfaces';
 import {CellMap} from './map';
+import {createDirNorthMsg, createLoreObj} from '../data/lore';
 
 import dbg = require('debug');
 const debug = dbg('bitn:overworld');
@@ -981,8 +983,11 @@ OverWorld.createWorldConf = function(
             `sub Y :${nSubLevelsY}, nTilesY: ${nTilesY}`);
     }
 
+    const tStart = Date.now();
+
     // Map values are OK, this loops through smaller overworld sublevels, which
     // are aligned with the large mountain wall creation
+    const owLore = new OWLore();
     for (let x = 0; x < nSubLevelsX; x++) {
         for (let y = 0; y < nSubLevelsY; y++) {
 
@@ -1001,21 +1006,31 @@ OverWorld.createWorldConf = function(
             const coordObj = {xMap, yMap, nSubLevelsX, nSubLevelsY,
                 x, y, slX, slY, aX, aY, subLevel, subX, subY};
 
-            processSubLevel(ow, x, y, coordObj, areaConf);
+            processSubLevel(ow, x, y, coordObj, areaConf, owLore);
+
         }
     }
+    owLore.buildLore();
 
+    const tEnd = Date.now();
+    const tDur = tEnd - tStart;
+    console.log('Processing subLevels took ' + tDur + ' ms');
     addBiomeLocations(ow, areaConf);
     return worldConf;
 };
 
 /* Adds zone features to the given subLevel of ow located at x,y. Adds also
  * necessary information into areaConf which will be used by Factory. */
-function processSubLevel(ow: OWMap, x: number, y: number, coordObj, areaConf): void {
+function processSubLevel(ow: OWMap, x: number, y: number, coordObj, areaConf, owLore: OWLore): void {
     const subLevel = ow.getSubLevel([x, y]);
     const features: OWFeatureMap = subLevel.getFeatures();
+    if (Object.keys(features).length === 0) {
+        owLore.addVisited([x, y]);
+        return;
+    }
 
-    const comps = getMainQuestComps(ow, x, y);
+    const comps = getMainQuestComps(ow, x, y, owLore);
+    const sideComps = getSideQuestComps(ow, x, y, owLore);
 
     Object.keys(features).forEach(type => {
         const featureArray: OWSubFeature[] = features[type];
@@ -1054,8 +1069,11 @@ function processSubLevel(ow: OWMap, x: number, y: number, coordObj, areaConf): v
                 zoneConf = addBlackTowerConfToArea(feat, coordObj, areaConf);
             }
             addCompsToZone(zoneConf, comps);
+            // addCompsToZone(zoneConf, sideComps);
+            owLore.addZone([x, y], zoneConf);
         });
     });
+
 }
 
 function addDungeonConfToArea(feat, coordObj, areaConf) {
@@ -1412,9 +1430,12 @@ function addBiomeLocations(ow, areaConf) {
     }
 }
 
-function getMainQuestComps(ow: OWMap, x: number, y: number): any {
+function getMainQuestComps(ow: OWMap, x: number, y: number, owLore: OWLore): any[] {
+    const loreRange = 2;
     const comps = [];
     const xy: TCoord = [x, y];
+    const loreCoord = Geometry.getBoxAround(x, y, loreRange);
+
     if (ow.hasPathAt(xy)) {
         const path: IF.ICoordXY[] = ow.getPathAtXY(xy);
         const index = path.findIndex(coord => coord.x === x && coord.y === y);
@@ -1425,21 +1446,50 @@ function getMainQuestComps(ow: OWMap, x: number, y: number): any {
                 const dir = RG.getTextualDir(nXY, xy);
 
                 // TODO placeholder for more intelligent msg
-                const msg = 'There might be something interesting '
-                    + ` in the ${dir} to explore`;
-                const compObj = {
-                    comp: 'Lore', func: {
-                        setTopics: {
-                            mainQuest: [msg]
-                        }
-                    }
-                };
-                comps.push(compObj);
+                const msg = createDirNorthMsg(dir);
+                comps.push(createLoreObj(msg, 'mainQuest'));
             }
         }
+
+        loreCoord.forEach((lXY: TCoord) => {
+            owLore.addVisited(lXY);
+            owLore.addXYKnownBy(xy, lXY);
+            owLore.addXYKnownBy(lXY, xy);
+        });
+    }
+    else {
+        // If we're not on main path, check if a surrounding cell is.
+        // Then add info about going from xy -> to that cell on path
+        loreCoord.forEach((lXY: TCoord) => {
+            if (ow.hasPathAt(lXY)) {
+                const dir = RG.getTextualDir(lXY, xy);
+                const msg = createDirNorthMsg(dir);
+                comps.push(createLoreObj(msg, 'mainQuest'));
+                owLore.addXYKnownBy(lXY, xy);
+            }
+        });
     }
     return comps;
 }
+
+function getSideQuestComps(ow: OWMap, x: number, y: number, owLore: OWLore): any[] {
+    const loreRange = 2;
+    const comps = [];
+    const xy: TCoord = [x, y];
+    const loreCoord = Geometry.getBoxAround(x, y, loreRange);
+    loreCoord.forEach((lXY: TCoord) => {
+        if (ow.hasFeatureAt(lXY)) {
+            /* const feats = ow.getFeaturesByXY(lXY);
+            const chosenFeat = getRNG().arrayGetRand(feats);*/
+            /* const dir = RG.getTextualDir(lXY, xy);
+            const msg = createLoreMsg(dir);
+            comps.push(createLoreObj(msg, 'sideQuest'));*/
+            owLore.addXYKnownBy(lXY, xy);
+        }
+    });
+    return comps;
+}
+
 
 /* Returns the bounding box of sublevel coordinates for given tile. For example,
  * tile 0,0 with xMap=3,yMap=5, returns [0, 4, 2, 0]. */
@@ -1516,8 +1566,9 @@ function addGlobalFeatures(ow, owLevel: Level, conf, coordMap) {
 }
 
 /* Returns the player starting position as a global coordinate. */
-function getPlayerStartPos(ow, coordMap) {
+function getPlayerStartPos(ow: OWMap, coordMap) {
     const playerStartX = Math.floor(ow.getSizeX() / 2 - 1) * TILE_SIZE_X;
     const playerStartY = coordMap.worldRows - Math.floor(TILE_SIZE_Y / 2);
     return [playerStartX, playerStartY];
 }
+
