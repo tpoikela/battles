@@ -1536,7 +1536,6 @@ Lore.prototype.updateTopics = function(topics: {[key: string]: any}): void {
 };
 
 Lore.prototype.hasTopic = function(key: string): boolean {
-    console.log('hasTopic', this.topics);
     return this.topics.hasOwnProperty(key);
 };
 
