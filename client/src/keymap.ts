@@ -107,6 +107,7 @@ Keys.KeyMap = {
     ),
     isChat: (code: number): boolean => code === Keys.KEY.CHAT,
     isConfirmYes: (code: number): boolean => code === Keys.KEY.YES,
+    isConfirmNo: (code: number): boolean => code === Keys.KEY.NO,
     isFightMode: (code: number): boolean => code === Keys.KEY.FIGHT,
     isGive: (code: number): boolean => code === Keys.KEY.GIVE,
     isGoto: (code: number): boolean => code === Keys.KEY.GOTO,
@@ -317,7 +318,8 @@ Keys.KEY.TARGET = Keys.VK_t;
 Keys.KEY.USE_ABILITY = Keys.VK_k;
 Keys.KEY.USE_STAIRS_DOWN = Keys.VK_GT;
 Keys.KEY.USE_STAIRS_UP = Keys.VK_LT;
-Keys.KEY.YES = ROT.VK_Y + 32;
+Keys.KEY.YES = Keys.VK_y;
+Keys.KEY.NO = Keys.VK_n;
 Keys.KeyMap.initMap();
 
 Keys.KEY.NO_ACTION = ROT.VK_CAPS_LOCK;
