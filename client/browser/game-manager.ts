@@ -703,7 +703,6 @@ export class GameManager {
         if (name === '') {
             seed = new Date().getTime();
         }
-        console.log('setSeedName used seed is', seed, 'got name', name);
         ROT.RNG.setSeed(seed);
         Dice.RNG.setSeed(seed);
         this.gameConf.seed = seed;
