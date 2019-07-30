@@ -76,11 +76,14 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
     const _propToCall: any = {
         actors: {
             type: 'setType',
+
+            attackRange: {comp: 'Combat', func: 'setAttackRange'},
             attack: {comp: 'Combat', func: 'setAttack'},
             defense: {comp: 'Combat', func: 'setDefense'},
             damage: {comp: 'Combat', func: 'setDamageDie'},
-            speed: {comp: 'Stats', func: 'setSpeed'},
+            numHits: {comp: 'Combat', func: 'setNumHits'},
 
+            speed: {comp: 'Stats', func: 'setSpeed'},
             strength: {comp: 'Stats', func: 'setStrength'},
             accuracy: {comp: 'Stats', func: 'setAccuracy'},
             agility: {comp: 'Stats', func: 'setAgility'},
