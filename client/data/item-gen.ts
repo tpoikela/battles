@@ -340,15 +340,15 @@ ItemGen.genRandShell = function(type: string): IShell {
         materialItemShell = materialShell[type];
     }
 
-    const weaponName = RNG.arrayGetRand(names[type] as string[]);
-    const itemShell = shellProps[type][weaponName];
+    const chosenName = RNG.arrayGetRand(names[type] as string[]);
+    const itemShell = shellProps[type][chosenName];
 
     const allShells = [baseShells[type], itemShell, materialShell];
     if (materialItemShell) {
         allShells.push(materialItemShell);
     }
 
-    let fullName = material + ' ' + weaponName;
+    let fullName = material + ' ' + chosenName;
     if (hasPrefix) {
         prefixName = RNG.arrayGetRand(names.prefix[type]);
         const prefixShell = prefix[type][prefixName];
