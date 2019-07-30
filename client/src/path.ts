@@ -5,6 +5,7 @@ import RG from './rg';
 import {ICoordXY, TCoord} from './interfaces';
 type Cell = import('./map.cell').Cell;
 type CellMap = import('./map').CellMap;
+type Level = import('./level').Level;
 
 export const Path: any = {};
 
@@ -329,6 +330,23 @@ Path.getPathSeg = function(dist: number, nSeg: number): number[] {
     }
     result.push(remain);
     return result;
+};
+
+
+Path.getPathFromEdgeToCell = function(level: Level, elemType: string): ICoordXY[] {
+    const edgeConns = level.getFreeEdgeCells();
+    const randConn = edgeConns[0];
+    const randDoor = level.getCellWithElem(elemType);
+    if (!randDoor || !randConn) {return [];}
+    const map = level.getMap();
+    const passCb = (x: number, y: number): boolean => (
+        map.hasXY(x, y)
+            && !/wall/.test(map.getCell(x, y).getBaseElem().getType())
+    );
+    const [x0, y0] = randConn.getXY();
+    const [x1, y1] = randDoor.getXY();
+    const path = Path.getShortestPath(x0, y0, x1, y1, passCb);
+    return path;
 };
 
 /* HELPER FUNCTIONS. */
