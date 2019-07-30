@@ -662,6 +662,21 @@ export class Level extends Entity {
         return pActor as SentientActor;
     }
 
+
+    public getFreeEdgeCells(): Cell[] {
+        const edgeConns = this.getMap().getCells(c => (
+            (c.getX() === 0 || c.getY() === 0) &&
+                !c.getBaseElem().has('Impassable')
+        ));
+        return edgeConns;
+    }
+
+    public getCellWithElem(elemType: string): any {
+        const elems = this.getElements().filter(elem => (
+            elem.getType() === elemType));
+        return elems[0];
+    }
+
     /* Serializes the level object. */
     public toJSON(): any {
         const obj: any = {
