@@ -37,7 +37,12 @@ export class SystemAttack extends SystemBase {
                 RG.gameMsg({cell: def.getCell(), msg});
                 this.performAttack(def, att, dName, aName);
             }
-            this.performAttack(att, def, aName, dName);
+
+            const nHits = att.get('Combat').getNumHits();
+            for (let i = 0; i < nHits; i++) {
+                this.performAttack(att, def, aName, dName);
+            }
+
             if (def.has('CounterAttack')) {
                 const msg = `${dName} seems to counter attack.`;
                 RG.gameMsg({cell: def.getCell(), msg});
