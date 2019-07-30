@@ -37,8 +37,8 @@ describe('OWMap', () => {
 
         const xyBT = ow.getFeaturesByType(OW.BTOWER);
         const xyWC = ow.getFeaturesByType(OW.WCAPITAL);
-        expect(xyBT).to.have.length.equal(1);
-        expect(xyWC).to.have.length.equal(1);
+        expect(xyBT).to.have.length(1);
+        expect(xyWC).to.have.length(1);
         const path = OWMap.getPath(ow, xyBT[0], xyWC[0]);
         ow.addPathToDebug(path);
         expect(path).to.have.length.above(0);
