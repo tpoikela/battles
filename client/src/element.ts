@@ -701,7 +701,7 @@ Element.PlaceHolder = ElementPlaceholder;
 /* Used in the debugging of levels only. Can be used to add arbitrary characters
  * into level maps when debugging. */
 export class ElementMarker extends Mixin.Locatable(ElementBase) {
-    constructor(char) {
+    constructor(char: string) {
         super('marker');
         this.char = char;
         this.tag = '';
@@ -709,13 +709,13 @@ export class ElementMarker extends Mixin.Locatable(ElementBase) {
     }
 
     public getClassName() {return this.className;}
-    public setClassName(name) {this.className = name;}
+    public setClassName(name: string) {this.className = name;}
 
-    public getChar() {return this.char;}
-    public setChar(char) {this.char = char;}
+    public getChar(): string {return this.char;}
+    public setChar(char: string): void {this.char = char;}
 
-    public setTag(tag) {this.tag = tag;}
-    public getTag() {return this.tag;}
+    public setTag(tag: string): void {this.tag = tag;}
+    public getTag(): string {return this.tag;}
 
     public toJSON() {
         const json = super.toJSON();
