@@ -17,11 +17,13 @@ import {FactoryItem} from './factory.items';
 import {Placer} from './placer';
 import {Random} from './random';
 import {Geometry} from './geometry';
+import {Path} from './path';
+import {ELEM} from '../data/elem-constants';
 
 const RNG = Random.getRNG();
 const Room = ROT.Map.Feature.Room;
 
-import {TCoord} from './interfaces';
+import {TCoord, ICoordXY} from './interfaces';
 type CellList = import('./map').CellMap;
 type Cell = import('./map.cell').Cell;
 
@@ -44,6 +46,29 @@ export class CastleGenerator extends LevelGenerator {
         opts.centralCorridors = false;
         opts.roomCount = -1;
         return opts;
+    }
+
+    public static carvePathFromEdge(level: Level, elemType: string): ICoordXY[] {
+        const edgeConns = level.getFreeEdgeCells();
+        const map = level.getMap();
+        const foundElem = level.getCellWithElem(elemType);
+
+        const randConn = edgeConns[0];
+        const [x0, y0] = randConn.getXY();
+        const [x1, y1] = foundElem.getXY();
+
+        const passCb = (x: number, y: number): boolean => (
+            map.hasXY(x, y) &&
+            map.getCell(x, y).getBaseElem().getType() !== 'wallcastle'
+        );
+        const path: ICoordXY[] = Path.getShortestPath(x0, y0, x1, y1, passCb);
+        path.forEach((xy: ICoordXY) => {
+            const cell = map.getCell(xy.x, xy.y);
+            if (!cell.isFree()) {
+                cell.setBaseElem(ELEM.FLOOR);
+            }
+        });
+        return path;
     }
 
     public addDoors: boolean;
@@ -283,8 +308,6 @@ export class CastleGenerator extends LevelGenerator {
     }
 }
 
-RG.extend2(CastleGenerator, LevelGenerator);
-
 const GOLD_VAULT_CHANCE = 0.10;
 
 const re = {
@@ -345,6 +368,7 @@ function getGateDirFunction(conf): GateFunc | null {
     }
     return null;
 }
+
 
 function cellBlocked(type): boolean {
     switch (type) {
