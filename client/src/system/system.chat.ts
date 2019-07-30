@@ -279,16 +279,18 @@ export class SystemChat extends SystemBase {
 
     /* Add lore-specific items belonging to Level to the chat object. */
     public addLevelLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
-        const lore = actor.getLevel().get('Lore');
-        const topics: ILoreTopics = lore.getLoreTopics();
-        Object.keys(topics).forEach(name => {
-            chatObj.add({
-                name: getTopicQuestion(name),
-                option: () => {
-                    const chosenOpt = this.rng.arrayGetRand(topics[name]);
-                    const opt = getFormattedReply(actor, name, chosenOpt);
-                    RG.gameInfo({cell: ent.getCell(), msg: opt});
-                }
+        const loreComps = actor.getLevel().getList('Lore');
+        loreComps.forEach(lore => {
+            const topics: ILoreTopics = lore.getLoreTopics();
+            Object.keys(topics).forEach(name => {
+                chatObj.add({
+                    name: getTopicQuestion(name),
+                    option: () => {
+                        const chosenOpt = this.rng.arrayGetRand(topics[name]);
+                        const opt = getFormattedReply(actor, name, chosenOpt);
+                        RG.gameInfo({cell: ent.getCell(), msg: opt});
+                    }
+                });
             });
         });
     }
@@ -296,7 +298,7 @@ export class SystemChat extends SystemBase {
     public addGenericLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
         const maxTries = 3;
         let tries = 0;
-        const topic = this.rng.arrayGetRand(Object.keys(Lore));
+        const topic = this.rng.arrayGetRand(Lore.genericTopics);
         const availableOpts: any[] = Lore[topic];
 
         let chosenText = '';
@@ -322,16 +324,28 @@ export class SystemChat extends SystemBase {
     public addZoneLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
         const zone = actor.getLevel().getParentZone();
         if (zone.has('Lore')) {
-            const loreComp = zone.get('Lore');
-            if (zone.hasTopic('mainQuest')) {
-                const msg = this.rng.arrayGetRand(loreComp.getTopics().mainQuest);
-                chatObj.add({
-                    name: 'Can you tell me anything about the North?',
-                    option: () => {
-                        RG.gameInfo({cell: ent.getCell(), msg});
-                    }
-                });
-            }
+            const loreComps = zone.getList('Lore');
+            loreComps.forEach(loreComp => {
+                if (loreComp.hasTopic('mainQuest')) {
+                    const msg = this.rng.arrayGetRand(loreComp.getTopics().mainQuest);
+                    chatObj.add({
+                        name: 'Can you tell me anything about the North?',
+                        option: () => {
+                            RG.gameInfo({cell: ent.getCell(), msg});
+                        }
+                    });
+                }
+
+                if (loreComp.hasTopic('sideQuest')) {
+                    const msg = this.rng.arrayGetRand(loreComp.getTopics().sideQuest);
+                    chatObj.add({
+                        name: 'What can you tell me about this area?',
+                        option: () => {
+                            RG.gameInfo({cell: ent.getCell(), msg});
+                        }
+                    });
+                }
+            });
         }
     }
 
