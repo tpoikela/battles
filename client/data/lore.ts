@@ -3,15 +3,70 @@
 
 const ejs = require('ejs');
 
+import RG from '../src/rg';
+import {Random} from '../src/random';
+import {IConstraint} from '../src/interfaces';
+
+const RNG = Random.getRNG();
+
+export interface ILoreEntry {
+    level?: IConstraint[];
+    text: string[];
+}
+
 export interface LoreData {
-    generic: any[];
-    mainQuest: any;
+    generic: ILoreEntry[];
+    mainQuest: ILoreEntry[];
+    directions: ILoreEntry[];
+    northDirections: ILoreEntry[];
+    genericTopics: string[];
+    typesDirections: ILoreEntry[];
+
+    getRand?: (key: string) => ILoreEntry;
+    getRandText?: (key: string) => string;
 }
 
 export const Lore: LoreData = {
     generic: [],
-    mainQuest: {}
+    mainQuest: [],
+
+    directions: [],
+    northDirections: [],
+    genericTopics: ['generic', 'mainQuest'],
+    typesDirections: [],
 };
+
+Lore.getRand = (key: string): ILoreEntry => {
+    checkKeyError(key);
+    const data = Lore[key] as ILoreEntry[];
+    console.log('WWW:', data);
+    return RNG.arrayGetRand(data);
+};
+
+Lore.getRandText = (key: string): string => {
+    checkKeyError(key);
+    const randCateg: ILoreEntry[] = Lore[key];
+    const textData = RNG.arrayGetRand(randCateg);
+    return RNG.arrayGetRand(textData.text);
+};
+
+export interface LoreFormatArgs {
+    dirPre?: string;
+    dir?: string;
+    dirPost?: string;
+    typePre?: string;
+    type?: string;
+    typePost?: string;
+    namePre?: string;
+    name?: string;
+    namePost?: string;
+    asker?: object;
+    level?: object;
+    target?: object;
+}
+
+// To check if variable used for substitution contains function call
+const funcRe = new RegExp('[().]+');
 
 // Each info can be retrieved based on 3 pieces of info:
 // 1. Current level (and its parent zone context)
@@ -76,23 +131,84 @@ Lore.mainQuest = [
     },
 ];
 
+
+Lore.directions = [
+    {text: [prep`There might be something interesting in ${'dir'} to explore`]},
+    {text: [prep`Travel ${'dir'} if you are looking for adventures`]},
+    {text: [prep`I've heard rumors of something going on in ${'dir'} from here`]},
+];
+
+Lore.typesDirections = [
+    {text: [prep`There is ${'name'} ${'dir'} from here.`]},
+    {text: [prep`If you travel ${'dir'}, you should find a ${'name'} there.`]},
+];
+
+Lore.northDirections = Lore.directions;
+
 /* Use this to preprocess template literals with your favourite js template
  * engine. */
 export function prep(strings: TemplateStringsArray, ...args: any[]) {
     let s = strings[0];
     for (let i = 0; i < args.length; i++) {
+        if (!hasFuncCall(args[i])) {s += addExtraString(args[i], 'Pre');}
         s += '<%= ' + args[i] + ' %>';
+        if (!hasFuncCall(args[i])) {s += addExtraString(args[i], 'Post');}
         s += strings[i + 1];
     }
     // Could pre-compile also templates and return them as functions?
     return s;
 }
 
+/* Given two string, ie 'aaa' and 'Pre', returns ejs template string with
+ * condition to check if aaaPre exists, and insertion of aaaPre in that case. */
+function addExtraString(str: string, suff: string): string {
+    const newName = `${str}${suff}`;
+    return `<% if (typeof ${newName} !== "undefined") { %><%= ${newName} %><% } %>`;
+}
+
 export function compile(text: string): (arg: any) => string {
     return ejs.compile(text);
 }
 
-export function format(text: string, args: any): string {
+export function format(text: string, args: LoreFormatArgs): string {
     return ejs.compile(text)(args);
 };
 
+/* Creates a message which points player to go north. */
+export function createDirNorthMsg(dir: string): string {
+    const choices: ILoreEntry = RNG.arrayGetRand(Lore.northDirections);
+    const templ: string = RNG.arrayGetRand(choices.text);
+    const msg =  format(templ, {dir});
+    return msg;
+}
+
+export function createLoreMsg(dir: string): string {
+    const choices: ILoreEntry = RNG.arrayGetRand(Lore.northDirections);
+    const templ: string = RNG.arrayGetRand(choices.text);
+    const msg =  format(templ, {dir});
+    return msg;
+}
+
+/* Creates the object which is used to create and initialize Lore component for
+ * this zone. */
+export function createLoreObj(msg: string, topic: string) {
+    const compObj = {
+        comp: 'Lore', func: {
+            updateTopics: {
+                [topic]: [msg]
+            }
+        }
+    };
+    return compObj;
+}
+
+function hasFuncCall(str: string): boolean {
+    return funcRe.test(str);
+}
+
+function checkKeyError(key: string): void {
+    if (!Lore.hasOwnProperty(key)) {
+        RG.err('lore.ts', 'checkKeyError', 
+           `Key ${key} does not exist`);
+    }
+}
