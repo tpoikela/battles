@@ -96,7 +96,8 @@ const startingItems: ItemConstrMap = {
     Spellsinger: [
         {name: 'Ration', count: 1},
         {name: 'Potion of eagle', count: 1}
-    ]
+    ],
+    Politician: []
 };
 ActorClass.startingItems = startingItems;
 
@@ -130,7 +131,8 @@ const equipment: ItemConstrMap = {
     Spellsinger: [
         {name: 'Iron staff', count: 1},
         {name: 'Leather armour', count: 1}
-    ]
+    ],
+    Politician: []
 };
 ActorClass.equipment = equipment;
 
@@ -233,6 +235,7 @@ export class Alpinist extends ActorClassBase {
         };
         this._advances = {
             1: () => {
+                ActorClass.addAbility('Camouflage', this._actor);
             },
             4: () => {
                 this._actor.add(new Component.Climber());
@@ -241,7 +244,6 @@ export class Alpinist extends ActorClassBase {
                 this._actor.add(new Component.Jumper());
             },
             12: () => {
-                ActorClass.addAbility('Camouflage', this._actor);
             },
             16: () => {
             },
@@ -729,9 +731,68 @@ export class Spiritcrafter extends ActorClassBase {
 }
 ActorClass.Spiritcrafter = Spiritcrafter;
 
+//-------------------------------------------------------------------------
+/* Politician actor class and its experience level-specific features. */
+//-------------------------------------------------------------------------
+export class Politician extends ActorClassBase {
+    constructor(actor) {
+        super(actor, 'Politician');
+        const name = actor.getName();
+        this._messages = {
+        };
+        this._advances = {
+            1: () => {
+                console.log('Adding Bribery now');
+                ActorClass.addAbility('Bribery', this._actor);
+            },
+            4: () => {
+            },
+            8: () => {
+            },
+            12: () => {
+            },
+            16: () => {
+            },
+            20: () => {
+            },
+            24: () => {
+            },
+            28: () => {
+            },
+            32: () => {
+            }
+        };
+
+    }
+
+    public setStartingStats(): void {
+        const stats = this._actor.get('Stats');
+        stats.incrStat('perception', 3);
+        stats.incrStat('agility', -2);
+        stats.incrStat('strength', -3);
+        stats.incrStat('willpower', 4);
+    }
+
+    public incrStats(newLevel: number): void {
+        const stats = this._actor.get('Stats');
+        super.incrStats(newLevel);
+        if (newLevel % 3 !== 0) {
+            stats.incrStat('perception', 1);
+            this._lastStateIncr += '\nPerception was increased.';
+        }
+        if (newLevel % 3 !== 1) {
+            stats.incrStat('willpower', 1);
+            this._lastStateIncr += '\nWillpower was increased.';
+        }
+    }
+
+
+}
+ActorClass.Politician = Politician;
+
 export const ACTOR_CLASSES = [
     'Cryomancer', 'Blademaster', 'Marksman', 'Spiritcrafter',
-    'Adventurer', 'Alpinist', 'Spellsinger'
+    'Adventurer', 'Alpinist', 'Spellsinger', 'Politician'
 ];
 
 export const ACTOR_CLASSES_NO_ADV = ACTOR_CLASSES.filter(ac => (
