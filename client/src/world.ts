@@ -1629,7 +1629,7 @@ World.MountainFace = MountainFace;
 //-------------------------
 // World.MountainSummit
 //-------------------------
-/* A summit of the mountain consisting of at least one Map.Level. */
+/* A summit of the mountain consisting of at least one Level. */
 export class MountainSummit extends SubZoneBase {
     constructor(name) {
         super(name);
@@ -1659,20 +1659,9 @@ export class City extends ZoneBase {
         return this._subZones as CityQuarter[];
     }
 
-    public addQuarter(quarter: CityQuarter): void {
-        if (!this.addSubZone(quarter)) {
-            RG.err('World.City', 'addQuarter',
-                `City ${this.getName()} quarter not defined.`);
-        }
-    }
-
     public abutQuarters(q1, q2, l1, l2) {
         const res = connectSubZoneEdges(this._subZones, q1, q2, l1, l2);
         return res;
-    }
-
-    public hasQuarter(q): boolean {
-        return this.hasSubZone(q);
     }
 
     public toJSON() {
@@ -1695,7 +1684,7 @@ export class CityQuarter extends SubZoneBase {
 
     private _shops: WorldShop[];
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType('quarter');
         this._shops = [];
@@ -1732,7 +1721,7 @@ export class CityQuarter extends SubZoneBase {
     }
 
     /* Connects levels in linear fashion 0->1->2->...->N. */
-    public connectLevels() {
+    public connectLevels(): void {
         connectLevelsLinear(this._levels);
     }
 
