@@ -34,12 +34,10 @@ const SelfRemovingListener = function(evtName, pool) {
     this.emitAlso = false; // When true, emit inside notify
 
     this.notify = function(name) {
-        console.log('SelfRemovingListener notify got ' + name);
         if (name === this.evtName) {
             if (this.emitAlso) {
                 pool.emitEvent('SELF_REM_EMIT', {msg: 'Just emit it'});
             }
-            console.log('Now call removeListener() for evt ' + name);
             pool.removeListener(this);
         }
     };

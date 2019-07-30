@@ -74,8 +74,8 @@ describe('Game.Battle', function() {
 
         const battleActors = battle.getLevel().getActors();
         if (battleActors.length > 0) {
-            battle.getLevel().debugPrintInASCII();
-            areaLevel.debugPrintInASCII();
+            battle.getLevel().debugPrintInASCII(); // Only if fails
+            areaLevel.debugPrintInASCII(); // Only if fails
         }
         expect(battleActors.length, 'battleLevel empty').to.equal(0);
         expect(battle.isOver()).to.equal(true);

@@ -14,7 +14,7 @@ describe('ActorGen', () => {
         fact = new Constraints();
     });
 
-    it('description', () => {
+    it('can generate shells for new actor types', () => {
         const actors = ActorGen.genActors(50);
         parser.parseShellData({actors});
         const races = ActorGen.getRaces();
@@ -26,6 +26,5 @@ describe('ActorGen', () => {
         const cFunc = fact.getConstraints(cc);
         const filtered = actors.filter(cFunc);
         expect(filtered.length).to.be.above(0);
-        console.log(filtered);
     });
 });

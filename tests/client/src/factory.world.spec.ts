@@ -320,8 +320,8 @@ describe('FactoryWorld', function() {
 
         const tile00 = area.getTileXY(0, 0);
         const tileLevel = tile00.getLevel();
-        ql1.debugPrintInASCII();
-        tileLevel.debugPrintInASCII();
+        // ql1.debugPrintInASCII();
+        // tileLevel.debugPrintInASCII();
 
         expect(ql0.getStairs()).to.have.length(1);
         expect(ql1.getStairs()).to.have.length(1);

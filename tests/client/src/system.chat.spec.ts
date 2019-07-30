@@ -110,11 +110,11 @@ describe('System.Chat', () => {
         expect(brain.isMenuShown()).to.equal(true);
         const opts = brain.getMenu();
         const optLen = Object.keys(opts).length;
-        console.log(opts);
         for (let i = 0; i < optLen; i++) {
             chatToDir(chatter, [1, 1]);
             updateSystems([chatSys]);
             let actionCb = brain.decideNextAction({code: Keys.selectIndexToCode(i)});
+            // TODO missing expect()
         }
     });
 

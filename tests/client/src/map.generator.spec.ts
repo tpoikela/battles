@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import RG from '../../../client/src/rg';
 import {MapGenerator} from '../../../client/src/map.generator';
 import {CellMap} from '../../../client/src/map';
 import {Random} from '../../../client/src/random';
@@ -17,7 +16,7 @@ describe('MapGenerator', () => {
         const obj = mapgen.createForest({ratio: 0.5, rng});
         const map = obj.map;
         expect(map).to.be.an.instanceof(CellMap);
-        map.debugPrintInASCII();
+        // map.debugPrintInASCII();
     });
 
     it('can generate mountain levels with zig-zag paths', () => {

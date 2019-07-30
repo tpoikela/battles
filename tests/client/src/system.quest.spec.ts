@@ -200,7 +200,7 @@ describe('System.Quest', () => {
 
         const dungeon = areaTile.getZones('Dungeon')[0];
         const dungLevel = dungeon.getLevels()[0];
-        console.log(areaTile.getZones().map(z => (
+        RG.log(areaTile.getZones().map(z => (
             z.getName() + ',' + z.getLevels().map(l => (
                 l.getID() + ': ' + l.has('QuestTarget')
             ))
@@ -213,7 +213,7 @@ describe('System.Quest', () => {
         qEvent.setTargetComp(dungLevel.get('QuestTarget'));
         quester.add(qEvent);
         sysQuest.update();
-        console.log('targets', JSON.stringify(subQuestComp.getQuestTargets()));
+        RG.log('targets', JSON.stringify(subQuestComp.getQuestTargets()));
 
         expect(subQuestComp.isCompleted()).to.equal(true);
 
@@ -225,7 +225,7 @@ describe('System.Quest', () => {
         sysQuest.update();
 
         const mainTargets = mainQuestComp.getQuestTargets();
-        console.log('main targets', JSON.stringify(mainTargets));
+        RG.log('main targets', JSON.stringify(mainTargets));
         expect(mainQuestComp.isCompleted()).to.equal(true);
 
         cleanupQuests(mainGiver, quester);
@@ -236,7 +236,7 @@ describe('System.Quest', () => {
         //---------------------------
         const getGiveTasks = ['<get>gather', 'give'];
         const getGiveQuest = new Quest('Get stuff and give', getGiveTasks);
-        console.log(getGiveQuest.getSteps());
+        RG.log(getGiveQuest.getSteps());
         questPopul = new QuestPopulate();
         questPopul.setDebug(true);
         ok = questPopul.mapQuestToResources(getGiveQuest, city, null);
@@ -270,8 +270,8 @@ describe('System.Quest', () => {
         RGTest.updateSystems(systems);
 
         const currQuest = quester.get('Quest');
-        console.log('Get-Give:', JSON.stringify(currQuest.getQuestTargets()));
-        console.log('currQuest:', JSON.stringify(currQuest));
+        RG.log('Get-Give:', JSON.stringify(currQuest.getQuestTargets()));
+        RG.log('currQuest:', JSON.stringify(currQuest));
         expect(currQuest.isCompleted()).to.equal(true);
 
     });
@@ -293,7 +293,7 @@ describe('System.Quest', () => {
             '<goto>goto', 'damage', 'escort',
             escortQuest, '<subquest>goto', 'report'];
         const hierQuest = new Quest('Escort and escort again', hierEscortTasks);
-        console.log('Dumping steps now:', hierQuest.getSteps());
+        RG.log('Dumping steps now:', hierQuest.getSteps());
 
         const rng = RGTest.createRNG(1);
         questPopul = new QuestPopulate({rng});
@@ -342,8 +342,8 @@ describe('System.Quest', () => {
         RGTest.updateSystems(systems);
 
         const currQuest = quester.get('Quest');
-        console.log('Get-Give:', JSON.stringify(currQuest.getQuestTargets()));
-        console.log('currQuest:', JSON.stringify(currQuest));
+        RG.log('Get-Give:', JSON.stringify(currQuest.getQuestTargets()));
+        RG.log('currQuest:', JSON.stringify(currQuest));
         expect(currQuest.isCompleted()).to.equal(true);
         */
 

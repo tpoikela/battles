@@ -804,8 +804,7 @@ describe('Data query functions for objects', function() {
         expect(realComp.getType()).to.equal('DrainStat');
 
         const onEquipComps = necroSword.getList('AddOnEquip');
-        console.log(onEquipComps);
-
+        expect(onEquipComps).to.have.length(2);
     });
 
     it('can add goals to actors using shells', () => {

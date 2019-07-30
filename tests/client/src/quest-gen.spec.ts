@@ -64,7 +64,6 @@ describe('QuestGen', () => {
 
         const {actorMotivations} = QuestGrammar;
         actorMotivations.forEach(mot => {
-            console.log('Motive:', mot);
             conf = {motive: mot, maxQuests: 1} as any;
             quest = questGen.genQuestWithMotive(conf);
 
@@ -77,7 +76,7 @@ describe('QuestGen', () => {
     it('can generate quests based on name', () => {
         const questName = 'Kill_pests';
         const conf = {startRule: questName, maxQuests: 1,
-        debug: true};
+        debug: false};
         const quest = questGen.genQuestWithConf(conf);
         expect(quest).to.be.an.instanceof(Quest);
         expect(quest.numSteps()).to.be.at.least(4);

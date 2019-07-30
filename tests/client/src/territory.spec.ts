@@ -21,7 +21,7 @@ describe('Territory', () => {
         expect(map[0][0]).to.match(/(c|w)/);
         expect(map[25][25]).to.match(/(c|w)/);
 
-        // console.log(terrMap.mapToString());
+        // RG.log(terrMap.mapToString());
     });
 
     it('has option to specify start area size and number of turns', () => {
@@ -36,7 +36,7 @@ describe('Territory', () => {
         const wolfData = terrMap.getRivalData('wolfclan');
         expect(wolfData.numOccupied).to.be.above(2);
 
-        // console.log(terrMap.mapToString());
+        // RG.log(terrMap.mapToString());
     });
 
 
@@ -59,7 +59,7 @@ describe('Territory', () => {
         const owMap = ow.getOWMap();
         const terrMap = new Territory(ow.getSizeX(), ow.getSizeY());
 
-        // console.log(ow.mapToString());
+        // RG.log(ow.mapToString());
         terrMap.useMap(owMap, {
             [OW.TERM]: true,
             [OW.MOUNTAIN]: true,
@@ -72,7 +72,7 @@ describe('Territory', () => {
         terrMap.addRival({name: 'goblin', char: 'g'});
 
         terrMap.generate();
-        // console.log(terrMap.mapToString());
+        // RG.log(terrMap.mapToString());
         // const map = terrMap.getMap();
     });
 
@@ -88,7 +88,7 @@ describe('Territory', () => {
         expect(map[0][0]).to.equal('g');
         expect(map[19][19]).to.equal('@');
 
-        // console.log(terrMap.mapToString());
+        // RG.log(terrMap.mapToString());
     });
 
     it('works for large maps as well', () => {
@@ -109,7 +109,7 @@ describe('Territory', () => {
         const terrMap = new Territory(ow.getSizeX(), ow.getSizeY(), terrConf);
         terrMap.setRNG(rng);
 
-        // console.log(ow.mapToString());
+        // RG.log(ow.mapToString());
         terrMap.useMap(owMap, {
             [OW.TERM]: true,
             [OW.MOUNTAIN]: true,
@@ -157,8 +157,8 @@ describe('Territory', () => {
         pData.startY.push(rng.getUniformInt(bbox.uly, bbox.lry));
         terrMap.generate();
 
-        // console.log(ow.mapToString());
-        // console.log(terrMap.mapToString());
+        // RG.log(ow.mapToString());
+        // RG.log(terrMap.mapToString());
 
         const undeadData = terrMap.getRivalData('undead');
         expect(undeadData.startX).to.have.length(3);

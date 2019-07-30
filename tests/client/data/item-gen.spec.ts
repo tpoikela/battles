@@ -50,7 +50,9 @@ describe('ItemGen', () => {
     it('has function generate random item shells', () => {
         for (let i = 0; i < 10; i++) {
             const shell = ItemGen.genRandShell('weapon');
-            console.log(shell);
+            expect(shell).to.have.property('name');
+            expect(shell).to.have.property('type');
+            expect(shell).to.have.property('value');
         }
     });
 });
