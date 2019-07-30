@@ -1004,7 +1004,7 @@ RG.extend2(Spell.RingBase, SpellBase);
  * can have direction, and that direction will be applied to all
  * multi-spells. For area spells etc, dir has no effect of course
  */
-Spell.MultiSpell = function(name, power) {
+Spell.MultiSpell = function(name: string, power: number) {
     SpellBase.call(this, name, power);
     this._spells = []; // List of spells to cast
 };
