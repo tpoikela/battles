@@ -38,6 +38,11 @@ const RNG = Random.getRNG();
  * showMsg: {msg: 'my msg'}
  */
 
+interface LevelCallbackJSON {
+    msg: string;
+    cbType: string;
+}
+
 /* Possible callbacks for entering/exiting levels. */
 export class LevelCallback {
     public cbType: string;
@@ -55,7 +60,7 @@ export class LevelCallback {
         return this.cbType;
     }
 
-    public toJSON(): any {
+    public toJSON(): LevelCallbackJSON {
         return {
             cbType: this.getCbType(),
             msg: this.msg
