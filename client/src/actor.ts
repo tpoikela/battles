@@ -1,7 +1,6 @@
 
 import RG from './rg';
 import {Entity} from './entity';
-import * as Mixin from './mixin';
 import {TCoord} from './interfaces';
 
 import * as Component from './component/component';
