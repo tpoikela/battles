@@ -1,6 +1,5 @@
 
 import chai from 'chai';
-import ROT from '../../../lib/rot';
 import RG from '../../../client/src/rg';
 
 import {Entity} from '../../../client/src/entity';
@@ -20,7 +19,6 @@ import {ObjectShell} from '../../../client/src/objectshellparser';
 import {Dice} from '../../../client/src/dice';
 import {FromJSON} from '../../../client/src/game.fromjson';
 import {Spell} from '../../../client/src/spell';
-import {BrainPlayer} from '../../../client/src/brain/brain.player';
 import {ItemGen} from '../../../client/data/item-gen';
 
 const expect = chai.expect;
@@ -319,79 +317,6 @@ describe('System.Disability', () => {
     });
 });
 
-
-describe('System.Chat', () => {
-
-    it('handles chat actions between player and NPC', () => {
-        const chatter = new SentientActor('chatter');
-        chatter.setIsPlayer(true);
-        const coins = new Item.GoldCoin();
-        coins.setCount(1000);
-        chatter.getInvEq().addItem(coins);
-
-        const trainer = new SentientActor('trainer');
-        RGUnitTests.wrapIntoLevel([chatter, trainer]);
-        const chatSys = new System.Chat(['Chat']);
-
-        trainer.get('Stats').setAccuracy(20);
-
-        const accBefore = chatter.get('Stats').getAccuracy();
-
-        RGUnitTests.moveEntityTo(chatter, 1, 1);
-        RGUnitTests.moveEntityTo(trainer, 2, 2);
-        const chatComp = new Component.Chat();
-        const args = {dir: [1, 1]};
-        chatComp.setArgs(args);
-        chatter.add(chatComp);
-
-        const trainComp = new Component.Trainer();
-        trainer.add(trainComp);
-
-        updateSystems([chatSys]);
-
-        const brain = chatter.getBrain() as BrainPlayer;
-        expect(brain.isMenuShown()).to.equal(true);
-        expect(chatter).not.to.have.component('Chat');
-
-        const actionCb = brain.decideNextAction({code: ROT.VK_0});
-        expect(brain.isMenuShown()).to.equal(false);
-
-        actionCb();
-
-        expect(chatter).to.have.accuracy(accBefore + 1);
-    });
-
-    it('can handle multi-chat per actor', () => {
-        const chatSys = new System.Chat(['Chat']);
-        const chatter = new SentientActor('chatter');
-        chatter.setIsPlayer(true);
-
-        const wizTrainer = new SentientActor('wizTrainer');
-        wizTrainer.add(new Component.Trainer());
-        wizTrainer.add(new Component.QuestGiver());
-        RGUnitTests.wrapIntoLevel([chatter, wizTrainer]);
-
-        RGUnitTests.moveEntityTo(chatter, 1, 1);
-        RGUnitTests.moveEntityTo(wizTrainer, 2, 2);
-        const chatComp = new Component.Chat();
-        const args = {dir: [1, 1]};
-        chatComp.setArgs(args);
-        chatter.add(chatComp);
-
-        updateSystems([chatSys]);
-
-        const brain = chatter.getBrain() as BrainPlayer;
-        expect(brain.isMenuShown()).to.equal(true);
-        let opts = brain.getMenu();
-
-        let actionCb = brain.decideNextAction({code: ROT.VK_0});
-        expect(brain.isMenuShown()).to.equal(true);
-        opts = brain.getMenu();
-        expect(Object.keys(opts)).to.have.length(6 + 1 + 1);
-        actionCb = brain.decideNextAction({code: ROT.VK_Q});
-
-    });
-});
 
 describe('System.SpiritBind', () => {
     it('is used to bind spirits into spirit gems', () => {
