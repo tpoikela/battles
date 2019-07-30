@@ -29,7 +29,7 @@ describe('World.Branch', () => {
         stairs = levels[0].getStairsToLevel(levels[2]);
         expect(stairs === null).to.equal(true);
         const entrance = branch.getEntrance();
-        expect(entrance, 'Entrance null unless set').to.be.null;
+        expect(entrance, 'Entrance null unless set').to.equal(null);
     });
 });
 
@@ -66,7 +66,7 @@ describe('World.Dungeon', () => {
 
         entrances.forEach(entr => {
             const level = entr.getSrcLevel();
-            expect(level).not.to.be.empty;
+            expect(level.getID()).to.be.above(0);
         });
 
         dungeon.connectSubZones(branches[0], branches[1], 1, 2);
@@ -223,7 +223,7 @@ describe('World.City', () => {
         const level = factLevel.createLevel('arena', 10, 10);
         q1.addLevel(level);
         q1.addEntrance(0);
-        city.addQuarter(q1);
+        city.addSubZone(q1);
 
         expect(city.getQuarters()[0].getName()).to.equal('Q1');
         expect(city.getEntrances()).to.have.length(1);
@@ -232,7 +232,7 @@ describe('World.City', () => {
     it('can be serialized to JSON', () => {
         const city = new World.City('City1');
         const q1 = new World.CityQuarter('Q1');
-        city.addQuarter(q1);
+        city.addSubZone(q1);
 
         const json = city.toJSON();
         expect(json).to.have.property('quarter');
