@@ -47,12 +47,12 @@ export default class GameMenu extends React.Component {
     super(props);
   }
 
-  menuItemClicked(item: Item.ItemBase) {
+  public menuItemClicked(item: Item.ItemBase) {
     console.log('Clicked menu item ' + item);
     this.props.menuItemClicked(item);
   }
 
-  render() {
+  public render() {
     const {menuObj, width, height} = this.props;
 
     const topLineCount = 3;
@@ -112,7 +112,7 @@ export default class GameMenu extends React.Component {
     );
   }
 
-  renderMenuLines(item) {
+  public renderMenuLines(item) {
     const lines = item.split('\n').filter(line => line.length > 0);
     const {width} = this.props;
     return lines.map((textLine, i) => {
