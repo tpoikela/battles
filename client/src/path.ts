@@ -1,20 +1,85 @@
 
 import ROT from '../../lib/rot';
 import RG from './rg';
-import {CellMap} from './map';
 
-import {ICoordXY} from './interfaces';
+import {ICoordXY, TCoord} from './interfaces';
 type Cell = import('./map.cell').Cell;
+type CellMap = import('./map').CellMap;
 
 export const Path: any = {};
 
 const NO_PATH = Object.freeze([]);
 
-export type PathFunc = (CellMap, x0: number, y0: number, x1: number, y1: number) => ICoordXY[];
+export type PathFunc = (map: CellMap, x0: number, y0: number, x1: number, y1: number) => ICoordXY[];
 
 type PassableCb = (x: number, y: number) => boolean;
 
 const DEFAULT_CB: PassableCb = (x, y) => true;
+
+/* Algorithm to calculate passable path without smart pathfinding. Simply tries
+ * to progress towards target, and if cannot then fails.
+ */
+export class PathAlgoXY {
+
+    constructor(public tx: number, public ty: number, public passCb: PassableCb) {
+    }
+
+    public compute(sx: number, sy: number, cb: (x, y) => void): void {
+        const res: TCoord[] = [];
+        let cx = sx;
+        let cy = sy;
+
+        while (cx !== this.tx || cy !== this.ty) {
+            const dx = this.tx - cx;
+            const dy = this.ty - cy;
+            const ux = dx / Math.abs(dx);
+            const uy = dy / Math.abs(dy);
+
+            if (cx === this.tx) {
+                if (cy === this.ty) {break;}
+                if (Math.abs(dy) !== 1) {
+                    cx += this.passCb(cx + 1, cy) && RG.isSuccess(0.33) ? 1
+                    : this.passCb(cx - 1, cy) && RG.isSuccess(0.33) ? -1 : 0;
+                }
+                cy += uy;
+            }
+            else if (cy === this.ty) {
+                if (cx === this.tx) {break;} // Redundant?
+                cx += ux;
+                if (Math.abs(dx) !== 1) {
+                    cy += this.passCb(cx, cy + 1) && RG.isSuccess(0.33) ? 1
+                    : this.passCb(cx, cy - 1) && RG.isSuccess(0.33) ? -1 : 0;
+                }
+            }
+            else {
+                cx += ux;
+                cy += uy;
+            }
+
+            // Add coordinate to the list or fail
+            if (this.passCb(cx, cy)) {
+                res.push([cx, cy]);
+            }
+            else {
+                break;
+            }
+        }
+        res.forEach((xy: TCoord) => {
+            cb(xy[0], xy[1]);
+        });
+    }
+}
+
+Path.getPossiblePath = function(x0, y0, x1, y1, cb: PassableCb = DEFAULT_CB): ICoordXY[] {
+    const coords: ICoordXY[] = [];
+    const passableCallback: PassableCb = cb;
+    const finder = new PathAlgoXY(x1, y1, passableCallback);
+    finder.compute(x0, y0, (x, y) => {
+        coords.push({x, y});
+    });
+    return coords;
+
+};
 
 /* Returns shortest path (array of x,y pairs) between two points. Does not
 * check if any of the cells are passable, unless a callback is given, which
