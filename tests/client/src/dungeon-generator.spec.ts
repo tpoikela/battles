@@ -1,9 +1,9 @@
 
 import { expect } from 'chai';
 
-import RG from '../../../client/src/rg';
 import {Random} from '../../../client/src/random';
 import {DungeonGenerator} from '../../../client/src/dungeon-generator';
+import {CellMap} from '../../../client/src/map';
 
 const RNG = Random.getRNG();
 
@@ -42,7 +42,9 @@ describe('DungeonGenerator', function() {
         expect(actors.length).to.be.above(5);
         expect(items.length).to.be.above(5);
         // level.debugPrintInASCII();
-
+        //
+        // const newMap = CellMap.multiplyMap(level.getMap(), 2, 2);
+        // newMap.debugPrintInASCII();
     });
 
 });
