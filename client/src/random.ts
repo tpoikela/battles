@@ -6,7 +6,6 @@ import {TCoord, BBox, RandWeights} from './interfaces';
 const DIRS = [-1, 0, 1];
 const DIRS_NO_ZERO = [-1, 1];
 
-
 /* A OO wrapper around ROT.RNG. Adds method for serialisation. */
 export class Random {
 
@@ -39,7 +38,6 @@ export class Random {
     }
 
     public setSeed(seed: number): void {
-        console.log('Setting RNG seed to ' + seed);
         this.seed = seed;
         this.rng.setSeed(seed);
     }
