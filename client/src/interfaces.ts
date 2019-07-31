@@ -289,6 +289,8 @@ export interface OWMapConf {
     printResult?: boolean;
     owTilesX?: number;
     owTilesY?: number;
+    nHWalls?: number[];
+    nVWalls?: number[];
     nLevelsX?: number;
     nLevelsY?: number;
     playerX?: number;
