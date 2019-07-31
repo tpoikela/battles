@@ -13,8 +13,8 @@ describe('Factory.Game', function() {
         const gameFact = new FactoryGame();
 
         const pRace = 'goblin';
-        const [playerX, playerY] = [0, 0];
-        const owConf = FactoryGame.getOwConf(1.0);
+        const [playerX, playerY] = [1, 1];
+        const owConf: OWMapConf = FactoryGame.getOwConf(1.0);
         const overworld = OWMap.createOverWorld(owConf);
         const owTerrMap = gameFact.createTerritoryMap(overworld, pRace,
             playerX, playerY);
@@ -89,7 +89,7 @@ describe('Factory.Game', function() {
             playerRace: 'dwarf', owMultiplier: 0.5, owConf
         };
         const game = gameFact.createNewGame(gameConf);
-
+        // TODO add expect
     });
 
 });
