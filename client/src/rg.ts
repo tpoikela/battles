@@ -4,6 +4,7 @@ const $DEBUG = 0;
 /* Main object of the package for encapsulating all other objects. */
 const RG: any = {};
 
+import './utils';
 import {TCoord, DestOrSrc, IPlayerCmdInput} from './interfaces';
 
 // Import only types
@@ -475,7 +476,7 @@ RG.getMeleeAttackRange = function(att: SentientActor): number {
 
 RG.getMeleeDamageAdded = function(att: SentientActor): number {
     let dmg = att.getCombatBonus('getDamage');
-    dmg += RG.strengthToDamage(att.getStrength());
+    dmg += RG.strengthToDamage(att.getStatVal('Strength'));
     return dmg;
 };
 
@@ -504,7 +505,7 @@ RG.getMissileDamageAdded = function(att: SentientActor, miss: MissType): number 
         dmg += att.getMissileWeapon().rollDamage();
     }
     if (att.has('StrongShot')) {
-        dmg += this.strengthToDamage(att.getStrength());
+        dmg += this.strengthToDamage(att.getStatVal('Strength'));
     }
     return dmg;
 };
@@ -927,19 +928,49 @@ RG.classNameDMG = {
     VOID: 'cell-damage-VOID'
 };
 
+RG.formatGetterName = function(propName: string): string {
+    return 'get' + propName.capitalize();
+};
+RG.formatSetterName = function(propName: string): string {
+    return 'set' + propName.capitalize();
+};
+
 RG.STATS = [
-    'Accuracy', 'Agility', 'Magic', 'Perception', 'Strength', 'Willpower'
+    'Accuracy', 'Agility', 'Magic', 'Perception', 'Strength', 'Willpower',
+    'Spirituality'
 ];
 
-RG.STATS_LC = RG.STATS.map(stat => stat.toLowerCase());
+RG.initStats = function(statArr: string[]): void {
+    RG.STATS_LC = statArr.map((stat: string) => stat.toLowerCase());
+
+    RG.STATS_DEFAULTS = RG.STATS_LC.reduce((acc: object, curr: string) => {
+        acc[curr] = 5;
+        return acc;
+    }, {});
+    RG.STATS_DEFAULTS.speed = 100;
+
+    RG.STATS_ABBR = statArr.map((stat: string) => stat.substr(0, 3));
+    RG.GET_STATS = statArr.map((stat: string) => RG.formatGetterName(stat));
+    RG.SET_STATS = statArr.map((stat: string) => RG.formatSetterName(stat));
+
+    RG.STATS_ABBR2STAT = statArr.reduce((acc: object, curr: string) => {
+        acc[curr.substr(0, 3)] = curr;
+        return acc;
+    }, {});
+};
+RG.initStats(RG.STATS);
+
+RG.getStatsObj = function(defValue: number): object {
+    const res: any = {speed: defValue};
+    RG.STATS_LC.forEach((stat: string) => {
+        res[stat] = defValue;
+    });
+    return res;
+};
 
 // Load status when using chunk unloading
 RG.LEVEL_NOT_LOADED = 'LEVEL_NOT_LOADED';
 RG.TILE_NOT_LOADED = 'TILE_NOT_LOADED';
-
-RG.STATS_ABBR = RG.STATS.map(stat => stat.substr(0, 3));
-RG.GET_STATS = RG.STATS.map(stat => 'get' + stat);
-RG.SET_STATS = RG.STATS.map(stat => 'set' + stat);
 
 RG.getDmgClassName = function(dmgType: string): string {
     return RG.classNameDMG[dmgType];
@@ -1531,6 +1562,7 @@ RG.BLOCK_Y = 7;
 
 // Level size determined as function of BLOCK_X/Y. Note that due to different
 // block size or x/y, levels are not square shaped, but x > y.
+/*
 RG.LEVEL_SMALL_X = 3 * RG.BLOCK_X;
 RG.LEVEL_SMALL_Y = 3 * RG.BLOCK_Y;
 RG.LEVEL_MEDIUM_X = 4 * RG.BLOCK_X;
@@ -1549,6 +1581,12 @@ RG.LOOT_ABUNDANT_SQR = 50;
 RG.ACTOR_SPARSE_SQR = 200;
 RG.ACTOR_MEDIUM_SQR = 120;
 RG.ACTOR_ABUNDANT_SQR = 50;
+*/
+
+export enum ZONE_EVT {
+    ZONE_EXPLORED = 'ZONE_EXPLORED'
+}
+RG.ZONE_EVT = ZONE_EVT;
 
 // Weakness levels of actors
 RG.WEAKNESS = {};
@@ -1594,6 +1632,7 @@ RG.SYS.SPELL_CAST = Symbol('SPELL_CAST');
 RG.SYS.SPELL_EFFECT = Symbol('SPELL_EFFECT');
 RG.SYS.SPIRIT = Symbol('SPIRIT');
 RG.SYS.TIME_EFFECTS = Symbol('TIME_EFFECTS');
+RG.SYS.ZONE_EVENTS = Symbol('ZONE_EVENTS');
 RG.SYS.WEATHER = Symbol('WEATHER');
 
 RG.NO_DAMAGE_SRC = null;

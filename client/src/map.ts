@@ -3,7 +3,7 @@ import ROT from '../../lib/rot';
 import RG from './rg';
 import {Cell, CellJSON} from './map.cell';
 import {ElementBase, ElementWall, ElementMarker} from './element';
-import {TCoord, BBox} from './interfaces';
+import {TCoord, BBox, ConstBaseElem} from './interfaces';
 import {ELEM_MAP} from '../data/elem-constants';
 
 const FLOOR = new ElementBase('floor');
@@ -74,7 +74,7 @@ export class CellMap {
     private _isRowOptimized: boolean;
     private _rowMap: Cell[][];
 
-    constructor(cols: number, rows: number, baseElem = FLOOR) {
+    constructor(cols: number, rows: number, baseElem: Readonly<ElementBase> = FLOOR) {
         this._map = [];
         this.cols = cols;
         this.rows = rows;
@@ -125,11 +125,11 @@ export class CellMap {
         this.setProp(x, y, RG.TYPE_ELEM, obj);
     }
 
-    public setBaseElemXY(x: number, y: number, elem: ElementBase) {
+    public setBaseElemXY(x: number, y: number, elem: ConstBaseElem) {
         this._map[x][y].setBaseElem(elem);
     }
 
-    public getBaseElemXY(x: number, y: number): ElementBase {
+    public getBaseElemXY(x: number, y: number): ConstBaseElem {
         return this._map[x][y].getBaseElem();
     }
 
@@ -141,7 +141,7 @@ export class CellMap {
         return this._map[x][y].isExplored();
     }
 
-    public getBaseElemRow(y: number): ElementBase[] {
+    public getBaseElemRow(y: number): ConstBaseElem[] {
         const row = [];
         for (let i = 0; i < this.cols; ++i) {
             row.push(this._map[i][y].getBaseElem());
@@ -399,13 +399,13 @@ export class CellMap {
         return result;
     }
 
-    public setBaseElems(coord: TCoord[], elem: ElementBase): void {
+    public setBaseElems(coord: TCoord[], elem: ConstBaseElem): void {
         coord.forEach(xy => {
             this._map[xy[0]][xy[1]].setBaseElem(elem);
         });
     }
 
-    public has(xy, query): boolean {
+    public has(xy: TCoord, query): boolean {
         const [x, y] = xy;
         if (this.hasXY(x, y)) {
             const cell = this.getCell(x, y);

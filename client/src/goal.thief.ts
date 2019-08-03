@@ -1,7 +1,7 @@
 /* Contains code for thief goal and its related sub-goals. */
 
 import RG from './rg';
-import {Goal, GoalStatus} from './goals';
+import {Goal, GoalBase, GoalStatus} from './goals';
 import {Random} from './random';
 import {Cell} from './map.cell';
 import {Brain} from './brain';
@@ -18,7 +18,7 @@ const RNG = Random.getRNG();
 
 /* With this Goal, an actor can search a house for interesting features,
  * such as items to pick up. */
-export class GoalSearchHouse extends Goal.Base {
+export class GoalSearchHouse extends GoalBase {
 
     public floorCells: Cell[];
     public door: TCoord;
@@ -57,7 +57,7 @@ export class GoalSearchHouse extends Goal.Base {
                 // Get out finally
                 const cells = Brain.getCellsAroundActor(this.actor);
                 let chosenCell = null;
-                cells.forEach(cell => {
+                cells.forEach((cell: Cell) => {
                     if (cell.getBaseElem().getType() !== 'floorhouse') {
                         if (cell.isPassable()) {
                             chosenCell = cell;
@@ -104,7 +104,12 @@ export class GoalSearchHouse extends Goal.Base {
 
 /* This goal of thief makes an actor to find items, then sell them to a
  * shopkeeper. */
-export class GoalThief extends Goal.Base {
+export class GoalThief extends GoalBase {
+
+    public shopCooldown: number;
+    public doorCooldown: number;
+    public visitedDoors: {[key: string]: TCoord};
+    public shops: {[key: string]: Cell};
 
     constructor(actor) {
         super(actor);

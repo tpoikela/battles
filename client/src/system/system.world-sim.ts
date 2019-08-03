@@ -36,8 +36,6 @@ export class SystemWorldSim extends SystemBase {
         worldEvtList.forEach(worldEvt => {
             this._checkEntityValid(ent);
             this._processEvent(ent, worldEvt);
-            console.log('WorldEvent was processed OK');
-            console.log(this.worldSim.toString());
             ent.remove(worldEvt);
         });
     }
@@ -66,6 +64,5 @@ export class SystemWorldSim extends SystemBase {
 
     protected _processDayChanged(ent: Entity, wsEvent): void {
     }
-
 
 }

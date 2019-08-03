@@ -4,7 +4,6 @@
 
 import RG from './rg';
 import {MapGenerator} from './map.generator';
-import {CellMap} from './map';
 import {Level, LevelExtras} from './level';
 // const Random = require('./random');
 import {DungeonPopulate} from './dungeon-populate';
@@ -14,7 +13,7 @@ import {Geometry} from './geometry';
 import {Random} from './random';
 import {ELEM} from '../data/elem-constants';
 import * as Element from './element';
-import {TCoord} from './interfaces';
+import {TCoord, ConstBaseElem} from './interfaces';
 
 type Cell = import('./map.cell').Cell;
 
@@ -30,7 +29,7 @@ export interface Miner {
     x: number;
     y: number;
     dirWeights: {[key: string]: number};
-    dugCallback?: (x, y, miner) => void;
+    dugCallback?: (x: number, y: number, miner: Miner) => void;
 }
 
 export interface MinersMap {
@@ -40,7 +39,7 @@ export interface MinersMap {
 
 interface MapOpts {
     isCollapsed?: boolean;
-    floorElem?: Element.ElementBase;
+    floorElem?: ConstBaseElem;
     startX?: number;
     startY?: number;
     dirWeights?: {[key: string]: number};

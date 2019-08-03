@@ -4,7 +4,7 @@
 import {ObjectShell} from '../src/objectshellparser';
 import {ElementBase, ElementWall} from '../src/element';
 
-export const ELEM: {[key: string]: ElementBase} = {};
+export const ELEM: {[key: string]: Readonly<ElementBase>} = {};
 
 const frz = Object.freeze;
 

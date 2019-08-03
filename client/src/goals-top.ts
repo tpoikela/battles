@@ -134,6 +134,8 @@ GoalsTop.Top = GoalTop;
 //---------------------------------------------------------------------------
 export class ThinkBasic extends GoalTop {
 
+    public bias: {[key: string]: number};
+
     constructor(actor) {
         super(actor);
         this.setType('ThinkBasic');

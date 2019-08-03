@@ -15,6 +15,9 @@ interface MixinArgs {
 /* A mixin used for typed objects. */
 export const Typed = superclass => class extends superclass {
 
+    public type: string;
+    public _propType: string;
+
     constructor(args?: MixinArgs) {
         if (superclass) {super(args);}
         this.type = args.type || '';
@@ -24,7 +27,7 @@ export const Typed = superclass => class extends superclass {
     public getPropType(): string {return this._propType;}
     public getType(): string {return this.type;}
 
-    public setPropType(propType) {
+    public setPropType(propType: string): void {
         const index = RG.PROP_TYPES.indexOf(propType);
         if (index >= 0) {
             this._propType = propType;
@@ -163,6 +166,8 @@ export const DamageRoll = (superclass) => class extends superclass {
 /* Adds a duration and accessor functions to given component. */
 export const DurationRoll =superclass => class extends superclass {
 
+    public duration: Dice;
+
     constructor(args?: MixinArgs) {
         super(args);
     }
@@ -272,6 +277,9 @@ export interface Defense {
 /* Mixin for damage objects. */
 export const Damage =superclass => class extends Defense(superclass) {
 
+    protected _damageDie: Dice;
+    protected _range: number;
+
     constructor(args) {
         super(args);
         this._damageDie = new Dice(1, 4, 0);
@@ -294,12 +302,7 @@ export const Damage =superclass => class extends Defense(superclass) {
     public getDamageDie(): Dice {return this._damageDie;}
 
     public setDamageDie(dStr: string | Dice): void {
-        if (typeof dStr === 'string') {
-            this._damageDie = Dice.create(dStr);
-        }
-        else if (typeof dStr === 'object') {
-            this._damageDie = dStr;
-        }
+        this._damageDie = Dice.getDice(dStr);
     }
 
     public copy(rhs): void {

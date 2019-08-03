@@ -207,7 +207,7 @@ export class ChatTrainer extends ChatBase {
             // pre: ['Please select a stat to train:'],
             getMenu: () => {
                 // RG.gameMsg('');
-                const indices = Keys.menuIndices.slice(0, 6);
+                const indices = Keys.menuIndices.slice(0, stats.length);
                 const menuObj: any = {};
                 menuObj.pre = ['Please select a stat to train:'];
                 stats.forEach((stat, index) => {

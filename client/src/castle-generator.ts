@@ -83,7 +83,7 @@ export class CastleGenerator extends LevelGenerator {
     }
 
     /* Returns a fully populated castle-level. */
-    public create(cols, rows, conf: PartialCastleOpts): Level {
+    public create(cols: number, rows: number, conf: PartialCastleOpts): Level {
         const castleLevel = this.createLevel(cols, rows, conf);
         this.removeMarkers(castleLevel, conf);
 

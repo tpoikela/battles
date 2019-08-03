@@ -395,6 +395,13 @@ export class SystemMovement extends SystemBase {
                 const brainPlayer = brain as BrainPlayer;
                 brainPlayer.addMark();
             }
+
+            const parentZone = level.getParentZone();
+            if (parentZone) {
+                const zoneEvent = Component.ZoneEvent();
+                zoneEvent.setEventType(RG.Z_EVENT.ZONE_EXPLORED);
+                parentZone.add(zoneEvent);
+            }
         }
     }
 

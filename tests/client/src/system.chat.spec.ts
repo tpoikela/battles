@@ -1,5 +1,6 @@
 
 import chai from 'chai';
+import RG from '../../../client/src/rg';
 import {SentientActor } from '../../../client/src/actor';
 import * as Item from '../../../client/src/item';
 import {RGUnitTests} from '../../rg.unit-tests';
@@ -82,7 +83,7 @@ describe('System.Chat', () => {
         let actionCb = brain.decideNextAction({code: SELECT_0});
         expect(brain.isMenuShown()).to.equal(true);
         opts = brain.getMenu();
-        expect(Object.keys(opts)).to.have.length(6 + 1 + 1);
+        expect(Object.keys(opts)).to.have.length(RG.STATS.length + 1 + 1);
         actionCb = brain.decideNextAction({code: SELECT_0});
 
     });

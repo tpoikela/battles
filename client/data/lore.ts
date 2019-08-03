@@ -191,14 +191,17 @@ export function createLoreMsg(dir: string): string {
 
 /* Creates the object which is used to create and initialize Lore component for
  * this zone. */
-export function createLoreObj(msg: string, topic: string) {
-    const compObj = {
+export function createLoreObj(msg: string, topic: string, metaData?: object) {
+    const compObj: any = {
         comp: 'Lore', func: {
             updateTopics: {
                 [topic]: [msg]
             }
         }
     };
+    if (metaData) {
+        compObj.func.updateMetaData = metaData;
+    }
     return compObj;
 }
 

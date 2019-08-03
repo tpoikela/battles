@@ -8,6 +8,8 @@ import {ObjectShell} from '../objectshellparser';
 
 const NO_DAMAGE_SRC = RG.NO_DAMAGE_SRC;
 type Cell = import('../map.cell').Cell;
+type Level = import('../level').Level;
+
 const POOL = EventPool.getPool();
 
 export class SystemDeath extends SystemBase {
@@ -32,8 +34,6 @@ export class SystemDeath extends SystemBase {
     public _killActor(src, actor, deathComp): void {
         const level = actor.getLevel();
         const cell = actor.getCell();
-        const [x, y] = actor.getXY();
-
         actor.add(new Component.Dead());
 
         if (level.removeActor(actor)) {
@@ -47,12 +47,6 @@ export class SystemDeath extends SystemBase {
             if (deathMsg) {
                 RG.gameDanger({cell, msg: deathMsg});
             }
-            /*
-            const dmgType = dmgComp.getDamageType();
-            if (dmgType === 'poison') {
-                RG.gameDanger({cell,
-                    msg: nameKilled + ' dies horribly of poisoning!'});
-            }*/
 
             let killVerb = 'killed';
             if (actor.has('NonSentient')) {
@@ -74,29 +68,7 @@ export class SystemDeath extends SystemBase {
             actor.add(evtComp);
 
             // Finally drop a corpse
-            if (actor.has('Corporeal')) {
-                const corpse = new Item.Corpse(nameKilled + ' corpse');
-                corpse.setActorName(actor.get('Named').getBaseName());
-                this._cloneComponentsToCorpse(actor, corpse);
-
-                // TODO move some components like stats, resistance etc
-                // This way, eating corpse can move these around
-
-                // Update rendering info for corpse item
-                const cssClass = RG.getCssClass(RG.TYPE_ACTOR, nameKilled);
-                RG.addCellStyle(RG.TYPE_ITEM, corpse.getName(), cssClass);
-
-                level.addItem(corpse, x, y);
-                if (actor.has('QuestTarget')) {
-                    const qEvent = new Component.QuestTargetEvent();
-                    qEvent.setEventType('kill');
-                    qEvent.setArgs({corpse});
-                    qEvent.setTargetComp(actor.get('QuestTarget'));
-                    src.add(qEvent);
-                }
-
-                this._addSpawnableUndeadActor(actor);
-            }
+            this._dropActorCorpse(actor, level, cell, src);
             this._cleanUpComponents(actor);
         }
         else {
@@ -105,7 +77,7 @@ export class SystemDeath extends SystemBase {
     }
 
     /* When an actor is killed, gives experience to damage's source.*/
-    public _giveExpToSource(att, def) {
+    public _giveExpToSource(att, def): void {
         if (att !== NO_DAMAGE_SRC && !att.has('Dead')) {
             const defLevel = def.get('Experience').getExpLevel();
             const defDanger = def.get('Experience').getDanger();
@@ -204,8 +176,37 @@ export class SystemDeath extends SystemBase {
         }
     }
 
+    /* Drops the actor corpse to the ground. */
+    protected _dropActorCorpse(actor, level: Level, cell: Cell, src): void {
+        const nameKilled: string = actor.getName();
+        const [x, y] = cell.getXY();
+        if (actor.has('Corporeal')) {
+            const corpse = new Item.Corpse(nameKilled + ' corpse');
+            corpse.setActorName(actor.get('Named').getBaseName());
+            this._cloneComponentsToCorpse(actor, corpse);
+
+            // TODO move some components like stats, resistance etc
+            // This way, eating corpse can move these around
+
+            // Update rendering info for corpse item
+            const cssClass = RG.getCssClass(RG.TYPE_ACTOR, nameKilled);
+            RG.addCellStyle(RG.TYPE_ITEM, corpse.getName(), cssClass);
+
+            level.addItem(corpse, x, y);
+            if (actor.has('QuestTarget')) {
+                const qEvent = new Component.QuestTargetEvent();
+                qEvent.setEventType('kill');
+                qEvent.setArgs({corpse});
+                qEvent.setTargetComp(actor.get('QuestTarget'));
+                src.add(qEvent);
+            }
+
+            this._addSpawnableUndeadActor(actor);
+        }
+    }
+
     /* When an actor dies, it can be spawned as undead. */
-    public _addSpawnableUndeadActor(actor): void {
+    protected _addSpawnableUndeadActor(actor): void {
         if (actor.getType() === 'undead' || actor.has('Undead')) {
             return;
         }

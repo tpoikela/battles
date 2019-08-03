@@ -10,7 +10,7 @@ import {Level} from './level';
 import {ELEM} from '../data/elem-constants';
 import {ElementDoor} from './element';
 
-import {TShellFunc} from './interfaces';
+import {TShellFunc, ConstBaseElem} from './interfaces';
 
 const RNG = Random.getRNG();
 
@@ -88,7 +88,7 @@ export class CityGenerator extends LevelGenerator {
 
     public fillUnusedAreas(level: Level, areas): void {
         const map = level.getMap();
-        const elems = [ELEM.GRASS, ELEM.TREE, ELEM.WATER];
+        const elems: ConstBaseElem[] = [ELEM.GRASS, ELEM.TREE, ELEM.WATER];
         areas.forEach(area => {
             const baseElem = RNG.arrayGetRand(elems);
             let {w, h} = area;

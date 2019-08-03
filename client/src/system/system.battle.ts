@@ -67,6 +67,11 @@ export class SystemBattle extends SystemBase {
             this._emitMsg(ent, orderComp);
             ent.remove(orderComp);
         }
+        else if (ent.has('BattleEvent')) {
+            const battleEvt = ent.get('BattleOrder');
+            this._processBattleEvent(ent, battleEvt);
+            ent.remove(battleEvt);
+        }
     }
 
     public _getBadgeForBattle(bName, ent) {
@@ -80,5 +85,8 @@ export class SystemBattle extends SystemBase {
         const cell = ent.getCell();
         const msg = `${srcName} shouts a command into your direction.`;
         RG.gameMsg({msg, cell});
+    }
+
+    protected _processBattleEvent(ent, battleEvt): void {
     }
 }

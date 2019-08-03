@@ -147,11 +147,12 @@ export class SystemManager {
 
 SystemManager.systemOrder = [
     'AreaEffects', 'Disability', 'SpiritBind', 'BaseAction',
-    'Equip', 'Attack', 'AttackRanged', 'Chat', 'Shop', 'SpellCast', 'SpellEffect',
+    'Equip', 'Attack', 'AttackRanged', 'Chat', 'Shop',
+    'SpellCast', 'SpellEffect',
     'Missile', 'Movement', 'Effects', 'Animation', 'DrainStats', 'Damage', 'Death',
     'Battle',
     'Skills', 'Quest', 'ExpPoints', 'Communication', 'Events',
-    'Weather', 'WorldSim'
+    'ZoneEvents', 'Weather', 'WorldSim'
 ];
 
 
@@ -175,7 +176,7 @@ SystemManager.systems = {
     DrainStats: ['DrainStat'],
     Damage: ['Damage', 'Health'],
     Death: ['DeathEvent'],
-    Battle: ['BattleOver', 'BattleOrder'],
+    Battle: ['BattleOver', 'BattleOrder', 'BattleEvent'],
     Skills: ['SkillsExp'],
     Events: ['Event'],
     AreaEffects: ['Flame'],
@@ -188,6 +189,7 @@ SystemManager.systems = {
     ExpPoints: ['ExpPoints', 'Experience'],
     Communication: ['Communication'],
     Quest: ['GiveQuest', 'QuestCompleted', 'QuestTargetEvent'],
+    ZoneEvents: ['ZoneEvent'],
     Weather: ['WeatherEffect'],
     WorldSim: ['WorldSimEvent']
 };

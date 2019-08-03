@@ -1,6 +1,6 @@
 
 import RG from '../rg';
-import '../utils';
+//import '../utils';
 
 export const C = {
     ID: {},
@@ -136,7 +136,7 @@ export const DataComponent = (type: string, members: any, compAttrib: any = {}) 
         }
 
         // Create the setter method unless it exists in Base
-        const setter: string = formatSetterName(propName);
+        const setter: string = RG.formatSetterName(propName);
         if (ComponentBase.prototype.hasOwnProperty(setter)) {
             RG.err('component.js', `DataComponent: ${type}`,
                 `${setter} is reserved in Base`);
@@ -146,7 +146,7 @@ export const DataComponent = (type: string, members: any, compAttrib: any = {}) 
         };
 
         // Create the getter method unless it exists in Base
-        const getter: string = formatGetterName(propName);
+        const getter: string = RG.formatGetterName(propName);
         if (ComponentBase.prototype.hasOwnProperty(setter)) {
             RG.err('component.js', `DataComponent: ${type}`,
                 `${getter} is reserved in Base`);
@@ -169,12 +169,6 @@ export const DataComponent = (type: string, members: any, compAttrib: any = {}) 
 };
 Component.DataComponent = DataComponent;
 
-function formatGetterName(propName: string) {
-    return 'get' + propName.capitalize();
-}
-function formatSetterName(propName: string) {
-    return 'set' + propName.capitalize();
-}
 
 /* Same TagComponent, except only one per entity is preserved. Adding another
  * will remove the existing one. */
@@ -454,6 +448,8 @@ Component.Base = ComponentBase;
 
 export interface ComponentBase {
     getEntity(): any;
+    getID(): number;
+    toJSON(): any;
 }
 
 interface SetterObj {

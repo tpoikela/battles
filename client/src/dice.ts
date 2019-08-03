@@ -28,6 +28,13 @@ export class Dice {
         }
     }
 
+    public static getDice(iArg: Dice | string): Dice {
+        if (typeof iArg === 'object') {
+            return iArg;
+        }
+        return Dice.create(iArg as string);
+    }
+
 
     public static getValue(strOrNumOrDie: DiceValue): number {
         if (typeof strOrNumOrDie === 'number') {

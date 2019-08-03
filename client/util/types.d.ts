@@ -44,7 +44,8 @@ export class CreateGameWorker extends Worker {
     public postMessage(
         this: CreateGameWorker,
         msg: GameMessage,
-        transferList?: ArrayBuffer[]
+        transferList?: any
+        // transferList?: ArrayBuffer[]
     ): any;
 
     public addEventListener(

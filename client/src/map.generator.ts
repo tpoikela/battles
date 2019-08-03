@@ -22,14 +22,15 @@ import {MapMiner} from '../../lib/map.miner';
 import {MapMountain} from '../../lib/map.mountain';
 import {MapWall} from '../../lib/map.wall';
 import * as Element from './element';
-import {TCoord, BBox, TLocatableElement} from './interfaces';
+import {BBox, TLocatableElement, ConstBaseElem} from './interfaces';
 
 const ElementMarker = Element.ElementMarker;
 type ElementBase = Element.ElementBase;
+type ElementWall = Element.ElementWall;
 
 const RNG = Random.getRNG();
 
-const inRange = function(val, min, max) {
+const inRange = function(val: number, min: number, max: number): boolean {
     if (val >= min && val <= max) {
         return true;
     }
@@ -66,15 +67,17 @@ export interface MapObj {
     elements?: TLocatableElement[];
 }
 
+/*
 interface HouseObj extends BBox {
     walls: TCoord[];
     floor: TCoord[];
     door: TCoord;
 }
+*/
 
 type ElemMapFunc = (map: CellMap, x: number, y: number) => void;
 interface ASCIIToElemMap {
-    [key: string]: ElementBase | ElemMapFunc;
+    [key: string]: ElementBase | ElemMapFunc | ConstBaseElem;
 }
 
 /* Returns true if given coordinates are in allowed area. */
@@ -103,8 +106,8 @@ export class MapGenerator {
     public static options: {[key: string]: any};
 
     // Maps snow fall to different elements
-    public static snowElemMap: {[key: string]: ElementBase};
-    public static snowMeltMap: {[key: string]: ElementBase};
+    public static snowElemMap: {[key: string]: ConstBaseElem};
+    public static snowMeltMap: {[key: string]: ConstBaseElem};
 
     public static getAndSetRNG(conf?: MapConf): Random {
         if (conf) {
@@ -169,7 +172,7 @@ export class MapGenerator {
         };
     }
 
-    public static getWallElem(wallType: string): Element.ElementWall {
+    public static getWallElem(wallType: string): Readonly<ElementWall> {
         switch (wallType) {
             case 'cave': return ELEM.WALL_CAVE;
             case 'wallcave': return ELEM.WALL_CAVE;
@@ -185,7 +188,7 @@ export class MapGenerator {
         }
     }
 
-    public static getFloorElem(floorType): Element.ElementBase {
+    public static getFloorElem(floorType: string): ConstBaseElem {
         switch (floorType) {
             case 'cave': // fallthrough
             case 'floorcave': return ELEM.FLOOR_CAVE;
@@ -201,7 +204,7 @@ export class MapGenerator {
         }
     }
 
-    public static createSplashes(cols, rows, conf): MapObj {
+    public static createSplashes(cols: number, rows: number, conf): MapObj {
         const elem = conf.elem || ELEM.WATER;
         const map = new CellMap(cols, rows);
         const mapGen = new MapForest(cols, rows, conf);
@@ -228,7 +231,7 @@ export class MapGenerator {
 
     public cols: number;
     public rows: number;
-    public defaultMapElem: Element.ElementBase;
+    public defaultMapElem: ConstBaseElem;
     private _mapGen: any;
     private _mapType: string | null;
     private _wall: number;

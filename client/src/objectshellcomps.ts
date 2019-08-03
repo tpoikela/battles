@@ -10,15 +10,12 @@ import {Dice} from './dice';
 import dbg = require('debug');
 const debug = dbg('bitn:objectshellcomps');
 
+type ComponentBase = Component.ComponentBase;
 type Entity = import('./entity').Entity;
 const RNG = Random.getRNG();
 
 interface ICompData {
     [key: string]: any;
-}
-
-interface IComponent {
-    toJSON(): any;
 }
 
 interface IAddOnComp {
@@ -139,7 +136,7 @@ export class ObjectShellComps {
     }
 
     /* Creates a component of specified type.*/
-    public createComponent(type: string, val?: any): IComponent | null {
+    public createComponent(type: string, val?: any): ComponentBase | null {
         switch (type) {
             case 'Health': return new Component.Health(val);
             default:

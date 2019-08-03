@@ -200,12 +200,12 @@ export class ActorClassBase {
         this._lastStateIncr = '';
 
         const hComp = actor.get('Health');
-        const incr = Math.ceil(actor.getStrength() / 2);
+        const incr = Math.ceil(actor.getStatVal('Strength') / 2);
         hComp.setMaxHP(hComp.getMaxHP() + incr);
         hComp.setHP(hComp.getHP() + incr);
 
         if (actor.has('SpellPower')) {
-            const ppIncr = Math.ceil(actor.getMagic() / 2);
+            const ppIncr = Math.ceil(actor.getStatVal('Magic') / 2);
             const ppComp = actor.get('SpellPower');
             ppComp.setMaxPP(ppComp.getMaxPP() + ppIncr);
             ppComp.addPP(ppIncr);
@@ -792,7 +792,7 @@ ActorClass.Politician = Politician;
 
 export const ACTOR_CLASSES = [
     'Cryomancer', 'Blademaster', 'Marksman', 'Spiritcrafter',
-    'Adventurer', 'Alpinist', 'Spellsinger', 'Politician'
+    'Adventurer', 'Alpinist', 'Spellsinger',
 ];
 
 export const ACTOR_CLASSES_NO_ADV = ACTOR_CLASSES.filter(ac => (

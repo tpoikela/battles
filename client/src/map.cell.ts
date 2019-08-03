@@ -4,7 +4,7 @@ import * as Element from './element';
 import {BaseActor} from './actor';
 import * as Item from './item';
 import {ELEM_MAP} from '../data/elem-constants';
-import {TCoord} from './interfaces';
+import {TCoord, ConstBaseElem} from './interfaces';
 
 const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 
@@ -38,12 +38,12 @@ export class Cell {
     public _x: number;
     public _y: number;
 
-    private _baseElem: Element.ElementBase;
+    private _baseElem: ConstBaseElem;
     private _p: CellProps;
     private _lightPasses: boolean;
     private _isPassable: boolean;
 
-    constructor(x: number, y: number, elem?: Element.ElementBase) { // {{{2
+    constructor(x: number, y: number, elem?: ConstBaseElem) { // {{{2
 
         this._baseElem = elem;
         this._x = x;
@@ -72,13 +72,13 @@ export class Cell {
     }
 
     /* Sets/gets the base element for this cell. There can be only one element.*/
-    public setBaseElem(elem: Element.ElementBase): void {
+    public setBaseElem(elem: ConstBaseElem): void {
         this._baseElem = elem;
         this._lightPasses = elem.lightPasses();
         this._isPassable = elem.isPassable();
     }
 
-    public getBaseElem(): Element.ElementBase { return this._baseElem; }
+    public getBaseElem(): ConstBaseElem { return this._baseElem; }
 
     /* Returns true if the cell has props of given type.*/
     public hasProp(prop: string): boolean {
@@ -462,7 +462,7 @@ export class Cell {
     }
 
     /* Returns all props with given type in the cell.*/
-    public getPropType(propType: string): PropsType[] {
+    public getPropType(propType: string): PropsType[] | ConstBaseElem[] {
         const props = [];
         if (this._baseElem.getType() === propType) {return [this._baseElem];}
         Object.keys(this._p).forEach(prop => {

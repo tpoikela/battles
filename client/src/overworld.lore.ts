@@ -67,7 +67,7 @@ export class OWLore {
      * known relationships between the zones. */
     public buildLore(): void {
         Object.keys(this.zonesByXY).forEach((key: string) => {
-            const zones = this.zonesByXY[key];
+            const zones: ZoneConf[] = this.zonesByXY[key];
             const xy = this.toCoord(key);
             if (!this.hasInfo(xy)) {return;}
 
@@ -75,13 +75,14 @@ export class OWLore {
                 const knownXY: TCoord[] = this.hasInfoAbout[key];
                 const rXY = RNG.arrayGetRand(knownXY);
 
-                const zoneList = this.zonesByXY[this.getKey(rXY)];
+                const zoneList: ZoneConf[] = this.zonesByXY[this.getKey(rXY)];
                 if (!zoneList) {return;}
 
-                const knownZone = RNG.arrayGetRand(zoneList);
+                const knownZone: ZoneConf = RNG.arrayGetRand(zoneList);
                 const dir = RG.getTextualDir(rXY, xy);
                 const msg = this.formatMsg(dir, knownZone);
-                const loreObj = createLoreObj(msg, 'sideQuest');
+                const metaData = this.getZoneMeta(knownZone);
+                const loreObj = createLoreObj(msg, 'sideQuest', metaData);
                 if (knowerZone.addComp) {
                     knowerZone.addComp.push(loreObj);
                 }
@@ -114,5 +115,10 @@ export class OWLore {
 
     public debugPrint(): void {
         console.log(this.zonesByXY);
+    }
+
+    public getZoneMeta(zone: ZoneConf): object {
+        const {x, y, levelX, levelY, owX, owY} = zone;
+        return {x, y, levelX, levelY, owX, owY};
     }
 }

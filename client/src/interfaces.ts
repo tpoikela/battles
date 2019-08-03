@@ -13,6 +13,8 @@ type Locatable = import('./mixin').Locatable;
 type ElemTemplate = import('./template').ElemTemplate;
 type WorldBase = import('./world').WorldBase;
 
+export type ConstBaseElem = Readonly<ElementBase>;
+
 export type TPrim = number | string | boolean;
 export type TPrimArr = TPrim[];
 

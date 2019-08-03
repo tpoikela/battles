@@ -133,6 +133,7 @@ export class SystemBaseAction extends SystemBase {
         this._createEventComp(ent, evtArgs);
     }
 
+    /* Called when missile is picked to to check if it can be auto-equipped. */
     private _checkForAutoEquip(ent, item): void {
         const missile = ent.getInvEq().getMissile();
         if (missile) {

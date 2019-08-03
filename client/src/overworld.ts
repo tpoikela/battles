@@ -1030,7 +1030,7 @@ function processSubLevel(ow: OWMap, x: number, y: number, coordObj, areaConf, ow
     }
 
     const comps = getMainQuestComps(ow, x, y, owLore);
-    const sideComps = getSideQuestComps(ow, x, y, owLore);
+    // const sideComps = getSideQuestComps(ow, x, y, owLore);
 
     Object.keys(features).forEach(type => {
         const featureArray: OWSubFeature[] = features[type];
@@ -1042,7 +1042,7 @@ function processSubLevel(ow: OWMap, x: number, y: number, coordObj, areaConf, ow
                     `coord must exist. feat: ${JSON.stringify(feat)}`);
             }
 
-            let zoneConf = null;
+            let zoneConf: IF.ZoneConf = null;
             if (feat.type === 'capital') {
                 zoneConf = addCapitalConfToArea(feat, coordObj, areaConf);
             }
@@ -1069,14 +1069,13 @@ function processSubLevel(ow: OWMap, x: number, y: number, coordObj, areaConf, ow
                 zoneConf = addBlackTowerConfToArea(feat, coordObj, areaConf);
             }
             addCompsToZone(zoneConf, comps);
-            // addCompsToZone(zoneConf, sideComps);
             owLore.addZone([x, y], zoneConf);
         });
     });
 
 }
 
-function addDungeonConfToArea(feat, coordObj, areaConf) {
+function addDungeonConfToArea(feat, coordObj, areaConf): IF.ZoneConf {
     const [pX, pY] = getPlayerPosition(coordObj);
     const coordD = feat.coord;
     const {x, y, aX, aY, slX, slY, subX, subY} = coordObj;
@@ -1096,7 +1095,7 @@ function addDungeonConfToArea(feat, coordObj, areaConf) {
     return dungeonConf;
 }
 
-function addMountainConfToArea(feat, coordObj, areaConf) {
+function addMountainConfToArea(feat, coordObj, areaConf): IF.ZoneConf {
     const [pX, pY] = getPlayerPosition(coordObj);
     const coordM = feat.coord;
     const {x, y, aX, aY, slX, slY, subX, subY} = coordObj;

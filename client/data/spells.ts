@@ -9,6 +9,7 @@ import {Brain} from '../src/brain';
 import {Random} from '../src/random';
 import * as Element from '../src/element';
 import {Corpse} from '../src/item';
+import {TCoord} from '../src/interfaces';
 
 type Cell = import('../src/map.cell').Cell;
 
@@ -19,11 +20,10 @@ const {getDirSpellArgs, aiSpellCellEnemy, aiSpellCellFriend,
     aiSpellCellDone} = Spell;
 
 /* Removes all duration components (which removes all attached
- * effects with duration. */
+ * effects with duration). */
 Spell.DispelMagic = function() {
     Spell.RemoveComponent.call(this, 'DispelMagic', 8);
     this.setCompNames('Duration');
-
 };
 RG.extend2(Spell.DispelMagic, Spell.RemoveComponent);
 
@@ -952,7 +952,7 @@ Spell.ForceField = function() {
         const [pX, pY] = this._caster.getXY();
         const [tX, tY] = [pX + dir[0], pY + dir[1]];
 
-        const cells = this.getThreeCells(level.getMap(), dir, tX, tY);
+        const cells = getThreeCells(level.getMap(), dir, tX, tY);
         cells.forEach(cell => {
             if (cell.isPassable() || !cell.hasActors()) {
                 const forcefield = parser.createActor('Forcefield');
@@ -965,36 +965,6 @@ Spell.ForceField = function() {
         });
     };
 
-    this.getThreeCells = function(map, dir, tX, tY) {
-        if (dir[0] === 0) { // up or down
-            return [
-                map.getCell(tX - 1, tY),
-                map.getCell(tX, tY),
-                map.getCell(tX + 1, tY)
-            ];
-        }
-        else if (dir[1] === 0) { // left or right
-            return [
-                map.getCell(tX, tY - 1),
-                map.getCell(tX, tY),
-                map.getCell(tX, tY + 1)
-            ];
-        }
-        else if (dir[0] === -1) {
-            return [
-                map.getCell(tX + 1, tY),
-                map.getCell(tX, tY),
-                map.getCell(tX, tY - dir[1])
-            ];
-        }
-        else {
-            return [
-                map.getCell(tX - 1, tY),
-                map.getCell(tX, tY),
-                map.getCell(tX, tY - dir[1])
-            ];
-        }
-    };
 };
 RG.extend2(Spell.ForceField, SpellBase);
 
@@ -1057,3 +1027,37 @@ Spell.addAllSpells = book => {
 };
 
 export {Spell};
+
+/* Returns three adjacent cells based on direction. */
+function getThreeCells(
+    map, dir: TCoord, tX: number, tY: number): Cell[]
+{
+    if (dir[0] === 0) { // up or down
+        return [
+            map.getCell(tX - 1, tY),
+            map.getCell(tX, tY),
+            map.getCell(tX + 1, tY)
+        ];
+    }
+    else if (dir[1] === 0) { // left or right
+        return [
+            map.getCell(tX, tY - 1),
+            map.getCell(tX, tY),
+            map.getCell(tX, tY + 1)
+        ];
+    }
+    else if (dir[0] === -1) {
+        return [
+            map.getCell(tX + 1, tY),
+            map.getCell(tX, tY),
+            map.getCell(tX, tY - dir[1])
+        ];
+    }
+    else {
+        return [
+            map.getCell(tX - 1, tY),
+            map.getCell(tX, tY),
+            map.getCell(tX, tY - dir[1])
+        ];
+    }
+}

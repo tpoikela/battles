@@ -49,15 +49,18 @@ interface PoisonUseSpec {
     prob: string;
 }
 
-interface AddElementUseSpec {
+interface ElementUseSpec {
     elementName: string;
     duration?: string;
+    successMsg?: string;
+    failureMsg?: string;
 }
 
-interface RemoveElementUseSpec {
-    elementName: string;
-    duration?: string;
+interface AddElementUseSpec extends ElementUseSpec{
+    numAllowed?: number;
 }
+
+type RemoveElementUseSpec = ElementUseSpec;
 
 interface UseSpec {
     heal?: HealUseSpec;

@@ -383,7 +383,7 @@ export class SentientActor extends BaseActor {
         let attack = this.get('Combat').getAttack();
         attack += this.getEquipAttack();
         attack += this._addFromCompList('CombatMods', 'getAttack');
-        attack += RG.accuracyToAttack(this.getAccuracy());
+        attack += RG.accuracyToAttack(this.getStatVal('Accuracy'));
         return attack;
     }
 
@@ -391,7 +391,7 @@ export class SentientActor extends BaseActor {
         let defense = this.get('Combat').getDefense();
         defense += this.getEquipDefense();
         defense += this._addFromCompList('CombatMods', 'getDefense');
-        defense += RG.agilityToDefense(this.getAgility());
+        defense += RG.agilityToDefense(this.getStatVal('Agility'));
         return defense;
     }
 
@@ -411,7 +411,7 @@ export class SentientActor extends BaseActor {
                 damage = wpnDamage;
             }
         }
-        const strength = this.getStrength();
+        const strength = this.getStatVal('Strength');
         damage += RG.strengthToDamage(strength);
         damage += this._addFromCompList('CombatMods', 'getDamage');
         return damage;
@@ -436,53 +436,43 @@ export class SentientActor extends BaseActor {
     // Stats-related methods (these take eq and boosts into account
     //-------------------------------------------------------------
 
+    /*
     public getAccuracy(): number {
-        let acc = this.get('Stats').getAccuracy();
-        acc += this.getInvEq().getEquipment().getAccuracy();
-        acc += this._addFromCompList('StatsMods', 'getAccuracy');
-        return acc;
+        return this.getStatVal('Accuracy');
     }
 
     public getAgility(): number {
-        let agi = this.get('Stats').getAgility();
-        agi += this.getInvEq().getEquipment().getAgility();
-        agi += this._addFromCompList('StatsMods', 'getAgility');
-        return agi;
+        return this.getStatVal('Agility');
     }
 
     public getStrength(): number {
-        let str = this.get('Stats').getStrength();
-        str += this.getInvEq().getEquipment().getStrength();
-        str += this._addFromCompList('StatsMods', 'getStrength');
-        return str;
+        return this.getStatVal('Strength');
     }
 
     public getWillpower(): number {
-        let wil = this.get('Stats').getWillpower();
-        wil += this.getInvEq().getEquipment().getWillpower();
-        wil += this._addFromCompList('StatsMods', 'getWillpower');
-        return wil;
+        return this.getStatVal('Willpower');
     }
 
-    public getSpeed(): number {
-        let speed = this.get('Stats').getSpeed();
-        speed += this.getInvEq().getEquipment().getSpeed();
-        speed += this._addFromCompList('StatsMods', 'getSpeed');
-        return speed;
-    }
 
     public getPerception(): number {
-        let per = this.get('Stats').getPerception();
-        per += this.getInvEq().getEquipment().getPerception();
-        per += this._addFromCompList('StatsMods', 'getPerception');
-        return per;
+        return this.getStatVal('Perception');
     }
 
     public getMagic(): number {
-        let mag = this.get('Stats').getMagic();
-        mag += this.getInvEq().getEquipment().getMagic();
-        mag += this._addFromCompList('StatsMods', 'getMagic');
-        return mag;
+        return this.getStatVal('Magic');
+    }
+    */
+
+    public getSpeed(): number {
+        return this.getStatVal('Speed');
+    }
+
+    public getStatVal(stat: string): number {
+        const getter = RG.formatGetterName(stat);
+        let value = this.get('Stats')[getter]();
+        value += this.getInvEq().getEquipment()[getter]();
+        value += this._addFromCompList('StatsMods', getter);
+        return value;
     }
 
     /* Returns bonuses applied to given stat. */
@@ -490,6 +480,13 @@ export class SentientActor extends BaseActor {
         return this._addFromCompList('StatsMods', funcName);
     }
 }
+
+RG.STATS.forEach((stat: string) => {
+    SentientActor.prototype[RG.formatGetterName(stat)] = function() {
+        return this.getStatVal(stat);
+    };
+});
+
 
 const playerBrainComps = ['StatsMods', 'CombatMods'];
 
@@ -544,7 +541,7 @@ SentientActor.getFormattedStats = function(actor): StatsData {
 
     // Compile final stats information
     // Add typings
-    const stats: any = {
+    let stats: any = {
       HP: actor.get('Health').getHP() + '/'
       + actor.get('Health').getMaxHP(),
       PP,
@@ -552,20 +549,21 @@ SentientActor.getFormattedStats = function(actor): StatsData {
       Att: [actor.getAttack(), actor.getCombatBonus('getAttack')],
       Def: [actor.getDefense(), actor.getCombatBonus('getDefense')],
       Pro: [actor.getProtection(), actor.getCombatBonus('getProtection')],
+    };
 
-      Str: [actor.getStrength(), actor.getStatBonus('getStrength')],
-      Agi: [actor.getAgility(), actor.getStatBonus('getAgility')],
-      Acc: [actor.getAccuracy(), actor.getStatBonus('getAccuracy')],
-      Wil: [actor.getWillpower(), actor.getStatBonus('getWillpower')],
-      Per: [actor.getPerception(), actor.getStatBonus('getPerception')],
-      Mag: [actor.getMagic(), actor.getStatBonus('getMagic')],
+    Object.keys(RG.STATS_ABBR2STAT).forEach((abbr: string) => {
+        const statName = RG.STATS_ABBR2STAT[abbr];
+        const getter = RG.formatGetterName(statName);
+        stats[abbr] = [actor[getter](), actor.getStatBonus(getter)];
+    });
 
+    stats = Object.assign(stats, {
       Speed: [actor.getSpeed(), actor.getStatBonus('getSpeed')],
       XP: actor.get('Experience').getExp(),
       XL: actor.get('Experience').getExpLevel(),
       DL: dungeonLevel,
       Loc: location
-    };
+    });
 
     if (actor.has('Hunger')) {
         stats.E = actor.get('Hunger').getEnergy();

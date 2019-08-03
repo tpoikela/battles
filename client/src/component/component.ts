@@ -111,7 +111,7 @@ export const Typed = UniqueDataComponent('Typed', {
     objType: NO_TYPE, propType: NO_TYPE
 });
 
-Typed.prototype._init = function(type, propType) {
+Typed.prototype._init = function(type: string, propType: string) {
     this.objType = type;
     this.propType = propType;
 };
@@ -122,7 +122,7 @@ export const Item = UniqueDataComponent('Item', {
     value: 1, damageType: RG.DMG.BLUNT, count: 1
 });
 
-Item.prototype.incrCount = function(count) {
+Item.prototype.incrCount = function(count: number) {
     this.count += count;
 };
 
@@ -334,30 +334,30 @@ export const CombatMods = DataComponent('CombatMods', {
 });
 
 /* This component stores entity stats like speed, agility etc.*/
-export const Stats = UniqueDataComponent('Stats', {
-    accuracy: 5, agility: 5, strength: 5,
-    willpower: 5, perception: 5, magic: 5, speed: 100
-});
+export const Stats = UniqueDataComponent('Stats', RG.STATS_DEFAULTS);
 
 Stats.prototype.clearValues = function() {
-    this.setAccuracy(0);
+    RG.SET_STATS.forEach((func: string) => {
+        this[func](0);
+    });
+    /*this.setAccuracy(0);
     this.setAgility(0);
     this.setStrength(0);
     this.setWillpower(0);
     this.setPerception(0);
-    this.setSpeed(0);
+    this.setSpeed(0);*/
     this.setMagic(0);
 };
 
 /* Convenience function for increase a stat. */
-Stats.prototype.incrStat = function(statName, addValue) {
+Stats.prototype.incrStat = function(statName, addValue): void {
     const setter = 'set' + statName.capitalize();
     const getter = 'get' + statName.capitalize();
     const currValue = this[getter]();
     this[setter](currValue + addValue);
 };
 
-Stats.prototype.toString = function() {
+Stats.prototype.toString = function(): string {
     let result = '';
     RG.GET_STATS.forEach((getter, i) => {
         const value = this[getter]();
@@ -368,24 +368,31 @@ Stats.prototype.toString = function() {
     return result;
 };
 
-Stats.prototype.equals = function(rhs) {
+Stats.prototype.equals = function(rhs): boolean {
     let res = this.getType() === rhs.getType();
-    res = res && this.getAccuracy() === rhs.getAccuracy();
+    /*res = res && this.getAccuracy() === rhs.getAccuracy();
     res = res && this.getAgility() === rhs.getAgility();
     res = res && this.getStrength() === rhs.getStrength();
     res = res && this.getWillpower() === rhs.getWillpower();
     res = res && this.getSpeed() === rhs.getSpeed();
     res = res && this.getPerception() === rhs.getPerception();
-    res = res && this.getMagic() === rhs.getMagic();
+    res = res && this.getMagic() === rhs.getMagic();*/
+    RG.GET_STATS.forEach((getFunc: string) => {
+        res = res && this[getFunc]() === rhs[getFunc]();
+    });
     return res;
 };
 
 /* Stats modifier component. */
-export const StatsMods = DataComponent('StatsMods', {
+const zeroStats = RG.getStatsObj(0);
+export const StatsMods = DataComponent('StatsMods',
+   Object.assign({tag: ''}, zeroStats));
+/*
+   {
     accuracy: 0, agility: 0, strength: 0,
     willpower: 0, perception: 0, magic: 0, speed: 0,
     tag: ''
-});
+});*/
 
 /* Perception component holds data related to actor perception. */
 export const Perception = UniqueDataComponent('Perception',
@@ -662,6 +669,9 @@ Named.prototype.getFullName = function() {
 export class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(ComponentBase)) {
 
     public static description: string;
+
+    protected _prob: number;
+    protected _src: any;
 
     constructor() {
         super('Poison');
@@ -1014,6 +1024,10 @@ export const Transaction = TransientDataComponent('Transaction', {args: null});
 //--------------------------------------------
 // Battle-related components
 //--------------------------------------------
+
+export const BattleEvent = TransientDataComponent('BattleEvent', {
+    battle: null, eventType: ''
+});
 
 // Added to all entities inside a battle
 
@@ -1387,6 +1401,11 @@ Expiration.prototype.cleanup = function() {
  * stay for a specific duration only. */
 export class Duration extends Mixin.DurationRoll(ComponentBase) {
 
+    public _comp: ComponentBase | number;
+    public _source: any;
+    public _addedOnActor: boolean;
+    public _expireMsg: string;
+
     constructor() {
         super('Duration');
         this._comp = null;
@@ -1396,7 +1415,7 @@ export class Duration extends Mixin.DurationRoll(ComponentBase) {
         this._expireMsg = '';
     }
 
-    public setSource(source): void {
+    public setSource(source: any): void {
         this._source = source;
     }
 
@@ -1412,7 +1431,7 @@ export class Duration extends Mixin.DurationRoll(ComponentBase) {
         return this._source;
     }
 
-    public setComp(comp) {
+    public setComp(comp: ComponentBase): void {
         this._comp = comp;
         if (!this._addedOnActor) {
 
@@ -1420,10 +1439,10 @@ export class Duration extends Mixin.DurationRoll(ComponentBase) {
             // inside this object
             const _addCb = () => {
                 this.getEntity().add(this._comp);
-                if (this._comp.setSource && this._source) {
-                    this._comp.setSource(this._source);
+                if ((this._comp as any).setSource && this._source) {
+                    (this._comp as any).setSource(this._source);
                 }
-                this._comp = this._comp.getID();
+                this._comp = (this._comp as ComponentBase).getID();
                 this._addedOnActor = true;
                 this.removeCallbacks('onAdd');
             };
@@ -1454,7 +1473,7 @@ export class Duration extends Mixin.DurationRoll(ComponentBase) {
         return newComp;
     }
 
-    public setAddedOnActor(added) {
+    public setAddedOnActor(added: boolean): void {
         this._addedOnActor = added;
     }
 
@@ -1466,7 +1485,7 @@ export class Duration extends Mixin.DurationRoll(ComponentBase) {
             json.setSource = RG.getObjRef('entity', this._source);
         }
         if (!this._addedOnActor) {
-            const jsonComp = this._comp.toJSON();
+            const jsonComp = (this._comp as ComponentBase).toJSON();
             return Object.assign(json, {setComp: {createComp: jsonComp}});
         }
         else {
@@ -1495,12 +1514,15 @@ export const WorldSimEvent = TransientDataComponent('WorldSimEvent', {
     eventType: '', eventData: null
 });
 
+export const ZoneEvent = TransientDataComponent('ZoneEvent', {
+    eventType: '', eventData: null
+});
+
 /* Added to elements that are indoors. */
 export const Indoor = UniqueTagComponent('Indoor');
 
 /* Added to elements having some snow. */
 export const Snowy = UniqueTagComponent('Snowy');
-
 
 export const Entrapping = UniqueDataComponent('Entrapping', {
     difficulty: 1, destroyOnMove: false
@@ -1510,11 +1532,12 @@ export const Entrapped = UniqueTagComponent('Entrapped');
 
 /* Component attached to Level/Places for Lore. */
 export const Lore = DataComponent('Lore', {
-    topics: null
+    topics: null, metaData: null
 });
 
 Lore.prototype._init = function() {
     this.topics = {};
+    this.metaData = {};
 };
 
 Lore.prototype.addTopic = function(key: string, msg: any): void {
@@ -1527,6 +1550,12 @@ Lore.prototype.addTopic = function(key: string, msg: any): void {
     else {
         this.topics[key].push(msg);
     }
+};
+
+Lore.prototype.updateMetaData = function(metaData: object): void {
+    Object.keys(metaData).forEach((key: string) => {
+        this.metaData[key] = metaData[key];
+    });
 };
 
 Lore.prototype.updateTopics = function(topics: {[key: string]: any}): void {

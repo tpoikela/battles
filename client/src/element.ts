@@ -11,6 +11,8 @@ import {compsToJSON} from './component/component.base';
 
 type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
+type SentientActor = import('./actor').SentientActor;
+type ItemBase = import('./item').ItemBase;
 
 export interface ElementJSON {
     id: number;
@@ -28,7 +30,7 @@ interface StringMap {
     [key: string]: string;
 }
 
-Element.canJumpOver = type => {
+Element.canJumpOver = (type: string): boolean => {
     return !(wallRegexp.test(type) || (/highrock/).test(type));
 };
 
@@ -50,6 +52,9 @@ export interface ConnectionObj {
 /* Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
 export class ElementBase extends Mixin.Typed(Entity) {
+
+    public msg: StringMap;
+    protected _name: string;
 
     constructor(elemName: string | NameArgs, elemType?: string) {
         let name = null;
@@ -144,7 +149,7 @@ RG.elementsCreated = 0;
 
 export class ElementWall extends ElementBase {
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.add(new Component.Opaque());
         const impassable = new Component.Impassable();
@@ -155,11 +160,15 @@ export class ElementWall extends ElementBase {
 }
 Element.Wall = ElementWall;
 
+type TargetLevel = Level | number;
+
 /* Object models stairs connecting two levels. Stairs are one-way, thus
  * connecting 2 levels requires two stair objects. */
 export class ElementStairs extends Mixin.Locatable(ElementBase) {
 
     protected _targetStairs: ElementStairs | StairsXY;
+    protected _srcLevel: Level;
+    protected _targetLevel: TargetLevel;
 
     constructor(name, srcLevel?, targetLevel?) {
         super({name, type: 'connection'});
@@ -176,7 +185,7 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
     }
 
     /* Sets the source level for the stairs. */
-    public setSrcLevel(src): void {
+    public setSrcLevel(src: Level): void {
         if (!RG.isNullOrUndef([src])) {
             this._srcLevel = src;
         }
@@ -199,7 +208,7 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
         }
     }
 
-    public getTargetLevel(): Level | number {
+    public getTargetLevel(): TargetLevel {
         return this._targetLevel;
     }
 
@@ -262,7 +271,8 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
                 const newX = this._targetStairs.getX();
                 const newY = this._targetStairs.getY();
                 if (this._srcLevel.removeActor(actor)) {
-                    if (this._targetLevel.addActor(actor, newX, newY)) {
+                    // We know target is level
+                    if ((this._targetLevel as Level).addActor(actor, newX, newY)) {
                         return true;
                     }
                 }
@@ -316,7 +326,7 @@ export class ElementStairs extends Mixin.Locatable(ElementBase) {
             json.srcLevel = this.getSrcLevel().getID();
         }
 
-        if (Number.isInteger(this._targetLevel)) {
+        if (Number.isInteger((this._targetLevel as number))) {
             json.targetLevel = this._targetLevel;
         }
         else if (this._targetLevel) {
@@ -344,7 +354,12 @@ Element.Stairs = ElementStairs;
 
 /* Name says it all, be it open or closed.*/
 export class ElementDoor extends Mixin.Locatable(ElementBase) {
-    constructor(closed) {
+
+    public _opaque: any;
+    public _impassable: any;
+    protected _closed: boolean;
+
+    constructor(closed: boolean) {
         super('door');
         this._closed = (typeof closed === 'undefined')
             ? true : closed;
@@ -420,6 +435,8 @@ Element.LeverDoor = ElementLeverDoor;
  */
 export class ElementLever extends Mixin.Locatable(ElementBase) {
 
+    protected _targets: any[];
+
     constructor() {
         super('lever');
         this._targets = [];
@@ -453,6 +470,11 @@ Element.Lever = ElementLever;
 
 /* A shop element is added to each cell inside a shop.*/
 export class ElementShop extends Mixin.Locatable(ElementBase) {
+    protected _shopkeeper: SentientActor;
+    protected _costFactorShopSells: number;
+    protected _costFactorShopBuys: number;
+    protected _isAbandoned: boolean;
+
     constructor() {
         super('shop');
         this._shopkeeper = null;
@@ -465,13 +487,13 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
         return this._isAbandoned;
     }
 
-    public reclaim(actor): void {
+    public reclaim(actor: SentientActor): void {
         this._shopkeeper = actor;
         this._isAbandoned = false;
     }
 
     /* Returns the price in gold coins for item in the cell.*/
-    public getItemPriceForBuying(item): number {
+    public getItemPriceForBuying(item: ItemBase): number {
         if (item.has('Unpaid')) {
             const value = item.getValue();
             const goldWeight = RG.valueToGoldWeight(value);
@@ -491,7 +513,7 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
     }
 
     /* Returns the price for selling the item. */
-    public getItemPriceForSelling(item, count?): number {
+    public getItemPriceForSelling(item: ItemBase, count?: number): number {
         const value = item.getValue();
         const goldWeight = RG.valueToGoldWeight(value);
         let ncoins = RG.getGoldInCoins(goldWeight);
@@ -507,7 +529,7 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
     }
 
     /* Sets the shopkeeper.*/
-    public setShopkeeper(keeper): void {
+    public setShopkeeper(keeper: SentientActor): void {
         if (!RG.isNullOrUndef([keeper])) {
             this._shopkeeper = keeper;
             this._isAbandoned = false;
@@ -519,7 +541,7 @@ export class ElementShop extends Mixin.Locatable(ElementBase) {
     }
 
     /* Returns the shopkeeper.*/
-    public getShopkeeper(): void {
+    public getShopkeeper(): SentientActor | null {
         return this._shopkeeper;
     }
 
@@ -567,6 +589,10 @@ Element.Shop = ElementShop;
 
 /* An experience element which is found in the dungeons. */
 export class ElementExploration extends Mixin.Locatable(ElementBase) {
+
+    public exp: number;
+    public data: {[key: string]: any};
+
     constructor() {
         super('exploration');
         this.exp = 0;
@@ -587,7 +613,7 @@ export class ElementExploration extends Mixin.Locatable(ElementBase) {
         return false;
     }
 
-    public setExp(exp): void {
+    public setExp(exp: number): void {
         if (Number.isInteger(exp)) {
             this.exp = exp;
         }
@@ -701,15 +727,19 @@ Element.PlaceHolder = ElementPlaceholder;
 /* Used in the debugging of levels only. Can be used to add arbitrary characters
  * into level maps when debugging. */
 export class ElementMarker extends Mixin.Locatable(ElementBase) {
-    constructor(char: string) {
+
+    public tag: string;
+    public className: string | boolean;
+
+    constructor(public char: string) {
         super('marker');
         this.char = char;
         this.tag = '';
         this.className = false; // Uses default cell-element-marker
     }
 
-    public getClassName() {return this.className;}
-    public setClassName(name: string) {this.className = name;}
+    public getClassName(): string | boolean {return this.className;}
+    public setClassName(name: string | boolean): void {this.className = name;}
 
     public getChar(): string {return this.char;}
     public setChar(char: string): void {this.char = char;}
@@ -728,7 +758,7 @@ Element.Marker = ElementMarker;
 
 
 export const create = function(type: string, ...args): ElementBase {
-    const nameCap = type.capitalize();
+    // const nameCap = type.capitalize();
     if (Element.hasOwnProperty(type)) {
         return new Element[type](...args);
     }
