@@ -30,6 +30,8 @@ GetOptions(
     "t|tests=s" => \$opt{tests}
 );
 
+my $ERROR = 0;
+
 my $comp_babel = "--compilers ts-node/register";
 
 clean_cov() if defined $opt{clean};
@@ -48,9 +50,11 @@ if (not -e $nyc) {
 }
 
 #my $cmd = "$nyc -n client/src mocha $comp_babel tests/client/src";
-my $cmd = "$nyc mocha $comp_babel tests/client/src/*.ts";
+#my $cmd = "$nyc mocha $comp_babel tests/client/src/*.ts";
+my $cmd = "$nyc npm run test";
+print $cmd . "\n";
 #my $cmd = "$nyc ts-mocha tests/client/src/*.ts"; # Would be faster, but not working
-_cmd($cmd, "Running coverage for unit tests.");
+$ERROR = _cmd($cmd, "Running coverage for unit tests.");
 
 if (0) {
 $cmd = "$nyc -n client/gui mocha $comp_babel tests/client/gui";
@@ -64,10 +68,12 @@ _cmd($cmd,  "Running coverage for functional tests.");
 }
 
 # Copy .json files back and do report
-system("cp $nyc_bak/* .nyc_output");
-system("$nyc report -r text -r lcov -r html");
+$ERROR |= system("cp $nyc_bak/* .nyc_output");
+$ERROR |= system("$nyc report -r text -r lcov -r html");
 
-system("$nyc check-coverage --lines 95 --functions 95 --branches 95");
+$ERROR |= system("$nyc check-coverage --lines 95 --functions 95 --branches 95");
+
+exit $ERROR;
 
 # Cleans up the coverage reports
 sub clean_cov {
