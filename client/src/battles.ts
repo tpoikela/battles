@@ -30,7 +30,6 @@ export * from './item';
 export * from './spell';
 export * from './system';
 export * from './system/system.manager';
-export * from './aisequence';
 
 export * from './goals';
 export * from './goals-battle';
