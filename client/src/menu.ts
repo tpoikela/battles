@@ -74,7 +74,7 @@ interface MenuArgObj {
 
 type MenuArgArray = [string, MenuFunction];
 
-type MenuArg = MenuArgObj | MenuArgArray;
+export type MenuArg = MenuArgObj | MenuArgArray;
 
 const createMenuTable = function(args: MenuArg[]): MenuTable {
     const table = {};
