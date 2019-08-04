@@ -15,6 +15,7 @@ export class GameObject {
 
     public static ID: number;
 
+    /*
     public static deserialize(input, namespace, seenObjs = {}): any {
         const obj = new namespace[input.$proto]();
         for (const key in input) {
@@ -44,9 +45,9 @@ export class GameObject {
             }
         }
         delete obj.$proto;
-        /* eslint: enable */
         return obj;
     }
+    */
 
     public static deref(objRef: ObjRef): any {
         if (objRef) {
@@ -67,6 +68,7 @@ export class GameObject {
         return typeof obj !== 'object';
     }
 
+    /*
     public static serialize(obj: any): any {
         if (GameObject.isPrimitive(obj)) {
             return obj;
@@ -91,6 +93,7 @@ export class GameObject {
             return obj;
         }
     }
+    */
 
     public $objID: number;
 
