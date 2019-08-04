@@ -403,7 +403,7 @@ describe('Game.FromJSON', function() {
         const gameConf = {
             playerClass: 'Cryomancer'
         };
-        expect(player.getBook()).to.be.empty;
+        expect(typeof player.getBook()).to.equal('undefined');
         factGame.addActorClass(gameConf, player);
         expect(player.getBook()).to.not.be.empty;
 
@@ -421,7 +421,7 @@ describe('Game.FromJSON', function() {
 
         const spellbook = newPlayer.getBook();
         expect(spellbook).to.not.be.empty;
-        expect(newPlayer.has('ActorClass')).to.be.true;
+        expect(newPlayer.has('ActorClass')).to.equal(true);
     });
 
     it('can serialize/de-serialize pick-axe', () => {

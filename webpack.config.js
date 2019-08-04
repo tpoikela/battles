@@ -50,7 +50,7 @@ const config = {
             {test: /\.scss$/,
                 loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
             },
-            {test: /\.pegjs$/, use: 'raw-loader'},
+            // {test: /\.pegjs$/, use: 'raw-loader'},
             {test: /\.md$/, use: [
                 {loader: 'html-loader'},
                 {loader: 'markdown-loader'}
