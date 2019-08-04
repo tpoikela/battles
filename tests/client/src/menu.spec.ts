@@ -1,8 +1,13 @@
 
 import {expect} from 'chai';
 import {Keys} from '../../../client/src/keymap';
-import {Menu, MenuBase} from '../../../client/src/menu';
+import {MenuArg, Menu, MenuBase,
+    PlayerMissileMenu} from '../../../client/src/menu';
 import {RGTest} from '../../roguetest';
+import {RGUnitTests} from '../../rg.unit-tests';
+import {SentientActor} from '../../../client/src/actor';
+
+const {KEY} = Keys;
 
 describe('Menu.Base', () => {
 
@@ -51,3 +56,32 @@ describe('Menu.Base', () => {
 
 });
 
+describe('Menu.PlayerMissileMenu', () => {
+    it('handles missile targeting', () => {
+        let cmdDone = false;
+        const player = RGTest.createPlayer();
+        const orc = new SentientActor('orc');
+        const level = RGUnitTests.wrapIntoLevel([player, orc]);
+        RGUnitTests.moveEntityTo(player, 1, 1);
+        RGUnitTests.moveEntityTo(orc, 3, 3);
+        const brain = player.getBrain();
+        const menuArgs: MenuArg[] = [
+            {key: KEY.TARGET, func: () => {
+                cmdDone = true;
+                brain.decideNextAction({cmd: 'missile'});
+            }}
+        ];
+        const menu = new PlayerMissileMenu(menuArgs, player);
+        menu.select(KEY.NEXT);
+        const target = brain.getTarget();
+        expect(target.getX()).to.equal(orc.getX());
+        expect(target.getY()).to.equal(orc.getY());
+        menu.select(KEY.PREV);
+        menu.select(KEY.TARGET);
+        /* TODO fix this
+        expect(cmdDone, 'Cmd was executed OK').to.equal(true);
+        expect(player.has('AttackRanged')).to.equal(true);
+        menu.select(KEY.QUIT_MENU);
+        */
+    });
+});
