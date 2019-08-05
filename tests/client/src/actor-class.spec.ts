@@ -1,10 +1,15 @@
 
 import RG from '../../../client/src/rg';
-import { expect } from 'chai';
+import chai from 'chai';
 import {SentientActor} from '../../../client/src/actor';
 
 import {ActorClass} from '../../../client/src/actor-class';
+import {FactoryItem} from '../../../client/src/factory.items';
 import {RGUnitTests} from '../../rg.unit-tests';
+import {chaiBattles} from '../../helpers/chai-battles';
+
+const expect = chai.expect;
+chai.use(chaiBattles);
 
 describe('ActorClass.Blademaster', () => {
     it('can be added as class to an actor', () => {
@@ -15,15 +20,15 @@ describe('ActorClass.Blademaster', () => {
         RGUnitTests.wrapIntoLevel([rogue]);
 
         bm.advanceLevel();
-        expect(rogue.has('Defender')).to.be.false;
+        expect(rogue).to.not.have.component('Defender');
         rogue.get('Experience').setExpLevel(4);
         bm.advanceLevel();
-        expect(rogue.has('Defender')).to.be.true;
+        expect(rogue).to.have.component('Defender');
 
-        expect(rogue.has('Ambidexterity')).to.be.false;
+        expect(rogue).to.not.have.component('Ambidexterity');
         rogue.get('Experience').setExpLevel(24);
         bm.advanceLevel();
-        expect(rogue.has('Ambidexterity')).to.be.true;
+        expect(rogue).to.have.component('Ambidexterity');
     });
 });
 
@@ -34,17 +39,17 @@ describe('ActorClass.Marksman', () => {
 
         RGUnitTests.wrapIntoLevel([rogue]);
         marksmanClass.advanceLevel();
-        expect(rogue.has('EagleEye')).to.be.false;
+        expect(rogue).to.not.have.component('EagleEye');
         const fovBefore = rogue.getFOVRange();
 
         rogue.get('Experience').setExpLevel(4);
         marksmanClass.advanceLevel();
-        expect(rogue.has('EagleEye')).to.be.true;
+        expect(rogue).to.have.component('EagleEye');
         expect(rogue.getFOVRange()).to.equal(fovBefore + 2);
 
         rogue.get('Experience').setExpLevel(8);
         marksmanClass.advanceLevel();
-        expect(rogue.has('StrongShot')).to.be.true;
+        expect(rogue).to.have.component('StrongShot');
 
     });
 });
@@ -53,10 +58,14 @@ describe('ActorClass.Marksman', () => {
 describe('Advancing actor class', () => {
     it('can advance the actor at each level', () => {
         const classes = ['Adventurer', 'Blademaster', 'Marksman',
-            'Spiritcrafter', 'Spellsinger', 'Cryomancer', 'Alpinist'];
+            'Spiritcrafter', 'Spellsinger', 'Cryomancer', 'Alpinist',
+            'Politician'];
         classes.forEach(actorClass => {
             const advancer = new SentientActor('advancer');
             const classObj = new ActorClass[actorClass](advancer);
+            FactoryItem.addItemsToActor(advancer, ActorClass.startingItems[actorClass]);
+            FactoryItem.equipItemsToActor(advancer, ActorClass.equipment[actorClass]);
+            classObj.setStartingStats();
             for (let i = 1; i <= 32; i++) {
                 advancer.get('Experience').setExpLevel(i);
                 classObj.advanceLevel();

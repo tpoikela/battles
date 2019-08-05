@@ -6,13 +6,13 @@ import {Spell} from '../data/spells';
 import {Random} from './random';
 import {Ability} from './abilities';
 import {EquipSlot} from './equipment';
-import {SentientActor} from './actor';
 import {ObjectShell} from './objectshellparser';
 import {ItemConstr, ItemConstrMap} from './interfaces';
 
 const {Abilities} = Ability;
 
 const RNG = Random.getRNG();
+type SentientActor = import('./actor').SentientActor;
 
 export const ActorClass: any = {};
 
@@ -158,7 +158,7 @@ export class ActorClassBase {
     protected _lastStateIncr: string;
     protected _advances: {[key: string]: () => void};
 
-    constructor(actor, name: string) {
+    constructor(actor: SentientActor, name: string) {
         this._actor = actor;
         actor.setActorClass(this);
         this._className = name;
@@ -225,7 +225,7 @@ export class ActorClassBase {
 /* Alpinist actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
 export class Alpinist extends ActorClassBase {
-    constructor(actor) {
+    constructor(actor: SentientActor) {
         super(actor, 'Alpinist');
         const name = actor.getName();
         this._messages = {
@@ -742,7 +742,6 @@ export class Politician extends ActorClassBase {
         };
         this._advances = {
             1: () => {
-                console.log('Adding Bribery now');
                 ActorClass.addAbility('Bribery', this._actor);
             },
             4: () => {
