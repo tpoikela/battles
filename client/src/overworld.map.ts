@@ -1321,6 +1321,11 @@ function verifyOverWorld(ow: OWMap): void {
     });
 
     if (errMsg !== '') {
+        verifyPaths.forEach((name: string) => {
+            const path: ICoordXY[] = ow.getPath(name);
+            ow.addPathToDebug(path);
+        });
+        console.log(ow.mapToString());
         RG.err('overworld.map.ts', 'verifyOverWorld', errMsg);
     }
 }
