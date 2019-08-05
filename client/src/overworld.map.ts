@@ -916,6 +916,7 @@ function addOverWorldPaths(ow: OWMap, conf: OWMapConf): void {
     if (key) {
         const [xStr, yStr] = key.split(',');
         const xyBegin: TCoord = [parseInt(xStr, 10), parseInt(yStr, 10)];
+        console.log('OW.Path', xyBegin, ' -> ', xyWC[0]);
         const pathBegin = OWMap.getPath(ow, xyBegin, xyWC[0]);
         ow.addPath(OW.PATH_BEGIN_WCAP, pathBegin);
     }
