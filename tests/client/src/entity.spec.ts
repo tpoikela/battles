@@ -28,7 +28,7 @@ describe('Entity', () => {
         expect(modList.length).to.equal(2);
 
         const combatComp = entity.get('CombatMods');
-        expect(combatComp).not.to.be.empty;
+        expect(combatComp.getID()).to.be.above(0);
 
         const combatComp2 = entity.get('CombatMods');
         expect(combatComp2.getID()).to.equal(combatComp.getID());
