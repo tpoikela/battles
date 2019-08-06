@@ -73,12 +73,13 @@ describe('CastleGenerator', () => {
             const level = castleGen.create(90, 60, conf);
             let path = Path.getPathFromEdgeToCell(level, 'door');
             if (path.length === 0) {
-                // level.debugPrintInASCII(); // Only if fails
                 CastleGenerator.carvePathFromEdge(level, 'door');
-                // console.log('[SERIOUS ERROR]: Level was');
-                // level.debugPrintInASCII(); // Only if fails
             }
             path = Path.getPathFromEdgeToCell(level, 'door');
+            if (path.length === 0) {
+                console.error('[SERIOUS ERROR]: Level was');
+                level.debugPrintInASCII(); // Only if fails
+            }
             expect(path.length).to.be.at.least(5);
         }
     });
