@@ -6,10 +6,60 @@ import {Vault} from './tiles.vault';
 
 const RNG = Random.getRNG();
 
-export const Castle: any = {};
+interface ICastle {
+    corridorDoorThr: number;
+    tiles: {
+        corner: string[];
+        term: string[];
+        entrance: string[];
+        entranceWall: string[];
+        corridor: string[];
+        corridorWithExit: string[];
+        branch: string[];
+        storerooms: string[];
+        residential: string[];
+        crossCenter: string[];
+        fillerWall: string;
+        fillerFloor: string;
+    };
+    startFuncs: {[key: string]: StartRoomFunc};
+    startRoomFuncNorth: StartRoomFunc;
+    startRoomFuncSouth: StartRoomFunc;
+    startRoomFuncWest: StartRoomFunc;
+    startRoomFuncEast: StartRoomFunc;
+    startRoomFuncNorthEast: StartRoomFunc;
+    startRoomFuncNorthWest: StartRoomFunc;
+    startRoomFuncSouthEast: StartRoomFunc;
+    startRoomFuncSouthWest: StartRoomFunc;
+    startRoomFunc: StartRoomFunc;
+    roomCount: number;
+
+    constraintFunc: (x, y, exitReqd) => object;
+    constraintFuncCross: (x, y, exitReqd) => object;
+
+    templates: any;
+    startFuncTwoGates: StartRoomFunc;
+    startFuncFourGates: StartRoomFunc;
+    Models: any;
+}
+
+export const Castle: Partial<ICastle> = {};
 
 Castle.corridorDoorThr = 0.2;
-Castle.tiles = {};
+Castle.tiles = {
+    corner: [],
+    term: [],
+    entrance: [],
+    entranceWall: [],
+    corridor: [],
+    corridorWithExit: [],
+    branch: [],
+    storerooms: [],
+    residential: [],
+    crossCenter: [],
+    fillerWall: '',
+    fillerFloor: ''
+};
 
 // Corners
 Castle.tiles.corner = [
