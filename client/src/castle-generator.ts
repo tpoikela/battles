@@ -331,32 +331,12 @@ const markers = {
 function getGateDirFunction(conf): GateFunc | null {
     if (conf.cellsAround) {
         const {cellsAround} = conf;
-        // TODO should randomize the entrace direction
         const funcs = [];
-        if (!cellBlocked(cellsAround.N)) {
-            funcs.push(Castle.startRoomFuncNorth);
-        }
-        if (!cellBlocked(cellsAround.S)) {
-            funcs.push(Castle.startRoomFuncSouth);
-        }
-        if (!cellBlocked(cellsAround.E)) {
-            funcs.push(Castle.startRoomFuncEast);
-        }
-        if (!cellBlocked(cellsAround.W)) {
-            funcs.push(Castle.startRoomFuncWest);
-        }
-        if (!cellBlocked(cellsAround.NE)) {
-            funcs.push(Castle.startRoomFuncNorthEast);
-        }
-        if (!cellBlocked(cellsAround.NW)) {
-            funcs.push(Castle.startRoomFuncNorthWest);
-        }
-        if (!cellBlocked(cellsAround.SE)) {
-            funcs.push(Castle.startRoomFuncSouthEast);
-        }
-        if (!cellBlocked(cellsAround.SW)) {
-            funcs.push(Castle.startRoomFuncSouthWest);
-        }
+        const levelSurround = new LevelSurroundings();
+        const dirBlocked: string[] = levelSurround.getNonBlockedDirs(cellsAround);
+        dirBlocked.forEach((dir: string) => {
+            funcs.push(Castle.startFuncs[dir]);
+        });
 
         if (funcs.length === 0) {
             RG.warn('CastleGenerator', 'getGateDirFunction',
@@ -369,11 +349,3 @@ function getGateDirFunction(conf): GateFunc | null {
     return null;
 }
 
-
-function cellBlocked(type): boolean {
-    switch (type) {
-        case 'wallmount': return true;
-        // case 'water': return true;
-        default: return false;
-    }
-}

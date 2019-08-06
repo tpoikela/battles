@@ -164,4 +164,43 @@ export class LevelSurroundings {
         });
     }
 
+    /* Returns non-blocking dirs assuming mountains will be the whole side
+     * of cardinal direction. */
+    public getNonBlockedDirs(cellsAround: {[key: string]: string}): string[] {
+        const res: string[] = [];
+        const dirBlocked: {[key: string]: boolean} = {};
+        // Loop through cardinal dir first
+        const dirs = ['N', 'S', 'E', 'W'];
+        dirs.forEach(dir => {
+            if (!cellBlocked(cellsAround[dir])) {
+                res.push(dir);
+            }
+            else {
+                dirBlocked[dir] = true;
+            }
+        });
+
+        if (!dirBlocked.E && !dirBlocked.N && !cellBlocked(cellsAround.NE)) {
+            res.push('NE');
+        }
+        if (!dirBlocked.W && !dirBlocked.N && !cellBlocked(cellsAround.NW)) {
+            res.push('NW');
+        }
+        if (!dirBlocked.E && !dirBlocked.S && !cellBlocked(cellsAround.SE)) {
+            res.push('SE');
+        }
+        if (!dirBlocked.W && !dirBlocked.S && !cellBlocked(cellsAround.SW)) {
+            res.push('SW');
+        }
+        return res;
+    }
+
+}
+
+function cellBlocked(type): boolean {
+    switch (type) {
+        case 'wallmount': return true;
+        // case 'water': return true;
+        default: return false;
+    }
 }

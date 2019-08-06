@@ -900,6 +900,8 @@ function addOverWorldPaths(ow: OWMap, conf: OWMapConf): void {
     const featsByXY = ow.filter((x, y, feats, isWall) => {
         if (!feats) {return false;}
         if (y === (ow.getSizeY() - 2)) {
+            console.log('addOwPath: x is ', x, 'y is ', y);
+            console.log('\tfeats is ', feats);
             if (cellMatches(OW.WVILLAGE, feats)) {
                 return true;
             }
@@ -909,10 +911,20 @@ function addOverWorldPaths(ow: OWMap, conf: OWMapConf): void {
             if (ow.isTerm(x, y)) {
                 return true;
             }
+            console.log('\taddOwPath: FALSE x is ', x, 'y is ', y);
         }
         return false;
     });
-    const key: string = getRNG().arrayGetRand(Object.keys(featsByXY));
+    let key: string = getRNG().arrayGetRand(Object.keys(featsByXY));
+    if (!key) {
+        const terms = ow.filter((x, y, feats, isWall) => {
+            if (y < ow.getSizeY() - 1 && y >= ow.getSizeY() - 3) {
+                if (ow.isTerm(x, y)) {return true;}
+            }
+            return false;
+        });
+        key = getRNG().arrayGetRand(Object.keys(terms));
+    }
     if (key) {
         const [xStr, yStr] = key.split(',');
         const xyBegin: TCoord = [parseInt(xStr, 10), parseInt(yStr, 10)];
