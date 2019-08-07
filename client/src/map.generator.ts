@@ -790,6 +790,7 @@ export class MapGenerator {
         const roomCount = conf.roomCount || 40;
         level.setGenParams(genParams);
         level.setRoomCount(roomCount);
+        level.tryToMatchAllExits = true;
 
         if (conf.callbacks) {
             Object.keys(conf.callbacks).forEach(name => {
