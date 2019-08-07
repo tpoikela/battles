@@ -1,7 +1,6 @@
 
-import RG from '../src/rg';
 import {Random} from '../src/random';
-import {Template, ElemTemplate} from '../src/template';
+import {Template, ElemTemplate, verifyTiles} from '../src/template';
 import {Vault} from './tiles.vault';
 
 const RNG = Random.getRNG();
@@ -266,12 +265,12 @@ Y.##.##
 #.....#`,
 
 `
-dir:SEW
+dir:NSW
 name:entrance_nw
 X=#
 Y=#
 
-##X##X#
+##X#.X#
 Y###..#
 .####.#
 .+....#
@@ -294,7 +293,7 @@ Y.##.##
 #######`,
 
 `
-dir:NEW
+dir:NW
 name:entrance_sw
 X=#
 Y=#
@@ -1023,7 +1022,7 @@ Castle.constraintFuncCross = function(x, y, exitReqd) {
             const corrSew = this.findTemplate({name: 'corridor_sew'});
             const corrS = this.findTemplate({name: 'corridor_south'});
             const corrNew = this.findTemplate({name: 'corridor_new'});
-            return RNG.arrayGetRand([corrN, corrSew, corrN, corrNew]);
+            return RNG.arrayGetRand([corrN, corrSew, corrS, corrNew]);
         }
     }
     return res;
@@ -1064,4 +1063,7 @@ Castle.templates.livingOnly = Castle.tiles.residential.map(tile => (
 transformed = Template.transformList(Castle.templates.livingOnly);
 Castle.templates.livingOnly = Castle.templates.livingOnly.concat(transformed);
 Castle.templates.residential = Castle.templates.livingOnly.concat(
+    Castle.templates.all);
+
+verifyTiles('tiles.castle.ts', 'Castle.templates.all',
     Castle.templates.all);
