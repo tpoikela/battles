@@ -664,8 +664,10 @@ export class Level extends Entity {
 
 
     public getFreeEdgeCells(): Cell[] {
+        const map = this.getMap();
         const edgeConns = this.getMap().getCells(c => (
-            (c.getX() === 0 || c.getY() === 0) &&
+            (c.getX() === 0 || c.getY() === 0 ||
+            c.getX() === map.cols - 1 || c.getY() === map.rows - 1) &&
                 !c.getBaseElem().has('Impassable')
         ));
         return edgeConns;
