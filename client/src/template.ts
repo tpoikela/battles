@@ -216,11 +216,11 @@ export const ElemTemplate = function(conf?) {
         });
     }
 
-    this.setProps = function(props) {
+    this.setProps = function(props): void {
         this.elemPropMap = props;
     };
 
-    this.getProp = function(name) {
+    this.getProp = function(name: string): any {
         return this.elemPropMap[name];
     };
 
@@ -233,7 +233,7 @@ export const ElemTemplate = function(conf?) {
         return '';
     };
 
-    this.setProp = function(key, val): void {
+    this.setProp = function(key: string, val: any): void {
         this.elemPropMap[key] = val;
     };
 
@@ -436,21 +436,42 @@ export const ElemTemplate = function(conf?) {
 };
 Template.ElemTemplate = ElemTemplate;
 
-const ElemGenX = function(str) {
-    const len = str.length;
+class ElemGenX {
+    protected len: number;
+    constructor(public str: string) {
+        this.len = str.length;
+        this.str = str;
+    }
 
-    this.length = () => len;
+    public length(): number {return this.len;}
+    public getChars(n: number = 1): string {
+        return this.str.repeat(n);
+    }
 
-    this.getChars = (N = 1) => str.repeat(N);
-
-    this.toJSON = () => {
-        return {genX: str};
-    };
-
-};
+    public toJSON(): object {
+        return {
+            genX: this.str
+        };
+    }
+}
 Template.ElemGenX = ElemGenX;
 
 const rePassable = /(\.|\+)/;
+
+/* Verifies an array of tiles. This includes reading, parsing and expanding
+ * them. */
+export function verifyTiles(
+    file: string, msg: string, templ: ElemTemplate[]
+): void {
+    templ.forEach((elem: ElemTemplate) => {
+        if (!verifyDirs(elem)) {
+            const str = JSON.stringify(elem);
+            const name = elem.getProp('name');
+            RG.err(file, msg,
+               `Tile ${name} failed the checks: ${str}`);
+        }
+    });
+}
 
 export function verifyDirs(templ: ElemTemplate): boolean {
     const dirs: string = templ.getDir();
@@ -460,10 +481,6 @@ export function verifyDirs(templ: ElemTemplate): boolean {
     }
     const cols = templ.getChars([1, 1, 1, 1]);
     const rows = RG.colsToRows(cols);
-    /* console.log('NAME:', templ.getProp('name'));
-    console.log('COLS:', cols);
-    console.log('ROWS:', rows);
-    */
     let ok = false;
     if (/N/.test(dirs)) {
         rows[0].forEach((pos: any) => {
@@ -713,8 +730,8 @@ function transformList(templates, transforms, exitMap) {
                     if (func === 'flipVer') {
                         const rotations = getRotations(transforms, name);
                         rotations.forEach(rot => {
-                            const map = exitMap ? exitMap[rot] : EXIT_MAPS[rot];
-                            const rotTempl = Template[rot](newTempl, map);
+                            const rotMap = exitMap ? exitMap[rot] : EXIT_MAPS[rot];
+                            const rotTempl = Template[rot](newTempl, rotMap);
                             setTransformName(rot, rotTempl);
                             created.push(rotTempl);
                         });
