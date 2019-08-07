@@ -97,7 +97,7 @@ Path.getShortestPath = function(x0, y0, x1, y1, cb: PassableCb = DEFAULT_CB): IC
 
 Path.getShortestSeenPath = function(actor, map: CellMap, x1, y1): ICoordXY[] {
     const seenCells: Cell[] = actor.getBrain().getSeenCells();
-    const lut = {};
+    const lut: {[key: string]: Cell} = {};
 
     // Create LUT for better lookup in passable callback
     seenCells.forEach(cell => {
@@ -334,8 +334,8 @@ Path.getPathSeg = function(dist: number, nSeg: number): number[] {
 
 
 Path.getPathFromEdgeToCell = function(level: Level, elemType: string): ICoordXY[] {
-    const edgeConns = level.getFreeEdgeCells();
-    const randConn = edgeConns[0];
+    const edgeConns: Cell[] = level.getFreeEdgeCells();
+    const randConn: Cell = edgeConns[0];
     const randDoor = level.getCellWithElem(elemType);
     if (!randDoor || !randConn) {return [];}
     const map = level.getMap();
