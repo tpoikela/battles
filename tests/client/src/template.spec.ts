@@ -322,8 +322,8 @@ describe('Template.ElemTemplate', () => {
         expect(ascii2[1][5], 'R90 Coord 1,5 OK').to.equal('+');
         expect(ascii2[1][6], 'Coord 1,6 OK').to.equal(':');
 
-		const templ2 = Template.createTemplate(living3Dir);
-		const templ2R90 = Template.rotateR90(templ2);
+        const templ2 = Template.createTemplate(living3Dir);
+        const templ2R90 = Template.rotateR90(templ2);
 
         expect(templ2.xGenPos).to.deep.equal({1: 1, 4: 1});
         expect(templ2.yGenPos).to.deep.equal({1: 1, 4: 1});
