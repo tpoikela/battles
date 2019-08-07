@@ -17,9 +17,11 @@ const debug = msg => {
 export interface ElemTemplate {
     setProps: (props: any) => void;
     getProp: (prop: string) => any;
-    getChars: () => string[];
+    getChars: (arr?: number[]) => string[][];
     getDir: () => string;
     setProp: (key: string, val: any) => void;
+
+    // elemArr: string[][];
 }
 
 /* Creates and return ElemTemplate from a string.
@@ -314,11 +316,11 @@ export const ElemTemplate = function(conf?) {
 
                 const flattened = RG.flattenTo2D(yGenResult);
                 debug('y after flatten ' + JSON.stringify(flattened));
-                const splitRes = this.splitMultiElements(flattened);
-                debug('y after flatten ' + JSON.stringify(splitRes));
+                const splitResult = this.splitMultiElements(flattened);
+                debug('y after flatten ' + JSON.stringify(splitResult));
 
-                this.substituteYMaps(splitRes);
-                return splitRes;
+                this.substituteYMaps(splitResult);
+                return splitResult;
             }
             else {
                 debug('X-Before subst: ' + JSON.stringify(xGenResult));
@@ -447,6 +449,74 @@ const ElemGenX = function(str) {
 
 };
 Template.ElemGenX = ElemGenX;
+
+const rePassable = /(\.|\+)/;
+
+export function verifyDirs(templ: ElemTemplate): boolean {
+    const dirs: string = templ.getDir();
+    if (dirs === '') {
+        // Cannot verify special templates without dir yet
+        return true;
+    }
+    const cols = templ.getChars([1, 1, 1, 1]);
+    const rows = RG.colsToRows(cols);
+    /* console.log('NAME:', templ.getProp('name'));
+    console.log('COLS:', cols);
+    console.log('ROWS:', rows);
+    */
+    let ok = false;
+    if (/N/.test(dirs)) {
+        rows[0].forEach((pos: any) => {
+            let char = pos;
+            if (typeof char !== 'string') {
+                char = pos.getChars();
+            }
+            if (rePassable.test(char)) {
+                ok = true;
+            }
+        });
+    }
+    if (/S/.test(dirs)) {
+        ok = false;
+        rows[rows.length - 1].forEach((pos: any) => {
+            let char = pos;
+            if (typeof char !== 'string') {
+                char = pos.getChars();
+            }
+            if (rePassable.test(char)) {
+                ok = true;
+            }
+        });
+    }
+    if (/W/.test(dirs)) {
+        cols[0].forEach((pos: any) => {
+            let char = pos;
+            if (typeof char !== 'string') {
+                char = pos.getChars();
+            }
+            if (rePassable.test(char)) {
+                ok = true;
+            }
+        });
+    }
+    if (/E/.test(dirs)) {
+        ok = false;
+        cols[cols.length - 1].forEach((pos: any) => {
+            let char = pos;
+            if (typeof char !== 'string') {
+                char = pos.getChars();
+            }
+            if (rePassable.test(char)) {
+                ok = true;
+            }
+        });
+    }
+    return ok;
+}
+
+//------------------
+// TRANSFORMATIONS
+//------------------
 
 /* Two transformations are needed to achieve all possible orientations:
  * 1. Rotation 90 degrees to right (clockwise): R90
