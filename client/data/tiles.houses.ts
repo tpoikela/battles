@@ -6,13 +6,14 @@
 import RG from '../src/rg';
 import {Template, ElemTemplate} from '../src/template';
 import {Random} from '../src/random';
-import {RandWeights} from '../src/interfaces';
 
+/*
 interface HouseData {
     tiles: {[key: string]: string[]};
     templates: {[key: string]: ElemTemplate[]};
     Models: {[key: string]: string[]};
 }
+*/
 
 export const Houses5x5: any = {tiles: {}, templates: {}, Models: {}};
 const RNG = Random.getRNG();
