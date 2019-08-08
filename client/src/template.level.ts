@@ -71,6 +71,8 @@ export class TemplateLevel {
     public nsew2DirRemap: {[key: string]: string};
     public dir2NSEWRemap: {[key: string]: string};
 
+    public noEdge: {[key: string]: boolean};
+
     private _ind: number;
     private _unusedExits: any[];
     private _sortedByExit: {[key: string]: ElemTemplate[]};
@@ -115,6 +117,8 @@ export class TemplateLevel {
         this._sortedByExit = {
             N: [], S: [], E: [], W: []
         };
+
+        this.noEdge = {};
 
         // For sorting by including all possible exits
         this._sortedWithAllExits = {};
@@ -325,6 +329,10 @@ export class TemplateLevel {
                 }
                 this._sortedWithAllExits[dirSorted].push(templ);
             }
+            const noEdge = templ.getProp('noedge');
+            if (noEdge && parseInt(noEdge, 10) > 0) {
+                this.noEdge[templ.getProp('name')] = true;
+            }
         });
 
     }
@@ -465,7 +473,8 @@ export class TemplateLevel {
         if (!next && this.tryToMatchAllExits) {
             this.dbg(`Compute required exits for ${x},${y}`);
             const exitsReqd = this.getAllRequiredExits(x, y);
-            const listMatching = this._getMatchWithExits(exitsReqd);
+            let listMatching = this._getMatchWithExits(exitsReqd);
+            listMatching = this._filterOutNoEdge(x, y, listMatching);
             if (listMatching.length > 0) {
                 return this._getRandTemplate(listMatching);
             }
@@ -482,9 +491,15 @@ export class TemplateLevel {
             }
         }
 
+        // If this is reached, may produce unwanted results, such as non-matched
+        // exits, or noedge cells on edges of maps
         if (!next) {
-            const listMatching = this._sortedByExit[exitReqd];
-            return RNG.arrayGetRand(listMatching);
+            let listMatching = this._sortedByExit[exitReqd];
+            listMatching = this._filterOutNoEdge(x, y, listMatching);
+            if (listMatching.length > 0) {
+                return RNG.arrayGetRand(listMatching);
+            }
+            return this._sortedByExit[exitReqd];
         }
 
         --this._ind;
@@ -1073,5 +1088,16 @@ export class TemplateLevel {
             console.log(`Has exits: ${tile.getDir()}`);
             console.log(JSON.stringify(tile, null, 2));
         }
+    }
+
+    /* Filters out cells with noedge prop. */
+    public _filterOutNoEdge(x, y, listMatch) {
+        if (x === this.tilesX - 1 || x === 0 ||
+            y === this.tilesY - 1 || y === 0) {
+            return listMatch.filter(templ => (
+                !this.noEdge.hasOwnProperty(templ.getProp('name'))
+            ));
+        }
+        return listMatch;
     }
 }

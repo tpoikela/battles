@@ -183,6 +183,7 @@ Y?.?#
 ##.##`
 ];
 
+
 Basic5x5.tiles.corridor = [
 `
 dir:NS
@@ -195,10 +196,53 @@ Y=#
 Y?.?#
 #?.?#
 Y?.?#
-##.##`
+##.##`,
 
 ];
 
+
+Basic5x5.tiles.halls = [
+`
+dir:NSEW
+name:hall
+X=.
+W=.
+Y=.
+
+.XWX.
+Y###.
+.###.
+Y###.
+.....`,
+
+`
+dir:SEW
+name:hall2
+noedge:1
+X=#
+W=#
+Y=.
+
+.XWX.
+Y###.
+.###.
+Y###.
+.....`,
+
+`
+dir:SEW
+name:hall3
+noedge:1
+X=.
+W=.
+Y=.
+
+.XWX.
+Y####
+.####
+Y####
+.####`,
+];
 
 Basic5x5.tiles.room = [
 `
@@ -444,8 +488,9 @@ Basic5x5.tiles.filler =
 name:FILLER
 X=#
 Y=#
+W=#
 
-#X#X#
+#XWX#
 Y####
 #####
 Y####
@@ -454,7 +499,8 @@ Y####
 Basic5x5.tiles.all = []
     .concat(Basic5x5.tiles.corner)
     .concat(Basic5x5.tiles.corridor)
-    .concat(Basic5x5.tiles.room);
+    .concat(Basic5x5.tiles.room)
+    .concat(Basic5x5.tiles.halls);
 
 // Templates created from tiles strings
 Basic5x5.templates = Basic5x5.tiles.all.map(tile => (
