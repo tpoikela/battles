@@ -1,7 +1,7 @@
 
 import RG from './rg';
 import {Random} from './random';
-import {Template} from './template';
+import {Template, ElemTemplate} from './template';
 import {Crypt} from '../data/tiles.crypt';
 import {BBoxOld} from './geometry';
 import './utils';
@@ -16,13 +16,19 @@ const RNG = Random.getRNG();
 const DEFAULT_CALLBACK = () => {};
 const debugVerbosity = 20;
 
-type ElemTemplate = any; // TODO
-
 type GenParams = number[];
 
 interface ParamsMap {
     [key: string]: GenParams;
 
+}
+
+type TList = ElemTemplate[];
+
+interface RoomData {
+    x: number;
+    y: number;
+    room: ElemTemplate;
 }
 
 interface PlacedTileData extends BBoxOld {
@@ -73,12 +79,19 @@ export class TemplateLevel {
 
     public noEdge: {[key: string]: boolean};
 
+    public customMatchFilter: (
+        tl: TemplateLevel,
+        x: number, y: number, list: ElemTemplate[], prev: RoomData
+    ) => ElemTemplate[];
+
     private _ind: number;
     private _unusedExits: any[];
     private _sortedByExit: {[key: string]: ElemTemplate[]};
     private _possibleDirections: string[];
     private _freeExits: {[key: string]: string[]};
     private _sortedWithAllExits: {[key: string]: ElemTemplate[]};
+
+    private lastPlaced: RoomData | null;
 
     constructor(tilesX: number, tilesY: number) {
         this.tilesX = tilesX;
@@ -119,6 +132,8 @@ export class TemplateLevel {
         };
 
         this.noEdge = {};
+
+        this.lastPlaced = null;
 
         // For sorting by including all possible exits
         this._sortedWithAllExits = {};
@@ -450,18 +465,22 @@ export class TemplateLevel {
     /* Adds a room (template) to fixed position. This can be called from user
      * callbacks. Can be used to place any amount of rooms prior to calling
      * create(). */
-    public addRoom(templ, x: number, y: number): void {
-        const room = {x, y, room: templ};
+    public addRoom(templ: ElemTemplate, x: number, y: number): void {
+        const room: RoomData = {x, y, room: templ};
         this._addRoomData(room);
         this._removeExitsOfAbuttingRooms(room);
         this._removeBorderExits(room);
         this.templMap[x][y] = templ;
+        this.lastPlaced = room;
     }
 
     //----------------------------------------------------------------
     // PRIVATE
     //----------------------------------------------------------------
 
+    /* Important function to get the next (usually legal) template to be
+     * placed.
+     */
     public _getNextTemplate(x, y, exitReqd) {
         ++this._ind;
         let next = null;
@@ -474,7 +493,11 @@ export class TemplateLevel {
             this.dbg(`Compute required exits for ${x},${y}`);
             const exitsReqd = this.getAllRequiredExits(x, y);
             let listMatching = this._getMatchWithExits(exitsReqd);
-            listMatching = this._filterOutNoEdge(x, y, listMatching);
+            listMatching = this.filterOutNoEdge(x, y, listMatching);
+            if (this.customMatchFilter) {
+                listMatching = this.customMatchFilter(this, x, y, listMatching,
+                    this.lastPlaced);
+            }
             if (listMatching.length > 0) {
                 return this._getRandTemplate(listMatching);
             }
@@ -491,11 +514,11 @@ export class TemplateLevel {
             }
         }
 
-        // If this is reached, may produce unwanted results, such as non-matched
+        // If we get here, may produce unwanted results, such as non-matched
         // exits, or noedge cells on edges of maps
         if (!next) {
             let listMatching = this._sortedByExit[exitReqd];
-            listMatching = this._filterOutNoEdge(x, y, listMatching);
+            listMatching = this.filterOutNoEdge(x, y, listMatching);
             if (listMatching.length > 0) {
                 return RNG.arrayGetRand(listMatching);
             }
@@ -648,7 +671,7 @@ export class TemplateLevel {
 
     }
 
-    public _addRoomData(room) {
+    public _addRoomData(room: RoomData) {
         const dirProp = room.room.getProp('dir');
         if (dirProp) {
             this._unusedExits.push(room);
@@ -710,7 +733,7 @@ export class TemplateLevel {
 
     /* Removes exits from tiles which are placed in any borders of the map.
      *  Prevents out-of-bounds expansion. */
-    public _removeBorderExits(room) {
+    public _removeBorderExits(room: RoomData) {
         const {x, y} = room;
         if (x === 0) {
             if (this._hasExit('W', x, y)) {
@@ -761,7 +784,7 @@ export class TemplateLevel {
 
     /* Checks for rooms already in place around the placed room, and removes all
      * matching exits. */
-    public _removeExitsOfAbuttingRooms(room) {
+    public _removeExitsOfAbuttingRooms(room: RoomData) {
         const {x, y} = room;
 
         this.dbg(`CheckAbut ${x},${y}`);
@@ -1090,8 +1113,13 @@ export class TemplateLevel {
         }
     }
 
+    public isEdge(x: number, y: number): boolean {
+        return (x === 0 || y === 0 ||
+                x === this.tilesX - 1 || y === this.tilesY - 1);
+    }
+
     /* Filters out cells with noedge prop. */
-    public _filterOutNoEdge(x, y, listMatch) {
+    public filterOutNoEdge(x: number, y: number, listMatch: TList): TList {
         if (x === this.tilesX - 1 || x === 0 ||
             y === this.tilesY - 1 || y === 0) {
             return listMatch.filter(templ => (
