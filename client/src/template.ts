@@ -21,7 +21,7 @@ export interface ElemTemplate {
     getDir: () => string;
     setProp: (key: string, val: any) => void;
 
-    // elemArr: string[][];
+    elemPropMap: {[key: string]: any};
 }
 
 /* Creates and return ElemTemplate from a string.
