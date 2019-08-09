@@ -1,6 +1,7 @@
 
 import {Random} from '../src/random';
-import {Template, ElemTemplate, verifyTiles} from '../src/template';
+import {Template, verifyTiles} from '../src/template';
+import {IRoomPlace} from '../src/template.level';
 import {Vault} from './tiles.vault';
 
 const RNG = Random.getRNG();
@@ -761,18 +762,12 @@ Y######
 Y######
 #######`;
 
-interface RoomPlace {
-    x: number;
-    y: number;
-    room: ElemTemplate;
-}
-
-type StartRoomFunc = () => RoomPlace;
+type StartRoomFunc = () => IRoomPlace;
 
 Castle.startFuncs = {} as {[key: string]: StartRoomFunc};
 
 /* Returns the starting room for castle generation. */
-Castle.startRoomFunc = function(): RoomPlace {
+Castle.startRoomFunc = function(): IRoomPlace {
     const midX = Math.floor(this.tilesX / 2);
     const north = RNG.getUniform() <= 0.5;
 
@@ -791,7 +786,7 @@ Castle.startRoomFunc = function(): RoomPlace {
     };
 };
 
-Castle.startRoomFuncNorth = function(): RoomPlace {
+Castle.startRoomFuncNorth = function(): IRoomPlace {
   const y = 0;
   const x = Math.floor(this.tilesX / 2);
   const templ = this.findTemplate({name: 'entrance_n'});
@@ -801,7 +796,7 @@ Castle.startRoomFuncNorth = function(): RoomPlace {
 };
 Castle.startFuncs.N = Castle.startRoomFuncNorth;
 
-Castle.startRoomFuncSouth = function(): RoomPlace {
+Castle.startRoomFuncSouth = function(): IRoomPlace {
   const y = this.tilesY - 1;
   const x = Math.floor(this.tilesX / 2);
   const templ = this.findTemplate({name: 'entrance_s'});
@@ -811,7 +806,7 @@ Castle.startRoomFuncSouth = function(): RoomPlace {
 };
 Castle.startFuncs.S = Castle.startRoomFuncSouth;
 
-Castle.startRoomFuncWest = function(): RoomPlace {
+Castle.startRoomFuncWest = function(): IRoomPlace {
   const y = Math.floor(this.tilesY / 2);
   const x = 0;
   const templ = this.findTemplate({name: 'entrance_w'});
@@ -821,7 +816,7 @@ Castle.startRoomFuncWest = function(): RoomPlace {
 };
 Castle.startFuncs.W = Castle.startRoomFuncWest;
 
-Castle.startRoomFuncEast = function(): RoomPlace {
+Castle.startRoomFuncEast = function(): IRoomPlace {
   const y = Math.floor(this.tilesY / 2);
   const x = this.tilesX - 1;
   const templ = this.findTemplate({name: 'entrance_e'});
@@ -831,7 +826,7 @@ Castle.startRoomFuncEast = function(): RoomPlace {
 };
 Castle.startFuncs.E = Castle.startRoomFuncEast;
 
-Castle.startRoomFuncNorthEast = function(): RoomPlace {
+Castle.startRoomFuncNorthEast = function(): IRoomPlace {
   const y = 0;
   const x = this.tilesX - 1;
   const templ = this.findTemplate({name: 'entrance_ne'});
@@ -839,7 +834,7 @@ Castle.startRoomFuncNorthEast = function(): RoomPlace {
 };
 Castle.startFuncs.NE = Castle.startRoomFuncNorthEast;
 
-Castle.startRoomFuncNorthWest = function(): RoomPlace {
+Castle.startRoomFuncNorthWest = function(): IRoomPlace {
   const y = 0;
   const x = 0;
   const templ = this.findTemplate({name: 'entrance_nw'});
@@ -848,7 +843,7 @@ Castle.startRoomFuncNorthWest = function(): RoomPlace {
 Castle.startFuncs.NW = Castle.startRoomFuncNorthWest;
 
 
-Castle.startRoomFuncSouthEast = function(): RoomPlace {
+Castle.startRoomFuncSouthEast = function(): IRoomPlace {
   const y = this.tilesY - 1;
   const x = this.tilesX - 1;
   const templ = this.findTemplate({name: 'entrance_se'});
@@ -856,7 +851,7 @@ Castle.startRoomFuncSouthEast = function(): RoomPlace {
 };
 Castle.startFuncs.SE = Castle.startRoomFuncSouthEast;
 
-Castle.startRoomFuncSouthWest = function(): RoomPlace {
+Castle.startRoomFuncSouthWest = function(): IRoomPlace {
   const y = this.tilesY - 1;
   const x = 0;
   const templ = this.findTemplate({name: 'entrance_sw'});
@@ -865,7 +860,7 @@ Castle.startRoomFuncSouthWest = function(): RoomPlace {
 Castle.startFuncs.SW = Castle.startRoomFuncSouthWest;
 
 /* Start function if two fixed entrances are required. */
-Castle.startFuncTwoGates = function(): RoomPlace {
+Castle.startFuncTwoGates = function(): IRoomPlace {
   const midX = Math.floor(this.tilesX / 2);
   const gateN = this.findTemplate({name: 'entrance_n'});
   const gateS = this.findTemplate({name: 'entrance_s'});
