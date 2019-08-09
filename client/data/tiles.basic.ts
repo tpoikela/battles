@@ -1,25 +1,26 @@
 
 /* Contains basic tiles like corridors and small rooms. */
 
-import RG from '../src/rg';
 import {Template} from '../src/template';
 
 const transformList = Template.transformList;
 
-export const Basic: any = {};
-Basic.tiles = {};
+export const Basic7x7: any = {};
+Basic7x7.tiles = {};
 
-Basic.tiles.corner = [
+Basic7x7.tiles.corner = [
 `
 dir:NE
 name:corner
 X=#
 Y=#
+W=.
+Z=#
 
-#X#.#X#
+#X#W#X#
 Y??.??#
 #??.??#
-#??....
+Z??....
 #?????#
 Y?????#
 #######`,
@@ -29,11 +30,13 @@ dir:NEW
 name:tcorner
 X=#
 Y=#
+W=.
+Z=.
 
-#X#.#X#
+#X#W#X#
 Y??.??#
 #??.??#
-.......
+Z......
 #?????#
 Y?????#
 #######`,
@@ -43,45 +46,51 @@ dir:NSEW
 name:cross
 X=#
 Y=#
+W=.
+Z=.
 
-#X#.#X#
+#X#W#X#
 Y??.??#
 #??.??#
-.......
+Z......
 #??.??#
 Y??.??#
 ###.###`
 
 ];
 
-Basic.tiles.corridor = [
+Basic7x7.tiles.corridor = [
 `
 dir:NS
 name:corridor
 X=#
 Y=#
+W=.
+Z=#
 
-#X#.#X#
+#X#W#X#
 Y??.??#
 #??.??#
-#??.??#
+Z??.??#
 #??.??#
 Y??.??#
 ###.###`
 
 ];
 
-Basic.tiles.room = [
+Basic7x7.tiles.room = [
 `
 dir:N
 name:room
 X=#
 Y=#
+W=.
+Z=#
 
-#X#.#X#
+#X#W#X#
 Y.....#
 #.....#
-#.....#
+Z.....#
 #.....#
 Y.....#
 #######`,
@@ -91,43 +100,62 @@ dir:N
 name:room_small
 X=#
 Y=#
+W=.
+Z=#
 
-#X#.#X#
+#X#W#X#
 Y#...##
 ##...##
-##...##
+Z#...##
 ##...##
 Y######
 #######`
 
 ];
 
+Basic7x7.tiles.filler =
+`
+name:filler
+X=#
+Y=#
+W=#
+Z=#
+
+#X#W#X#
+Y######
+#######
+Z######
+#######
+Y######
+#######`;
+
+
 // Contains names of the tiles to transform
 const transforms = {
-    all: ['corner'],
+    all: '*',
     flipVer: [],
-    rotateR90: ['tcorner', 'corridor', 'room'],
-    rotateR180: ['tcorner', 'room'],
-    rotateR270: ['tcorner', 'room']
+    rotateR90: [],
+    rotateR180: [],
+    rotateR270: []
 };
 
 // All tiles concat together
-Basic.tiles.all = []
-    .concat(Basic.tiles.corner)
-    .concat(Basic.tiles.corridor)
-    .concat(Basic.tiles.room);
+Basic7x7.tiles.all = []
+    .concat(Basic7x7.tiles.corner)
+    .concat(Basic7x7.tiles.corridor)
+    .concat(Basic7x7.tiles.room);
 
 // Templates created from tiles strings
-Basic.templates = Basic.tiles.all.map(tile => (
+Basic7x7.templates = Basic7x7.tiles.all.map(tile => (
     Template.createTemplate(tile)
 ));
 
-const transformed = transformList(Basic.templates, transforms);
-Basic.templates = Basic.templates.concat(transformed);
+const transformed = transformList(Basic7x7.templates, transforms);
+Basic7x7.templates = Basic7x7.templates.concat(transformed);
 
 /*
 const weighted = [];
-Basic.templates.forEach(templ => {
+Basic7x7.templates.forEach(templ => {
     const weight = templ.getProp('weight');
     if (weight) {
         const nClones = weight - 1;
@@ -136,7 +164,7 @@ Basic.templates.forEach(templ => {
         }
     }
 });
-Basic.templates = Basic.templates.concat(weighted);
+Basic7x7.templates = Basic7x7.templates.concat(weighted);
 */
 
 export const Basic5x5: any = {};
@@ -149,10 +177,11 @@ name:corner
 X=#
 W=.
 Y=#
+Z=#
 
 #XWX#
 Y?.?#
-#?...
+Z?...
 Y???#
 #####`,
 
@@ -162,10 +191,11 @@ name:tcorner
 X=#
 W=.
 Y=#
+Z=.
 
 #XWX#
 Y?.?#
-.....
+Z....
 Y???#
 #####`,
 
@@ -175,10 +205,11 @@ name:cross
 X=#
 W=.
 Y=#
+Z=.
 
 #XWX#
 Y?.?#
-.....
+Z....
 Y?.?#
 ##.##`
 ];
@@ -191,10 +222,11 @@ name:corridor
 X=#
 W=.
 Y=#
+Z=#
 
 #XWX#
 Y?.?#
-#?.?#
+Z?.?#
 Y?.?#
 ##.##`,
 
@@ -208,10 +240,11 @@ name:hall
 X=.
 W=.
 Y=.
+Z=.
 
 .XWX.
 Y###.
-.###.
+Z###.
 Y###.
 .....`,
 
@@ -222,10 +255,11 @@ noedge:1
 X=#
 W=#
 Y=.
+Z=.
 
 .XWX.
 Y###.
-.###.
+Z###.
 Y###.
 .....`,
 
@@ -236,10 +270,11 @@ noedge:1
 X=.
 W=.
 Y=.
+Z=.
 
 .XWX.
 Y####
-.####
+Z####
 Y####
 .####`,
 ];
@@ -251,10 +286,11 @@ name:room_term1
 X=#
 W=.
 Y=#
+Z=#
 
 #XWX#
 Y...#
-#...#
+Z...#
 Y...#
 #####`,
 
@@ -264,11 +300,40 @@ name:room_term2
 X=.
 W=.
 Y=#
+Z=#
 
 #XWX#
 Y...#
-#...#
+Z...#
 Y####
+#####`,
+
+`
+dir:U
+name:room_term3
+X=.
+W=.
+Y=#
+Z=#
+
+#XWX#
+Y#.##
+Z...#
+Y...#
+#####`,
+
+`
+dir:U
+name:room_term4
+X=.
+W=.
+Y=#
+Z=#
+
+#XWX#
+Y#..#
+Z##.#
+Y...#
 #####`,
 
 `
@@ -277,10 +342,11 @@ name:room_adapt
 X=#
 W=.
 Y=#
+Z=#
 
 #XWX#
 Y...#
-#...#
+Z...#
 Y...#
 #...#`,
 
@@ -290,10 +356,11 @@ name:room_adapt_corner
 X=#
 W=.
 Y=#
+Z=#
 
 #XWX#
 Y....
-#....
+Z....
 Y....
 #####`,
 
@@ -303,10 +370,11 @@ name:room_adapt_tcorner
 X=#
 W=.
 Y=.
+Z=.
 
 #XWX#
 Y....
-.....
+Z....
 Y....
 #####`,
 
@@ -316,10 +384,11 @@ name:room_adapt_tcorner2
 X=#
 W=.
 Y=#
+Z=.
 
 #XWX#
 Y....
-.....
+Z....
 Y....
 #####`,
 
@@ -329,10 +398,11 @@ name:room_adapt_tcorner3
 X=.
 W=.
 Y=#
+Z=.
 
 #XWX#
 Y....
-.....
+Z....
 Y....
 #####`,
 
@@ -342,10 +412,11 @@ name:room_corner
 X=.
 W=.
 Y=#
+Z=#
 
 #XWX#
 Y....
-#....
+Z....
 Y....
 #####`,
 
@@ -355,10 +426,11 @@ name:room_corner2
 X=.
 W=.
 Y=#
+Z=#
 
 #XWX.
 Y....
-#....
+Z....
 Y....
 #####`,
 
@@ -368,10 +440,11 @@ name:room_ext
 X=.
 W=.
 Y=#
+Z=#
 
 #XWX#
 Y...#
-#...#
+Z...#
 Y...#
 #...#`,
 
@@ -381,10 +454,11 @@ name:room_end
 X=#
 W=#
 Y=#
+Z=.
 
 #XWX#
 Y...#
-.....
+Z....
 Y...#
 #...#`,
 
@@ -394,10 +468,11 @@ name:room_end
 X=#
 W=#
 Y=#
+Z=#
 
 #XWX#
 Y...#
-#...#
+Z...#
 Y...#
 #...#`,
 
@@ -407,10 +482,11 @@ name:room_center
 X=.
 W=.
 Y=.
+Z=.
 
 #XWX#
 Y....
-.....
+Z....
 Y....
 #...#`,
 
@@ -420,10 +496,11 @@ name:room_center2
 X=.
 W=.
 Y=#
+Z=.
 
 #XWX#
 Y...#
-.....
+Z....
 Y...#
 #...#`,
 
@@ -433,10 +510,11 @@ name:room_center3
 X=#
 W=#
 Y=.
+Z=.
 
 #XWX#
 Y....
-.....
+Z....
 Y....
 #...#`,
 
@@ -446,10 +524,11 @@ name:room_center3
 X=#
 W=.
 Y=#
+Z=.
 
 #XWX#
 Y....
-.....
+Z....
 Y....
 #...#`,
 
@@ -459,10 +538,11 @@ name:room_center4
 X=#
 W=.
 Y=.
+Z=.
 
 #XWX#
 Y...#
-.....
+Z....
 Y...#
 ##.##`
 
@@ -475,10 +555,11 @@ name:start
 X=#
 W=+
 Y=.
+Z=+
 
 #XWX#
 Y...+
-+...+
+Z...+
 Y...+
 ##+##`
 ;
@@ -489,10 +570,11 @@ name:FILLER
 X=#
 Y=#
 W=#
+Z=#
 
 #XWX#
 Y####
-#####
+Z####
 Y####
 #####`;
 
