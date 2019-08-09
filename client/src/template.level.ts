@@ -25,7 +25,7 @@ interface ParamsMap {
 
 type TList = ElemTemplate[];
 
-interface RoomData {
+export interface IRoomPlace {
     x: number;
     y: number;
     room: ElemTemplate;
@@ -81,7 +81,7 @@ export class TemplateLevel {
 
     public customMatchFilter: (
         tl: TemplateLevel,
-        x: number, y: number, list: ElemTemplate[], prev: RoomData
+        x: number, y: number, list: ElemTemplate[], prev: IRoomPlace
     ) => ElemTemplate[];
 
     private _ind: number;
@@ -91,7 +91,7 @@ export class TemplateLevel {
     private _freeExits: {[key: string]: string[]};
     private _sortedWithAllExits: {[key: string]: ElemTemplate[]};
 
-    private lastPlaced: RoomData | null;
+    private lastPlaced: IRoomPlace | null;
 
     constructor(tilesX: number, tilesY: number) {
         this.tilesX = tilesX;
@@ -214,7 +214,7 @@ export class TemplateLevel {
     }
 
     /* Calls as many setters above as possible from given object. */
-    public use(obj) {
+    public use(obj): void {
         const setterList = ['constraintFunc', 'startRoomFunc', 'roomCount',
         'genParams'];
         setterList.forEach(p => {
@@ -466,7 +466,7 @@ export class TemplateLevel {
      * callbacks. Can be used to place any amount of rooms prior to calling
      * create(). */
     public addRoom(templ: ElemTemplate, x: number, y: number): void {
-        const room: RoomData = {x, y, room: templ};
+        const room: IRoomPlace = {x, y, room: templ};
         this._addRoomData(room);
         this._removeExitsOfAbuttingRooms(room);
         this._removeBorderExits(room);
@@ -484,13 +484,15 @@ export class TemplateLevel {
     public _getNextTemplate(x, y, exitReqd) {
         ++this._ind;
         let next = null;
+
+        // Priority is on constraint func
         if (typeof this.constraintFunc === 'function') {
             next = this.constraintFunc(x, y, exitReqd);
         }
 
         // All exits are required to match
         if (!next && this.tryToMatchAllExits) {
-            this.dbg(`Compute required exits for ${x},${y}`);
+            this.dbg(`_getNextTemplate: Compute required exits for ${x},${y}`);
             const exitsReqd = this.getAllRequiredExits(x, y);
             let listMatching = this._getMatchWithExits(exitsReqd);
             listMatching = this.filterOutNoEdge(x, y, listMatching);
@@ -499,6 +501,7 @@ export class TemplateLevel {
                     this.lastPlaced);
             }
             if (listMatching.length > 0) {
+                --this._ind;
                 return this._getRandTemplate(listMatching);
             }
             let msg = `x,y: ${x},${y}`;
@@ -519,8 +522,10 @@ export class TemplateLevel {
         if (!next) {
             let listMatching = this._sortedByExit[exitReqd];
             listMatching = this.filterOutNoEdge(x, y, listMatching);
+            --this._ind;
             if (listMatching.length > 0) {
-                return RNG.arrayGetRand(listMatching);
+                return this._getRandTemplate(listMatching);
+                // return RNG.arrayGetRand(listMatching);
             }
             return this._sortedByExit[exitReqd];
         }
@@ -671,14 +676,14 @@ export class TemplateLevel {
 
     }
 
-    public _addRoomData(room: RoomData) {
+    public _addRoomData(room: IRoomPlace) {
         const dirProp = room.room.getProp('dir');
         if (dirProp) {
             this._unusedExits.push(room);
             const exits = dirProp.split('');
             const key = room.x + ',' + room.y;
             this._freeExits[key] = exits;
-            this.dbg('Added room ' + JSON.stringify(room), 20);
+            this.dbg('_addRoomData: Added room ' + JSON.stringify(room.room.elemPropMap), 20);
         }
     }
 
@@ -733,7 +738,7 @@ export class TemplateLevel {
 
     /* Removes exits from tiles which are placed in any borders of the map.
      *  Prevents out-of-bounds expansion. */
-    public _removeBorderExits(room: RoomData) {
+    public _removeBorderExits(room: IRoomPlace) {
         const {x, y} = room;
         if (x === 0) {
             if (this._hasExit('W', x, y)) {
@@ -784,7 +789,7 @@ export class TemplateLevel {
 
     /* Checks for rooms already in place around the placed room, and removes all
      * matching exits. */
-    public _removeExitsOfAbuttingRooms(room: RoomData) {
+    public _removeExitsOfAbuttingRooms(room: IRoomPlace) {
         const {x, y} = room;
 
         this.dbg(`CheckAbut ${x},${y}`);
@@ -1060,7 +1065,7 @@ export class TemplateLevel {
 
     public _getMatchWithExits(exitsReqd) {
         const [any, exits, excluded] = exitsReqd;
-        this.dbg(`GOT: any:${any}, req:${exits}, excl:${excluded}`);
+        this.dbg(`_getMatchWithExits: GOT: any:${any}, req:${exits}, excl:${excluded}`);
         const keys = Object.keys(this._sortedWithAllExits);
         let validKeys = keys;
 
