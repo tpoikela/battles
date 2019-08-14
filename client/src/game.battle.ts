@@ -10,6 +10,8 @@ import {Entity} from './entity';
 import dbg = require('debug');
 const debug = dbg('bitn:game.battle');
 
+type ZoneBase = import('./world').ZoneBase;
+
 const POOL = EventPool.getPool();
 
 export interface ArmyJSON {
@@ -27,6 +29,7 @@ export interface BattleJSON {
     armies: ArmyJSON[];
     stats: BattleStats;
     finished: boolean;
+    parent?: number;
 }
 
 /* Army is a collection of actors associated with a battle. This is useful for
@@ -186,6 +189,7 @@ export class Battle extends Entity {
     private _armies: Army[]; // All actors inside this army
     private _level: Level;
     private _stats: BattleStats;
+    private _parent: ZoneBase;
 
     constructor(name: string) {
         super();
@@ -202,6 +206,14 @@ export class Battle extends Entity {
         };
         this.hasNotify = true;
         POOL.listenEvent(RG.EVT_ARMY_EVENT, this);
+    }
+
+    public setParent(zone: ZoneBase): void {
+        this._parent = zone;
+    }
+
+    public getParent(): ZoneBase {
+        return this._parent;
     }
 
     public getType(): string {
@@ -334,7 +346,7 @@ export class Battle extends Entity {
 
     /* Serialies the object into JSON. */
     public toJSON(): BattleJSON {
-        return {
+        const json: BattleJSON = {
             isJSON: true,
             id: this.getID(),
             name: this._name,
@@ -343,6 +355,10 @@ export class Battle extends Entity {
             stats: this._stats,
             finished: this.finished
         };
+        if (this._parent) {
+            json.parent = this._parent.getID();
+        }
+        return json;
     }
 
     public removeListeners(): void {
