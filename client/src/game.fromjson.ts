@@ -960,31 +960,6 @@ FromJSON.prototype.createBaseElem = function(cell: string) {
         RG.err('Game.fromJSON', 'createBaseElem',
             `Unknown type ${type}`);
     }
-    /*
-    switch (type) {
-        case '#': // wall
-        case 'wall': return ELEM.WALL;
-        case '.': // floor
-        case 'floor': return ELEM.FLOOR;
-        case 'tree': return ELEM.TREE;
-        case 'grass': return ELEM.GRASS;
-        case 'stone': return ELEM.STONE;
-        case 'water': return ELEM.WATER;
-        case 'chasm': return ELEM.CHASM;
-        case 'road': return ELEM.ROAD;
-        case 'highrock': return ELEM.HIGH_ROCK;
-        case 'bridge': return ELEM.BRIDGE;
-        default: {
-            if (ELEM_MAP.elemTypeToObj[type]) {
-                return ELEM_MAP.elemTypeToObj[type];
-            }
-            else {
-                RG.err('Game.fromJSON', 'createBaseElem',
-                    `Unknown type ${type}`);
-            }
-        }
-    }
-    */
     return null;
 };
 
@@ -1118,6 +1093,17 @@ FromJSON.prototype.restoreBattle = function(json: BattleJSON): Battle {
             armies.forEach(army => {
                 POOL.removeListener(army);
             });
+        }
+        if (json.parent) {
+            const parentZone = this.id2Place[json.parent];
+            if (parentZone) {
+                parentZone.setBattle(battle);
+            }
+            else {
+                const str = JSON.stringify(json);
+                RG.err('FromJSON', 'restoreBattle',
+                  `Could not find parent zone with ID ${json.parent}: ${str}`);
+            }
         }
         --this.IND;
         return battle;
