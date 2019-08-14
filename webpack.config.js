@@ -2,6 +2,9 @@
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+const isProduction = process.env.NODE_ENV === 'production';
+const isDevel = !isProduction;
+
 //----------------------
 // BASE SETTINGS
 //----------------------
@@ -48,7 +51,18 @@ const config = {
             {test: /\.json$/, loader: 'json-loader',
                 type: 'javascript/auto'
             },
-            {test: /\.tsx?$/, loader: 'awesome-typescript-loader'},
+            {
+                test: /\.tsx?$/, loader: 'awesome-typescript-loader',
+                include: [
+                    path.resolve(__dirname, 'client'),
+                    path.resolve(__dirname, 'lib'),
+                    path.resolve(__dirname, 'tests/helpers'),
+                ],
+                /*options: {
+                    useCache: isDevel,
+                    forceIsolatedModules: isDevel
+                }*/
+            },
             {enforce: 'pre', test: /.js$/, loader: 'source-map-loader'},
             {test: /\.scss$/,
                 loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
@@ -81,9 +95,17 @@ const config = {
 //----------------------
 // PRODUCTION SETTINGS
 //----------------------
-if (process.env.NODE_ENV === 'production') {
+if (isProduction) {
     config.mode = 'production';
     delete config.devtool;
+}
+else {
+    config.optimization = {
+        removeAvailableModules: false,
+        removeEmptyChunks: false,
+        splitChunks: false,
+    };
+    // config.output.pathinfo = false;
 }
 
 module.exports = config;
