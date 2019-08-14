@@ -20,6 +20,7 @@ import {Entity} from './entity';
 
 const POOL: EventPool = EventPool.getPool();
 
+type Battle = import('./game.battle').Battle;
 type Stairs = Element.ElementStairs;
 const ElementStairs = Element.ElementStairs;
 
@@ -1167,15 +1168,15 @@ export class Area extends WorldBase {
         return this._sizeY;
     }
 
-    public isLoaded(x, y): boolean {
+    public isLoaded(x: number, y: number): boolean {
         return this.tilesLoaded[x][y];
     }
 
-    public setLoaded(x, y): void {
+    public setLoaded(x: number, y: number): void {
         this.tilesLoaded[x][y] = true;
     }
 
-    public setUnloaded(x, y): void {
+    public setUnloaded(x: number, y: number): void {
         this.tilesLoaded[x][y] = false;
     }
 
@@ -1185,11 +1186,11 @@ export class Area extends WorldBase {
         });
     }
 
-    public markTileZonesCreated(x, y): void {
+    public markTileZonesCreated(x: number, y: number): void {
         this.zonesCreated[x + ',' + y] = true;
     }
 
-    public tileHasZonesCreated(x, y): boolean {
+    public tileHasZonesCreated(x: number, y: number): boolean {
         return this.zonesCreated[x + ',' + y];
     }
 
@@ -1331,7 +1332,7 @@ export class Area extends WorldBase {
         return result;
     }
 
-    public getTileXY(x, y): AreaTileObj {
+    public getTileXY(x: number, y: number): AreaTileObj {
         if (x >= 0 && x < this.getSizeX() && y >= 0 && y < this.getSizeY()) {
             return this._tiles[x][y];
         }
@@ -1344,7 +1345,7 @@ export class Area extends WorldBase {
         return null;
     }
 
-    public addZone(type, zone: ZoneBase): void {
+    public addZone(type: string, zone: ZoneBase): void {
         if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
             RG.err('Area', 'addZone',
                 'No tileX/tileY given!');
@@ -1353,7 +1354,7 @@ export class Area extends WorldBase {
         zone.setParent(this);
     }
 
-    public getZones(type): ZoneBase[] {
+    public getZones(type: string): ZoneBase[] {
         let res = [];
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
@@ -1741,11 +1742,17 @@ World.CityQuarter = CityQuarter;
 /* A battle zone encapsulates battle construct, armies and the battle level. */
 export class BattleZone extends ZoneBase {
     private _levels: Level[];
+    private _battle: Battle;
 
     constructor(name: string) {
         super(name);
         this.setType('battlezone');
         this._levels = [];
+    }
+
+    public setBattle(battle: Battle): void {
+        this._battle = battle;
+        battle.setParent(this);
     }
 
     public addLevel(level: Level): void {
@@ -1825,6 +1832,10 @@ export class WorldTop extends WorldBase {
             zones = zones.concat(a.getZones(type));
         });
         return zones;
+    }
+
+    public findZone(func: (zone: ZoneBase) => boolean): ZoneBase[] {
+        return this.getZones().filter(func);
     }
 
     /* Returns all stairs in the world. */
