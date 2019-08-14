@@ -1554,38 +1554,12 @@ RG.getGoldInCoins = (weight: number): number => (
     Math.round(weight / RG.GOLD_COIN_WEIGHT)
 );
 
-// These determine the size of one block in a level. These numbers are important
-// because they determine a sub-area used for procedural generation of shops,
-// vaults and other special features.
-RG.BLOCK_X = 20;
-RG.BLOCK_Y = 7;
-
-// Level size determined as function of BLOCK_X/Y. Note that due to different
-// block size or x/y, levels are not square shaped, but x > y.
-/*
-RG.LEVEL_SMALL_X = 3 * RG.BLOCK_X;
-RG.LEVEL_SMALL_Y = 3 * RG.BLOCK_Y;
-RG.LEVEL_MEDIUM_X = 4 * RG.BLOCK_X;
-RG.LEVEL_MEDIUM_Y = 4 * RG.BLOCK_Y;
-RG.LEVEL_LARGE_X = 5 * RG.BLOCK_X;
-RG.LEVEL_LARGE_Y = 5 * RG.BLOCK_Y;
-RG.LEVEL_HUGE_X = 7 * RG.BLOCK_X;
-RG.LEVEL_HUGE_Y = 7 * RG.BLOCK_Y;
-
-// Controls the number of items generated for each N squares
-RG.LOOT_SPARSE_SQR = 200;
-RG.LOOT_MEDIUM_SQR = 120;
-RG.LOOT_ABUNDANT_SQR = 50;
-
-// Controls the number of actors generated for each N squares
-RG.ACTOR_SPARSE_SQR = 200;
-RG.ACTOR_MEDIUM_SQR = 120;
-RG.ACTOR_ABUNDANT_SQR = 50;
-*/
-
-export enum ZONE_EVT {
-    ZONE_EXPLORED = 'ZONE_EXPLORED'
-}
+/* Events for zones. */
+const ZONE_EVT = {
+    BATTLE_OVER: 'BATTLE_OVER',
+    ZONE_EXPLORED: 'ZONE_EXPLORED',
+    QUEST_COMPLETED: 'QUEST_COMPLETED'
+};
 RG.ZONE_EVT = ZONE_EVT;
 
 // Weakness levels of actors
