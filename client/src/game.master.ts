@@ -136,6 +136,7 @@ export class GameMaster {
                 debug(`3. battlesDone for ${id}: ${this.battlesDone[id]}`);
                 this.addBadgesForActors(battle);
                 this.moveActorsOutOfBattle(battle);
+                this.createBattleEvent(battle);
                 const bName = battle.getName();
                 RG.gameMsg(`Battle ${bName} is over!`);
             }
@@ -421,6 +422,15 @@ export class GameMaster {
         const menu = new Menu.SelectRequired(choices);
         menu.addPre('Battle is over! Do you want to leave battle?');
         return menu;
+    }
+
+
+    public createBattleEvent(battle: Battle): void {
+        const level = battle.getLevel();
+        const battleEvent = new Component.BattleEvent();
+        battleEvent.setEventType(RG.EVT_BATTLE_OVER);
+        battleEvent.setBattle(battle);
+        level.add(battleEvent);
     }
 
     /* Serializes the object into JSON. */
