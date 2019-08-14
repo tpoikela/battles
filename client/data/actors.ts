@@ -492,6 +492,17 @@ export const ActorsData: ActorShell[] = [
         danger: 15, addComp: [resistance('POISON', 'IMMUNITY')],
         poison: {duration: '4d6', damage: '2d4 + 2', prob: '0.25'},
     },
+    {
+        name: 'necromancer', char: '@', type: 'humanoid',
+        color: color('Black', 'Red'),
+        attack: 9, defense: 9, protection: 5, damage: '4d5 + 5', hp: 45,
+        enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
+        danger: 10, pp: 25, maxPP: 25,
+        addComp: [
+            resistance('NECRO', 'HIGH'), resistance('ICE', 'MEDIUM')
+        ],
+        spells: ['AnimateDead']
+    },
 
     // AVIAN
     {
