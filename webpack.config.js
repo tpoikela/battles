@@ -30,7 +30,10 @@ const config = {
     },
 
     resolve: {
-        extensions: ['.ts', '.tsx', '.js']
+        extensions: ['.ts', '.tsx', '.js'],
+        alias: {
+            'ejs': 'ejs/ejs.min.js' // Added to prevent warning
+        }
     },
 
     module: {
