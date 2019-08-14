@@ -18,11 +18,16 @@ import {EventPool} from '../client/src/eventpool';
 import {Brain} from '../client/src/brain';
 import {Spell} from '../client/src/spell';
 import {FactoryActor} from '../client/src/factory.actors';
+import {SystemBase} from '../client/src/system/system.base';
 import {Dice} from '../client/src/dice';
 import * as Item from '../client/src/item';
 import * as Component from '../client/src/component';
+import * as Element from '../client/src/element';
+import {Level} from '../client/src/level';
 
 export const RGTest: any = {};
+
+const Stairs = Element.ElementStairs;
 
 const POOL = EventPool.getPool();
 
@@ -123,9 +128,9 @@ RGTest.createRNG = function(seed?: number): Random {
 RGTest.verifyStairsConnectivity = function(stairs, numExp = -1) {
     let connVerified = 0;
     stairs.forEach(s => {
-        expect(s.getTargetStairs()).not.to.be.empty;
-        expect(s.getTargetLevel()).not.to.be.empty;
-        expect(s.getSrcLevel()).not.to.be.empty;
+        expect(s.getTargetStairs()).to.be.an.instanceof(Stairs);
+        expect(s.getTargetLevel()).to.be.an.instanceof(Level);
+        expect(s.getSrcLevel()).to.be.an.instanceof(Level);
         ++connVerified;
     });
     if (numExp >= 0) {
@@ -299,7 +304,7 @@ RGTest.printLevel = level => {
     screen.printRenderedChars();
 };
 
-RGTest.updateSystems = systems => {
+RGTest.updateSystems = (systems: SystemBase[]): void => {
     for (let i = 0; i < systems.length; i++) {
         systems[i].update();
     }
@@ -423,27 +428,28 @@ RGTest.createGame = function(args) {
     return game;
 };
 
+RGTest.CityConf = {
+    x: 0, y: 0, name: 'testCity', nQuarters: 1,
+    constraint: {
+        shop: [{op: 'gt', prop: 'value', value: 50}]
+    },
+    quarter: [{
+        name: 'TestQuarter', nLevels: 1, entranceLevel: 0,
+        nShops: 1
+    }]
+};
+
+RGTest.DungeonConf = {
+    x: 0, y: 0, name: 'testDungeon', nBranches: 1,
+    dungeonType: 'dungeon', dungeonX: 100, dungeonY: 50,
+    branch: [{name: 'B1', nLevels: 1, entranceLevel: 0}]
+};
 
 RGTest.AreaConf = {
     name: 'TestArea', maxX: 2, maxY: 2,
     nCities: 1, nDungeons: 1,
-    city: [
-        {x: 0, y: 0, name: 'testCity', nQuarters: 1,
-            constraint: {
-                shop: [{op: 'gt', prop: 'value', value: 50}]
-            },
-            quarter: [{
-                name: 'TestQuarter', nLevels: 1, entranceLevel: 0,
-                nShops: 1
-            }]
-        }
-    ],
-    dungeon: [
-        {x: 0, y: 0, name: 'testDungeon', nBranches: 1,
-            dungeonType: 'dungeon', dungeonX: 100, dungeonY: 50,
-            branch: [{name: 'B1', nLevels: 1, entranceLevel: 0}]
-        }
-    ]
+    city: [RGTest.CityConf],
+    dungeon: [RGTest.DungeonConf]
 };
 
 RGTest.WorldConf = {
