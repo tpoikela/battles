@@ -152,14 +152,19 @@ export class Level extends Entity {
         return this._levelNo;
     }
 
-    public getParent(): SubZoneBase {
+    public getParent(): LevelParent {
         return this._parent;
     }
 
     public getParentZone(): ZoneBase {
         const subZoneParent = this.getParent();
         if (subZoneParent) {
+            /*
             if ((subZoneParent as SubZoneBase).getParent) {
+                return subZoneParent.getParent() as ZoneBase;
+            }
+            */
+            if (subZoneParent.getParent) {
                 return subZoneParent.getParent() as ZoneBase;
             }
             RG.err('Level', 'getParentZone',
