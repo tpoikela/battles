@@ -7,7 +7,7 @@ import * as ObjectShell from './objectshellparser';
 import {ActorMods} from '../data/actor-mods';
 import {Spell} from './spell';
 import * as Component from './component';
-import {VirtualActor, SpawnerActor} from './actor.virtual';
+import {SpawnerActor} from './actor.virtual';
 import {BrainSpawner} from './brain/brain.virtual';
 
 import dbg = require('debug');
@@ -38,23 +38,22 @@ const initCombatant = (comb, obj) => {
 };
 
 /* Object for adjusting actor properties after the generation. */
-export const ActorRandomizer = function() {
-
-};
-
-ActorRandomizer.prototype.adjustActor = function(actor) {
-    const type = actor.getType();
-    if (ActorMods.hasOwnProperty(type)) {
-        const {stats} = ActorMods[type];
-        Object.keys(stats).forEach(statName => {
-            const setter = RG.formatSetterName(statName);
-            const getter = RG.formatGetterName(statName);
-            const statVal = actor.get('Stats')[getter];
-            const newValue = statVal + stats[statName];
-            actor.get('Stats')[setter](newValue);
-        });
+export class ActorRandomizer {
+    public adjustActor(actor: Actor.BaseActor): void {
+        const type = actor.getType();
+        if (ActorMods.hasOwnProperty(type)) {
+            const {stats} = ActorMods[type];
+            Object.keys(stats).forEach(statName => {
+                const setter = RG.formatSetterName(statName);
+                const getter = RG.formatGetterName(statName);
+                const statVal = actor.get('Stats')[getter];
+                const newValue = statVal + stats[statName];
+                actor.get('Stats')[setter](newValue);
+            });
+        }
     }
-};
+
+}
 
 /* Factory object for creating the actors. */
 export const FactoryActor = function() {
@@ -67,7 +66,7 @@ export const FactoryActor = function() {
     };
 
     /* Creates a player actor. */
-    this.createPlayer = (name, obj) => {
+    this.createPlayer = function(name, obj) {
         const player = new Actor.SentientActor(name);
         player.setIsPlayer(true);
         initCombatant(player, obj);
@@ -78,6 +77,11 @@ export const FactoryActor = function() {
     this.createRandomActor = function(query) {
         const parser = ObjectShell.getParser();
         return parser.createRandomActor(query);
+    };
+
+    this.createActorByName = function(name: string): Actor.BaseActor {
+        const parser = ObjectShell.getParser();
+        return parser.createActor(name);
     };
 
     /* Factory method for non-player actors. */
