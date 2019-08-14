@@ -2,13 +2,14 @@
 /* eslint quote-props: 0 */
 import { expect } from 'chai';
 import RG from '../../../client/src/rg';
-import {Template} from '../../../client/src/template';
+// import {Template} from '../../../client/src/template';
 import {TemplateLevel as TemplLevel} from '../../../client/src/template.level';
 import {Random} from '../../../client/src/random';
 
 import {Crypt} from '../../../client/data/tiles.crypt';
 import {Castle} from '../../../client/data/tiles.castle';
-import {Basic, Basic5x5} from '../../../client/data/tiles.basic';
+import {Basic5x5} from '../../../client/data/tiles.basic';
+import {Basic7x7} from '../../../client/data/tiles.7x7';
 import {Houses5x5} from '../../../client/data/tiles.houses';
 
 const RNG = Random.getRNG();
@@ -80,7 +81,7 @@ describe('Template.Level', () => {
         level.setRoomCount(30);
         level.use(Crypt);
         level.create();
-        expect(Array.isArray(level.map)).to.be.true;
+        expect(Array.isArray(level.map)).to.equal(true);
         // RG.printMap(level.map);
     });
 
@@ -147,7 +148,7 @@ describe('Template.Level', () => {
 
         level.removeTemplate({name: 'corner_nw'});
         templ = level.findTemplate({name: 'corner_nw'});
-        expect(templ).to.be.null;
+        expect(!!templ).to.equal(false);
 
     });
 
@@ -194,7 +195,7 @@ describe('Template.Level', () => {
     it('can create levels from rotated/transformed tiles', () => {
         const level = new TemplLevel(12, 7);
         level.setFiller(Crypt.tiles.filler);
-        const templates = Basic.templates;
+        const templates = Basic7x7.templates;
         level.setTemplates(templates);
         level.create();
     });
@@ -220,14 +221,14 @@ describe('Template.Level', () => {
     it('can create levels with 5x5 tiles', () => {
         RNG.setSeed(new Date().getTime());
         const level = new TemplLevel(25, 9);
-        level.tryToMatchAllExits = false;
+        level.tryToMatchAllExits = true;
 
         level.use(Basic5x5);
         level.weights = {
-            'room_term1': 10,
+            room_term1: 10,
             corridor: 10
         };
-        level.setGenParams([1, 1, 1, 1]);
+        level.setGenParams({x: [1, 1, 1], y: [1, 1, 1]});
         level.roomCount = -1;
         level.setFiller(Basic5x5.tiles.filler);
         const templates = Basic5x5.templates;
@@ -236,7 +237,9 @@ describe('Template.Level', () => {
         level.setExitMap(Basic5x5.remap.exits, Basic5x5.remap.nsew2Dir);
         level.create();
 
-        expect(level.map).to.exist;
+        // RG.printMap(level.map);
+        expect(level.map.length).to.equal(25 * 5);
+        expect(level.map[0].length).to.equal(9 * 5);
     });
 
     it('can creates houses from tiles of 5x5 and 6 genParams', () => {
@@ -260,7 +263,9 @@ describe('Template.Level', () => {
                 level.setStartRoomFunc(Houses5x5.startRoomFunc);
                 level.create();
 
-                expect(level.map).to.not.be.empty;
+                // RG.printMap(level.map);
+                expect(level.map.length, 'Cols OK').to.equal(2 * (x0 + 1 + x2 + 2));
+                expect(level.map[0].length, 'Rows OK').to.equal(2 * (y0 + 1 + y2 + 2));
 
                 const placedData = level.getPlacedData();
                 Object.keys(placedData).forEach(key => {
@@ -274,14 +279,15 @@ describe('Template.Level', () => {
                     }
                 });
 
-                verifyCorners(level.map);
+                verifyHouseCorners(level.map);
             }
         }
     });
 
 });
 
-function verifyCorners(map) {
+/* Checks that house corners don't have illegal cells. */
+function verifyHouseCorners(map) {
     RG.forEach2D(map, (i, j, val) => {
         if (i === 0) {
             expect(val, `${i},${j} OK`).to.not.equal(':');
