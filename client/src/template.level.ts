@@ -20,7 +20,6 @@ type GenParams = number[];
 
 interface ParamsMap {
     [key: string]: GenParams;
-
 }
 
 type TList = ElemTemplate[];
@@ -37,6 +36,8 @@ interface PlacedTileData extends BBoxOld {
     name: string;
     type: string;
 }
+
+type Array2d<T> = T[][];
 
 export type ConstraintFunc = (x: number, y: number, exits: string[]) => void;
 
