@@ -4,6 +4,7 @@ import {ObjectShell} from '../objectshellparser';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import * as Component from '../component';
+import {emitZoneEvent} from './system.utils';
 
 const parser = ObjectShell.getParser();
 
@@ -126,6 +127,8 @@ export class SystemQuest extends SystemBase {
 
             // Give reward, items + any other info
             this.giveQuestReward(ent, giverComp);
+            emitZoneEvent(giver.getLevel(), RG.ZONE_EVT.QUEST_COMPLETED,
+                {questGiver: giver});
         }
         else {
             RG.gameDanger({cell: ent.getCell(), msg: 'Quest is not completed!'});

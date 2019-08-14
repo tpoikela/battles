@@ -3,6 +3,7 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {SystemQuest} from './system.quest';
 import * as Component from '../component';
+import {emitZoneEvent} from './system.utils';
 
 /* Battle system handles battle-related components such as badges from battle
  * survivors etc. */
@@ -68,7 +69,7 @@ export class SystemBattle extends SystemBase {
             ent.remove(orderComp);
         }
         else if (ent.has('BattleEvent')) {
-            const battleEvt = ent.get('BattleOrder');
+            const battleEvt = ent.get('BattleEvent');
             this._processBattleEvent(ent, battleEvt);
             ent.remove(battleEvt);
         }
@@ -88,5 +89,6 @@ export class SystemBattle extends SystemBase {
     }
 
     protected _processBattleEvent(ent, battleEvt): void {
+        emitZoneEvent(ent, RG.ZONE_EVT.BATTLE_OVER);
     }
 }

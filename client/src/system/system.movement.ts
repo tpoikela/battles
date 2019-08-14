@@ -7,6 +7,7 @@ import {Cell} from '../map.cell';
 import * as Component from '../component';
 import * as Element from '../element';
 import {ELEM} from '../../data/elem-constants';
+import {emitZoneEvent} from './system.utils';
 
 type BrainPlayer = import('../brain/brain.player').BrainPlayer;
 type Level = import('../level').Level;
@@ -58,7 +59,7 @@ export class SystemMovement extends SystemBase {
     public somethingSpecial: string[];
     private _bonuses: MoveBonuses;
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool?) {
         super(RG.SYS.MOVEMENT, compTypes, pool);
         this.somethingSpecial = ['QuestTarget'];
         this.climbRe = /highrock/;
@@ -99,14 +100,14 @@ export class SystemMovement extends SystemBase {
         };
     }
 
-    public speedPenalty(scale): PenaltyObj {
+    public speedPenalty(scale: number): PenaltyObj {
         return {
             value: -scale, srcComp: 'Stats', srcFunc: 'getSpeed',
             targetComp: 'StatsMods', targetFunc: 'setSpeed'
         };
     }
 
-    public defensePenalty(scale): PenaltyObj {
+    public defensePenalty(scale: number): PenaltyObj {
         return {
             value: -scale, srcComp: 'Combat', srcFunc: 'getDefense',
             targetComp: 'CombatMods', targetFunc: 'setDefense'
@@ -396,12 +397,7 @@ export class SystemMovement extends SystemBase {
                 brainPlayer.addMark();
             }
 
-            const parentZone = level.getParentZone();
-            if (parentZone) {
-                const zoneEvent = Component.ZoneEvent();
-                zoneEvent.setEventType(RG.Z_EVENT.ZONE_EXPLORED);
-                parentZone.add(zoneEvent);
-            }
+            emitZoneEvent(level, RG.ZONE_EVT.ZONE_EXPLORED, {});
         }
     }
 

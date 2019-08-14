@@ -106,7 +106,7 @@ export abstract class SystemBase {
         }
 
         this.debugEnabled = debug.enabled;
-        this.rng = Random.getRNG();
+        this.rng = new Random(0);
     }
 
     public setRNG(rng: Random): void {
@@ -119,6 +119,10 @@ export abstract class SystemBase {
                 this[arg] = args[arg];
             }
         });
+    }
+
+    public numEntities(): number {
+        return Object.keys(this.entities).length;
     }
 
     public addEntity(entity: Entity): void {
