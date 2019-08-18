@@ -12,7 +12,8 @@ export const ActorGen: any = {};
 const RNG = new Random();
 
 // Mods that can be applied to actors
-const mods = {
+/*
+const mods: any = {
     size: {
         tiny: [{strength: -2, speed: 15}],
         small: [{strength: -1, speed: 10}],
@@ -28,8 +29,10 @@ const mods = {
     }
 
 };
+*/
 
-const randWeights = {
+/*
+const randWeights: any = {
     size: {
         tiny: 1,
         small: 2,
@@ -39,6 +42,7 @@ const randWeights = {
     },
 
 };
+*/
 
 interface ShellProps {
     races: StringMap<IShell>;
@@ -63,7 +67,6 @@ const baseShell: IShell = {
     willpower: 5
 };
 
-
 shellProps.races = {
     arborean: {
         strength: 3, willpower: 5,
@@ -82,6 +85,11 @@ shellProps.races = {
         strength: -1, magic: 3, perception: 5,
         type: 'gnome', prefix: 'gnomish', char: 'n', colorbg: 'beige'
     },
+    naga: {
+        strength: 2,
+        type: 'naga', prefix: 'naga', char: 'N', colorbg: 'darkgreen',
+        addComp: [resistance('POISON', 'STRONG')]
+    },
     ogre: {
         strength: 4, magic: -3, willpower: -3,
         type: 'ogre', prefix: 'ogre', char: 'O', colorbg: 'darkseagreen'
@@ -94,6 +102,11 @@ shellProps.races = {
         agility: 2, perception: 4,
         type: 'ratling', prefix: 'ratling', char: 'r', colorbg: 'grey'
     },
+    teradin: {
+        agility: 2, accuracy: 3,
+        type: 'teradin', prefix: 'teradin', char: 'T', colorbg: 'white',
+        addComp: ['Flying']
+    },
     vachefolk: {
         strength: 2,
         type: 'vachefolk', prefix: 'vachefolk', char: 'v', colorbg: 'brown'
@@ -102,7 +115,6 @@ shellProps.races = {
         strength: 3,
         type: 'valkyr', prefix: 'valkyr', char: 'V', colorbg: 'darkblue',
         addComp: [resistance('ICE', 'MEDIUM')]
-
     },
 };
 
@@ -113,6 +125,9 @@ shellProps.ranks = {
     commoner: {
         danger: 1, hp: 5
     },
+    thrall: {
+        danger: 1, hp: 7
+    },
     adventurer: {
         danger: 2, hp: 10
     },
@@ -120,17 +135,29 @@ shellProps.ranks = {
         danger: 3,
         strength: 1, hp: 15
     },
+    lieutenant: {
+        danger: 4,
+        strength: 3, hp: 20
+    },
     commander: {
         danger: 5,
         strength: 5, hp: 20,
         equip: ['Great battle axe', 'Steel armour', 'Steel helmet'],
     },
     steward: {
+        colorfg: 'steelblue',
         danger: 5, hp: 20
     },
     lord: {
+        colorfg: 'LightGoldenRodYellow',
         danger: 5,
         strength: 7, hp: 20,
+    },
+    hero: {
+        colorfg: 'green',
+        danger: 6,
+        strength: 4, accuracy: 4, agility: 4, speed: 7,
+        hp: 25,
     },
     warlord: {
         danger: 7, hp: 25
@@ -140,9 +167,11 @@ shellProps.ranks = {
         strength: 7, agility: 3, accuracy: 3
     },
     prince: {
+        colorfg: 'MediumPurple',
         danger: 5, hp: 20
     },
     princess: {
+        colorfg: 'pink',
         danger: 5, agility: 5, magic: 5, hp: 20
     },
     queen: {
@@ -170,6 +199,7 @@ shellProps.ranks = {
         addComp: [BypassComp(0.25), 'Charm']
     },
     overlord: {
+        colorfg: 'orangered',
         danger: 10, hp: 35,
         addComp: [BypassComp(0.10)]
     },
@@ -393,6 +423,10 @@ shellProps.roles = {
 };
 const roleTypes: string[] = Object.keys(shellProps.roles);
 
+const allRoleShells = roleTypes.reduce((acc, rType: string, i: number, arr: string[]) => {
+    return Object.assign(acc, shellProps.roles[rType]);
+}, {});
+
 /* Generates a random actor shell using the following formula:
  * 1. Pick a race from shellProps.races
  * 2. Pick a rank from shellProps.ranks
@@ -413,31 +447,27 @@ ActorGen.genRandShell = function(): IShell {
     // Get the role types to be used (ie stealth/melee/magic)
     const rTypes: string[] = RNG.getUniqueItems(roleTypes, numRoles);
 
-    const roleBaseShells = rTypes.map(r => shellProps.roleBases[r]);
+    const roleBaseShells: IShell[] = rTypes.map(r => shellProps.roleBases[r]);
 
     // Then find shells for these roles
-    let fullRoleName = '';
-    const roleNames = [];
+    // let fullRoleName = '';
+    const roleNames: string[] = [];
     const usedRoleShells: IShell[] = rTypes.map((r: string) => {
         const roleShells: StringMap<IShell> = shellProps.roles[r];
         const roleName = RNG.arrayGetRand(Object.keys(roleShells));
-        fullRoleName += ' ' + roleName;
+        // fullRoleName += ' ' + roleName;
         roleNames.push(roleName);
         return roleShells[roleName];
     });
 
-    const allShells = [baseShell, raceShell, rankShell]
+    const allShells: IShell[] = [baseShell, raceShell, rankShell]
         .concat(roleBaseShells)
         .concat(usedRoleShells);
-    const newShell = mixNewShell(allShells);
-    if (rankName !== 'commoner') {
-        newShell.name = raceShell.prefix + fullRoleName + ' ' + rankName;
-    }
-    else {
-        newShell.name = raceShell.prefix + fullRoleName;
-    }
+    const newShell: IShell = mixNewShell(allShells);
+    newShell.name = formatShellName(raceShell, roleNames, rankName);
     newShell.roleTypes = rTypes;
     newShell.roles = roleNames;
+    newShell.race = raceName;
     return newShell;
 };
 
@@ -451,8 +481,8 @@ ActorGen.genActors = function(nActors: number): IShell[] {
 };
 
 /* Generates a random shell using acceptance function. */
-ActorGen.getRandShellWith = function(constrOrFunc: TShellFunc): IShell {
-    let maxTries = 100;
+ActorGen.getRandShellWith = function(constrOrFunc: TShellFunc, tries: number = 100): IShell {
+    let maxTries = tries;
     let shell = null;
     while (maxTries >= 0) {
         shell = ActorGen.genRandShell();
@@ -466,3 +496,106 @@ ActorGen.getRaces = function(): string[] {
     return raceNames;
 };
 
+/*
+ActorGen.genShellWithRole = function(role: string[]): IShell {
+    const roleBase = role[0];
+    let roleActual: IShell = null;
+    if (role.length > 1) {
+        roleActual = shellProps.roles[roleBase][role[1]];
+    }
+    else {
+        roleActual = RNG.arrayGetRand(shellProps.roles[roleBase]);
+    }
+};
+*/
+
+// How to generate the following:
+//   1. Human assassin
+//   2. Orc assassin archer
+//   3. Human assassin prince
+//   4. Human assassin mage queen
+
+interface ShellConstr {
+    roleTypes?: string[];
+    roles?: string[];
+    rank?: string;
+    race?: string;
+}
+
+/* Generates a shell with given constraints.
+ * */
+ActorGen.genShell = function(conf: ShellConstr): IShell {
+    let rankShell: IShell = null;
+    let rankName = '';
+    if (conf.rank) {
+        rankName = conf.rank;
+        rankShell = shellProps.ranks[conf.rank];
+    }
+    else {
+        rankShell = RNG.arrayGetRand(rankNames);
+    }
+
+    let raceName = conf.race;
+    if (!conf.race) {
+        raceName = getRandomRace();
+    }
+
+    const raceShell: IShell = shellProps.races[raceName];
+
+    // Select base roles for this actor
+    let rTypes: string[] = conf.roleTypes;
+    if (!conf.roleTypes) {
+        const numRoles = RNG.getUniformInt(1, 2);
+        rTypes = RNG.getUniqueItems(roleTypes, numRoles);
+    }
+    const roleBaseShells: IShell[] = rTypes.map(r => shellProps.roleBases[r]);
+
+    // Select the roles for this actor
+    const roleNames: string[] = conf.roles || [];
+    if (!conf.roles) {
+        rTypes.forEach((rType: string) => {
+            const rTypeShells: StringMap<IShell> = shellProps.roles[rType];
+            const roleName = RNG.arrayGetRand(Object.keys(rTypeShells));
+            roleNames.push(roleName);
+        });
+    }
+
+    const roleShells: IShell[] = [];
+    roleNames.forEach((roleName: string) => {
+        roleShells.push(allRoleShells[roleName]);
+    });
+
+    const shells = [baseShell, raceShell, rankShell]
+        .concat(roleShells)
+        .concat(roleBaseShells);
+    const newShell = mixNewShell(shells);
+    newShell.name = formatShellName(raceShell, roleNames, rankName);
+    // newShell.roleTypes = rTypes;
+    newShell.roles = roleNames;
+    newShell.rank = rankName;
+    newShell.race = raceName;
+    return newShell;
+};
+
+
+//---------------------------------------------------------------------------
+// Non-exported (for now) HELPERS
+//---------------------------------------------------------------------------
+
+/* Formats the new shell name based on give data. */
+function formatShellName(raceShell: IShell, roleNames: string[], rankName: string): string {
+    const fullRoleName = roleNames.join(' ');
+    let name = '';
+    if (rankName !== 'commoner') {
+        name = raceShell.prefix + ' ' + fullRoleName + ' ' + rankName;
+    }
+    else {
+        name = raceShell.prefix + ' ' + fullRoleName;
+    }
+    return name;
+}
+
+
+function getRandomRace(): string {
+    return RNG.arrayGetRand(raceNames);
+}
