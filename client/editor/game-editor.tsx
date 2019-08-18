@@ -610,14 +610,22 @@ export default class GameEditor extends Component {
   }
 
   /* Creates the level of given type. */
-  public createLevel(levelType): Level {
+  public createLevel(levelType, extraConf?): Level {
     let conf: any = {};
     if (this.state.levelConf.hasOwnProperty(levelType)) {
       conf = this.state.levelConf[levelType];
     }
     conf.transpose = false;
-    const [cols, rows] = [this.state.levelX, this.state.levelY];
+    let [cols, rows] = [this.state.levelX, this.state.levelY];
     conf.parser = this.parser;
+
+    // Mainly used for sub-conf now
+    if (extraConf) {
+        cols = extraConf.cols;
+        rows = extraConf.rows;
+        conf = extraConf;
+        console.log('Set extraConf', cols, rows, extraConf);
+    }
 
     let level = null;
     if (levelType === 'capital') {
@@ -657,7 +665,7 @@ export default class GameEditor extends Component {
     else {
       const factLevel = new FactoryLevel();
       level = factLevel.createLevel(
-        levelType, this.state.levelX, this.state.levelY, conf);
+        levelType, cols, rows, conf);
     }
     delete conf.parser;
     return level;
@@ -694,17 +702,18 @@ export default class GameEditor extends Component {
   public subGenerateMap() {
     const level = this.state.level;
     const levelType = this.state.subLevelType;
-    let conf = {};
+    let conf: {[key: string]: any} = {};
 
     if (this.state.subLevelConf.hasOwnProperty(levelType)) {
       conf = this.state.subLevelConf[levelType];
     }
     const subWidth = this.state.subLevelX;
     const subHeight = this.state.subLevelY;
+    conf.cols = subWidth;
+    conf.rows = subHeight;
 
     if (this.state.selectedCell) {
-      const x0 = this.getFirstSelectedCell().getX();
-      const y0 = this.getFirstSelectedCell().getY();
+      const [x0, y0] = this.getFirstSelectedCell().getXY();
 
       // Iterate through tiles in x-direction (tx) and tiles in
       // y-direction (ty). Compute upper left x,y for each sub-level.
@@ -714,16 +723,20 @@ export default class GameEditor extends Component {
           for (let ty = 0; ty < this.state.subLevelTileY; ty++) {
             const xSub = x0 + tx * subWidth;
             const ySub = y0 + ty * subHeight;
-            const factLevel = new FactoryLevel();
+            // const factLevel = new FactoryLevel();
+
+            const subLevel = this.createLevel(levelType, conf);
+            /*
             const subLevel = factLevel.createLevel(
               levelType, subWidth, this.state.subLevelY, conf);
+            */
             Geometry.mergeLevels(level, subLevel, xSub, ySub);
           }
         }
       }
       catch (e) {
         errorMsg = e.message;
-        console.error(e.message);
+        console.error(e);
       }
 
       level.getMap()._optimizeForRowAccess();
