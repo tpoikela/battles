@@ -237,7 +237,7 @@ export const ActorsData: ActorShell[] = [
         onHit: [
             {addComp: 'Stun', duration: '1d2 + 1'}
         ],
-        addComp: [resistance('ICE', 'HIGH')]
+        addComp: [resistance('ICE', 'STRONG')]
     },
     {
         name: 'mammoth', char: 'M', base: 'animal',
@@ -499,7 +499,7 @@ export const ActorsData: ActorShell[] = [
         enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
         danger: 10, pp: 25, maxPP: 25,
         addComp: [
-            resistance('NECRO', 'HIGH'), resistance('ICE', 'MEDIUM')
+            resistance('NECRO', 'STRONG'), resistance('ICE', 'MEDIUM')
         ],
         spells: ['AnimateDead']
     },
@@ -706,7 +706,7 @@ export const ActorsData: ActorShell[] = [
                 duration: '10d10'}
         ],
         hp: 25,
-        addComp: ['Flying', resistance('ICE', 'HIGH')]
+        addComp: ['Flying', resistance('ICE', 'STRONG')]
     },
     {
         name: 'boneclaw', char: 'B', base: 'UndeadBase',
@@ -739,9 +739,9 @@ export const ActorsData: ActorShell[] = [
         attack: 6, defense: 6, damage: '3d5 + 5', danger: 9,
         hp: 45,
         addComp: [
-            resistance('PIERCE', 'HIGH'),
-            resistance('SLASH', 'HIGH'),
-            resistance('ICE', 'HIGH')
+            resistance('PIERCE', 'STRONG'),
+            resistance('SLASH', 'STRONG'),
+            resistance('ICE', 'STRONG')
         ]
     },
     {
@@ -1386,7 +1386,7 @@ export const ActorsData: ActorShell[] = [
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
         magic: 30, attack: 30, defense: 30, protection: 10,
         equip: ['Permaice katana', 'Permaice armour'],
-        addComp: ['SnowWalk', resistance('ICE', 'HIGH'), 'RegenEffect']
+        addComp: ['SnowWalk', resistance('ICE', 'STRONG'), 'RegenEffect']
     },
     {
         name: 'Zamoned, Son of Frost', base: 'UniqueBase',
@@ -1397,7 +1397,7 @@ export const ActorsData: ActorShell[] = [
         damage: '4d5',
         equip: ['Permaice axe', 'Permaice armour', 'Bow of Defense',
             {name: 'Runed arrow', count: 100}],
-        addComp: ['SnowWalk', resistance('ICE', 'HIGH'), 'RegenEffect']
+        addComp: ['SnowWalk', resistance('ICE', 'STRONG'), 'RegenEffect']
     },
 
     {
@@ -1408,7 +1408,7 @@ export const ActorsData: ActorShell[] = [
         strength: 15, accuracy: 15, agility: 15, willpower: 30, perception: 25,
         magic: 25, attack: 15, defense: 15, protection: 5,
         equip: ['Ruby glass armour', 'Ruby glass collar'],
-        addComp: ['SnowWalk', resistance('ICE', 'HIGH'), 'RegenEffect']
+        addComp: ['SnowWalk', resistance('ICE', 'STRONG'), 'RegenEffect']
     },
 
     {
@@ -1524,7 +1524,7 @@ export const ActorsData: ActorShell[] = [
         fovrange: 5,
         enemies: RG.ACTOR_RACES,
         addComp: ['SnowWalk', resistance('ICE', 'IMMUNITY'),
-            resistance('NECRO', 'HIGH'), resistance('VOID', 'HIGH'),
+            resistance('NECRO', 'STRONG'), resistance('VOID', 'STRONG'),
             'RegenEffect'],
         onHit: [
             meleeHitDamage(5, '1d8 + 4', 'ICE')
@@ -1591,11 +1591,21 @@ export const adjustActorValues = (actorsData, order = Actors.modOrder) => {
     });
 };
 
-export function resistance(type, level): IAddCompObj {
+export function resistance(type: string, level: string): IAddCompObj {
+    const upperType = type.toUpperCase();
+    const levelUpper = level.toUpperCase();
+    if (!RG.DMG.hasOwnProperty(upperType)) {
+        RG.err('actors.ts', 'resistance',
+            `No dmg type |${upperType}| in ${Object.keys(RG.DMG)}`);
+    }
+    if (!RG.RESISTANCE.hasOwnProperty(levelUpper)) {
+        RG.err('actors.ts', 'resistance',
+            `No dmg type |${levelUpper}| in ${Object.keys(RG.RESISTANCE)}`);
+    }
     return {
         comp: 'Resistance', func: {
-            setEffect: RG.DMG[type.toUpperCase()],
-            setLevel: RG.RESISTANCE[level.toUpperCase()]
+            setEffect: RG.DMG[upperType],
+            setLevel: RG.RESISTANCE[levelUpper]
         }
     };
 }
