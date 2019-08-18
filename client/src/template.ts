@@ -461,25 +461,27 @@ const rePassable = /(\.|\+)/;
 /* Verifies an array of tiles. This includes reading, parsing and expanding
  * them. */
 export function verifyTiles(
-    file: string, msg: string, templ: ElemTemplate[]
+    file: string, msg: string, templ: ElemTemplate[], genXY = [1, 1, 1, 1]
 ): void {
     templ.forEach((elem: ElemTemplate) => {
-        if (!verifyDirs(elem)) {
+        if (!verifyDirs(elem, genXY)) {
             const str = JSON.stringify(elem);
             const name = elem.getProp('name');
+            const expanded = elem.getChars(genXY);
+            RG.printMap(expanded);
             RG.err(file, msg,
                `Tile ${name} failed the checks: ${str}`);
         }
     });
 }
 
-export function verifyDirs(templ: ElemTemplate): boolean {
+export function verifyDirs(templ: ElemTemplate, genXY): boolean {
     const dirs: string = templ.getDir();
     if (dirs === '') {
         // Cannot verify special templates without dir yet
         return true;
     }
-    const cols = templ.getChars([1, 1, 1, 1]);
+    const cols = templ.getChars(genXY);
     const rows = RG.colsToRows(cols);
     let ok = false;
     if (/N/.test(dirs)) {
