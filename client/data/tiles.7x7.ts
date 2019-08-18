@@ -275,16 +275,3 @@ Basic7x7.names = {};
 Basic7x7.names.diag = Basic7x7.templates.filter(tt => (
     /diag/.test(tt.getProp('name'))
 )).map(tt => tt.getProp('name'));
-/*
-const weighted = [];
-Basic7x7.templates.forEach(templ => {
-    const weight = templ.getProp('weight');
-    if (weight) {
-        const nClones = weight - 1;
-        for (let i = 0; i < nClones; i++) {
-            weighted.push(templ.clone());
-        }
-    }
-});
-Basic7x7.templates = Basic7x7.templates.concat(weighted);
-*/
