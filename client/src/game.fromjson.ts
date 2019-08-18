@@ -1094,6 +1094,7 @@ FromJSON.prototype.restoreBattle = function(json: BattleJSON): Battle {
                 POOL.removeListener(army);
             });
         }
+        // Restore the handle to parent zone
         if (json.parent) {
             const parentZone = this.id2Place[json.parent];
             if (parentZone) {
