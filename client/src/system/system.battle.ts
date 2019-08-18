@@ -5,16 +5,19 @@ import {SystemQuest} from './system.quest';
 import * as Component from '../component';
 import {emitZoneEvent} from './system.utils';
 
+type Entity = import('../entity').Entity;
+type Level = import('../level').Level;
+
 /* Battle system handles battle-related components such as badges from battle
  * survivors etc. */
 export class SystemBattle extends SystemBase {
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool?) {
         super(RG.SYS.BATTLE, compTypes, pool);
         this.compTypesAny = true; // Triggered on at least one component
     }
 
-    public updateEntity(ent) {
+    public updateEntity(ent: Entity) {
         if (ent.has('BattleOver')) {
             const overComp = ent.get('BattleOver');
             if (ent.has('BattleExp')) {
@@ -53,7 +56,7 @@ export class SystemBattle extends SystemBase {
                 ent.remove('BattleExp');
 
                 // Check if this battle (level) belonged to a quest
-                const level = ent.getLevel();
+                const level: Level = RG.getLevel(ent);
                 if (ent.has('Quest') && level.has('QuestTarget')) {
                     const qTarget = ent.get('QuestTarget');
                     const args = {isWon: badge.isWon()};
@@ -75,13 +78,13 @@ export class SystemBattle extends SystemBase {
         }
     }
 
-    public _getBadgeForBattle(bName, ent) {
+    public _getBadgeForBattle(bName: string, ent: Entity) {
         const badges = ent.getList('BattleBadge');
         const badge = badges.find(b => b.getData().name === bName);
         return badge;
     }
 
-    public _emitMsg(ent, comp) {
+    public _emitMsg(ent, comp): void {
         const srcName = comp.getArgs().srcActor.getName();
         const cell = ent.getCell();
         const msg = `${srcName} shouts a command into your direction.`;
@@ -89,6 +92,9 @@ export class SystemBattle extends SystemBase {
     }
 
     protected _processBattleEvent(ent, battleEvt): void {
-        emitZoneEvent(ent, RG.ZONE_EVT.BATTLE_OVER);
+        const data = {
+            battle: battleEvt.getBattle()
+        };
+        emitZoneEvent(ent, RG.ZONE_EVT.BATTLE_OVER, data);
     }
 }
