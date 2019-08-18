@@ -291,9 +291,11 @@ export class CastleGenerator extends LevelGenerator {
 
             // Add another main loot + guardian
             const mainLootRoom: any = RNG.arrayGetRand(storerooms);
-            const cMain: TCoord = mainLootRoom.getCenter();
-            if (dungPopul.addMainLoot(level, cMain, conf.maxValue)) {
-                dungPopul.addPointGuardian(level, cMain, maxDanger + 4);
+            if (mainLootRoom) {
+                const cMain: TCoord = mainLootRoom.getCenter();
+                if (dungPopul.addMainLoot(level, cMain, conf.maxValue)) {
+                    dungPopul.addPointGuardian(level, cMain, maxDanger + 4);
+                }
             }
         }
     }
