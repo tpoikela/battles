@@ -1755,6 +1755,10 @@ export class BattleZone extends ZoneBase {
         battle.setParent(this);
     }
 
+    public getBattle(): Battle {
+        return this._battle;
+    }
+
     public addLevel(level: Level): void {
         this._levels.push(level);
     }
