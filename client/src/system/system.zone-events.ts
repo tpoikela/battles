@@ -5,6 +5,7 @@ import {RandWeights} from '../interfaces';
 import {Placer} from '../placer';
 import {FactoryActor} from '../factory.actors';
 
+type Battle = import('../game.battle').Battle;
 type Cell = import('../map.cell').Cell;
 type Level = import('../level').Level;
 type Entity = import('../entity').Entity;
@@ -20,7 +21,8 @@ interface ZoneEvent {
 }
 
 const zoneActionWeights: RandWeights = {
-    NECROMANCER: 1
+    NECROMANCER: 1,
+    ENCOUNTER: 1
 };
 
 type EventFunc = (sys: SystemZoneEvents, ent: Entity, zoneEvent: ZoneEvent) => void;
@@ -44,6 +46,11 @@ export class SystemZoneEvents extends SystemBase {
         this.legalArgs = ['owMap', 'worldTop'];
         this._dtable = {};
         this._dtable[RG.ZONE_EVT.ZONE_EXPLORED] = this._processZoneExplored.bind(this);
+        this._dtable[RG.ZONE_EVT.BATTLE_OVER] = this._processBattleOver.bind(this);
+        this._dtable[RG.ZONE_EVT.QUEST_COMPLETED] = this._processQuestCompleted.bind(this);
+        this._dtable[RG.ZONE_EVT.CITY_WIPED] = this._processCityWipedOut.bind(this);
+        this._dtable[RG.ZONE_EVT.MOUNTAIN_CLIMBED] = this._processMountainClimbed.bind(this);
+        this._dtable[RG.ZONE_EVT.UNIQUE_KILLED] = this._processUniqueKilled.bind(this);
         this.zoneActionWeights = zoneActionWeights;
     }
 
@@ -88,12 +95,47 @@ export class SystemZoneEvents extends SystemBase {
         }
     }
 
-    protected _processZoneExplored(sys, ent: Entity, zoneEvent: ZoneEvent): void {
+    protected _processZoneExplored(sys: SystemZoneEvents, ent: Entity,
+                                   zoneEvent: ZoneEvent): void {
         const zone = ent as ZoneBase;
         const areaTile = sys.getAreaTile(zone);
         const level = areaTile.getLevel();
         addActorToLevel(level, {name: 'necromancer', levelUp: 5});
         // TODO list of possible actions after exploring the zone
+    }
+
+    protected _processBattleOver(sys: SystemZoneEvents, ent: Entity,
+                                 zoneEvent: ZoneEvent): void {
+       const data = zoneEvent.getEventData();
+       const battle = data.battle;
+       const level = battle.getLevel();
+       addActorToLevel(level, {name: 'necromancer', levelUp: 5});
+       this._addBattleLore(level, battle);
+        // TODO
+        // Could distribute some Lore to surrounding regions about this
+    }
+
+    protected _processQuestCompleted(sys: SystemZoneEvents, ent: Entity,
+                                     zoneEvent: ZoneEvent): void {
+        // TODO
+    }
+
+    protected _processCityWipedOut(sys: SystemZoneEvents, ent: Entity,
+                                   zoneEvent: ZoneEvent): void {
+        // TODO
+    }
+
+    protected _processMountainClimbed(sys: SystemZoneEvents, ent: Entity,
+                                      zoneEvent: ZoneEvent): void {
+        // TODO
+    }
+
+    protected _processUniqueKilled(sys: SystemZoneEvents, ent: Entity,
+                                   zoneEvent: ZoneEvent): void {
+        // TODO
+    }
+
+    protected _addBattleLore(level: Level, battle: Battle): void {
     }
 }
 
