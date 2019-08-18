@@ -41,6 +41,7 @@ const alwaysMergeProps = new Set<string>(
     ['addComp', 'spells', 'inv', 'equip', 'onAttackHit']
 );
 
+// Always incremented (added) together
 const alwaysIncrProps = new Set<string>(
     ['hp', 'maxHP', 'pp', 'maxPP', 'defense',
         'protection', 'attack', 'danger', 'speed',
@@ -49,11 +50,13 @@ const alwaysIncrProps = new Set<string>(
     .concat(RG.STATS_LC)
 );
 
+/* Properties which are transformed using a function. */
 const alwaysTransform = {
     damage: transformDamage,
     addDamage: transformAddDamage,
 };
 
+// These props are always multiplied
 const alwaysMultProps = new Set<string>(
     ['weight', 'value', 'rarity']
 );
