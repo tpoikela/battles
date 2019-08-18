@@ -26,5 +26,25 @@ describe('ActorGen', () => {
         const cFunc = fact.getConstraints(cc);
         const filtered = actors.filter(cFunc);
         expect(filtered.length).to.be.above(0);
+
+        const sh0 = filtered[0];
+        expect(sh0).to.have.property('race');
     });
+
+    it('has function to generate more specific actor shells', () => {
+        const sh0 = ActorGen.genShell({rank: 'queen'});
+        expect(sh0.rank).to.equal('queen');
+        expect(sh0).to.have.property('roles');
+
+        const sh1 = ActorGen.genShell({roles: ['assassin'], rank: 'queen'});
+        expect(sh1.roles).to.deep.equal(['assassin']);
+
+        const sh2 = ActorGen.genShell({roles: ['assassin', 'archer']});
+        expect(sh2.roles).to.deep.equal(['assassin', 'archer']);
+        expect(sh2.name).to.match(/\w+ assassin archer/);
+
+        const sh3 = ActorGen.genShell({race: 'orc'});
+        expect(sh3.race).to.equal('orc');
+    });
+    
 });
