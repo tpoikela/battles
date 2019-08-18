@@ -9,6 +9,7 @@ import {RandWeights} from './interfaces';
 
 import dbg = require('debug');
 const debug = dbg('bitn:TemplateLevel');
+debug.enabled = true;
 
 const FILLER_TEMPL = Crypt.tiles.filler;
 const RNG = Random.getRNG();
@@ -624,6 +625,7 @@ export class TemplateLevel {
     public _placeStartRoom(): void {
         ++this._ind;
         let room = null;
+        // startRoomFunc takes priority
         if (typeof this.startRoomFunc === 'function') {
             room = this.startRoomFunc();
             const props = ['x', 'y', 'room'];
@@ -638,7 +640,14 @@ export class TemplateLevel {
         else {
             const x = RNG.getUniformInt(1, this.tilesX - 2);
             const y = RNG.getUniformInt(1, this.tilesY - 2);
-            room = {x, y, room: this.getRandomTemplate()};
+            if (this.customMatchFilter) {
+                const listMatching = this.customMatchFilter(this, x, y,
+                    this.templates, null);
+                room = {x, y, room: RNG.arrayGetRand(listMatching)};
+            }
+            else {
+                room = {x, y, room: this.getRandomTemplate()};
+            }
         }
 
         this.dbg('Start room: ' + JSON.stringify(room));
@@ -1122,6 +1131,13 @@ export class TemplateLevel {
     public isEdge(x: number, y: number): boolean {
         return (x === 0 || y === 0 ||
                 x === this.tilesX - 1 || y === this.tilesY - 1);
+    }
+
+    public isCorner(x: number, y: number): boolean {
+        return (x === 0 && y === 0 ||
+                x === 0 && y === this.tilesY - 1 ||
+                x === this.tilesX - 1 && y === 0 ||
+                x === this.tilesX - 1 && y === this.tilesY - 1);
     }
 
     /* Filters out cells with noedge prop. */
