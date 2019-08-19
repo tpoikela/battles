@@ -1,9 +1,6 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-
-import RG from '../src/rg';
-import {CellMap} from '../src/map';
 import FileSaver = require('file-saver');
 
 interface ErrorMsg {
@@ -52,7 +49,7 @@ export default class LevelSaveLoad extends Component {
         const prefix = this.props.fNamePrefix || 'bsave';
         const fname = `${prefix}_${date}_${this.props.savedObjName}.json`;
 
-        let text = null;
+        let text: null | string = null;
         if (this.props.pretty) {
           text = JSON.stringify(json, null, ' ');
         }
@@ -81,7 +78,10 @@ export default class LevelSaveLoad extends Component {
     const inputId = '#' + this.props.id + 'level-file-input';
     const elem = document.querySelector(inputId) as HTMLInputElement;
     const fileList = elem.files;
-    const file = fileList[0];
+    let file: null | File  = null;
+    if (fileList && fileList[0]) {
+        file = fileList[0];
+    }
 
     if (file) {
       const reader = new FileReader();

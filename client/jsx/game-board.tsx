@@ -3,11 +3,12 @@ import * as React from 'react';
 import GameRow from './game-row';
 
 import {TCoord} from '../src/interfaces';
+import {RLEArray} from '../gui/screen';
 
 interface IGameBoardProps {
     boardClassName: string;
-    charRows: string[][];
-    classRows: string[][];
+    charRows: RLEArray[];
+    classRows: RLEArray[];
     endY: number;
     rowClass: string;
     useRLE?: boolean;
@@ -45,7 +46,7 @@ const eventToPosition = (e, elem, props: IGameBoardProps, elemID: string): TCoor
     return [0, 0];
 };
 
-/** Component which renders the game rows. {{{2 */
+/** Component which renders the game rows. */
 export default class GameBoard extends React.Component {
 
     public props: IGameBoardProps;

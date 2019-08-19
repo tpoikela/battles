@@ -6,12 +6,12 @@ import * as Item from '../src/item';
 export interface ISelection {
     slotName: string;
     slotNumber: number;
-    item: Item.ItemBase;
+    item: null | Item.ItemBase;
 }
 
 interface IGameEquipSlotProps {
   slotName: string;
-  item: Item.ItemBase;
+  item: null | Item.ItemBase;
   slotNumber: number;
   setEquipSelected(selection: ISelection): void;
 }

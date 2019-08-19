@@ -1,11 +1,12 @@
 /* eslint max-len: [2, 100, 2] */
 
 import * as React from 'react';
+import {RLEArray} from '../gui/screen';
 
 interface IGameRowProps {
-    rowChars: string[];
+    rowChars: RLEArray;
     rowClass: string;
-    rowClasses: string[];
+    rowClasses: RLEArray;
     startX: number;
     useRLE: boolean;
     y: number;
@@ -76,7 +77,7 @@ export default class GameRow extends React.Component {
         let rowCells = null;
 
         if (!this.props.useRLE) {
-            rowCells = this.props.rowClasses.map( (className, index) => {
+            rowCells = this.props.rowClasses.map((className: string, index) => {
                 const cellChar = this.props.rowChars[index];
 
                 return (
@@ -91,8 +92,9 @@ export default class GameRow extends React.Component {
         }
         else {
             rowCells = this.props.rowClasses.map( (rleAndClass, index) => {
-                const rleAndChar = this.props.rowChars[index];
-                const nChars = parseInt(rleAndChar[0], 10);
+                const rleAndChar = this.props.rowChars[index] as [number, string];
+                // const nChars = parseInt(rleAndChar[0], 10);
+                const nChars = rleAndChar[0];
                 return (
                     <span
                         className={rleAndClass[1]}

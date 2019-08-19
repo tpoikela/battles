@@ -13,7 +13,7 @@ interface IGameCharInfoState {
 }
 
 interface IGameCharInfoProps {
-  player: SentientActor;
+  player: SentientActor | null;
   showCharInfo: boolean;
   toggleScreen: (type: string) => void;
 }
@@ -79,6 +79,7 @@ export default class GameCharInfo extends React.Component {
   /* Returns the markup for shown tab element. */
   public renderTabElement(tabName) {
     const actor = this.props.player;
+    if (!actor) {return null;}
 
     if (tabName === 'CharInfo') {
       return this.renderCharInfoGeneral(actor);
@@ -116,7 +117,7 @@ export default class GameCharInfo extends React.Component {
   }
 
   /* Returns the general character info tab for rendering. */
-  public renderCharInfoGeneral(actor) {
+  public renderCharInfoGeneral(actor: SentientActor) {
       let actorClassName = 'None';
       if (actor.has('ActorClass')) {
           actorClassName = actor.get('ActorClass').getClassName();
@@ -166,7 +167,7 @@ export default class GameCharInfo extends React.Component {
 
   /* Returns the components tab containing info about all relevant components.
    * */
-  public renderEffectsTab(actor) {
+  public renderEffectsTab(actor: SentientActor) {
     const comps = Object.values(actor.getComponents());
 
     // TODO add typings
@@ -193,8 +194,8 @@ export default class GameCharInfo extends React.Component {
   }
 
   /* Returns the tab showing different players skills. */
-  public renderSkillsTab(actor) {
-      let skillElem = null;
+  public renderSkillsTab(actor: SentientActor) {
+      let skillElem: any = null;
       if (!actor.has('Skills')) {
           skillElem = <li>Actor has no skills.</li>;
       }
@@ -267,7 +268,7 @@ export default class GameCharInfo extends React.Component {
     if (actor.has('GameInfo')) {
       const gameInfo = actor.get('GameInfo');
       const zones = gameInfo.getData().zones;
-      const infoList = [];
+      const infoList: any = [];
       let numPlacesExplored = 0;
       Object.keys(zones).forEach((zone, i) => {
         const pElem = (<p key={zone + '_' + i}>

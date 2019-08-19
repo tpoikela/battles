@@ -11,7 +11,7 @@ import {
 
 interface IEditorTopMenuProps {
     addLevel: (level: Level) => void;
-    level: Level;
+    level: null | Level;
     menuCallback: (cmd: string, args?: any) => void;
     toggleEditor: () => void;
 }

@@ -652,7 +652,6 @@ export class Level extends Entity {
         const toRemove = this._p.elements.filter(filter);
         toRemove.forEach(elem => {
           const [eX, eY] = (elem as Mixin.Locatable).getXY();
-          // const eY = (elem as Mixin.Locatable).getY();
           this.removeElement(elem, eX, eY);
         });
     }

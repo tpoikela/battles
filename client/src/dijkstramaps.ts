@@ -101,7 +101,7 @@ export class DijkstraMap {
     }
 
     protected _getNeighbors(cx: number, cy: number): TCoord[] {
-        const result = [];
+        const result: TCoord[] = [];
         for (let i=0;i<this._dirs.length;i++) {
             const dir = this._dirs[i];
             const x = cx + dir[0];
@@ -115,7 +115,7 @@ export class DijkstraMap {
 
     protected _compute(): void {
         while (this._todo.length) {
-            const item = this._todo.shift();
+            const item = this._todo.shift()!; // Can't be null here
             const neighbors = this._getNeighbors(item.x, item.y);
 
             for (let i=0;i<neighbors.length;i++) {

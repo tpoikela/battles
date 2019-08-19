@@ -3,10 +3,12 @@ import RG from './rg';
 
 type ItemBase = import('./item').ItemBase;
 
+type SlotContent = null | ItemBase;
+
 export class EquipSlot {
 
     public _type: string;
-    public _item: ItemBase;
+    public _item: null | ItemBase;
     public _hasItem: boolean;
     public _unequipped: any;
     public _stacked: boolean;
@@ -17,17 +19,17 @@ export class EquipSlot {
         this._hasItem = false;
         this._unequipped = null;
         this._stacked = false;
-        if (!RG.isNullOrUndef([stacked])) {this._stacked = stacked;}
+        if (!RG.isNullOrUndef([stacked])) {this._stacked = stacked!;}
     }
 
     public isStacked(): boolean {
         return this._stacked;
     }
 
-    public getUnequipped(): ItemBase | null {return this._unequipped;}
+    public getUnequipped(): SlotContent {return this._unequipped;}
 
     /* Returns the equipped item for this slot.*/
-    public getItem(): ItemBase | null {
+    public getItem(): SlotContent {
         if (this._hasItem) {return this._item;}
         return null;
     }
@@ -53,7 +55,7 @@ export class EquipSlot {
     }
 
     /* Unequips N items from the slot. */
-    public unequipItem(n): boolean {
+    public unequipItem(n: number): boolean {
         if (this._hasItem) {
             if (!this._stacked) {
                 this._hasItem = false;
@@ -61,11 +63,11 @@ export class EquipSlot {
                 return true;
             }
             else if (n > 0) {
-                if (n === 1 && this._item.getCount() === 1) {
+                if (n === 1 && this._item!.getCount() === 1) {
                     this._hasItem = false;
                     this._unequipped = this._item;
                 }
-                else if (n === this._item.getCount()) {
+                else if (n === this._item!.getCount()) {
                     this._hasItem = false;
                     this._unequipped = this._item;
                 }
@@ -78,7 +80,7 @@ export class EquipSlot {
         return false;
     }
 
-    public canEquip(item) {
+    public canEquip(item): boolean {
         if (!this._hasItem) {
             return true;
         }
@@ -176,22 +178,30 @@ export class Equipment {
         return Object.keys(this._slots);
     }
 
-    public getItems(slotType?: string): EquipSlot[] {
-        if (this._hasSlot(slotType)) {
+    public getItems(slotType?: string): EquipSlot[] | ItemBase[] {
+        if (slotType && this._hasSlot(slotType)) {
             if (Array.isArray(this._slots[slotType])) {
                 return (this._slots[slotType] as EquipSlot[]);
             }
             return [this._slots[slotType] as EquipSlot];
         }
+        // RG.err('Equipment', 'getItems', `No slotType given!`);
+        // return [];
         return this.getEquippedItems();
     }
 
     /* Returns last unequipped item for the slot.*/
-    public getUnequipped(slotType: string, index?: number) {
+    public getUnequipped(slotType: string, index?: number): SlotContent {
         if (this._hasSlot(slotType)) {
             const slot: EquipSlotOrArray = this._slots[slotType];
             if (Array.isArray(slot)) {
-                return slot[index].getUnequipped();
+                if (typeof index === 'number') {
+                    return slot[index].getUnequipped();
+                }
+                else {
+                    RG.err('Equipment', 'getUnequipped',
+                      `No slot index for slotType ${slotType} given!`);
+                }
             }
             else {
                 return (this._slots[slotType] as EquipSlot).getUnequipped();
@@ -205,11 +215,12 @@ export class Equipment {
     }
 
     /* Returns an item in the given slot.*/
-    public getItem(slotType: string) {
+    public getItem(slotType: string): SlotContent | SlotContent[] {
         if (this._hasSlot(slotType)) {
             const slot: EquipSlotOrArray = this._slots[slotType];
             if (Array.isArray(slot)) {
-                return slot.map(itemSlot => itemSlot.getItem());
+                // Note this can return [null, null] for example, which is fine
+                return slot.map(itemSlot => itemSlot.getItem()!);
             }
             return (this._slots[slotType] as EquipSlot).getItem();
         }
@@ -264,18 +275,18 @@ export class Equipment {
         return this.getItem(slotType);
     }
 
-    public getEquippedItems() {
-        const items = [];
+    public getEquippedItems(): ItemBase[] {
+        const items: ItemBase[] = [];
         Object.values(this._slots).forEach((slot) => {
             if (Array.isArray(slot)) {
                 slot.forEach(subSlot => {
                     if (subSlot.hasItem()) {
-                        items.push(subSlot.getItem());
+                        items.push(subSlot.getItem()!);
                     }
                 });
             }
             else if (slot.hasItem()) {
-                items.push(slot.getItem());
+                items.push(slot.getItem()!);
             }
         });
         return items;
@@ -286,7 +297,7 @@ export class Equipment {
         if (this._hasSlot(slotType)) {
             const slot = this._slots[slotType];
             if (Array.isArray(slot)) {
-                if (index >= 0) {
+                if (typeof index === 'number' && index >= 0) {
                     if (slot[index].unequipItem(n)) {
                         return true;
                     }
@@ -311,7 +322,7 @@ export class Equipment {
     }
 
     public toJSON() {
-        const json = [];
+        const json: any = [];
         const equipped = this.getEquippedItems();
         for (let i = 0; i < equipped.length; i++) {
             json.push(equipped[i].toJSON());
@@ -321,7 +332,7 @@ export class Equipment {
 
     /* Calls given funcname for each item in slot, and sums the results
      * of the function together. */
-    private propertySum(funcname): number {
+    private propertySum(funcname: string): number {
         let result = 0;
         const slotKeys = Object.keys(this._slots);
         slotKeys.forEach(slotName => {

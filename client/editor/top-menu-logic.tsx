@@ -10,8 +10,8 @@ const debug = dbg('bitn:TopMenuLogic');
 import {FactoryBattle} from '../src/factory.battle';
 
 interface ITopMenuLogicProps {
-  addLevel: (Level) => void;
-  level: Level;
+  addLevel: (level: Level) => void;
+  level: null | Level;
   onRef: any;
 }
 
@@ -110,7 +110,7 @@ export default class TopMenuLogic extends Component {
     /* Top menu logic renders only optionally the modal used to modify the
      * settings for each command. */
     public render() {
-      let errorMsg = null;
+      let errorMsg: any = null;
       if (this.state.errorMsg !== '') {
         errorMsg = (<span className='text-danger'>
           {this.state.errorMsg}</span>

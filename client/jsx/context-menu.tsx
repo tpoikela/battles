@@ -5,7 +5,7 @@ import ContextMenuItems from './context-menu-items';
 import {Cell} from '../src/map.cell';
 
 export interface IGameContextMenuProps {
-  mouseOverCell: Cell;
+  mouseOverCell: null | Cell;
   handleRightClick(evt: React.SyntheticEvent, data: any, cell: Cell): void;
 }
 

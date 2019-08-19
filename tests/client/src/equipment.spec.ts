@@ -40,7 +40,6 @@ describe('Equipment', () => {
 
     it('has different slots for items', () => {
         const slotTypes = eq.getSlotTypes();
-        const nLast = slotTypes.length - 1;
         expect(slotTypes).to.have.length.above(5);
 
         const handSlot = slotTypes.findIndex(type => type === 'hand');

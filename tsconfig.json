@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "removeComments": false,
-    "esModuleInterop": true,
     "allowJs": true,
+    "strictNullChecks": false,
+    "removeComments": false,
     "noImplicitAny": false,
+
+    "esModuleInterop": true,
     "jsx": "react",
     "module": "commonjs",
-    "strictNullChecks": false,
     "outDir": "build",
     "sourceMap": true,
     "target": "ES6",

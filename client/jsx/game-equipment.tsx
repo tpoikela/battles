@@ -2,17 +2,19 @@
 import * as React from 'react';
 import {GameEquipSlot, ISelection} from './game-equip-slot';
 
+type Equipment = import('../src/equipment').Equipment;
+
 interface IGameEquipmentProps {
-  eq: any;
+  eq: Equipment;
   isMasterEquipper: boolean;
   setEquipSelected(selection: ISelection): void;
 }
 
 /* Component which shows the equipment of the player.*/
-const GameEquipment = (props: IGameEquipmentProps) => {
+export const GameEquipment = (props: IGameEquipmentProps) => {
   const eq = props.eq;
   const slots = eq.getSlotTypes();
-  const equipped = [];
+  const equipped: any = [];
   const setEquip = props.setEquipSelected;
 
   let attr = '';
@@ -28,8 +30,8 @@ const GameEquipment = (props: IGameEquipmentProps) => {
     }
 
     let key = '' + i;
-    if (items && items.length > 0) {
-      for (let j = 0; j < items.length; j++) {
+    if (items && (items as any[]).length > 0) {
+      for (let j = 0; j < (items as any[]).length; j++) {
         key += ',' + j;
         equipped.push(
           <GameEquipSlot
@@ -62,5 +64,3 @@ const GameEquipment = (props: IGameEquipmentProps) => {
     </div>
   );
 };
-
-export default GameEquipment;

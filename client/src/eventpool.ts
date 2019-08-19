@@ -32,7 +32,7 @@ export class EventPool  { // {{{2
     private _listeners: {[key: string]: Listener[]};
     private _nListeners: number;
     private _listenerID: number;
-    private _lastEmitted: string;
+    private _lastEmitted: string | null;
     private _lastRemoved: any;
     private pendingRemoves: any[];
     private notifyStackSize: number;
@@ -188,7 +188,7 @@ export class EventPool  { // {{{2
             evtKeys.forEach(evt => {
                 const listenersEvt: Listener[] = this._listeners[evt];
                 listenersEvt.forEach(listener => {
-                    allListeners[listener.listenerID] = listener;
+                    allListeners[listener.listenerID!] = listener;
                 });
             });
 

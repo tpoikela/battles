@@ -5,6 +5,8 @@ import {CellMap} from './map';
 import * as Element from './element';
 
 type TextInput = string | string[];
+type ElementBase = Element.ElementBase;
+type ElementDoor = Element.ElementDoor;
 
 export const MapASCII = function(text: TextInput, objMapper: any) {
     const lines: string[] = MapASCII.getTextArray(text);
@@ -72,7 +74,7 @@ MapASCII.DefaultMapper = function() {
 };
 
 MapASCII.DefaultMapper.prototype.getBaseElem = function(
-    x: number, y: number, char: string) 
+    x: number, y: number, char: string): ElementBase
 {
     switch (char) {
         case '.': return RG.ELEM.FLOOR;
@@ -89,11 +91,11 @@ MapASCII.DefaultMapper.prototype.getBaseElem = function(
 };
 
 MapASCII.DefaultMapper.prototype.getObjects = function(
-    x: number, y: number, char: string) 
+    x: number, y: number, char: string)
 {
-    const res = [];
+    const res: any = [];
     switch (char) {
-        case '+': res.push(new RG.Element.Door(true)); break;
+        case '+': res.push(new Element.ElementDoor(true)); break;
         default: break;
     }
     return res;

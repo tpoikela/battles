@@ -1,6 +1,5 @@
 
 import * as React from 'react';
-import RG from '../src/rg';
 import {SentientActor} from '../src/actor';
 
 interface IPlayerStatsProps {
@@ -21,7 +20,7 @@ export default class PlayerStats extends React.Component {
         const stats = SentientActor.getFormattedStats(player);
 
         // Create HTML for showing stats
-        const statsHTML = [];
+        const statsHTML: any = [];
         let index = 0;
         for (const key in stats) {
           if (key) {

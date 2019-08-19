@@ -2,8 +2,8 @@
 import * as React from 'react';
 import Modal from 'react-bootstrap-modal';
 import ModalHeader from './modal-header';
-import GameItems from './game-items';
-import GameEquipment from './game-equipment';
+import {GameItems} from './game-items';
+import {GameEquipment} from './game-equipment';
 
 import RG from '../src/rg';
 import {KeyCode} from '../gui/keycode';
@@ -193,10 +193,12 @@ export default class GameInventory extends React.Component {
   }
 
   public setEquipSelected(selection: ISelection): void {
-    const msg = 'Equipment Selected: ' + selection.item.toString();
-    this.props.selectEquipTop(selection);
-    this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
-    this.setState({count: selection.item.getCount()});
+    if (selection.item) {
+      const msg = 'Equipment Selected: ' + selection.item.toString();
+      this.props.selectEquipTop(selection);
+      this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
+      this.setState({count: selection.item.getCount()});
+    }
   }
 
   public render() {

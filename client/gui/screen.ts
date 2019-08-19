@@ -9,21 +9,23 @@ interface Styles {
     [key: string]: string;
 }
 
+export type RLEArray = Array<[number, string] | string>;
+
 export const ALL_VISIBLE = 'ALL';
 
 // TODO: Refactor out of this file
 /* Builds and returns two arrays. First contains all CSS classNames of
  * cells to be rendered, and the second one all characters to be rendered.*/
 const getClassesAndChars = function(
-    seen: Cell[] | string, cells: Cell[], selCell
+    seen: Cell[] | string, cells: Cell[], selCell: TSelectedCell
 ) {
-    const cssClasses = [];
-    const asciiChars = [];
+    const cssClasses: string[] = [];
+    const asciiChars: string[] = [];
 
     let selX = -1;
     let selY = -1;
 
-    if (selCell !== null) {
+    if (selCell !== null && !Array.isArray(selCell)) {
         selX = selCell.getX();
         selY = selCell.getY();
     }
@@ -65,32 +67,33 @@ const getClassesAndChars = function(
     return [cssClasses, asciiChars];
 };
 
+
 const getClassesAndCharsWithRLE = function(
     seen: Cell[] | string,
     cells: Cell[],
-    selCell,
+    selCell: TSelectedCell,
     anim?,
     styles: Styles = {},
     funcClassSrc?,
     funcCharSrc?
-): [string[], string[]] {
-    let prevChar = null;
-    let prevClass = null;
+): [RLEArray, RLEArray] {
+    let prevChar: string | null = null;
+    let prevClass: string | null = null;
     let charRL = 0;
     let classRL = 0;
 
-    const cssClasses = [];
-    const asciiChars = [];
+    const cssClasses: RLEArray = [];
+    const asciiChars: RLEArray = [];
 
     funcClassSrc = funcClassSrc || RG.getCssClassForCell.bind(RG);
     funcCharSrc = funcCharSrc || RG.getCharForCell.bind(RG);
 
-    let selMap: Map<string, Cell> = null;
+    let selMap: Map<string, Cell> | null = null;
     if (selCell) {
         selMap = new Map();
         if (Array.isArray(selCell)) {
             selCell.forEach(cell => {
-                selMap.set(cell.getX() + ',' + cell.getY(), cell);
+                selMap!.set(cell.getX() + ',' + cell.getY(), cell);
             });
         }
         else {
@@ -158,7 +161,7 @@ const getClassesAndCharsWithRLE = function(
         if (finishCurrentRLE) {
             cssClasses.push([classRL, prevClass]);
             classRL = 1;
-            asciiChars.push([charRL, prevChar]);
+            asciiChars.push([charRL, prevChar!]);
             charRL = 1;
         }
         else {
@@ -180,8 +183,8 @@ const getClassesAndCharsWithRLE = function(
 /* Same as above but optimized for showing the full map in the game editor.
 *  Does not take into account cells seen by player. */
 const getClassesAndCharsFullMap = function(cells: Cell[], selCell) {
-    const cssClasses = [];
-    const asciiChars = [];
+    const cssClasses: string[] = [];
+    const asciiChars: string[] = [];
 
     let selX = -1;
     let selY = -1;
@@ -209,20 +212,22 @@ const getClassesAndCharsFullMap = function(cells: Cell[], selCell) {
 };
 
 /* Returns the CSS classes + characters to be rendered using RLE. */
-const getClassesAndCharsFullMapWithRLE = function(cells: Cell[], selCell) {
-    let prevChar = null;
-    let prevClass = null;
+const getClassesAndCharsFullMapWithRLE = function(
+    cells: Cell[], selCell: TSelectedCell
+): [RLEArray, RLEArray] {
+    let prevChar: string = '';
+    let prevClass: string = '';
     let charRL = 0;
     let classRL = 0;
 
-    const cssClasses = [];
-    const asciiChars = [];
+    const cssClasses: RLEArray = [];
+    const asciiChars: RLEArray = [];
 
-    let selMap = null;
-    if (selCell) {
+    let selMap: Map<string, Cell> | null = null;
+    if (selCell && Array.isArray(selCell)) {
         selMap = new Map();
-        selCell.forEach(cell => {
-            selMap.set(cell.getX() + ',' + cell.getY(), cell);
+        selCell.forEach((cell: Cell) => {
+            selMap!.set(cell.getX() + ',' + cell.getY(), cell);
         });
     }
 
@@ -268,6 +273,8 @@ const getClassesAndCharsFullMapWithRLE = function(cells: Cell[], selCell) {
 
 };
 
+type TSelectedCell = Cell | Cell[] | null;
+
 //----------------
 // Screen
 //----------------
@@ -281,11 +288,12 @@ export class Screen {
     public startY: number;
     public endY: number;
 
-    public selectedCell: Cell | Cell[];
+    public selectedCell: TSelectedCell;
     public styles: Styles;
-    public _charRows: string[][];
-    public _classRows: string[][];
+    public _charRows: RLEArray[];
+    public _classRows: RLEArray[];
     public _mapShown: boolean;
+    public isRLE: boolean;
     public viewport: Viewport;
 
     constructor(viewX: number, viewY: number) {
@@ -296,6 +304,7 @@ export class Screen {
         this._charRows = [];
         this._classRows = [];
         this._mapShown = false;
+        this.isRLE = false;
 
         this.viewport = new Viewport(viewX, viewY);
 
@@ -306,7 +315,7 @@ export class Screen {
         return this.viewport.startX;
     }
 
-    public setSelectedCell(cell: Cell | Cell[]): void {
+    public setSelectedCell(cell: TSelectedCell): void {
         this.selectedCell = cell;
     }
 
@@ -327,11 +336,11 @@ export class Screen {
         this._mapShown = mapShown;
     }
 
-    public getCharRows(): string[][] {
+    public getCharRows(): RLEArray[] {
         return this._charRows;
     }
 
-    public getClassRows(): string[][] {
+    public getClassRows(): RLEArray[] {
         return this._classRows;
     }
 
@@ -354,6 +363,7 @@ export class Screen {
     /* 'Renders' the ASCII screen and style classes based on player's
      * coordinate, map and visible cells. */
     public render(playX, playY, map: CellMap, visibleCells: Cell[] | string): void {
+        this.isRLE = false;
         this._initRender(playX, playY, map);
         let yCount = 0;
         for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
@@ -367,12 +377,14 @@ export class Screen {
         }
     }
 
-    public renderAllVisible(playX, playY, map: CellMap): void {
+    public renderAllVisible(playX: number, playY: number, map: CellMap): void {
+        this.isRLE = false;
         this.render(playX, playY, map, ALL_VISIBLE);
     }
 
     public renderWithRLE(playX: number, playY: number, map: CellMap,
                          visibleCells: Cell[], anim?, funcClassSrc?, funcCharSrc?) {
+        this.isRLE = true;
         this._initRender(playX, playY, map);
         let yCount = 0;
         for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
@@ -388,6 +400,7 @@ export class Screen {
 
     /* Renders the full map as visible. */
     public renderFullMap(map: CellMap): void {
+        this.isRLE = false;
         this.startX = 0;
         this.endX = map.cols - 1;
         this.startY = 0;
@@ -404,6 +417,7 @@ export class Screen {
 
     /* Same as renderFullMap() but using RLE */
     public renderFullMapWithRLE(map: CellMap): void {
+        this.isRLE = true;
         this.startX = 0;
         this.endX = map.cols - 1;
         this.startY = 0;

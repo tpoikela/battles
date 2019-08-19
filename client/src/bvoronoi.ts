@@ -56,12 +56,14 @@ export class BVoronoi {
         let closestId = CELL_NOT_FOUND;
         let d = Number.MAX_SAFE_INTEGER;
 
-        this.sites.forEach(cell => {
+        this.sites.forEach((cell: VoronoiSite) => {
             const {x, y, voronoiId} = cell;
-            const dist = distSqr(xy, [x, y]);
-            if (dist < d) {
-                d = dist;
-                closestId = voronoiId;
+            if (typeof voronoiId !== 'undefined') {
+                const dist = distSqr(xy, [x, y]);
+                if (dist < d) {
+                    d = dist;
+                    closestId = voronoiId;
+                }
             }
         });
 

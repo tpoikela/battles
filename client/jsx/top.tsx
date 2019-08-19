@@ -27,10 +27,13 @@ const debug = dbg('bitn:top');
 import RG from '../src/rg';
 import {Keys} from '../src/keymap';
 
+import {RLEArray, Screen} from '../gui/screen';
 import {ItemBase} from '../src/item';
 import {GameManager, VIEW_MAP, VIEW_PLAYER} from '../browser/game-manager';
 import {Cell} from '../src/map.cell';
 import {IMessage} from '../src/interfaces';
+
+type SentientActor = import('../src/actor').SentientActor;
 
 const INV_SCREEN = 'Inventory';
 
@@ -39,7 +42,7 @@ export interface EditorData {
 }
 
 export interface IBattlesTopState {
-    animation: Animation;
+    animation: Animation | null;
     boardClassName: string;
     playMode: string;
     equipSelected: null;
@@ -47,7 +50,7 @@ export interface IBattlesTopState {
     invMsgStyle: string;
     levelSize: string;
     loadFromEditor: boolean;
-    mouseOverCell: Cell;
+    mouseOverCell: Cell | null;
     playerClass: string;
     playerRace: string;
     playerLevel: string;
@@ -55,9 +58,9 @@ export interface IBattlesTopState {
     render: boolean;
     saveInProgress: boolean;
     seedName: string;
-    selectedCell: Cell;
+    selectedCell: Cell | null;
     selectedGame: any;
-    selectedItem: ItemBase;
+    selectedItem: ItemBase | null;
     showPlugins: boolean;
     showEditor: boolean;
     showMap: boolean;
@@ -318,11 +321,11 @@ export class BattlesTop extends React.Component {
     public render() {
         const [overworld, playerOwPos] = this.gameManager.getOWAndPlayerPos();
         let rowClass = '';
-        let player = null;
-        let screen = null;
-        let charRows = null;
-        let classRows = null;
-        let startX = null;
+        let player: null | SentientActor = null;
+        let screen: null | Screen = null;
+        let charRows: null | RLEArray[] = null;
+        let classRows: null | RLEArray[] = null;
+        let startX: null | number = null;
         const message: IMessage[] = this.gameManager.getMessages();
         const gameValid = this.gameManager.isGameValid();
         const showGameMenu = this.gameManager.isMenuShown();
@@ -348,7 +351,7 @@ export class BattlesTop extends React.Component {
             playerLevel: this.state.playerLevel,
             levelSize: this.state.levelSize
         };
-        const oneSelectedCell: Cell = this.getOneSelectedCell();
+        const oneSelectedCell: Cell | null = this.getOneSelectedCell();
 
         return (
             <div className='container main-div' id='main-div' >
@@ -445,7 +448,7 @@ export class BattlesTop extends React.Component {
                         {gameValid &&
                         <div className='text-left game-stats-div'>
                             <GameStats
-                                player={player}
+                                player={player!}
                                 selectedCell={oneSelectedCell}
                                 selectedItem={this.state.selectedItem}
                                 setViewType={this.setViewType}
@@ -472,15 +475,15 @@ export class BattlesTop extends React.Component {
                             <ContextMenuTrigger id='right-click-context-menu'>
                                 <GameBoard
                                     boardClassName={this.state.boardClassName}
-                                    charRows={charRows}
-                                    classRows={classRows}
-                                    endY={screen.endY}
+                                    charRows={charRows!}
+                                    classRows={classRows!}
+                                    endY={screen!.endY}
                                     onCellClick={this.onCellClick}
                                     onMouseOverCell={this.onMouseOverCell}
                                     rowClass={rowClass}
-                                    sizeX={2 * screen.viewportX + 1}
-                                    startX={startX}
-                                    startY={screen.startY}
+                                    sizeX={2 * screen!.viewportX + 1}
+                                    startX={startX!}
+                                    startY={screen!.startY}
                                     useRLE={true}
                                 />
                             </ContextMenuTrigger>
@@ -564,7 +567,7 @@ export class BattlesTop extends React.Component {
         this.setState({editorData, loadFromEditor: true});
     }
 
-    public getOneSelectedCell(): Cell {
+    public getOneSelectedCell(): Cell | null {
         if (Array.isArray(this.state.selectedCell)) {
             const cells: Cell[] = this.state.selectedCell as Cell[];
             if (cells.length > 0) {
@@ -652,7 +655,12 @@ export class BattlesTop extends React.Component {
             RG.gameMsg('Select direction for using the item.');
         }
         else {
-            this.gameManager.useItem(code, this.state.selectedItem);
+            if (this.state.selectedItem) {
+                this.gameManager.useItem(code, this.state.selectedItem);
+            }
+            else {
+                RG.gameWarn('No item selected for using!');
+            }
         }
     }
 
@@ -660,8 +668,10 @@ export class BattlesTop extends React.Component {
     public GUINextTarget(): void {
         if (this.gameManager.guiState('isTargeting')) {
             const nextCell = this.gameManager.getNextTargetCell();
-            this.gameManager.setSelectedCell(nextCell);
-            this.setState({selectedCell: nextCell});
+            if (nextCell) {
+                this.gameManager.setSelectedCell(nextCell);
+                this.setState({selectedCell: nextCell});
+            }
         }
     }
 

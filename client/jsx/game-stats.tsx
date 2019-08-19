@@ -4,13 +4,16 @@ import PlayerStats from './player-stats';
 import {VIEW_PLAYER, VIEW_MAP,
     STATUS_COMPS_GUI, TPlayerStatusGUI} from '../browser/game-manager';
 
+type BrainPlayer = import('../src/brain').BrainPlayer;
+type SentientActor = import('../src/actor').SentientActor;
+
 interface IGameStatsProps {
   showMap: boolean;
-  player: any;
+  player: SentientActor;
   selectedItem?: any;
   selectedCell?: any;
   setViewType(type: number): void;
-  toggleScreen(any): void;
+  toggleScreen(arg: any): void;
 }
 
 
@@ -38,9 +41,10 @@ export default class GameStats extends React.Component {
     const playerName = player.getName();
     const selectedItem = this.props.selectedItem;
     const selectedCell = this.props.selectedCell;
+    const brain = player.getBrain() as BrainPlayer;
 
     let selItemName = '';
-    if (selectedItem !== null) {
+    if (selectedItem) {
       selItemName = 'Selected: ' + selectedItem.getName();
     }
 
@@ -54,7 +58,7 @@ export default class GameStats extends React.Component {
     // Create HTML for showing movement mode
     let moveStatus = 'Move: ';
     let moveClassName = 'text-info';
-    if (player.getBrain().isRunModeEnabled()) {
+    if (brain.isRunModeEnabled()) {
       moveStatus += ' Running';
       moveClassName = 'text-danger';
     }
@@ -63,7 +67,7 @@ export default class GameStats extends React.Component {
     }
 
     // Create HTML for showing fighting mode
-    const fightMode = player.getBrain().getFightMode();
+    const fightMode = brain.getFightMode();
     let fightModeStatus = 'Fight: ';
     if (fightMode === RG.FMODE_NORMAL) {fightModeStatus += 'Normal';}
     else if (fightMode === RG.FMODE_SLOW) {fightModeStatus += 'Slow';}
@@ -122,12 +126,12 @@ export default class GameStats extends React.Component {
     );
   }
 
-  public toggleScreen(type) {
+  public toggleScreen(type: any) {
     this.props.toggleScreen(type);
   }
 
-  public getPlayerStatus(player) {
-    const stat = [];
+  public getPlayerStatus(player: SentientActor) {
+    const stat: any = [];
     STATUS_COMPS_GUI.forEach((array: TPlayerStatusGUI) => {
         const [compName, style, text, key] = array;
         if (player.has(compName)) {

@@ -36,7 +36,13 @@ import {Screen} from '../gui/screen';
 import {WorldConf} from '../src/world.creator';
 import {ZoneBase, SubZoneBase} from '../src/world';
 
+import {TCoord} from '../src/interfaces';
+
 import * as Gen from '../src/generator';
+
+interface IConf {
+    [key: string]: any;
+}
 
 const KeyMap = Keys.KeyMap;
 
@@ -74,8 +80,8 @@ const getSelection = (c0: Cell, c1: Cell, map: CellMap): Cell[] => {
     }
     const bb = Geometry.getBoxCornersForCells(c0, c1);
     const coord = Geometry.getBox(bb.ulx, bb.uly, bb.lrx, bb.lry);
-    const res = [];
-    coord.forEach(xy => {
+    const res: Cell[] = [];
+    coord.forEach((xy: TCoord) => {
       res.push(map.getCell(xy[0], xy[1]));
     });
     return res;
@@ -108,7 +114,7 @@ export interface IGameEditorState {
       debug: boolean;
       boardClassName: string;
       boardIndex: number;
-      lastTouchedConf: {[key: string]: any};
+      lastTouchedConf: null | {[key: string]: any};
       zoneType: string;
       zoneList: ZoneBase[];
       zoneConf: ZoneConf;
@@ -187,7 +193,7 @@ export default class GameEditor extends Component {
   public screen: Screen;
   public parser: any;
   public intervalID: any;
-  public frameID: number;
+  public frameID: null | number;
   public nextCode: number;
   public game: any; // TODO GameMain;
   public animationID: number;
@@ -341,13 +347,16 @@ export default class GameEditor extends Component {
     }
   }
 
-  public getCurrMap(): CellMap {
-    return this.state.level.getMap();
+  public getCurrMap(): CellMap | null {
+    if (this.state.level) {
+      return this.state.level.getMap();
+    }
+    return null;
   }
 
   public getCellCurrMap(x, y): Cell | null {
     const map = this.getCurrMap();
-    if (map.hasXY(x, y)) {
+    if (map && map.hasXY(x, y)) {
       return map.getCell(x, y);
     }
     return null;
@@ -381,7 +390,7 @@ export default class GameEditor extends Component {
       const [x0, y0] = firstCell.getXY();
       const [x1, y1] = cell.getXY();
       const coord = Path.getShortestPassablePath(map, x0, y0, x1, y1);
-      const pathCells = coord.map(xy => map.getCell(xy.x, xy.y));
+      const pathCells = coord.map(xy => map!.getCell(xy.x, xy.y));
       this.setState({selectedCell: pathCells,
         mouseOverCell: cell});
     }
@@ -418,12 +427,15 @@ export default class GameEditor extends Component {
     if (this.state.selectMode) {
       if (cell) {
         const map = this.getCurrMap();
-        const selectedCells = getSelection(this.state.selectBegin,
-          cell, map);
-        const dX = cell.getX() - this.state.selectBegin.getX();
-        const dY = cell.getY() - this.state.selectBegin.getY();
-        this.setState({selectedCell: selectedCells, selectEnd: cell,
-            selectDiffX: dX, selectDiffY: dY});
+        const cellSelBegin = this.state.selectBegin;
+        if (cellSelBegin) {
+            const selectedCells = getSelection(cellSelBegin,
+                cell, map!); // map must exist because we got the cell
+            const dX = cell.getX() - cellSelBegin.getX();
+            const dY = cell.getY() - cellSelBegin.getY();
+            this.setState({selectedCell: selectedCells, selectEnd: cell,
+                selectDiffX: dX, selectDiffY: dY});
+        }
       }
     }
     else if (this.state.enablePathfind) {
@@ -469,7 +481,7 @@ export default class GameEditor extends Component {
         mult = 10;
       }
 
-      let cell: Cell = this.getFirstSelectedCell();
+      let cell: null | Cell = this.getFirstSelectedCell();
       if (this.state.selectMode) {
         cell = this.state.selectEnd;
       }
@@ -481,15 +493,18 @@ export default class GameEditor extends Component {
         const newY = y0 + dir[1] * mult;
         const map = this.getCurrMap();
 
-        if (map.hasXY(newX, newY)) {
+        if (map && map.hasXY(newX, newY)) {
           const newCell = map.getCell(newX, newY);
           if (this.state.selectMode) {
-            const selectedCells = getSelection(this.state.selectBegin,
-              newCell, map);
-            const dX = newX - this.state.selectBegin.getX();
-            const dY = newY - this.state.selectBegin.getY();
-            this.setState({selectedCell: selectedCells, selectEnd: newCell,
-                selectDiffX: dX, selectDiffY: dY});
+            const cellSelBegin = this.state.selectBegin;
+            if (cellSelBegin) {
+                const selectedCells = getSelection(cellSelBegin,
+                  newCell, map);
+                const dX = newX - cellSelBegin.getX();
+                const dY = newY - cellSelBegin.getY();
+                this.setState({selectedCell: selectedCells, selectEnd: newCell,
+                    selectDiffX: dX, selectDiffY: dY});
+            }
           }
           else {
             this.setState({
@@ -525,13 +540,14 @@ export default class GameEditor extends Component {
 
   public onCellClick(x, y): void {
     const map = this.getCurrMap();
-    if (map.hasXY(x, y)) {
+    if (map && map.hasXY(x, y)) {
       const cell = map.getCell(x, y);
       console.log(`Clicked ${x},${y} ${JSON.stringify(cell)}`);
 
       if (cell.hasActors()) {
-        console.log(cell.getActors()[0]);
-        console.log(JSON.stringify(cell.getActors()[0]));
+        const topActor = cell.getActors()![0];
+        console.log(topActor);
+        console.log(JSON.stringify(topActor));
       }
     }
   }
@@ -587,7 +603,9 @@ export default class GameEditor extends Component {
         case 'quarter': feat = fact.createCityQuarter(featConf); break;
         default: console.log('No legal zoneType given');
       }
-      this.addZoneToEditor(zoneType, feat);
+      if (feat) {
+        this.addZoneToEditor(zoneType, feat);
+      }
     }
     catch (e) {
       this.setState({errorMsg: e.message});
@@ -622,7 +640,7 @@ export default class GameEditor extends Component {
         console.log('Set extraConf', cols, rows, extraConf);
     }
 
-    let level = null;
+    let level: null | Level = null;
     if (levelType === 'capital') {
       level = new Capital(cols, rows, conf).getLevel();
     }
@@ -663,7 +681,7 @@ export default class GameEditor extends Component {
         levelType, cols, rows, conf);
     }
     delete conf.parser;
-    return level;
+    return level as Level; // Always exists due to else-branch
   }
 
   /* Adds one level to the editor and updates the state. */
@@ -696,6 +714,11 @@ export default class GameEditor extends Component {
    * overlapping cells in the large map (incl items and actors). */
   public subGenerateMap() {
     const level = this.state.level;
+    if (!level) {
+      this.setState({errorMsg: 'Editor has no level for placing the sub-level!'});
+      return;
+    }
+
     const levelType = this.state.subLevelType;
     let conf: {[key: string]: any} = {};
 
@@ -708,7 +731,7 @@ export default class GameEditor extends Component {
     conf.rows = subHeight;
 
     if (this.state.selectedCell) {
-      const [x0, y0] = this.getFirstSelectedCell().getXY();
+      const [x0, y0] = this.getFirstSelectedCell()!.getXY();
 
       // Iterate through tiles in x-direction (tx) and tiles in
       // y-direction (ty). Compute upper left x,y for each sub-level.
@@ -752,6 +775,10 @@ export default class GameEditor extends Component {
       itemsPerLevel: this.state.numEntities
     };
     const level = this.state.level;
+    if (!level) {
+      this.setState({errorMsg: 'Editor has no levels to generate items!'});
+      return;
+    }
 
     // Remove existing items first
     const items = level.getItems();
@@ -767,6 +794,10 @@ export default class GameEditor extends Component {
   /* Generates and inserts random actors into the map. */
   public generateActors(): void {
     const level = this.state.level;
+    if (!level) {
+      this.setState({errorMsg: 'Editor has no levels to generate actors!'});
+      return;
+    }
 
     // Remove existing actors first
     const actors = level.getActors();
@@ -823,7 +854,9 @@ export default class GameEditor extends Component {
     catch (e) {
       this.setState({errorMsg: e.message});
     }
-    this.setStateWithLevel(level);
+    if (level) {
+      this.setStateWithLevel(level);
+    }
   }
 
   public insertItem() {
@@ -836,19 +869,28 @@ export default class GameEditor extends Component {
     catch (e) {
       this.setState({errorMsg: e.message});
     }
-    this.setStateWithLevel(level);
+    if (level) {
+      this.setStateWithLevel(level);
+    }
   }
 
   /* Inverts the map base elements (floor/wall) */
-  public invertMap() {
+  public invertMap(): void {
     const level = this.state.level;
-    const map = level.getMap();
-    CellMap.invertMap(map);
-    this.setStateWithLevel(level);
+    if (level) {
+      const map = level.getMap();
+      CellMap.invertMap(map);
+      this.setStateWithLevel(level);
+    }
   }
 
-  public setMsg(msg) {
-    this.setState({errorMsg: msg});
+  public setMsg(msg: any): void {
+      if (msg.errorMsg) {
+        this.setState({errorMsg: msg.errorMsg});
+      }
+      else if (typeof msg === 'string') {
+        this.setState({errorMsg: msg});
+      }
   }
 
   public render() {
@@ -859,8 +901,8 @@ export default class GameEditor extends Component {
       rowClass = 'cell-row-div-map-view-xxxs';
     }
 
-    let map = null;
-    let mapSizeX = null;
+    let map: null | CellMap = null;
+    let mapSizeX: null | number = null;
     if (this.state.level) {
       map = this.state.level.getMap();
     }
@@ -894,7 +936,7 @@ export default class GameEditor extends Component {
 
     const isPanelRendered = !this.state.simulationStarted ||
       (this.state.simulationStarted && this.state.simulationPaused);
-    let editorPanelElem = null;
+    let editorPanelElem: any = null;
     if (isPanelRendered) {
       editorPanelElem = this.getEditorPanelElement();
     }
@@ -945,7 +987,7 @@ export default class GameEditor extends Component {
                 onMouseUp={this.onMouseUp}
                 rowClass={rowClass}
                 screen={this.screen}
-                sizeX={mapSizeX}
+                sizeX={mapSizeX!}
                 updateMap={this.state.updateMap}
                 useRLE={this.state.useRLE}
               />
@@ -1138,7 +1180,7 @@ export default class GameEditor extends Component {
     const id = `#${idHead}--${confType}--${key}`;
     const inputElem = document.querySelector(id) as HTMLInputElement;
     const value = parseInt(inputElem.value, 10);
-    let conf = null;
+    let conf: null | ZoneConf = null;
 
     if (idHead === 'main') {conf = this.state.levelConf;}
     else if (idHead === 'zone') {conf = this.state.zoneConf;}
@@ -1211,32 +1253,38 @@ export default class GameEditor extends Component {
     const newX = this.getInt(evt.target.value, 10);
     const cell = this.getFirstSelectedCell();
     const update: any = {cellSelectX: newX};
-    const map = this.state.level.getMap();
-    if (Number.isInteger(newX) && cell) {
-      if (map.hasXY(newX, cell.getY())) {
-        const newCell = map.getCell(newX, cell.getY());
-        if (newCell) {
-          update.selectedCell = [newCell];
+    const level = this.state.level;
+    if (level) {
+        const map = level.getMap();
+        if (Number.isInteger(newX) && cell) {
+          if (map.hasXY(newX, cell.getY())) {
+            const newCell = map.getCell(newX, cell.getY());
+            if (newCell) {
+              update.selectedCell = [newCell];
+            }
+          }
         }
-      }
+        this.setState(update);
     }
-    this.setState(update);
   }
 
   public onChangeCellSelectY(evt): void {
     const newY = this.getInt(evt.target.value, 10);
     const cell = this.getFirstSelectedCell();
     const update: any = {cellSelectY: newY};
-    const map = this.state.level.getMap();
-    if (Number.isInteger(newY) && cell) {
-      if (map.hasXY(cell.getX(), newY)) {
-        const newCell = map.getCell(cell.getX(), newY);
-        if (newCell) {
-          update.selectedCell = [newCell];
+    const level = this.state.level;
+    if (level) {
+        const map = level.getMap();
+        if (Number.isInteger(newY) && cell) {
+          if (map.hasXY(cell.getX(), newY)) {
+            const newCell = map.getCell(cell.getX(), newY);
+            if (newCell) {
+              update.selectedCell = [newCell];
+            }
+          }
         }
-      }
+        this.setState(update);
     }
-    this.setState(update);
   }
 
   //----------------------------------------------------------------

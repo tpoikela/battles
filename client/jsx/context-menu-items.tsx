@@ -5,7 +5,7 @@ import {Cell} from '../src/map.cell';
 
 export interface IContextMenuItemsProps {
   menuItems: any;
-  mouseOverCell: Cell;
+  mouseOverCell: null | Cell;
   handleRightClick(evt: React.SyntheticEvent, data: any, cell: Cell): void;
 }
 
@@ -42,13 +42,15 @@ export default class ContextMenuItems extends React.Component {
 
   public handleClick(e, data) {
     console.log('ContextMenuItems handleClick with', data);
-    this.props.handleRightClick(e, data, this.props.mouseOverCell);
+    if (this.props.mouseOverCell) {
+      this.props.handleRightClick(e, data, this.props.mouseOverCell);
+    }
   }
 
   /* Calls different query functions and renders possible commands based on
    * the cell contents. */
   private renderMenuItems() {
-    const items = [];
+    const items: any = [];
     Object.keys(this.props.menuItems).forEach(queryFunc => {
       if (this.isCorrectContext(queryFunc)) {
         const menuItems = this.getMenuItems(this.props.menuItems[queryFunc]);
@@ -76,7 +78,7 @@ export default class ContextMenuItems extends React.Component {
   }
 
   private getMenuItems(items) {
-    let result = [];
+    let result: any = [];
     if (Array.isArray(items)) {
       return items;
     }

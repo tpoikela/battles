@@ -31,7 +31,7 @@ export default class GameCreatingScreen extends React.Component {
 
   public render() {
     const progressMsg = this.renderProgressMsg();
-    let doneButton = null;
+    let doneButton: any = null;
     const msg = this.props.progress;
 
     if (msg && msg.length > 0) {
