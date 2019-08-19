@@ -3,10 +3,11 @@
 
 import RG from '../src/rg';
 import {Vault} from './tiles.vault';
-import {CastleGenerator} from '../src/castle-generator';
+import {CastleGenerator} from '../src/generator';
 import {FactoryZone} from '../src/factory.zone';
 import {Geometry} from '../src/geometry';
 import {FactoryLevel} from '../src/factory.level';
+import {LevelObj} from '../src/interfaces';
 
 const tileSize = 9;
 
@@ -18,11 +19,13 @@ export class BlackTower {
     public tilesX: number;
     public tilesY: number;
     public conf: {[key: string]: any};
+    public tileSize: number;
 
-    constructor(cols, rows, conf: any = {}) {
+    constructor(cols: number, rows: number, conf: any = {}) {
         this.nLevels = conf.nLevels || 5;
         this.cols = cols || 100;
         this.rows = rows || 50;
+        this.tileSize = conf.tileSize || tileSize;
         this.tilesX = Math.round(this.cols / tileSize);
         this.tilesY = Math.round(this.rows / tileSize);
         /* if (this.tilesX % 2 === 0) {++this.tilesX;}
@@ -30,7 +33,7 @@ export class BlackTower {
         this.conf = conf;
     }
 
-    getLevels() {
+    public getLevels(): LevelObj[] {
         const castleGen = new CastleGenerator();
         const castleConf: any = { // TODO fix typings
             wallType: 'wallice',
@@ -88,12 +91,12 @@ export class BlackTower {
         return levels.map((level, i) => ({nLevel: i, level}));
     }
 
-    getDanger(nLevel) {
+    public getDanger(nLevel) {
         return 7 + 3 * nLevel; // arbitraty, to tune
     }
 
     /* Adds properties like actors and items into levels. */
-    addProps(levels) {
+    public addProps(levels) {
         const factZone = new FactoryZone();
         levels.forEach((level, i) => {
             const maxDanger = this.getDanger(i);
@@ -126,7 +129,7 @@ export class BlackTower {
     }
 
     /* Generate the outside yard for the first level. */
-    generateYard(levels): void {
+    public generateYard(levels): void {
         const level0 = levels[0];
         const scaleYard = 1.4;
 

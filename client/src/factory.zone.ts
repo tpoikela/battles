@@ -7,9 +7,7 @@ const debug = dbg('bitn:FactoryZone');
 import * as Verify from './verify';
 import {Factory, FactoryBase} from './factory';
 import {FactoryItem} from './factory.items';
-import {MountainGenerator} from './mountain-generator';
-import {CityGenerator} from './city-generator';
-import {CastleGenerator} from './castle-generator';
+import {MountainGenerator, CityGenerator, CastleGenerator} from './generator';
 import {Random} from './random';
 import {ObjectShell} from './objectshellparser';
 import * as Element from './element';
@@ -403,8 +401,8 @@ export const FactoryZone = function() {
                 });
             });
 
-            const room = this.rng.arrayGetRand(extras.rooms);
-            const bbox = room.getBbox();
+            const foundRoom = this.rng.arrayGetRand(extras.rooms);
+            const bbox = foundRoom.getBbox();
             this.addActorsToBbox(level, bbox, conf);
         }
     };

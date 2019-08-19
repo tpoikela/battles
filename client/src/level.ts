@@ -5,11 +5,11 @@ import {Pickup} from './component/component';
 import {compsToJSON} from './component/component.base';
 import {Random} from './random';
 import {EventPool} from './eventpool';
-import {verifyLevelCache} from './verify';
+// import {verifyLevelCache} from './verify';
 import * as Mixin from './mixin';
 import {ELEM} from '../data/elem-constants';
 import * as Component from './component/component';
-import {MapObj} from './map.generator';
+import {MapObj} from './generator';
 
 // Import types only
 import {TCoord, BBox, TLocatableElement} from './interfaces';

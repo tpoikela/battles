@@ -46,12 +46,8 @@ export * from './evaluators-battle';
 
 export * from './map.cell';
 export * from './map';
-export * from './map.generator';
+export * from './generator';
 export * from './level';
-export * from './level-generator';
-export * from './mountain-generator';
-export * from './dungeon-generator';
-export * from './cave-generator';
 
 export * from './world';
 

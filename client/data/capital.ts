@@ -10,10 +10,7 @@ import * as Element from '../src/element';
 import {Level} from '../src/level';
 import {FactoryLevel} from '../src/factory.level';
 import {Geometry} from '../src/geometry';
-import {CityGenerator} from '../src/city-generator';
-import {ELEM} from './elem-constants';
-
-type Stairs = Element.ElementStairs;
+import {CityGenerator} from '../src/generator';
 
 /* Class to create the capital city of the game. */
 export class Capital {

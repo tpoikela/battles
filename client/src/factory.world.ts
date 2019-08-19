@@ -16,10 +16,10 @@ import {FactoryActor} from './factory.actors';
 import {ObjectShell} from './objectshellparser';
 import {ObjectShellComps} from './objectshellcomps';
 
-import {DungeonGenerator} from './dungeon-generator';
-import {CaveGenerator} from './cave-generator';
-import {CastleGenerator} from './castle-generator';
-import {CryptGenerator} from './crypt-generator';
+import {DungeonGenerator,
+    CaveGenerator,
+    CastleGenerator,
+    CryptGenerator} from './generator';
 
 import {QuestPopulate} from './quest';
 import {Level} from './level';

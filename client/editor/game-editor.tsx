@@ -27,7 +27,7 @@ import {GameMain} from '../src/game';
 import {Geometry} from '../src/geometry';
 import {Keys} from '../src/keymap';
 import {Level} from '../src/level';
-import {MapWall} from '../../lib/map.wall';
+// import {MapWall} from '../../lib/map.wall';
 import {OWMap} from '../src/overworld.map';
 import {ObjectShell} from '../src/objectshellparser';
 import {OverWorld} from '../src/overworld';
@@ -35,13 +35,8 @@ import {Path} from '../src/path';
 import {Screen} from '../gui/screen';
 import {WorldConf} from '../src/world.creator';
 import {ZoneBase, SubZoneBase} from '../src/world';
-import {MapGenerator} from '../src/map.generator';
-import {DungeonGenerator} from '../src/dungeon-generator';
-import {CaveGenerator} from '../src/cave-generator';
-import {CaveBrGenerator} from '../src/cave-br-generator';
-import {MountainGenerator} from '../src/mountain-generator';
-import {CastleGenerator} from '../src/castle-generator';
-import {CityGenerator} from '../src/city-generator';
+
+import * as Gen from '../src/generator';
 
 const KeyMap = Keys.KeyMap;
 
@@ -638,25 +633,25 @@ export default class GameEditor extends Component {
       level = new DwarvenCity(cols, rows, conf).getLevel();
     }
     else if (levelType === 'Dungeon') {
-      level = new DungeonGenerator().create(cols, rows, conf);
+      level = new Gen.DungeonGenerator().create(cols, rows, conf);
     }
     else if (levelType === 'Cave') {
-      level = new CaveGenerator().create(cols, rows, conf);
+      level = new Gen.CaveGenerator().create(cols, rows, conf);
     }
     else if (levelType === 'CaveBr') {
-      level = new CaveBrGenerator().create(cols, rows, conf);
+      level = new Gen.CaveBrGenerator().create(cols, rows, conf);
     }
     else if (levelType === 'Castle') {
-      level = new CastleGenerator().create(cols, rows, conf);
+      level = new Gen.CastleGenerator().create(cols, rows, conf);
     }
     else if (levelType === 'City') {
-      level = new CityGenerator().create(cols, rows, conf);
+      level = new Gen.CityGenerator().create(cols, rows, conf);
     }
     else if (levelType === 'MountainFace') {
-      level = new MountainGenerator().createFace(cols, rows, conf);
+      level = new Gen.MountainGenerator().createFace(cols, rows, conf);
     }
     else if (levelType === 'MountainSummit') {
-      level = new MountainGenerator().createSummit(cols, rows, conf);
+      level = new Gen.MountainGenerator().createSummit(cols, rows, conf);
     }
     else if (levelType === 'FullGame') {
         this.generateGame();
@@ -1039,7 +1034,7 @@ export default class GameEditor extends Component {
       return {nForests: 5, forestSize: 100, ratio: 0.5, factor: 6};
     }
     else if (value === 'mountain') {
-      return MapGenerator.getOptions('mountain');
+      return Gen.MapGenerator.getOptions('mountain');
     }
     else if (value === 'crypt' || value === 'castle') {
       return {
@@ -1058,19 +1053,19 @@ export default class GameEditor extends Component {
       return dwarvenCityConf;
     }
     else if (value === 'Dungeon') {
-      return DungeonGenerator.getOptions();
+      return Gen.DungeonGenerator.getOptions();
     }
     else if (value === 'Cave') {
-      return CaveGenerator.getOptions();
+      return Gen.CaveGenerator.getOptions();
     }
     else if (value === 'CaveBr') {
-      return CaveBrGenerator.getOptions();
+      return Gen.CaveBrGenerator.getOptions();
     }
     else if (value === 'Castle') {
-      return CastleGenerator.getOptions();
+      return Gen.CastleGenerator.getOptions();
     }
     else if (value === 'City') {
-      return CityGenerator.getOptions();
+      return Gen.CityGenerator.getOptions();
     }
     else if (value === 'cave') {
       const caveGen = new ROT.Map.Miner();
@@ -1079,10 +1074,10 @@ export default class GameEditor extends Component {
       return conf;
     }
     else if (value === 'MountainFace') {
-      return MountainGenerator.getFaceOptions();
+      return Gen.MountainGenerator.getFaceOptions();
     }
     else if (value === 'MountainSummit') {
-      return MountainGenerator.getSummitOptions();
+      return Gen.MountainGenerator.getSummitOptions();
     }
     else if (value === 'FullGame') {
       const owConf = FactoryGame.getOwConf();

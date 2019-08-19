@@ -27,7 +27,7 @@ import {Names} from '../data/name-gen';
 import {LevelGen} from '../data/level-gen';
 import {Path} from './path';
 import {Builder} from './builder';
-import {MapGenerator} from './map.generator';
+import {MapGenerator} from './generator';
 import {OWMap} from './overworld.map';
 import {OWLore} from './overworld.lore';
 import {OW} from './ow-constants';

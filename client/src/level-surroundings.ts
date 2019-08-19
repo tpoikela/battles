@@ -6,7 +6,7 @@ import {Geometry} from './geometry';
 import {Random} from './random';
 import {Level} from './level';
 import {CellMap} from './map';
-import {MapGenerator} from './map.generator';
+import {MapGenerator} from './generator';
 import {ELEM} from '../data/elem-constants';
 
 import {TCoord} from './interfaces';

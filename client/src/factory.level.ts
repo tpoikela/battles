@@ -1,6 +1,6 @@
 
 import RG from './rg';
-import {MapGenerator} from './map.generator';
+import {MapGenerator} from './generator';
 import {Level} from './level';
 import {ElementDoor} from './element';
 import * as Verify from './verify';
@@ -8,7 +8,6 @@ import {DungeonPopulate} from './dungeon-populate';
 
 export class FactoryLevel {
 
-    private _verif: Verify.Conf;
 
     public static createLevel(
         type: string, cols: number, rows: number, conf?
@@ -17,12 +16,14 @@ export class FactoryLevel {
         return factLevel.createLevel(type, cols, rows, conf);
     }
 
+    private _verif: Verify.Conf;
+
     constructor() {
         this._verif = new Verify.Conf('FactoryLevel');
     }
 
     /* Factory method for creating levels.*/
-    createLevel(levelType, cols, rows, conf?): Level {
+    public createLevel(levelType: string, cols: number, rows: number, conf?): Level {
         const mapgen = new MapGenerator();
         let mapObj = null;
         const level = new Level();
@@ -88,7 +89,7 @@ export class FactoryLevel {
         return level;
     }
 
-    setLevelExtras(level, mapObj) {
+    public setLevelExtras(level: Level, mapObj): void {
         const extras = {};
         const possibleExtras = ['rooms', 'corridors', 'vaults', 'houses',
             'paths'];
@@ -100,7 +101,7 @@ export class FactoryLevel {
         level.setExtras(extras);
     }
 
-    createHouseElements(level, mapObj) {
+    public createHouseElements(level: Level, mapObj): void {
         if (!mapObj.hasOwnProperty('houses')) {return;}
         const houses = mapObj.houses;
         for (let i = 0; i < houses.length; i++) {
@@ -113,15 +114,14 @@ export class FactoryLevel {
     /* Creates a shop and a shopkeeper into a random house in the given level.
      * Level should already contain empty houses where the shop is created at
      * random. */
-    createShops(level, mapObj, conf) {
+    public createShops(level: Level, mapObj, conf): void {
         this._verif.verifyConf('createShops', conf, ['nShops']);
         const dungPopul = new DungeonPopulate();
         level.addExtras('houses', mapObj.houses);
         dungPopul.createShops(level, conf);
-    };
-
+    }
     /* Creates trainers for the given level. */
-    createTrainers(level, conf) {
+    public createTrainers(level: Level, conf): void {
         const dungPopul = new DungeonPopulate();
         dungPopul.createTrainers(level, conf);
     }

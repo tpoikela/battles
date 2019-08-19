@@ -1,9 +1,8 @@
 
 import RG from '../rg';
-import * as Component from '../component';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
-import {MapGenerator} from '../map.generator';
+import {MapGenerator} from '../generator';
 import {Random} from '../random';
 
 const RNG = Random.getRNG();

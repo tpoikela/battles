@@ -5,7 +5,7 @@ import {Castle} from '../data/tiles.castle';
 import {Placer} from '../src/placer';
 import {Level} from '../src/level';
 import {ElementStairs} from '../src/element';
-import {MapGenerator} from '../src/map.generator';
+import {MapGenerator} from '../src/generator';
 import {Geometry} from '../src/geometry';
 import {ELEM} from './elem-constants';
 import {ObjectShell} from '../src/objectshellparser';
@@ -28,7 +28,7 @@ export class DwarvenCity {
 
     public level: Level;
 
-    constructor(cols, rows, conf = dwarvenCityConf) {
+    constructor(cols: number, rows: number, conf = dwarvenCityConf) {
       const wallOpts = {
         meanWy: Math.floor(0.85 * rows / 2),
         stdDev: 10,

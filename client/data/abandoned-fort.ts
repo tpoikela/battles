@@ -10,7 +10,7 @@ import {Builder} from '../src/builder';
 import {Level} from '../src/level';
 import * as Element from '../src/element';
 import {Castle} from '../data/tiles.castle';
-import {MapGenerator} from '../src/map.generator';
+import {MapGenerator} from '../src/generator';
 import {Geometry} from '../src/geometry';
 
 const TILE_SIZE = 7;
@@ -28,7 +28,7 @@ export class AbandonedFort {
 
   public level: Level;
 
-  constructor(cols, rows, conf) {
+  constructor(cols: number, rows: number, conf) {
     if (!conf) {
         conf = abandonedFortConf;
     }
@@ -114,7 +114,7 @@ export class AbandonedFort {
     itemFact.addItemsToCells(mainLevel, parser, castleFreeCells, itemConf);
 
     const fortActors = {'Mighty raven': true, 'Winter demon': true,
-        Cryomancer: true, 'Ice djinn': true, Stormrider: true,
+        'Cryomancer': true, 'Ice djinn': true, 'Stormrider': true,
         'Snow leopard': true};
     const actorConf = {
         actorsPerLevel: 500,
@@ -130,7 +130,7 @@ export class AbandonedFort {
     this.level = mainLevel;
   }
 
-  getCastleLevel(rows, cols, conf) {
+  public getCastleLevel(rows, cols, conf) {
     const castleRowsRatio = conf.castleRowsRatio || 0.6;
     const castleColsRatio = conf.castleColsRatio || 0.6;
     const castleRows = Math.floor(castleRowsRatio * rows);
@@ -148,12 +148,12 @@ export class AbandonedFort {
 
   }
 
-  createLevel(name: string, cols, rows, conf: any): Level {
+  public createLevel(name: string, cols, rows, conf: any): Level {
       return new FactoryLevel().createLevel(name, cols, rows, conf);
   }
 
 
-  createPathToFort(level, castleX) {
+  public createPathToFort(level, castleX) {
     const map = level.getMap();
     const x0 = 0;
     const x1 = castleX + 1;
@@ -162,7 +162,7 @@ export class AbandonedFort {
     this.createVariedPath(map, {x0, x1, y0, y1});
   }
 
-  createVariedPath(map, confObj) {
+  public createVariedPath(map, confObj) {
       const {x0, y0, x1, y1} = confObj;
       const dx = 20;
       let coord = [];
@@ -175,7 +175,7 @@ export class AbandonedFort {
       Builder.addPathToMap(map, coord);
   }
 
-  getLevel() {
+  public getLevel() {
     return this.level;
   }
 

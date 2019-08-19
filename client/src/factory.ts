@@ -3,14 +3,13 @@ import RG from './rg';
 
 import {Cell} from './map.cell';
 import {Level} from './level';
-import {MapGenerator} from './map.generator';
+import {MapGenerator} from './generator';
 import * as Verify from './verify';
 import {Placer} from './placer';
 
 import {FactoryActor} from './factory.actors';
 import {FactoryItem} from './factory.items';
 import {FactoryLevel} from './factory.level';
-import {DungeonPopulate} from './dungeon-populate';
 import {EventPool} from '../src/eventpool';
 import {Random} from './random';
 import * as Element from './element';
