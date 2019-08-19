@@ -9,7 +9,7 @@ import {Path} from './path';
 import {BSP} from '../../lib/bsp';
 import {Builder} from './builder';
 
-import {TemplateLevel} from './template.level';
+import {TemplateLevel, StartRoomFunc} from './template.level';
 import {Crypt} from '../data/tiles.crypt';
 import {Castle} from '../data/tiles.castle';
 import {House, HouseGenerator} from './houses';
@@ -48,7 +48,7 @@ export interface MapConf {
     nGates?: number;
     roomCount?: number;
     ratio?: number;
-    startRoomFunc?: () => void;
+    startRoomFunc?: StartRoomFunc;
     templates?: string;
     tilesX?: number;
     tilesY?: number;
