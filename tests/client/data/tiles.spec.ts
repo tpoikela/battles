@@ -81,18 +81,35 @@ describe('TemplateLevel level generation', () => {
     });
 
     it('generates nest-like structures', () => {
-        for (let i = 0; i < 10; i++) {
-            const level = new TemplateLevel(3 + i % 3, 2 + i % 3);
+        for (let i = 0; i < 20; i++) {
+            const x = 3 + i % 3;
+            const y = 2 + i % 3;
+            // const x = 5;
+            // const y = 5;
+            const level = new TemplateLevel(x, y);
+            level.debugEnabled = false;
             level.tryToMatchAllExits = true;
             level.setFiller(Nests.tiles.filler);
             level.setGenParams({x: [1, 1, 1], y: [1, 1, 1]});
+            if (y > 2) {
+                level.setStartRoomFunc(Nests.startRoomFuncNx3);
+            }
+
+            const weights = {};
+            Nests.names.corridor.forEach(name => {
+                weights[name] = 1000;
+                if (name === 'corridor_term') {
+                    weights[name] = 1;
+                }
+            });
+            level.weights = weights;
 
             level.setTemplates(Nests.templates);
             level.customMatchFilter = Nests.matchFilter;
             level.roomCount = -1;
             level.create();
-            console.log('\n=== Created level: ====\n');
-            RG.printMap(level.getMap());
+            // console.log('\n=== Created level: ====\n');
+            // RG.printMap(level.getMap());
         }
 
     });
