@@ -23,7 +23,7 @@ const RNG = Random.getRNG();
 
 import {TCoord, TShellFunc, BBox, IShell} from './interfaces';
 type Level = import('./level').Level;
-type House = import('./houses').House;
+type House = import('./generator').House;
 
 const popOptions = ['NOTHING', 'LOOT', 'GOLD', 'GUARDIAN', 'ELEMENT', 'CORPSE',
     'TIP'];

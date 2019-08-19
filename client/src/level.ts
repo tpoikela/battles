@@ -9,7 +9,6 @@ import {EventPool} from './eventpool';
 import * as Mixin from './mixin';
 import {ELEM} from '../data/elem-constants';
 import * as Component from './component/component';
-import {MapObj} from './generator';
 
 // Import types only
 import {TCoord, BBox, TLocatableElement} from './interfaces';
@@ -18,7 +17,8 @@ type SubZoneBase = import('./world').SubZoneBase;
 type Battle = import('./game.battle').Battle;
 type Cell = import('./map.cell').Cell;
 type CellMap = import('./map').CellMap;
-type House = import('./houses').House;
+type House = import('./generator').House;
+type MapObj = import('./generator').MapObj;
 type WorldShop = import('./world').WorldShop;
 
 type ItemBase = import('./item').ItemBase;
@@ -651,8 +651,8 @@ export class Level extends Entity {
     public removeElements(filter: (elem) => boolean): void {
         const toRemove = this._p.elements.filter(filter);
         toRemove.forEach(elem => {
-          const eX = (elem as Mixin.Locatable).getX();
-          const eY = (elem as Mixin.Locatable).getY();
+          const [eX, eY] = (elem as Mixin.Locatable).getXY();
+          // const eY = (elem as Mixin.Locatable).getY();
           this.removeElement(elem, eX, eY);
         });
     }

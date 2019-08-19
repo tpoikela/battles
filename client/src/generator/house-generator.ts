@@ -2,12 +2,12 @@
  * top of houses tiles that use Template.templ.
  */
 
-import RG from './rg';
-import {TemplateLevel} from './template.level';
-import {Houses5x5} from '../data/tiles.houses';
-import {Random} from './random';
-import {TCoord, BBox} from './interfaces';
-import {Geometry} from './geometry';
+import RG from '../rg';
+import {TemplateLevel} from '../template.level';
+import {Houses5x5} from '../../data/tiles.houses';
+import {Random} from '../random';
+import {TCoord, BBox} from '../interfaces';
+import {Geometry} from '../geometry';
 
 const RNG = Random.getRNG();
 

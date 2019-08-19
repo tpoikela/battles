@@ -12,17 +12,13 @@ import * as Element from '../element';
 import {BBox, TLocatableElement, ConstBaseElem} from '../interfaces';
 import {TemplateLevel, StartRoomFunc} from '../template.level';
 import {Random} from '../random';
-import {House, HouseGenerator} from '../houses';
+import {House, HouseGenerator} from './house-generator';
 
 import {Crypt} from '../../data/tiles.crypt';
 import {Castle} from '../../data/tiles.castle';
 import {ELEM} from '../../data/elem-constants';
 
-import {BSP} from '../../../lib/bsp';
-import {MapForest} from '../../../lib/map.forest';
-import {MapMiner} from '../../../lib/map.miner';
-import {MapMountain} from '../../../lib/map.mountain';
-import {MapWall} from '../../../lib/map.wall';
+import {BSP, MapForest, MapMiner, MapMountain, MapWall} from '../../../lib';
 
 const ElementMarker = Element.ElementMarker;
 type ElementBase = Element.ElementBase;
