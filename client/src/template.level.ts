@@ -9,13 +9,13 @@ import {RandWeights} from './interfaces';
 
 import dbg = require('debug');
 const debug = dbg('bitn:TemplateLevel');
-debug.enabled = true;
 
 const FILLER_TEMPL = Crypt.tiles.filler;
 const RNG = Random.getRNG();
 
 const DEFAULT_CALLBACK = () => {};
-const debugVerbosity = 20;
+
+const debugVerbosity = RG.VERB.MEDIUM;
 
 type GenParams = number[];
 
@@ -24,6 +24,7 @@ interface ParamsMap {
 }
 
 type TList = ElemTemplate[];
+type TTemplArg = ElemTemplate | string;
 
 export interface IRoomPlace {
     x: number;
@@ -38,9 +39,15 @@ interface PlacedTileData extends BBoxOld {
     type: string;
 }
 
-type Array2d<T> = T[][];
+// type Array2d<T> = T[][];
 
 export type ConstraintFunc = (x: number, y: number, exits: string[]) => void;
+
+export type StartRoomFunc = () => IRoomPlace;
+
+type CallbackFunc = (arg?: any) => void;
+
+type ExitList = [string[], string[], string[]];
 
 /* This object can be used to create levels from ASCII-based templates. Each
  * template should be abuttable in a reasonable way, and connections between
@@ -52,12 +59,10 @@ export type ConstraintFunc = (x: number, y: number, exits: string[]) => void;
     */
 export class TemplateLevel {
 
-    public tilesX: number;
-    public tilesY: number;
     public genParams: number[] | ParamsMap;
     public roomCount: number;
 
-    public map: any[][];
+    public map: string[][];
     public mapExpanded: any[][];
     public templMap: ElemTemplate[][];
     public placedTileData: {[key: string]: PlacedTileData};
@@ -68,12 +73,12 @@ export class TemplateLevel {
     public tryToMatchAllExits: boolean;
     public missingExitIsError: boolean;
     public weights: RandWeights;
-    public callbacks: {[key: string]: (arg?: any) => void};
+    public callbacks: {[key: string]: CallbackFunc};
     public filler: ElemTemplate;
     public templates: ElemTemplate[];
 
     public constraintFunc: ConstraintFunc;
-    public startRoomFunc: () => void;
+    public startRoomFunc: StartRoomFunc;
 
     public matchMap: {[key: string]: string};
     public nsew2DirRemap: {[key: string]: string};
@@ -86,8 +91,14 @@ export class TemplateLevel {
         x: number, y: number, list: ElemTemplate[], prev: IRoomPlace
     ) => ElemTemplate[];
 
+    public rng: Random;
+    public debugEnabled: boolean;
+
+    public useFillerWhenNoMatch: boolean;
+    public noMatchTempl: ElemTemplate | null;
+
     private _ind: number;
-    private _unusedExits: any[];
+    private _unusedExits: IRoomPlace[];
     private _sortedByExit: {[key: string]: ElemTemplate[]};
     private _possibleDirections: string[];
     private _freeExits: {[key: string]: string[]};
@@ -95,10 +106,10 @@ export class TemplateLevel {
 
     private lastPlaced: IRoomPlace | null;
 
-    constructor(tilesX: number, tilesY: number) {
-        this.tilesX = tilesX;
-        this.tilesY = tilesY;
 
+    constructor(public tilesX: number, public tilesY: number) {
+
+        this.debugEnabled = !!debug.enabled;
         // Generator parameters, used for tile scaling
         this.genParams = [1, 1, 1, 1];
 
@@ -139,10 +150,14 @@ export class TemplateLevel {
 
         // For sorting by including all possible exits
         this._sortedWithAllExits = {};
+
+        this.useFillerWhenNoMatch = true;
+
+        this.rng = RNG;
     }
 
     /* Sets the filler tile used to fill the map first. */
-    public setFiller(fillerTempl): void {
+    public setFiller(fillerTempl: TTemplArg): void {
         if (typeof fillerTempl === 'string') {
             this.filler = Template.createTemplate(fillerTempl);
             this.filler.setProp('name', 'FILLER');
@@ -154,18 +169,18 @@ export class TemplateLevel {
     }
 
     /* Sets the room templates that are used. */
-    public setTemplates(asciiTiles): void {
+    public setTemplates(asciiTiles: TTemplArg[]): void {
         this.templates = [];
         if (typeof asciiTiles[0] === 'string') {
             this.templates = asciiTiles.map(t => Template.createTemplate(t));
         }
         else {
-            this.templates = asciiTiles;
+            this.templates = asciiTiles as ElemTemplate[];
         }
     }
 
     /* Adds one ASCII/room template to the list of usable templates. */
-    public addTemplate(asciiTile): void {
+    public addTemplate(asciiTile: TTemplArg): void {
         if (typeof asciiTile === 'string') {
               this.templates.push(Template.createTemplate(asciiTile));
         }
@@ -185,6 +200,11 @@ export class TemplateLevel {
         this.roomCount = count;
     }
 
+    /* Sets the RNG used. */
+    public setRNG(rng: Random): void {
+        this.rng = rng;
+    }
+
     /* Sets the callback for constraint. This callback is called with
      * (x, y, exitReqd), and exposes this._sortedByExit.
      */
@@ -194,12 +214,12 @@ export class TemplateLevel {
 
     /* Can be used to set a start room function, which picks the first room
      * to use. This function must return the room, and not place it. */
-    public setStartRoomFunc(func) {
+    public setStartRoomFunc(func: StartRoomFunc) {
         this.startRoomFunc = func.bind(this);
     }
 
     /* Adds a callback to the generator. */
-    public addCallback(name: string, cb): void {
+    public addCallback(name: string, cb: CallbackFunc): void {
         if (this.callbacks.hasOwnProperty(name)) {
             if (typeof cb === 'function') {
                 this.callbacks[name] = cb;
@@ -216,7 +236,7 @@ export class TemplateLevel {
     }
 
     /* Calls as many setters above as possible from given object. */
-    public use(obj): void {
+    public use(obj: {[key: string]: any}): void {
         const setterList = ['constraintFunc', 'startRoomFunc', 'roomCount',
         'genParams'];
         setterList.forEach(p => {
@@ -264,25 +284,26 @@ export class TemplateLevel {
             while (numTries < 1000 && hasExits) {
 
                 // Get a room with unused exits or terminate
-                const room = this._getRoomWithUnusedExits();
+                const room: IRoomPlace = this._getRoomWithUnusedExits();
                 if (room === null) {
                     hasExits = false;
                     break;
                 }
 
                 const {x, y} = room;
-                this.dbg(`Current room in ${x},${y}`);
+                this.dbg(`BEGIN: Current room @ ${x},${y}`);
+                ++this._ind;
                 const exits = this._getFreeExits(room);
                 this.dbg(`It has free exits: ${exits}`);
 
                 // Pick one exit randomly
-                const chosen = RNG.arrayGetRand(exits);
+                const chosen = this.rng.arrayGetRand(exits);
                 this.dbg(`Chose exit: ${chosen} for next room`);
 
                 // Get required matching exit
-                const exitReqd = this.getMatchingExit(chosen);
-                const newX = this._getNewX(x, exitReqd);
-                const newY = this._getNewY(y, exitReqd);
+                const exitReqd: string = this.getMatchingExit(chosen);
+                const newX: number = this._getNewX(x, exitReqd);
+                const newY: number = this._getNewY(y, exitReqd);
 
                 if (newX === x && newY === y) {
                     let msg = `Illegal ${x},${y} -> ${newX},${newY}`;
@@ -294,12 +315,13 @@ export class TemplateLevel {
                 const templMatch = this._getNextTemplate(newX, newY, exitReqd);
 
                 // Make sure the new room is valid
-                if (this._isRoomLegal(newX, newY)) {
+                if (this._isXYInBounds(newX, newY)) {
                     this._placeRoom(
                         x, y, chosen, newX, newY, exitReqd, templMatch);
                     ++roomCount;
-                    this.dbg('Room count incremented to ' + roomCount);
+                    this.dbg(`**** Room count is now ${roomCount} ****`);
                 }
+                --this._ind;
 
                 // Place the new room and incr roomCount
                 ++numTries;
@@ -447,7 +469,7 @@ export class TemplateLevel {
             });
         });
         if (result.length > 0) {
-            return RNG.arrayGetRand(result);
+            return this.rng.arrayGetRand(result);
         }
         return null;
     }
@@ -483,7 +505,7 @@ export class TemplateLevel {
     /* Important function to get the next (usually legal) template to be
      * placed.
      */
-    public _getNextTemplate(x, y, exitReqd) {
+    public _getNextTemplate(x: number, y: number, exitReqd): ElemTemplate {
         ++this._ind;
         let next = null;
 
@@ -495,8 +517,8 @@ export class TemplateLevel {
         // All exits are required to match
         if (!next && this.tryToMatchAllExits) {
             this.dbg(`_getNextTemplate: Compute required exits for ${x},${y}`);
-            const exitsReqd = this.getAllRequiredExits(x, y);
-            let listMatching = this._getMatchWithExits(exitsReqd);
+            const exitsReqd: ExitList = this.getAllRequiredExits(x, y);
+            let listMatching: TList = this._getMatchWithExits(exitsReqd);
             listMatching = this.filterOutNoEdge(x, y, listMatching);
             if (this.customMatchFilter) {
                 listMatching = this.customMatchFilter(this, x, y, listMatching,
@@ -507,7 +529,7 @@ export class TemplateLevel {
                 return this._getRandTemplate(listMatching);
             }
             let msg = `x,y: ${x},${y}`;
-            msg += `Required: ${exitsReqd[1]}, Excl: ${exitsReqd[2]}`;
+            msg += `| Required: ${exitsReqd[1]}, Excl: ${exitsReqd[2]}`;
             RG.warn('TemplateLevel', '_getNextTemplate',
                 `Not all exits match. ${msg}`);
 
@@ -522,14 +544,19 @@ export class TemplateLevel {
         // If we get here, may produce unwanted results, such as non-matched
         // exits, or noedge cells on edges of maps
         if (!next) {
-            let listMatching = this._sortedByExit[exitReqd];
+            let listMatching: TList = this._sortedByExit[exitReqd];
             listMatching = this.filterOutNoEdge(x, y, listMatching);
             --this._ind;
+            if (this.useFillerWhenNoMatch) {
+                this.dbg('Returning FILLER as no match was found');
+                return this.filler;
+            }
             if (listMatching.length > 0) {
                 return this._getRandTemplate(listMatching);
-                // return RNG.arrayGetRand(listMatching);
             }
-            return this._sortedByExit[exitReqd];
+            else {
+                return this._getRandTemplate(this._sortedByExit[exitReqd]);
+            }
         }
 
         --this._ind;
@@ -538,9 +565,9 @@ export class TemplateLevel {
 
     /* Returns random template from the given list. Uses random weights if any
      * are given. */
-    public _getRandTemplate(list) {
+    public _getRandTemplate(list: TList): ElemTemplate {
         if (!this.weights) {
-            return RNG.arrayGetRand(list);
+            return this.rng.arrayGetRand(list);
         }
         const weights = {};
         const names = list.map(t => t.getProp('name'));
@@ -554,13 +581,13 @@ export class TemplateLevel {
                 weights[name] = 1;
             }
         });
-        const chosenName = RNG.getWeighted(weights);
+        const chosenName = this.rng.getWeighted(weights);
         return list[nameToIndex[chosenName]];
     }
 
-    public _getRoomWithUnusedExits() {
+    public _getRoomWithUnusedExits(): IRoomPlace {
         if (this._unusedExits.length > 0) {
-            return RNG.arrayGetRand(this._unusedExits);
+            return this.rng.arrayGetRand(this._unusedExits);
         }
         return null;
     }
@@ -581,9 +608,16 @@ export class TemplateLevel {
     public _removeChosenExit(x: number, y: number, chosen: string): void {
         const key = x + ',' + y;
         const exits = this._freeExits[key];
-        this.dbg(JSON.stringify(this._freeExits));
-        this.dbg(`${x},${y} removeChosenExit ${chosen}`);
-        this.dbg(`nExits: ${exits.length}`);
+        if (this.debugEnabled) {
+            this.dbg(JSON.stringify(this._freeExits));
+            this.dbg(`${x},${y} removeChosenExit ${chosen}`);
+            if (exits) {this.dbg(`nExits: ${exits.length}`);}
+            else       {this.dbg(`nExits: NONE AVAILABLE`);}
+        }
+        if (!exits) {
+            // Should check that last placement was semi-illegal
+            return;
+        }
         const index = exits.indexOf(chosen);
         if (index >= 0) {
             this._freeExits[key].splice(index, 1);
@@ -613,7 +647,7 @@ export class TemplateLevel {
         }
     }
 
-    public _isRoomLegal(x: number, y: number): boolean {
+    public _isXYInBounds(x: number, y: number): boolean {
         if (x >= 0 && x < this.tilesX && y >= 0 && y < this.tilesY) {
             return true;
         }
@@ -638,12 +672,17 @@ export class TemplateLevel {
             });
         }
         else {
-            const x = RNG.getUniformInt(1, this.tilesX - 2);
-            const y = RNG.getUniformInt(1, this.tilesY - 2);
+            const x = this.rng.getUniformInt(1, this.tilesX - 2);
+            const y = this.rng.getUniformInt(1, this.tilesY - 2);
+            // We should match the dirs here, otherwise can create crap for
+            // small levels with 2xN or Mx, TODO
+            const exitsReqd: ExitList = this.getAllRequiredExits(x, y);
+            let listMatching: TList = this._getMatchWithExits(exitsReqd);
+
             if (this.customMatchFilter) {
-                const listMatching = this.customMatchFilter(this, x, y,
-                    this.templates, null);
-                room = {x, y, room: RNG.arrayGetRand(listMatching)};
+                listMatching = this.customMatchFilter(this, x, y,
+                    listMatching, null);
+                room = {x, y, room: this.rng.arrayGetRand(listMatching)};
             }
             else {
                 room = {x, y, room: this.getRandomTemplate()};
@@ -665,7 +704,9 @@ export class TemplateLevel {
     }
 
     /* Places one room into the map. */
-    public _placeRoom(x, y, chosen, newX, newY, exitReqd, templMatch) {
+    public _placeRoom(
+        x, y, chosen: string, newX, newY, exitReqd: string, templMatch
+    ): void {
         // Remove chosen exit (old room) from unused exits
         this._removeChosenExit(x, y, chosen);
 
@@ -698,7 +739,7 @@ export class TemplateLevel {
     }
 
     /* Returns the matching (opposite) exit for the chosen exit. */
-    public getMatchingExit(chosen) {
+    public getMatchingExit(chosen: string): string {
         if (this.matchMap) {
             if (this.matchMap.hasOwnProperty(chosen)) {
                 return this.matchMap[chosen];
@@ -715,7 +756,7 @@ export class TemplateLevel {
 
     /* Returns new X value based on the direction. Remaps custom dir to NSEW
     * first. */
-    public _getNewX(x, dir) {
+    public _getNewX(x: number, dir: string): number {
         let remapped = dir;
         if (this.dir2NSEWRemap) {
             if (this.dir2NSEWRemap[dir]) {
@@ -730,7 +771,7 @@ export class TemplateLevel {
 
     /* Returns new Y value based on the direction. Remaps custom dir to NSEW
     * first. */
-    public _getNewY(y, dir) {
+    public _getNewY(y: number, dir: string): number {
         let remapped = dir;
         if (this.dir2NSEWRemap) {
             if (this.dir2NSEWRemap[dir]) {
@@ -742,12 +783,13 @@ export class TemplateLevel {
         return y;
     }
 
-    public getRandomTemplate() {
-        return RNG.arrayGetRand(this.templates);
+    public getRandomTemplate(): ElemTemplate {
+        return this.rng.arrayGetRand(this.templates);
     }
 
     /* Removes exits from tiles which are placed in any borders of the map.
-     *  Prevents out-of-bounds expansion. */
+     * Prevents out-of-bounds expansion. This is needed because user can
+     * can force border exists with startRoomFunc. */
     public _removeBorderExits(room: IRoomPlace) {
         const {x, y} = room;
         if (x === 0) {
@@ -855,7 +897,7 @@ export class TemplateLevel {
 
     public _isFiller(x: number, y: number): boolean {
         const filler = this.templMap[x][y].getProp('name') === 'FILLER';
-        this.dbg(`isFiller x,y ${x},${y}: ${filler}`);
+        this.dbg(`isFiller x,y ${x},${y}: ${filler}`, RG.VERB.HIGH);
         return filler;
     }
 
@@ -919,13 +961,18 @@ export class TemplateLevel {
         this.dir2NSEWRemap = dir2NSEWRemap;
     }
 
-    /* Returns all exits which are required @x,y to match all surrounding
-     * tiles. */
-    public getAllRequiredExits(x, y) {
+    /* Returns exit lists which are required @x,y to match all surrounding
+     * tiles. Returns 3 arrays of string:
+     *   1. any: Indicates a dont-care direction. Anything will match.
+     *   2. exists: Required exists. Must exists in chosen template.
+     *   3. excluded: Must not match in chosen template.
+     *  TODO Refactor, it's +150 lines now
+     */
+    public getAllRequiredExits(x: number, y: number): ExitList {
         ++this._ind;
-        const any = [];
-        const exits = [];
-        const excluded = [];
+        const any: string[] = [];
+        const exits: string[] = [];
+        const excluded: string[] = [];
 
         let remapped = null;
         let remapMatch = null;
@@ -1073,7 +1120,7 @@ export class TemplateLevel {
         return [any, exits, excluded];
     }
 
-    public _getMatchWithExits(exitsReqd) {
+    public _getMatchWithExits(exitsReqd: [string[], string[], string[]]): TList {
         const [any, exits, excluded] = exitsReqd;
         this.dbg(`_getMatchWithExits: GOT: any:${any}, req:${exits}, excl:${excluded}`);
         const keys = Object.keys(this._sortedWithAllExits);
@@ -1095,7 +1142,7 @@ export class TemplateLevel {
 
         validKeys = keysSplit.map(key => key.join(''));
 
-        let result = [];
+        let result: TList = [];
         validKeys.forEach(key => {
             result = result.concat(this._sortedWithAllExits[key]);
         });
@@ -1110,8 +1157,8 @@ export class TemplateLevel {
 
     /* Prints the debug msg when debug() is enabled. Adds some verbosity options
      * for filtering some debug messages out. */
-    public dbg(msg, verb = 10): void {
-        if (debug.enabled) {
+    public dbg(msg, verb = RG.VERB.MEDIUM): void {
+        if (this.debugEnabled) {
             if (debugVerbosity >= verb) {
                 const _ind = ' '.repeat(this._ind);
                 console.log(_ind + msg);
