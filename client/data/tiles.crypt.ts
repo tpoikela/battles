@@ -102,6 +102,7 @@ Y.....#
 Crypt.tiles.omni = [
 `
 dir:NSEW
+noedge:1
 name:omni
 X=#
 Y=#
@@ -116,6 +117,7 @@ Y.....#
 
 `
 dir:NSEW
+noedge:1
 name:omni
 X=#
 Y=#
@@ -129,6 +131,7 @@ Y.....#
 ###.###`,
 `
 dir:NSEW
+noedge:1
 name:omni
 X=#
 Y=#
@@ -143,6 +146,7 @@ Y.....#
 
 `
 name:omni
+noedge:1
 dir:NSEW
 X=#
 Y=#
@@ -157,6 +161,7 @@ Y..#..#
 
 `
 name:omni
+noedge:1
 dir:NSEW
 X=.
 Y=.
@@ -171,6 +176,7 @@ Y#...#.
 
 `
 name:omni
+noedge:1
 dir:NSEW
 X=.
 Y=.
@@ -185,6 +191,7 @@ Y#...#.
 
 `
 name:omni
+noedge:1
 dir:NSEW
 X=.
 Y=.
@@ -199,6 +206,7 @@ Y##.##.
 
 `
 dir:NSEW
+noedge:1
 name:omni
 X=.
 Y=.
