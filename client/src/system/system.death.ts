@@ -14,8 +14,16 @@ const POOL = EventPool.getPool();
 
 export class SystemDeath extends SystemBase {
 
+    public enableRandomLootDrops: boolean;
+    public normalLootChance: number;
+    public betterLootChance: number;
+
     constructor(compTypes: string[], pool?: EventPool) {
         super(RG.SYS.DEATH, compTypes, pool);
+
+        this.enableRandomLootDrops = true;
+        this.normalLootChance = 0.07;
+        this.betterLootChance = 0.02;
     }
 
     public updateEntity(ent): void {
@@ -66,6 +74,10 @@ export class SystemDeath extends SystemBase {
             evtComp.setArgs({type: RG.EVT_ACTOR_KILLED,
                 cause: src});
             actor.add(evtComp);
+
+            if (this.enableRandomLootDrops) {
+                this._genRandomLootDrop(actor, level, cell, src);
+            }
 
             // Finally drop a corpse
             this._dropActorCorpse(actor, level, cell, src);
@@ -205,6 +217,35 @@ export class SystemDeath extends SystemBase {
         }
     }
 
+    protected _genRandomLootDrop(actor, level: Level, cell: Cell, src): void {
+        if (!canHaveRandomLoot(actor)) {
+            return;
+        }
+        if (!RG.isSuccess(this.normalLootChance)) {
+            return;
+        }
+
+        const defLevel = actor.get('Experience').getExpLevel();
+        const defDanger = actor.get('Experience').getDanger();
+        const minValue = defLevel * 10 + defDanger * 10;
+        let maxValue =  defLevel * 10 + defDanger * 30;
+        if (RG.isSuccess(this.betterLootChance)) {
+            maxValue *= 2;
+        }
+
+        const parser = ObjectShell.getParser();
+        const func = shell => shell.value >= minValue && shell.value <= maxValue;
+        const item = parser.createRandomItem({func});
+        if (item) {
+            const [x, y] = cell.getXY();
+            const ok = level.addItem(item, x, y);
+            if (!ok) {
+                RG.warn('System.Death', '_genRandomLootDrop',
+                `Failed to add item to ${x},${y}`);
+            }
+        }
+    }
+
     /* When an actor dies, it can be spawned as undead. */
     protected _addSpawnableUndeadActor(actor): void {
         if (actor.getType() === 'undead' || actor.has('Undead')) {
@@ -235,4 +276,13 @@ export class SystemDeath extends SystemBase {
         }
     }
 
+}
+
+/* Some sanity checks that rats/bats do not drop random items. */
+function canHaveRandomLoot(actor): boolean {
+    if (/(animal)/.test(actor.getType())) {
+        const defDanger = actor.get('Experience').getDanger();
+        return defDanger >= 7;
+    }
+    return true;
 }
