@@ -1,7 +1,7 @@
 
 import {Random} from '../src/random';
 import {Template, verifyTiles} from '../src/template';
-import {IRoomPlace} from '../src/template.level';
+import {IRoomPlace, StartRoomFunc} from '../src/template.level';
 import {Vault} from './tiles.vault';
 
 const RNG = Random.getRNG();
@@ -761,8 +761,6 @@ Y######
 #######
 Y######
 #######`;
-
-type StartRoomFunc = () => IRoomPlace;
 
 Castle.startFuncs = {} as {[key: string]: StartRoomFunc};
 
