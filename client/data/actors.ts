@@ -226,8 +226,8 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'griffin', char: 'G', base: 'animal',
-        attack: 7, defense: 4, damage: '3d3',
-        hp: 35, danger: 6, addComp: 'Flying', speed: 130
+        attack: 7, defense: 7, damage: '3d3 + 3',
+        hp: 35, danger: 7, addComp: 'Flying', speed: 130
     },
     {
         name: 'polar bear', char: 'B', base: 'animal',
