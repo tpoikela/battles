@@ -1,6 +1,8 @@
 
 import {Template, ElemTemplate, verifyTiles} from '../src/template';
+import {IRoomPlace} from '../src/template.level';
 const transformList = Template.transformList;
+
 
 type TemplateLevel = import('../src/template.level').TemplateLevel;
 
@@ -21,7 +23,7 @@ Z=#
 #X#W#X#
 Y.....#
 #.###..
-Z.?.##.
+Z.+?##.
 #.###..
 Y.....#
 #######`,
@@ -37,7 +39,7 @@ Z=#
 #X#W#X#
 Y.....#
 #.###..
-Z.?.##.
+Z.+?##.
 #.###..
 Y.....#
 ###+###`,
@@ -51,11 +53,11 @@ W=#
 Z=#
 
 #X#W#X#
-Y#.#.##
+Y#.#?##
 #..#+##
 Z......
 #..#+##
-Y#.#.##
+Y#.#?##
 #######`,
 
 `
@@ -67,11 +69,11 @@ W=#
 Z=#
 
 #X#W#X#
-Y#.#.##
+Y#?#?##
 ##+#+##
 Z......
 #...###
-Y#..+.#
+Y#..+?#
 ###.###`,
 
 ];
@@ -164,6 +166,23 @@ Y......
 .......`,
 
 `
+name:center5_open_chest
+noedge:1
+dir:NSEW
+X=.
+Y=.
+W=.
+Z=.
+
+.X.W.X.
+Y......
+..#+#..
+Z.+?+..
+..#+#..
+Y......
+.......`,
+
+`
 name:center6_open
 noedge:1
 dir:SEW
@@ -182,6 +201,7 @@ Y......
 
 `
 name:center7_open
+noedge:1
 dir:EW
 X=#
 Y=.
@@ -198,6 +218,7 @@ Y......
 
 `
 name:center8_open
+noedge:1
 dir:SW
 X=#
 Y=.
@@ -211,6 +232,23 @@ Z.....#
 ......#
 Y.....#
 ......#`,
+
+`
+name:center9_open
+noedge:1
+dir:W
+X=#
+Y=.
+W=#
+Z=.
+
+#X#W#X#
+Y.....#
+......#
+Z.....#
+......#
+Y.....#
+#######`,
 
 ];
 
@@ -265,7 +303,7 @@ Y##.###
 
 // Extension of center
 `
-name:corridor_ext
+name:corridor_term
 dir:N
 X=#
 Y=#
@@ -319,6 +357,13 @@ Nests.matchFilter = function(
 
 };
 
+Nests.startRoomFuncNx3 = function(): IRoomPlace {
+    const templ = this.findTemplate({name: 'center5_open_chest'});
+    const x = Math.floor(this.tilesX / 2);
+    const y = Math.floor(this.tilesY / 2);
+    return {x, y, room: templ};
+};
+
 // Nests.startRoomFunc = function()
 
 const transforms = {
@@ -345,3 +390,21 @@ Nests.templates = Nests.templates.concat(transformed);
 //             X, W, X, Y, Z, Y
 const genXY = [1, 1, 1, 1, 1, 1];
 verifyTiles('tiles.nests.ts', 'Verifying tiles', Nests.templates, genXY);
+
+const names = ['center', 'corridor', 'corner'];
+Nests.names = {};
+names.forEach(name => {
+    Nests.names[name] = Nests.templates.filter((tt: any) => (
+        new RegExp(name).test(tt.getProp('name'))
+    ))
+    .map((tt: any) => tt.getProp('name'));
+});
+
+
+Nests.weights = {};
+Nests.names.corridor.forEach((name: string) => {
+    Nests.weights[name] = 1000;
+    if (name === 'corridor_term') {
+        Nests.weights[name] = 1;
+    }
+});
