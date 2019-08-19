@@ -20,6 +20,7 @@ export interface ElemTemplate {
     getChars: (arr?: number[]) => string[][];
     getDir: () => string;
     setProp: (key: string, val: any) => void;
+    clone: () => ElemTemplate;
 
     elemPropMap: {[key: string]: any};
 }
