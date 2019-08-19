@@ -6,11 +6,10 @@ import {Cell} from '../../../client/src/map.cell';
 import * as Element from '../../../client/src/element';
 import * as Item from '../../../client/src/item';
 import {SentientActor} from '../../../client/src/actor';
-import {Level} from '../../../client/src/level';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import * as Component from '../../../client/src/component';
 import {DijkstraMap} from '../../../client/src/dijkstramaps';
-import {MapGenerator} from '../../../client/src/map.generator';
+import {MapGenerator} from '../../../client/src/generator';
 import {ELEM} from '../../../client/data/elem-constants';
 
 const Actor = SentientActor;

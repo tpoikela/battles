@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {MapGenerator} from '../../../client/src/map.generator';
+import {MapGenerator} from '../../../client/src/generator';
 import {CellMap} from '../../../client/src/map';
 import {Random} from '../../../client/src/random';
 

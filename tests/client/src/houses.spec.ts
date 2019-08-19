@@ -2,7 +2,7 @@
 // const RG = require('../../../client/src/battles');
 import {expect} from 'chai';
 import {House, HouseGenerator} from '../../../client/src/houses';
-import {MapGenerator} from '../../../client/src/map.generator';
+import {MapGenerator} from '../../../client/src/generator';
 import {CellMap} from '../../../client/src/map';
 
 describe('HouseGenerator', () => {

@@ -3,7 +3,7 @@ import { expect } from 'chai';
 
 import RG from '../../../client/src/rg';
 import {Random} from '../../../client/src/random';
-import {MountainGenerator} from '../../../client/src/mountain-generator';
+import {MountainGenerator} from '../../../client/src/generator';
 
 describe('MountainGenerator', () => {
     it('generates mountain levels', () => {

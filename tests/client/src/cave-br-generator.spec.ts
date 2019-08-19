@@ -1,9 +1,7 @@
 
 import { expect } from 'chai';
-import RG from '../../../client/src/rg';
-import {createCaveLevel} from '../../../client/src/cave-br-generator';
+import {createCaveLevel} from '../../../client/src/generator';
 import {Level} from '../../../client/src/level';
-import {Random} from '../../../client/src/random';
 
 describe('createCaveLevel', function() {
 
@@ -17,7 +15,7 @@ describe('createCaveLevel', function() {
             };
             const n = 2;
             const level: Level = createCaveLevel(n * 80, n * 80, conf);
-            // level.debugPrintInASCII();
+            level.debugPrintInASCII();
         }
     });
 });

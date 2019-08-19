@@ -2,7 +2,7 @@
 
 import { expect } from 'chai';
 import RG from '../../../client/src/rg';
-import {CityGenerator} from '../../../client/src/city-generator';
+import {CityGenerator} from '../../../client/src/generator';
 import {Level} from '../../../client/src/level';
 
 describe('CityGenerator', () => {

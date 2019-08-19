@@ -1,11 +1,8 @@
 
 import { expect } from 'chai';
-import {CastleGenerator} from '../../../client/src/castle-generator';
+import {CastleGenerator} from '../../../client/src/generator';
 import {Level} from '../../../client/src/level';
-import {Cell} from '../../../client/src/map.cell';
 import {Path} from '../../../client/src/path';
-import {ICoordXY} from '../../../client/src/interfaces';
-import {ELEM} from '../../../client/data/elem-constants';
 
 describe('CastleGenerator', () => {
 

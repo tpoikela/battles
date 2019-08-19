@@ -1,6 +1,6 @@
 
 import { expect } from 'chai';
-import {CaveGenerator} from '../../../client/src/cave-generator';
+import {CaveGenerator} from '../../../client/src/generator';
 import {Level} from '../../../client/src/level';
 
 describe('CaveGenerator', () => {

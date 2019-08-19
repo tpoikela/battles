@@ -9,7 +9,7 @@ import {System} from '../../../client/src/system';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {FactoryActor} from '../../../client/src/factory.actors';
 import {Level} from '../../../client/src/level';
-import {MapGenerator} from '../../../client/src/map.generator';
+import {MapGenerator} from '../../../client/src/generator';
 import * as Element from '../../../client/src/element';
 import * as Component from '../../../client/src/component';
 
@@ -67,7 +67,7 @@ describe('System.Movement', () => {
         const wall = new Element.ElementWall('wall');
         level.getMap().setBaseElemXY(4, 4, wall);
         movSystem.update();
-        expect(actor.getX(), "X didn't change due to wall").to.equal(2);
+        expect(actor.getX(), 'X did not change due to wall').to.equal(2);
         expect(actor.getY()).to.equal(3);
 
     });
