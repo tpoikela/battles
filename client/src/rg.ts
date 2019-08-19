@@ -304,6 +304,15 @@ RG.cellStyles = {
     }
 };
 
+RG.VERB = {
+    NONE: 10,
+    LOW: 20,
+    MEDIUM: 30,
+    HIGH: 40,
+    FULL: 50,
+    DEBUG: 100
+};
+
 RG.debug = function(obj: any, msg: string): void {
     if ($DEBUG) {
         const inst = typeof obj;
