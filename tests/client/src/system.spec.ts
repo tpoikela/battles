@@ -242,7 +242,8 @@ describe('System.Damage', () => {
 
         // Check for the dropped inventory item
         const items = lootCell.getProp(RG.TYPE_ITEM);
-        expect(items).to.have.length(3);
+        expect(items).to.have.length.above(2);
+        expect(items).to.have.length.below(5);
     });
 });
 
