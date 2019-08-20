@@ -51,6 +51,7 @@ const NO_VISIBLE_CELLS = [];
 const editorLevelTypes: string[] = [
   'FullGame',
   'Castle', 'Cave', 'CaveBr', 'City', 'Dungeon', 'MountainFace', 'MountainSummit',
+  'Nest',
   '------------',
   'abandoned_fort', 'capital', 'dwarven_city',
   '------------',
@@ -623,7 +624,7 @@ export default class GameEditor extends Component {
   }
 
   /* Creates the level of given type. */
-  public createLevel(levelType, extraConf?): Level {
+  public createLevel(levelType: string, extraConf?): Level {
     let conf: any = {};
     if (this.state.levelConf.hasOwnProperty(levelType)) {
       conf = this.state.levelConf[levelType];
@@ -670,6 +671,9 @@ export default class GameEditor extends Component {
     }
     else if (levelType === 'MountainSummit') {
       level = new Gen.MountainGenerator().createSummit(cols, rows, conf);
+    }
+    else if (levelType === 'Nest') {
+      level = new Gen.NestGenerator().create(cols, rows, conf);
     }
     else if (levelType === 'FullGame') {
         this.generateGame();
@@ -1108,6 +1112,9 @@ export default class GameEditor extends Component {
     }
     else if (value === 'City') {
       return Gen.CityGenerator.getOptions();
+    }
+    else if (value === 'Nest') {
+      return Gen.NestGenerator.getOptions();
     }
     else if (value === 'cave') {
       const caveGen = new ROT.Map.Miner();
