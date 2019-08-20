@@ -16,6 +16,7 @@ import {House, HouseGenerator} from './house-generator';
 
 import {Crypt} from '../../data/tiles.crypt';
 import {Castle} from '../../data/tiles.castle';
+import {Nests} from '../../data/tiles.nests';
 import {ELEM} from '../../data/elem-constants';
 
 import {BSP, MapForest, MapMiner, MapMountain, MapWall} from '../../../lib';
@@ -34,12 +35,17 @@ const inRange = function(val: number, min: number, max: number): boolean {
     return false;
 };
 
+interface GenParamsXY {
+    x: number[];
+    y: number[];
+}
+
 export interface MapConf {
     callbacks?: {[key: string]: () => void};
     constraintFunc?: () => void;
     floorType?: string;
     freeOnly?: boolean;
-    genParams?: number[];
+    genParams?: number[] | GenParamsXY;
     levelType?: string;
     models?: any;
     nGates?: number;
@@ -744,6 +750,39 @@ export class MapGenerator {
         const asciiToElem = {
             '#': ELEM.WALL_CRYPT,
             '.': ELEM.FLOOR_CRYPT
+        };
+        const mapObj: MapObj = MapGenerator.fromAsciiMap(level.map, asciiToElem);
+        mapObj.tiles = level.getPlacedData();
+        return mapObj;
+    }
+
+    /* Creates a single nest-type level. */
+    public createNest(cols: number, rows: number, conf: MapConf = {}): MapObj {
+        const tilesX = conf.tilesX || 12;
+        const tilesY = conf.tilesY || 7;
+        const level = new TemplateLevel(tilesX, tilesY);
+
+        const genParams = conf.genParams || [1, 1, 1, 1, 1, 1];
+        const roomCount = -1;
+        level.weights = Nests.weights;
+        level.customMatchFilter = Nests.matchFilter;
+        level.setStartRoomFunc(Nests.startRoomFuncNx3);
+        level.setTemplates(Nests.templates);
+        level.setGenParams(genParams);
+        level.setRoomCount(roomCount);
+        level.create();
+
+        let wallElem = ELEM.WALL;
+        let floorElem = ELEM.FLOOR;
+        if (conf.wallType) {
+            wallElem = MapGenerator.getWallElem(conf.wallType);
+        }
+        if (conf.floorType) {
+            floorElem = MapGenerator.getFloorElem(conf.floorType);
+        }
+
+        const asciiToElem = {
+            '#': wallElem, '.': floorElem
         };
         const mapObj: MapObj = MapGenerator.fromAsciiMap(level.map, asciiToElem);
         mapObj.tiles = level.getPlacedData();

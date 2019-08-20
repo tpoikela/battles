@@ -8,5 +8,6 @@ export * from './dungeon-generator';
 export * from './house-generator';
 export * from './level-generator';
 export * from './mountain-generator';
+export * from './nest-generator';
 
 export * from './map.generator';
