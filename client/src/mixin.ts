@@ -229,7 +229,7 @@ export const DurationRoll = superclass => class extends superclass {
 
 };
 
-export const Defense =superclass => class extends superclass {
+export const Defense = superclass => class extends superclass {
 
     private _attack: number;
     private _defense: number;
@@ -244,7 +244,7 @@ export const Defense =superclass => class extends superclass {
 
     public getAttack(): number {return this._attack;}
 
-    public setAttack(attack): number {
+    public setAttack(attack: number): void {
         this._attack = attack;
     }
 
@@ -263,14 +263,14 @@ export const Defense =superclass => class extends superclass {
         this._protection = prot;
     }
 
-    public copy(rhs) {
+    public copy(rhs): void {
         super.copy(rhs);
         this.setAttack(rhs.getAttack());
         this.setDefense(rhs.getDefense());
         this.setProtection(rhs.getProtection());
     }
 
-    public equals(rhs) {
+    public equals(rhs): boolean {
         let res = super.equals(rhs);
         if (res) {
             res = this.getAttack() === rhs.getAttack() &&
@@ -280,7 +280,7 @@ export const Defense =superclass => class extends superclass {
         return res;
     }
 
-    public toString() {
+    public toString(): string {
         let msg = super.toString();
         msg += ` A: ${this.getAttack()}, D: ${this.getDefense()}, `;
         msg += ` P: ${this.getProtection()}, `;
