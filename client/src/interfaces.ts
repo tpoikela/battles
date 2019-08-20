@@ -341,6 +341,13 @@ export interface IShell {
     [key: string]: any;
 }
 
+export interface ShellConstr {
+    roleTypes?: string[];
+    roles?: string[];
+    rank?: string;
+    race?: string;
+}
+
 export interface StringMap<T> {
     [key: string]: T;
 }

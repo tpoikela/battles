@@ -5,7 +5,7 @@ import RG from '../src/rg';
 import {Random} from '../src/random';
 import {mixNewShell} from './shell-utils';
 import {BypassComp, resistance} from './actors';
-import {IShell, StringMap, TShellFunc} from '../src/interfaces';
+import {IShell, ShellConstr, StringMap, TShellFunc} from '../src/interfaces';
 
 export const ActorGen: any = {};
 
@@ -514,13 +514,6 @@ ActorGen.genShellWithRole = function(role: string[]): IShell {
 //   2. Orc assassin archer
 //   3. Human assassin prince
 //   4. Human assassin mage queen
-
-interface ShellConstr {
-    roleTypes?: string[];
-    roles?: string[];
-    rank?: string;
-    race?: string;
-}
 
 /* Generates a shell with given constraints.
  * */
