@@ -31,7 +31,7 @@ type ZoneBase = import('../world').ZoneBase;
 type AreaTile = import('../world').AreaTile;
 type WorldCity = import('../world').City;
 
-import {ElementBase} from '../element';
+import {ElementXY, ElementShop} from '../element';
 
 //---------------------------------------------------------------------------
 // OBJECT QUEST-POPULATE
@@ -41,7 +41,7 @@ interface CleanupItem {
     location: Level;
     item?: ItemBase;
     actor?: SentientActor;
-    element?: ElementBase;
+    element?: ElementXY;
     tag?: string;
 }
 
@@ -872,8 +872,8 @@ export class QuestPopulate {
 
     public getItemToExchange(): ItemBase | null {
         const location = this.currQuest.getCurrentLocation();
-        const elems = location.getElements();
-        const shops = elems.filter(elem => elem.getType() === 'shop');
+        const elems: unknown = location.getElements();
+        const shops: ElementShop[] = (elems as ElementShop[]).filter(elem => elem.getType() === 'shop');
         this.rng.shuffle(shops);
 
         while (shops.length > 0) {

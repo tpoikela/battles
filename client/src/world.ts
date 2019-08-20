@@ -61,7 +61,7 @@ function removeExistingConnection(level: Level, x: number, y: number): void {
     if (cell.hasConnection()) {
         const conn = cell.getConnection();
         debug(`world.js Removing conn@${x},${y}`);
-        if (!level.removeElement(conn, x, y)) {
+        if (!level.removeElement(conn!, x, y)) {
             RG.err('world.ts', 'removeExistingConnection',
                `Failed to remove conn @ ${x}, ${y}`);
 

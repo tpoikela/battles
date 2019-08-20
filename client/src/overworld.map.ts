@@ -900,8 +900,6 @@ function addOverWorldPaths(ow: OWMap, conf: OWMapConf): void {
     const featsByXY = ow.filter((x, y, feats, isWall) => {
         if (!feats) {return false;}
         if (y === (ow.getSizeY() - 2)) {
-            console.log('addOwPath: x is ', x, 'y is ', y);
-            console.log('\tfeats is ', feats);
             if (cellMatches(OW.WVILLAGE, feats)) {
                 return true;
             }
@@ -911,7 +909,6 @@ function addOverWorldPaths(ow: OWMap, conf: OWMapConf): void {
             if (ow.isTerm(x, y)) {
                 return true;
             }
-            console.log('\taddOwPath: FALSE x is ', x, 'y is ', y);
         }
         return false;
     });

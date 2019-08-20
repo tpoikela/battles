@@ -1484,28 +1484,28 @@ RG.getUnequipCmd = function(name, slotNumber, count): IPlayerCmdInput {
 RG.ONE_SHOT_ITEMS = ['potion'];
 
 /* Returns true if given item is one-shot use item by its type.*/
-RG.isOneShotItem = (item: ItemBase): boolean => {
+RG.isOneShotItem = function(item: ItemBase): boolean {
     const itemType = item.getType();
     const index = RG.ONE_SHOT_ITEMS.indexOf(itemType);
     return index >= 0;
 };
 
 
-RG.isActor = (obj: any): obj is BaseActor => {
+RG.isActor = function(obj: any): obj is BaseActor {
     if (obj && obj.getPropType) {
         return obj.getPropType() === RG.TYPE_ACTOR;
     }
     return false;
 };
 
-RG.isElement = (obj: any): obj is ElementBase => {
+RG.isElement = function(obj: any): obj is ElementBase {
     if (obj && obj.getPropType) {
         return obj.getPropType() === RG.TYPE_ELEM;
     }
     return false;
 };
 
-RG.isItem = (obj: any): obj is ItemBase => {
+RG.isItem = function(obj: any): obj is ItemBase {
     if (obj && obj.getPropType) {
         return obj.getPropType() === RG.TYPE_ITEM;
     }

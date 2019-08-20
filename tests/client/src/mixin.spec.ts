@@ -1,11 +1,14 @@
 
 import {expect} from 'chai';
 import * as Mixin from '../../../client/src/mixin';
+import {Entity} from '../../../client/src/entity';
+
+class Base extends Entity {}
 
 describe('Mixin.Typed', () => {
 
     it('can be used to add type info to class', () => {
-        class TestTyped extends Mixin.Typed(Mixin.Base) {
+        class TestTyped extends Mixin.Typed(Base) {
         }
 
         const typed = new TestTyped({type: 'TestType'});
@@ -18,7 +21,7 @@ describe('Mixin.Typed', () => {
 describe('Mixin.Locatable', () => {
 
     it('can be used to add location info to class', () => {
-        class Actor extends Mixin.Locatable(Mixin.Base) {
+        class Actor extends Mixin.Locatable(Base) {
         }
 
         const actor = new Actor();
@@ -32,9 +35,9 @@ describe('Mixin.Locatable', () => {
 describe('Mixin.DamageRoll', () => {
 
     it('can be used to add location info to class', () => {
-        class Damaging extends Mixin.DamageRoll(Mixin.Base) {
+        class Damaging extends Mixin.DamageRoll(Base) {
 
-            getEntity() {
+            public getEntity() {
                 return {};
             }
 

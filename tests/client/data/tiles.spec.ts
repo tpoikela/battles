@@ -76,7 +76,7 @@ describe('TemplateLevel level generation', () => {
         level.customMatchFilter = filterCells;
         // level.setExitMap(Basic5x5.remap.exits, Basic5x5.remap.nsew2Dir);
         level.create();
-        console.log('\n=== Created level: ====\n');
+        // console.log('\n=== Created level: ====\n');
         // RG.printMap(level.getMap());
     });
 

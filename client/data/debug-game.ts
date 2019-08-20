@@ -501,13 +501,13 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
     branch.connectLevels();
     game.addPlace(branch);
 
-    const finalStairs = new Stairs(true, allLevels[nLevels - 1], townLevel);
+    const finalStairs = new Stairs('stairsDown', allLevels[nLevels - 1], townLevel);
     const stairsLoot = new Component.Loot(finalStairs);
     summoner.add(stairsLoot);
     allStairsDown.push(finalStairs);
 
     const lastStairsDown = allStairsDown.slice(-1)[0];
-    const townStairsUp = new Stairs(false, townLevel, lastLevel);
+    const townStairsUp = new Stairs('stairsUp', townLevel, lastLevel);
     const rStairCell = townLevel.getFreeRandCell();
     townLevel.addStairs(townStairsUp, rStairCell.getX(), rStairCell.getY());
     townStairsUp.setTargetStairs(lastStairsDown);

@@ -6,34 +6,40 @@ import {Random} from './random';
 const RNG = Random.getRNG();
 export const Placer: any = {};
 
-import {TCoord, BBox} from './interfaces';
+import {BBox, TCellProp} from './interfaces';
 type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
 type Entity = import('./entity').Entity;
+type ItemBase = import('./item').ItemBase;
+type ElementXY = import('./element').ElementXY;
+type BaseActor = import('./actor').BaseActor;
 
-Placer.addPropsToFreeCells = function(level, props, type) {
+Placer.addPropsToFreeCells = function(level: Level, props: TCellProp[]): boolean {
     const freeCells = level.getMap().getFree();
-    Placer.addPropsToCells(level, freeCells, props, type);
+    return Placer.addPropsToCells(level, freeCells, props);
 };
 
 /* Adds to the given level, and its cells, all props given in the list. Assumes
  * that all props are of given type (placement function is different for
  * different types. */
-Placer.addPropsToCells = function(level: Level, cells: Cell[], props, type) {
+Placer.addPropsToCells = function(level: Level, cells: Cell[], props: TCellProp[]): boolean {
     let ok = props.length > 0 && cells.length > 0;
     for (let i = 0; i < props.length; i++) {
         if (cells.length > 0) {
             const index = RNG.randIndex(cells);
             const cell = cells[index];
-            if (type === RG.TYPE_ACTOR) {
-                ok = ok && level.addActor(props[i], cell.getX(), cell.getY());
+            if (RG.isActor(props[i])) {
+                ok = ok && level.addActor(props[i] as BaseActor, cell.getX(), cell.getY());
             }
-            else if (type === RG.TYPE_ITEM) {
-                ok = ok && level.addItem(props[i], cell.getX(), cell.getY());
+            else if (RG.isItem(props[i])) {
+                ok = ok && level.addItem(props[i] as ItemBase, cell.getX(), cell.getY());
+            }
+            else if (RG.isElement(props[i])) {
+                ok = ok && level.addElement(props[i] as ElementXY, cell.getX(), cell.getY());
             }
             else {
                 RG.err('Placer', 'addPropsToCells',
-                    `Type ${type} not supported`);
+                    `Type ${props[i].getPropType()} not supported`);
             }
             cells.splice(index, 1); // remove used cell
         }
@@ -41,7 +47,7 @@ Placer.addPropsToCells = function(level: Level, cells: Cell[], props, type) {
     return ok;
 };
 
-Placer.addPropsToRoom = function(level: Level, room, props): boolean {
+Placer.addPropsToRoom = function(level: Level, room, props: TCellProp[]): boolean {
     if (!Array.isArray(props)) {
         RG.err('Placer', 'addPropsToRoom',
             `props must be an array. Got: ${props}`);
@@ -61,7 +67,7 @@ Placer.addPropsToRoom = function(level: Level, room, props): boolean {
     return false;
 };
 
-Placer.addActorsToBbox = function(level: Level, bbox: BBox, actors): boolean {
+Placer.addActorsToBbox = function(level: Level, bbox: BBox, actors: BaseActor[]): boolean {
     const nActors = actors.length;
     const freeCells = level.getMap().getFreeInBbox(bbox);
     if (freeCells.length < nActors) {
@@ -72,27 +78,29 @@ Placer.addActorsToBbox = function(level: Level, bbox: BBox, actors): boolean {
 };
 
 
-Placer.addItemsToBbox = function(level: Level, bbox: BBox, items): boolean {
+Placer.addItemsToBbox = function(level: Level, bbox: BBox, items: ItemBase[]): boolean {
     const freeCells = level.getMap().getFreeInBbox(bbox);
     return Placer.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
 };
 
 /* Adds entity to a random cell of matching filterFunc. Returns true if success,
  * otherwise returns false (for example if no cells found). */
-Placer.addEntityToCellType = function(entity: Entity, level: Level, filterFunc) {
+Placer.addEntityToCellType = function(
+    entity: Entity, level: Level, filterFunc: (cell: Cell) => boolean
+): boolean {
     let ok = false;
     const cells: Cell[] = level.getMap().getCells(filterFunc);
     if (cells.length === 0) {return false;}
     const randCell = RNG.arrayGetRand(cells);
     const [x, y] = randCell.getXY();
     if (RG.isActor(entity)) {
-        ok = level.addActor(entity, x, y);
+        ok = level.addActor(entity as BaseActor, x, y);
     }
     else if (RG.isItem(entity)) {
-        ok = level.addItem(entity, x, y);
+        ok = level.addItem(entity as ItemBase, x, y);
     }
     else if (RG.isElement(entity)) {
-        ok = level.addElement(entity, x, y);
+        ok = level.addElement(entity as ElementXY, x, y);
     }
     return ok;
 };

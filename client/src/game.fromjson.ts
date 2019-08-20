@@ -40,6 +40,7 @@ type IAreaTileJSON = World.IAreaTileJSON;
 type Stairs = Element.ElementStairs;
 type ElementBase = Element.ElementBase;
 type Entity = import('./entity').Entity;
+type ConnectionObj = Element.ConnectionObj;
 
 const POOL = EventPool.getPool();
 const SentientActor = Actor.Sentient;
@@ -75,7 +76,7 @@ export const FromJSON = function() {
     this.compsWithMissingRefs = {};
 
     // Stores connection information for stairs
-    this.stairsInfo = {};
+    this.stairsInfo = {} as {[key: string]: ConnectionObj};
 
     this.IND = 0; // For debug msg indenting
 
@@ -193,7 +194,7 @@ FromJSON.prototype.createGame = function(game, gameJSON) {
     Component.setIDCount(gameJSON.lastComponentID);
     // Component.idCount = gameJSON.lastComponentID;
 
-    const allLevels = [];
+    const allLevels: Level[] = [];
     const levelsToRestore = this.getLevelsToRestore(gameJSON);
 
     // Levels must be created before the actual world, because the World
@@ -993,12 +994,12 @@ FromJSON.prototype.setGlobalConfAndObjects = function(game, gameJSON: JsonMap) {
 
 /* Makes all connections in given levels after they've been created as
  * Map.Level objects. */
-FromJSON.prototype.connectGameLevels = function(levels) {
-    levels.forEach(level => {
-        const stairsList = level.getConnections();
+FromJSON.prototype.connectGameLevels = function(levels: Level[]): void {
+    levels.forEach((level: Level) => {
+        const stairsList: Stairs[] = level.getConnections();
 
-        stairsList.forEach(s => {
-            const connObj = this.stairsInfo[s.getID()];
+        stairsList.forEach((s: Stairs) => {
+            const connObj = this.stairsInfo[s.getConnID()];
             const targetLevel = this.id2level[connObj.targetLevel];
             if (!targetLevel && this.chunkMode) {
                 s.setConnObj(connObj);
@@ -1278,7 +1279,7 @@ FromJSON.prototype.createTiles = function(game, jsonTiles: IAreaTileJSON[]) {
     jsonTiles.forEach(json => {
         levelsJson = levelsJson.concat(json.levels);
     });
-    const restoredLevels = [];
+    const restoredLevels: Level[] = [];
 
     levelsJson.forEach(json => {
         const level = this.restoreLevel(json);

@@ -9,7 +9,7 @@ import {Path} from '../path';
 import {Builder} from '../builder';
 import {Geometry} from '../geometry';
 import * as Element from '../element';
-import {BBox, TLocatableElement, ConstBaseElem} from '../interfaces';
+import {BBox, ConstBaseElem} from '../interfaces';
 import {TemplateLevel, StartRoomFunc} from '../template.level';
 import {Random} from '../random';
 import {House, HouseGenerator} from './house-generator';
@@ -23,6 +23,7 @@ import {BSP, MapForest, MapMiner, MapMountain, MapWall} from '../../../lib';
 const ElementMarker = Element.ElementMarker;
 type ElementBase = Element.ElementBase;
 type ElementWall = Element.ElementWall;
+type ElementXY = Element.ElementXY;
 
 const RNG = Random.getRNG();
 
@@ -60,7 +61,7 @@ export interface MapObj {
     mapGen?: any;
     houses?: House[];
     unused?: any[];
-    elements?: TLocatableElement[];
+    elements?: ElementXY[];
 }
 
 /*

@@ -11,7 +11,7 @@ import {ELEM} from '../data/elem-constants';
 import * as Component from './component/component';
 
 // Import types only
-import {TCoord, BBox, TLocatableElement} from './interfaces';
+import {TCoord, BBox} from './interfaces';
 type ZoneBase = import('./world').ZoneBase;
 type SubZoneBase = import('./world').SubZoneBase;
 type Battle = import('./game.battle').Battle;
@@ -22,10 +22,10 @@ type MapObj = import('./generator').MapObj;
 type WorldShop = import('./world').WorldShop;
 
 type ItemBase = import('./item').ItemBase;
-type ElementBase = import('./element').ElementBase;
+type ElementXY = import('./element').ElementXY;
 type ElementStairs = import('./element').ElementStairs;
 type BaseActor = import('./actor').BaseActor;
-type SentientActor = import('./actor').BaseActor;
+type SentientActor = import('./actor').SentientActor;
 
 type CellOrNull = Cell | null;
 
@@ -93,7 +93,7 @@ export type LevelExtras = Extras & {
 
 interface LevelProps {
     actors: BaseActor[];
-    elements: TLocatableElement[];
+    elements: ElementXY[];
     items: ItemBase[];
 }
 
@@ -107,11 +107,11 @@ export class Level extends Entity {
 
     public editorID: number; // Used in editor only
 
-    private _map: CellMap;
+    private _map: null | CellMap;
     private _parent: any;
     private _p: LevelProps;
     private _levelNo: number;
-    private _callbacks: {[key: string]: (any) => void};
+    private _callbacks: {[key: string]: (arg: any) => void};
     private _cbState: {[key: string]: boolean};
 
     // Non-serializable property used during PCG
@@ -156,7 +156,7 @@ export class Level extends Entity {
         return this._parent;
     }
 
-    public getParentZone(): ZoneBase {
+    public getParentZone(): null | ZoneBase {
         const subZoneParent = this.getParent();
         if (subZoneParent) {
             /*
@@ -185,11 +185,11 @@ export class Level extends Entity {
 
     public getActors(): BaseActor[] {return this._p.actors;}
     public getItems(): ItemBase[] {return this._p.items;}
-    public getElements(): ElementBase[] {return this._p.elements;}
+    public getElements(): ElementXY[] {return this._p.elements;}
 
     /* Returns all stairs elements. */
     public getStairs(): ElementStairs[] {
-        const res = [];
+        const res: ElementStairs[] = [];
         this._p.elements.forEach(elem => {
             if (this._isStairs(elem)) {
                 res.push(elem);
@@ -199,7 +199,7 @@ export class Level extends Entity {
     }
 
     public getPassages(): ElementStairs[] {
-        const res = [];
+        const res: ElementStairs[] = [];
         this._p.elements.forEach(elem => {
             if (elem.getName() === 'passage') {
                 const elemStairs: unknown = elem;
@@ -210,7 +210,7 @@ export class Level extends Entity {
     }
 
     public getConnections(): ElementStairs[] {
-        const conn = [];
+        const conn: ElementStairs[] = [];
         this._p.elements.forEach(elem => {
             if (elem.getType() === 'connection') {
                 const elemStairs: unknown = elem;
@@ -220,7 +220,7 @@ export class Level extends Entity {
         return conn;
     }
 
-    public _isStairs(elem): elem is ElementStairs {
+    public _isStairs(elem: any): elem is ElementStairs {
         return (/stairs(Down|Up)/).test(elem.getName());
     }
 
@@ -279,7 +279,7 @@ export class Level extends Entity {
         const cell = this._map.getCell(actor.getX(), actor.getY());
         if (cell.hasConnection()) {
             const connection = cell.getConnection();
-            if (connection.useStairs(actor)) {
+            if (connection!.useStairs(actor)) {
                 return true;
             }
             else {
@@ -290,9 +290,10 @@ export class Level extends Entity {
     }
 
     /* Adds one element into the level. */
-    public addElement(elem, x: number, y: number): boolean {
+    public addElement(elem: ElementXY, x: number, y: number): boolean {
         if (elem.getType() === 'connection') {
-            return this.addStairs(elem, x, y);
+            const sElem: unknown = elem;
+            return this.addStairs(sElem as ElementStairs, x, y);
         }
         if (!RG.isNullOrUndef([x, y])) {
             return this._addPropToLevelXY(RG.TYPE_ELEM, elem, x, y);
@@ -306,11 +307,11 @@ export class Level extends Entity {
         return this._addPropToLevelXY(RG.TYPE_ELEM, elem, xCell, yCell);
     }
 
-    public removeElement(elem, x: number, y: number): boolean {
+    public removeElement(elem: ElementXY, x: number, y: number): boolean {
         return this._removePropFromLevelXY(RG.TYPE_ELEM, elem, x, y);
     }
 
-    public addEntity(ent: Entity, x: number, y: number): boolean {
+    public addEntity(ent: any, x: number, y: number): boolean {
         if (RG.isActor(ent)) {
             return this.addActor(ent, x, y);
         }
@@ -318,7 +319,7 @@ export class Level extends Entity {
               return this.addItem(ent, x, y);
         }
         else if (RG.isElement(ent)) {
-              return this.addElement(ent, x, y);
+            return this.addElement(ent, x, y);
         }
         else {
             RG.err('Level', 'addEntity',
@@ -333,7 +334,7 @@ export class Level extends Entity {
 
     /* Adds one item to the given location on the level. If x,y not given,
     *  adds it to random free cell. */
-    public addItem(item, x?: number, y?: number): boolean {
+    public addItem(item: ItemBase, x?: number, y?: number): boolean {
         // verifyLevelCache(this);
         if (!RG.isNullOrUndef([x, y])) {
             return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
@@ -343,7 +344,7 @@ export class Level extends Entity {
     }
 
     /* Removes an item from the level in x,y position.*/
-    public removeItem(item, x: number, y: number): boolean {
+    public removeItem(item: ItemBase, x: number, y: number): boolean {
         const res = this._removePropFromLevelXY(RG.TYPE_ITEM, item, x, y);
         // verifyLevelCache(this);
         return res;
@@ -374,10 +375,10 @@ export class Level extends Entity {
     /* Adds an actor to the level. If x,y is given, tries to add there. If not,
      * finds first free cells and adds there. Returns true on success.
      */
-    public addActor(actor, x: number, y: number): boolean {
+    public addActor(actor: BaseActor, x: number, y: number): boolean {
         RG.debug(this, 'addActor called with x,y ' + x + ', ' + y);
         if (!RG.isNullOrUndef([x, y])) {
-            if (this._map.hasXY(x, y)) {
+            if (this._map && this._map.hasXY(x, y)) {
                 this._addPropToLevelXY(RG.TYPE_ACTOR, actor, x, y);
                 RG.debug(this, 'Added actor to map x: ' + x + ' y: ' + y);
                 return true;

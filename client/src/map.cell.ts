@@ -4,21 +4,22 @@ import * as Element from './element';
 import {BaseActor} from './actor';
 import * as Item from './item';
 import {ELEM_MAP} from '../data/elem-constants';
-import {TCoord, ConstBaseElem} from './interfaces';
+import {TCoord, ConstBaseElem, Maybe, TCellProp} from './interfaces';
 
 const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 
 type ItemBase = Item.ItemBase;
-type PropsType = Element.ElementBase | ItemBase | BaseActor;
+type ElementXY = Element.ElementXY;
 type Door = Element.ElementDoor;
 type LeverDoor = Element.ElementLeverDoor;
 type Stairs = Element.ElementStairs;
 type SentientActor = import('./actor').SentientActor;
+type ElementMarker = Element.ElementMarker;
 
 interface CellProps {
-    actors?: PropsType[];
-    items?: PropsType[];
-    elements?: PropsType[];
+    actors?: TCellProp[];
+    items?: TCellProp[];
+    elements?: TCellProp[];
 }
 
 export interface CellJSON {
@@ -38,12 +39,13 @@ export class Cell {
     public _x: number;
     public _y: number;
 
+    // private _baseElem: Maybe<ConstBaseElem>;
     private _baseElem: ConstBaseElem;
     private _p: CellProps;
     private _lightPasses: boolean;
     private _isPassable: boolean;
 
-    constructor(x: number, y: number, elem?: ConstBaseElem) { // {{{2
+    constructor(x: number, y: number, elem: ConstBaseElem) { // {{{2
 
         this._baseElem = elem;
         this._x = x;
@@ -78,7 +80,7 @@ export class Cell {
         this._isPassable = elem.isPassable();
     }
 
-    public getBaseElem(): ConstBaseElem { return this._baseElem; }
+    public getBaseElem(): ConstBaseElem { return this._baseElem; } // TODO safe null
 
     /* Returns true if the cell has props of given type.*/
     public hasProp(prop: string): boolean {
@@ -87,7 +89,7 @@ export class Cell {
 
     /* Returns the given type of props, or null if does not have any props of that
      * type. */
-    public getProp(prop: string): PropsType[] | null {
+    public getProp(prop: string): TCellProp[] | null {
         if (this._p.hasOwnProperty(prop)) {
             return this._p[prop];
         }
@@ -99,8 +101,8 @@ export class Cell {
         return this.hasProp(TYPE_ELEM);
     }
 
-    public getElements(): Element.ElementBase[] | null {
-        return this.getProp(TYPE_ELEM) as Element.ElementBase[];
+    public getElements(): Element.ElementXY[] | null {
+        return this.getProp(TYPE_ELEM) as Element.ElementXY[];
     }
 
     /* Returns true if cell has any actors.*/
@@ -138,10 +140,10 @@ export class Cell {
     /* Checks if this cell has a marker with given tag. */
     public hasMarker(tag: string): boolean {
         if (this.hasElements()) {
-            const elems = this.getElements() as Element.ElementBase[];
+            const elems = this.getElements() as Element.ElementXY[];
             for (let i = 0; i < elems.length; i++) {
                 if (elems[i].getType() === 'marker') {
-                    if (elems[i].getTag() === tag) {
+                    if ((elems[i] as ElementMarker).getTag() === tag) {
                         return true;
                     }
                 }
@@ -190,6 +192,7 @@ export class Cell {
             const door: unknown = this.getPropType('door')[0];
             return (door as Door).isClosed();
         }
+        return false;
     }
 
     public hasConnection(): boolean {
@@ -203,7 +206,7 @@ export class Cell {
     public hasConnectionType(type: string): boolean {
         if (this.hasConnection()) {
             const connection = this.getConnection();
-            return connection.getName() === type;
+            return connection!.getName() === type;
         }
         return false;
     }
@@ -247,7 +250,7 @@ export class Cell {
     /* Returns true if light passes through this map cell.*/
     public lightPasses(): boolean {
         if (!this._lightPasses) {return false;}
-        const elems = this._p[TYPE_ELEM];
+        const elems = this._p.elements;
         if (elems) {
             if (elems.length === 1) {
                 if (elems[0].has('Opaque')) {return false;}
@@ -270,7 +273,7 @@ export class Cell {
     }
 
     public isDangerous(): boolean {
-        if (this._p[TYPE_ACTOR]) {
+        if (this._p.actors) {
             const actors = this.getProp(TYPE_ACTOR);
             if (actors) {
                 return actors[0].has('Damaging');
@@ -296,19 +299,19 @@ export class Cell {
         if (!isFlying && !this._isPassable) {return false;}
 
         if (this.hasProp(TYPE_ACTOR)) {
-            for (let i = 0; i < this._p.actors.length; i++) {
-                if (!this._p.actors[i].has('Ethereal')) {return false;}
+            for (let i = 0; i < this._p.actors!.length; i++) {
+                if (!this._p.actors![i].has('Ethereal')) {return false;}
             }
             return true;
         }
         else if (this.hasProp(TYPE_ELEM)) {
             if (this.hasPropType('door')) {
                 const door = this.getDoor();
-                return door.isOpen();
+                return door!.isOpen();
             }
             else if (this.hasPropType('leverdoor')) {
                 const leverDoor = this.getLeverDoor();
-                return leverDoor.isOpen();
+                return leverDoor!.isOpen();
             }
         }
 
@@ -338,7 +341,7 @@ export class Cell {
     }
 
     /* Add given obj with specified property type.*/
-    public setProp(prop: string, obj: PropsType): void {
+    public setProp(prop: string, obj: TCellProp): void {
         if (obj.getType() === 'connection' && this.hasConnection()) {
             let msg = `${this._x},${this._y}`;
             msg += `\nExisting: ${JSON.stringify(this.getConnection())}`;
@@ -373,7 +376,7 @@ export class Cell {
     }
 
     /* Removes the given object from cell properties.*/
-    public removeProp(prop: string, obj: PropsType): boolean {
+    public removeProp(prop: string, obj: TCellProp): boolean {
         if (this.hasProp(prop)) {
             const props = this._p[prop];
             const index = props.indexOf(obj);
@@ -408,10 +411,10 @@ export class Cell {
 
     /* Returns true if the cell has an usable element. */
     public hasUsable(): boolean {
-        const elems = this.getProp(RG.TYPE_ELEM) as Element.ElementBase[];
+        const elems = this.getProp(RG.TYPE_ELEM) as Element.ElementXY[];
         if (elems) {
             for (let i = 0; i < elems.length; i++) {
-                if (elems[i].onUse) {
+                if ((elems[i] as any).onUse) {
                     return true;
                 }
             }
@@ -462,7 +465,7 @@ export class Cell {
     }
 
     /* Returns all props with given type in the cell.*/
-    public getPropType(propType: string): PropsType[] | ConstBaseElem[] {
+    public getPropType(propType: string): TCellProp[] | ConstBaseElem[] {
         const props = [];
         if (this._baseElem.getType() === propType) {return [this._baseElem];}
         Object.keys(this._p).forEach(prop => {

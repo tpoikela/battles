@@ -61,3 +61,19 @@ describe('LeverDoor', () => {
     });
 
 });
+
+describe('Lever', () => {
+
+    let lever = null;
+
+    beforeEach(() => {
+        lever = new Element.ElementLever();
+    });
+
+    it('has proper prop type', () => {
+        expect(lever.getPropType()).to.equal(RG.TYPE_ELEM);
+        expect(RG.isElement(lever)).to.equal(true);
+
+    });
+
+});

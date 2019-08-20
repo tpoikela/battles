@@ -9,9 +9,16 @@ type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
 type ElementStairs = import('./element').ElementStairs;
 type ElementBase = import('./element').ElementBase;
+type ElementXY = import('./element').ElementXY;
+type ItemBase = import('./item').ItemBase;
+type BaseActor = import('./actor').BaseActor;
 type Locatable = import('./mixin').Locatable;
 type ElemTemplate = import('./template').ElemTemplate;
 type WorldBase = import('./world').WorldBase;
+
+export type Maybe<T> = T | null | undefined;
+
+export type TCellProp = ItemBase | BaseActor | ElementXY;
 
 export type ConstBaseElem = Readonly<ElementBase>;
 

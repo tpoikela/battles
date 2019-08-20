@@ -1,7 +1,7 @@
 
 /* Contains the code for base class of level generator. */
 import RG from '../rg';
-import {ElementMarker, ElementDoor} from '../element';
+import {ElementMarker, ElementBase} from '../element';
 import {Level} from '../level';
 
 import {TCoord, TShellFunc} from '../interfaces';
@@ -49,7 +49,7 @@ export abstract class LevelGenerator {
         this.shouldRemoveMarkers = true;
     }
 
-    public abstract create(cols: number, rows: number, conf): Level;
+    public abstract create(cols: number, rows: number, conf: ILevelGenOpts): Level;
 
     /* Adds markers for start and endpoint for given level. */
     public addStartAndEndPoint(level: Level, start: TCoord, end: TCoord): void {

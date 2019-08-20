@@ -15,7 +15,7 @@ describe('createCaveLevel', function() {
             };
             const n = 2;
             const level: Level = createCaveLevel(n * 80, n * 80, conf);
-            level.debugPrintInASCII();
+            //level.debugPrintInASCII();
         }
     });
 });

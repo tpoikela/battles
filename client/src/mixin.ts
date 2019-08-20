@@ -2,48 +2,91 @@ import RG from './rg';
 import {Dice} from './dice';
 import {TCoord} from './interfaces';
 
+type BaseObject = import('./entity').Entity;
+type Cell = import('./map.cell').Cell;
+type Level = import('./level').Level;
+
 export const Mixin: any = {};
 
 // Dummy Base class to be used with mixins.
-export class Base {}
-Mixin.Base = Base;
+//export class Base {}
+//Mixin.Base = Base;
 
 interface MixinArgs {
     [key: string]: any;
 }
 
+/* Used in the mixins. */
+type Constructor<T = BaseObject> = new (...args: any[]) => T;
+
 /* A mixin used for typed objects. */
-export const Typed = superclass => class extends superclass {
+export function Typed<TBase extends Constructor>(Base: TBase) {
 
-    public type: string;
-    public _propType: string;
+    return class extends Base {
 
-    constructor(args?: MixinArgs) {
-        if (superclass) {super(args);}
-        this.type = args.type || '';
-        this._propType = args.propType || '';
-    }
+        public type: string;
+        private _propType: string;
 
-    public getPropType(): string {return this._propType;}
-    public getType(): string {return this.type;}
-
-    public setPropType(propType: string): void {
-        const index = RG.PROP_TYPES.indexOf(propType);
-        if (index >= 0) {
-            this._propType = propType;
+        constructor(...args: any[]) {
+            if (Base) {super(...args);}
+            this.type = args.length > 0 ? args[0].type : '';
+            this._propType = args.length > 0 ? args[0].propType : '';
         }
-        else {
-            RG.err('Object.Typed', 'setPropType',
-                'Unknown prop type: |' + propType + '|');
+
+        public getPropType(): string {return this._propType;}
+        public getType(): string {return this.type;}
+
+        public setPropType(propType: string): void {
+            const index = RG.PROP_TYPES.indexOf(propType);
+            if (index >= 0) {
+                this._propType = propType;
+            }
+            else {
+                RG.err('Object.Typed', 'setPropType',
+                    'Unknown prop type: |' + propType + '|');
+            }
         }
-    }
 
-    public setType(type: string): void {
-        this.type = type;
-        RG.nullOrUndefError('Object.Typed: setType', 'arg |type|', type);
-    }
+        public setType(type: string): void {
+            this.type = type;
+            RG.nullOrUndefError('Object.Typed: setType', 'arg |type|', type);
+        }
 
-};
+    };
+}
+
+///* A mixin used for typed objects. */
+//export const Typed = superclass => class extends superclass {
+//
+//    public type: string;
+//    public _propType: string;
+//
+//    constructor(args?: MixinArgs) {
+//        if (superclass) {super(args);}
+//        this.type = args.type || '';
+//        this._propType = args.propType || '';
+//    }
+//
+//    public getPropType(): string {return this._propType;}
+//    public getType(): string {return this.type;}
+//
+//    public setPropType(propType: string): void {
+//        const index = RG.PROP_TYPES.indexOf(propType);
+//        if (index >= 0) {
+//            this._propType = propType;
+//        }
+//        else {
+//            RG.err('Object.Typed', 'setPropType',
+//                'Unknown prop type: |' + propType + '|');
+//        }
+//    }
+//
+//    public setType(type: string): void {
+//        this.type = type;
+//        RG.nullOrUndefError('Object.Typed: setType', 'arg |type|', type);
+//    }
+//
+//};
 
 export interface Locatable {
     getX: () => number;
@@ -52,72 +95,162 @@ export interface Locatable {
     getLevel: () => any; // Add typings
 }
 
+
 /* Mixin used in Locatable objects with x,y coordinates. */
-export const Locatable = superclass => class extends superclass {
+export function Locatable<TBase extends Constructor>(Base: TBase) {
 
-    private _x: number;
-    private _y: number;
-    private _level: any;
+    return class extends Base {
+        private _x: null | number;
+        private _y: null | number;
+        private _level: any;
 
-    constructor(args?: MixinArgs) {
-        super(args);
-        this._x = null;
-        this._y = null;
-        this._level = null;
-    }
-
-    public setX(x) {this._x = x; }
-    public setY(y) {this._y = y; }
-    public getX() {return this._x;}
-    public getY() {return this._y;}
-
-    public isAtXY(x, y): boolean {
-        return x === this._x && y === this._y;
-    }
-
-    public getXY(): TCoord {
-        return [this._x, this._y];
-    }
-
-    /* Simple getters/setters for coordinates.*/
-    public setXY(x, y) {
-        this._x = x;
-        this._y = y;
-    }
-
-    /* Accessing the current cell of object. */
-    public getCell() {
-        return this._level.getMap().getCell(this._x, this._y);
-    }
-
-    /* Sets the level of this locatable object.*/
-    public setLevel(level) {
-        this._level = level;
-        RG.nullOrUndefError('Mixin.Locatable: setLevel', 'arg |level|', level);
-    }
-
-    /* Unsets the level to null. Throws error if level already null. */
-    public unsetLevel() {
-        if (this._level) {
+        constructor(...args: any[]) {
+            super(...args);
+            this._x = null;
+            this._y = null;
             this._level = null;
         }
-        else {
-            RG.err('Mixin.Locatable', 'unsetLevel',
-                'Trying to unset already null level.');
+
+        public setX(x: number) {this._x = x; }
+        public setY(y: number) {this._y = y; }
+        public getX(): number {return this._x as number;}
+        public getY(): number {return this._y as number;}
+
+        public isAtXY(x: number, y: number): boolean {
+            return x === this._x && y === this._y;
         }
-    }
 
-    public getLevel() {
-        return this._level;
-    }
+        public getXY(): TCoord {
+            return [this._x as number, this._y as number];
+        }
 
-    /* Returns true if object is located at a position on a level.*/
-    public isLocated() {
-        return (this._x !== null) && (this._y !== null)
-            && (this._level !== null);
-    }
+        /* Simple getters/setters for coordinates.*/
+        public setXY(x: number, y: number): void {
+            this._x = x;
+            this._y = y;
+        }
 
-};
+        /* Accessing the current cell of object. */
+        public getCell(): Cell {
+            if (this._level) {
+              return this._level.getMap().getCell(this._x, this._y);
+            }
+            RG.err('Locatable', 'getCell',
+                'Level is null. This call was most likely a bug');
+
+            return {} as any;
+        }
+
+        /* Sets the level of this locatable object.*/
+        public setLevel(level: Level): void {
+            this._level = level;
+            RG.nullOrUndefError('Mixin.Locatable: setLevel', 'arg |level|', level);
+        }
+
+        /* Unsets the level to null. Throws error if level already null. */
+        public unsetLevel(): void {
+            if (this._level) {
+                this._level = null;
+            }
+            else {
+                RG.err('Mixin.Locatable', 'unsetLevel',
+                    'Trying to unset already null level.');
+            }
+        }
+
+        public getLevel(): null | Level {
+            return this._level;
+        }
+
+        /* Returns true if object is located at a position on a level.*/
+        public isLocated(): boolean {
+            return (this._x !== null) && (this._y !== null)
+                && (this._level !== null);
+        }
+
+        /* Returns true if locatables are in same position.*/
+        public isSamePos(obj: Locatable) {
+            if (this._x !== obj.getX()) {return false;}
+            if (this._y !== obj.getY()) {return false;}
+            if (this._level !== obj.getLevel()) {return false;}
+            return true;
+        }
+
+    };
+}
+
+///* Mixin used in Locatable objects with x,y coordinates. */
+//export const Locatable = superclass => class extends superclass {
+//
+//    private _x: null| number;
+//    private _y: null | number;
+//    private _level: null | Level;
+//
+//    constructor(args?: MixinArgs) {
+//        super(args);
+//        this._x = null;
+//        this._y = null;
+//        this._level = null;
+//    }
+//
+//    public setX(x: number) {this._x = x; }
+//    public setY(y: number) {this._y = y; }
+//    public getX(): null | number {return this._x;}
+//    public getY(): null | number {return this._y;}
+//
+//    public isAtXY(x: number, y: number): boolean {
+//        return x === this._x && y === this._y;
+//    }
+//
+//    public getXY(): TCoord {
+//        return [this._x as number, this._y as number];
+//    }
+//
+//    /* Simple getters/setters for coordinates.*/
+//    public setXY(x: number, y: number): void {
+//        this._x = x;
+//        this._y = y;
+//    }
+//
+//    /* Accessing the current cell of object. */
+//    public getCell(): Cell {
+//        if (this._level) {
+//            return this._level.getMap().getCell(this._x as number,
+//                                                this._y as number);
+//        }
+//        RG.err('Locatable', 'getCell',
+//            'level is null. Returns null. There is a bug somewhere');
+//        return {} as Cell;
+//    }
+//
+//    /* Sets the level of this locatable object.*/
+//    public setLevel(level: Level): void {
+//        this._level = level;
+//        RG.nullOrUndefError('Mixin.Locatable: setLevel', 'arg |level|', level);
+//    }
+//
+//    /* Unsets the level to null. Throws error if level already null. */
+//    public unsetLevel(): void {
+//        if (this._level) {
+//            this._level = null;
+//        }
+//        else {
+//            RG.err('Mixin.Locatable', 'unsetLevel',
+//                'Trying to unset already null level.');
+//        }
+//    }
+//
+//    public getLevel(): null | Level {
+//        return this._level;
+//    }
+//
+//    /* Returns true if object is located at a position on a level.*/
+//    public isLocated(): boolean {
+//        return (this._x !== null) && (this._y !== null)
+//            && (this._level !== null);
+//    }
+//
+//};
 
 /* Mixin for objects requiring a damage roll. */
 export const DamageRoll = (superclass) => class extends superclass {

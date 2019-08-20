@@ -1,10 +1,11 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
-import {EventPool} from '../eventpool';
 import * as Component from '../component';
 
 import {Cell} from '../map.cell';
+
+type ElementTrap = import('../element').ElementTrap;
 
 // Messages emitted for each disability
 const _msg = {
@@ -171,7 +172,9 @@ export class SystemDisability extends SystemBase {
             return;
         }
 
-        const traps = elems.filter(e => e.has('Entrapping'));
+        const anyElems: any[] = elems.filter(e => e.has('Entrapping'));
+        const traps: ElementTrap[] = anyElems;
+
         let difficulty = 0;
         traps.forEach(elem => {
             difficulty += elem.get('Entrapping').getDifficulty();

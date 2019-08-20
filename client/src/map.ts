@@ -2,13 +2,14 @@
 import ROT from '../../lib/rot';
 import RG from './rg';
 import {Cell, CellJSON} from './map.cell';
-import {ElementBase, ElementWall, ElementMarker} from './element';
-import {TCoord, BBox, ConstBaseElem} from './interfaces';
+import {ElementBase, ElementWall, ElementMarker, ElementXY} from './element';
+import {TCoord, BBox, ConstBaseElem, TCellProp} from './interfaces';
 import {ELEM_MAP} from '../data/elem-constants';
 
 const FLOOR = new ElementBase('floor');
 const WALL = new ElementWall('wall');
 
+type SentientActor = import('./actor').SentientActor;
 type YAndIndex = [number, number];
 
 export interface CellMapJSON {
@@ -105,15 +106,15 @@ export class CellMap {
     }
 
     /* Sets a property for the underlying cell.*/
-    public setProp(x: number, y: number, prop: string, obj): void {
+    public setProp(x: number, y: number, prop: string, obj: TCellProp): void {
         this._map[x][y].setProp(prop, obj);
     }
 
-    public removeProp(x, y, prop: string, obj): boolean {
+    public removeProp(x: number, y: number, prop: string, obj: TCellProp): boolean {
         return this._map[x][y].removeProp(prop, obj);
     }
 
-    public moveProp(fromXY, toXY, prop: string, obj): boolean {
+    public moveProp(fromXY: TCoord, toXY: TCoord, prop: string, obj: TCellProp): boolean {
         if (this.removeProp(fromXY[0], fromXY[1], prop, obj)) {
             this.setProp(toXY[0], toXY[1], prop, obj);
             return true;
@@ -121,7 +122,7 @@ export class CellMap {
         return false;
     }
 
-    public setElemXY(x: number, y: number, obj): void {
+    public setElemXY(x: number, y: number, obj: ElementXY): void {
         this.setProp(x, y, RG.TYPE_ELEM, obj);
     }
 
@@ -251,7 +252,7 @@ export class CellMap {
     }
 
     /* Returns visible cells for given actor.*/
-    public getVisibleCells(actor): Cell[] {
+    public getVisibleCells(actor: SentientActor): Cell[] {
         const cells = [];
         const [xA, yA] = actor.getXY();
         const range = actor.getFOVRange();
