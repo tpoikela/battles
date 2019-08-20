@@ -157,7 +157,7 @@ export class SentientActor extends BaseActor {
     protected _actualBrain?: any;
     protected _brain: BrainGoalOriented | BrainPlayer;
 
-    constructor(name) { // {{{2
+    constructor(name: string) { // {{{2
         super(name);
 
         this._brain = new BrainGoalOriented(this);

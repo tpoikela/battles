@@ -124,7 +124,7 @@ export class CastleGenerator extends LevelGenerator {
         }
 
         const mapObj = mapgen.createCastle(cols, rows, levelConf);
-        let level = new Level();
+        let level = new Level(mapObj.map);
         level.setMap(mapObj.map, mapObj);
         this.addMarkersFromTiles(level, mapObj.tiles);
 

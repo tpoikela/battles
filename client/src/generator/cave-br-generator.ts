@@ -59,13 +59,12 @@ CaveBrGenerator.getOptions = (): Conf => {
 
 /* Creates a cave level and returns Level object. */
 export function createCaveLevel(cols: number, rows: number, conf: Conf): Level {
-    const level = new Level();
     const map = new CellMap(cols, rows, ELEM.WALL);
     conf.mapWidth = cols;
     conf.mapHeight = rows;
     conf.connectedRatio = conf.connectedRatio || 1.00;
     createCaveMap(map, conf);
-    level.setMap(map);
+    const level = new Level(map);
     return level;
 }
 

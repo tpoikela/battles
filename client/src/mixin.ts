@@ -55,39 +55,6 @@ export function Typed<TBase extends Constructor>(Base: TBase) {
     };
 }
 
-///* A mixin used for typed objects. */
-//export const Typed = superclass => class extends superclass {
-//
-//    public type: string;
-//    public _propType: string;
-//
-//    constructor(args?: MixinArgs) {
-//        if (superclass) {super(args);}
-//        this.type = args.type || '';
-//        this._propType = args.propType || '';
-//    }
-//
-//    public getPropType(): string {return this._propType;}
-//    public getType(): string {return this.type;}
-//
-//    public setPropType(propType: string): void {
-//        const index = RG.PROP_TYPES.indexOf(propType);
-//        if (index >= 0) {
-//            this._propType = propType;
-//        }
-//        else {
-//            RG.err('Object.Typed', 'setPropType',
-//                'Unknown prop type: |' + propType + '|');
-//        }
-//    }
-//
-//    public setType(type: string): void {
-//        this.type = type;
-//        RG.nullOrUndefError('Object.Typed: setType', 'arg |type|', type);
-//    }
-//
-//};
-
 export interface Locatable {
     getX: () => number;
     getY: () => number;
@@ -179,79 +146,6 @@ export function Locatable<TBase extends Constructor>(Base: TBase) {
     };
 }
 
-///* Mixin used in Locatable objects with x,y coordinates. */
-//export const Locatable = superclass => class extends superclass {
-//
-//    private _x: null| number;
-//    private _y: null | number;
-//    private _level: null | Level;
-//
-//    constructor(args?: MixinArgs) {
-//        super(args);
-//        this._x = null;
-//        this._y = null;
-//        this._level = null;
-//    }
-//
-//    public setX(x: number) {this._x = x; }
-//    public setY(y: number) {this._y = y; }
-//    public getX(): null | number {return this._x;}
-//    public getY(): null | number {return this._y;}
-//
-//    public isAtXY(x: number, y: number): boolean {
-//        return x === this._x && y === this._y;
-//    }
-//
-//    public getXY(): TCoord {
-//        return [this._x as number, this._y as number];
-//    }
-//
-//    /* Simple getters/setters for coordinates.*/
-//    public setXY(x: number, y: number): void {
-//        this._x = x;
-//        this._y = y;
-//    }
-//
-//    /* Accessing the current cell of object. */
-//    public getCell(): Cell {
-//        if (this._level) {
-//            return this._level.getMap().getCell(this._x as number,
-//                                                this._y as number);
-//        }
-//        RG.err('Locatable', 'getCell',
-//            'level is null. Returns null. There is a bug somewhere');
-//        return {} as Cell;
-//    }
-//
-//    /* Sets the level of this locatable object.*/
-//    public setLevel(level: Level): void {
-//        this._level = level;
-//        RG.nullOrUndefError('Mixin.Locatable: setLevel', 'arg |level|', level);
-//    }
-//
-//    /* Unsets the level to null. Throws error if level already null. */
-//    public unsetLevel(): void {
-//        if (this._level) {
-//            this._level = null;
-//        }
-//        else {
-//            RG.err('Mixin.Locatable', 'unsetLevel',
-//                'Trying to unset already null level.');
-//        }
-//    }
-//
-//    public getLevel(): null | Level {
-//        return this._level;
-//    }
-//
-//    /* Returns true if object is located at a position on a level.*/
-//    public isLocated(): boolean {
-//        return (this._x !== null) && (this._y !== null)
-//            && (this._level !== null);
-//    }
-//
-//};
-
 /* Mixin for objects requiring a damage roll. */
 export const DamageRoll = (superclass) => class extends superclass {
 
@@ -297,7 +191,7 @@ export const DamageRoll = (superclass) => class extends superclass {
 };
 
 /* Adds a duration and accessor functions to given component. */
-export const DurationRoll =superclass => class extends superclass {
+export const DurationRoll = superclass => class extends superclass {
 
     public duration: Dice;
 
@@ -348,24 +242,24 @@ export const Defense =superclass => class extends superclass {
         this._protection = 0;
     }
 
-    public getAttack() {return this._attack;}
+    public getAttack(): number {return this._attack;}
 
-    public setAttack(attack) {
+    public setAttack(attack): number {
         this._attack = attack;
     }
 
     /* Defense related methods.*/
-    public getDefense() { return this._defense; }
+    public getDefense(): number {return this._defense;}
 
-    public setDefense(defense) {
+    public setDefense(defense: number): void {
         this._defense = defense;
     }
 
-    public getProtection() {
+    public getProtection(): number {
         return this._protection;
     }
 
-    public setProtection(prot) {
+    public setProtection(prot: number): void {
         this._protection = prot;
     }
 
@@ -419,8 +313,8 @@ export const Damage =superclass => class extends Defense(superclass) {
         this._range = 1;
     }
 
-    public setAttackRange(range) {this._range = range;}
-    public getAttackRange() {return this._range;}
+    public setAttackRange(range: number): void {this._range = range;}
+    public getAttackRange(): number {return this._range;}
 
     public rollDamage(): number {
         if (this.hasOwnProperty('getWeapon')) {

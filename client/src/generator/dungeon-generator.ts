@@ -156,10 +156,10 @@ export class DungeonGenerator extends LevelGenerator {
         }
         const minNumRooms = conf.minNumRooms || 3;
         let mapGen = null;
-        let map = null;
+        let map: null | CellMap = null;
         const createCb = (x, y, val) => {
             if (val === WALL) {
-                map.setBaseElemXY(x, y, ELEM.WALL);
+                map!.setBaseElemXY(x, y, ELEM.WALL);
             }
         };
 
@@ -174,9 +174,7 @@ export class DungeonGenerator extends LevelGenerator {
             }
         }
 
-        const level = new Level();
-        level.setMap(map);
-
+        const level = new Level(map!);
         const extras: any = { // TODO fix typing
             rooms: mapGen.getRooms(),
             corridors: mapGen.getCorridors()

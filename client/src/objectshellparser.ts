@@ -90,6 +90,7 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
             willpower: {comp: 'Stats', func: 'setWillpower'},
             perception: {comp: 'Stats', func: 'setPerception'},
             magic: {comp: 'Stats', func: 'setMagic'},
+            spirituality: {comp: 'Stats', func: 'setSpirituality'},
 
             fovrange: {comp: 'Perception', func: 'setFOVRange'},
 
@@ -105,6 +106,15 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
             value: 'setValue',
             weight: {comp: 'Physical', func: 'setWeight'},
             damageType: 'setDamageType',
+
+            speed: {comp: 'Stats', func: 'setSpeed'},
+            strength: {comp: 'Stats', func: 'setStrength'},
+            accuracy: {comp: 'Stats', func: 'setAccuracy'},
+            agility: {comp: 'Stats', func: 'setAgility'},
+            willpower: {comp: 'Stats', func: 'setWillpower'},
+            perception: {comp: 'Stats', func: 'setPerception'},
+            magic: {comp: 'Stats', func: 'setMagic'},
+            spirituality: {comp: 'Stats', func: 'setSpirituality'},
 
             armour: {
                 attack: 'setAttack',

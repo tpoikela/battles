@@ -11,6 +11,8 @@ import {ELEM} from './elem-constants';
 import {ObjectShell} from '../src/objectshellparser';
 import {LevelUtils} from '../src/level-utils';
 
+import {BBox} from '../src/interfaces';
+
 const dwarvenCityConf = {
   outerColsRatio: 0.45,
   outerRowsRatio: 0.4,
@@ -83,7 +85,7 @@ export class DwarvenCity {
       this.level = mainLevel;
     }
 
-    public adjustToTileSize(number) {
+    public adjustToTileSize(number: number): number {
       while (number % TILE_SIZE !== 0) {
         ++number;
       }
@@ -95,7 +97,7 @@ export class DwarvenCity {
 
     /* Returns the main fort level with created side-castles. Dimensions of the
      * main fort must be given. */
-    public createMainFortLevel(cols, rows): Level {
+    public createMainFortLevel(cols: number, rows: number): Level {
       const fortConf = {
           startRoomFunc: Castle.startFuncFourGates
       };
@@ -107,13 +109,13 @@ export class DwarvenCity {
       const castleRows = rows - 4 * 7;
       const innerCastle = mapGen.createCastle(castleCols, castleRows,
         {roomCount: -1, nGates: 2});
-      const castleLevel = new Level();
-      castleLevel.setMap(innerCastle.map);
+      // const castleLevel = new Level(innerCastle.map);
+      // castleLevel.setMap(innerCastle.map);
       Geometry.mergeMapBaseElems(mainFort.map,
           innerCastle.map, 3 * 7, 2 * 7);
 
-      const mainFortLevel = new Level();
-      mainFortLevel.setMap(mainFort.map);
+      const mainFortLevel = new Level(mainFort.map);
+      // mainFortLevel.setMap(mainFort.map);
 
       const mainFortWest = mapGen.createCastle(7 * 7, 5 * 7,
           {startRoomFunc: Castle.startRoomFuncEast,
@@ -124,10 +126,10 @@ export class DwarvenCity {
             roomCount: -1, genParams: [1, 1, 1, 1]}
       );
 
-      const mainFortWestLevel = new Level();
-      mainFortWestLevel.setMap(mainFortWest.map);
-      const mainFortEastLevel = new Level();
-      mainFortEastLevel.setMap(mainFortEast.map);
+      const mainFortWestLevel = new Level(mainFortWest.map);
+      //mainFortWestLevel.setMap(mainFortWest.map);
+      const mainFortEastLevel = new Level(mainFortEast.map);
+      //mainFortEastLevel.setMap(mainFortEast.map);
 
       const mainFortLevels = [mainFortWestLevel, mainFortLevel,
         mainFortEastLevel];
@@ -137,7 +139,7 @@ export class DwarvenCity {
     }
 
     /* Returns the first entrance fort. */
-    public createEntryFortLevel(cols, rows): Level {
+    public createEntryFortLevel(cols: number, rows: number): Level {
       const mapGen = new MapGenerator();
       const outerFortConf = {
           startRoomFunc: Castle.startFuncFourGates
@@ -150,8 +152,8 @@ export class DwarvenCity {
       const castleRows = rows - 6 * 7;
       const innerCastle = mapGen.createCastle(castleCols, castleRows,
         {nGates: 2, roomCount: -1});
-      const castleLevel = new Level();
-      castleLevel.setMap(innerCastle.map);
+      const castleLevel = new Level(innerCastle.map);
+      // castleLevel.setMap(innerCastle.map);
       Geometry.mergeMapBaseElems(outerFort.map, innerCastle.map,
           3 * 7, 3 * 7);
 
@@ -162,13 +164,13 @@ export class DwarvenCity {
         {startRoomFunc: Castle.startRoomFuncWest}
       );
 
-      const entryFortLevel = new Level();
-      entryFortLevel.setMap(outerFort.map);
+      const entryFortLevel = new Level(outerFort.map);
+      // entryFortLevel.setMap(outerFort.map);
 
-      const fortWestLevel = new Level();
-      fortWestLevel.setMap(smallFortWest.map);
-      const fortEastLevel = new Level();
-      fortEastLevel.setMap(smallFortEast.map);
+      const fortWestLevel = new Level(smallFortWest.map);
+      // fortWestLevel.setMap(smallFortWest.map);
+      const fortEastLevel = new Level(smallFortEast.map);
+      // fortEastLevel.setMap(smallFortEast.map);
 
       const subLevels = [fortWestLevel, entryFortLevel, fortEastLevel];
       const wrapConf = {centerY: true, baseElem: ELEM.WALL};
@@ -178,7 +180,7 @@ export class DwarvenCity {
 
     /* Adds actors and items into the level using bbox as constraint.
      * This guarantees that everything's placed inside the fort. */
-    public addItemsAndActors(level, bbox): void {
+    public addItemsAndActors(level: Level, bbox: BBox): void {
       const parser = ObjectShell.getParser();
       const freeCells = level.getMap().getFreeInBbox(bbox);
 

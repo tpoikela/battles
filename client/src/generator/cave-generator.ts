@@ -90,11 +90,10 @@ export class CaveGenerator extends LevelGenerator {
     public _createLevel(cols, rows, conf): Level {
         const mapOpts: MapOpts = this._createMapOptions(cols, rows, conf);
         const mapgen = new MapGenerator();
-        const level = new Level();
         mapgen.setGen('cave', cols, rows);
 
         const mapObj = mapgen.createCave(cols, rows, mapOpts);
-        level.setMap(mapObj.map);
+        const level = new Level(mapObj.map);
         this.setLevelExtras(level, mapObj.mapGen);
         if (mapOpts.isCollapsed) {
             level.getExtras().isCollapsed = true;

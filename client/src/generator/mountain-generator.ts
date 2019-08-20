@@ -13,7 +13,11 @@ import {Random} from '../random';
 import {ELEM} from '../../data/elem-constants';
 import {LevelGenerator, ILevelGenOpts} from './level-generator';
 
+import {ICoordXY, TCoord} from '../interfaces';
+
 const RNG = Random.getRNG();
+
+type CellMap = import('../map').CellMap;
 
 /*
 const PROB = {
@@ -48,20 +52,20 @@ export class MountainGenerator {
     }
 
     /* This creates 2 mountain levels: summit and the face. */
-    public createMountain(cols, rows, conf: MountainOpts): Level[] {
+    public createMountain(cols: number, rows: number, conf: MountainOpts): Level[] {
         const face = this.createFace(cols, rows, conf);
         const summit = this.createSummit(cols, rows, conf);
         return [face, summit];
     }
 
-    public createFace(cols, rows, conf: PartialMountainOpts): Level {
+    public createFace(cols: number, rows: number, conf: PartialMountainOpts): Level {
         const mapgen = new MapGenerator();
-        const level = new Level();
         mapgen.setGen('mountain', cols, rows);
         conf.nRoadTurns = 0;
         const mapObj = mapgen.createMountain(cols, rows, conf);
         // const {paths} = mapObj;
-        level.setMap(mapObj.map);
+        // level.setMap(mapObj.map);
+        const level = new Level(mapObj.map);
 
         this.createCrux(level, conf);
         // level.setExtras({paths});
@@ -69,12 +73,12 @@ export class MountainGenerator {
         return level;
     }
 
-    public createSummit(cols, rows, conf: PartialMountainOpts): Level {
+    public createSummit(cols: number, rows: number, conf: PartialMountainOpts): Level {
         const mapgen = new MapGenerator();
-        const level = new Level();
         mapgen.setGen('mountain', cols, rows);
         const mapObj = mapgen.createSummit(cols, rows, conf);
-        level.setMap(mapObj.map);
+        // level.setMap(mapObj.map);
+        const level = new Level(mapObj.map);
         level.setExtras({});
         return level;
     }
@@ -152,12 +156,12 @@ export class MountainGenerator {
     };*/
 
     /* Carves a path between x0,y0 and x1,y1 using a shortest distance. */
-    public carvePath(map, x0, y0, x1, y1) {
-        const result = [];
+    public carvePath(map: CellMap, x0: number, y0: number, x1: number, y1: number): TCoord[] {
+        const result: TCoord[] = [];
         const path = Path.getShortestPath(x0, y0, x1, y1);
-        path.forEach(xy => {
-            const brush = Geometry.getCrossAround(xy.x, xy.y, 2, true);
-            brush.forEach(bXY => {
+        path.forEach((xy: ICoordXY) => {
+            const brush: TCoord[] = Geometry.getCrossAround(xy.x, xy.y, 2, true);
+            brush.forEach((bXY: TCoord) => {
                 const [x, y] = bXY;
                 if (map.hasXY(x, y)) {
                     result.push(bXY);

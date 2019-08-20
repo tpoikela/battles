@@ -107,7 +107,7 @@ export class Level extends Entity {
 
     public editorID: number; // Used in editor only
 
-    private _map: null | CellMap;
+    private _map: CellMap;
     private _parent: any;
     private _p: LevelProps;
     private _levelNo: number;
@@ -118,9 +118,9 @@ export class Level extends Entity {
     private _extras: LevelExtras;
 
 
-    constructor() {
+    constructor(map: CellMap) {
         super();
-        this._map = null;
+        this._map = map;
         this._parent = null; // Reference to dungeon,city,mountain...
 
         // Level property cache (iteration through 100x100 cells is very

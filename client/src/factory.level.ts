@@ -6,6 +6,8 @@ import {ElementDoor} from './element';
 import * as Verify from './verify';
 import {DungeonPopulate} from './dungeon-populate';
 
+type MapObj = import('./generator').MapObj;
+
 export class FactoryLevel {
 
 
@@ -25,8 +27,8 @@ export class FactoryLevel {
     /* Factory method for creating levels.*/
     public createLevel(levelType: string, cols: number, rows: number, conf?): Level {
         const mapgen = new MapGenerator();
-        let mapObj = null;
-        const level = new Level();
+        let mapObj: null | MapObj = null;
+        let level: null | Level = null;
         mapgen.setGen(levelType, cols, rows);
 
         if (levelType === 'empty') {
@@ -34,14 +36,14 @@ export class FactoryLevel {
         }
         else if (levelType === 'town') {
             mapObj = mapgen.createTownBSP(cols, rows, conf);
-            level.setMap(mapObj.map);
+            level = new Level(mapObj.map);
             this.createHouseElements(level, mapObj);
             this.createShops(level, mapObj, conf);
             this.createTrainers(level, conf);
         }
         else if (levelType === 'townwithwall') {
             mapObj = mapgen.createTownWithWall(cols, rows, conf);
-            level.setMap(mapObj.map);
+            level = new Level(mapObj.map);
             this.createHouseElements(level, mapObj);
             this.createShops(level, mapObj, conf);
             this.createTrainers(level, conf);
@@ -77,44 +79,47 @@ export class FactoryLevel {
             mapObj = mapgen.getMap();
         }
 
-        if (mapObj) {
-            level.setMap(mapObj.map);
+        if (level === null) {
+            if (mapObj) {
+                level = new Level(mapObj.map);
+            }
+            else {
+                const msg = JSON.stringify(conf);
+                RG.err('FactoryBase', 'createLevel',
+                    `mapObj is null. type: ${levelType}. ${msg}`);
+            }
         }
-        else {
-            const msg = JSON.stringify(conf);
-            RG.err('FactoryBase', 'createLevel',
-                `mapObj is null. type: ${levelType}. ${msg}`);
-        }
-        this.setLevelExtras(level, mapObj);
-        return level;
+        this.setLevelExtras(level!, mapObj);
+        return level!;
     }
 
-    public setLevelExtras(level: Level, mapObj): void {
-        const extras = {};
+    public setLevelExtras(level: Level, mapObj: MapObj): void {
+        const extras: any = {};
         const possibleExtras = ['rooms', 'corridors', 'vaults', 'houses',
             'paths'];
         possibleExtras.forEach(extra => {
             if (mapObj.hasOwnProperty(extra)) {
-                extras[extra] = mapObj[extra];
+                extras[extra] = (mapObj as any)[extra];
             }
         });
         level.setExtras(extras);
     }
 
-    public createHouseElements(level: Level, mapObj): void {
-        if (!mapObj.hasOwnProperty('houses')) {return;}
-        const houses = mapObj.houses;
-        for (let i = 0; i < houses.length; i++) {
-            const doorXY = houses[i].door;
-            const door = new ElementDoor(true);
-            level.addElement(door, doorXY[0], doorXY[1]);
+    public createHouseElements(level: Level, mapObj: MapObj): void {
+        if (mapObj.houses) {
+            const houses = mapObj.houses;
+            for (let i = 0; i < houses.length; i++) {
+                const doorXY = houses[i].door;
+                const door = new ElementDoor(true);
+                level.addElement(door, doorXY[0], doorXY[1]);
+            }
         }
     }
 
     /* Creates a shop and a shopkeeper into a random house in the given level.
      * Level should already contain empty houses where the shop is created at
      * random. */
-    public createShops(level: Level, mapObj, conf): void {
+    public createShops(level: Level, mapObj: MapObj, conf): void {
         this._verif.verifyConf('createShops', conf, ['nShops']);
         const dungPopul = new DungeonPopulate();
         level.addExtras('houses', mapObj.houses);

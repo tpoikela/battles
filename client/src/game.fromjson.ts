@@ -744,13 +744,12 @@ FromJSON.prototype.getItemObjectType = function(item) {
 
 /* Creates a Map.Level object from a json object. NOTE: This method cannot
 * connect stairs to other levels, but only create the stairs elements. */
-FromJSON.prototype.restoreLevel = function(json) {
-    const level = new Level();
+FromJSON.prototype.restoreLevel = function(json): Level {
+    const mapObj = this.createCellMap(json.map);
+    const level = new Level(mapObj);
     level.setID(json.id);
     level.setLevelNumber(json.levelNumber);
-
-    const mapObj = this.createCellMap(json.map);
-    level.setMap(mapObj);
+    // level.setMap(mapObj);
 
     // Create actors
     json.actors.forEach(actor => {

@@ -67,9 +67,7 @@ export class CityGenerator extends LevelGenerator {
             mapObj = mapGen.createTownBSP(cols, rows, conf);
         }
 
-        const level = new Level();
-        level.setMap(mapObj.map);
-
+        const level = new Level(mapObj.map);
         level.addExtras('houses', mapObj.houses);
         this.createHouseElements(level);
         this.fillUnusedAreas(level, mapObj.unused);

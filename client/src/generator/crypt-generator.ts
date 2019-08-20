@@ -39,11 +39,10 @@ export class CryptGenerator extends LevelGenerator {
         cols: number, rows: number, conf: PartialCryptOpts
     ): Level {
         const mapgen = new MapGenerator();
-        const level = new Level();
         mapgen.setGen('crypt', cols, rows);
         // TODO adjust crypt size based on cols/rows
         const mapObj = mapgen.createCryptNew(cols, rows, conf);
-        level.setMap(mapObj.map);
+        const level = new Level(mapObj.map);
         return level;
     }
 

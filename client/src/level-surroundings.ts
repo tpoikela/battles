@@ -45,16 +45,17 @@ export class LevelSurroundings {
         const {cellsAround} = conf;
 
         const mapgen = new MapGenerator();
-        const mountLevel = new Level();
+        let chosenMap = null;
         if (this.hasAnyMountains(cellsAround)) {
             const wallConf: any = this.getWallConfFromCells(conf, xSize, ySize);
             const mapObj = mapgen.createWall(colsArea, rowsArea, wallConf);
-            mountLevel.setMap(mapObj.map);
+            chosenMap = mapObj.map;
         }
         else {
             const emptyMap = new CellMap(colsArea, rowsArea);
-            mountLevel.setMap(emptyMap);
+            chosenMap = emptyMap;
         }
+        const mountLevel = new Level(chosenMap);
 
         const skipTypes = {wallmount: true};
 

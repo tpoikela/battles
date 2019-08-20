@@ -67,13 +67,23 @@ const prefix: any = {
         sharp: {
             damage: '2', value: 1.1, rarity: 1.5
         },
+        balanced: {
+            attack: 3, damage: '1', value: 1.2, rarity: 1.5
+        },
+        serrated: {
+            value: 2.0, rarity: 2.0,
+            onAttackHit: [meleeHitDamage(1, '1d4 + 2', 'PIERCE')],
+        }
     }
 };
+
 prefix.armour = {
     light: prefix.weapon.light,
     heavy: {weight: 1.5, value: 1.2, protection: 2, rarity: 1.5},
     plated: {weight: 1.2, value: 1.3, protection: 2, rarity: 1.3},
+    spiked: {weight: 1.2, value: 1.4, protection: 1, attack: 3, rarity: 2.0},
 };
+
 ItemGen.prefix = prefix;
 names.prefix = {
     weapon: Object.keys(prefix.weapon),
@@ -156,6 +166,10 @@ const suffix: any = {
             onAttackHit: [meleeHitDamage(2, '1d8 + 1', 'VOID')],
             rarity: 4, value: 4
         },
+        ofSpirit: {
+            name: 'of Spirit', spirituality: 6,
+            rarity: 3, value: 3
+        },
         ofWillpower: {
             name: 'of Willpower', willpower: 6,
             rarity: 3, value: 3
@@ -189,6 +203,7 @@ suffix.armour = {
             ]}
         ]
     },
+    ofSpirituality: suffix.weapon.ofSpirit,
     ofWillpower: suffix.weapon.ofWillpower
 };
 ItemGen.suffix = suffix;
@@ -231,10 +246,13 @@ shellProps.weapon = {
         damage: '1d10', attack: 2, weight: 1.1, rarity: 3,
         value: 30,
     },
+    warhammer: {
+        damage: '1d10', attack: 2, weight: 1.1, rarity: 2,
+        value: 30,
+    },
     staff: {
         damage: '1d8', attack: 2, defense: 2, weight: 0.9,
-        rarity: 4,
-        value: 30,
+        rarity: 4, value: 30,
     }
 };
 names.weapon = Object.keys(shellProps.weapon);
@@ -263,6 +281,10 @@ shellProps.armour = {
     shield: {
         armourType: 'shield', weight: 0.8,
         protection: 2, defense: 1, attack: 0
+    },
+    buckler: {
+        armourType: 'shield', weight: 0.4,
+        protection: 0, defense: 3, attack: 1
     }
 };
 names.armour = Object.keys(shellProps.armour);

@@ -3,6 +3,10 @@ import { expect } from 'chai';
 import {ItemGen} from '../../../client/data/item-gen';
 import {mixNewShell} from '../../../client/data/shell-utils';
 
+import RG from '../../../client/src/rg';
+import {ObjectShell} from '../../../client/src/objectshellparser';
+import {SentientActor} from '../../../client/src/actor';
+
 const {shellProps} = ItemGen;
 
 describe('ItemGen', () => {
@@ -54,5 +58,24 @@ describe('ItemGen', () => {
             expect(shell).to.have.property('type');
             expect(shell).to.have.property('value');
         }
+    });
+
+    it('can create items with stats modified', () => {
+        const nameMap = {
+            type: 'weapon', name: 'sword', prefix: 'light',
+            suffix: 'ofMight', material: 'void'
+        };
+        const newShell = ItemGen.buildShell(nameMap);
+        const parser = ObjectShell.getParser();
+
+        const parsedShell = parser.parseObjShell(RG.TYPE_ITEM, newShell);
+        const item = parser.createFromShell(RG.TYPE_ITEM, parsedShell);
+        const actor = new SentientActor('wielder');
+        const strBefore = actor.getStrength();
+        actor.getInvEq().addItem(item);
+        actor.getInvEq().equipItem(item);
+        const strAfter = actor.getStrength();
+        expect(strAfter).to.be.above(strBefore);
+
     });
 });

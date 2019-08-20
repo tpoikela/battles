@@ -54,16 +54,16 @@ Builder.splitLevel = function(level: Level, conf): Level[][] {
                 subLevel = new FactoryLevel().createLevel('empty', width, height);
             }
             else {
-                subLevel = new Level();
                 const subMap = CellMap.createWithoutCells(width, height);
-                subLevel.setMap(subMap);
+                subLevel = new Level(subMap);
+                // subLevel.setMap(subMap);
             }
             levelCol.push(subLevel);
         }
         levels.push(levelCol);
     }
 
-    const getSubLevel = (x, y) => {
+    const getSubLevel = (x: number, y: number): Level => {
         const subIndexX = Math.floor(x / width);
         const subIndexY = Math.floor(y / height);
         return levels[subIndexX][subIndexY];
