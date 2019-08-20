@@ -430,7 +430,7 @@ export class Armour extends Mixin.Defense(ItemBase) {
     constructor(name: string) {
         super(name);
         this.setType(RG.ITEM.ARMOUR);
-        this._armourType = null;
+        this._armourType = '';
     }
 
     public setArmourType(type: string): void {this._armourType = type;}
@@ -466,7 +466,7 @@ Item.Armour = Armour;
 /* Potion Object for potions. */
 //--------------------------------------
 export class Potion extends ItemBase {
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType(RG.ITEM.POTION);
         this.isUsable = true;
