@@ -152,6 +152,10 @@ export class Level extends Entity {
         return this._levelNo;
     }
 
+    public getSizeXY(): [number, number] {
+        return [this._map.cols, this._map.rows];
+    }
+
     public getParent(): LevelParent {
         return this._parent;
     }

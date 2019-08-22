@@ -2,6 +2,7 @@
 import { expect } from 'chai';
 import {CaveGenerator} from '../../../client/src/generator';
 import {Level} from '../../../client/src/level';
+import {Placer} from '../../../client/src/placer';
 
 describe('CaveGenerator', () => {
     it('can create Cave-like levels', () => {
@@ -15,7 +16,7 @@ describe('CaveGenerator', () => {
             const caveGen = new CaveGenerator();
             const conf = {dungeonType: 'Cave', isCollapsed: false,
                 maxDanger: 5};
-            const level = caveGen.create(100, 50, conf);
+            const level = caveGen.create(120, 75, conf);
             expect(level).to.be.an.instanceof(Level);
 
             const extras = level.getExtras();
@@ -23,6 +24,12 @@ describe('CaveGenerator', () => {
             expect(startPoint).to.be.an('array');
             expect(endPoint).to.be.an('array');
             expect(startPoint).not.to.deep.equal(endPoint);
+            const bbox = Placer.findCellArea(level.getMap(), 21, 21, (cell) => !cell.isFree());
+            if (bbox.length > 0 && bbox[0].getArea() > 1) {
+                console.log(bbox);
+                expect(bbox[0].getArea()).to.equal(21 * 21);
+            }
+            level.debugPrintInASCII();
         }
     });
 

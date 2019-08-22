@@ -2,12 +2,14 @@
 /* Contains functions to place props into levels. */
 import RG from './rg';
 import {Random} from './random';
+import {BBox} from './bbox';
 
 const RNG = Random.getRNG();
 export const Placer: any = {};
 
-import {BBox, TCellProp} from './interfaces';
+import {TCoord, TCellProp} from './interfaces';
 type Cell = import('./map.cell').Cell;
+type CellMap = import('./map').CellMap;
 type Level = import('./level').Level;
 type Entity = import('./entity').Entity;
 type ItemBase = import('./item').ItemBase;
@@ -103,4 +105,74 @@ Placer.addEntityToCellType = function(
         ok = level.addElement(entity as ElementXY, x, y);
     }
     return ok;
+};
+
+/* Returns a bounding for of given size from the map, if any is found. Useful
+ * for retrofitting sub-levels into already generated levels. */
+Placer.findCellArea = function(
+    map: CellMap, sizeX: number, sizeY: number, func: (cell: Cell) => boolean
+): BBox[] {
+    const {cols, rows} = map;
+    let [currX, currY] = [0, 0];
+
+    const bboxes: BBox[] = [];
+    const minBoxes = 5;
+    const usedCells: {[key: string]: boolean} = {};
+
+    // Scans the x0,y0 position to find the specified area
+    const scanPosition = (x0: number, y0: number, res: TCoord[]): boolean => {
+        for (let x = x0; x < (x0 + sizeX); x++) {
+            if (x < cols) {
+                for (let y = y0; y < (y0 + sizeY); y++) {
+                    if (y < rows) {
+                        if (usedCells[x + ',' + y]) {
+                            return false;
+                        }
+                        if (!func(map.getCell(x, y))) {
+                            return false;
+                        }
+                        else {
+                            res.push([x, y]);
+                        }
+                    }
+                    else {
+                        return false;
+                    }
+                }
+            }
+            else {
+                return false;
+            }
+        }
+        res.forEach((xy: TCoord) => {
+            usedCells[xy[0] + ',' + xy[1]] = true;
+        });
+        return true;
+    };
+
+    let done = false;
+    let result: TCoord[] = [];
+
+    while (!done) {
+        result = [];
+        done = scanPosition(currX, currY, result);
+        if (done) {
+            const bbox = new BBox(
+                currX, currY, currX + sizeX - 1, currY + sizeY - 1
+            );
+            bboxes.push(bbox);
+        }
+        if (bboxes.length < minBoxes) {done = false;}
+
+        if (!done) {
+            ++currX;
+            if (currX === cols) {
+                currX = 0;
+                ++currY;
+            }
+            if (currY === rows) {break;}
+        }
+    }
+
+    return bboxes;
 };

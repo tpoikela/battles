@@ -5,7 +5,7 @@ const $DEBUG = 0;
 const RG: any = {};
 
 import './utils';
-import {TCoord, DestOrSrc, IPlayerCmdInput} from './interfaces';
+import {TCardinalDir, TCoord, DestOrSrc, IPlayerCmdInput} from './interfaces';
 
 // Import only types
 type BaseActor = import('./actor').BaseActor;
@@ -844,7 +844,7 @@ RG.LETTERS = ['a', 'b', 'c', 'd', 'e', 'f',
     'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
     'u', 'v', 'w', 'x', 'y', 'z'
 ];
-RG.LETTERS_UC = RG.LETTERS.map(l => l.toUpperCase());
+RG.LETTERS_UC = RG.LETTERS.map((l: string) => l.toUpperCase());
 
 /* Converts a direction (N, S, ...) to 2-d vector. If already,
  * a vector, returns it. */
@@ -861,17 +861,22 @@ RG.dirTodXdY = function(dir: TCoord | string): TCoord | null {
     return null;
 };
 
-RG.dXdYToDir = function(dXdY: TCoord): string {
+RG.dXdYToDir = function(dXdY: TCoord): TCardinalDir {
     const [dX, dY] = dXdY;
     let result = '';
     if (dY === 1) {result += 'S';}
     else if (dY === -1) {result += 'N';}
     if (dX === 1) {result += 'E';}
     else if (dX === -1) {result += 'W';}
-    return result;
+    if (dX === 0 && dY === 0) {
+        RG.warn('RG', 'dXdYToDir', 'dXdY 0,0 passed in');
+    }
+    return result as TCardinalDir;
 };
 
 
+/* Convert direction into single character. Used mainly to create
+ * directional beams for spells etc animations. */
 RG.dirToChar = function(dir: TCoord): string {
     const [dX, dY] = dir;
     if (dX !== 0) {

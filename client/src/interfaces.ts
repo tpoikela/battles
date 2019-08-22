@@ -26,6 +26,7 @@ export type TPrim = number | string | boolean;
 export type TPrimArr = TPrim[];
 
 export type TCoord = [number, number];
+export interface ICoordMap {[key: string]: any;}
 
 export interface ICoordXY {
     x: number;
@@ -97,6 +98,8 @@ export interface ICellDirMap {
     SE: string;
     SW: string;
 }
+
+export type TCardinalDir = keyof ICellDirMap;
 
 export interface ID2LevelMap {
     [key: number]: Level;
@@ -174,7 +177,7 @@ export interface IWorldElemMap {
 export interface ItemConstr {
     name?: string;
     count?: number;
-    func?: (item) => boolean;
+    func?: (item: IShell) => boolean;
 }
 
 export interface ItemConstrMap {

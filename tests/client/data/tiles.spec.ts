@@ -108,8 +108,8 @@ describe('TemplateLevel level generation', () => {
             level.customMatchFilter = Nests.matchFilter;
             level.roomCount = -1;
             level.create();
-            // console.log('\n=== Created level: ====\n');
-            // RG.printMap(level.getMap());
+            console.log('\n=== Created level: ====\n');
+            RG.printMap(level.getMap());
         }
 
     });

@@ -1,7 +1,7 @@
 
 import RG from './rg';
 import {Random} from './random';
-import {TCoord, BBox, ICellDirMap} from './interfaces';
+import {TCardinalDir, ICoordMap, TCoord, BBox, ICellDirMap} from './interfaces';
 
 const RNG = Random.getRNG();
 
@@ -26,13 +26,21 @@ interface Diamond {
     coord: TCoord[];
 }
 
+interface ITileConf {
+    x: number;
+    y: number;
+    alignLeft?: boolean;
+    centerX?: boolean;
+    centerY?: boolean;
+}
+
 /* Contains generic 2D geometric functions for square/rectangle/triangle
  * generation and level manipulation. */
 export const Geometry: any = {
 
     /* Returns all coord in a box around x0,y0 within distance d. Last arg can
      * be used to include the coordinate itself in the result. */
-    getBoxAround(x0, y0, d, incSelf = false): TCoord[] {
+    getBoxAround(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
         verifyInt([x0, y0]);
         const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
@@ -46,7 +54,7 @@ export const Geometry: any = {
         return res;
     },
 
-    getCrossAround(x0, y0, d, incSelf = false): TCoord[] {
+    getCrossAround(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
         verifyInt([x0, y0, d]);
         const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
@@ -63,7 +71,7 @@ export const Geometry: any = {
 
     },
 
-    getDiagCross(x0, y0, d, incSelf = false): TCoord[] {
+    getDiagCross(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
         verifyInt([x0, y0, d]);
         const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
@@ -79,7 +87,7 @@ export const Geometry: any = {
         return res;
     },
 
-    getCrossCaveConn(x0, y0, d, incSelf = false): TCoord[] {
+    getCrossCaveConn(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
         verifyInt([x0, y0, d]);
         const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
@@ -97,7 +105,7 @@ export const Geometry: any = {
 
     /* Returns a box of coordinates given starting point and end points
      * (inclusive). */
-    getBox(x0, y0, maxX, maxY): TCoord[] {
+    getBox(x0: number, y0: number, maxX: number, maxY: number): TCoord[] {
         verifyInt([x0, y0, maxX, maxY]);
         const res: TCoord[] = [];
         for (let x = x0; x <= maxX; x++) {
@@ -135,7 +143,7 @@ export const Geometry: any = {
 
     getCellsInBbox(map2D: any[][], bbox: BBox): Cell[] {
         const coord = this.getCoordBbox(bbox);
-        const result = [];
+        const result: Cell[] = [];
         coord.forEach((xy: TCoord) => {
             result.push(map2D[xy[0]][xy[1]]);
         });
@@ -154,7 +162,7 @@ export const Geometry: any = {
     },
 
     /* Converts a direction into bbox based on cols, rows. */
-    dirToBbox(cols: number, rows: number, dir: TCoord): BBox {
+    dirToBbox(cols: number, rows: number, dir: TCoord): null | BBox {
         const colsDiv = Math.round(cols / 3);
         const rowsDiv = Math.round(rows / 3);
         const cBbox = {ulx: colsDiv, uly: rowsDiv,
@@ -189,7 +197,7 @@ export const Geometry: any = {
 
     /* Given start x,y and end x,y coordinates, returns all x,y coordinates in
      * the border of the rectangle.*/
-    getHollowBox(x0, y0, maxX, maxY) {
+    getHollowBox(x0: number, y0: number, maxX: number, maxY: number) {
         verifyInt([x0, y0, maxX, maxY]);
         const res = [];
         for (let x = x0; x <= maxX; x++) {
@@ -210,12 +218,12 @@ export const Geometry: any = {
         const lowY = y0 - size;
 
         const coord: TCoord[] = [[x0, y0]];
-        const diamond = {
+        const diamond: Diamond = {
             N: [midX, highY],
             S: [midX, lowY],
             E: [RightX, y0],
             W: [x0, y0],
-            coord: []
+            coord: [] as TCoord[]
         };
         // Left side of the diamond
         for (let x = x0 + 1; x <= midX; x++) {
@@ -246,7 +254,9 @@ export const Geometry: any = {
 
     /* Returns true if given coordinate is one of the corners defined by the
      * box. */
-    isCorner(x, y, ulx, uly, lrx, lry): boolean {
+    isCorner(
+        x: number, y: number, ulx: number, uly: number, lrx: number, lry: number
+    ): boolean {
         if (x === ulx || x === lrx) {
             return y === uly || y === lry;
         }
@@ -255,7 +265,7 @@ export const Geometry: any = {
 
     /* Removes all xy-pairs from the first array that are contained also in the
      * 2nd one. Returns number of elements removed. */
-    removeMatching(modified, toBeRemoved): number {
+    removeMatching(modified: ICoordMap | TCoord[], toBeRemoved: TCoord[]): number {
         let nFound = 0;
         if (Array.isArray(modified)) {
             toBeRemoved.forEach(xy => {
@@ -293,7 +303,7 @@ export const Geometry: any = {
         const cellMap = {} as ICellDirMap;
         cellsAround.forEach((c: Cell) => {
             const dXdY = RG.dXdYUnit(c, xy);
-            const dir = RG.dXdYToDir(dXdY);
+            const dir: TCardinalDir = RG.dXdYToDir(dXdY);
             cellMap[dir] = c.getBaseElem().getType();
         });
         return cellMap;
@@ -303,7 +313,7 @@ export const Geometry: any = {
      * side-by-side and aligned based on the conf. 'alignRight' will be
      * implemented when needed.
      */
-    tileLevels(l1: Level, levels: Level[], conf): void {
+    tileLevels(l1: Level, levels: Level[], conf: ITileConf): void {
       const {x, y} = conf;
       let currX = x;
       let currY = y;
@@ -397,7 +407,7 @@ export const Geometry: any = {
     },
 
     /* Merges m2 into m1 starting from x,y in m1. Does not move items/actors. */
-    mergeMapBaseElems(m1, m2, startX, startY): void {
+    mergeMapBaseElems(m1: CellMap, m2: CellMap, startX: number, startY: number): void {
         if (m1.cols < m2.cols) {
             const got = `m1: ${m1.cols} m2: ${m2.cols}`;
             RG.err('Geometry', 'mergeMapBaseElems',

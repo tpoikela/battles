@@ -4,6 +4,7 @@
 
 import RG from '../rg';
 import {MapGenerator} from './map.generator';
+import {NestGenerator, NestOpts} from './nest-generator';
 import {Level, LevelExtras} from '../level';
 // const Random = require('../random');
 import {DungeonPopulate} from '../dungeon-populate';
@@ -83,6 +84,8 @@ export class CaveGenerator extends LevelGenerator {
         this._addEncounters(level, conf);
 
         this.removeMarkers(level, conf);
+
+        this.embedNest(level, conf);
         return level;
     }
 
@@ -335,7 +338,7 @@ export class CaveGenerator extends LevelGenerator {
         return point;
     }
 
-    public _addEncounters(level, conf) {
+    public _addEncounters(level: Level, conf) {
         const {dungeonType} = conf;
         if (dungeonType === 'Lair') {
             this._addLairBoss(level, conf);
@@ -344,7 +347,7 @@ export class CaveGenerator extends LevelGenerator {
         this.populatePoints(level, conf);
     }
 
-    public _addLairBoss(level, conf) {
+    public _addLairBoss(level: Level, conf) {
         const {maxDanger, maxValue} = conf;
         const endPoint = level.getExtras().endPoint;
         if (endPoint) {
@@ -363,13 +366,36 @@ export class CaveGenerator extends LevelGenerator {
     }
 
     /* Processes points of interest other than start/end points. */
-    public populatePoints(level, conf) {
+    public populatePoints(level: Level, conf) {
         const extras = level.getExtras();
         const {points} = extras;
         const populate = new DungeonPopulate({});
         points.forEach(point => {
             populate.populatePoint(level, point, conf);
         });
+    }
+
+    public embedNest(level: Level, conf): boolean {
+        const maxTries = 10;
+        let numTries = 0;
+
+        while (numTries < maxTries) {
+            const tilesX = RNG.getUniformInt(2, 5);
+            const tilesY = RNG.getUniformInt(2, 5);
+            const nest = new NestGenerator();
+            const nestConf: Partial<NestOpts> = {
+                mapConf: {
+                    tilesX, tilesY,
+                    genParams: {x: [1, 1, 1], y: [1, 1, 1]},
+                },
+                embedOpts: {level}
+            };
+            if (nest.createAndEmbed(tilesX * 7, tilesY * 7, nestConf)) {
+                return true;
+            }
+            ++numTries;
+        }
+        return false;
     }
 }
 

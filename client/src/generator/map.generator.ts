@@ -25,6 +25,7 @@ const ElementMarker = Element.ElementMarker;
 type ElementBase = Element.ElementBase;
 type ElementWall = Element.ElementWall;
 type ElementXY = Element.ElementXY;
+type Level = import('../level').Level;
 
 const RNG = Random.getRNG();
 
@@ -162,7 +163,7 @@ export class MapGenerator {
                     }
                 }
                 else if (char === '+') {
-                    const marker = new Element.ElementMarker('+');
+                    const marker = new ElementMarker('+');
                     marker.setTag('door');
                     // door.setXY(x, y);
                     map.setBaseElemXY(x, y, asciiToElem['.'] as ElementBase);
@@ -396,13 +397,13 @@ export class MapGenerator {
                 houseConf.addWindows = conf.addWindows;
                 const house = houseGen.createHouse(houseConf);
                 if (house) {
-                    this.placeHouse(house, map, leaf.x, leaf.y, conf);
-                    houses.push(house);
+                        this.placeHouse(house, map, leaf.x, leaf.y, conf);
+                        houses.push(house);
+                    }
                 }
-            }
-            else {
-                freeLeaves.push(leaf);
-            }
+                else {
+                    freeLeaves.push(leaf);
+                }
         });
         return {map, houses, unused: freeLeaves};
     }
@@ -597,7 +598,7 @@ export class MapGenerator {
         return {map, paths};
     }
 
-    /* Creates a zig-zagging road across the level from south to north. */
+        /* Creates a zig-zagging road across the level from south to north. */
     public createMountainPath(map: CellMap, conf) {
         const paths = [];
         const nTurns = conf.nRoadTurns || 10;
@@ -756,7 +757,7 @@ export class MapGenerator {
         return mapObj;
     }
 
-    /* Creates a single nest-type level. */
+        /* Creates a single nest-type level. */
     public createNest(cols: number, rows: number, conf: MapConf = {}): MapObj {
         const tilesX = conf.tilesX || 12;
         const tilesY = conf.tilesY || 7;
@@ -792,8 +793,22 @@ export class MapGenerator {
     /* Creates a castle map using Template.Level and castle tiles. */
     public createCastle(cols, rows, conf: MapConf = {}): MapObj {
         const genParams = conf.genParams || [1, 1, 1, 1];
-        const tileSizeX = 5 + genParams[0] + genParams[1];
-        const tileSizeY = 5 + genParams[2] + genParams[3];
+        let tileSizeX = 5;
+        let tileSizeY = 5;
+        if (Array.isArray(genParams)) {
+            genParams.forEach((val: number, i: number) => {
+                if (i < genParams.length / 2) {
+                    tileSizeX += val;
+                }
+                else {
+                    tileSizeY += val;
+                }
+            });
+        }
+        else {
+            RG.err('MapGenerator', 'createCastle',
+                'GenParamsXY {x: [...], y: [...]} not supported yet!');
+        }
         const tilesX = conf.tilesX || Math.ceil(cols / tileSizeX);
         const tilesY = conf.tilesY || Math.ceil(rows / tileSizeY);
 
@@ -875,8 +890,8 @@ export class MapGenerator {
 
     /* Creates the actual castle Map.CellList after ascii has been generated from
      * the template. */
-    public createCastleMapObj(level, conf): MapObj {
-        const elements = [];
+    public createCastleMapObj(level: TemplateLevel, conf): MapObj {
+        const elements: ElementXY[] = [];
         const createLeverMarker = (map, x, y) => {
             map.setBaseElemXY(x, y, MapGenerator.getFloorElem(conf.floorType));
             if (conf.preserveMarkers) {

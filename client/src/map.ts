@@ -364,7 +364,7 @@ export class CellMap {
     /* Slow find for debugging. Tries to find all objects matching the
      * filterFunc. */
     public findObj(filterFunc: (obj: any) => boolean): any[] {
-        let result = [];
+        let result: any[] = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
                 result = result.concat(this._map[x][y].findObj(filterFunc));
@@ -379,7 +379,7 @@ export class CellMap {
      *   cell => cell.getBaseElem().getType() === 'floor'
      */
     public getCells(filter = (cell: Cell) => true): Cell[] {
-        const result = [];
+        const result: Cell[] = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
                 if (filter(this._map[x][y])) {
@@ -391,7 +391,7 @@ export class CellMap {
     }
 
     public getCellsWithCoord(coord: TCoord[]): Cell[] {
-        const result = [];
+        const result: Cell[] = [];
         coord.forEach(xy => {
             if (this.hasXY(xy[0], xy[1])) {
                 result.push(this._map[xy[0]][xy[1]]);
@@ -406,7 +406,7 @@ export class CellMap {
         });
     }
 
-    public has(xy: TCoord, query): boolean {
+    public has(xy: TCoord, query: string): boolean {
         const [x, y] = xy;
         if (this.hasXY(x, y)) {
             const cell = this.getCell(x, y);
