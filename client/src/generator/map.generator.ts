@@ -169,6 +169,11 @@ export class MapGenerator {
                     map.setBaseElemXY(x, y, asciiToElem['.'] as ElementBase);
                     map.setElemXY(x, y, marker);
                 }
+                else if (char === '?') {
+                    const marker = new ElementMarker('?');
+                    marker.setTag('loot');
+                    map.setElemXY(x, y, marker);
+                }
             }
         }
         return {

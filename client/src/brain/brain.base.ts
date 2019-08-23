@@ -30,14 +30,14 @@ export class BrainBase {
 
     public getMemory(): Memory {return NO_MEMORY;}
     public getSeenCells(): Cell[] {return [];}
-    public findEnemyCell(seenCells: Cell[]): Cell {return null;}
-    public findFriendCell(seenCells: Cell[]): Cell {return null;}
+    public findEnemyCell(seenCells: Cell[]): null | Cell {return null;}
+    public findFriendCell(seenCells: Cell[]): null | Cell {return null;}
     public canMeleeAttack(x, y): boolean {return false;}
     public canSeeActor(actor): boolean {return false;}
     public getSeenFriends(): BaseActor[] {return [];}
     public getSeenEnemies(): BaseActor[] {return [];}
 
-    public decideNextAction(obj?: any): ActionCallback {
+    public decideNextAction(obj?: any): null | ActionCallback {
         RG.err('BrainBase', 'decideNextAction',
             'Not implemented. Do in derived class');
         return null;

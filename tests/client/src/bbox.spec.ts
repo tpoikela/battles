@@ -1,6 +1,7 @@
 
 import { expect } from 'chai';
 import {BBox} from '../../../client/src/bbox';
+import {TCoord} from '../../../client/src/interfaces';
 
 describe('BBox', () => {
     it('x- and y-dimensions', () => {
@@ -38,5 +39,24 @@ describe('BBox', () => {
         expect(b4.overlaps(b3)).to.equal(false);
         expect(b3.overlaps(b3)).to.equal(true);
         expect(b3.overlaps(b4)).to.equal(false);
+    });
+
+    it('has functions to get the border', () => {
+        const bbox = new BBox(5, 5, 7, 8);
+        const eastBorder = bbox.getBorderXY('E');
+        const westBorder = bbox.getBorderXY('W');
+        const northBorder = bbox.getBorderXY('N');
+        const southBorder = bbox.getBorderXY('S');
+        eastBorder.forEach((xy: TCoord, i: number) => {
+            expect(xy[0]).to.equal(7);
+            expect(westBorder[i][0]).to.equal(5);
+            expect(eastBorder[i][1], 'E/W x matches').to.equal(westBorder[i][1]);
+        });
+        northBorder.forEach((xy: TCoord, i: number) => {
+            expect(xy[1]).to.equal(5);
+            expect(southBorder[i][1]).to.equal(8);
+            expect(northBorder[i][0], 'S/N x matches').to.equal(southBorder[i][0]);
+        });
+
     });
 });

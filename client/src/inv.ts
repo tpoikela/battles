@@ -5,6 +5,7 @@ import {Equipment} from './equipment';
 import {SentientActor} from './actor';
 
 type AmmoOrMissile = Item.Missile | Item.Ammo;
+type ItemBase = Item.ItemBase;
 
 /* Object models inventory items and equipment on actor. This object handles
  * movement of items between inventory and equipment. */
@@ -23,30 +24,30 @@ export class Inventory {
     public _inv: Item.Container;
     public _eq: Equipment;
 
-    constructor(actor) {
+    constructor(actor: SentientActor) {
         this._actor = actor;
         this._inv = new Item.Container(actor);
         this._eq = new Equipment(actor);
     }
 
     // Wrappers for container methods
-    public addItem(item): void {
+    public addItem(item: ItemBase): void {
         this._inv.addItem(item);
     }
 
-    public hasItem(item): boolean {
+    public hasItem(item: ItemBase): boolean {
         return this._inv.hasItem(item);
     }
 
-    public removeItem(item): boolean {
+    public removeItem(item: ItemBase): boolean {
         return this._inv.removeItem(item);
     }
 
-    public removeNItems(item, n): boolean {
+    public removeNItems(item: ItemBase, n: number): boolean {
         return this._inv.removeNItems(item, n);
     }
 
-    public getRemovedItem() {
+    public getRemovedItem(): null | ItemBase {
         return this._inv.getRemovedItem();
     }
 
@@ -204,9 +205,16 @@ export class Inventory {
         return null;
     }
 
-    public getWeapon() {
+    public getWeapon(): null | ItemBase {
         const item = this._eq.getItem('hand');
-        if (!RG.isNullOrUndef([item])) {return item;}
+        if (!RG.isNullOrUndef([item])) {
+            if (Array.isArray(item)) {
+                return item[0];
+            }
+            else {
+                return item;
+            }
+        }
         return null;
     }
 

@@ -983,7 +983,7 @@ export const Parser = function() {
     };
 
     /* Creates actual game object from obj shell in given category.*/
-    this.createFromShell = (categ, obj) => {
+    this.createFromShell = (categ: string, obj: IShell) => {
         if (!this.dbExists(categ, obj.name)) {
             this.parseObjShell(categ, obj);
         }

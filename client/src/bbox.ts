@@ -70,6 +70,34 @@ export class BBox {
         return false;
     }
 
+    public getBorderXY(dir: string, offset: number = 0): TCoord[] {
+        const res: TCoord[] = [];
+        let adjust = offset || 0;
+        if (/N/.test(dir)) {
+            for (let x = this.ulx; x <= this.lrx; ++x) {
+                res.push([x, this.uly + adjust]);
+            }
+        }
+        if (/S/.test(dir)) {
+            for (let x = this.ulx; x <= this.lrx; ++x) {
+                if (adjust > 0) {adjust = -adjust;}
+                res.push([x, this.lry + adjust]);
+            }
+        }
+        if (/E/.test(dir)) {
+            for (let y = this.uly; y <= this.lry; ++y) {
+                if (adjust > 0) {adjust = -adjust;}
+                res.push([this.lrx + adjust, y]);
+            }
+        }
+        if (/W/.test(dir)) {
+            for (let y = this.uly; y <= this.lry; ++y) {
+                res.push([this.ulx + adjust, y]);
+            }
+        }
+        return res;
+    }
+
     /* Returns a box of coordinates given starting point and end points
      * (inclusive). */
     public getCoord(): TCoord[] {
@@ -80,5 +108,11 @@ export class BBox {
             }
         }
         return res;
+    }
+
+    public withOffsetXY(x: number, y: number): BBox {
+        return new BBox(this.ulx + x, this.uly + y,
+                        this.lrx + x, this.lry + y
+        );
     }
 }

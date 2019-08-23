@@ -14,9 +14,10 @@ import {Geometry} from '../geometry';
 import {Random} from '../random';
 import {ELEM} from '../../data/elem-constants';
 import * as Element from '../element';
-import {TCoord, ConstBaseElem} from '../interfaces';
+import {TCoord, ConstBaseElem, ICoordXY} from '../interfaces';
 
 type Cell = import('../map.cell').Cell;
+type CellMap = import('../map').CellMap;
 
 const RNG = Random.getRNG();
 
@@ -254,17 +255,17 @@ export class CaveGenerator extends LevelGenerator {
         // const nPoints = pathPoints.length;
     }
 
-    public createPath(map, startPoint, endPoint) {
+    public createPath(map: CellMap, startPoint: TCoord, endPoint: TCoord): TCoord[] {
         const wallCb = (x, y) => (
             map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
         );
         const [sX, sY] = startPoint;
         const [eX, eY] = endPoint;
-        const path = Path.getShortestPath(sX, sY, eX, eY, wallCb);
+        const path: ICoordXY[] = Path.getShortestPath(sX, sY, eX, eY, wallCb);
 
-        const result = [];
+        const result: TCoord[] = [];
 
-        path.forEach(xy => {
+        path.forEach((xy: ICoordXY) => {
             const {x, y} = xy;
             const coord = Geometry.getCrossAround(x, y, 1, true);
             coord.forEach(coordXY => {
@@ -384,6 +385,9 @@ export class CaveGenerator extends LevelGenerator {
             const tilesY = RNG.getUniformInt(2, 5);
             const nest = new NestGenerator();
             const nestConf: Partial<NestOpts> = {
+                actorConstr: {
+                    race: 'orc'
+                },
                 mapConf: {
                     tilesX, tilesY,
                     genParams: {x: [1, 1, 1], y: [1, 1, 1]},

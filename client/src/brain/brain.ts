@@ -221,13 +221,13 @@ export class BrainSentient extends BrainBase {
     protected _memory: Memory;
     protected _cache: {[key: string]: any[]};
 
-    constructor(actor) {
+    constructor(actor: BaseActor) {
         super(actor);
         this._explored = {}; // Memory of explored cells
         this._type = 'Sentient';
         this._memory = new Memory();
         this._cache = {
-            seen: null
+            seen: []
         };
         // this._passableCallback = this._passableCallback.bind(this);
     }
@@ -244,13 +244,13 @@ export class BrainSentient extends BrainBase {
         this._memory.addFriend(actor);
     }
 
-    public addEnemyType(type) {
+    public addEnemyType(type: string): void {
         this._memory.addEnemyType(type);
     }
 
     /* Main function for retrieving the actionable callback. */
-    public decideNextAction(obj?: any): ActionCallback {
-        this._cache.seen = null;
+    public decideNextAction(obj?: any): null | ActionCallback {
+        this._cache.seen = [];
         RG.err('BrainSentient', 'decideNextAction',
             'Not implemented in this class');
         return null;
@@ -288,19 +288,21 @@ export class BrainSentient extends BrainBase {
         const seenCells = this.getSeenCells();
         const cells = Brain.findCellsWithActors(this._actor, seenCells);
         let canSee = false;
-        cells.forEach(cell => {
+        cells.forEach((cell: Cell) => {
             const actors = cell.getActors();
-            actors.forEach(a => {
-                if (a.getID() === actor.getID()) {
-                    canSee = true;
-                }
-            });
+            if (actors) {
+                actors.forEach(a => {
+                    if (a.getID() === actor.getID()) {
+                        canSee = true;
+                    }
+                });
+            }
         });
         return canSee;
     }
 
     /* Given a list of cells, returns a cell with an enemy in it or null.*/
-    public findEnemyCell(seenCells: Cell[]): Cell {
+    public findEnemyCell(seenCells: Cell[]): null | Cell {
         const enemyCells = [];
         const cells = Brain.findCellsWithActors(this._actor, seenCells);
         for (let i = 0; i < cells.length; i++) {
@@ -325,7 +327,7 @@ export class BrainSentient extends BrainBase {
     }
 
     /* Finds a friend cell among seen cells.*/
-    public findFriendCell(seenCells: Cell[]): Cell | null {
+    public findFriendCell(seenCells: Cell[]): null | Cell {
         const memory = this.getMemory();
         const cells = Brain.findCellsWithActors(this._actor, seenCells);
         for (let i = 0; i < cells.length; i++) {
@@ -344,8 +346,8 @@ export class BrainSentient extends BrainBase {
 
     public canPickupItem(): boolean {
         const cell = this._actor.getCell();
-        if (cell.hasItems()) {
-            const topItem = cell.getItems()[0];
+        if (cell && cell.hasItems()) {
+            const topItem = cell.getItems()![0]; // hasItems() ensures non-null
             return (this._actor as SentientActor).getInvEq().canCarryItem(topItem);
         }
         return false;

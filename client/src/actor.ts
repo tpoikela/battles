@@ -15,6 +15,7 @@ type Level = import('./level').Level;
 
 type ActionCallback = Time.ActionCallback;
 type ItemArmour = import('./item').Armour;
+type ItemBase = import('./item').ItemBase;
 type MissileWeapon = import('./item').MissileWeapon;
 type Cell = import('./map.cell').Cell;
 
@@ -155,16 +156,15 @@ export class SentientActor extends BaseActor {
     protected _actorClass: any;
     protected _spellbook?: any;
     protected _actualBrain?: any;
-    protected _brain: BrainGoalOriented | BrainPlayer;
 
-    constructor(name: string) { // {{{2
+    constructor(name: string) {
         super(name);
 
         this._brain = new BrainGoalOriented(this);
         this._brain.getMemory().addEnemyType('player');
 
         this._invEq = new Inventory(this);
-        this._maxWeight = 10.0;
+        this._maxWeight = 17.0;
 
         // Components for this entity
         this.add(new Component.Experience());
@@ -184,7 +184,7 @@ export class SentientActor extends BaseActor {
         return range;
     }
 
-    public setFOVRange(range) {
+    public setFOVRange(range: number): void {
         this.get('Perception').setFOVRange(range);
     }
 
@@ -214,10 +214,10 @@ export class SentientActor extends BaseActor {
     // Equipment related methods
     //---------------------------------
 
-    public getInvEq() { return this._invEq; }
+    public getInvEq(): Inventory { return this._invEq; }
 
     /* Returns weapon that is wielded by the actor.*/
-    public getWeapon() {return this._invEq.getWeapon();}
+    public getWeapon(): null | ItemBase {return this._invEq.getWeapon();}
 
     /* Returns weapon that is wielded by the actor.*/
     public getMissileWeapon(): MissileWeapon | null {
@@ -229,7 +229,7 @@ export class SentientActor extends BaseActor {
         return this._invEq.getEquipment().getItem('missile');
     }
 
-    public getEquipAttack() {
+    public getEquipAttack(): number {
         let att = this._invEq.getEquipment().getAttack();
         if (this.has('Skills')) {
             att += this.get('Skills').getLevel('Melee');
@@ -237,7 +237,7 @@ export class SentientActor extends BaseActor {
         return att;
     }
 
-    public getEquipDefense() {
+    public getEquipDefense(): number {
         let def = this._invEq.getEquipment().getDefense();
         if (this.has('Skills')) {
             def += this.get('Skills').getLevel('Shields');
@@ -245,11 +245,11 @@ export class SentientActor extends BaseActor {
         return def;
     }
 
-    public getEquipProtection() {
+    public getEquipProtection(): number {
         return this._invEq.getEquipment().getProtection();
     }
 
-    public getShieldDefense() {
+    public getShieldDefense(): number {
         const shield = this._invEq.getEquipment().getEquipped('shield');
         let bonus = 0;
         if (shield) {

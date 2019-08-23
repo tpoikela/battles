@@ -518,7 +518,7 @@ ActorGen.genShellWithRole = function(role: string[]): IShell {
 /* Generates a shell with given constraints.
  * */
 ActorGen.genShell = function(conf: ShellConstr): IShell {
-    let rankShell: IShell = null;
+    let rankShell: null | IShell = null;
     let rankName = '';
     if (conf.rank) {
         rankName = conf.rank;

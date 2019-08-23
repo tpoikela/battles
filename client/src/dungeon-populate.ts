@@ -12,7 +12,7 @@ import {WorldShop} from './world';
 import * as Item from './item';
 import * as Element from './element';
 import {ObjectShell} from './objectshellparser';
-import {SentientActor} from './actor';
+import {BaseActor, SentientActor} from './actor';
 import {BrainGoalOriented} from './brain/brain.goaloriented';
 import {ItemGen} from '../data/item-gen';
 import {ActorGen} from '../data/actor-gen';
@@ -189,7 +189,7 @@ export class DungeonPopulate {
         }
     }
 
-    public addPointGuardian(level: Level, point: TCoord, maxDanger): void {
+    public addPointGuardian(level: Level, point: TCoord, maxDanger: number): boolean {
         const eXY = point;
         if (RG.isNullOrUndef([maxDanger]) || maxDanger < 1) {
             RG.err('DungeonPopulate', 'addPointGuardian',
@@ -198,19 +198,21 @@ export class DungeonPopulate {
 
         const guardian = this.getEndPointGuardian(maxDanger);
         if (guardian) {
-            if (guardian.getBrain().getGoal) {
+            const brain = guardian.getBrain() as BrainGoalOriented;
+            if (brain.getGoal) {
                 const guardEval = new Evaluator.Guard(RG.BIAS.Guard, eXY);
-                guardian.getBrain().getGoal().addEvaluator(guardEval);
+                brain.getGoal().addEvaluator(guardEval);
             }
-            level.addActor(guardian, eXY[0], eXY[1]);
+            return level.addActor(guardian, eXY[0], eXY[1]);
         }
         else {
             const msg = `Could not get guardian for endpoint: ${point}`;
             RG.warn('DungeonPopulate', 'addPointGuardian', msg);
         }
+        return false;
     }
 
-    public getEndPointGuardian(maxDanger: number) {
+    public getEndPointGuardian(maxDanger: number): SentientActor {
         let currDanger = maxDanger;
         let guardian = null;
 
@@ -324,12 +326,12 @@ export class DungeonPopulate {
         return false;
     }
 
-    public addGoldToPoint(level, point) {
+    public addGoldToPoint(level: Level, point: TCoord): boolean {
         const numCoins = this.maxValue;
         const gold = new Item.GoldCoin();
         gold.setCount(numCoins);
         const [cx, cy] = point;
-        level.addItem(gold, cx, cy);
+        return level.addItem(gold, cx, cy);
     }
 
     /* Adds a tip/hint to the given point. These hints can reveal information
@@ -539,11 +541,12 @@ export class DungeonPopulate {
 
         for (let i = 0; i < numActors; i++) {
             const actor = this.createActor(conf);
-            if (actor.getBrain().getGoal) {
+            const brain = actor.getBrain() as BrainGoalOriented;
+            if (brain.getGoal) {
                 const evalHome = new Evaluator.GoHome(1.5);
                 const xy = house.getFloorCenter();
                 evalHome.setArgs({xy});
-                actor.getBrain().getGoal().addEvaluator(evalHome);
+                brain.getGoal().addEvaluator(evalHome);
 
                 const homeMarker = new Element.ElementMarker('H');
                 homeMarker.setTag('home');
@@ -554,7 +557,7 @@ export class DungeonPopulate {
         }
     }
 
-    public createActor(conf) {
+    public createActor(conf): BaseActor {
         const parser = ObjectShell.getParser();
         const maxDanger = conf.maxDanger || this.maxDanger;
         let actor = null;
@@ -582,7 +585,10 @@ export class DungeonPopulate {
     public addActorsToBbox(level: Level, bbox: BBox, conf): boolean {
         const nActors = conf.nActors || 4;
         const {maxDanger, func} = conf;
-        const actors = this._actorFact.generateNActors(nActors, func, maxDanger);
+        let actors = conf.actors;
+        if (!actors) {
+            actors = this._actorFact.generateNActors(nActors, func, maxDanger);
+        }
         return Placer.addActorsToBbox(level, bbox, actors);
     }
 

@@ -4,7 +4,8 @@ import {CaveGenerator} from '../../../client/src/generator';
 import {Level} from '../../../client/src/level';
 import {Placer} from '../../../client/src/placer';
 
-describe('CaveGenerator', () => {
+describe('CaveGenerator', function() {
+    this.timeout(20000);
     it('can create Cave-like levels', () => {
         const caveGen = new CaveGenerator();
         const level = caveGen.create(80, 50, {dungeonType: 'Cave'});
@@ -12,7 +13,8 @@ describe('CaveGenerator', () => {
     });
 
     it('can generate simple cave levels', () => {
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 50; i++) {
+            // console.log('\n===== Generating CAVE now =====');
             const caveGen = new CaveGenerator();
             const conf = {dungeonType: 'Cave', isCollapsed: false,
                 maxDanger: 5};
@@ -24,10 +26,10 @@ describe('CaveGenerator', () => {
             expect(startPoint).to.be.an('array');
             expect(endPoint).to.be.an('array');
             expect(startPoint).not.to.deep.equal(endPoint);
-            const bbox = Placer.findCellArea(level.getMap(), 21, 21, (cell) => !cell.isFree());
+            const bbox = Placer.findCellArea(level.getMap(), 14, 14, (cell) => !cell.isFree());
             if (bbox.length > 0 && bbox[0].getArea() > 1) {
-                console.log(bbox);
-                expect(bbox[0].getArea()).to.equal(21 * 21);
+                // console.log(bbox);
+                expect(bbox[0].getArea()).to.equal(14 * 14);
             }
             level.debugPrintInASCII();
         }

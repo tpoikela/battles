@@ -1065,7 +1065,7 @@ RG.getObjRef = (type, obj) => {
 };
 
 /* Returns a forest level configuration scaled to the size of the level. */
-RG.getForestConf = function(cols, rows) {
+RG.getForestConf = function(cols: number, rows: number): {[key: string]: any} {
     const xMult = cols / RG.LEVEL_MEDIUM_X;
     const yMult = rows / RG.LEVEL_MEDIUM_Y;
     const mult = xMult * yMult;
@@ -1272,8 +1272,12 @@ RG.newXYFromDir = (dir: TCoord, src: DestOrSrc): TCoord => {
     if (Array.isArray(src)) {
         [xSrc, ySrc] = src;
     }
-    else if (src.getX) {
+    else if (src.getXY) {
         [xSrc, ySrc] = src.getXY();
+    }
+    else {
+        RG.err('RG', 'newXYFromDir',
+            `src must be TCoord or have getXY function. Got ${src}`);
     }
     return [xSrc + dir[0], ySrc + dir[1]];
 };
