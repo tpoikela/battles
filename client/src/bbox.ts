@@ -1,6 +1,9 @@
 
 import RG from './rg';
 import {TCoord} from './interfaces';
+import {Random} from './random';
+
+const RNG: Random = Random.getRNG();
 
 /* Bounding box (BBox) is defined 4 points:
  * upper-left X: ulx (smaller X)
@@ -8,7 +11,22 @@ import {TCoord} from './interfaces';
  * lower-right X: lrx (higher X)
  * lower-right Y: lry (higher Y)
  */
+
+interface IBBox {
+    ulx: number;
+    uly: number;
+    lrx: number;
+    lry: number;
+}
+
 export class BBox {
+
+    /* Create from existing bbox interface. */
+    public static fromBBox(bbox: IBBox): BBox {
+        return new BBox(
+            bbox.ulx, bbox.uly, bbox.lrx, bbox.lry
+        );
+    }
 
     constructor(
         public ulx: number, public uly: number,
@@ -19,6 +37,33 @@ export class BBox {
                 `Illegal bbox: ${ulx},${uly} -> ${lrx},${lry}`);
         }
 
+    }
+
+    /* Computes distance from given xy to edge of bbox. Returns 0 if xy is within the bbox. */
+    public getDist(xy: TCoord): TCoord {
+        const [x, y] = xy;
+        if (this.hasXY(x, y)) {return [0, 0];}
+        const dX = this.getDistX(x);
+        const dY = this.getDistY(y);
+        return [dX, dY];
+    }
+
+    public getDistX(x: number): number {
+        if (x < this.ulx) {
+            return this.ulx - x;
+        }
+        else {
+            return x - this.lrx;
+        }
+    }
+
+    public getDistY(y: number): number {
+        if (y < this.uly) {
+            return this.uly - y;
+        }
+        else {
+            return y - this.lry;
+        }
     }
 
     public getArea(): number {
@@ -36,6 +81,12 @@ export class BBox {
     public hasXY(x: number, y: number): boolean {
         return (x >= this.ulx && x <= this.lrx) &&
             (y >= this.uly && y <= this.lry);
+    }
+
+    public getRandXY(): TCoord {
+        const x = RNG.getUniformInt(this.ulx, this.lrx);
+        const y = RNG.getUniformInt(this.uly, this.lry);
+        return [x, y];
     }
 
     /* Returns true if there is at least one overlapping coordinate
@@ -115,4 +166,5 @@ export class BBox {
                         this.lrx + x, this.lry + y
         );
     }
+
 }
