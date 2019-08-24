@@ -1,13 +1,10 @@
 
 import RG from './rg';
 import {Random} from './random';
+import {IDiceInputArg, DiceValue} from './interfaces';
 
 // RNG used for dynamic "micro" stuff like damage rolls etc level ups
 
-// Can be either '1d6 + 4' or [1, 6, 4] for example
-type IDiceInputArg = number | string | [number, number, number];
-
-type DiceValue = Dice | IDiceInputArg;
 
 /* Each die has number of throws, type of dice (d6, d20, d200...) and modifier
  * which is +/- X. */
