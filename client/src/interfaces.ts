@@ -15,8 +15,42 @@ type BaseActor = import('./actor').BaseActor;
 type Locatable = import('./mixin').Locatable;
 type ElemTemplate = import('./template').ElemTemplate;
 type WorldBase = import('./world').WorldBase;
+type Dice = import('./dice').Dice;
+
+//---------------------------
+// GENERIC type definitions
+//---------------------------
 
 export type Maybe<T> = T | null | undefined;
+
+export type TNoFuncVal =
+    boolean
+    | string
+    | number
+    | null
+    | undefined
+    | NoFunctionObject
+    | NoFunctionArray;
+
+export interface NoFunctionObject {
+    [key: string]: TNoFuncVal;
+}
+
+export interface NoFunctionArray extends Array<TNoFuncVal> { }
+
+//---------------------------
+// Generic geometry type definitions
+//---------------------------
+//
+export interface IColor {
+    fg: string;
+    bg: string;
+}
+
+// Can be either '1d6 + 4' or [1, 6, 4] for example
+export type IDiceInputArg = number | string | [number, number, number];
+
+export type DiceValue = Dice | IDiceInputArg;
 
 export type TCellProp = ItemBase | BaseActor | ElementXY;
 
@@ -340,7 +374,7 @@ export interface IFactoryGameConf {
 //--------------------------------
 
 export interface IShell {
-    // [key: string]: TPrim | TPrimArr | IShell | IShell[];
+    // [key: string]: TNoFuncVal;
     [key: string]: any;
 }
 
@@ -363,11 +397,11 @@ export type TShellFunc = (shell: IShell) => boolean;
 
 export interface ICompSetterObj {
     setter: string;
-    value: any;
+    value: TNoFuncVal;
 }
 
 export interface ICompSetterMap {
-    [key: string]: any;
+    [key: string]: TNoFuncVal;
 }
 
 export interface IAddCompObj {
