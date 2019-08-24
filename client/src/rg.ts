@@ -17,6 +17,7 @@ type Cell = import('./map.cell').Cell;
 type CellMap = import('./map').CellMap;
 type Level = import('./level').Level;
 type Damage = import('./mixin').Damage;
+type BrainGoalOriented = import('./brain').BrainGoalOriented;
 
 RG.gameTitle = 'Battles in the North (BitN)';
 
@@ -1526,6 +1527,15 @@ RG.isItem = function(obj: any): obj is ItemBase {
 RG.isEntity = (obj: any): obj is Entity => {
     if (obj.comps && obj.compsByType && obj.add && obj.get) {
         return true;
+    }
+    return false;
+};
+
+
+RG.isSentient = function(target: BaseActor): target is SentientActor {
+    if (target) {
+        const brain = target.getBrain() as BrainGoalOriented;
+        return (typeof brain.getGoal === 'function');
     }
     return false;
 };
