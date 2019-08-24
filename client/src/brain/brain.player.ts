@@ -6,7 +6,6 @@ import {Cell} from '../map.cell';
 import * as GoalsBattle from '../goals-battle';
 import * as Cmd from '../cmd-player';
 import * as Component from '../component/component';
-import {BaseActor, SentientActor} from '../actor';
 import {Random} from '../random';
 import {Geometry} from '../geometry';
 
@@ -15,6 +14,8 @@ import {Memory} from './brain.memory';
 
 import {IPlayerCmdInput} from '../interfaces';
 
+type BaseActor = import('../actor').BaseActor;
+type SentientActor = import('../actor').SentientActor;
 type ActionCallback = import('../time').ActionCallback;
 type BrainGoalOriented = import('./brain.goaloriented').BrainGoalOriented;
 type ItemBase = import('../item').ItemBase;
@@ -60,7 +61,7 @@ export class MemoryPlayer extends Memory {
 
     private _player: SentientActor;
 
-    constructor(player) {
+    constructor(player: SentientActor) {
         super();
         this._lastAttackedID = null;
         this._player = player;
@@ -1233,16 +1234,22 @@ export class BrainPlayer extends BrainSentient {
         const cells = this.getTarget() as Cell[];
         cells.forEach(cell => {
             if (cell.hasActors()) {
-                const target = cell.getActors()[0];
-                const brain = target.getBrain() as BrainGoalOriented;
-                if (target && brain.getGoal) {
-                    switch (orderType) {
-                        case 'Follow': this.giveFollowOrder(target); break;
-                        case 'Forget': this.forgetOrders(target); break;
-                        case 'Attack': this.giveOrderAttack(target); break;
-                        case 'Pickup': this.giveOrderPickup(target); break;
-                        default: break;
+                const target = cell.getActors()![0];
+                if (RG.isSentient(target)) {
+                    const sentTarget = target as SentientActor;
+                    const brain = sentTarget.getBrain() as BrainGoalOriented;
+                    if (sentTarget && brain.getGoal) {
+                        switch (orderType) {
+                            case 'Follow': this.giveFollowOrder(sentTarget); break;
+                            case 'Forget': this.forgetOrders(sentTarget); break;
+                            case 'Attack': this.giveOrderAttack(sentTarget); break;
+                            case 'Pickup': this.giveOrderPickup(sentTarget); break;
+                            default: break;
+                        }
                     }
+                }
+                else {
+                    RG.gameDanger('This cell has no valid targets');
                 }
             }
             else if (cells.length === 1) {
@@ -1290,7 +1297,7 @@ export class BrainPlayer extends BrainSentient {
         }
     }
 
-    public giveOrderPickup(target: BaseActor): void {
+    public giveOrderPickup(target: SentientActor): void {
         const item = this.getItemInSight();
         const name = target.getName();
         if (item) {
