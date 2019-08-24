@@ -3,7 +3,7 @@
  */
 
 import RG from '../src/rg';
-import {meleeHitDamage, directDamage} from './shell-utils';
+import {meleeHitDamage, directDamage, resistance} from './shell-utils';
 import {Random} from '../src/random';
 import {mixNewShell} from './shell-utils';
 import {IShell, StringMap} from '../src/interfaces';
@@ -80,7 +80,7 @@ const prefix: any = {
 prefix.armour = {
     light: prefix.weapon.light,
     heavy: {weight: 1.5, value: 1.2, protection: 2, rarity: 1.5},
-    plated: {weight: 1.2, value: 1.3, protection: 2, rarity: 1.3},
+    plated: {weight: 1.2, value: 1.3, protection: 3, rarity: 1.3},
     spiked: {weight: 1.2, value: 1.4, protection: 1, attack: 3, rarity: 2.0},
 };
 
@@ -145,6 +145,14 @@ const suffix: any = {
             onAttackHit: [meleeHitDamage(2, '1d6 + 1', 'ICE')],
             rarity: 3, value: 3
         },
+        ofSerpent: {
+            name: 'of Serpent', addComp: [resistance('POISON', 'MEDIUM')],
+            rarity: 2, value: 2
+        },
+        ofHoly: {
+            name: 'of Serpent', addComp: [resistance('NECRO', 'MEDIUM')],
+            rarity: 2, value: 2
+        },
         ofMagic: {
             name: 'of Magic', magic: 5,
             rarity: 2.5, value: 2.5
@@ -185,6 +193,8 @@ suffix.armour = {
     ofPerception: suffix.weapon.ofPerception,
     ofProtection: suffix.weapon.ofProtection,
     ofSpeed: suffix.weapon.ofSpeed,
+    ofSerpent: suffix.weapon.ofSerpent,
+    ofHoly: suffix.weapon.ofHoly,
     ofLevitation: {
         onEquip: [{addComp: 'Flying'}], rarity: 5, value: 5
     },
@@ -264,6 +274,10 @@ shellProps.armour = {
     },
     cuirass: {
         armourType: 'chest', weight: 2.0,
+        protection: 3, defense: -1, attack: -1
+    },
+    mail: {
+        armourType: 'chest', weight: 1.9,
         protection: 3, defense: -1, attack: -1
     },
     boots: {
