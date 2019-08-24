@@ -11,7 +11,8 @@ import {SentientActor} from './actor';
 import {Random} from './random';
 import {SpellArgs} from './spell';
 import {Brain} from './brain';
-import {TCoord} from './interfaces';
+import {TCoord, TNoFuncVal} from './interfaces';
+import {BBox} from './bbox';
 
 Goal.Thief = GoalThief;
 
@@ -25,6 +26,10 @@ Evaluator.NOT_POSSIBLE = RG.BIAS.NOT_POSSIBLE;
 Evaluator.ALWAYS = RG.BIAS.ALWAYS;
 
 const RNG = Random.getRNG();
+
+interface EvalArgs {
+    [key: string]: TNoFuncVal;
+}
 
 /* Base class for all evaluators. Provides only the basic constructor. */
 export class EvaluatorBase {
@@ -232,13 +237,13 @@ export class EvaluatorGuard extends EvaluatorBase {
     public x: number;
     public y: number;
 
-    constructor(actorBias, xy) {
+    constructor(actorBias: number, xy: TCoord) {
         super(actorBias);
         this.type = 'Guard';
         if (xy) {this.setXY(xy);}
     }
 
-    public setXY(xy): void {
+    public setXY(xy: TCoord): void {
         this.x = xy[0];
         this.y = xy[1];
     }
@@ -252,7 +257,7 @@ export class EvaluatorGuard extends EvaluatorBase {
         return this.actorBias;
     }
 
-    public setActorGoal(actor) {
+    public setActorGoal(actor): void {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.Guard(actor, [this.x, this.y]);
         topGoal.addGoal(goal);
@@ -267,6 +272,49 @@ export class EvaluatorGuard extends EvaluatorBase {
 }
 Evaluator.Guard = EvaluatorGuard;
 Evaluator.hist.Guard = 0;
+
+/* Evaluator to check if actor should guard the given point. */
+export class EvaluatorGuardArea extends EvaluatorBase {
+
+    public bbox: BBox;
+
+    constructor(actorBias: number, bbox: BBox) {
+        super(actorBias);
+        this.type = 'GuardArea';
+        this.setBBox(bbox);
+    }
+
+    public setBBox(bbox: BBox): void {
+        this.bbox = bbox;
+    }
+
+    public setArgs(args: EvalArgs): void {
+        const {bbox} = args as any;
+        this.setBBox(bbox);
+    }
+
+    public calculateDesirability(actor): number {
+        if (this.bbox.hasXY(actor.getX(), actor.getY())) {
+            return Evaluator.NOT_POSSIBLE;
+        }
+        return this.actorBias;
+    }
+
+    public setActorGoal(actor): void {
+        const topGoal = actor.getBrain().getGoal();
+        const goal = new Goal.GuardArea(actor, this.bbox);
+        topGoal.addGoal(goal);
+        ++Evaluator.hist[this.type];
+    }
+
+    public toJSON() {
+        const json: any = super.toJSON();
+        json.args = {bbox: this.bbox};
+        return json;
+    }
+}
+Evaluator.GuardArea = EvaluatorGuardArea;
+Evaluator.hist.GuardArea = 0;
 
 /* Evaluator to check if actor should flee from a fight. */
 export class EvaluatorOrders extends EvaluatorBase {
