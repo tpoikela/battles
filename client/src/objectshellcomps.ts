@@ -38,9 +38,9 @@ export class ObjectShellComps {
             this._addCompFromString(shell.addComp, entity);
         }
         else if (Array.isArray(shell.addComp)) {
-            shell.addComp.forEach(comp => {
+            shell.addComp.forEach((comp: any) => {
                 let usedComp = comp;
-                if (comp.random) {
+                if (comp && typeof comp === 'object' && comp.random) {
                     usedComp = RNG.arrayGetRand(comp.random);
                 }
                 if (typeof usedComp === 'string') {
@@ -53,7 +53,7 @@ export class ObjectShellComps {
         }
         else if (typeof shell.addComp === 'object') {
             let usedComp = shell.addComp;
-            if (shell.addComp.random) {
+            if (shell.addComp && shell.addComp.random) {
                 usedComp = RNG.arrayGetRand(shell.addComp.random);
             }
             this._addCompFromObj(entity, usedComp);
