@@ -27,16 +27,16 @@ import RG from './rg';
 import {Keys} from './keymap';
 import * as Component from './component';
 import {Random} from './random';
-import {SentientActor} from './actor';
 import {Dice} from './dice';
 import {ObjectShell} from './objectshellparser';
 import {Brain} from './brain';
 import {Geometry} from './geometry';
 import {Path} from './path';
-import {IMenu, SelectionObject, PlayerMissileMenu} from './menu';
 
+import {IMenu, SelectionObject, PlayerMissileMenu} from './menu';
 import {TCoord} from './interfaces';
 type Cell = import('./map.cell').Cell;
+type SentientActor = import('./actor').SentientActor;
 
 const RNG = Random.getRNG();
 const {KeyMap} = Keys;
