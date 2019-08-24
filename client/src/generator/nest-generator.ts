@@ -14,6 +14,8 @@ import {DungeonPopulate} from '../dungeon-populate';
 import {ActorGen} from '../../data/actor-gen';
 import {ObjectShell} from '../objectshellparser';
 import {SentientActor} from '../actor';
+import {EvaluatorGuardArea} from '../evaluators';
+import {BrainGoalOriented} from '../brain';
 
 type Cell = import('../map.cell').Cell;
 type CellMap = import('../map').CellMap;
@@ -223,6 +225,11 @@ export class NestGenerator extends LevelGenerator {
             const actors: SentientActor[] = this.getActorsForNest(actorConstr);
             const actorConf = {actors};
             if (dungPopul.addActorsToBbox(level, bbox, actorConf)) {
+                actors.forEach(actor => {
+                    const evalGuard = new EvaluatorGuardArea(0.7, bbox);
+                    const brain = actor.getBrain() as BrainGoalOriented;
+                    brain.getGoal().addEvaluator(evalGuard);
+                });
             }
         }
     }
