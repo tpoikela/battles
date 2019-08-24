@@ -2,10 +2,10 @@
 import RG from './rg';
 import * as Item from './item';
 import {Equipment} from './equipment';
-import {SentientActor} from './actor';
 
 type AmmoOrMissile = Item.Missile | Item.Ammo;
 type ItemBase = Item.ItemBase;
+type SentientActor = import('./actor').SentientActor;
 
 /* Object models inventory items and equipment on actor. This object handles
  * movement of items between inventory and equipment. */
