@@ -3,9 +3,11 @@
 
 import RG from '../src/rg';
 import {Dice} from '../src/dice';
-import {IAddCompObj} from '../src/interfaces';
+import {IAddCompObj, ICompSetterObj, IColor, IDiceInputArg} from '../src/interfaces';
 
-export const meleeHitDamage = (dmg, dur, dmgType, msg?): IAddCompObj => {
+export const meleeHitDamage = (
+    dmg: IDiceInputArg, dur: string | number, dmgType: string, msg?: string
+): IAddCompObj => {
     const obj: IAddCompObj = {
         addComp: 'DirectDamage', func: [
             {setter: 'setDamage', value: dmg},
@@ -20,11 +22,14 @@ export const meleeHitDamage = (dmg, dur, dmgType, msg?): IAddCompObj => {
     return obj;
 };
 
-export const directDamage = (dmg, dur, dmgType, prob, msg?): IAddCompObj => {
-    const obj = meleeHitDamage(dmg, dur, dmgType);
-    obj.func[2].value = RG.DMG.DIRECT;
+export const directDamage = (
+    dmg: IDiceInputArg, dur: string | number, dmgType: string, prob: number, msg?: string
+): IAddCompObj => {
+    const obj: IAddCompObj = meleeHitDamage(dmg, dur, dmgType);
+    const funcs = obj.func as ICompSetterObj[];
+    funcs[2].value = RG.DMG.DIRECT;
     if (prob) {
-        obj.func.push({setter: 'setProb', value: prob});
+        funcs.push({setter: 'setProb', value: prob});
     }
     if (msg) {
         obj.expireMsg = msg;
@@ -32,7 +37,26 @@ export const directDamage = (dmg, dur, dmgType, prob, msg?): IAddCompObj => {
     return obj;
 };
 
-export const color = function(fg, bg) {
+export function resistance(type: string, level: string): IAddCompObj {
+    const upperType = type.toUpperCase();
+    const levelUpper = level.toUpperCase();
+    if (!RG.DMG.hasOwnProperty(upperType)) {
+        RG.err('actors.ts', 'resistance',
+            `No dmg type |${upperType}| in ${Object.keys(RG.DMG)}`);
+    }
+    if (!RG.RESISTANCE.hasOwnProperty(levelUpper)) {
+        RG.err('actors.ts', 'resistance',
+            `No dmg type |${levelUpper}| in ${Object.keys(RG.RESISTANCE)}`);
+    }
+    return {
+        comp: 'Resistance', func: {
+            setEffect: RG.DMG[upperType],
+            setLevel: RG.RESISTANCE[levelUpper]
+        }
+    };
+}
+
+export const color = function(fg: string, bg: string): IColor {
     return {fg, bg};
 };
 
