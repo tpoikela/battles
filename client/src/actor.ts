@@ -572,9 +572,3 @@ SentientActor.getFormattedStats = function(actor): StatsData {
     return stats;
 };
 
-export function isSentient(target: BaseActor): target is SentientActor {
-    if (target) {
-        const brain = target.getBrain() as BrainGoalOriented;
-        return (typeof brain.getGoal === 'function');
-    }
-}
