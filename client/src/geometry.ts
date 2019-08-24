@@ -494,7 +494,7 @@ export const Geometry: any = {
 
     /* Inserts elements into the given level as rectangle bounded by the
      * coordinates given. */
-    insertElements(l1, elemType, bbox) {
+    insertElements(l1: Level, elemType: string, bbox: BBox) {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
             const elem = RG.FACT.createElement(elemType);
