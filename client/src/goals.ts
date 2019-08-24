@@ -9,8 +9,9 @@ import {Brain} from './brain';
 import {Path, PathFunc} from './path';
 import {Random} from './random';
 import {SentientActor} from './actor';
-import {SpellBase, SpellArgs} from './spell';
+import {SpellArgs} from './spell';
 import {ICoordXY, TCoord} from './interfaces';
+import {BBox} from './bbox';
 
 type Memory = import('./brain').Memory;
 
@@ -18,8 +19,8 @@ const RNG = Random.getRNG();
 export const Goal: any = {};
 Goal.ACTOR_FILTER = '';
 
-type Entity = import('./entity').Entity;
 type Cell = import('./map.cell').Cell;
+type CellMap = import('./map').CellMap;
 
 Goal.StatusStrings = {
     1: 'GOAL_ACTIVE',
@@ -560,6 +561,52 @@ export class GoalGuard extends GoalBase {
     }
 }
 Goal.Guard = GoalGuard;
+
+export class GoalGuardArea extends GoalBase {
+
+    public dist: number;
+    public bbox: BBox;
+
+    constructor(actor, bbox: BBox, dist = 1) {
+        super(actor);
+        this.setType('GoalGuardArea');
+        this.dist = dist;
+        this.bbox = bbox;
+        this.subGoals = [];
+    }
+
+    public activate(): void {
+        // Check if close enough to the target
+        this.checkDistToGuardArea();
+    }
+
+    public process(): GoalStatus {
+        this.activateIfInactive();
+        this.status = this.processSubGoals();
+        if (this.subGoals!.length > 0) {
+            const firstGoal = this.subGoals![0];
+            if (firstGoal.hasFailed()) {
+                this.checkDistToGuardArea();
+            }
+        }
+        else {
+            this.checkDistToGuardArea();
+        }
+        return this.status;
+    }
+
+    public checkDistToGuardArea(): void {
+        const [aX, aY] = this.actor.getXY();
+        if (!this.bbox.hasXY(aX, aY)) {
+            const [dX, dY] = this.bbox.getDist(this.actor.getXY());
+            if (dX > this.dist || dY > this.dist) {
+                const [bX, bY] = this.bbox.getRandXY();
+                this.addSubGoal(new GoalFollowPath(this.actor, [bX, bY]));
+            }
+        }
+    }
+}
+Goal.GuardArea = GoalGuardArea;
 //---------------------------------------------------------------------------
 /* Goal used for patrolling between a list of coordinates. */
 //---------------------------------------------------------------------------
