@@ -3,11 +3,11 @@
 import RG from './rg';
 import {Goal, GoalBase, GoalStatus} from './goals';
 import {Random} from './random';
-import {Cell} from './map.cell';
 import {Brain} from './brain';
 import * as Component from './component';
 import {TCoord} from './interfaces';
 
+type Cell = import('./map.cell').Cell;
 type ItemBase = import('./item').ItemBase;
 type SentientActor = import('./actor').SentientActor;
 
