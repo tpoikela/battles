@@ -1,7 +1,6 @@
 
 import RG from '../rg';
 import * as Component from '../component';
-import {BaseActor, SentientActor} from '../actor';
 import {CellMap} from '../map';
 import {Cell} from '../map.cell';
 import {Geometry} from '../geometry';
@@ -9,6 +8,8 @@ import {BrainBase} from './brain.base';
 import {Memory} from './brain.memory';
 import {Random} from '../random';
 
+type BaseActor = import('../actor').BaseActor;
+type SentientActor = import('../actor').SentientActor;
 type ActionCallback = import('../time').ActionCallback;
 
 // Dummy callback to return, if the actor's action provides a state
