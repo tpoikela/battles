@@ -2,17 +2,12 @@
 /* eslint comma-dangle: 0 */
 
 import RG from '../src/rg';
-import {meleeHitDamage, color} from './shell-utils';
-import {IAddCompObj, TAddCompSpec} from '../src/interfaces';
+import {meleeHitDamage, color, resistance} from './shell-utils';
+import {IAddCompObj, TAddCompSpec, IColor} from '../src/interfaces';
 
 const defaultBrain = 'GoalOriented';
 const demonBrain = 'GoalOriented';
 const undeadBrain = 'GoalOriented';
-
-export interface Color {
-    fg: string;
-    bg: string;
-}
 
 interface ItemObj {
     name: string;
@@ -31,7 +26,7 @@ export interface ActorShell {
     char?: string;
     colorfg?: string;
     colorbg?: string;
-    color?: Color;
+    color?: IColor;
     className?: string;
     dontCreate?: boolean;
     noRandom?: boolean;
@@ -1591,24 +1586,6 @@ export const adjustActorValues = (actorsData, order = Actors.modOrder) => {
     });
 };
 
-export function resistance(type: string, level: string): IAddCompObj {
-    const upperType = type.toUpperCase();
-    const levelUpper = level.toUpperCase();
-    if (!RG.DMG.hasOwnProperty(upperType)) {
-        RG.err('actors.ts', 'resistance',
-            `No dmg type |${upperType}| in ${Object.keys(RG.DMG)}`);
-    }
-    if (!RG.RESISTANCE.hasOwnProperty(levelUpper)) {
-        RG.err('actors.ts', 'resistance',
-            `No dmg type |${levelUpper}| in ${Object.keys(RG.RESISTANCE)}`);
-    }
-    return {
-        comp: 'Resistance', func: {
-            setEffect: RG.DMG[upperType],
-            setLevel: RG.RESISTANCE[levelUpper]
-        }
-    };
-}
 
 export function BypassComp(value): IAddCompObj {
     return {comp: 'BypassProtection', func: {setChance: value}};
