@@ -3,8 +3,8 @@
 
 import RG from '../src/rg';
 import {Random} from '../src/random';
-import {mixNewShell} from './shell-utils';
-import {BypassComp, resistance} from './actors';
+import {mixNewShell, resistance} from './shell-utils';
+import {BypassComp} from './actors';
 import {IShell, ShellConstr, StringMap, TShellFunc} from '../src/interfaces';
 
 export const ActorGen: any = {};
