@@ -22,6 +22,8 @@ interface CellProps {
     elements?: TCellProp[];
 }
 
+type CellPropsKey = keyof CellProps;
+
 export interface CellJSON {
     t: string; // Type of this cell
     ex?: number; // Explored by player?
@@ -137,6 +139,19 @@ export class Cell {
         return (this.getProp(TYPE_ITEM) as ItemBase[]);
     }
 
+    public getMarkers(): ElementMarker[] {
+        const elems = this.getElements();
+        const res: ElementMarker[] = [];
+        if (elems) {
+            for (let i = 0; i < elems.length; i++) {
+                if (elems[i].getType() === 'marker') {
+                    res.push(elems[i] as ElementMarker);
+                }
+            }
+        }
+        return res;
+    }
+
     /* Checks if this cell has a marker with given tag. */
     public hasMarker(tag: string): boolean {
         if (this.hasElements()) {
@@ -155,6 +170,14 @@ export class Cell {
     /* Returns true if cell has any props. */
     public hasProps(): boolean {
         return Object.keys(this._p).length > 0;
+    }
+
+    public getProps(): TCellProp[] {
+        let res: TCellProp[] = [];
+        Object.keys(this._p).forEach((key: CellPropsKey ) => {
+            res = res.concat(this._p[key]!.slice());
+        });
+        return res;
     }
 
     /* Returns true if cell has stairs.*/

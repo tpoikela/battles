@@ -1,10 +1,13 @@
 
 /* Contains the code for base class of level generator. */
 import RG from '../rg';
-import {ElementMarker, ElementBase} from '../element';
+import {ElementMarker, ElementDoor} from '../element';
 import {Level} from '../level';
 
 import {TCoord, TShellFunc} from '../interfaces';
+type CellMap = import('../map').CellMap;
+type Cell = import('../map.cell').Cell;
+type ElementXY = import('../element').ElementXY;
 
 export interface ILevelGenOpts {
     addActors: boolean;
@@ -68,6 +71,45 @@ export abstract class LevelGenerator {
         }
     }
 
+    /* Converst door markers to actual doors. Returns the coordinates of created
+     * doors as TCoord[]. */
+    public markersToDoor(level: Level): TCoord[] {
+        const map: CellMap = level.getMap();
+        const cells: Cell[] = map.getCells((c => c.hasElements()));
+        const res: TCoord[] = [];
+        cells.forEach((cell: Cell) => {
+            if (cell.hasMarker('door')) {
+                const [x, y] = cell.getXY();
+                const door = new ElementDoor(true);
+                map.getCell(x, y).removeProps(RG.TYPE_ELEM);
+                level.addElement(door, x, y);
+                res.push([x, y]);
+            }
+        });
+        return res;
+    }
+
+    /* Removes given marker type with matching char/tag, removes the coordinates
+     * of removed markers. */
+    public removeOneMarkerType(level: Level, char: string, tag: string): TCoord[] {
+        const map: CellMap = level.getMap();
+        const cells: Cell[] = map.getCells((c => c.hasElements()));
+        const res: TCoord[] = [];
+        cells.forEach((cell: Cell) => {
+            if (cell.hasMarker(tag)) {
+                const markers = cell.getMarkers();
+                markers.forEach((em: ElementMarker) => {
+                    if (em.getChar() === char) {
+                        const [x, y] = em.getXY();
+                        level.removeElement(em, x, y);
+                        res.push([x, y]);
+                    }
+                });
+            }
+        });
+        return res;
+    }
+
     /* Removes the markers which are used during PCG, but should not be visible
      * to player. */
     public removeMarkers(level: Level, conf): number {
@@ -85,9 +127,9 @@ export abstract class LevelGenerator {
         }
 
         if (this.shouldRemoveMarkers) {
-            level.removeElements(e => {
-                if (e.getTag) {
-                    const tag = e.getTag();
+            level.removeElements((e: ElementXY) => {
+                if ((e as ElementMarker).getTag) {
+                    const tag = (e as ElementMarker).getTag();
                     if (markersPreserved.indexOf(tag) < 0) {
                         ++nRemoved;
                         return true;

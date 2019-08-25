@@ -788,7 +788,13 @@ export class MapGenerator {
         }
 
         const asciiToElem = {
-            '#': wallElem, '.': floorElem
+            '#': wallElem, '.': floorElem,
+            '?': (map: CellMap, x: number, y: number) => {
+                const marker = new ElementMarker('?');
+                marker.setXY(x, y);
+                marker.setTag('nest_loot');
+                map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
+            }
         };
         const mapObj: MapObj = MapGenerator.fromAsciiMap(level.map, asciiToElem);
         mapObj.tiles = level.getPlacedData();

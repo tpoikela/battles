@@ -11,7 +11,7 @@ import {ELEM} from '../data/elem-constants';
 import * as Component from './component/component';
 
 // Import types only
-import {TCoord, BBox} from './interfaces';
+import {TCoord, BBox, TCellProp} from './interfaces';
 type ZoneBase = import('./world').ZoneBase;
 type SubZoneBase = import('./world').SubZoneBase;
 type Battle = import('./game.battle').Battle;
@@ -91,11 +91,15 @@ export type LevelExtras = Extras & {
     isCollapsed?: boolean;*/
 };
 
+type LevelExtrasKey = keyof LevelExtras;
+
 interface LevelProps {
     actors: BaseActor[];
     elements: ElementXY[];
     items: ItemBase[];
 }
+
+type TLevelPropKey = keyof LevelProps;
 
 /* Object for the game levels. Contains map, actors and items.  */
 // const Level = function() {
@@ -302,12 +306,14 @@ export class Level extends Entity {
         if (!RG.isNullOrUndef([x, y])) {
             return this._addPropToLevelXY(RG.TYPE_ELEM, elem, x, y);
         }
-        const [xCell, yCell] = this._getFreeCellXY();
-        if (RG.isNullOrUndef([xCell, yCell])) {
+        const cell = this._getFreeCell();
+        if (!cell) {
             this.debugPrintInASCII();
             RG.err('Level', 'addElement',
                 'Cannot add prop to null xy-coord');
+            return false;
         }
+        const [xCell, yCell] = cell.getXY();
         return this._addPropToLevelXY(RG.TYPE_ELEM, elem, xCell, yCell);
     }
 
@@ -315,15 +321,15 @@ export class Level extends Entity {
         return this._removePropFromLevelXY(RG.TYPE_ELEM, elem, x, y);
     }
 
-    public addEntity(ent: any, x: number, y: number): boolean {
+    public addEntity(ent: TCellProp, x: number, y: number): boolean {
         if (RG.isActor(ent)) {
-            return this.addActor(ent, x, y);
+            return this.addActor(ent as BaseActor, x, y);
         }
         else if (RG.isItem(ent)) {
-              return this.addItem(ent, x, y);
+              return this.addItem(ent as ItemBase, x, y);
         }
         else if (RG.isElement(ent)) {
-            return this.addElement(ent, x, y);
+            return this.addElement(ent as ElementXY, x, y);
         }
         else {
             RG.err('Level', 'addEntity',
@@ -341,10 +347,14 @@ export class Level extends Entity {
     public addItem(item: ItemBase, x?: number, y?: number): boolean {
         // verifyLevelCache(this);
         if (!RG.isNullOrUndef([x, y])) {
-            return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
+            return this._addPropToLevelXY(RG.TYPE_ITEM, item, x!, y!);
         }
-        const [xCell, yCell] = this._getFreeCellXY();
-        return this._addPropToLevelXY(RG.TYPE_ITEM, item, xCell, yCell);
+        const cell = this._getFreeCell();
+        if (cell) {
+            const [xCell, yCell] = cell.getXY();
+            return this._addPropToLevelXY(RG.TYPE_ITEM, item, xCell, yCell);
+        }
+        return false;
     }
 
     /* Removes an item from the level in x,y position.*/
@@ -403,7 +413,7 @@ export class Level extends Entity {
     /* Using this method, actor can be added to a free cell without knowing the
      * exact x,y coordinates. This is not random, such that top-left (0,0) is
      * always preferred. */
-    public addActorToFreeCell(actor): boolean {
+    public addActorToFreeCell(actor: BaseActor): boolean {
         RG.debug(this, 'Adding actor to free slot');
         const freeCells: Cell[] = this._map.getFree();
         if (freeCells.length > 0) {
@@ -423,7 +433,7 @@ export class Level extends Entity {
 
     /* Adds a prop 'obj' to level location x,y. Returns true on success,
      * false on failure.*/
-    public _addPropToLevelXY(propType, obj, x: number, y: number): boolean {
+    public _addPropToLevelXY(propType: TLevelPropKey, obj, x: number, y: number): boolean {
         if (this._p.hasOwnProperty(propType)) {
             this._p[propType].push(obj);
             if (!obj.isOwnable) {
@@ -443,13 +453,19 @@ export class Level extends Entity {
     }
 
     /* Adds virtual prop not associated with x,y position or a cell. */
-    public addVirtualProp(propType, obj): boolean {
+    public addVirtualProp(propType: TLevelPropKey, obj: TCellProp): boolean {
         if (this._p.hasOwnProperty(propType)) {
-            this._p[propType].push(obj);
-            obj.setLevel(this);
-            POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj,
-                propType});
-            return true;
+            if (RG.isActor(obj)) {
+                this._p[propType].push(obj as any);
+                (obj as BaseActor).setLevel(this);
+                POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj,
+                    propType});
+                return true;
+            }
+            else {
+            RG.err('Level', 'addVirtualProp',
+                 `Only virtual actors are supported. Got ${propType}`);
+            }
         }
         else {
             RG.err('Map.Level', 'addVirtualProp',
@@ -461,16 +477,16 @@ export class Level extends Entity {
     /* Removes a prop 'obj' to level location x,y. Returns true on success,
      * false on failure.*/
     public _removePropFromLevelXY(
-        propType, obj, x: number, y: number
+        propType: TLevelPropKey, obj: TCellProp, x: number, y: number
     ): boolean {
         if (this._p.hasOwnProperty(propType)) {
-            const index = this._p[propType].indexOf(obj);
+            const index = this._p[propType].indexOf(obj as any);
 
             if (index >= 0) {
                 this._p[propType].splice(index, 1);
-                if (!obj.getOwner) {
-                    obj.setXY(null, null);
-                    obj.unsetLevel();
+                if (!RG.isItem(obj)) {
+                    (obj as any).setXY(null, null);
+                    (obj as any).unsetLevel();
                 }
                 POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
                     {level: this, obj, propType});
@@ -490,9 +506,9 @@ export class Level extends Entity {
     }
 
     /* Removes a virtual property (virtual prop has no x,y position). */
-    public removeVirtualProp(propType: string, obj): boolean {
+    public removeVirtualProp(propType: TLevelPropKey, obj: TCellProp): boolean {
         if (this._p.hasOwnProperty(propType)) {
-            const index = this._p[propType].indexOf(obj);
+            const index = this._p[propType].indexOf(obj as any);
             if (index >= 0) {
                 this._p[propType].splice(index, 1);
                 POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
@@ -504,7 +520,7 @@ export class Level extends Entity {
     }
 
     /* Removes given actor from level. Returns true if successful.*/
-    public removeActor(actor): boolean {
+    public removeActor(actor: BaseActor): boolean {
         const index = this._p.actors.indexOf(actor);
         const x = actor.getX();
         const y = actor.getY();
@@ -520,7 +536,7 @@ export class Level extends Entity {
     /* Explores the level from given actor's viewpoint. Sets new cells as
      * explored. There's no exploration tracking per actor. This is mainly called
      * from Brain.Player, as it marks cells as explored. */
-    public exploreCells(actor): Cell[] {
+    public exploreCells(actor: SentientActor): Cell[] {
         const visibleCells = this._map.getVisibleCells(actor);
         for (let i = 0; i < visibleCells.length; i++) {
             visibleCells[i].setExplored();
@@ -536,7 +552,7 @@ export class Level extends Entity {
     /* Can be used to add additional data to the level. Currently, this is used in
      * proc gen only, and extras are not serialized/stored persistently.
      * */
-    public setExtras(extras): void {
+    public setExtras(extras: LevelExtras): void {
         this._extras = extras;
     }
 
@@ -550,7 +566,7 @@ export class Level extends Entity {
             Object.keys(this._extras).length > 0;
     }
 
-    public addExtras(key: string, value: any): void {
+    public addExtras(key: LevelExtrasKey, value: any): void {
         if (!this._extras) {this._extras = {} as LevelExtras;}
         this._extras[key] = value;
     }
@@ -638,14 +654,12 @@ export class Level extends Entity {
         return null;
     }
 
-    public _getFreeCellXY(): [number, number] {
+    public _getFreeCell(): CellOrNull {
         const freeCells = this._map.getFree();
         if (freeCells.length > 0) {
-            const xCell = freeCells[0].getX();
-            const yCell = freeCells[0].getY();
-            return [xCell, yCell];
+            return freeCells[0];
         }
-        return [null, null];
+        return null;
     }
 
     public debugPrintInASCII(): void {
@@ -653,7 +667,7 @@ export class Level extends Entity {
     }
 
     /* Removes all elements matching the given function. */
-    public removeElements(filter: (elem) => boolean): void {
+    public removeElements(filter: (elem: ElementXY) => boolean): void {
         const toRemove = this._p.elements.filter(filter);
         toRemove.forEach(elem => {
           const [eX, eY] = (elem as Mixin.Locatable).getXY();
@@ -682,10 +696,29 @@ export class Level extends Entity {
         return edgeConns;
     }
 
-    public getCellWithElem(elemType: string): any {
+    public getCellWithElem(elemType: string): null | ElementXY {
         const elems = this.getElements().filter(elem => (
             elem.getType() === elemType));
         return elems[0];
+    }
+
+    /* Can be used to update level props arrays from cells. This is useful if
+    * CellMap is created, and there are some items, elements or actors already
+    * existing. */
+    public updateLevelFromMap(): void {
+        this.getMap().getCells().forEach((cell: Cell) => {
+            if (cell.hasProps()) {
+                const props: TCellProp[] = cell.getProps();
+                props.forEach((p: TCellProp) => {
+                    const key = p.getPropType() as TLevelPropKey;
+                    this._p[key].push(p as any);
+                    if ((p as any).setXY) {
+                        (p as any).setXY(cell.getX(), cell.getY());
+                        (p as any).setLevel(this);
+                    }
+                });
+            }
+        });
     }
 
     /* Serializes the level object. */

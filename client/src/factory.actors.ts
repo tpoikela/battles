@@ -59,7 +59,7 @@ export class ActorRandomizer {
 export const FactoryActor = function() {
     this._randomizer = new ActorRandomizer();
 
-    this.dbg = function(...args) {
+    this.dbg = function(...args: any[]): void {
         if (debug.enabled) {
             debug(...args);
         }

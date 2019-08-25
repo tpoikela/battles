@@ -304,6 +304,10 @@ shellProps.armour = {
 names.armour = Object.keys(shellProps.armour);
 
 shellProps.material = {
+    cloth: {
+        weight: 0.5, value: 0.5, rarity: 1.0,
+        onEquip: [resistance('BLUNT', 'MEDIUM')]
+    },
     leather: {
         weight: 1.0, value: 1.0, rarity: 1.0
     },
@@ -469,7 +473,9 @@ ItemGen.genRandShellWith = function(constrOrFunc): IShell {
 };
 
 
-function addNamePrefix(fullName: string, prefixName: string, prefixShell: IShell): string {
+function addNamePrefix(
+    fullName: string, prefixName: string, prefixShell: IShell
+): string {
     let name = fullName;
     if (prefixShell.name) {
         name = prefixShell.name + ' ' + fullName;

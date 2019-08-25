@@ -13,7 +13,7 @@ describe('CaveGenerator', function() {
     });
 
     it('can generate simple cave levels', () => {
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 1; i++) {
             // console.log('\n===== Generating CAVE now =====');
             const caveGen = new CaveGenerator();
             const conf = {dungeonType: 'Cave', isCollapsed: false,

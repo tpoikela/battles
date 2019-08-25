@@ -16,6 +16,7 @@ import {ObjectShell} from '../objectshellparser';
 import {SentientActor} from '../actor';
 import {EvaluatorGuardArea} from '../evaluators';
 import {BrainGoalOriented} from '../brain';
+import {ItemGen} from '../../data/item-gen';
 
 type Cell = import('../map.cell').Cell;
 type CellMap = import('../map').CellMap;
@@ -62,6 +63,7 @@ export class NestGenerator extends LevelGenerator {
         const mapObj = mapgen.createNest(cols, rows, conf.mapConf);
         // const {tiles} = mapObj; TODO
         const level = new Level(mapObj.map);
+        level.updateLevelFromMap();
         return level;
     }
 
@@ -93,11 +95,20 @@ export class NestGenerator extends LevelGenerator {
         const bbox = RNG.arrayGetRand(bboxes);
         // If we get a bbox, merge Nest level map with the parent level map
         if (bbox.getArea() > 0) {
+            console.log('XYZ NEST:');
+            nestLevel.debugPrintInASCII();
             Geometry.mergeLevels(parentLevel, nestLevel, bbox.ulx, bbox.uly);
+            console.log('XYZ PARENT:');
+            parentLevel.debugPrintInASCII();
             // 1. Should connect the nest to remaining level now
             if (this.connectNestToParentLevel(parentLevel, bbox)) {
+
+                this.addElemsToNestArea(parentLevel, bbox, conf);
                 // 2. Here we can populate the nest area now
                 this.populateNestArea(parentLevel, bbox, conf);
+
+                // 3. Add items/loot to the area
+                this.addLootToNestArea(parentLevel, bbox, conf);
                 return true;
             }
             else {
@@ -217,6 +228,13 @@ export class NestGenerator extends LevelGenerator {
         return true;
     }
 
+
+    public addElemsToNestArea(
+        parentLevel: Level, bbox: BBox, conf: PartialNestOpts
+    ): void {
+        const doorXY: TCoord[] = super.markersToDoor(parentLevel);
+    }
+
     /* Populates the nest with actors. */
     public populateNestArea(level: Level, bbox: BBox, conf: PartialNestOpts): void {
         const {actorConstr} = conf;
@@ -247,6 +265,31 @@ export class NestGenerator extends LevelGenerator {
             }
         });
         return actors;
+    }
+
+    public addLootToNestArea(level: Level, bbox: BBox, conf: PartialNestOpts): void {
+        let {maxValue} = conf;
+        if (!maxValue) {
+            maxValue = 100;
+        }
+        maxValue *= 1.5;
+
+        const parser = ObjectShell.getParser();
+        const lootXY: TCoord[] = super.removeOneMarkerType(level, '?', 'nest_loot');
+        const itemFunc = (item: IShell) => (
+            item.value <= maxValue! && item.value >= 0.5*maxValue!);
+        lootXY.forEach((xy: TCoord) => {
+            const item = parser.createRandomItem(itemFunc);
+            level.addItem(item, xy[0], xy[1]);
+        });
+
+        // Add main loot
+        const mainShell = ItemGen.genItems(1)[0];
+        const mainLootItem = parser.createFromShell(RG.TYPE_ITEM, mainShell);
+        if (mainLootItem) {
+            const [x, y] = RNG.arrayGetRand(lootXY);
+            level.addItem(mainLootItem, x, y);
+        }
     }
 
 }

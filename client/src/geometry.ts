@@ -356,8 +356,6 @@ export const Geometry: any = {
         const actors = l2.getActors().slice();
         const items = l2.getItems().slice();
         const elements = l2.getElements().slice();
-        const allZero = actors.length === 0 && items.length === 0 &&
-            elements.length === 0;
 
         // Nothing special to merge, just move cells + baseElems
         /*
@@ -393,6 +391,7 @@ export const Geometry: any = {
             if (m1.hasXY(x, y)) {
                 if (l2.removeElement(elem, x0, y0)) {
                     l1.addElement(elem, x, y);
+                    console.log('Element', elem.getName(), ' merged', x0, y0, '->', x, y);
                 }
             }
         });

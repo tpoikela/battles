@@ -24,8 +24,9 @@ const RNG = Random.getRNG();
 const Room = ROT.Map.Feature.Room;
 
 import {TCoord, ICoordXY} from '../interfaces';
-type CellList = import('../map').CellMap;
+type CellMap = import('../map').CellMap;
 type Cell = import('../map.cell').Cell;
+type ElementLever = Element.ElementLever;
 
 interface CastleOpts extends ILevelGenOpts {
     roomCount: number;
@@ -224,10 +225,10 @@ export class CastleGenerator extends LevelGenerator {
 
     /* Links (and first creates) levers and lever doors based on markers. */
     public createDoorsAndLevers(level: Level): void {
-        const map: CellList = level.getMap();
+        const map: CellMap = level.getMap();
         const cells: Cell[] = map.getCells();
-        const doorPos = {};
-        const levers = [];
+        const doorPos: {[key: string]: Element.ElementLeverDoor} = {};
+        const levers: ElementLever[] = [];
 
         // Note that markers must be preserved in MapGenerator for this to work
         cells.forEach(cell => {
@@ -258,7 +259,7 @@ export class CastleGenerator extends LevelGenerator {
         levers.forEach(lever => {
             const [x, y] = lever.getXY();
             const xyAround = Geometry.getBoxAround(x, y, 1);
-            xyAround.forEach(xy => {
+            xyAround.forEach((xy: TCoord) => {
                 const keyXY = xy[0] + ',' + xy[1];
                 if (doorPos[keyXY]) {
                     let door: any = map.getCell(xy[0], xy[1]).getPropType('leverdoor');
