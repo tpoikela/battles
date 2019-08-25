@@ -9,6 +9,7 @@ import {Battle, BattleJSON} from './game.battle';
 import {Level} from './level';
 import {SentientActor} from './actor';
 import {WorldTop} from './world';
+import {BBox} from './bbox';
 
 import {EventPool, EvtArgs} from './eventpool';
 import * as Component from './component';
@@ -152,7 +153,7 @@ export class GameMaster {
 
     /* Returns the bbox for the battle. This is coordinates for the battle
      * inside the tile level. It corresponds to player's current owPos. */
-    public getLevelBbox(ow, area, tileXY, owPos, level) {
+    public getLevelBbox(ow, area, tileXY, owPos, level): BBox {
         // Info needed:
         // local ow pos
         // one ow pos in level cells
@@ -168,12 +169,12 @@ export class GameMaster {
         const localOwX = owX % owTilesPerAreaTileX;
         const localOwY = owY % owTilesPerAreaTileY;
 
-        return {
+        return BBox.fromBBox({
             ulx: localOwX * oneOwTileInCols,
             uly: localOwY * oneOwTileInRows,
             lrx: (localOwX + 1) * oneOwTileInCols - 1,
             lry: (localOwY + 1) * oneOwTileInRows - 1
-        };
+        });
     }
 
         /* Adds player to the battle level. */
@@ -527,7 +528,7 @@ export class GameMaster {
         const battleConf: BattleConf = {};
         let levelType = 'forest';
 
-        let bbox = parentLevel.getBbox();
+        let bbox: BBox = parentLevel.getBbox();
 
         if (ow) {
             const world = this.game.getCurrentWorld();

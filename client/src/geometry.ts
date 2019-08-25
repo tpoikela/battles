@@ -1,7 +1,8 @@
 
 import RG from './rg';
 import {Random} from './random';
-import {TCardinalDir, ICoordMap, TCoord, BBox, ICellDirMap} from './interfaces';
+import {TCardinalDir, ICoordMap, TCoord, ICellDirMap} from './interfaces';
+import {BBox} from './bbox';
 
 const RNG = Random.getRNG();
 
@@ -119,12 +120,12 @@ export const Geometry: any = {
     /* Converts old (SoCE) style bbox to BitN bbox. */
     convertBbox(bbox: BBoxType): BBox {
         if (bbox.hasOwnProperty('llx')) {
-            return {
+            BBox.fromBBox({
                 ulx: (bbox as BBoxOld).llx,
                 uly: (bbox as BBoxOld).ury,
                 lrx: (bbox as BBoxOld).urx,
                 lry: (bbox as BBoxOld).lly
-            };
+            });
         }
         else {
             return (bbox as BBox);
@@ -169,12 +170,12 @@ export const Geometry: any = {
             lrx: 2 * colsDiv - 1, lry: 2 * rowsDiv - 1};
         const dXdY = RG.dirTodXdY(dir);
         if (dXdY) {
-            return {
+            BBox.fromBBox({
                 ulx: cBbox.ulx + dXdY[0] * colsDiv,
                 uly: cBbox.uly + dXdY[1] * rowsDiv,
                 lrx: cBbox.lrx + dXdY[0] * colsDiv,
                 lry: cBbox.lry + dXdY[1] * rowsDiv
-            };
+            });
         }
         else {
             RG.err('Geometry', 'dirToBbox', `Invalid dir ${dir} given.`);
@@ -192,7 +193,7 @@ export const Geometry: any = {
       const lrx = x1 > x0 ? x1 : x0;
       const uly = y0 <= y1 ? y0 : y1;
       const lry = y1 > y0 ? y1 : y0;
-      return {ulx, uly, lrx, lry};
+      return BBox.fromBBox({ulx, uly, lrx, lry});
     },
 
     /* Given start x,y and end x,y coordinates, returns all x,y coordinates in

@@ -1,7 +1,8 @@
 
 import RG from './rg';
 import ROT from '../../lib/rot';
-import {TCoord, BBox, RandWeights} from './interfaces';
+import {TCoord, RandWeights} from './interfaces';
+import {BBox} from './bbox';
 
 const DIRS = [-1, 0, 1];
 const DIRS_NO_ZERO = [-1, 1];

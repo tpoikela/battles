@@ -47,4 +47,15 @@ describe('DungeonGenerator', function() {
         // newMap.debugPrintInASCII();
     });
 
+    it('generates dungeon levels with nests', () => {
+        const dungGen = new DungeonGenerator();
+        const cols = RNG.getUniformInt(80, 120);
+        const rows = RNG.getUniformInt(28, 56);
+        const conf = {
+            nBigRooms: 0
+        };
+        const level = dungGen.create(cols, rows, conf);
+        level.debugPrintInASCII();
+    });
+
 });

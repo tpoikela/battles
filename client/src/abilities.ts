@@ -5,8 +5,8 @@ import {Geometry} from './geometry';
 import * as Menu from './menu';
 import * as Component from './component/component';
 
+type ItemBase = import('./item').ItemBase;
 type SentientActor = import('./actor').SentientActor;
-type BrainPlayer = import('./brain/brain.player').BrainPlayer;
 type Cell = import('./map.cell').Cell;
 
 const RNG = Random.getRNG();
@@ -39,7 +39,7 @@ export class AbilityBase {
     public activate(obj: any): void {
         const name = this.getName();
         RG.err('Ability.Base', 'activate',
-            `${name} should implement activate()`);
+            `${name} should implement activate(), given obj ${obj}`);
     }
 
 }
@@ -51,7 +51,7 @@ Ability.Base = AbilityBase;
 
 export class Camouflage extends AbilityBase {
 
-    constructor(name) {
+    constructor(name: string) {
         super('Camouflage');
     }
 
@@ -68,7 +68,7 @@ Ability.Camouflage = Camouflage;
  * a direction for using the ability. */
 export class Direction extends AbilityBase {
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
     }
 
@@ -86,12 +86,12 @@ export class Area extends AbilityBase {
 
     public range: number;
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.range = 1;
     }
 
-    public activate(cells): void {
+    public activate(cells: Cell[]): void {
     }
 
     public getCells(): Cell[] {
@@ -113,11 +113,11 @@ Ability.Area = Area;
  * activate(item) function for the actual ability functionality. */
 export class Item extends AbilityBase {
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
     }
 
-    public activate(item) {
+    public activate(item: ItemBase) {
         const json = JSON.stringify(item);
         RG.err('Ability.Item', 'activate',
             'Not impl. in base class. Called with: ' + json);
@@ -150,13 +150,13 @@ export class Sharpener extends Ability.Item {
         super('Sharpener');
     }
 
-    public activate(item) {
+    public activate(item: ItemBase): void {
         const name = item.getName();
         if (!item.has('Sharpened')) {
-            if (item.getDamageDie) {
+            if ((item as any).getDamageDie) {
                 item.add(new Component.Sharpened());
                 const dmgBonus = RNG.getUniformInt(1, 3);
-                const dmgDie = item.getDamageDie();
+                const dmgDie = (item as any).getDamageDie();
                 dmgDie.setMod(dmgDie.getMod() + dmgBonus);
                 item.setValue(item.getValue() + dmgBonus * 10);
                 RG.gameMsg(`You sharpen ${name}`);

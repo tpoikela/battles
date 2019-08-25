@@ -9,9 +9,10 @@ import {EventPool} from './eventpool';
 import * as Mixin from './mixin';
 import {ELEM} from '../data/elem-constants';
 import * as Component from './component/component';
+import {BBox} from './bbox';
 
 // Import types only
-import {TCoord, BBox, TCellProp} from './interfaces';
+import {TCoord, TCellProp} from './interfaces';
 type ZoneBase = import('./world').ZoneBase;
 type SubZoneBase = import('./world').SubZoneBase;
 type Battle = import('./game.battle').Battle;
@@ -574,11 +575,11 @@ export class Level extends Entity {
     /* Returns the bounding box of the level (upper-left and lower-right
      * coordinates). */
     public getBbox(): BBox {
-        return {
+        return BBox.fromBBox({
             ulx: 0, uly: 0,
             lrx: this.getMap().cols - 1,
             lry: this.getMap().rows - 1
-        };
+        });
     }
 
     public getColsRows(): [number, number] {

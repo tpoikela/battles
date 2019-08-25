@@ -17,11 +17,12 @@ import {BrainGoalOriented} from './brain/brain.goaloriented';
 import {ItemGen} from '../data/item-gen';
 import {ActorGen} from '../data/actor-gen';
 import {Names} from '../data/name-gen';
+import {BBox} from './bbox';
 
 const MIN_ACTORS_ROOM = 2;
 const RNG = Random.getRNG();
 
-import {TCoord, TShellFunc, BBox, IShell} from './interfaces';
+import {TCoord, TShellFunc, IShell} from './interfaces';
 type Level = import('./level').Level;
 type House = import('./generator').House;
 

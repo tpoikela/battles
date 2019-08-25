@@ -8,8 +8,9 @@ import dbg = require('debug');
 const debug = dbg('bitn:OW');
 
 import RG from './rg';
-import {TCoord, BBox, OWMapConf, ICoordXY} from './interfaces';
+import {TCoord, OWMapConf, ICoordXY} from './interfaces';
 
+import {BBox} from './bbox';
 import {CellMap} from './map';
 import {Path} from './path';
 import {Geometry} from './geometry';
@@ -961,12 +962,12 @@ function addFeatureToWall(ow: OWMap, wall, type) {
     if (wall.type === 'horizontal') { // y will be fixed
         const ulx = wall.x[0];
         const lrx = wall.x[wall.x.length - 1];
-        xy = findCellRandXYInBox(map, bBox(ulx, wall.y, lrx, wall.y), OW.LL_WE);
+        xy = findCellRandXYInBox(map, new BBox(ulx, wall.y, lrx, wall.y), OW.LL_WE);
     }
     if (wall.type === 'vertical') { // y will be fixed
         const uly = wall.y[0];
         const lry = wall.y[wall.y.length - 1];
-        xy = findCellRandXYInBox(map, bBox(wall.x, uly, wall.x, lry), OW.LL_NS);
+        xy = findCellRandXYInBox(map, new BBox(wall.x, uly, wall.x, lry), OW.LL_NS);
     }
 
     debug(`Placed feature ${type} to ${xy}`);

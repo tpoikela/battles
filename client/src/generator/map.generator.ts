@@ -9,10 +9,11 @@ import {Path} from '../path';
 import {Builder} from '../builder';
 import {Geometry} from '../geometry';
 import * as Element from '../element';
-import {BBox, ConstBaseElem} from '../interfaces';
+import {ConstBaseElem} from '../interfaces';
 import {TemplateLevel, StartRoomFunc} from '../template.level';
 import {Random} from '../random';
 import {House, HouseGenerator} from './house-generator';
+import {BBox} from '../bbox';
 
 import {Crypt} from '../../data/tiles.crypt';
 import {Castle} from '../../data/tiles.castle';
@@ -534,7 +535,7 @@ export class MapGenerator {
         this.addElementsToMap(map, forestMap, 'tree', conf, bbox);
     }
 
-    public addElementsToMap(map, srcMap, elem, conf, bbox): void {
+    public addElementsToMap(map, srcMap, elem, conf, bbox: BBox): void {
         RG.forEach2D(srcMap._map, (x, y) => {
             const nX = x + bbox.ulx;
             const nY = y + bbox.uly;

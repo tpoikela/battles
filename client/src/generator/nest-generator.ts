@@ -29,6 +29,7 @@ export interface NestOpts extends ILevelGenOpts {
     embedOpts: {
         alwaysEmbed?: boolean; // Embed even if no free area
         level: Level; // Target level for embedding the nest
+        bbox?: BBox; // Bbox for the nest
     };
 }
 
@@ -89,10 +90,17 @@ export class NestGenerator extends LevelGenerator {
         const map: CellMap = parentLevel.getMap();
         const cellFunc = (c: Cell) => !c.isFree();
         const [sizeX, sizeY] = nestLevel.getSizeXY();
-        const bboxes: BBox[] = Placer.findCellArea(map, sizeX, sizeY, cellFunc);
-        if (bboxes.length === 0) {return false;}
+        let bbox = null;
 
-        const bbox = RNG.arrayGetRand(bboxes);
+        if (conf.embedOpts.bbox) {
+            bbox = conf.embedOpts.bbox;
+        }
+        else {
+            const bboxes: BBox[] = Placer.findCellArea(map, sizeX, sizeY, cellFunc);
+            if (bboxes.length === 0) {return false;}
+            bbox = RNG.arrayGetRand(bboxes);
+        }
+
         // If we get a bbox, merge Nest level map with the parent level map
         if (bbox.getArea() > 0) {
             console.log('XYZ NEST:');

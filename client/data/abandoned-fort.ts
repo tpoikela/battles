@@ -1,6 +1,5 @@
 /* Contains code to generate the abandoned fort. */
 
-import RG from '../src/rg';
 import {FactoryBase} from '../src/factory';
 import {FactoryItem} from '../src/factory.items';
 import {FactoryLevel} from '../src/factory.level';
@@ -12,6 +11,7 @@ import * as Element from '../src/element';
 import {Castle} from '../data/tiles.castle';
 import {MapGenerator} from '../src/generator';
 import {Geometry} from '../src/geometry';
+import {BBox} from '../src/bbox';
 
 const TILE_SIZE = 7;
 
@@ -97,9 +97,9 @@ export class AbandonedFort {
     const stairsEast = new Element.ElementStairs('stairsDown', mainLevel);
     mainLevel.addStairs(stairsEast, sX, sY);
 
-    const castleBbox = {ulx: castleX, uly: castleY,
+    const castleBbox = BBox.fromBBox({ulx: castleX, uly: castleY,
         lrx: castleX + castleCols - 1, lry: castleY + castleRows - 1
-    };
+    });
 
     const parser = ObjectShell.getParser();
     const itemFact = new FactoryItem();

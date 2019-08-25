@@ -38,6 +38,7 @@ import {Geometry} from './geometry';
 import * as IF from './interfaces';
 import {CellMap} from './map';
 import {createDirNorthMsg, createLoreObj} from '../data/lore';
+import {BBox} from './bbox';
 
 import dbg = require('debug');
 const debug = dbg('bitn:overworld');
@@ -316,8 +317,8 @@ export class CoordMap {
     public toOWTileXY(areaXY: TCoord, areaLevelXY: TCoord): TCoord {
         const bbox = this.getOWTileBboxFromAreaTileXY(areaXY[0], areaXY[1]);
         return [
-            bbox.ulx + Math.floor(areaLevelXY[0] / this.xMap),
-            bbox.uly + Math.floor(areaLevelXY[1] / this.yMap)
+            bbox!.ulx + Math.floor(areaLevelXY[0] / this.xMap),
+            bbox!.uly + Math.floor(areaLevelXY[1] / this.yMap)
         ];
     }
 
@@ -330,14 +331,14 @@ export class CoordMap {
         ];
     }
 
-    public getOWTileBboxFromAreaTileXY(aX: number, aY: number): IF.BBox | null {
+    public getOWTileBboxFromAreaTileXY(aX: number, aY: number): BBox | null {
         if (Number.isInteger(aX) && Number.isInteger(aY)) {
-            return {
+            return BBox.fromBBox({
                 ulx: (aX * TILE_SIZE_X) / this.xMap,
                 uly: (aY * TILE_SIZE_Y) / this.yMap,
                 lrx: ((aX + 1) * TILE_SIZE_X) / this.xMap - 1,
                 lry: ((aY + 1) * TILE_SIZE_Y) / this.yMap - 1
-            };
+            });
         }
         RG.err('OverWorld.CoordMap', 'getOWTileBboxFromAreaTileXY',
             `Args (x,y) must be ints. Got ${aX}, ${aY}`);

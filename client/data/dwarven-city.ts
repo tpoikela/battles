@@ -11,7 +11,7 @@ import {ELEM} from './elem-constants';
 import {ObjectShell} from '../src/objectshellparser';
 import {LevelUtils} from '../src/level-utils';
 
-import {BBox} from '../src/interfaces';
+import {BBox} from '../src/bbox';
 
 const dwarvenCityConf = {
   outerColsRatio: 0.45,
@@ -74,10 +74,10 @@ export class DwarvenCity {
       Geometry.tileLevels(mainLevel, tiledLevels, tileConf);
 
       // Bounding box for fort levels
-      const bbox = {
+      const bbox = BBox.fromBBox({
           ulx: fortStartX, uly: fortStartY,
           lrx: fortEndX, lry: fortEndY
-      };
+      });
       this.addItemsAndActors(mainLevel, bbox);
 
       this.addStairsToLevel(cols, rows, mainLevel);

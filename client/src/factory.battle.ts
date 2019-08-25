@@ -2,7 +2,6 @@
 import {Constraints} from './constraints';
 
 import RG from './rg';
-import {Factory} from './factory';
 import {World} from './world';
 import {Battle, Army} from './game.battle';
 import {Random} from './random';
@@ -15,7 +14,7 @@ import * as Element from './element';
 import {LevelSurroundings} from './level-surroundings';
 import {Geometry} from './geometry';
 
-import {BBox} from './interfaces';
+import {BBox} from './bbox';
 
 type Level = import('./level').Level;
 type SentientActor = import('./actor').SentientActor;

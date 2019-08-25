@@ -3,7 +3,8 @@ import ROT from '../../lib/rot';
 import RG from './rg';
 import {Cell, CellJSON} from './map.cell';
 import {ElementBase, ElementWall, ElementMarker, ElementXY} from './element';
-import {TCoord, BBox, ConstBaseElem, TCellProp} from './interfaces';
+import {TCoord, ConstBaseElem, TCellProp} from './interfaces';
+import {BBox} from './bbox';
 import {ELEM_MAP} from '../data/elem-constants';
 
 const FLOOR = new ElementBase('floor');

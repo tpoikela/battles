@@ -6,8 +6,9 @@ import RG from '../rg';
 import {TemplateLevel} from '../template.level';
 import {Houses5x5} from '../../data/tiles.houses';
 import {Random} from '../random';
-import {TCoord, BBox} from '../interfaces';
+import {TCoord} from '../interfaces';
 import {Geometry} from '../geometry';
+import {BBox} from '../bbox';
 
 const RNG = Random.getRNG();
 
@@ -94,11 +95,11 @@ export class House {
 
     /* Returns the bounding box taken by this house. */
     public getBbox(): BBox {
-        return {
+        return BBox.fromBBox({
             ulx: this.x, uly: this.y,
             lrx: this.x + this.w - 1,
             lry: this.y + this.h - 1
-        };
+        });
     }
 
     /* Remove empty rows from the house map. */

@@ -68,14 +68,6 @@ export interface ICoordXY {
     level?: Level;
 }
 
-/* Defines a bounding box of coordinates. */
-export interface BBox {
-    ulx: number;
-    uly: number;
-    lrx: number;
-    lry: number;
-}
-
 export type DestOrSrc = TCoord | Locatable;
 export type TLocatableElement = ElementBase & Locatable;
 
