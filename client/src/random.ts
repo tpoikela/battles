@@ -16,7 +16,7 @@ export class Random {
         Random.instance = rng;
     }
 
-    public static getRNG() {
+    public static getRNG(): Random {
         if (!Random.instance) {
             Random.instance = new Random(666);
         }
@@ -55,7 +55,7 @@ export class Random {
     }
 
     /* Returns a random entry from the array.*/
-    public arrayGetRand<T>(arr: T[]): T { // Explodes the type errors
+    public arrayGetRand<T>(arr: T[]): T {
         const randIndex = this.randIndex(arr);
         return arr[randIndex];
     }
@@ -101,7 +101,7 @@ export class Random {
         return this.rng.getNormal(mean, stddev);
     }
 
-    public getWeighted(obj: RandWeights) {
+    public getWeighted(obj: RandWeights): string {
         return this.rng.getWeightedValue(obj);
     }
 

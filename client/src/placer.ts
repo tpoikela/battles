@@ -54,7 +54,7 @@ Placer.addPropsToRoom = function(level: Level, room, props: TCellProp[]): boolea
         RG.err('Placer', 'addPropsToRoom',
             `props must be an array. Got: ${props}`);
     }
-    const bbox: BBox = room.getBbox();
+    const bbox: BBox = BBox.fromBBox(room.getBbox());
     const prop = props[0];
     if (RG.isActor(prop)) {
         return Placer.addActorsToBbox(level, bbox, props);

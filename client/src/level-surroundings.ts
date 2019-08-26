@@ -10,6 +10,7 @@ import {MapGenerator} from './generator';
 import {ELEM} from '../data/elem-constants';
 
 import {TCoord} from './interfaces';
+type BBox = import('./bbox').BBox;
 
 const RNG = Random.getRNG();
 
@@ -25,7 +26,7 @@ export class LevelSurroundings {
      *     cellsAround: {N: 'water', S: 'wallmount', E: 'snow' ...}
      * }
      */
-    public surround(level: Level, conf): Level {
+    public surround(level: Level, conf): null | Level {
         if (conf.cellsAround) {
             return this.surroundWithCellsAround(level, conf);
         }
@@ -65,12 +66,12 @@ export class LevelSurroundings {
                     ratio: 0.6, skipTypes,
                     forestSize: 300, nForests: 10
                 };
-                const bbox = Geometry.dirToBbox(colsArea, rowsArea, dir);
+                const bbox: BBox = Geometry.dirToBbox(colsArea, rowsArea, dir);
                 mapgen.addLakes(mountLevel.getMap(), lakeConf, bbox);
             }
             else if (cellsAround[dir] === 'tree') {
                 const forestConf = {ratio: 1, skipTypes, nForests: 10};
-                const bbox = Geometry.dirToBbox(colsArea, rowsArea, dir);
+                const bbox: BBox = Geometry.dirToBbox(colsArea, rowsArea, dir);
                 mapgen.addForest(mountLevel.getMap(), forestConf, bbox);
             }
         });

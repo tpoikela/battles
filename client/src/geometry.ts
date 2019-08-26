@@ -1,7 +1,7 @@
 
 import RG from './rg';
 import {Random} from './random';
-import {TCardinalDir, ICoordMap, TCoord, ICellDirMap} from './interfaces';
+import {TCardinalDir, ICoordMap, TCoord, ICellDirMap, IBBox} from './interfaces';
 import {BBox} from './bbox';
 
 const RNG = Random.getRNG();
@@ -17,7 +17,7 @@ type Cell = import('./map.cell').Cell;
 type CellMap = import('./map').CellMap;
 type Level = import('./level').Level;
 
-type BBoxType = BBox | BBoxOld;
+type BBoxType = IBBox | BBoxOld;
 
 interface Diamond {
     N: number[];
@@ -120,16 +120,14 @@ export const Geometry: any = {
     /* Converts old (SoCE) style bbox to BitN bbox. */
     convertBbox(bbox: BBoxType): BBox {
         if (bbox.hasOwnProperty('llx')) {
-            BBox.fromBBox({
+            return BBox.fromBBox({
                 ulx: (bbox as BBoxOld).llx,
                 uly: (bbox as BBoxOld).ury,
                 lrx: (bbox as BBoxOld).urx,
                 lry: (bbox as BBoxOld).lly
             });
         }
-        else {
-            return (bbox as BBox);
-        }
+        return BBox.fromBBox(bbox as IBBox);
     },
 
     getCoordBbox(bbox: BBox): TCoord[] {
@@ -170,7 +168,7 @@ export const Geometry: any = {
             lrx: 2 * colsDiv - 1, lry: 2 * rowsDiv - 1};
         const dXdY = RG.dirTodXdY(dir);
         if (dXdY) {
-            BBox.fromBBox({
+            return BBox.fromBBox({
                 ulx: cBbox.ulx + dXdY[0] * colsDiv,
                 uly: cBbox.uly + dXdY[1] * rowsDiv,
                 lrx: cBbox.lrx + dXdY[0] * colsDiv,
@@ -392,7 +390,6 @@ export const Geometry: any = {
             if (m1.hasXY(x, y)) {
                 if (l2.removeElement(elem, x0, y0)) {
                     l1.addElement(elem, x, y);
-                    console.log('Element', elem.getName(), ' merged', x0, y0, '->', x, y);
                 }
             }
         });

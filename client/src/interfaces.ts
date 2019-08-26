@@ -114,6 +114,13 @@ export interface TemplateData {
 
 }
 
+export interface IBBox {
+    ulx: number;
+    uly: number;
+    lrx: number;
+    lry: number;
+}
+
 export interface ICellDirMap {
     N: string;
     S: string;

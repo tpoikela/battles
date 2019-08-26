@@ -103,11 +103,9 @@ export class NestGenerator extends LevelGenerator {
 
         // If we get a bbox, merge Nest level map with the parent level map
         if (bbox.getArea() > 0) {
-            console.log('XYZ NEST:');
-            nestLevel.debugPrintInASCII();
+            // nestLevel.debugPrintInASCII();
             Geometry.mergeLevels(parentLevel, nestLevel, bbox.ulx, bbox.uly);
-            console.log('XYZ PARENT:');
-            parentLevel.debugPrintInASCII();
+            // parentLevel.debugPrintInASCII();
             // 1. Should connect the nest to remaining level now
             if (this.connectNestToParentLevel(parentLevel, bbox)) {
 
