@@ -21,7 +21,8 @@ type Cell = import('../map.cell').Cell;
 
 const WALL = 1;
 
-const FeatRoom = ROT.Map.Feature.Room;
+const MapDigger = (ROT as any).Map.Digger;
+const FeatRoom = (ROT as any).Map.Feature.Room;
 const RNG = Random.getRNG();
 
 const shortestPath = Path.getShortestPath;
@@ -68,6 +69,8 @@ const bigRoomType2Feature = {
         special: ['splashes']
     },
     'center': {
+    },
+    'nest': {
     }
 };
 
@@ -79,11 +82,14 @@ class BigRoom {
 
 export interface DungeonOpts extends ILevelGenOpts {
     levelType: string;
+    dungeonType: string;
     nBigRooms: number;
-    bigRoomX: string[];
-    bigRoomY: string[];
-    bigRoomWidth: number[];
-    bigRoomHeight: number[];
+    bigRooms: {
+        bigRoomX: string[];
+        bigRoomY: string[];
+        bigRoomWidth: number[];
+        bigRoomHeight: number[];
+    };
     minNumRooms: number;
     options: {[key: string]: any};
     rerunOnFailure: boolean;
@@ -102,8 +108,11 @@ export class DungeonGenerator extends LevelGenerator {
         const opts = LevelGenerator.getOptions();
         const levelOpts = {
             levelType: type, nBigRooms: 1,
-            bigRoomX: ['cen'], bigRoomY: ['cen'],
-            bigRoomWidth: [10], bigRoomHeight: [10],
+            dungeonType: '',
+            bigRooms: {
+                bigRoomX: ['cen'], bigRoomY: ['cen'],
+                bigRoomWidth: [10], bigRoomHeight: [10],
+            },
             minNumRooms: 3,
             rerunOnFailure: true, errorOnFailure: false
         };
@@ -193,14 +202,14 @@ export class DungeonGenerator extends LevelGenerator {
         return level;
     }
 
-    public getMapGen(cols: number, rows: number, conf) {
+    public getMapGen(cols: number, rows: number, conf: PartialDungeonOpts) {
         let levelType = getRandMapType();
         if (conf.dungeonType && conf.dungeonType !== '') {
             levelType = conf.dungeonType;
         }
 
         const mapOpts = conf.options || mapOptions[levelType];
-        const mapGen = new ROT.Map.Digger(cols, rows, mapOpts);
+        const mapGen = new MapDigger(cols, rows, mapOpts);
         // Here we need to add special rooms etc
         const bigRooms = this.addBigRooms(mapGen, conf);
         if (bigRooms.length > 0) {
@@ -214,7 +223,7 @@ export class DungeonGenerator extends LevelGenerator {
      * always guaranteed to be connected by the algorith. 2nd room may not be
      * connected, but this can be checked if necessary.
      */
-    public addBigRooms(mapGen, conf): BigRoom[] {
+    public addBigRooms(mapGen, conf: PartialDungeonOpts): BigRoom[] {
         let bigRoomsCreated: BigRoom[] = [];
 
         // Generate different options for big rooms:
@@ -228,14 +237,13 @@ export class DungeonGenerator extends LevelGenerator {
         //   8. Big center room (add stairs far away) [X]
 
         // Customly specified big rooms
-        if (conf.nBigRooms > 0) {
+        if (conf.nBigRooms && conf.nBigRooms > 0 && conf.bigRooms) {
             bigRoomsCreated = this.addCustomBigRooms(mapGen, conf);
         }
 
         const createBigRoom = RNG.getUniform() <= PROB.BIG_ROOM;
         if (createBigRoom && conf.nBigRooms === 0) {
             const bigRoomType = this.getBigRoomType();
-
             if (/center/.test(bigRoomType)) {
                 bigRoomsCreated = this.addBigCenterRoom(mapGen);
             }
@@ -256,8 +264,8 @@ export class DungeonGenerator extends LevelGenerator {
     }
 
     public getBigRoomType(): string {
-        return 'nest'; // TODO add back the random gen
-        // return RNG.arrayGetRand(Object.keys(bigRoomType2Feature));
+        //return 'nest'; // TODO add back the random gen
+        return RNG.arrayGetRand(Object.keys(bigRoomType2Feature));
     }
 
     /* Adds manually specified custom rooms into the level. */
@@ -796,20 +804,22 @@ export class DungeonGenerator extends LevelGenerator {
             return;
         }
         const nestRoom = bigRooms.filter((bg: BigRoom) => /nest/.test(bg.type))[0];
-        const {room} = nestRoom;
-        const bbox: BBox = BBox.fromBBox(room.getBbox());
-        const nestGen = new NestGenerator();
-        const nestConf: Partial<NestOpts> = {
-            mapConf: {
-                tilesX: room.getWidth() / 7,
-                tilesY: room.getHeight() / 7,
-                genParams: {x: [1, 1, 1], y: [1, 1, 1]},
-            },
-            embedOpts: {
-                level, bbox
-            }
-        };
-        nestGen.createAndEmbed(1, 1, nestConf);
+        if (nestRoom) {
+            const {room} = nestRoom;
+            const bbox: BBox = BBox.fromBBox(room.getBbox());
+            const nestGen = new NestGenerator();
+            const nestConf: Partial<NestOpts> = {
+                mapConf: {
+                    tilesX: room.getWidth() / 7,
+                    tilesY: room.getHeight() / 7,
+                    genParams: {x: [1, 1, 1], y: [1, 1, 1]},
+                },
+                embedOpts: {
+                    level, bbox
+                }
+            };
+            nestGen.createAndEmbed(1, 1, nestConf);
+        }
     }
 
     /* Right now, use a floodfill to check the connectivity. Returns true if the
