@@ -5,7 +5,6 @@
  */
 
 import RG from '../../client/src/rg';
-import ROT from '../../lib/rot';
 import {Path} from '../../client/src/path';
 import {Screen} from '../../client/gui/screen';
 import {Keys} from '../../client/src/keymap';
@@ -16,7 +15,9 @@ import {Random} from '../../client/src/random';
 import {Cell} from '../../client/src/map.cell';
 import {SentientActor} from '../../client/src/actor';
 
-import {CmdInput, IPlayerCmdInput} from '../../client/src/interfaces';
+import {CmdInput, IPlayerCmdInput,
+    RandWeights, NoFunctionObject,
+    ICoordXY, TCoord} from '../../client/src/interfaces';
 
 type Stairs = import('../../client/src/element').ElementStairs;
 type Level = import('../../client/src/level').Level;
@@ -43,7 +44,9 @@ export class DriverBase {
     protected _keyBuffer: CmdInput[];
 
     constructor(player?: SentientActor, game?: any) {
-        this.player = player;
+        if (player) {
+            this.player = player;
+        }
         this._game = game;
         this._keyBuffer = [];
     }
@@ -69,14 +72,32 @@ export class DriverBase {
     }
 
     /* Returns the next keycode or null if buffer is empty. */
-    public getNextCode(): CmdInput {
+    public getNextCode(): null | CmdInput {
         if (this._keyBuffer.length > 0) {
-            return this._keyBuffer.shift();
+            return this._keyBuffer!.shift();
         }
         return null;
     }
 
 }
+
+interface CoordMap {
+    [key: string]: TCoord;
+}
+
+interface DriverState {
+    exploreTurns: number;
+    usePassage: boolean;
+    useStairs: boolean;
+    exitZone: boolean;
+    path: ICoordXY[];
+    stairsStack: Array<[number, number, number]>;
+    tilesVisited: {[key: string]: number};
+    visitedStairs: {[key: string]: CoordMap};
+    visited: NoFunctionObject; // cell: id,x,y
+}
+
+type StateKey = keyof DriverState;
 
 /* This object can be used to simulate player actions in the world. It has 2
  * main uses:
@@ -88,11 +109,11 @@ export class PlayerDriver extends DriverBase {
     public static fromJSON: (json: any) => any;
 
     public action: string;
-    public enemy: SentientActor;
+    public enemy: null | SentientActor;
     public cmds: CmdInput[];
     public actions: string[];
     public screen: any;
-    public state: {[key: string]: any};
+    public state: DriverState;
     public maxExploreTurns: number;
     public hpLow: number;
     public ppRestLimit: number;
@@ -637,9 +658,9 @@ export class PlayerDriver extends DriverBase {
                        'Tried to shift coord from 0 length path');
             }
 
-            let {x, y} = this.state.path.shift();
-            x = parseInt(x, 10);
-            y = parseInt(y, 10);
+            const {x, y} = this.state.path.shift();
+            // x = parseInt(x, 10);
+            // y = parseInt(y, 10);
             const dX = x - pX;
             const dY = y - pY;
             this.debug(`Taking action path ${x},${y}, dX,dY ${dX},${dY}`);
@@ -694,6 +715,12 @@ export class PlayerDriver extends DriverBase {
         }
 
         const stairs = cell.getStairs();
+        if (!stairs) {
+            RG.err('PlayerDriver', 'addUsedStairs',
+                'Called on cell without stairs!');
+            return;
+        }
+
         const targetStairs = stairs.getTargetStairs() as Stairs;
         const targetLevel = stairs.getTargetLevel() as Level;
         const targetID = targetLevel.getID();
@@ -709,10 +736,10 @@ export class PlayerDriver extends DriverBase {
         this.state.stairsStack.push([targetID, tx, ty]);
         this.debug('PUSH: stairsStack is now ', this.state.stairsStack);
         if (!this.state.visitedStairs[targetID]) {
-            this.state.visitedStairs[targetID] = {};
+            this.state.visitedStairs[targetID] = {} as CoordMap;
         }
         // Prevent immediate return
-        this.state.visitedStairs[targetID][tx + ',' + ty] = [targetID, tx, ty];
+        this.state.visitedStairs[targetID][tx + ',' + ty] = [tx, ty];
     }
 
     public movingToConnect(): boolean {
@@ -720,7 +747,7 @@ export class PlayerDriver extends DriverBase {
     }
 
     /* Returns most recently used stairs from the stack. */
-    public getStairsMRU(): Stairs {
+    public getStairsMRU(): [number, number, number] {
         const lastN = this.state.stairsStack.length - 1;
         return this.state.stairsStack[lastN];
     }
@@ -766,13 +793,15 @@ export class PlayerDriver extends DriverBase {
         }
     }
 
-    public setState(obj, msg = null): void {
+    public setState(obj: Partial<DriverState>, msg?: string): void {
         if (msg && debug.enabled) {
             const str = JSON.stringify(obj);
             this.debug(`setState with ${str} |${msg}|`);
         }
-        Object.keys(obj).forEach(key => {
-            this.state[key] = obj[key];
+        Object.keys(obj).forEach((key: StateKey) => {
+            // Need to use this cause state contains booleans
+            // Apparently breaking change in ts 3.5
+            (this.state[key] as any) = obj[key];
         });
 
     }
@@ -849,7 +878,7 @@ export class PlayerDriver extends DriverBase {
         const dmgSpells = spells.filter(spell => spell.hasDice('damage'));
         if (dmgSpells.length === 0) {return -1;}
 
-        const dmgIndices = {};
+        const dmgIndices: RandWeights = {};
         let totalPower = 0;
         dmgSpells.forEach((spell, i) => {
             if (spell.canCast()) {
@@ -866,9 +895,9 @@ export class PlayerDriver extends DriverBase {
             dmgIndices[key] = totalPower - dmgIndices[key];
         });
 
-        let index = RNG.getWeighted(dmgIndices);
-        index = parseInt(index, 10);
-        const menuIndex = Keys.menuIndices[index];
+        const index: string = RNG.getWeighted(dmgIndices);
+        const numIndex = parseInt(index, 10);
+        const menuIndex = Keys.menuIndices[numIndex];
         return Keys.selectIndexToCode(menuIndex);
     }
 
