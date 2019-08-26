@@ -106,7 +106,7 @@ describe('Inv.Inventory', () => {
         const eq = invEq.getEquipment();
 
         const heavySword = new Item.Weapon('HeavySword');
-        heavySword.setWeight(21.0);
+        heavySword.setWeight(50.0);
         expect(invEq.canCarryItem(heavySword)).to.equal(false);
 
         const lightSword = new Item.Weapon('Light lightSword');
