@@ -12,6 +12,7 @@ export class EquipSlot {
     public _hasItem: boolean;
     public _unequipped: any;
     public _stacked: boolean;
+    public _reduceFactor: number;
 
     constructor(type: string, stacked?: boolean) {
         this._type = type;
@@ -19,11 +20,21 @@ export class EquipSlot {
         this._hasItem = false;
         this._unequipped = null;
         this._stacked = false;
+        this._reduceFactor = 0.5;
         if (!RG.isNullOrUndef([stacked])) {this._stacked = stacked!;}
     }
 
     public isStacked(): boolean {
         return this._stacked;
+    }
+
+    public getWeight(): number {
+        if (!this._hasItem) {return 0;}
+        let weight = this._item!.getWeight() * this._item!.getCount();
+        if (this._type !== 'hand' && this._type !== 'missile') {
+            weight *= this._reduceFactor;
+        }
+        return weight;
     }
 
     public getUnequipped(): SlotContent {return this._unequipped;}
@@ -93,8 +104,8 @@ export class EquipSlot {
 }
 
 type EquipSlotOrArray = EquipSlot | EquipSlot[];
-interface IEquipSlots {[key: string]: EquipSlotOrArray; }
 
+interface IEquipSlots {[key: string]: EquipSlotOrArray;}
 
 const _equipMods: string[] = ['getDefense', 'getAttack', 'getProtection',
     'getSpeed'].concat(RG.GET_STATS);
@@ -102,11 +113,13 @@ const _equipMods: string[] = ['getDefense', 'getAttack', 'getProtection',
 /* Models equipment on an actor.*/
 export class Equipment {
 
+    public equipReduceWeightFactor: number;
     private _actor: any;
     private _slots: IEquipSlots;
 
     constructor(actor: any) {
         this._actor = actor;
+        this.equipReduceWeightFactor = 1.0;
 
         this._slots = {
             chest: new EquipSlot('chest'),
@@ -153,10 +166,14 @@ export class Equipment {
     /* Returns the total weight of the equipment. */
     public getWeight(): number {
         let total = 0;
-        const equipped: any[] = this.getEquippedItems();
+        Object.values(this._slots).forEach((eqSlot: EquipSlot) => {
+            total += eqSlot.getWeight();
+        });
+        /*const equipped: any[] = this.getEquippedItems();
         for (let i = 0; i < equipped.length; i++) {
             total += equipped[i].getWeight() * equipped[i].getCount();
-        }
+        }*/
+        total *= this.equipReduceWeightFactor;
         if (this._actor.has('MasterEquipper')) {
             total *= this._actor.get('MasterEquipper').getFactor();
         }
