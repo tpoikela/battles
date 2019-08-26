@@ -131,6 +131,10 @@ export class CastleGenerator extends LevelGenerator {
 
         if (conf.cellsAround) {
             level = this.createCastleSurroundings(level, conf);
+            if (!level) {
+                RG.err('CastleGenerator', 'createLevel',
+                    'Got null level from surround. Something went wrong');
+            }
         }
 
         // Note that markers must be preserved in MapGenerator for this to work
@@ -301,13 +305,16 @@ export class CastleGenerator extends LevelGenerator {
         }
     }
 
-    public createCastleSurroundings(level: Level, conf): Level {
+    public createCastleSurroundings(level: Level, conf): null | Level {
         const levelSurround = new LevelSurroundings();
         const extras = level.getExtras();
         const newLevel = levelSurround.surround(level, conf);
-        newLevel.setExtras(extras);
-        levelSurround.scaleExtras(newLevel);
-        return newLevel;
+        if (newLevel) {
+            newLevel.setExtras(extras);
+            levelSurround.scaleExtras(newLevel);
+            return newLevel;
+        }
+        return null;
     }
 }
 
