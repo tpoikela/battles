@@ -726,6 +726,15 @@ Spell.EnergyArrow = function() {
 };
 RG.extend2(Spell.EnergyArrow, Spell.Missile);
 
+Spell.Kindle = function() {
+    Spell.Missile.call(this, 'Kindle', 2);
+    this.setRange(5);
+    this.setDice('damage', Dice.create('1d4 + 2'));
+    this.damageType = RG.DMG.FIRE;
+    this.ammoName = 'Fire bolt';
+};
+RG.extend2(Spell.EnergyArrow, Spell.Missile);
+
 //------------------------------------------------------
 /* Poison arrow fires a missile to specified cell. Adds
  * poison to target on hit. */
@@ -1001,6 +1010,7 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.IceShield());
     book.addSpell(new Spell.IcyPrison());
     book.addSpell(new Spell.IcyTouch());
+    book.addSpell(new Spell.Kindle());
     book.addSpell(new Spell.LightningArrow());
     book.addSpell(new Spell.LightningBolt());
     book.addSpell(new Spell.MagicArmor());

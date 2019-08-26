@@ -1358,6 +1358,14 @@ const Items: ObjectShell[] = [
 
     // SPECIAL ITEMS (not generated procedurally)
     {
+        name: 'MagicBoltBase', noRandom: true,
+        type: 'ammo', char: '*', addComp: 'Magical'
+    },
+    {
+        name: 'Fire bolt', base: 'MagicBoltBase',
+        className: 'cell-item-fire'
+    },
+    {
         name: 'MagicalArrowBase', noRandom: true,
         type: 'ammo', char: '/', addComp: 'Magical'
     },

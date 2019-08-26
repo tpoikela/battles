@@ -768,7 +768,7 @@ export class DungeonGenerator extends LevelGenerator {
         return false;
     }
 
-    public _addWallsToBrokenPath(level) {
+    public _addWallsToBrokenPath(level: Level): void {
         const markers = level.getElements().filter(
             e => e.getType() === 'marker' && e.getTag() === 'path broken'
         );
@@ -780,7 +780,7 @@ export class DungeonGenerator extends LevelGenerator {
 
     /* Restores previous broken path in case no sufficiently long new path is found.
      * */
-    public restorePath(level, path) {
+    public restorePath(level: Level, path: ICoordXY[]): void {
         for (let i = 0; i < path.length; i++) {
             const {x, y} = path[i];
             const cell = level.getMap().getCell(x, y);

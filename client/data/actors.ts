@@ -299,12 +299,35 @@ export const ActorsData: ActorShell[] = [
         enemies: RG.ACTOR_RACES
     },
     {
+        name: 'imp', base: 'BeastBase',
+        char: 'I', color: color('Black', 'Red'),
+        attack: 3, defense: 3, protection: 3, damage: '1d7 + 2',
+        hp: 10, danger: 3,
+        brain: 'SpellCaster', spells: ['SlimeBolt'],
+        addComp: ['Flying'],
+        maxPP: 12, pp: 12
+    },
+    {
+        name: 'chasm fiend', base: 'BeastBase',
+        char: 'I', color: color('Black', 'OrangeRed'),
+        attack: 6, defense: 3, protection: 3, damage: '1d8 + 3',
+        hp: 20, danger: 3, addComp: ['Flying'],
+    },
+    {
         name: 'cave dweller', base: 'BeastBase',
         char: 'C', color: color('Black', 'Red'),
         attack: 5, defense: 5, protection: 5, damage: '1d10 + 2',
         hp: 30, danger: 5,
         brain: 'SpellCaster', spells: ['SlimeBolt'],
         maxPP: 18, pp: 18
+    },
+    {
+        name: 'cave lurker', base: 'BeastBase',
+        char: 'C', color: color('Black', 'OrangeRed'),
+        attack: 8, defense: 8, protection: 5, damage: '2d10 + 2',
+        hp: 50, danger: 9,
+        brain: 'SpellCaster', spells: ['SlimeBolt'],
+        maxPP: 30, pp: 30
     },
     {
         name: 'hezrou', base: 'BeastBase',
