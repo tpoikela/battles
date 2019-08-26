@@ -52,7 +52,7 @@ export class Inventory {
     }
 
     /* For using item inside the container. */
-    public useItem(item, obj): boolean {
+    public useItem(item: ItemBase, obj): boolean {
         if (this._inv.hasItem(item)) {
             if (item.useItem) {
                 item.useItem(obj);
@@ -66,7 +66,7 @@ export class Inventory {
     }
 
     /* Returns true if given item can be carried.*/
-    public canCarryItem(item): boolean {
+    public canCarryItem(item: ItemBase): boolean {
         const eqWeight = this._eq.getWeight();
         const invWeight = this._inv.getWeight();
         const newWeight = eqWeight + invWeight + item.getWeight();
@@ -76,54 +76,58 @@ export class Inventory {
     }
 
     /* Drops selected item to the actor's current location.*/
-    public dropItem(item): boolean {
+    public dropItem(item: ItemBase): boolean {
         if (this._inv.removeItem(item)) {
             const level = this._actor.getLevel();
             const droppedItem = this.getRemovedItem();
-            const [x, y] = this._actor.getXY();
-            if (level.addItem(droppedItem, x, y)) {
-                return true;
-            }
-            else {
-                this._inv.addItem(droppedItem);
+            if (droppedItem) {
+                const [x, y] = this._actor.getXY();
+                if (level.addItem(droppedItem, x, y)) {
+                    return true;
+                }
+                else {
+                    this._inv.addItem(droppedItem);
+                }
             }
         }
         return false;
     }
 
-    public dropNItems(item, n: number): boolean {
+    public dropNItems(item: ItemBase, n: number): boolean {
         if (this.removeNItems(item, n)) {
             const level = this._actor.getLevel();
             const droppedItem = this.getRemovedItem();
-            const [x, y] = this._actor.getXY();
-            if (level.addItem(droppedItem, x, y)) {
-                return true;
-            }
-            else {
-                this._inv.addItem(droppedItem);
+            if (droppedItem) {
+                const [x, y] = this._actor.getXY();
+                if (level.addItem(droppedItem, x, y)) {
+                    return true;
+                }
+                else {
+                    this._inv.addItem(droppedItem);
+                }
             }
         }
         return false;
     }
 
     /* Removes and item and returns it. */
-    public removeAndGetItem(item) {
+    public removeAndGetItem(item: ItemBase): null | ItemBase {
         if (this._inv.removeItem(item)) {
             return this.getRemovedItem();
         }
         return null;
     }
 
-    public getInventory() {
+    public getInventory(): Item.Container {
         return this._inv;
     }
 
-    public getEquipment() {
+    public getEquipment(): Equipment {
         return this._eq;
     }
 
     /* Removes item from inventory and equips it.*/
-    public equipItem(item) {
+    public equipItem(item: ItemBase): boolean {
         if (this._inv.hasItem(item)) {
             // If item has count > 2, can't use the same item ref
             const eqItem = this._getItemToEquip(item);
@@ -137,7 +141,7 @@ export class Inventory {
                 return true;
             }
             else {
-                this._inv.addItem(eqItem); // Failed, add back to inv
+                this._inv.addItem(eqItem!); // Failed, add back to inv
             }
         }
         else {
@@ -147,7 +151,7 @@ export class Inventory {
         return false;
     }
 
-    public _getItemToEquip(item) {
+    public _getItemToEquip(item: ItemBase): null | ItemBase {
         const res = this._inv.removeItem(item);
         if (res) {
             const rmvItem = this._inv.getRemovedItem();
@@ -158,7 +162,7 @@ export class Inventory {
     }
 
     /* Equips up to N items of given type. */
-    public equipNItems(item, n) {
+    public equipNItems(item: ItemBase, n: number): boolean {
         if (this._inv.hasItem(item)) {
             const res = this._inv.removeNItems(item, n);
             if (res) {
@@ -175,7 +179,7 @@ export class Inventory {
     }
 
     /* Unequips item and puts it back to inventory.*/
-    public unequipItem(slotType, n, slotNumber) {
+    public unequipItem(slotType: string, n: number, slotNumber: number): boolean {
         if (RG.isNullOrUndef([slotType])) {
             let msg = 'Some params null/undef: ';
             msg += `type: |${slotType}| n: |${n}| number: |${slotNumber}|`;
@@ -195,7 +199,7 @@ export class Inventory {
     }
 
     /* Unequips and returns N items. Doesn't add to inv.*/
-    public unequipAndGetItem(slotType, n, slotNumber) {
+    public unequipAndGetItem(slotType: string, n: number, slotNumber: number) {
         const eqItem = this._eq.getItem(slotType);
         if (!RG.isNullOrUndef([eqItem])) {
             if (this._eq.unequipItem(slotType, n)) {
@@ -242,7 +246,7 @@ export class Inventory {
 
     /* Used when restoring/creating new actors, and immediately equipping items.
      * Bypasses some safety checks. */
-    public restoreEquipped(item): boolean {
+    public restoreEquipped(item: ItemBase): boolean {
         const ok = this._eq.equipItem(item);
         return ok;
     }
