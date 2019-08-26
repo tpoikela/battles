@@ -75,7 +75,7 @@ export class DungeonPopulate {
         if (extras.bigRooms) {
             extras.bigRooms.forEach(bigRoom => {
                 const {room, type} = bigRoom;
-                const bbox = room.getBbox();
+                const bbox: BBox = BBox.fromBBox(room.getBbox());
                 const areaSize = room.getAreaSize();
                 const actorConf = {
                     maxDanger,

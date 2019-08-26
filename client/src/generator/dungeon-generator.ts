@@ -47,13 +47,13 @@ const SPLASH_THEMES = {
 const DUG_MAX = 0.75;
 const PROB = {
     BIG_VAULT: 0.07,
-    BIG_ROOM: 1.2,
+    BIG_ROOM: 0.25,
     bigRoomWeights: {
         cross: 1,
         corridor: 1,
         vault: 1,
         center: 1,
-        nest: 1
+        nest: 5
     }
 };
 
@@ -153,6 +153,7 @@ export class DungeonGenerator extends LevelGenerator {
         if (conf.rerunOnFailure || conf.errorOnFailure) {
             // const fillDiag = true;
             if (!this.verifyLevel(level, conf)) {
+                console.log('verifyLevel failed. Re-running');
                 this.create(cols, rows, conf);
             }
         }
@@ -523,7 +524,7 @@ export class DungeonGenerator extends LevelGenerator {
             extras.rooms.forEach((room, id) => {
                 room.setID(id); // Add ID to identify rooms
                 let numDoors = 0;
-                const bbox = room.getOuterBbox();
+                const bbox: BBox = BBox.fromBBox(room.getOuterBbox());
                 const coord = Geometry.getBorderForBbox(bbox);
                 coord.forEach(xy => {
                     if (!map.has(xy, 'floor')) {
@@ -770,7 +771,8 @@ export class DungeonGenerator extends LevelGenerator {
 
     public _addWallsToBrokenPath(level: Level): void {
         const markers = level.getElements().filter(
-            e => e.getType() === 'marker' && e.getTag() === 'path broken'
+            e => e.getType() === 'marker' &&
+                (e as ElementMarker).getTag() === 'path broken'
         );
         markers.forEach(marker => {
             const [x, y] = marker.getXY();
@@ -789,7 +791,7 @@ export class DungeonGenerator extends LevelGenerator {
                 const thisXY = elements.filter(e => e.isAtXY(x, y));
                 thisXY.forEach(elem => {
                     if (elem.getType() === 'marker') {
-                        if (elem.getTag() === 'path broken') {
+                        if ((elem as ElementMarker).getTag() === 'path broken') {
                             level.removeElement(elem, x, y);
                         }
                     }
@@ -825,12 +827,12 @@ export class DungeonGenerator extends LevelGenerator {
     /* Right now, use a floodfill to check the connectivity. Returns true if the
      * level is rejected. If conf.errorOnFailure is set, throws error immediately.
      * */
-    public verifyLevel(level: Level, conf) {
+    public verifyLevel(level: Level, conf): boolean {
         const map = level.getMap();
-        const fillFilter = (c: Cell): boolean => c.isPassable() || c.hasDoor();
+        const fillFilter = (c: Cell): boolean => !c.hasObstacle() || c.hasDoor();
         const floorCells = map.getCells(fillFilter);
-        const cell = floorCells[0];
-        const floorCellsFilled = Geometry.floodfill(map, cell, fillFilter);
+        // const cell = floorCells[0];
+        const floorCellsFilled = Geometry.floodfillPassable(map);
 
         const numTotal = floorCells.length;
         const numFilled = floorCellsFilled.length;
@@ -842,8 +844,9 @@ export class DungeonGenerator extends LevelGenerator {
                     level.debugPrintInASCII(); // DON'T REMOVE
                     const msg = `Max: ${maxUnreachable}, got: ${diff}`;
                     RG.err('DungeonGenerator', 'verifyLevel',
-                        'floodfill cannot reach all cells! ' + msg);
+                        'Too many unreachable cells ' + msg);
                 }
+                level.debugPrintInASCII();
                 return false;
             }
         }

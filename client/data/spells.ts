@@ -733,7 +733,7 @@ Spell.Kindle = function() {
     this.damageType = RG.DMG.FIRE;
     this.ammoName = 'Fire bolt';
 };
-RG.extend2(Spell.EnergyArrow, Spell.Missile);
+RG.extend2(Spell.Kindle, Spell.Missile);
 
 //------------------------------------------------------
 /* Poison arrow fires a missile to specified cell. Adds

@@ -196,9 +196,9 @@ export const Geometry: any = {
 
     /* Given start x,y and end x,y coordinates, returns all x,y coordinates in
      * the border of the rectangle.*/
-    getHollowBox(x0: number, y0: number, maxX: number, maxY: number) {
+    getHollowBox(x0: number, y0: number, maxX: number, maxY: number): TCoord[] {
         verifyInt([x0, y0, maxX, maxY]);
-        const res = [];
+        const res: TCoord[] = [];
         for (let x = x0; x <= maxX; x++) {
             for (let y = y0; y <= maxY; y++) {
                 if ((y === y0 || y === maxY || x === x0 || x === maxX) ) {
@@ -807,23 +807,28 @@ Flood-fill (node, target-color, replacement-color):
  14. Return.
 */
 
+type FilterFunc = (c: Cell) => boolean;
+type StrOrFunc = string | FilterFunc;
 /* Given a starting cell and type, floodfills the map from that position and
  * returns all cells included in the floodfill. */
-Geometry.floodfill = function(map, cell, type, diag = false) {
-    let filterFunc = type;
+Geometry.floodfill = function(
+    map: CellMap, cell: Cell, type: StrOrFunc, diag: boolean = false
+): Cell[] {
+    let filterFunc: FilterFunc = type as FilterFunc;
     if (typeof type === 'string') {
         filterFunc = c => c.getBaseElem().getType() === type;
     }
     if (!filterFunc(cell)) {return [];}
 
-    let currCell = cell;
-    const cellsLeft = [];
+    let currCell: Cell = cell;
+    const cellsLeft: Cell[] = [];
     const result = [cell];
-    const colored = {}; // Needed because we're not changing anything
+    // Needed because we're not changing anything
+    const colored: {[key: string]: boolean} = {};
     colored[cell.getKeyXY()] = true;
 
     /* Private func which checks if the cell should be added to floodfill. */
-    const tryToAddCell = function(x, y) {
+    const tryToAddCell = function(x: number, y: number) {
         if (map.hasXY(x, y)) {
             if (!colored[x + ',' + y]) {
                 const addedCell = map.getCell(x, y);
@@ -865,6 +870,17 @@ Geometry.floodfill = function(map, cell, type, diag = false) {
         currCell = cellsLeft.shift();
     }
     return result;
+};
+
+/* Does floodfill for passable cells in the given map. Starts from 1st
+ * passable cell found. */
+Geometry.floodfillPassable = function(
+    map: CellMap, diag: boolean = false
+): Cell[] {
+    const filter = (c: Cell): boolean => !c.hasObstacle() || c.hasDoor();
+    const floorCells = map.getCells(filter);
+    const cell = floorCells[0];
+    return Geometry.floodfill(map, cell, filter, diag);
 };
 
 /* Does a floodfill of map from point xy. Uses value as the filled value. BUT,

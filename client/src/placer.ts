@@ -70,12 +70,13 @@ Placer.addPropsToRoom = function(level: Level, room, props: TCellProp[]): boolea
 };
 
 Placer.addActorsToBbox = function(level: Level, bbox: BBox, actors: BaseActor[]): boolean {
-    const nActors = actors.length;
+    let nActors = actors.length;
     const freeCells = level.getMap().getFreeInBbox(bbox);
     if (freeCells.length < nActors) {
-        RG.warn('Factory', 'addActorsToBbox',
-            'Not enough free cells');
+        RG.warn('Placer', 'addActorsToBbox',
+            `No ${nActors} free cells. Placing only ${freeCells.length} actors`);
     }
+    nActors = freeCells.length;
     return Placer.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
 };
 

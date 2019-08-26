@@ -15,10 +15,10 @@ describe('DungeonGenerator', function() {
         const dungGen = new DungeonGenerator();
         const conf = {
             nBigRooms: 0,
-            rerunOnFailure: true
-            // errorOnFailure: true
+            // rerunOnFailure: true
+            errorOnFailure: true
         };
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < 1; i++) {
             const cols = RNG.getUniformInt(80, 120);
             const rows = RNG.getUniformInt(28, 56);
             const level = dungGen.create(cols, rows, conf);
