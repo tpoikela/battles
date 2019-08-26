@@ -55,7 +55,7 @@ describe('DungeonGenerator', function() {
             nBigRooms: 0
         };
         const level = dungGen.create(cols, rows, conf);
-        level.debugPrintInASCII();
+        // level.debugPrintInASCII();
     });
 
 });
