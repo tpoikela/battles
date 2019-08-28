@@ -1,7 +1,7 @@
 
 import ROT from '../../lib/rot';
 import RG from './rg';
-import {Cell, CellJSON} from './map.cell';
+import {Cell, CellJSON, CellPropsKey} from './map.cell';
 import {ElementBase, ElementWall, ElementMarker, ElementXY} from './element';
 import {TCoord, ConstBaseElem, TCellProp} from './interfaces';
 import {BBox} from './bbox';
@@ -107,15 +107,15 @@ export class CellMap {
     }
 
     /* Sets a property for the underlying cell.*/
-    public setProp(x: number, y: number, prop: string, obj: TCellProp): void {
+    public setProp(x: number, y: number, prop: CellPropsKey, obj: TCellProp): void {
         this._map[x][y].setProp(prop, obj);
     }
 
-    public removeProp(x: number, y: number, prop: string, obj: TCellProp): boolean {
+    public removeProp(x: number, y: number, prop: CellPropsKey, obj: TCellProp): boolean {
         return this._map[x][y].removeProp(prop, obj);
     }
 
-    public moveProp(fromXY: TCoord, toXY: TCoord, prop: string, obj: TCellProp): boolean {
+    public moveProp(fromXY: TCoord, toXY: TCoord, prop: CellPropsKey, obj: TCellProp): boolean {
         if (this.removeProp(fromXY[0], fromXY[1], prop, obj)) {
             this.setProp(toXY[0], toXY[1], prop, obj);
             return true;
@@ -253,8 +253,8 @@ export class CellMap {
     }
 
     /* Returns visible cells for given actor.*/
-    public getVisibleCells(actor: SentientActor): Cell[] {
-        const cells = [];
+    public getCellsInFOV(actor: SentientActor): Cell[] {
+        const cells: Cell[] = [];
         const [xA, yA] = actor.getXY();
         const range = actor.getFOVRange();
 

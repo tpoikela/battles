@@ -11,6 +11,7 @@ import {Random} from '../random';
 type BaseActor = import('../actor').BaseActor;
 type SentientActor = import('../actor').SentientActor;
 type ActionCallback = import('../time').ActionCallback;
+type Level = import('../level').Level;
 
 // Dummy callback to return, if the actor's action provides a state
 // changing action without callback.
@@ -75,7 +76,7 @@ Brain.findCellsWithActors = (actor: BaseActor, seenCells: Cell[], filterFunc): C
                 if (filterFunc && filterFunc(actors)) {
                     cells.push(seenCells[i]);
                 }
-                else {
+                else if (!filterFunc) {
                     cells.push(seenCells[i]);
                 }
             }
@@ -188,10 +189,10 @@ Brain.getTelepathyCells = function(actor: BaseActor): Cell[] {
     let cells = [];
     tepathyComps.forEach(teleComp => {
         const target = teleComp.getTarget();
-        const targetLevel = target.getLevel();
+        const targetLevel: Level = target.getLevel();
         if (RG.isActorActive(target)) {
             if (targetLevel.getID() === actorLevelID) {
-                const newCells = targetLevel.getMap().getVisibleCells(target);
+                const newCells = targetLevel.getMap().getCellsInFOV(target);
                 cells = cells.concat(newCells);
             }
         }
@@ -263,7 +264,7 @@ export class BrainSentient extends BrainBase {
             return this._cache.seen;
         }
         const map = this._actor.getLevel().getMap();
-        this._cache.seen = map.getVisibleCells(this._actor);
+        this._cache.seen = map.getCellsInFOV(this._actor);
         if (this._actor.has('Telepathy')) {
             const otherSeen = Brain.getTelepathyCells(this._actor);
             this._cache.seen = this._cache.seen.concat(otherSeen);
@@ -279,7 +280,7 @@ export class BrainSentient extends BrainBase {
         return false;
     }
 
-    public findSeenCell(func: (Cell) => boolean): Cell[] {
+    public findSeenCell(func: (c: Cell) => boolean): Cell[] {
         const seenCells = this.getSeenCells();
         return seenCells.filter(func);
     }

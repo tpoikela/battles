@@ -219,7 +219,7 @@ describe('How AI brain works', () => {
         expect(map.isPassable(2, 3)).to.equal(true);
 
         const brain = mons1.getBrain();
-        const seenCells = level.getMap().getVisibleCells(mons1);
+        const seenCells = level.getMap().getCellsInFOV(mons1);
         expect(seenCells.length).to.not.equal(0);
         const playerCell = brain.findEnemyCell(seenCells);
         expect(playerCell.hasProp('actors')).to.equal(true);

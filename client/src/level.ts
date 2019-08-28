@@ -538,7 +538,7 @@ export class Level extends Entity {
      * explored. There's no exploration tracking per actor. This is mainly called
      * from Brain.Player, as it marks cells as explored. */
     public exploreCells(actor: SentientActor): Cell[] {
-        const visibleCells = this._map.getVisibleCells(actor);
+        const visibleCells = this._map.getCellsInFOV(actor);
         for (let i = 0; i < visibleCells.length; i++) {
             visibleCells[i].setExplored();
         }

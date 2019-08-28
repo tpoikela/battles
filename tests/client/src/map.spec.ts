@@ -208,16 +208,16 @@ describe('CellMap', () => {
         const actorNotInLevel = new Actor('monster');
         actor.getFOVRange = () => 1; // Override default
         level1.addActor(actor, 4, 4);
-        const cells = map.getVisibleCells(actor);
+        const cells = map.getCellsInFOV(actor);
         expect(cells.length).to.equal(17);
 
-        let zeroCells = map.getVisibleCells(actorNotInLevel);
+        let zeroCells = map.getCellsInFOV(actorNotInLevel);
         expect(zeroCells.length).to.equal(0);
 
         // After setting x,y try again
         actorNotInLevel.setXY(4, 4);
         actorNotInLevel.getFOVRange = () => 5; // Override default
-        zeroCells = map.getVisibleCells(actorNotInLevel);
+        zeroCells = map.getCellsInFOV(actorNotInLevel);
         expect(zeroCells.length).to.equal(0);
 
         expect(level1.getMap().getCell(4, 4).isExplored()).to.equal(false);
