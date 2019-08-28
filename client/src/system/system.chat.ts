@@ -8,6 +8,8 @@ import {BaseActor} from '../actor';
 import {Lore, format} from '../../data/lore';
 import {Constraints} from '../constraints';
 
+type Entity = import('../entity').Entity;
+
 const NO_ACTORS_FOUND = Object.freeze([]);
 
 /* This system handles all entity movement.*/
@@ -29,22 +31,23 @@ export class SystemChat extends SystemBase {
         this.loreData[key] = loreData;
     }
 
-    public updateEntity(ent): void {
+    public updateEntity(ent: Entity): void {
         const args = ent.get('Chat').getArgs();
         const dir = args.dir;
+        const chatter: BaseActor = RG.toActor(ent);
 
         const actors = this.getActorsInDirection(ent, dir);
-        let chatObj = null;
+        let chatObj: null | ChatBase = null;
         actors.forEach(actor => {
             // First, we need to create the Chat object for the Menu
             Object.keys(this.registeredObjs).forEach((chatType: string) => {
                 if (actor.has(chatType)) {
                     if (chatObj) {
                         // Need to assign return value, new TOP_MENU can be returned
-                        chatObj = this.appendToChatObj(chatObj, ent, actor, chatType);
+                        chatObj = this.appendToChatObj(chatObj, chatter, actor, chatType);
                     }
                     else {
-                        chatObj = this.getChatObject(ent, actor, chatType);
+                        chatObj = this.getChatObject(chatter, actor, chatType);
                     }
                 }
             });
@@ -53,29 +56,29 @@ export class SystemChat extends SystemBase {
                 // TODO spirits react differently
                 chatObj = this.getGenericChatObject(ent, actor);
                 const msg = `You chat with ${actor.getName()} for a while.`;
-                RG.gameMsg({cell: ent.getCell(), msg});
+                RG.gameMsg({cell: chatter.getCell(), msg});
             }
 
             // Then, we add relevant chat options for that object
             if (actor.has('QuestTarget')) {
-                this.addQuestTargetItems(ent, actor, chatObj);
+                this.addQuestTargetItems(chatter, actor, chatObj);
             }
-            this.addQuestSpecificItems(ent, actor, chatObj);
+            this.addQuestSpecificItems(chatter, actor, chatObj);
 
-            if (ent.getLevel().has('Lore')) {
-                this.addLevelLoreItems(ent, actor, chatObj);
+            if (chatter.getLevel().has('Lore')) {
+                this.addLevelLoreItems(chatter, actor, chatObj);
             }
 
-            if (ent.getLevel().getParentZone()) {
-                this.addGenericLoreItems(ent, actor, chatObj);
+            if (chatter.getLevel().getParentZone()) {
+                this.addGenericLoreItems(chatter, actor, chatObj);
                 this.addZoneLoreItems(ent, actor, chatObj);
             }
         });
 
         if (chatObj) {
-            const entBrain = ent.getBrain();
-            const selObj = chatObj.getSelectionObject();
-            entBrain.setSelectionObject(selObj);
+            const entBrain = chatter.getBrain();
+            const selObj = chatObj!.getSelectionObject();
+            (entBrain as any).setSelectionObject(selObj);
         }
 
         ent.remove('Chat');
@@ -115,7 +118,9 @@ export class SystemChat extends SystemBase {
         this.registeredObjs[compType] = true;
     }
 
-    public appendToChatObj(chatObj, ent, srcActor, compType): ChatBase {
+    public appendToChatObj(
+        chatObj: ChatBase, ent: BaseActor, srcActor: BaseActor, compType: string
+    ): ChatBase {
         let topObj = chatObj;
         if (chatObj.getName() !== Chat.TOP_MENU) {
             topObj = new ChatBase();
@@ -137,7 +142,9 @@ export class SystemChat extends SystemBase {
         return topObj;
     }
 
-    public getChatObject(ent, srcActor, compType): ChatBase {
+    public getChatObject(
+        ent: BaseActor, srcActor: BaseActor, compType: string
+    ): null | ChatBase {
         if (this.factFuncs.hasOwnProperty(compType)) {
             return this.factFuncs[compType]();
         }
@@ -155,7 +162,7 @@ export class SystemChat extends SystemBase {
         return null;
     }
 
-    public getGenericChatObject(ent, actor): ChatBase {
+    public getGenericChatObject(ent, actor: BaseActor): ChatBase {
         const chatObj = new Chat.ChatBase();
         const aName = actor.getName();
         chatObj.pre = `${aName} greets you. What do you say?`;
@@ -163,7 +170,9 @@ export class SystemChat extends SystemBase {
     }
 
     /* Adds additional chat items related to various quest objectives. */
-    public addQuestTargetItems(ent, actor, chatObj: ChatBase): void {
+    public addQuestTargetItems(
+        ent: BaseActor, actor: BaseActor, chatObj: ChatBase
+    ): void {
         const qTarget = actor.get('QuestTarget');
         const tType = qTarget.getTargetType();
         if (tType === 'escort') {
@@ -190,7 +199,9 @@ export class SystemChat extends SystemBase {
         }
     }
 
-    public addQuestSpecificItems(ent, actor, chatObj: ChatBase): void {
+    public addQuestSpecificItems(
+        ent: BaseActor, actor: BaseActor, chatObj: ChatBase
+    ): void {
         if (ent.has('Quest')) {
             const qTargets = ent.get('Quest').getQuestTargets();
 
@@ -278,7 +289,9 @@ export class SystemChat extends SystemBase {
     }
 
     /* Add lore-specific items belonging to Level to the chat object. */
-    public addLevelLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
+    public addLevelLoreItems(
+        ent: BaseActor, actor: BaseActor, chatObj: ChatBase
+    ): void {
         const loreComps = actor.getLevel().getList('Lore');
         loreComps.forEach(lore => {
             const topics: ILoreTopics = lore.getLoreTopics();
@@ -295,7 +308,9 @@ export class SystemChat extends SystemBase {
         });
     }
 
-    public addGenericLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
+    public addGenericLoreItems(
+        ent: BaseActor, actor: BaseActor, chatObj: ChatBase
+    ): void {
         const maxTries = 3;
         let tries = 0;
         const topic = this.rng.arrayGetRand(Lore.genericTopics);
@@ -312,6 +327,7 @@ export class SystemChat extends SystemBase {
         }
 
         const level = ent.getLevel();
+        console.log('chosenText is ' + chosenText);
         const msg = format(chosenText, {level, target: actor, asker: ent});
         chatObj.add({
             name: 'Have you heard anything interesting lately?',

@@ -74,7 +74,7 @@ export class DriverBase {
     /* Returns the next keycode or null if buffer is empty. */
     public getNextCode(): null | CmdInput {
         if (this._keyBuffer.length > 0) {
-            return this._keyBuffer!.shift();
+            return this._keyBuffer.shift()!;
         }
         return null;
     }
@@ -99,6 +99,109 @@ interface DriverState {
 
 type StateKey = keyof DriverState;
 
+/* Base class for context processing. */
+class ContextProcessor {
+
+    constructor(public name: string, public drv: PlayerDriver) {
+    }
+
+    public processContext(): boolean {
+        if (this.isWithinContext()) {
+            return this._process();
+        }
+        return false;
+    }
+
+    public isWithinContext(): boolean {
+        return false;
+    }
+
+    protected _process(): boolean {
+        return false;
+    }
+}
+
+class EnemyContextProcessor extends ContextProcessor {
+
+    public hpLow: number;
+    public ppRestLimit: number;
+    public hpRestLimit: number;
+
+    constructor(public name: string, public drv: PlayerDriver) {
+        super(name, drv);
+
+        this.hpLow = RNG.getUniformRange(0.25, 0.40);
+        this.ppRestLimit = RNG.getUniformRange(0.75, 1.0);
+        this.hpRestLimit = RNG.getUniformRange(0.75, 1.0);
+    }
+
+    public isWithinContext(): boolean {
+        return true;
+    }
+
+    /* Checks for surrounding enemies and whether to attack or not. Checks also
+     * for requirement to rest and gain health. */
+    public checkForEnemies(): void {
+        const drv = this.drv;
+        const brain = drv.player.getBrain() as BrainPlayer;
+        const around = Brain.getCellsAroundActor(drv.player);
+        const actorsAround = around.map((c: Cell) => c.getFirstActor());
+        drv.enemy = null;
+        actorsAround.forEach(actor => {
+            if (drv.enemy === null) {
+                if (actor && actor.isEnemy(drv.player)) {
+                    drv.enemy = actor;
+                    if (this.hasEnoughHealth()) {
+                        drv.action = 'attack';
+                    }
+                    else if (!brain.isRunModeEnabled()) {
+                        drv.action = 'run';
+                    }
+                    else {
+                        drv.action = 'flee';
+                    }
+                    drv.state.path = [];
+                }
+            }
+        });
+        if (drv.action === '' && this.shouldRest()) {
+            drv.action = 'rest';
+        }
+    }
+
+    public hasEnoughHealth(): boolean {
+        const drv = this.drv;
+        const health = drv.player.get('Health');
+        const maxHP = health.getMaxHP();
+        const hp = health.getHP();
+        if (hp > Math.round(this.hpLow * maxHP)) {
+            return true;
+        }
+        return false;
+    }
+
+    public shouldRest(): boolean {
+        const player = this.drv.player;
+        if (player.has('SpellPower')) {
+            const spellPower = player.get('SpellPower');
+            const pp = spellPower.getPP();
+            const maxPP = spellPower.getMaxPP();
+            return pp < (this.ppRestLimit * maxPP);
+        }
+        const health = player.get('Health');
+        const maxHP = health.getMaxHP();
+        const hp = health.getHP();
+        return hp < (this.hpRestLimit * maxHP);
+    }
+
+
+    protected _process(): boolean {
+        this.checkForEnemies();
+        return true;
+    }
+
+}
+
 /* This object can be used to simulate player actions in the world. It has 2
  * main uses:
  *  1. An AI to play the game and simulate player actions to find bugs
@@ -115,12 +218,10 @@ export class PlayerDriver extends DriverBase {
     public screen: any;
     public state: DriverState;
     public maxExploreTurns: number;
-    public hpLow: number;
-    public ppRestLimit: number;
-    public hpRestLimit: number;
     public nTurns: number;
     public screenPeriod: number;
     public hasNotify: boolean;
+    public contextProcs: ContextProcessor[];
 
     constructor(player?: SentientActor, game?: any) {
         super(player, game);
@@ -147,9 +248,6 @@ export class PlayerDriver extends DriverBase {
         // To keep track of stairs used for returning
         this.maxExploreTurns = 500; // Turns to spend in one level
 
-        this.hpLow = 0.3;
-        this.ppRestLimit = 1.0;
-        this.hpRestLimit = 1.0;
 
         this.nTurns = 0;
         this.screenPeriod = 10000;
@@ -158,9 +256,13 @@ export class PlayerDriver extends DriverBase {
 
         this.hasNotify = true;
         POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
+
+        this.contextProcs = [
+            new EnemyContextProcessor('enemyContext', this)
+        ];
     }
 
-    public setPlayer(pl): void {this.player = pl;}
+    public setPlayer(pl: SentientActor): void {this.player = pl;}
 
     /* Required for the player driver. */
     public getNextCode(): CmdInput {
@@ -169,7 +271,7 @@ export class PlayerDriver extends DriverBase {
             cmdOrCode = this.nextCmd();
         }
         if ((cmdOrCode as IPlayerCmdInput).code) {
-            return (cmdOrCode as IPlayerCmdInput).code;
+            return (cmdOrCode as IPlayerCmdInput).code!;
         }
         else {return cmdOrCode;}
     }
@@ -194,15 +296,20 @@ export class PlayerDriver extends DriverBase {
 
         // Record current x,y as visited
         const [pX, pY] = this.player.getXY();
-        const level = this.player.getLevel();
+        const level: Level = this.player.getLevel();
         this.addVisited(level, pX, pY);
 
-        const visible = this.player.getLevel().getMap().getVisibleCells(this.player);
+        const visible: Cell[] = this.player.getLevel().getMap().getCellsInFOV(this.player);
         this.printTurnInfo(visible);
 
         // This is the driver front-end which sets the action type this.action
-        this.checkForSelection();
-        if (this.action === '') {this.checkForEnemies();}
+        if (this.action === '') {this.checkForSelection();}
+        this.contextProcs.forEach((proc: ContextProcessor) => {
+            if (this.action === '') {
+                proc.processContext();
+            }
+        });
+        // if (this.action === '') {this.checkForEnemies();}
         if (this.action === '') {this.tryExploringAround(visible);}
 
         //-------------------------------------------------------
@@ -227,35 +334,6 @@ export class PlayerDriver extends DriverBase {
         const brain = this.player.getBrain() as BrainPlayer;
         if (brain.isMenuShown()) {
             this.action = 'selection';
-        }
-    }
-
-    /* Checks for surrounding enemies and whether to attack or not. Checks also
-     * for requirement to rest and gain health. */
-    public checkForEnemies(): void {
-        const brain = this.player.getBrain() as BrainPlayer;
-        const around = Brain.getCellsAroundActor(this.player);
-        const actorsAround = around.map(cell => cell.getFirstActor());
-        this.enemy = null;
-        actorsAround.forEach(actor => {
-            if (this.enemy === null) {
-                if (actor && actor.isEnemy(this.player)) {
-                    this.enemy = actor;
-                    if (this.hasEnoughHealth()) {
-                        this.action = 'attack';
-                    }
-                    else if (!brain.isRunModeEnabled()) {
-                        this.action = 'run';
-                    }
-                    else {
-                        this.action = 'flee';
-                    }
-                    this.state.path = [];
-                }
-            }
-        });
-        if (this.action === '' && this.shouldRest()) {
-            this.action = 'rest';
         }
     }
 
@@ -429,28 +507,6 @@ export class PlayerDriver extends DriverBase {
         };
     }
 
-    public hasEnoughHealth(): boolean {
-        const health = this.player.get('Health');
-        const maxHP = health.getMaxHP();
-        const hp = health.getHP();
-        if (hp > Math.round(this.hpLow * maxHP)) {
-            return true;
-        }
-        return false;
-    }
-
-    public shouldRest(): boolean {
-        if (this.player.has('SpellPower')) {
-            const spellPower = this.player.get('SpellPower');
-            const pp = spellPower.getPP();
-            const maxPP = spellPower.getMaxPP();
-            return pp < (this.ppRestLimit * maxPP);
-        }
-        const health = this.player.get('Health');
-        const maxHP = health.getMaxHP();
-        const hp = health.getHP();
-        return hp < (this.hpRestLimit * maxHP);
-    }
 
     /* Tries to find unvisited stairs from visible cells and calculate a path
      * there. */
@@ -522,8 +578,11 @@ export class PlayerDriver extends DriverBase {
 
     public passageVisited(cell: Cell): boolean {
         const passage = cell.getPassage();
-        const target = passage.getTargetLevel();
-        return this.levelVisited(target);
+        if (passage) {
+            const target = passage.getTargetLevel();
+            return this.levelVisited(target);
+        }
+        return false;
     }
 
     public findAlreadySeenPassage(): void {
@@ -573,7 +632,11 @@ export class PlayerDriver extends DriverBase {
         let keycodeOrCmd = null;
 
         if (this.action === 'attack') {
-            const [eX, eY] = [enemy.getX(), enemy.getY()];
+            if (!enemy) {
+                RG.err('PlayerDriver', 'getPlayerCmd',
+                    `Got action 'attack' but enemy is null`);
+            }
+            const [eX, eY] = enemy!.getXY();
             const dX = eX - pX;
             const dY = eY - pY;
             const code = KeyMap.dirToKeyCode(dX, dY);

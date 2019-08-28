@@ -1510,6 +1510,14 @@ RG.isActor = function(obj: any): obj is BaseActor {
     return false;
 };
 
+RG.toActor = function(ent: Entity): BaseActor {
+    if (!RG.isActor(ent)) {
+        RG.err('RG', 'toActor',
+            `Given entity not an actor: ${JSON.stringify(ent)}`);
+    }
+    return ent as BaseActor;
+};
+
 RG.isElement = function(obj: any): obj is ElementBase {
     if (obj && obj.getPropType) {
         return obj.getPropType() === RG.TYPE_ELEM;

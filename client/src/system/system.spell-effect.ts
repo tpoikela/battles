@@ -5,7 +5,12 @@ import * as Component from '../component';
 import {ObjectShell} from '../objectshellparser';
 import {Geometry} from '../geometry';
 
+import {SpellArgs} from '../spell';
+import {TCoord} from '../interfaces';
+
+type BaseActor = import('../actor').BaseActor;
 type Entity = import('../entity').Entity;
+type EventPool = import('../eventpool').EventPool;
 
 const {addSkillsExp} = SystemBase;
 
@@ -16,9 +21,9 @@ const spellEffects = ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea',
  * dealing components etc. An example if FrostBolt which creates SpellRay
  * component for each cell it's travelling to. */
 export class SystemSpellEffect extends SystemBase {
-    private _dtable: {[key: string]: (ent: Entity, comp) => void};
+    private _dtable: {[key: string]: (ent: Entity, comp: object) => void};
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool?: EventPool) {
         super(RG.SYS.SPELL_EFFECT, compTypes, pool);
         this.compTypesAny = true; // Process with any relavant Spell comp
 
@@ -49,11 +54,27 @@ export class SystemSpellEffect extends SystemBase {
         });
     }
 
-    public processSpellRay(ent, ray): void {
-        const args = ray.getArgs();
-        const map = ent.getLevel().getMap();
+    public processSpellRay(ent: Entity, ray): void {
+        const args: SpellArgs = ray.getArgs();
+        let actor: null | BaseActor = null;
+        if (RG.isActor(ent)) {
+            actor = ent as BaseActor;
+        }
+        else {
+            const msg = JSON.stringify(ent);
+            RG.err('SystemSpellEffect', 'processSpellRay',
+                `RayComps only supported on actors. Got: ${msg}`);
+            return;
+        }
+        const map = actor.getLevel().getMap();
         const spell = args.spell;
         const name = spell.getName();
+
+        if (!args.from || !args.dir) {
+            RG.err('SystemSpellEffect', 'processSpellRay',
+                `Args must have from and dir. Got ${JSON.stringify(args)}`);
+            return;
+        }
 
         let [x, y] = args.from;
         const [dX, dY] = args.dir;
@@ -71,11 +92,11 @@ export class SystemSpellEffect extends SystemBase {
 
                 if (cell.hasActors()) {
                     // Deal some damage etc
-                    const actor = cell.getActors()[0];
-                    const actorName = actor.getName();
-                    const stopSpell = actor.has('SpellStop');
-                    if (stopSpell || this.rayHitsActor(actor, rangeLeft)) {
-                        this._addDamageToActor(actor, args);
+                    const tActor = cell.getActors()[0];
+                    const actorName = tActor.getName();
+                    const stopSpell = tActor.has('SpellStop');
+                    if (stopSpell || this.rayHitsActor(tActor, rangeLeft)) {
+                        this._addDamageToActor(tActor, args);
 
                         if (stopSpell) {
                             rangeLeft = 0;
@@ -115,12 +136,13 @@ export class SystemSpellEffect extends SystemBase {
             from: args.from,
             range: rangeCrossed,
             className: RG.getDmgClassName(args.damageType),
-            level: ent.getLevel()
+            level: actor.getLevel()
         };
         const animComp = new Component.Animation(animArgs);
         ent.add(animComp);
     }
 
+    /* Returns true if the spell ray hits the given actor. */
     public rayHitsActor(actor: Entity, rangeLeft: number): boolean {
         if (!actor.has('Health')) {
             return false;
@@ -146,9 +168,10 @@ export class SystemSpellEffect extends SystemBase {
         }
     }
 
-    public processSpellCell(ent, spellComp) {
+    public processSpellCell(ent: Entity, spellComp) {
         const args = spellComp.getArgs();
-        const map = ent.getLevel().getMap();
+        const actor = RG.toActor(ent);
+        const map = actor.getLevel().getMap();
         const spell = args.spell;
         const name = spell.getName();
 
@@ -169,15 +192,15 @@ export class SystemSpellEffect extends SystemBase {
                 args.callback(targetCell);
             }
             else if (targetCell.hasActors()) {
-                const actor = targetCell.getActors()[0];
+                const tActor = targetCell.getActors()[0];
 
                 // Spell targeting specific component, for example stat boost
                 if (args.targetComp) {
                     const setFunc = args.set;
                     const getFunc = args.get;
-                    if (actor.has(args.targetComp)) {
-                        const comp = actor.get(args.targetComp);
-                        const actorName = actor.getName();
+                    if (tActor.has(args.targetComp)) {
+                        const comp = tActor.get(args.targetComp);
+                        const actorName = tActor.getName();
                         if (getFunc) {
                             comp[setFunc](comp[getFunc()] + args.value);
                         }
@@ -194,18 +217,18 @@ export class SystemSpellEffect extends SystemBase {
                     if (comp) {
                         if (args.addComp.duration) { // Transient component
                             const dur = args.addComp.duration;
-                            if (actor.has('Expiration')) {
-                                actor.get('Expiration').addEffect(comp, dur);
+                            if (tActor.has('Expiration')) {
+                                tActor.get('Expiration').addEffect(comp, dur);
                             }
                             else {
                                 const expComp = new Component.Expiration();
                                 expComp.addEffect(comp, dur);
-                                actor.add(expComp);
+                                tActor.add(expComp);
                             }
-                            actor.add(comp);
+                            tActor.add(comp);
                         }
                         else { // Permanent component, no duration given
-                            actor.add(comp);
+                            tActor.add(comp);
                         }
                     }
                     else {
@@ -215,24 +238,24 @@ export class SystemSpellEffect extends SystemBase {
                     }
 
                     const compType = comp.getType();
-                    const msg = `${actor.getName()} seems to have ${compType}`;
-                    RG.gameMsg({cell: actor.getCell(), msg});
+                    const msg = `${tActor.getName()} seems to have ${compType}`;
+                    RG.gameMsg({cell: tActor.getCell(), msg});
                 }
                 else if (args.removeComp) {
-                    args.removeComp.forEach(compName => {
-                        if (actor.has(compName)) {
-                            actor.removeAll(compName);
+                    args.removeComp.forEach((compName: string) => {
+                        if (tActor.has(compName)) {
+                            tActor.removeAll(compName);
                         }
                     });
                 }
                 else {
                     // Deal some damage etc
-                    this._addDamageToActor(actor, args);
+                    this._addDamageToActor(tActor, args);
                     // TODO add some evasion checks
                     // TODO add onHit callback for spell because not all spells
                     // cause damage
                     RG.gameMsg({cell: targetCell,
-                        msg: `${name} hits ${actor.getName()}`});
+                        msg: `${name} hits ${tActor.getName()}`});
                 }
             }
 
@@ -244,7 +267,7 @@ export class SystemSpellEffect extends SystemBase {
         }
     }
 
-    public processSpellMissile(ent, spellComp) {
+    public processSpellMissile(ent: Entity, spellComp) {
         const args = spellComp.getArgs();
         const spell = args.spell;
         const parser = ObjectShell.getParser();
@@ -282,7 +305,7 @@ export class SystemSpellEffect extends SystemBase {
     }
 
     /* Processes area-affecting spell effects. */
-    public processSpellArea(ent, spellComp) {
+    public processSpellArea(ent: Entity, spellComp) {
         // const spellComp = ent.get('SpellArea');
         const args = spellComp.getArgs();
         const spell = args.spell;
@@ -291,7 +314,7 @@ export class SystemSpellEffect extends SystemBase {
         const map = args.src.getLevel().getMap();
         const coord = Geometry.getBoxAround(x0, y0, range);
 
-        coord.forEach(xy => {
+        coord.forEach((xy: TCoord) => {
             if (map.hasXY(xy[0], xy[1])) {
                 const cell = map.getCell(xy[0], xy[1]);
                 if (cell.hasActors()) {
@@ -314,7 +337,7 @@ export class SystemSpellEffect extends SystemBase {
         const animArgs = {
             range, cX: x0, cY: y0,
             className: RG.getDmgClassName(args.damageType),
-            level: ent.getLevel()
+            level: RG.toActor(ent).getLevel()
         };
         const animComp = new Component.Animation(animArgs);
         ent.add(animComp);

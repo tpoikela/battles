@@ -166,6 +166,10 @@ Health.prototype.addHP = function(hp) {
     if (this.HP > this.maxHP) {this.HP = this.maxHP;}
 };
 
+Health.prototype.propLeft = function(): number {
+    return this.HP / this.maxHP;
+};
+
 Health.prototype.decrHP = function(hp) {this.HP -= hp;};
 
 Health.prototype.isAlive = function() {

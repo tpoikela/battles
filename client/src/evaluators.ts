@@ -141,13 +141,11 @@ export class EvaluatorFlee extends EvaluatorBase {
     }
 
     public calculateDesirability(actor): number {
-        const enemies = actor.getBrain().getSeenEnemies();
-        if (enemies.length > 0) {
-            const health = actor.get('Health');
-            const maxHP = health.getMaxHP();
-            const HP = health.getHP();
-            const propHP = HP / maxHP;
-            if (propHP < this.actorBias) {
+        const health = actor.get('Health');
+        const propHP = health.propLeft();
+        if (propHP < this.actorBias) {
+            const enemies = actor.getBrain().getSeenEnemies();
+            if (enemies.length > 0) {
                 let index = -1;
                 if (this.enemyActor) {
                     index = enemies.findIndex(e =>
@@ -290,7 +288,7 @@ export class EvaluatorGuardArea extends EvaluatorBase {
 
     public setArgs(args: EvalArgs): void {
         const {bbox} = args as any;
-        this.setBBox(bbox);
+        this.setBBox(BBox.fromBBox(bbox));
     }
 
     public calculateDesirability(actor): number {

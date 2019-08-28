@@ -107,13 +107,15 @@ export class GoalTop extends Goal.Base {
         let bestRated = 0;
         let chosenEval = null;
 
-        this.evaluators.forEach(evaluator => {
+        const numEvals = this.evaluators.length;
+        for (let i = 0; i < numEvals; i++) {
+            const evaluator = this.evaluators[i];
             const desirability = evaluator.calculateDesirability(this.actor);
             if (bestRated < desirability || chosenEval === null) {
                 chosenEval = evaluator;
                 bestRated = desirability;
             }
-        });
+        }
 
         if (chosenEval) {
             chosenEval.setActorGoal(this.actor);
