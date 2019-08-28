@@ -53,7 +53,7 @@ RG.getCssClassFullMap = function(cell: Cell): string {
         if (cell.hasProp(propType)) {
             const props = cell.getProp(propType);
             const styles = this.cellStyles[propType];
-            return this.getPropClassOrChar(styles, props[0]);
+            return this.getPropClassOrChar(styles, props![0]);
         }
     }
     return null;
@@ -97,8 +97,10 @@ RG.getStyleClassForCell = function(cell: Cell): string {
         if (cell.hasProp(propType)) {
             const props = cell.getProp(propType);
             const styles = this.cellStyles[propType];
-            const propObj = props[0];
-            return this.getPropClassOrChar(styles, propObj);
+            const propObj = props![0];
+            if (!propObj.has('DontRender')) {
+                return this.getPropClassOrChar(styles, propObj);
+            }
         }
     }
 
