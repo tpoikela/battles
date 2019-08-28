@@ -438,14 +438,10 @@ export class GameMaster {
     public toJSON() {
         const keys = Object.keys(this.battles);
         const battles = {};
-        keys.forEach(id => {
-            const battlesTile = this.getBattles(parseInt(id, 10));
-            battlesTile.forEach(battle => {
-                if (battles.hasOwnProperty(id)) {
-                    RG.warn('Game.Master', 'toJSON',
-                        `Battle for ID ${id} exists already`);
-                }
-                else {
+        keys.forEach((id: string) => {
+            const battlesTile: BattleObj[] = this.getBattles(parseInt(id, 10));
+            battlesTile.forEach((battle: BattleObj) => {
+                if (!battles.hasOwnProperty(id)) {
                     battles[id] = [];
                 }
 
