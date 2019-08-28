@@ -1233,6 +1233,8 @@ export const addToExpirationComp = (
     }
 };
 
+export const DontRender = UniqueTagComponent('DontRender');
+
 //---------------------------------------------------------------------------
 // BASE ACTIONS (transient components, not serialized, stored ever)
 //---------------------------------------------------------------------------
