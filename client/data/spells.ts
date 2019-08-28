@@ -12,6 +12,7 @@ import {Corpse} from '../src/item';
 import {TCoord} from '../src/interfaces';
 
 type Cell = import('../src/map.cell').Cell;
+type ItemBase = import('../src/item').ItemBase;
 
 const RNG = Random.getRNG();
 
@@ -121,8 +122,13 @@ Spell.AnimateDead.prototype.animateCallback = function(cell: Cell) {
     const caster = this.getCaster();
     if (!cell.hasItems()) {return;}
 
-    const items = cell.getItems();
-    const corpseItem = items.find(i => /corpse/.test(i.getName()));
+    const items: ItemBase[] = cell.getItems();
+    const corpseItem: ItemBase = items.find((i: ItemBase) => /corpse/.test(i.getName()));
+    if (!corpseItem) {
+        RG.warn('AnimateDead', 'animateCallback',
+            `No corpses found. Should not have cast the spell at all`);
+        return;
+    }
     const corpse = corpseItem as Corpse;
 
     if (corpse.has('Undead')) {
