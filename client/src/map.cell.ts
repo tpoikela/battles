@@ -4,12 +4,11 @@ import * as Element from './element';
 import {BaseActor} from './actor';
 import * as Item from './item';
 import {ELEM_MAP} from '../data/elem-constants';
-import {TCoord, ConstBaseElem, Maybe, TCellProp} from './interfaces';
+import {TCoord, ConstBaseElem, TCellProp} from './interfaces';
 
 const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 
 type ItemBase = Item.ItemBase;
-type ElementXY = Element.ElementXY;
 type Door = Element.ElementDoor;
 type LeverDoor = Element.ElementLeverDoor;
 type Stairs = Element.ElementStairs;
@@ -22,7 +21,7 @@ interface CellProps {
     elements?: TCellProp[];
 }
 
-type CellPropsKey = keyof CellProps;
+export type CellPropsKey = keyof CellProps;
 
 export interface CellJSON {
     t: string; // Type of this cell
@@ -85,15 +84,15 @@ export class Cell {
     public getBaseElem(): ConstBaseElem { return this._baseElem; } // TODO safe null
 
     /* Returns true if the cell has props of given type.*/
-    public hasProp(prop: string): boolean {
+    public hasProp(prop: CellPropsKey): boolean {
         return this._p.hasOwnProperty(prop);
     }
 
     /* Returns the given type of props, or null if does not have any props of that
      * type. */
-    public getProp(prop: string): TCellProp[] | null {
-        if (this._p.hasOwnProperty(prop)) {
-            return this._p[prop];
+    public getProp(prop: CellPropsKey): TCellProp[] | null {
+        if (this._p[prop]) {
+            return this._p[prop] as TCellProp[];
         }
         return null;
     }
@@ -364,7 +363,7 @@ export class Cell {
     }
 
     /* Add given obj with specified property type.*/
-    public setProp(prop: string, obj: TCellProp): void {
+    public setProp(prop: CellPropsKey, obj: TCellProp): void {
         if (obj.getType() === 'connection' && this.hasConnection()) {
             let msg = `${this._x},${this._y}`;
             msg += `\nExisting: ${JSON.stringify(this.getConnection())}`;
@@ -372,21 +371,22 @@ export class Cell {
             RG.err('Cell', 'setProp',
                 `Tried to add 2nd connection: ${msg}`);
         }
+        // This check guarantees that this._p[prop] exists in else-if branches
         if (!this._p.hasOwnProperty(prop)) {
             this._p[prop] = [];
-            this._p[prop].push(obj);
+            this._p[prop]!.push(obj);
         }
         // Reorders actors to show them in specific order with GUI
         else if (prop === TYPE_ACTOR) {
             if (!obj.has('NonSentient') && !obj.has('Ethereal')) {
-                this._p[prop].unshift(obj);
+                this._p[prop]!.unshift(obj);
             }
             else {
-                this._p[prop].push(obj);
+                this._p[prop]!.push(obj);
             }
         }
         else {
-            this._p[prop].push(obj);
+            this._p[prop]!.push(obj);
         }
 
         if ((obj as ItemBase).isOwnable) {
@@ -394,18 +394,18 @@ export class Cell {
         }
     }
 
-    public removeProps(propType: string): void {
+    public removeProps(propType: CellPropsKey): void {
         delete this._p[propType];
     }
 
     /* Removes the given object from cell properties.*/
-    public removeProp(prop: string, obj: TCellProp): boolean {
+    public removeProp(prop: CellPropsKey, obj: TCellProp): boolean {
         if (this.hasProp(prop)) {
             const props = this._p[prop];
-            const index = props.indexOf(obj);
+            const index = props!.indexOf(obj);
             if (index === -1) {return false;}
-            this._p[prop].splice(index, 1);
-            if (this._p[prop].length === 0) {
+            this._p[prop]!.splice(index, 1);
+            if (this._p[prop]!.length === 0) {
                 delete this._p[prop];
             }
             return true;
@@ -457,10 +457,11 @@ export class Cell {
      * base element type. */
     public getPropNames(): string[] {
         const result = [this._baseElem.getType()];
-        const keys = Object.keys(this._p);
+        const keys = Object.keys(this._p) as CellPropsKey[];
         keys.forEach(propType => {
             const props = this.getProp(propType);
-            props.forEach(prop => {
+            // props must exist, otherwise it is not in keys
+            props!.forEach(prop => {
                 result.push(prop.getName());
             });
         });
@@ -476,8 +477,9 @@ export class Cell {
 
         const keys = Object.keys(this._p);
         for (let i = 0; i < keys.length; i++) {
-            const prop = keys[i];
-            const arrProps = this._p[prop];
+            const prop = keys[i] as CellPropsKey;
+            // arrpPops must exist, otherwise it is not in keys
+            const arrProps = this._p[prop]!;
             for (let j = 0; j < arrProps.length; j++) {
                 if (arrProps[j].getType() === propType) {
                     return true;
@@ -489,10 +491,11 @@ export class Cell {
 
     /* Returns all props with given type in the cell.*/
     public getPropType(propType: string): TCellProp[] | ConstBaseElem[] {
-        const props = [];
+        const props: TCellProp[] = [];
         if (this._baseElem.getType() === propType) {return [this._baseElem];}
-        Object.keys(this._p).forEach(prop => {
-            const arrProps = this._p[prop];
+        Object.keys(this._p).forEach((prop: CellPropsKey) => {
+            // arrpPops must exist, otherwise it is not in keys
+            const arrProps = this._p[prop]!;
             for (let i = 0; i < arrProps.length; i++) {
                 if (arrProps[i].getType() === propType) {
                     props.push(arrProps[i]);
@@ -504,9 +507,10 @@ export class Cell {
 
     /* For debugging to find a given object. */
     public findObj(filterFunc: (obj: any) => boolean): any[] {
-        const result = [];
-        Object.keys(this._p).forEach(propType => {
-            const props = this._p[propType];
+        const result: any[] = [];
+        Object.keys(this._p).forEach((propType: CellPropsKey) => {
+            // props must exist, otherwise it is not in keys
+            const props = this._p[propType]!;
             props.forEach(propObj => {
                 if (filterFunc(propObj)) {
                     result.push(propObj);
