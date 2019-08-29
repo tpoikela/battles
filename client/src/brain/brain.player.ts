@@ -2,7 +2,6 @@
 import RG from '../rg';
 import {Menu, MenuWithState, SelectionObject} from '../menu';
 import {Keys} from '../keymap';
-import {Cell} from '../map.cell';
 import * as GoalsBattle from '../goals-battle';
 import * as Cmd from '../cmd-player';
 import * as Component from '../component/component';
@@ -19,6 +18,7 @@ type SentientActor = import('../actor').SentientActor;
 type ActionCallback = import('../time').ActionCallback;
 type BrainGoalOriented = import('./brain.goaloriented').BrainGoalOriented;
 type ItemBase = import('../item').ItemBase;
+type Cell = import('../map.cell').Cell;
 
 const RNG = Random.getRNG();
 const KeyMap = Keys.KeyMap;
