@@ -144,8 +144,10 @@ class EnemyContextProcessor extends ContextProcessor {
     public checkForEnemies(): void {
         const drv = this.drv;
         const brain = drv.player.getBrain() as BrainPlayer;
-        const around = Brain.getCellsAroundActor(drv.player);
-        const actorsAround = around.map((c: Cell) => c.getFirstActor());
+        // const around = Brain.getCellsAroundActor(drv.player);
+        // const actorsAround = around.map((c: Cell) => c.getFirstActor());
+        const actorsAround = Brain.getSeenHostiles(drv.player);
+
         drv.enemy = null;
         actorsAround.forEach(actor => {
             if (drv.enemy === null) {
@@ -202,6 +204,134 @@ class EnemyContextProcessor extends ContextProcessor {
 
 }
 
+/* Action processor executes the given action based on context. */
+class ActionProcessor {
+
+    constructor() {
+    }
+
+    public process(drv: PlayerDriver): null | IPlayerCmdInput {
+        return null;
+    }
+
+}
+
+class BasicAttackProcessor extends ActionProcessor {
+
+    public ammoShotAt: {[key: string]: TCoord[]};
+
+    constructor() {
+        super();
+        this.ammoShotAt = {};
+    }
+
+    public process(drv: PlayerDriver): null | IPlayerCmdInput {
+        const enemy = drv.enemy;
+        // const map = drv.player.getLevel().getMap();
+        const [pX, pY] = drv.player.getXY();
+        let keycodeOrCmd: null | IPlayerCmdInput = null;
+        if (!enemy) {
+            RG.err('PlayerDriver', 'getPlayerCmd',
+                `Got action 'attack' but enemy is null`);
+            return null;
+        }
+        const [eX, eY] = enemy!.getXY();
+        const dX = eX - pX;
+        const dY = eY - pY;
+        const code = KeyMap.dirToKeyCode(dX, dY);
+
+        if (this.canCastSpell(drv)) {
+            keycodeOrCmd = {code: KEY.POWER};
+            const spellCode = this.getCodeForSpell(drv);
+            if (spellCode >= 0) {
+                drv.setKeys([spellCode, code]);
+            }
+            else {
+                keycodeOrCmd = {code};
+            }
+        }
+        else if (this.willDoRangedAttack(drv)) {
+            drv.setKeys([Keys.VK_t]);
+            return {code: Keys.VK_t};
+        }
+        else {
+            keycodeOrCmd = {code};
+        }
+        return keycodeOrCmd;
+    }
+
+    /* Returns true if the player can cast any spells. */
+    private canCastSpell(drv: PlayerDriver): boolean {
+        const spellPower = drv.player.get('SpellPower');
+        if (spellPower) {
+            const book = drv.player.getBook();
+            if (book) {
+                const spell = book.getSpells()[0];
+                return spell.canCast();
+            }
+        }
+        return false;
+    }
+
+    private willDoRangedAttack(drv: PlayerDriver): boolean {
+        const player = drv.player;
+        const [eX, eY] = drv.enemy!.getXY();
+        const [aX, aY] = player.getXY();
+        const miss = player.getInvEq().getEquipment().getItem('missile');
+        if (miss) {
+            const range = RG.getMissileRange(player, miss);
+            const getDist = Path.shortestDist(eX, eY, aX, aY);
+            if (getDist <= range && getDist > 1) {
+                const levelId = player.getLevel().getID();
+                if (!this.ammoShotAt[levelId]) {
+                    this.ammoShotAt[levelId] = [];
+                }
+                this.ammoShotAt[levelId].push([eX, eY]);
+                return true;
+            }
+            console.log(`Has missile but range check failed: r: ${range} dist: ${getDist}`);
+            // TODO test for a clean shot
+        }
+        else {
+            console.log('No missile equipped. Cannot do attack');
+        }
+        return false;
+    }
+
+    /* Returns the keyCode for a spell that will be cast. */
+    private getCodeForSpell(drv: PlayerDriver): number {
+        const book = drv.player.getBook();
+        const spells = book.getSpells();
+
+        // Check if we have any damaging spells, if not then terminate
+        const dmgSpells = spells.filter(spell => spell.hasDice('damage'));
+        if (dmgSpells.length === 0) {return -1;}
+
+        const dmgIndices: RandWeights = {};
+        let totalPower = 0;
+        dmgSpells.forEach((spell, i) => {
+            if (spell.canCast()) {
+                const castPower = spell.getCastingPower();
+                totalPower += castPower;
+                dmgIndices[i] = castPower;
+            }
+        });
+
+        // Create spell weights inversely proportional to the
+        // casting power of each
+        const keys = Object.keys(dmgIndices);
+        keys.forEach(key => {
+            dmgIndices[key] = totalPower - dmgIndices[key];
+        });
+
+        const index: string = RNG.getWeighted(dmgIndices);
+        const numIndex = parseInt(index, 10);
+        const menuIndex = Keys.menuIndices[numIndex];
+        return Keys.selectIndexToCode(menuIndex);
+    }
+
+}
+
 /* This object can be used to simulate player actions in the world. It has 2
  * main uses:
  *  1. An AI to play the game and simulate player actions to find bugs
@@ -221,7 +351,9 @@ export class PlayerDriver extends DriverBase {
     public nTurns: number;
     public screenPeriod: number;
     public hasNotify: boolean;
+
     public contextProcs: ContextProcessor[];
+    public actionProcs: {[key: string]: ActionProcessor[]};
 
     constructor(player?: SentientActor, game?: any) {
         super(player, game);
@@ -260,6 +392,12 @@ export class PlayerDriver extends DriverBase {
         this.contextProcs = [
             new EnemyContextProcessor('enemyContext', this)
         ];
+
+        this.actionProcs = {
+            attack: [
+                new BasicAttackProcessor()
+            ]
+        };
     }
 
     public setPlayer(pl: SentientActor): void {this.player = pl;}
@@ -631,29 +769,19 @@ export class PlayerDriver extends DriverBase {
         const [pX, pY] = this.player.getXY();
         let keycodeOrCmd = null;
 
-        if (this.action === 'attack') {
-            if (!enemy) {
+        if (this.actionProcs[this.action]) {
+            const procs = this.actionProcs[this.action];
+            for (let i = 0; i < procs.length; i++) {
+                keycodeOrCmd = procs[i].process(this);
+                if (keycodeOrCmd) {break;}
+            }
+            if (!keycodeOrCmd) {
                 RG.err('PlayerDriver', 'getPlayerCmd',
-                    `Got action 'attack' but enemy is null`);
+                    `No proc returned OK for action ${this.action}`);
             }
-            const [eX, eY] = enemy!.getXY();
-            const dX = eX - pX;
-            const dY = eY - pY;
-            const code = KeyMap.dirToKeyCode(dX, dY);
-
-            if (this.canCastSpell()) {
-                keycodeOrCmd = {code: KEY.POWER};
-                const spellCode = this.getCodeForSpell();
-                if (spellCode >= 0) {
-                    this._keyBuffer = [spellCode, code];
-                }
-                else {
-                    keycodeOrCmd = {code};
-                }
-            }
-            else {
-                keycodeOrCmd = {code};
-            }
+        }
+        else if (this.action === 'attack') {
+            // Obsolete
         }
         else if (this.action === 'pickup') {
             keycodeOrCmd = {code: KEY.PICKUP};
@@ -917,51 +1045,6 @@ export class PlayerDriver extends DriverBase {
             }
         }
         return res;
-    }
-
-    /* Returns true if the player can cast any spells. */
-    private canCastSpell(): boolean {
-        const spellPower = this.player.get('SpellPower');
-        if (spellPower) {
-            const book = this.player.getBook();
-            if (book) {
-                const spell = book.getSpells()[0];
-                return spell.canCast();
-            }
-        }
-        return false;
-    }
-
-    /* Returns the keyCode for a spell that will be cast. */
-    private getCodeForSpell(): number {
-        const book = this.player.getBook();
-        const spells = book.getSpells();
-
-        // Check if we have any damaging spells, if not then terminate
-        const dmgSpells = spells.filter(spell => spell.hasDice('damage'));
-        if (dmgSpells.length === 0) {return -1;}
-
-        const dmgIndices: RandWeights = {};
-        let totalPower = 0;
-        dmgSpells.forEach((spell, i) => {
-            if (spell.canCast()) {
-                const castPower = spell.getCastingPower();
-                totalPower += castPower;
-                dmgIndices[i] = castPower;
-            }
-        });
-
-        // Create spell weights inversely proportional to the
-        // casting power of each
-        const keys = Object.keys(dmgIndices);
-        keys.forEach(key => {
-            dmgIndices[key] = totalPower - dmgIndices[key];
-        });
-
-        const index: string = RNG.getWeighted(dmgIndices);
-        const numIndex = parseInt(index, 10);
-        const menuIndex = Keys.menuIndices[numIndex];
-        return Keys.selectIndexToCode(menuIndex);
     }
 
 }
