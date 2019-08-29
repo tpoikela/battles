@@ -7,12 +7,13 @@
 import RG from './rg';
 import {Goal, GoalBase} from './goals';
 import {GoalThief} from './goal.thief';
-import {SentientActor} from './actor';
 import {Random} from './random';
 import {SpellArgs} from './spell';
 import {Brain} from './brain';
 import {TCoord, TNoFuncVal} from './interfaces';
 import {BBox} from './bbox';
+
+type SentientActor = import('./actor').SentientActor;
 
 Goal.Thief = GoalThief;
 
@@ -37,9 +38,15 @@ export class EvaluatorBase {
     public actorBias: number;
     public type: string;
 
+    // To change the evaluation frequency
+    public evalCount: number;
+    public evalMaxCount: number;
+
     constructor(actorBias: number) {
         this.actorBias = actorBias;
         this.type = 'Base';
+        this.evalCount = 0;
+        this.evalMaxCount = 1;
     }
 
     public calculateDesirability(actor): number {
