@@ -106,14 +106,14 @@ export const GameMain = function() {
     this.getPlaces = () => this._places;
 
     this.getLevelsInAllPlaces = (): Level[] => {
-        let levels = [];
+        let levels: Level[] = [];
         Object.values(this._places).forEach((place: any) => {
             levels = levels.concat(place.getLevels());
         });
         return levels;
     };
 
-    this.setEnableChunkUnload = (enable = true) => {
+    this.setEnableChunkUnload = (enable: boolean = true) => {
         this._enableChunkUnload = enable;
         if (enable && this.getArea(0)) {
             const area = this.getArea(0);
@@ -128,7 +128,7 @@ export const GameMain = function() {
 
     /* Adds player to the game. By default, it's added to the first level if
      * player has no level yet.*/
-    this.addPlayer = (player, obj?: PlaceObj) => {
+    this.addPlayer = (player: SentientActor, obj?: PlaceObj) => {
         let levelOK = false;
         this._master.setPlayer(player);
         if (!RG.isNullOrUndef([player.getLevel()])) {
