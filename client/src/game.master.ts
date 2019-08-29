@@ -5,7 +5,7 @@ import {FactoryBattle, BattleConf} from './factory.battle';
 import {OW} from './ow-constants';
 import {Menu} from './menu';
 import {Random} from './random';
-import {Battle, BattleJSON} from './game.battle';
+import {Army, Battle, BattleJSON} from './game.battle';
 import {Level} from './level';
 import {SentientActor} from './actor';
 import {WorldTop} from './world';
@@ -20,6 +20,7 @@ const debug = dbg('bitn:GameMaster');
 const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
 
+type BrainPlayer = import('./brain').BrainPlayer;
 type BattleObj = Battle | BattleJSON;
 
 interface BattleObjMap {
@@ -39,6 +40,7 @@ export class GameMaster {
     public fact: FactoryBattle;
     public pool: EventPool;
     public battles: BattleObjMap;
+    public hasBattleSpawned: {[key: string]: boolean};
 
     // Key is level ID of the battle level (NOT parent area level)
     public battlesDone: {[key: number]: boolean};
@@ -55,6 +57,7 @@ export class GameMaster {
         // Lookup table for battles by level ID
         this.battles = {};
         this.battlesDone = {};
+        this.hasBattleSpawned = {};
         this.hasNotify = true;
 
         this.pool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
@@ -119,7 +122,9 @@ export class GameMaster {
             }
             debug('\tPlayer not null. Creating battle');
             const parentLevel = this.player.getLevel();
-            this.createBattleIntoAreaTileLevel(parentLevel);
+            if (!this.hasBattleSpawned[parentLevel.getID()]) {
+                this.createBattleIntoAreaTileLevel(parentLevel);
+            }
         }
         else if (evtName === RG.EVT_EXPLORED_ZONE_LEFT) {
             // TODO check for creating a new battle on the map
@@ -322,9 +327,12 @@ export class GameMaster {
 
         const exit = conns[0];
         const targetLevel = exit.getTargetLevel();
+        if (this.hasBattleSpawned[targetLevel.getID()]) {
+            this.hasBattleSpawned[targetLevel.getID()] = false;
+        }
 
-        const armies = battle.getArmies();
-        armies.forEach(army => {
+        const armies: Army[] = battle.getArmies();
+        armies.forEach((army: Army) => {
             const actors = army.getActors();
             actors.forEach(actor => {
                 if (actor.isInLevel(level)) {
@@ -343,7 +351,7 @@ export class GameMaster {
                     }
                     else {
                         const selObj = this.getLeaveBattleMenu(actor, level);
-                        actor.getBrain().setSelectionObject(selObj);
+                        (actor.getBrain() as BrainPlayer).setSelectionObject(selObj);
                     }
                 }
             });
@@ -437,7 +445,7 @@ export class GameMaster {
     /* Serializes the object into JSON. */
     public toJSON() {
         const keys = Object.keys(this.battles);
-        const battles = {};
+        const battles: any = {};
         keys.forEach((id: string) => {
             const battlesTile: BattleObj[] = this.getBattles(parseInt(id, 10));
             battlesTile.forEach((battle: BattleObj) => {
@@ -459,7 +467,8 @@ export class GameMaster {
         });
         return {
             battles,
-            battlesDone: this.battlesDone
+            battlesDone: this.battlesDone,
+            hasBattleSpawned: this.hasBattleSpawned
         };
     }
 
@@ -498,9 +507,9 @@ export class GameMaster {
     }
 
     public getBattleLevels(): Level[] {
-        const levels = [];
+        const levels: Level[] = [];
         // TODO fix typings
-        Object.values(this.battles).forEach((battlesPerID) => {
+        Object.values(this.battles).forEach((battlesPerID: BattleObj[]) => {
             battlesPerID.forEach(battle => {
                 if (!(battle as BattleJSON).isJSON) {
                     levels.push((battle as Battle).getLevel());
@@ -559,6 +568,7 @@ export class GameMaster {
         this.addBattle(parentId, battle);
         const battleId = battle.getLevel().getID();
         this.game.addBattle(this.getBattle(parentId, battleId), parentId);
+        this.hasBattleSpawned[parentId] = true;
         return battle;
     }
 }
