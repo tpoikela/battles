@@ -1066,6 +1066,7 @@ FromJSON.prototype.restoreGameMaster = function(game, json) {
     if (json.battlesDone) {
         gameMaster.battlesDone = json.battlesDone;
     }
+    gameMaster.hasBattleSpawned = json.hasBattleSpawned;
     --this.IND;
     return gameMaster;
 };
