@@ -1,17 +1,18 @@
 
 import RG from '../rg';
 import * as Component from '../component';
-import {CellMap} from '../map';
-import {Cell} from '../map.cell';
 import {Geometry} from '../geometry';
 import {BrainBase} from './brain.base';
 import {Memory} from './brain.memory';
 import {Random} from '../random';
+import {TCoord} from '../interfaces';
 
 type BaseActor = import('../actor').BaseActor;
 type SentientActor = import('../actor').SentientActor;
 type ActionCallback = import('../time').ActionCallback;
 type Level = import('../level').Level;
+type CellMap = import('../map').CellMap;
+type Cell = import('../map.cell').Cell;
 
 // Dummy callback to return, if the actor's action provides a state
 // changing action without callback.
@@ -34,7 +35,7 @@ function shortestDist(eX, eY, aX, aY): number {
 
 /* Returns a list of cells around the actor. The distance d can be specified.
 * For example, d=1 gives 3x3 region, d=2 5x5 region, d=3 7x7 ... */
-Brain.getCellsAroundActor = (actor: BaseActor, d = 1): Cell[] => {
+Brain.getCellsAroundActor = (actor: BaseActor, d: number = 1): Cell[] => {
     const map: CellMap = actor.getLevel().getMap();
     const [x, y] = actor.getXY();
     const cells: Cell[] = [];
@@ -57,7 +58,7 @@ Brain.getBoxOfFreeCellsAround = (actor: BaseActor, d: number): Cell[] => {
     // Grab free cells around the player in the new level, and try
     // to place actors into them
     let coordAround = Geometry.getBoxAround(x, y, d);
-    coordAround = coordAround.filter(xy => (
+    coordAround = coordAround.filter((xy: TCoord) => (
         map.hasXY(xy[0], xy[1])
     ));
     let cells = coordAround.map(xy => map.getCell(xy[0], xy[1]));
@@ -67,10 +68,10 @@ Brain.getBoxOfFreeCellsAround = (actor: BaseActor, d: number): Cell[] => {
 
 /* Returns all cells with actors in them from list of seen cells. */
 Brain.findCellsWithActors = (actor: BaseActor, seenCells: Cell[], filterFunc): Cell[] => {
-    const cells = [];
+    const cells: Cell[] = [];
     for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
-        if (seenCells[i].hasProp('actors')) {
-            const actors = seenCells[i].getProp('actors');
+        if (seenCells[i].hasActors()) {
+            const actors = seenCells[i].getActors()!;
             // Exclude itself from list
             if (actors[0].getID() !== actor.getID()) {
                 if (filterFunc && filterFunc(actors)) {
@@ -86,10 +87,11 @@ Brain.findCellsWithActors = (actor: BaseActor, seenCells: Cell[], filterFunc): C
 };
 
 Brain.getActorsInCells = (seenCells: Cell[], filterFunc): BaseActor[] => {
-    const cells = [];
+    const cells: BaseActor[] = [];
     for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
-        if (seenCells[i].hasProp('actors')) {
-            const actors = seenCells[i].getProp('actors');
+        if (seenCells[i].hasActors()) {
+            // actors must have len >= 1, due to hasProps()
+            const actors = seenCells[i].getActors()!;
             if (actors.length === 1) {
                 if (filterFunc) {
                     if (filterFunc(actors[0])) {
@@ -125,7 +127,7 @@ Brain.getSeenHostiles = (ent): SentientActor[] => {
 };
 
 Brain.findCellsWithFriends = (actor: BaseActor, seenCells: Cell[]): Cell[] => {
-    const cells = [];
+    const cells: Cell[] = [];
     for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
         if (seenCells[i].hasActors()) {
             const actors = seenCells[i].getSentientActors();
