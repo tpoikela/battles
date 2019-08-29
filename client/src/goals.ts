@@ -4,16 +4,16 @@ const debug = dbg('bitn:Goal');
 
 import RG from './rg';
 import * as Component from './component';
-import * as Item from './item';
 import {Brain} from './brain';
 import {Path, PathFunc} from './path';
 import {Random} from './random';
-import {SentientActor} from './actor';
 import {SpellArgs} from './spell';
 import {ICoordXY, TCoord} from './interfaces';
 import {BBox} from './bbox';
 
 type Memory = import('./brain').Memory;
+type SentientActor = import('./actor').SentientActor;
+type ItemBase = import('./item').ItemBase;
 
 const RNG = Random.getRNG();
 export const Goal: any = {};
@@ -1188,7 +1188,7 @@ Goal.Follow = GoalFollow;
 
 /* Goal for picking up items. */
 export class GoalGetItem extends GoalBase {
-    public targetItem: Item.ItemBase;
+    public targetItem: ItemBase;
 
     constructor(actor, targetItem) {
         super(actor);
