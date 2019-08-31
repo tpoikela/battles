@@ -154,6 +154,7 @@ describe('System.Attack', () => {
 describe('System.Damage', () => {
     it('handles adding components on hit', () => {
         const dSystem = new System.Damage(['Damage']);
+        const timeSys = new System.TimeEffects(['Expiration', 'Poison']);
         const systems = [dSystem];
 
         const poisonSword = new Item.Weapon('Sword of Poison');
@@ -196,7 +197,19 @@ describe('System.Damage', () => {
         updateSystems(systems);
         expect(beast).to.have.component('Poison');
         expect(human).to.have.component('Poison');
+
+        systems.push(timeSys);
+        const humanPoison = human.getList('Poison');
+        const beastPoison = beast.getList('Poison');
+        for (let i = 0; i < 20; i++) {
+            updateSystems(systems);
+        }
+        const humanPoisonNew = human.getList('Poison');
+        const beastPoisonNew = beast.getList('Poison');
+        expect(humanPoisonNew.length).to.be.below(humanPoison.length);
+        expect(beastPoisonNew.length).to.be.below(beastPoison.length);
     });
+
 
     it('Drops loot when lethal damage is dealt', () => {
         const level = factLevel.createLevel('arena', 20, 20);

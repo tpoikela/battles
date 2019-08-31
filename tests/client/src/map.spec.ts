@@ -63,6 +63,24 @@ describe('Map.Cell', () => {
         cell.setProp(RG.TYPE_ELEM, door as any);
         expect(cell.hasDoor(), 'Cell should have a door').to.equal(true);
     });
+
+    it('has functions for setting x- and y', () => {
+        const maxVal = (1 << 16) - 1;
+        const cell = new Cell(1000, maxVal, ELEM.WALL);
+        expect(cell.getX()).to.equal(1000);
+        expect(cell.getY()).to.equal(maxVal);
+        expect(cell.getXY()).to.deep.equal([1000, maxVal]);
+
+        cell.setXY([500, 777]);
+        expect(cell.getX()).to.equal(500);
+        expect(cell.getY()).to.equal(777);
+
+        cell.setX(0);
+        cell.setY(3);
+        expect(cell.getX()).to.equal(0);
+        expect(cell.getY()).to.equal(3);
+    });
+    
 });
 
 describe('RG.getStyleClassForCell()', () => {

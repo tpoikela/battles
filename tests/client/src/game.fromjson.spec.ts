@@ -132,7 +132,7 @@ describe('Game.FromJSON', function() {
         const goblinEntID = actor.getID();
         const item = new Item.Weapon('sword');
         const swordID = item.getID();
-        level.addActor(actor, 2, 2);
+        level.addActor(actor, 2, 4);
         level.addItem(item, 3, 3);
 
         const shopElem = new Element.ElementShop();
@@ -157,6 +157,8 @@ describe('Game.FromJSON', function() {
         expect(items).to.have.length(2);
         expect(items[0].getName()).to.equal('sword');
         expect(items[0].getID()).to.equal(swordID);
+
+        expect(newGoblin.getXY()).to.deep.equal([2, 4]);
 
         expect(elements).to.have.length(1);
         expect(elements[0].getType()).to.equal('shop');
