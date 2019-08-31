@@ -343,9 +343,9 @@ FromJSON.prototype._addEntityFeatures = function(obj, entity) {
     this.addCompsToEntity(entity, obj.components);
     this.createInventoryItems(obj, entity);
     this.createEquippedItems(obj, entity);
-    if (obj.fovRange) {
+    /* if (obj.fovRange) {
         entity.setFOVRange(obj.fovRange);
-    }
+    }*/
     if (obj.spellbook) {
         this.createSpells(obj, entity);
     }
