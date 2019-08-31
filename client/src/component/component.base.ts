@@ -1,6 +1,6 @@
 
 import RG from '../rg';
-//import '../utils';
+type Entity = import('../entity').Entity;
 
 export const C = {
     ID: {},
@@ -19,7 +19,8 @@ Component.NO_SERIALISATION = NO_SERIALISATION as any;
 // These attributes are never assigned to component instances
 const staticAttr = new Set<string>([
   'description',
-  '_isUnique'
+  '_isUnique',
+  '_isShared'
 ]);
 
 let compTypeID = 1;
@@ -211,6 +212,22 @@ export const UniqueTransientDataComponent = (type: string, members: any, compAtt
 Component.UniqueTransientDataComponent = UniqueTransientDataComponent;
 // TODO UniqueTransientTagComponent
 
+
+/* Component which can be shared for multiple entities. */
+export const SharedComponent = (type: string, members: any, compAttrib = {}) => {
+    const decl: any = DataComponent(type, members,
+        Object.assign({
+            _isUnique: true,
+            toJSON: NO_SERIALISATION,
+            _isShared: true
+        }, compAttrib)
+    );
+    decl.prototype.setEntity = () => {};
+    decl.prototype.getEntity = () => null;
+    return decl;
+};
+Component.SharedComponent = SharedComponent;
+
 /* Raises an error if two comp declarations with same type are created. */
 function errorIfCompDeclExists(type: string) {
     if (Component.createdCompDecls[type]) {
@@ -252,8 +269,8 @@ function errorIfCompDeclExists(type: string) {
  */
 
 /* Given an entity, serializes its components. */
-export const compsToJSON = (ent): {[key: string]: any} => {
-    const components = {};
+export const compsToJSON = (ent: Entity): {[key: string]: any} => {
+    const components = {} as any;
     const thisComps = ent.getComponents();
     Object.keys(thisComps).forEach(id => {
         const compJson = thisComps[id].toJSON();
@@ -271,7 +288,7 @@ export function getIDCount(): number {
     return Component.idCount;
 }
 
-export function setIDCount(idCount) {
+export function setIDCount(idCount: number): number {
     return Component.idCount = idCount;
 }
 Component.setIDCount = setIDCount;
@@ -284,16 +301,16 @@ export const ComponentBase = function(type: string) {
     this._id = Component.idCount++;
     // this._isUnique = false;
 
-    this._onAddCallbacks = [];
-    this._onRemoveCallbacks = [];
+    // this._onAddCallbacks = [];
+    // this._onRemoveCallbacks = [];
 };
 Component.ComponentBase = ComponentBase;
 
 ComponentBase.prototype.getID = function(): number {return this._id;};
 ComponentBase.prototype.setID = function(id: number): void {this._id = id;};
 
-ComponentBase.prototype.getEntity = function() {return this._entity;};
-ComponentBase.prototype.setEntity = function(entity) {
+ComponentBase.prototype.getEntity = function(): Entity {return this._entity;};
+ComponentBase.prototype.setEntity = function(entity: Entity): void {
     if (this._entity === null && entity !== null) {
         this._entity = entity;
     }
@@ -307,7 +324,7 @@ ComponentBase.prototype.setEntity = function(entity) {
 
 /* Used when entity (item) with component is cloned. The component is
  * also cloned, but entity ref must be changed. */
-ComponentBase.prototype.changeEntity = function(newEntity) {
+ComponentBase.prototype.changeEntity = function(newEntity: Entity): void {
     // Check done for error detection purposes, so that changeEntity() is not
     // called on new comps withot existing entity
     if (!RG.isNullOrUndef([this._entity])) {
@@ -333,24 +350,34 @@ ComponentBase.prototype.setType = function(type: string): void {
 };
 
 // Called when a component is added to the entity
-ComponentBase.prototype.entityAddCallback = function(entity) {
+ComponentBase.prototype.entityAddCallback = function(entity: Entity) {
     this.setEntity(entity);
-    for (let i = 0; i < this._onAddCallbacks.length; i++) {
-        this._onAddCallbacks[i]();
+    if (this._onAddCallbacks) {
+        for (let i = 0; i < this._onAddCallbacks.length; i++) {
+            this._onAddCallbacks[i]();
+        }
     }
 };
 
 // Called when a component is removed from the entity
 ComponentBase.prototype.entityRemoveCallback = function() {
-    for (let i = 0; i < this._onRemoveCallbacks.length; i++) {
-        this._onRemoveCallbacks[i]();
+    if (this._onRemoveCallbacks) {
+        for (let i = 0; i < this._onRemoveCallbacks.length; i++) {
+            this._onRemoveCallbacks[i]();
+        }
     }
     this.setEntity(null);
 };
 
 ComponentBase.prototype.addCallback = function(name: string, cb: () => void): void {
-    if (name === 'onAdd') {this._onAddCallbacks.push(cb);}
-    else if (name === 'onRemove') {this._onRemoveCallbacks.push(cb);}
+    if (name === 'onAdd') {
+        if (!this._onAddCallbacks) {this._onAddCallbacks = [];}
+        this._onAddCallbacks.push(cb);
+    }
+    else if (name === 'onRemove') {
+        if (!this._onRemoveCallbacks) {this._onRemoveCallbacks = [];}
+        this._onRemoveCallbacks.push(cb);
+    }
     else {
         RG.err('Base',
             'addCallback', 'CB name ' + name + ' must be onAdd/onRemove');
