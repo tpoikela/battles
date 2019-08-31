@@ -176,8 +176,8 @@ export class CellMap {
     public getFreeNotOnEdge(): Cell[] {
         const freeCells: Cell[] = this.getFree();
         return freeCells.filter((c: Cell) => (
-            c._x > 0 && c._x < (this.cols - 1) &&
-            c._y > 0 && c._y < (this.rows - 1)
+            c.getX() > 0 && c.getX() < (this.cols - 1) &&
+            c.getY() > 0 && c.getY() < (this.rows - 1)
         ));
     }
 
@@ -286,10 +286,10 @@ export class CellMap {
         return cells;
     }
 
-    public exploreAll(isExplored = true): void {
+    public exploreAll(): void {
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
-                this._map[x][y]._explored = isExplored;
+                this._map[x][y].setExplored();
             }
         }
     }
