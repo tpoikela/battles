@@ -98,6 +98,12 @@ Lore.generic = [
             prep`Welcome home ${'asker.getName()'}!`,
             prep`Are you returning home from an adventure, ${'asker.getName()'}?`
         ]
+    },
+    {
+        text: [
+            'An instant of one second is a luxury amidst the heat of the battle',
+            'One day, all matter will be frozen and all movement will cease'
+        ]
     }
 ];
 
