@@ -274,9 +274,13 @@ export class SystemDamage extends SystemBase {
         }
         else { // No weapon was used
             const src = dmgComp.getSource();
-            if (src && src.has('AddOnHit')) {
-                const comp = src.get('AddOnHit').getCompToAdd();
-                SystemBase.addCompToEntAfterHit(comp, ent, src);
+            const categ = dmgComp.getDamageCateg();
+            // Prevents effects like poison from melee/hit repeating itself
+            if (categ !== RG.DMG.EFFECT) {
+                if (src && src.has('AddOnHit')) {
+                    const comp = src.get('AddOnHit').getCompToAdd();
+                    SystemBase.addCompToEntAfterHit(comp, ent, src);
+                }
             }
         }
     }
