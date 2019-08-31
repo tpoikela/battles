@@ -597,8 +597,10 @@ Spell.SummonSpiders = function() {
         const danger = expComp.getDanger();
         const expLevel = expComp.getExpLevel();
         const totalDanger = danger + Math.round(expLevel / 2);
+        const casterName = this.getCaster().getName();
         return (/spider/.test(actor.name) &&
-            actor.danger <= totalDanger);
+            actor.danger <= totalDanger &&
+               casterName !== actor.name);
     };
 
 };
