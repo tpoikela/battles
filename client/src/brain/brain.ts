@@ -314,6 +314,8 @@ export class BrainSentient extends BrainBase {
             for (let j = 0; j < actors.length; j++) {
                 if (this._memory.isEnemy(actors[j])) {
                     this._memory.addEnemySeenCell(actors[j]);
+                    // This ensures we select previously fought enemy, ie
+                    // no randomly switching between enemies
                     if (this._memory.wasLastAttacked(actors[j])) {
                         return cells[i];
                     }
