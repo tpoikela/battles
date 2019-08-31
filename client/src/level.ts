@@ -747,8 +747,8 @@ export class Level extends Entity {
         obj.components = compsToJSON(this);
         // Must store x, y for each prop as well
         const props = [TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM];
-        props.forEach(propType => {
-            this._p[propType].forEach(prop => {
+        props.forEach((propType: TLevelPropKey) => {
+            this._p[propType].forEach((prop: TCellProp) => {
                 const propObj = {
                     x: prop.getX(),
                     y: prop.getY(),
@@ -756,7 +756,7 @@ export class Level extends Entity {
                 };
 
                 // Avoid storing player twice (stored in Game.Main already)
-                if (!propType === RG.TYPE_ACTOR) {
+                if (propType !== RG.TYPE_ACTOR) {
                     obj[propType].push(propObj);
                 }
                 else if (!propObj.obj.isPlayer) {
