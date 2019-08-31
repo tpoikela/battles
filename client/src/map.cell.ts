@@ -29,6 +29,15 @@ export interface CellJSON {
     elements?: Element.ElementJSON[];
 }
 
+// Up to 32 bits can be used for different state info
+const IND_EXPLORED = 0;
+const IND_LIGHT_PASSES = 1;
+const IND_IS_PASSABLE = 2;
+
+const X_POS = 0x0000ffff;
+const Y_POS = 0xffff0000;
+const Y_SHIFT = 16;
+
 /* Object representing one game cell. It can hold actors, items, traps or
  * elements. Cell has x,y for convenient access to coordinates.
  * */
@@ -36,62 +45,68 @@ export interface CellJSON {
 export class Cell {
 
     // Used in Map.Cell for faster access
-    public _explored: boolean;
-    public _x: number;
-    public _y: number;
+    // public _explored: boolean;
+    // public _x: number;
+    // public _y: number;
+    public _xy: number;
 
     // private _baseElem: Maybe<ConstBaseElem>;
     private _baseElem: ConstBaseElem;
     private _p: CellProps;
-    private _lightPasses: boolean;
-    private _isPassable: boolean;
+    // private _lightPasses: boolean;
+    // private _isPassable: boolean;
+    private _state: number;
 
     constructor(x: number, y: number, elem: ConstBaseElem) { // {{{2
 
         this._baseElem = elem;
-        this._x = x;
-        this._y = y;
-        this._explored = false;
+        // this._x = x;
+        // this._y = y;
+        this._xy = x & X_POS | (y << Y_SHIFT) & Y_POS;
+        // this._explored = false;
+        this._state = 0;
 
-        this._p = {}; // Cell properties are assigned here
+        // this._p = {}; // Cell properties are assigned here
 
-        this._lightPasses = elem ? elem.lightPasses() : true;
-        this._isPassable = elem ? elem.isPassable() : true;
+        this.setBit(IND_LIGHT_PASSES, elem.lightPasses());
+        this.setBit(IND_IS_PASSABLE, elem.isPassable());
     }
 
-    public getX(): number {return this._x;}
-    public getY(): number {return this._y;}
-    public getXY(): TCoord {return [this._x, this._y];}
-    public setX(x: number) {this._x = x;}
-    public setY(y: number) {this._y = y;}
-    public setXY(xy: TCoord) {this._x = xy[0]; this._y = xy[1];}
+    public getX(): number {return this._xy & X_POS;}
+    public getY(): number {return (this._xy & Y_POS) >>> Y_SHIFT;}
+    public getXY(): TCoord {return [this._xy & X_POS, (this._xy & Y_POS) >>> Y_SHIFT];}
+    public setX(x: number) {this._xy = x & X_POS;}
+    public setY(y: number) {this._xy = (y << Y_SHIFT) & Y_POS;}
+    public setXY(xy: TCoord) {
+        this._xy = xy[0] & X_POS | (xy[1] << Y_SHIFT) & Y_POS;}
 
     public isAtXY(x: number, y: number): boolean {
-        return x === this._x && y === this._y;
+        return x === this.getX() && y === this.getY();
     }
 
     public getKeyXY(): string {
-        return this._x + ',' + this._y;
+        return this.getX() + ',' + this.getY();
     }
 
     /* Sets/gets the base element for this cell. There can be only one element.*/
     public setBaseElem(elem: ConstBaseElem): void {
         this._baseElem = elem;
-        this._lightPasses = elem.lightPasses();
-        this._isPassable = elem.isPassable();
+        this.setBit(IND_LIGHT_PASSES, elem.lightPasses());
+        this.setBit(IND_IS_PASSABLE, elem.isPassable());
     }
 
     public getBaseElem(): ConstBaseElem { return this._baseElem; } // TODO safe null
 
     /* Returns true if the cell has props of given type.*/
     public hasProp(prop: CellPropsKey): boolean {
+        if (!this._p) {return false;}
         return this._p.hasOwnProperty(prop);
     }
 
     /* Returns the given type of props, or null if does not have any props of that
      * type. */
     public getProp(prop: CellPropsKey): TCellProp[] | null {
-        if (this._p[prop]) {
+        if (this._p && this._p[prop]) {
             return this._p[prop] as TCellProp[];
         }
         return null;
@@ -168,11 +183,13 @@ export class Cell {
 
     /* Returns true if cell has any props. */
     public hasProps(): boolean {
+        if (!this._p) {return false;}
         return Object.keys(this._p).length > 0;
     }
 
     public getProps(): TCellProp[] {
         let res: TCellProp[] = [];
+        if (!this._p) {return res;}
         Object.keys(this._p).forEach((key: CellPropsKey ) => {
             res = res.concat(this._p[key]!.slice());
         });
@@ -271,7 +288,8 @@ export class Cell {
 
     /* Returns true if light passes through this map cell.*/
     public lightPasses(): boolean {
-        if (!this._lightPasses) {return false;}
+        if (!this.getBit(IND_LIGHT_PASSES)) {return false;}
+        if (!this._p) {return true;}
         const elems = this._p.elements;
         if (elems) {
             if (elems.length === 1) {
@@ -295,7 +313,7 @@ export class Cell {
     }
 
     public isDangerous(): boolean {
-        if (this._p.actors) {
+        if (this._p && this._p.actors) {
             const actors = this.getProp(TYPE_ACTOR);
             if (actors) {
                 return actors[0].has('Damaging');
@@ -312,13 +330,14 @@ export class Cell {
         return this._baseElem.isSpellPassable();
     }
 
-    public setExplored(): void {this._explored = true;}
-    public isExplored(): boolean {return this._explored;}
+    // public setExplored(): void {this._explored = true;}
+    public setExplored(): void {this.setBit(IND_EXPLORED, true);}
+    public isExplored(): boolean {return this.getBit(IND_EXPLORED);}
 
     /* Returns true if it's possible to move to this cell.*/
     public isFree(isFlying = false): boolean {
         // if (!isFlying && !this._baseElem.isPassable()) {return false;}
-        if (!isFlying && !this._isPassable) {return false;}
+        if (!isFlying && !this.getBit(IND_IS_PASSABLE)) {return false;}
 
         if (this.hasProp(TYPE_ACTOR)) {
             for (let i = 0; i < this._p.actors!.length; i++) {
@@ -365,12 +384,13 @@ export class Cell {
     /* Add given obj with specified property type.*/
     public setProp(prop: CellPropsKey, obj: TCellProp): void {
         if (obj.getType() === 'connection' && this.hasConnection()) {
-            let msg = `${this._x},${this._y}`;
+            let msg = `${this.getX()},${this.getY()}`;
             msg += `\nExisting: ${JSON.stringify(this.getConnection())}`;
             msg += `\nTried to add: ${JSON.stringify(obj)}`;
             RG.err('Cell', 'setProp',
                 `Tried to add 2nd connection: ${msg}`);
         }
+        if (!this._p) {this._p = {};}
         // This check guarantees that this._p[prop] exists in else-if branches
         if (!this._p.hasOwnProperty(prop)) {
             this._p[prop] = [];
@@ -407,6 +427,9 @@ export class Cell {
             this._p[prop]!.splice(index, 1);
             if (this._p[prop]!.length === 0) {
                 delete this._p[prop];
+                if (Object.keys(this._p).length === 0) {
+                    this._p = undefined;
+                }
             }
             return true;
         }
@@ -415,9 +438,11 @@ export class Cell {
 
     /* Returns string representation of the cell.*/
     public toString(): string {
-        let str = 'Map.Cell ' + this._x + ', ' + this._y;
-        str += ' explored: ' + this._explored;
+        let str = 'Map.Cell ' + this.getX() + ', ' + this.getY();
+        str += ' explored: ' + this.isExplored();
         str += ' passes light: ' + this.lightPasses();
+        if (!this._p) {return str;}
+
         Object.keys(this._p).forEach(prop => {
             const arrProps = this._p[prop];
             for (let i = 0; i < arrProps.length; i++) {
@@ -449,7 +474,7 @@ export class Cell {
         const json: CellJSON = {
             t: ELEM_MAP.elemTypeToIndex[this._baseElem.getType()]
         };
-        if (this._explored) {json.ex = 1;}
+        if (this.getBit(IND_EXPLORED)) {json.ex = 1;}
         return json;
     }
 
@@ -457,6 +482,8 @@ export class Cell {
      * base element type. */
     public getPropNames(): string[] {
         const result = [this._baseElem.getType()];
+        if (!this._p) {return result;}
+
         const keys = Object.keys(this._p) as CellPropsKey[];
         keys.forEach(propType => {
             const props = this.getProp(propType);
@@ -474,6 +501,7 @@ export class Cell {
      */
     public hasPropType(propType: string): boolean {
         if (this._baseElem.getType() === propType) {return true;}
+        if (!this._p) {return false;}
 
         const keys = Object.keys(this._p);
         for (let i = 0; i < keys.length; i++) {
@@ -492,6 +520,8 @@ export class Cell {
     /* Returns all props with given type in the cell.*/
     public getPropType(propType: string): TCellProp[] | ConstBaseElem[] {
         const props: TCellProp[] = [];
+        if (!this._p) {return props;}
+
         if (this._baseElem.getType() === propType) {return [this._baseElem];}
         Object.keys(this._p).forEach((prop: CellPropsKey) => {
             // arrpPops must exist, otherwise it is not in keys
@@ -508,6 +538,8 @@ export class Cell {
     /* For debugging to find a given object. */
     public findObj(filterFunc: (obj: any) => boolean): any[] {
         const result: any[] = [];
+        if (!this._p) {return result;}
+
         Object.keys(this._p).forEach((propType: CellPropsKey) => {
             // props must exist, otherwise it is not in keys
             const props = this._p[propType]!;
@@ -522,6 +554,21 @@ export class Cell {
 
     public isOutdoors(): boolean {
         return !this._baseElem.has('Indoor');
+    }
+
+    protected getBit(ind: number): boolean {
+        return !!(this._state & (1 << ind));
+    }
+
+    protected setBit(ind: number, val: boolean): void {
+        if (val) {this._state = (1 << ind) | this._state;}
+        else {
+            this._state &= ~(1 << ind);
+        }
+    }
+
+    protected toggleBit(ind: number): void {
+        this._state ^= 1 << ind;
     }
 }
 
