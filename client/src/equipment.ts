@@ -134,16 +134,6 @@ export class Equipment {
         };
 
 
-        /* Creates getters for stats and combat attributes. */
-        for (let i = 0; i < _equipMods.length; i++) {
-            /* eslint no-loop-func: 0 */
-            // Use closure to fix the function name
-            const getFunc = () => {
-                return () => this.propertySum(_equipMods[i]);
-            };
-            this[_equipMods[i]] = getFunc();
-        }
-
     }
 
     public addSlot(slotType: string, slotObj: EquipSlot): void {
@@ -372,6 +362,16 @@ export class Equipment {
         return this._slots.hasOwnProperty(slotType);
     }
 }
+
+/* Creates getters for stats and combat attributes. */
+for (let i = 0; i < _equipMods.length; i++) {
+    /* eslint no-loop-func: 0 */
+    // Use closure to fix the function name
+    (Equipment.prototype as any)[_equipMods[i]] = function() {
+        return this.propertySum(_equipMods[i]);
+    };
+}
+
 
 export interface Equipment {
     getAccuracy(): number;
