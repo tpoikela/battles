@@ -94,6 +94,7 @@ export class SystemTimeEffects extends SystemBase {
                 const dmgComp = new Component.Damage(poisonDmg,
                     RG.DMG.POISON);
                 dmgComp.setSource(poison.getSource());
+                dmgComp.setDamageCateg(RG.DMG.EFFECT);
                 ent.add(dmgComp);
             }
         });
