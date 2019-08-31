@@ -9,18 +9,22 @@ import {Path} from '../../client/src/path';
 import {Screen} from '../../client/gui/screen';
 import {Keys} from '../../client/src/keymap';
 import {EventPool} from '../../client/src/eventpool';
-import {Brain, BrainPlayer} from '../../client/src/brain';
+import {BrainPlayer} from '../../client/src/brain';
 import {Random} from '../../client/src/random';
 
-import {Cell} from '../../client/src/map.cell';
 import {SentientActor} from '../../client/src/actor';
 
 import {CmdInput, IPlayerCmdInput,
     RandWeights, NoFunctionObject,
     ICoordXY, TCoord} from '../../client/src/interfaces';
 
+import {ContextProcessor, EnemyContextProcessor,
+    ZoneContextProcessor,
+    AreaContextProcessor} from './context-processors';
+
 type Stairs = import('../../client/src/element').ElementStairs;
 type Level = import('../../client/src/level').Level;
+type Cell = import('../../client/src/map.cell').Cell;
 
 const RNG = Random.getRNG();
 const {KEY, KeyMap} = Keys;
@@ -34,6 +38,11 @@ debug.enabled = true;
 const MOVE_DIRS = [-1, 0, 1];
 const LINE = '='.repeat(78);
 const POOL = EventPool.getPool();
+
+// Object for storing data between context processors
+export interface DriverContext {
+    ammoShot: {[key: string]: TCoord[]};
+}
 
 /* Base class for player drivers. A driver can be attached to the player actor
 *  and the driver will act as an AI controlling the player. */
@@ -98,111 +107,6 @@ interface DriverState {
 }
 
 type StateKey = keyof DriverState;
-
-/* Base class for context processing. */
-class ContextProcessor {
-
-    constructor(public name: string, public drv: PlayerDriver) {
-    }
-
-    public processContext(): boolean {
-        if (this.isWithinContext()) {
-            return this._process();
-        }
-        return false;
-    }
-
-    public isWithinContext(): boolean {
-        return false;
-    }
-
-    protected _process(): boolean {
-        return false;
-    }
-}
-
-class EnemyContextProcessor extends ContextProcessor {
-
-    public hpLow: number;
-    public ppRestLimit: number;
-    public hpRestLimit: number;
-
-    constructor(public name: string, public drv: PlayerDriver) {
-        super(name, drv);
-
-        this.hpLow = RNG.getUniformRange(0.25, 0.40);
-        this.ppRestLimit = RNG.getUniformRange(0.75, 1.0);
-        this.hpRestLimit = RNG.getUniformRange(0.75, 1.0);
-    }
-
-    public isWithinContext(): boolean {
-        return true;
-    }
-
-    /* Checks for surrounding enemies and whether to attack or not. Checks also
-     * for requirement to rest and gain health. */
-    public checkForEnemies(): void {
-        const drv = this.drv;
-        const brain = drv.player.getBrain() as BrainPlayer;
-        // const around = Brain.getCellsAroundActor(drv.player);
-        // const actorsAround = around.map((c: Cell) => c.getFirstActor());
-        const actorsAround = Brain.getSeenHostiles(drv.player);
-
-        drv.enemy = null;
-        actorsAround.forEach(actor => {
-            if (drv.enemy === null) {
-                if (actor && actor.isEnemy(drv.player)) {
-                    drv.enemy = actor;
-                    if (this.hasEnoughHealth()) {
-                        drv.action = 'attack';
-                    }
-                    else if (!brain.isRunModeEnabled()) {
-                        drv.action = 'run';
-                    }
-                    else {
-                        drv.action = 'flee';
-                    }
-                    drv.state.path = [];
-                }
-            }
-        });
-        if (drv.action === '' && this.shouldRest()) {
-            drv.action = 'rest';
-        }
-    }
-
-    public hasEnoughHealth(): boolean {
-        const drv = this.drv;
-        const health = drv.player.get('Health');
-        const maxHP = health.getMaxHP();
-        const hp = health.getHP();
-        if (hp > Math.round(this.hpLow * maxHP)) {
-            return true;
-        }
-        return false;
-    }
-
-    public shouldRest(): boolean {
-        const player = this.drv.player;
-        if (player.has('SpellPower')) {
-            const spellPower = player.get('SpellPower');
-            const pp = spellPower.getPP();
-            const maxPP = spellPower.getMaxPP();
-            return pp < (this.ppRestLimit * maxPP);
-        }
-        const health = player.get('Health');
-        const maxHP = health.getMaxHP();
-        const hp = health.getHP();
-        return hp < (this.hpRestLimit * maxHP);
-    }
-
-
-    protected _process(): boolean {
-        this.checkForEnemies();
-        return true;
-    }
-
-}
 
 /* Action processor executes the given action based on context. */
 class ActionProcessor {
@@ -354,6 +258,7 @@ export class PlayerDriver extends DriverBase {
 
     public contextProcs: ContextProcessor[];
     public actionProcs: {[key: string]: ActionProcessor[]};
+    public context: DriverContext;
 
     constructor(player?: SentientActor, game?: any) {
         super(player, game);
@@ -377,6 +282,10 @@ export class PlayerDriver extends DriverBase {
             visited: {} // cell: id,x,y
         };
 
+        this.context = {
+            ammoShot: {}
+        };
+
         // To keep track of stairs used for returning
         this.maxExploreTurns = 500; // Turns to spend in one level
 
@@ -390,7 +299,9 @@ export class PlayerDriver extends DriverBase {
         POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
 
         this.contextProcs = [
-            new EnemyContextProcessor('enemyContext', this)
+            new EnemyContextProcessor('enemyContext', this),
+            new AreaContextProcessor('areaContext', this),
+            new ZoneContextProcessor('zoneContext', this)
         ];
 
         this.actionProcs = {
@@ -412,6 +323,10 @@ export class PlayerDriver extends DriverBase {
             return (cmdOrCode as IPlayerCmdInput).code!;
         }
         else {return cmdOrCode;}
+    }
+
+    public hasPath(): boolean {
+        return this.state.path.length > 0;
     }
 
     public hasKeys(): boolean {return true;}
@@ -481,7 +396,7 @@ export class PlayerDriver extends DriverBase {
         const [pX, pY] = [pCell.getX(), pCell.getY()];
         --this.state.exploreTurns;
 
-        if (this.state.path.length === 0) {
+        if (!this.hasPath()) {
             const nX = pX;
             const nY = pY - 1;
             if (this.shouldPickupFromCell(pCell)) {
@@ -531,7 +446,7 @@ export class PlayerDriver extends DriverBase {
         const [pX, pY] = this.player.getXY();
         this.state.path = [];
         cells.forEach(pCell => {
-            if (this.state.path.length === 0) {
+            if (!this.hasPath()) {
                 const [cX, cY] = [pCell.getX(), pCell.getY()];
                 this.debug(`>> Looking for shortest path to cell ${cX},${cY}`);
                 const path = getShortestPath(pX, pY, cX, cY,
@@ -580,10 +495,10 @@ export class PlayerDriver extends DriverBase {
 
         let arrInd = '>';
         dirOrder.forEach(dir => {
-            if (this.state.path.length === 0) {
+            if (!this.hasPath()) {
                 this.debug(ind + arrInd + ' Looking path to ' + dir);
                 this.tryToSetPathToCell(cells[dir]);
-                if (this.state.path.length > 0) {
+                if (this.hasPath()) {
                     this.action = 'path';
                     return;
                 }
@@ -605,10 +520,10 @@ export class PlayerDriver extends DriverBase {
                 // Still some hope left
                 this.debug(ind + '>>>> Looking passage out');
                 this.tryToFindPassage(visible, false);
-                if (this.state.path.length === 0) {
+                if (!this.hasPath()) {
                     this.debug(ind + '>>>>> Looking visited cells now');
                     this.findAlreadySeenPassage();
-                    if (this.state.path.length === 0) {
+                    if (!this.hasPath()) {
                         console.log('Trying now from visited cells');
                         this.findPathToMove(visible, true);
                     }
@@ -662,7 +577,7 @@ export class PlayerDriver extends DriverBase {
         });
         if (cellStairs) {
             this.tryToSetPathToCell([cellStairs]);
-            if (this.state.path.length > 0) {
+            if (this.hasPath()) {
                 this.debug('Found path to stairs. Going there.');
                 return true;
             }
@@ -678,7 +593,7 @@ export class PlayerDriver extends DriverBase {
         ));
         this.debug('> N passageCells ' + passageCells.length);
         this.tryToSetPathToCell(passageCells);
-        if (this.state.path.length > 0) {
+        if (this.hasPath()) {
             this.setState({usePassage: true}, 'north passage');
             this.action = 'path';
         }
@@ -689,7 +604,7 @@ export class PlayerDriver extends DriverBase {
                 && !this.passageVisited(cell)
             ));
             this.tryToSetPathToCell(wPassageCells);
-            if (this.state.path.length > 0) {
+            if (this.hasPath()) {
                 this.setState({usePassage: true}, 'west passage');
                 this.action = 'path';
             }
@@ -699,7 +614,7 @@ export class PlayerDriver extends DriverBase {
                     cell.hasPassage() && !this.passageVisited(cell)
                 ));
                 this.tryToSetPathToCell(anyPassageCell);
-                if (this.state.path.length > 0) {
+                if (this.hasPath()) {
                     this.setState({usePassage: true}, 'any passage');
                     this.action = 'path';
                 }
@@ -733,7 +648,7 @@ export class PlayerDriver extends DriverBase {
         this.debug('Looking at non-visited passages');
         this.tryToSetPathToCell(newPassages);
 
-        if (this.state.path.length > 0) {
+        if (this.hasPath()) {
             this.setState({usePassage: true}, 'already seen passage');
             this.action = 'path';
         }
@@ -743,7 +658,7 @@ export class PlayerDriver extends DriverBase {
                 cell.hasPassage()
             ));
             this.tryToSetPathToCell(allPassages);
-            if (this.state.path.length > 0) {
+            if (this.hasPath()) {
                 this.setState({usePassage: true}, 'already seen passage');
                 this.action = 'path';
             }
@@ -844,7 +759,7 @@ export class PlayerDriver extends DriverBase {
             keycodeOrCmd = {code: KEY.USE_STAIRS_DOWN};
         }
         else if (this.action === 'path') {
-            if (this.state.path.length === 0) {
+            if (!this.hasPath()) {
                 RG.err('PlayerDriver', 'getPlayerCmd',
                        'Tried to shift coord from 0 length path');
             }
@@ -857,7 +772,7 @@ export class PlayerDriver extends DriverBase {
             this.debug(`Taking action path ${x},${y}, dX,dY ${dX},${dY}`);
             const code = KeyMap.dirToKeyCode(dX, dY);
             keycodeOrCmd = {code};
-            if (this.state.path.length === 0) {
+            if (!this.hasPath()) {
                 this.debug('PlayerDriver finished a path');
             }
         }
@@ -951,7 +866,7 @@ export class PlayerDriver extends DriverBase {
             const y = stairsXY[2];
             const cell = this.player.getLevel().getMap().getCell(x, y);
             this.tryToSetPathToCell([cell]);
-            if (this.state.path.length > 0) {
+            if (this.hasPath()) {
                 this.action = 'path';
                 this.debug('Returning back up the stairs now');
                 this.setState({exitZone: true}, 'shouldReturn');
