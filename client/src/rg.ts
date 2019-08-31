@@ -909,6 +909,7 @@ RG.DMG = {
     COLD: 'COLD',
     DIRECT: 'DIRECT',
     ENERGY: 'ENERGY',
+    EFFECT: 'EFFECT',
     FIRE: 'FIRE',
     HUNGER: 'HUNGER',
     ICE: 'ICE',
