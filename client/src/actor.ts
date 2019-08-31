@@ -34,7 +34,7 @@ export class BaseActor extends Entity {
     protected _brain: BrainBase;
 
     constructor(name: string) {
-        super({propType: RG.TYPE_ACTOR, type: null});
+        super();
         const named = new Component.Named();
         named.setName(name);
         this.add(named);
@@ -346,16 +346,21 @@ export class SentientActor extends BaseActor {
             id: this.getID(),
             name: this.getName(),
             type: this.getType(),
-            x: this.getX(),
-            y: this.getY(),
-            fovRange: this.getFOVRange(),
-            levelID,
-            inventory: this.getInvEq().getInventory().toJSON(),
-            equipment: this.getInvEq().getEquipment().toJSON(),
+            // x: this.getX(),
+            // y: this.getY(),
+            // fovRange: this.getFOVRange(),
+            // levelID,
+            // inventory: this.getInvEq().getInventory().toJSON(),
+            // equipment: this.getInvEq().getEquipment().toJSON(),
             brain: this._brain.toJSON(),
             new: 'Sentient', // Must match a constr function name in Actor
             components: compsToJSON(this)
         };
+
+        const invJSON = this.getInvEq().getInventory().toJSON();
+        if (invJSON.length > 0) {obj.inventory = invJSON;}
+        const eqJSON = this.getInvEq().getEquipment().toJSON();
+        if (eqJSON.length > 0) {obj.equipment = eqJSON;}
 
         if (obj.type === null) {
             RG.err('Actor.Sentient', 'toJSON',
@@ -367,6 +372,9 @@ export class SentientActor extends BaseActor {
         }
         if (this.has('Player')) {
             obj.isPlayer = true;
+            obj.x = this.getX();
+            obj.y = this.getY();
+            obj.levelID = levelID;
         }
         if (this._actualBrain) {
             obj.brain = this._actualBrain.toJSON();
