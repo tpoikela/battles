@@ -33,6 +33,8 @@ import {GameManager, VIEW_MAP, VIEW_PLAYER} from '../browser/game-manager';
 import {Cell} from '../src/map.cell';
 import {IMessage} from '../src/interfaces';
 
+const savePretty = false;
+
 type SentientActor = import('../src/actor').SentientActor;
 
 const INV_SCREEN = 'Inventory';
@@ -509,7 +511,7 @@ export class BattlesTop extends React.Component {
                     id=''
                     objData={this.gameManager.game}
                     onLoadCallback={this.onLoadCallback}
-                    pretty={false}
+                    pretty={savePretty}
                     savedObjName={player ? 'saveGame_' + player.getName() : ''}
                     saveButtonName='Save'
                     setMsg={this.showMsg}
@@ -520,7 +522,7 @@ export class BattlesTop extends React.Component {
                     loadInputValue='Load keys'
                     objData={this.gameManager.getRecordedCommands()}
                     onLoadCallback={this.onLoadRecordedKeys}
-                    pretty={false}
+                    pretty={savePretty}
                     savedObjName={player ? 'recorded_cmds_' + player.getName() : ''}
                     saveButtonName='SaveKeys'
                     setMsg={this.showMsg}
