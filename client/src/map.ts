@@ -273,6 +273,33 @@ export class CellMap {
         return cells;
     }
 
+    public getCellsInFOVPlus(actor: SentientActor, addRange: number): [Cell[], Cell[]] {
+        const cells: Cell[] = [];
+        const cellsPlus: Cell[] = [];
+        const [xA, yA] = actor.getXY();
+        const fovRange = actor.getFOVRange();
+        const range = fovRange + addRange;
+
+        if (actor.isLocated()) {
+            if (actor.getLevel().getMap() === this) {
+
+                this.fov.compute(xA, yA, range, (x, y, r, visibility) => {
+                    if (visibility) {
+                        if (this.hasXY(x, y)) {
+                            if (r <= fovRange) {
+                                cells.push(this._map[x][y]);
+                            }
+                            else {
+                                cellsPlus.push(this._map[x][y]);
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        return [cells, cellsPlus];
+    }
+
     /* Returns all cells explored by the player.*/
     public getExploredCells(): Cell[] {
         const cells = [];
