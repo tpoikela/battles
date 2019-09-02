@@ -381,18 +381,10 @@ export class GameMaster {
             army.addActor(player);
 
             player.get('InBattle').updateData({army: army.getName});
-            armyActors.forEach(actor => {
-                actor.addFriend(player);
-            });
-
-            armies.forEach(enemyArmy => {
-                if (enemyArmy !== army) {
-                    const enemies = enemyArmy.getActors();
-                    enemies.forEach(enemy => {
-                        enemy.addEnemy(player);
-                    });
-                }
-            });
+            if (!player.has('Groups')) {
+                player.add(new Component.Groups());
+            }
+            player.get('Groups').addGroup(army.getID());
 
             if (!battleLevel.moveActorTo(player, pX, pY)) {
                 RG.err('GameMaster', 'getSelArmyObject',
