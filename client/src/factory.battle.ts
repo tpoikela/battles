@@ -180,6 +180,7 @@ export class FactoryBattle {
         const maxDanger = conf.danger || 5;
 
         const army = new Army(faction);
+        const armyId = army.getID();
         army.addAlignment(faction, 1);
         const constr = [
             {op: 'eq', prop: 'type', value: faction},
@@ -193,6 +194,10 @@ export class FactoryBattle {
                 comp.setData({name: battle.getName(),
                     army: army.getName()});
                 actor.add(comp);
+                if (!actor.has('Groups')) {
+                    actor.add(new Component.Groups());
+                }
+                actor.get('Groups').addGroup(armyId);
                 army.addActor(actor);
             }
         }
@@ -226,24 +231,17 @@ export class FactoryBattle {
         // Make army actors into each others enemies
         armies.forEach(army1 => {
             armies.forEach(army2 => {
-                if (army1.getName() !== army2.getName()) {
+                if (army1.getID() !== army2.getID()) {
+                    const id2 = army2.getID();
                     army1.getActors().forEach(a1 => {
-                        army2.getActors().forEach(a2 => {
-                            a1.addEnemy(a2);
-                            a2.addEnemy(a1);
-                        });
+                        a1.getBrain().getMemory().addEnemyGroup(id2);
                     });
                 }
             });
 
             // Make the actors in army friends
             army1.getActors().forEach(actor1 => {
-                army1.getActors().forEach(actor2 => {
-                    if (actor1.getID() !== actor2.getID()) {
-                        actor1.addFriend(actor2);
-                        actor2.addFriend(actor1);
-                    }
-                });
+                actor1.getBrain().getMemory().addFriendGroup(army1.getID());
             });
         });
     }

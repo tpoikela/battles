@@ -15,6 +15,7 @@ type ZoneBase = import('./world').ZoneBase;
 const POOL = EventPool.getPool();
 
 export interface ArmyJSON {
+    id: number;
     name: string;
     actors: number[];
     defeatThreshold: number;
@@ -34,18 +35,18 @@ export interface BattleJSON {
 
 /* Army is a collection of actors associated with a battle. This is useful for
  *  battle commanders to have access to their full army. */
-export class Army {
+export class Army extends Entity {
 
     public hasNotify: boolean;
     private _name: string;
     private _actors: SentientActor[]; // All actors inside this army
-    private _battle: Battle;
+    private _battle: null | Battle;
     private _casualties: number;
     private _defeatThreshold: number;
     private _alignment: {[key: string]: number};
 
-
     constructor(name: string) {
+        super();
         this._name = name;
         this._actors = []; // All actors inside this army
 
@@ -164,6 +165,7 @@ export class Army {
 
     public toJSON(): ArmyJSON {
         return {
+            id: this.getID(),
             name: this._name,
             actors: this._actors.map(actor => actor.getID()),
             defeatThreshold: this._defeatThreshold,
