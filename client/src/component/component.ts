@@ -2,7 +2,7 @@
 import RG from '../rg';
 
 import * as Mixin from '../mixin';
-import {ComponentBase, Component} from './component.base';
+import {ComponentBase, Component, NO_SERIALISATION} from './component.base';
 import {EventPool} from '../eventpool';
 import {Entity} from '../entity';
 import {Dice} from '../dice';
@@ -96,6 +96,7 @@ Location.prototype.getCell = function(): Cell | null {
     return null;
 };
 
+// Location.prototype.toJSON = NO_SERIALISATION;
 Location.prototype.toJSON = function() {
     const obj: any = {
         setType: this.getType(), setID: this.getID(),
@@ -1028,6 +1029,25 @@ export const Transaction = TransientDataComponent('Transaction', {args: null});
 //--------------------------------------------
 // Battle-related components
 //--------------------------------------------
+//
+export const Groups = UniqueDataComponent('Groups', {
+    groups: null
+});
+Groups.prototype._init = function() {
+    this.groups = [];
+};
+
+Groups.prototype.addGroup = function(id: number) {
+    const index = this.groups.indexOf(id);
+    if (index >= 0) {this.groups.push(id);}
+};
+
+Groups.prototype.hasGroupId = function(ids: number[]): boolean {
+    for (let i = 0; i < ids.length; i++) {
+        if (this.groups.indexOf(ids[i]) >= 0) {return true;}
+    }
+    return false;
+};
 
 export const BattleEvent = TransientDataComponent('BattleEvent', {
     battle: null, eventType: ''
