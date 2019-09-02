@@ -10,6 +10,8 @@ interface ActorsMap {
     enemies?: BaseActor[];
     friends?: BaseActor[];
     seen?: {[key: string]: ICoordXY};
+    enemyGroups?: number[];
+    friendGroups?: number[];
 }
 
 const NOT_ATTACKED = null;
@@ -43,11 +45,34 @@ export class Memory {
         }
     }
 
+    public addEnemyGroup(groupId: number): void {
+        if (!this._actors.enemyGroups) {
+            this._actors.enemyGroups = [];
+        }
+        this._actors.enemyGroups.push(groupId);
+    }
+
+    public addFriendGroup(groupId: number): void {
+        if (!this._actors.friendGroups) {
+            this._actors.friendGroups = [];
+        }
+        this._actors.friendGroups.push(groupId);
+    }
+
     /* Checks if given actor is an enemy. */
     public isEnemy(actor: BaseActor): boolean {
+        // Checks for personal enemy
         if (this._actors.hasOwnProperty('enemies')) {
-            const index = this._actors.enemies.indexOf(actor);
+            const index = this._actors.enemies!.indexOf(actor);
             if (index >= 0) {return true;}
+        }
+        // Checks for group enemy (ie in Army)
+        if (this._actors.enemyGroups) {
+            if (actor.has('Groups')) {
+                if (actor.get('Groups').hasGroupId(this._actors.enemyGroups)) {
+                    return true;
+                }
+            }
         }
         // Friend overrides generic enemy type
         if (!this.isFriend(actor)) {
@@ -64,8 +89,16 @@ export class Memory {
     /* Checks if actor is a friend. */
     public isFriend(actor: BaseActor): boolean {
         if (this._actors.hasOwnProperty('friends')) {
-            const index = this._actors.friends.indexOf(actor);
+            const index = this._actors.friends!.indexOf(actor);
             return index >= 0;
+        }
+        // Checks for group enemy (ie in Army)
+        if (this._actors.friendGroups) {
+            if (actor.has('Groups')) {
+                if (actor.get('Groups').hasGroupId(this._actors.friendGroups)) {
+                    return true;
+                }
+            }
         }
         return false;
     }
