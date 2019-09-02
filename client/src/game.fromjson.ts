@@ -731,12 +731,12 @@ FromJSON.prototype.getItemObjectType = function(item) {
         }
         else {
             const itemJSON = JSON.stringify(item);
-            RG.err('Game.Save', 'getItemObjectType',
+            RG.err('FromJSON', 'getItemObjectType',
                 'item.setType is undefined. item: ' + itemJSON);
         }
     }
     else {
-        RG.err('Game.Save', 'getItemObjectType',
+        RG.err('FromJSON', 'getItemObjectType',
             'item is undefined');
     }
     return null;
@@ -1117,6 +1117,9 @@ FromJSON.prototype.restoreBattle = function(json: BattleJSON): Battle {
 
 FromJSON.prototype.restoreArmy = function(json: ArmyJSON): Army {
     const army = new Army(json.name);
+    if (json.id) {
+        army.setID(json.id);
+    }
     json.actors.forEach(id => {
         if (this.id2entity[id]) {
             army.addActor(this.id2entity[id]);
