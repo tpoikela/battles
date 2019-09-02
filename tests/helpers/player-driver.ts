@@ -20,7 +20,7 @@ import {CmdInput, IPlayerCmdInput,
 
 import {ContextProcessor, EnemyContextProcessor,
     ZoneContextProcessor,
-    AreaContextProcessor} from './context-processors';
+    AreaContextProcessor, ExploreContextProcessor} from './context-processors';
 
 type Stairs = import('../../client/src/element').ElementStairs;
 type Level = import('../../client/src/level').Level;
@@ -159,7 +159,13 @@ class BasicAttackProcessor extends ActionProcessor {
             return {code: Keys.VK_t};
         }
         else {
-            keycodeOrCmd = {code};
+            if (Math.abs(dX) <= 1 && Math.abs(dY) <= 1) {
+                keycodeOrCmd = {code};
+            }
+            else {
+                drv.setPathAction([eX, eY]);
+                return null;
+            }
         }
         return keycodeOrCmd;
     }
@@ -182,6 +188,7 @@ class BasicAttackProcessor extends ActionProcessor {
         const [eX, eY] = drv.enemy!.getXY();
         const [aX, aY] = player.getXY();
         const miss = player.getInvEq().getEquipment().getItem('missile');
+
         if (miss) {
             const range = RG.getMissileRange(player, miss);
             const getDist = Path.shortestDist(eX, eY, aX, aY);
@@ -301,7 +308,8 @@ export class PlayerDriver extends DriverBase {
         this.contextProcs = [
             new EnemyContextProcessor('enemyContext', this),
             new AreaContextProcessor('areaContext', this),
-            new ZoneContextProcessor('zoneContext', this)
+            new ZoneContextProcessor('zoneContext', this),
+            new ExploreContextProcessor('zoneContext', this)
         ];
 
         this.actionProcs = {
@@ -312,6 +320,7 @@ export class PlayerDriver extends DriverBase {
     }
 
     public setPlayer(pl: SentientActor): void {this.player = pl;}
+    public getPlayer(): SentientActor {return this.player;}
 
     /* Required for the player driver. */
     public getNextCode(): CmdInput {
@@ -443,12 +452,15 @@ export class PlayerDriver extends DriverBase {
     }
 
     public tryToSetPathToCell(cells: Cell[]): void {
-        const [pX, pY] = this.player.getXY();
+        // const [pX, pY] = this.player.getXY();
         this.state.path = [];
         cells.forEach(pCell => {
             if (!this.hasPath()) {
-                const [cX, cY] = [pCell.getX(), pCell.getY()];
-                this.debug(`>> Looking for shortest path to cell ${cX},${cY}`);
+                // const [cX, cY] = [pCell.getX(), pCell.getY()];
+                if (this.setPathAction(pCell.getXY())) {
+                }
+
+                /*
                 const path = getShortestPath(pX, pY, cX, cY,
                                              this._passableCallback);
                 if (path.length > 1) {
@@ -456,7 +468,7 @@ export class PlayerDriver extends DriverBase {
                     this.state.path = path;
                     this.state.path.shift(); // Discard 1st coord
                     this.action = 'path';
-                }
+                }*/
             }
         });
     }
@@ -690,15 +702,12 @@ export class PlayerDriver extends DriverBase {
                 keycodeOrCmd = procs[i].process(this);
                 if (keycodeOrCmd) {break;}
             }
-            if (!keycodeOrCmd) {
-                RG.err('PlayerDriver', 'getPlayerCmd',
-                    `No proc returned OK for action ${this.action}`);
-            }
         }
-        else if (this.action === 'attack') {
-            // Obsolete
-        }
-        else if (this.action === 'pickup') {
+        if (keycodeOrCmd) {return keycodeOrCmd;}
+        // If action changed, we could evaluate action procs again,
+        // Maybe a while loop or something
+
+        if (this.action === 'pickup') {
             keycodeOrCmd = {code: KEY.PICKUP};
         }
         else if (this.action === 'flee') {
@@ -708,15 +717,14 @@ export class PlayerDriver extends DriverBase {
             }
             else {
                 const [eX, eY] = [enemy.getX(), enemy.getY()];
+                const [dX, dY] = RG.dXdYUnit([eX, eY], [pX, pY]);
                 // Invert direction for escape
-                const dX = -1 * (eX - pX);
-                const dY = -1 * (eY - pY);
-                const newX = pX + dX;
-                const newY = pY + dY;
+                const newX = pX + -dX;
+                const newY = pY + -dY;
 
                 if (map.isPassable(newX, newY)) {
-                    const code = KeyMap.dirToKeyCode(dX, dY);
-                    this.debug(`flee to dx,dy ${dX},${dY}`);
+                    const code = KeyMap.dirToKeyCode(-dX, -dY);
+                    this.debug(`flee to dx,dy ${-dX},${-dY}`);
                     keycodeOrCmd = {code};
                 }
                 else { // Pick a random direction
@@ -846,6 +854,22 @@ export class PlayerDriver extends DriverBase {
         }
         // Prevent immediate return
         this.state.visitedStairs[targetID][tx + ',' + ty] = [tx, ty];
+    }
+
+    public setPathAction(toXY: TCoord): boolean {
+        this.debug(`>> Looking for shortest path to cell ${toXY[0]},${toXY[1]}`);
+        const pCell = this.player.getCell();
+        const [pX, pY] = [pCell.getX(), pCell.getY()];
+        const path = getShortestPath(pX, pY, toXY[0], toXY[1],
+                                     this._passableCallback);
+        if (path.length > 1) {
+            this.debug('Found a non-zero path');
+            this.state.path = path;
+            this.state.path.shift(); // Discard 1st coord
+            this.action = 'path';
+            return true;
+        }
+        return false;
     }
 
     public movingToConnect(): boolean {
