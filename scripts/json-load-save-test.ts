@@ -1,15 +1,23 @@
 
 import * as RG from '../client/src/battles';
 const fs = require('fs');
+// import {dbg} from 'debug';
+
+// const debug = dbg('bitn:json-load-save-test');
+// debug.enabled = true;
+const debug = console.error;
 
 // const fname = '/home/tpoikela/Downloads/bsave_for_test.json';
 // const fname = '/home/tpoikela/Downloads/bsave_1567344532809_saveGame_Wuff_REF.json';
 //const fname = '/home/tpoikela/Downloads/bsave_1567367171988_saveGame_Greyth.json';
-const fname = '/home/tpoikela/Downloads/bsave_1567368790924_saveGame_Greyth.json';
+// const fname = '/home/tpoikela/Downloads/bsave_1567368790924_saveGame_Greyth.json';
+const fname = '/home/tpoikela/Downloads/bsave_1567528939024_saveGame_Greyth.json';
+debug('Reading the JSON file...');
 const buf = fs.readFileSync(fname).toString();
 
 // console.log(buf);
 
+debug('Parsing now the original file...');
 const jsonParsed = JSON.parse(buf.trim());
 
 // let totalLen = 0;
@@ -17,16 +25,23 @@ let callDepth = 0;
 const maxCallDepth = 20;
 let IND = 0;
 
+debug('Analysing now the original file...');
 printSize(jsonParsed, '');
 
-const fromJSON = new RG.FromJSON();
-let game = new RG.GameMain();
-game = fromJSON.createGame(game, jsonParsed);
+const testNewGame = false;
+if (testNewGame) {
+    debug('Creating new game from original file...');
+    const fromJSON = new RG.FromJSON();
+    let game = new RG.GameMain();
+    game = fromJSON.createGame(game, jsonParsed);
 
-console.log('\nNow trying to size of the game again...');
-console.log('\n====>>>> Going for second round');
-const loadedGameParsed = game.toJSON();
-printSize(loadedGameParsed, '');
+    console.log('\nNow trying to size of the game again...');
+    console.log('\n====>>>> Going for second round');
+    debug('Serialising new game now to JSON...');
+    const loadedGameParsed = game.toJSON();
+    debug('Analysing serialized new game now...');
+    printSize(loadedGameParsed, '');
+}
 
 //---------------------------------------------------------------------------
 // HELPERS
@@ -57,12 +72,12 @@ function printSize(obj, startKey): void {
     });
 
     const largestKeys = getNLargest(keysBySize, 2);
-    largestKeys.forEach(largestKey => {
-        if (largestKey) {
-            if (typeof obj[largestKey] === 'object') {
+    largestKeys.forEach(key => {
+        if (key) {
+            if (typeof obj[key] === 'object') {
                 if (callDepth < maxCallDepth) {
                     ++callDepth;
-                    printSize(obj[largestKey], startKey + '.' + largestKey);
+                    printSize(obj[key], startKey + '.' + key);
                     --callDepth;
                 }
             }
@@ -70,16 +85,6 @@ function printSize(obj, startKey): void {
     });
     --IND;
     console.log(`${indent(IND)} }}}`);
-
-    /*
-        if (typeof obj[largestKey] === 'object') {
-            if (callDepth < maxCallDepth) {
-                ++callDepth;
-                printSize(obj[largestKey], startKey + '.' + largestKey);
-            }
-        }
-    }
-    */
 }
 
 function indent(ind: number) {
