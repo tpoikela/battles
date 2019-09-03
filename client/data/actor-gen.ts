@@ -96,7 +96,7 @@ shellProps.races = {
     },
     orc: {
         strength: 2, magic: -2, willpower: -2,
-        type: 'orc', prefix: 'orc', char: 'o', colorg: 'darkseagreen'
+        type: 'orc', prefix: 'orc', char: 'o', colorbg: 'darkseagreen'
     },
     ratling: {
         agility: 2, perception: 4,
