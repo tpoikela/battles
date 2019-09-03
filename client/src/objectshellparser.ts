@@ -867,29 +867,36 @@ export const Parser = function() {
 
     /* Stores char/CSS className for the object for rendering purposes.*/
     this.storeRenderingInfo = (categ, obj) => {
+        console.log('Storing render info for', obj);
+        let fg = '';
+        let bg = '';
         if (obj.hasOwnProperty('color')) {
             if (RG.isNullOrUndef([obj.color])) {
                 const json = JSON.stringify(obj);
                 RG.err('Parser', 'storeRenderingInfo',
                     `obj.color null/undef! obj: ${json}`);
             }
-            let {fg, bg} = obj.color;
+            fg = obj.color.fg;
+            bg = obj.color.bg;
+        }
 
-            if (obj.hasOwnProperty('colorfg')) {
-                fg = obj.colorfg;
-            }
-            if (obj.hasOwnProperty('colorbg')) {
-                bg = obj.colorbg;
-            }
-            if (!fg || !bg) {
-                const json = JSON.stringify(obj.color);
-                RG.err('Parser', 'storeRenderingInfo',
-                    `fg and bg must be given. ${obj.name} Got: ${json}`);
-            }
+        if (obj.hasOwnProperty('colorfg')) {
+            fg = obj.colorfg;
+        }
+        if (obj.hasOwnProperty('colorbg')) {
+            bg = obj.colorbg;
+        }
+        /*if (!fg || !bg || !obj.className) {
+            const json = JSON.stringify(obj.color);
+            RG.err('Parser', 'storeRenderingInfo',
+                `fg and bg OR className must be given. ${obj.name} Got: ${json}`);
+        }*/
+        if (fg !== '' || bg !== '') {
             if (!obj.className) {obj.className = '';}
             obj.className += ' cell-fg-' + fg.toLowerCase() +
                 ' cell-bg-' + bg.toLowerCase();
         }
+
         if (obj.hasOwnProperty('char')) {
             if (obj.hasOwnProperty('name')) {
                 RG.addCharStyle(categ, obj.name, obj.char);
@@ -903,6 +910,7 @@ export const Parser = function() {
         }
         if (obj.hasOwnProperty('className')) {
             if (obj.hasOwnProperty('name')) {
+                console.log('ObjectShellParser adding', obj.name, obj.className);
                 RG.addCellStyle(categ, obj.name, obj.className);
                 if (obj.dontCreate) {
                     RG.addCellStyle(categ, obj.type, obj.className);
