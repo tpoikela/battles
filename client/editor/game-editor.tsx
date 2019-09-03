@@ -276,7 +276,7 @@ export default class GameEditor extends Component {
     level.editorID = state.idCount++;
     state.level = level;
     state.levelList.push(level);
-    (window as any).LEVEL = level;
+    DebugUtilsGUI.setDebugHandle('LEVEL', level);
 
     this.parser = ObjectShell.getParser();
 
@@ -539,17 +539,12 @@ export default class GameEditor extends Component {
     return null;
   }
 
-  public onCellClick(x, y): void {
+  public onCellClick(x: number, y: number): void {
     const map = this.getCurrMap();
     if (map && map.hasXY(x, y)) {
       const cell = map.getCell(x, y);
       console.log(`Clicked ${x},${y} ${JSON.stringify(cell)}`);
-
-      if (cell.hasActors()) {
-        const topActor = cell.getActors()![0];
-        console.log(topActor);
-        console.log(JSON.stringify(topActor));
-      }
+      DebugUtilsGUI.printCellInfo(cell);
     }
   }
 
@@ -1321,7 +1316,7 @@ export default class GameEditor extends Component {
     else if (!this.state.simulationStarted) {
 
       this.game = new GameMain();
-      (window as any).GAME = this.game; // Handle for debugging
+      DebugUtilsGUI.setDebugHandle('GAME', this.game);
 
       const fromJSON = new FromJSON();
       const json = this.state.level.toJSON();
@@ -1433,7 +1428,7 @@ export default class GameEditor extends Component {
         this.frameID = null;
       }
       this.game = null;
-      (window as any).GAME = null;
+      DebugUtilsGUI.setDebugHandle('GAME', null);
       delete this.game;
       this.setShownLevel({level: this.getLevel(),
         simulationStarted: false, simulationPaused: false});
@@ -1441,7 +1436,7 @@ export default class GameEditor extends Component {
   }
 
   public setShownLevel(args) {
-    (window as any).LEVEL = args.level;
+    DebugUtilsGUI.setDebugHandle('LEVEL', args.level);
     this.setState(args);
   }
 
@@ -1849,3 +1844,33 @@ export default class GameEditor extends Component {
 
 }
 
+/* Small utility class for helping with debug. */
+class DebugUtilsGUI {
+
+  public static printCellInfo(cell: Cell): void {
+    if (cell.hasActors()) {
+      const topActor = cell.getActors()![0];
+      DebugUtilsGUI.setDebugHandle('ACTOR', topActor);
+      console.log(topActor);
+      console.log(JSON.stringify(topActor));
+    }
+    if (cell.hasItems()) {
+        const topItem = cell.getItems()![0];
+        DebugUtilsGUI.setDebugHandle('ITEM', topItem);
+        console.log(topItem);
+        console.log(JSON.stringify(topItem));
+    }
+    if (cell.hasElements()) {
+        const topElem = cell.getElements()![0];
+        DebugUtilsGUI.setDebugHandle('ELEMENT', topElem);
+        console.log(topElem);
+        console.log(JSON.stringify(topElem));
+    }
+  }
+
+  public static setDebugHandle(name: string, obj: any): void {
+    console.log('Setting debug handle window.' + name);
+    (window as any)[name] = obj; // Handle for debugging
+  }
+
+}
