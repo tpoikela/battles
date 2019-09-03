@@ -184,6 +184,9 @@ export class AreaContextProcessor extends ContextProcessor {
             //   - We can find unexplored cell by doing +1 FOV
             // - Move player into zones to explore them
         }
+        else {
+            this.drv.action = 'path';
+        }
         return false;
     }
 

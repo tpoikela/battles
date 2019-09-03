@@ -368,7 +368,9 @@ export class PlayerDriver extends DriverBase {
         if (this.action === '') {this.checkForSelection();}
         this.contextProcs.forEach((proc: ContextProcessor) => {
             if (this.action === '') {
-                proc.processContext();
+                if (!proc.processContext()) {
+                    this.action = ''; // Just in case
+                }
             }
         });
         // if (this.action === '') {this.checkForEnemies();}
