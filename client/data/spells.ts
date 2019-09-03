@@ -118,12 +118,12 @@ Spell.AnimateDead.prototype.cast = function(args) {
 };
 
 Spell.AnimateDead.prototype.animateCallback = function(cell: Cell) {
-    const compTypes = ['Named', 'Stats', 'Combat', 'Experience'];
+    const compTypes = ['Stats', 'Combat', 'Experience'];
     const caster = this.getCaster();
     if (!cell.hasItems()) {return;}
 
-    const items: ItemBase[] = cell.getItems();
-    const corpseItem: ItemBase = items.find((i: ItemBase) => /corpse/.test(i.getName()));
+    const items: ItemBase[] = cell.getItems()!;
+    const corpseItem = items.find((i: ItemBase) => /corpse/.test(i.getName()));
     if (!corpseItem) {
         RG.warn('AnimateDead', 'animateCallback',
             `No corpses found. Should not have cast the spell at all`);
@@ -599,8 +599,9 @@ Spell.SummonSpiders = function() {
         const totalDanger = danger + Math.round(expLevel / 2);
         const casterName = this.getCaster().getName();
         return (/spider/.test(actor.name) &&
+            !(/undead/.test(actor.name)) &&
             actor.danger <= totalDanger &&
-               casterName !== actor.name);
+            casterName !== actor.name);
     };
 
 };
