@@ -5,7 +5,7 @@ import {Pickup} from './component/component';
 import {compsToJSON} from './component/component.base';
 import {Random} from './random';
 import {EventPool} from './eventpool';
-// import {verifyLevelCache} from './verify';
+import {verifyLevelCache} from './verify';
 import * as Mixin from './mixin';
 import {ELEM} from '../data/elem-constants';
 import * as Component from './component/component';
@@ -396,6 +396,10 @@ export class Level extends Entity {
             if (this._map && this._map.hasXY(x, y)) {
                 this._addPropToLevelXY(RG.TYPE_ACTOR, actor, x, y);
                 RG.debug(this, 'Added actor to map x: ' + x + ' y: ' + y);
+                if (this._p.actors.length > 500) {
+                    RG.warn('Level', 'addActor',
+                        `Over 500 actors. Last added: ${actor.getName()}`);
+                }
                 return true;
             }
             else {
@@ -766,6 +770,10 @@ export class Level extends Entity {
         });
 
         return obj;
+    }
+
+    public verifyLevelCache(): void {
+        verifyLevelCache(this);
     }
 }
 
