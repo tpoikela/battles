@@ -171,7 +171,7 @@ export class SystemDeath extends SystemBase {
     }
 
     public _cloneComponentsToCorpse(actor, corpse): void {
-        const compTypes = ['Named', 'Health', 'Stats', 'Combat', 'Experience'];
+        const compTypes = ['Health', 'Stats', 'Combat', 'Experience'];
         compTypes.forEach(compType => {
             const comp = actor.get(compType).clone();
             corpse.add(comp);
