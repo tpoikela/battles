@@ -34,7 +34,7 @@ import {Brain} from './brain';
 import {BrainPlayer} from './brain/brain.player';
 import {BrainSpawner} from './brain/brain.virtual';
 import {MessageHandler} from './message-handler';
-import {JsonMap} from './interfaces';
+import {JsonMap, LoadStat} from './interfaces';
 
 type IAreaTileJSON = World.IAreaTileJSON;
 type Stairs = Element.ElementStairs;
@@ -982,6 +982,9 @@ FromJSON.prototype.setGlobalConfAndObjects = function(game, gameJSON: JsonMap) {
     if (gameJSON.objectShellParser) {
         ObjectShell.restoreParser(gameJSON.objectShellParser);
     }
+    if (gameJSON.gameID) {
+        game.gameID = gameJSON.gameID;
+    }
     const engineJSON: JsonMap = gameJSON.engine as JsonMap;
     if (engineJSON.msgHandler) {
         const msgJSON = engineJSON.msgHandler;
@@ -1256,7 +1259,7 @@ FromJSON.prototype.getLevelsToRestore = function(gameJSON) {
             place.area.forEach(area => {
                 area.tiles.forEach((tileCol, x) => {
                     tileCol.forEach((tile, y) => {
-                        if (area.tilesLoaded[x][y]) {
+                        if (area.tileStatus[x][y] === LoadStat.LOADED) {
                             numLevels += tile.levels.length;
                             levels = levels.concat(tile.levels);
                         }
@@ -1396,7 +1399,12 @@ FromJSON.prototype.connectConnections = function(conns) {
 
 FromJSON.prototype.restoreChunkManager = function(game, gameJSON) {
     if (gameJSON.chunkManager) {
+        const {chunkManager} = gameJSON;
         game.setEnableChunkUnload(true);
+        if (chunkManager.useInMemoryStore) {
+            // TODO fix ugly as hell
+            game._chunkManager.persist.store.data = chunkManager.data;
+        }
     }
 };
 

@@ -47,6 +47,7 @@ export const GameMain = function() {
     this._shownLevel = null; // One per game only
     this._gameOver = false;
     this.actorsKilled = {};
+    this.gameID = Date.now();
 
     this._enableChunkUnload = false;
     this._chunkManager = null;
@@ -279,12 +280,14 @@ export const GameMain = function() {
     /* Checks if player moved to a tile (from tile or was added). */
     this.checkIfTileChanged = (args) => {
         const {actor, src, target} = args;
+        console.log('checkIfTileChanged args', args);
 
         const areaLevels = [target];
         if (!RG.isNullOrUndef([src])) {
             areaLevels.push(src);
         }
 
+        console.log('WWW checkIfTileChanged() now');
         const area = this.getArea(0);
         if (area && (areaLevels.length === 2) && area.hasTiles(areaLevels)) {
             POOL.emitEvent(RG.EVT_TILE_CHANGED,
@@ -575,6 +578,7 @@ export const GameMain = function() {
     this.toJSON = () => {
         const parser = ObjectShell.getParser();
         const obj: any = { // TODO fix typings
+            gameID: this.gameID,
             engine: this._engine.toJSON(),
             gameMaster: this._master.toJSON(),
             gameObjectID: GameObject.ID,

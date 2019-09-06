@@ -15,7 +15,7 @@ import {Cell} from './map.cell';
 import {SentientActor} from './actor';
 import {FactoryLevel} from './factory.level';
 import * as Component from './component';
-import {TCoord, IWorldElemMap} from './interfaces';
+import {TCoord, IWorldElemMap, LoadStat} from './interfaces';
 import {Entity} from './entity';
 
 const POOL: EventPool = EventPool.getPool();
@@ -45,7 +45,13 @@ export interface IAreaTileJSON {
     isJSON: boolean;
 }
 
-export type AreaTileObj = AreaTile | IAreaTileJSON;
+export interface IAreaTileOnDisk {
+    level: number;
+    tileId: string;
+    onDisk: boolean;
+}
+
+export type AreaTileObj = AreaTile | IAreaTileJSON | IAreaTileOnDisk;
 
 const RNG = Random.getRNG();
 
@@ -1084,8 +1090,9 @@ export class AreaTile {
         return msg;
     }
 
-    public toJSON() {
+    public toJSON(): IAreaTileJSON {
         return {
+            isJSON: true,
             x: this._tileX,
             y: this._tileY,
             level: this._level.getID(),
@@ -1122,7 +1129,7 @@ World.AreaTile = AreaTile;
 export class Area extends WorldBase {
 
     // Keeps track which tiles contains real AreaTile objects
-    public tilesLoaded: boolean[][];
+    public tileStatus: LoadStat[][];
 
     // Control which tile has its zones created
     public zonesCreated: {[key: string]: boolean};
@@ -1153,7 +1160,7 @@ export class Area extends WorldBase {
         this.zonesCreated = {};
 
         // Keeps track which tiles contains real AreaTile objects
-        this.tilesLoaded = [];
+        this.tileStatus = [];
 
         // TODO move to class methods
 
@@ -1169,15 +1176,28 @@ export class Area extends WorldBase {
     }
 
     public isLoaded(x: number, y: number): boolean {
-        return this.tilesLoaded[x][y];
+        return this.tileStatus[x][y] === LoadStat.LOADED;
+    }
+
+    public isJSON(x: number, y: number): boolean {
+        return this.tileStatus[x][y] === LoadStat.JSON;
+    }
+
+    public isOnDisk(x: number, y: number): boolean {
+        return this.tileStatus[x][y] === LoadStat.ON_DISK;
     }
 
     public setLoaded(x: number, y: number): void {
-        this.tilesLoaded[x][y] = true;
+        this.tileStatus[x][y] = LoadStat.LOADED;
     }
 
-    public setUnloaded(x: number, y: number): void {
-        this.tilesLoaded[x][y] = false;
+    public setUnloaded2JSON(x: number, y: number): void {
+        this.tileStatus[x][y] = LoadStat.JSON;
+    }
+
+    public setOnDisk(x: number, y: number, obj: IAreaTileOnDisk): void {
+        this.setTile(x, y, obj);
+        this.tileStatus[x][y] = LoadStat.ON_DISK;
     }
 
     public markAllZonesCreated(): void {
@@ -1198,7 +1218,7 @@ export class Area extends WorldBase {
         return this._tiles;
     }
 
-    public setTile(x, y, tile: AreaTile) {
+    public setTile(x, y, tile: AreaTileObj) {
         this._tiles[x][y] = tile;
     }
 
@@ -1214,7 +1234,7 @@ export class Area extends WorldBase {
         // Create the tiles
         for (let x = 0; x < this._sizeX; x++) {
             const tileColumn = [];
-            this.tilesLoaded.push([]);
+            this.tileStatus.push([]);
             for (let y = 0; y < this._sizeY; y++) {
                 this.zonesCreated[x + ',' + y] = false;
                 const newTile = new AreaTile(x, y, this);
@@ -1232,13 +1252,13 @@ export class Area extends WorldBase {
                 }
 
                 if (level !== RG.LEVEL_NOT_LOADED) {
-                    this.tilesLoaded[x][y] = true;
+                    this.tileStatus[x][y] = LoadStat.LOADED;
                     level.setParent(this);
                     newTile.setLevel(level);
                     tileColumn.push(newTile);
                 }
                 else {
-                    this.tilesLoaded[x][y] = false;
+                    this.tileStatus[x][y] = LoadStat.JSON;
                     tileColumn.push(RG.TILE_NOT_LOADED);
                 }
             }
@@ -1258,12 +1278,12 @@ export class Area extends WorldBase {
     }
 
     public getLevels(): Level[] {
-        let res = [];
+        let res: Level[] = [];
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
                 // If tile is in-memory/not serialized, query levels
-                if (this.tilesLoaded[x][y]) {
-                    res = res.concat(this._tiles[x][y].getLevels());
+                if (this.isLoaded(x, y)) {
+                    res = res.concat((this._tiles[x][y] as AreaTile).getLevels());
                 }
             }
         }
@@ -1275,8 +1295,8 @@ export class Area extends WorldBase {
     public findTileXYById(id): TCoord | null {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
-                if (this.tilesLoaded[x][y]) {
-                    const currId = this._tiles[x][y].getLevel().getID();
+                if (this.isLoaded(x, y)) {
+                    const currId = (this._tiles[x][y] as AreaTile).getLevel().getID();
                     try {
                         if (currId === id) {
                             return [x, y];
@@ -1300,13 +1320,26 @@ export class Area extends WorldBase {
     public hasTileWithId(id: number): boolean {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
-                if (this.tilesLoaded[x][y]) {
-                    if (this._tiles[x][y].getLevel().getID() === id) {
+                if (this.isLoaded(x, y)) {
+                    if ((this._tiles[x][y] as AreaTile).getLevel().getID() === id) {
                         return true;
                     }
                 }
-                else if ((this._tiles[x][y] as IAreaTileJSON).level === id) {
-                    return true;
+                else if (this.isJSON(x, y)) {
+                    if ((this._tiles[x][y] as IAreaTileJSON).level === id) {
+                        return true;
+                    }
+                }
+                else {
+                    if ((this._tiles[x][y] as IAreaTileOnDisk).level === id) {
+                        return true;
+                    }
+                    console.log('ZZZ returning false for ', id);
+                    /*
+                    if ((this._tiles[x][y] as IAreaTileJSON).level === id) {
+                        return true;
+                    }
+                    */
                 }
             }
         }
@@ -1314,14 +1347,14 @@ export class Area extends WorldBase {
     }
 
     /* Returns true if the area has tiles with given levels or level IDs. */
-    public hasTiles(arr): boolean {
+    public hasTiles(arr: Level[] | number[]): boolean {
         let result = arr.length > 0;
-        arr.forEach(level => {
-            if (typeof level.getID === 'function') {
-                result = result && this.hasTileWithId(level.getID());
+        arr.forEach((level: Level | number) => {
+            if (typeof (level as Level).getID === 'function') {
+                result = result && this.hasTileWithId((level as Level).getID());
             }
-            else if (Number.isInteger(level)) {
-                result = result && this.hasTileWithId(level);
+            else if (Number.isInteger((level as number))) {
+                result = result && this.hasTileWithId(level as number);
             }
             else {
                 const str = JSON.stringify(level);
@@ -1332,7 +1365,7 @@ export class Area extends WorldBase {
         return result;
     }
 
-    public getTileXY(x: number, y: number): AreaTileObj {
+    public getTileXY(x: number, y: number): null | AreaTileObj {
         if (x >= 0 && x < this.getSizeX() && y >= 0 && y < this.getSizeY()) {
             return this._tiles[x][y];
         }
@@ -1350,16 +1383,23 @@ export class Area extends WorldBase {
             RG.err('Area', 'addZone',
                 'No tileX/tileY given!');
         }
-        this._tiles[zone.tileX][zone.tileY].addZone(type, zone);
-        zone.setParent(this);
+        if (this.isLoaded(zone.tileX, zone.tileY)) {
+            (this._tiles[zone.tileX][zone.tileY] as AreaTile).addZone(type, zone);
+            zone.setParent(this);
+        }
+        else {
+            RG.err('Area', 'addZone',
+                `Tried to add zone to unloaded/onDisk tile`);
+        }
     }
 
     public getZones(type: string): ZoneBase[] {
-        let res = [];
+        let res: ZoneBase[] = [];
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
-                if (this.tilesLoaded[x][y]) {
-                    res = res.concat(this._tiles[x][y].getZones(type));
+                if (this.isLoaded(x, y)) {
+                    const loadedTile = this._tiles[x][y] as AreaTile;
+                    res = res.concat(loadedTile.getZones(type));
                 }
             }
         }
@@ -1377,11 +1417,11 @@ export class Area extends WorldBase {
     /* Serializes the Area into JSON. */
     public toJSON() {
         const json = super.toJSON();
-        const tilesJSON = [];
+        const tilesJSON: any = [];
         this._tiles.forEach((tileCol, x) => {
             const tileColJSON = tileCol.map((tile, y) => {
-                if (this.tilesLoaded[x][y]) {
-                    return tile.toJSON();
+                if (this.isLoaded(x, y)) {
+                    return (tile as AreaTile).toJSON();
                 }
                 else {
                     return tile;
@@ -1396,18 +1436,18 @@ export class Area extends WorldBase {
             maxX: this._sizeX, maxY: this._sizeY,
             cols: this._cols, rows: this._rows,
             tiles: tilesJSON,
-            tilesLoaded: this.tilesLoaded,
+            tileStatus: this.tileStatus,
             zonesCreated: this.zonesCreated
         };
         return Object.assign(obj, json);
     }
 
     /* Execute function cb for each loaded tile. */
-    public forEachTileLoaded(cb) {
+    public forEachTileLoaded(cb: (x: number, y: number, tile: AreaTile) => void) {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
-                if (this.tilesLoaded[x][y]) {
-                    cb(x, y, this._tiles[x][y]);
+                if (this.isLoaded(x, y)) {
+                    cb(x, y, this._tiles[x][y] as AreaTile);
                 }
             }
         }
@@ -1425,20 +1465,22 @@ export class Area extends WorldBase {
 
     public getPlaceEntities(): Entity[] {
         let res: Entity[] = [this];
-        this.forEachTileLoaded((x, y, tile) => {
-            res = res.concat(this._tiles[x][y].getPlaceEntities());
+        this.forEachTileLoaded((x, y, tile: AreaTile) => {
+            res = res.concat(tile.getPlaceEntities());
         });
         return res;
     }
 
     public printLevelIDs(): void {
         const allIDs: number[] = [];
-        this.forEachTile((x, y, tile) => {
-            if (this.tilesLoaded[x][y]) {
-                allIDs.push(this._tiles[x][y].getLevel().getID());
+        this.forEachTile((x, y, tile: AreaTileObj) => {
+            if (this.isLoaded(x, y)) {
+                const loadedTile = this._tiles[x][y] as AreaTile;
+                allIDs.push(loadedTile.getLevel().getID());
             }
-            else {
-                allIDs.push((this._tiles[x][y] as IAreaTileJSON).level);
+            else if (this.isJSON(x, y)) {
+                const jsonTile = this._tiles[x][y] as IAreaTileJSON;
+                allIDs.push(jsonTile.level);
             }
 
         });
@@ -1450,7 +1492,7 @@ export class Area extends WorldBase {
         const tilesOther: TCoord[] = [];
         this.forEachTile((x, y, tile) => {
             if ((tile as IAreaTileJSON).isJSON) {tilesJSON.push([x, y]);}
-            else if (this.tilesLoaded[x][y]) {loadedTiles.push([x, y]);}
+            else if (this.isLoaded(x, y)) {loadedTiles.push([x, y]);}
             else {tilesOther.push([x, y]);}
         });
 

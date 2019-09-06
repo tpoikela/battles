@@ -13,6 +13,7 @@ import * as Component from '../../../client/src/component';
 import {FromJSON} from '../../../client/src/game.fromjson';
 import {EventPool} from '../../../client/src/eventpool';
 import {Level} from '../../../client/src/level';
+import {LoadStat} from '../../../client/src/interfaces';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -51,8 +52,32 @@ describe('ChunkManager', function() {
         world = null;
     });
 
+    it('loads some tiles to mem, some to json and some to disk', () => {
+        const manager = new ChunkManager(game, area);
+        manager.useInMemoryStore = true;
+        manager.setPlayerTile(0, 0);
+        expect(manager.getLoadState(1, 1)).to.equal(LoadStat.LOADED);
+        expect(manager.getLoadState(2, 2)).to.equal(LoadStat.JSON);
+        expect(manager.getLoadState(3, 3)).to.equal(LoadStat.ON_DISK);
+        expect(manager.getLoadState(0, 2)).to.equal(LoadStat.JSON);
+        manager.setPlayerTile(0, 1, 0, 0);
+        expect(manager.getLoadState(0, 2)).to.equal(LoadStat.LOADED);
+        manager.setPlayerTile(1, 1, 0, 1);
+        expect(manager.getLoadState(2, 2)).to.equal(LoadStat.LOADED);
+        expect(manager.getLoadState(3, 3)).to.equal(LoadStat.JSON);
+        manager.setPlayerTile(1, 2, 1, 1);
+        manager.setPlayerTile(2, 2, 1, 2);
+        manager.setPlayerTile(3, 2, 2, 2);
+
+        manager.setPlayerTile(3, 3, 3, 2);
+        expect(manager.getLoadState(0, 0)).to.equal(LoadStat.ON_DISK);
+        expect(manager.getLoadState(1, 1)).to.equal(LoadStat.JSON);
+        expect(manager.getLoadState(2, 2)).to.equal(LoadStat.LOADED);
+    });
+
     it('manager stuff correctly', () => {
         const manager = new ChunkManager(game, area);
+        manager.useInMemoryStore = true;
         const func = () => {
             manager.setPlayerTile(0, 0);
             manager.setPlayerTile(0, 1, 0, 0);
@@ -84,13 +109,13 @@ describe('ChunkManager', function() {
         // manager.serializeArea();
         manager.setPlayerTile(0, 0);
         expect(game.getLevels().length).to.equal(2 * 2);
-        expect(manager.getLoadState(2, 2)).to.equal(LOAD.JSON);
-        expect(manager.getLoadState(3, 3)).to.equal(LOAD.JSON);
+        expect(manager.getLoadState(2, 2)).to.equal(LoadStat.JSON);
+        expect(manager.getLoadState(3, 3)).to.equal(LoadStat.ON_DISK);
 
-        expect(manager.getLoadState(0, 0)).to.equal(LOAD.LOADED);
-        expect(manager.getLoadState(0, 1)).to.equal(LOAD.LOADED);
-        expect(manager.getLoadState(1, 0)).to.equal(LOAD.LOADED);
-        expect(manager.getLoadState(1, 1)).to.equal(LOAD.LOADED);
+        expect(manager.getLoadState(0, 0)).to.equal(LoadStat.LOADED);
+        expect(manager.getLoadState(0, 1)).to.equal(LoadStat.LOADED);
+        expect(manager.getLoadState(1, 0)).to.equal(LoadStat.LOADED);
+        expect(manager.getLoadState(1, 1)).to.equal(LoadStat.LOADED);
 
         level0 = manager.area.getTiles()[1][0].getLevel();
         // const tile10 = manager.area.getTiles()[1][0];
@@ -106,15 +131,15 @@ describe('ChunkManager', function() {
         expect(newNConns).to.equal(nConns);
 
         manager.setPlayerTile(1, 0, 0, 0);
-        expect(manager.getLoadState(2, 0)).to.equal(LOAD.LOADED);
-        expect(manager.getLoadState(2, 1)).to.equal(LOAD.LOADED);
+        expect(manager.getLoadState(2, 0)).to.equal(LoadStat.LOADED);
+        expect(manager.getLoadState(2, 1)).to.equal(LoadStat.LOADED);
         expect(game.getLevels().length).to.equal(6);
 
         manager.setPlayerTile(2, 0, 1, 0);
-        expect(manager.getLoadState(0, 0)).to.equal(LOAD.JSON);
-        expect(manager.getLoadState(0, 1)).to.equal(LOAD.JSON);
-        expect(manager.getLoadState(3, 0)).to.equal(LOAD.LOADED);
-        expect(manager.getLoadState(3, 1)).to.equal(LOAD.LOADED);
+        expect(manager.getLoadState(0, 0)).to.equal(LoadStat.JSON);
+        expect(manager.getLoadState(0, 1)).to.equal(LoadStat.JSON);
+        expect(manager.getLoadState(3, 0)).to.equal(LoadStat.LOADED);
+        expect(manager.getLoadState(3, 1)).to.equal(LoadStat.LOADED);
         expect(game.getLevels().length).to.equal(6);
 
         manager.setPlayerTile(2, 1, 2, 0);
@@ -136,7 +161,7 @@ describe('ChunkManager', function() {
                 else {
                     manager.setPlayerTile(x, y);
                 }
-                const numLoaded = manager.getNumInState(LOAD.LOADED);
+                const numLoaded = manager.getNumInState(LoadStat.LOADED);
                 expect(numLoaded).to.be.at.most(10);
                 // manager.debugPrint();
                 [prevX, prevY] = [x, y];
@@ -161,15 +186,18 @@ describe('ChunkManager', function() {
         expect(playerPos).to.equal(null);
 
         game.movePlayer(3, 3);
-        expect(manager.getLoadState(3, 3)).to.equal(LOAD.LOADED);
-        expect(manager.getLoadState(3, 2)).to.equal(LOAD.LOADED);
-        expect(manager.getLoadState(2, 3)).to.equal(LOAD.LOADED);
-        expect(manager.getLoadState(2, 2)).to.equal(LOAD.LOADED);
+        expect(manager.getLoadState(3, 3)).to.equal(LoadStat.LOADED);
+        expect(manager.getLoadState(3, 2)).to.equal(LoadStat.LOADED);
+        expect(manager.getLoadState(2, 3)).to.equal(LoadStat.LOADED);
+        expect(manager.getLoadState(2, 2)).to.equal(LoadStat.LOADED);
+        expect(manager.getLoadState(0, 0)).to.equal(LoadStat.ON_DISK);
 
-        const numLoaded = manager.getNumInState(LOAD.LOADED);
-        const numJSON = manager.getNumInState(LOAD.JSON);
+        const numLoaded = manager.getNumInState(LoadStat.LOADED);
+        const numJSON = manager.getNumInState(LoadStat.JSON);
+        const numOnDisk = manager.getNumInState(LoadStat.ON_DISK);
         expect(numLoaded).to.equal(4);
-        expect(numJSON).to.equal(4 * 4 - numLoaded);
+        expect(numJSON).to.equal(3 + 2);
+        expect(numOnDisk).to.equal(4 * 4 - numLoaded - numJSON);
 
         const levels = area.getLevels();
         levels.forEach(level => {
@@ -196,7 +224,7 @@ describe('ChunkManager', function() {
         expect(area.isLoaded(0, 2)).to.equal(false);
         expect(area.isLoaded(2, 2)).to.equal(false);
 
-        const numLoaded = manager.getNumInState(LOAD.LOADED);
+        const numLoaded = manager.getNumInState(LoadStat.LOADED);
         expect(numLoaded).to.equal(6);
 
         world.getConf().createAllZones = false;
@@ -212,7 +240,7 @@ describe('ChunkManager', function() {
         expect(newGame).to.exist;
 
         const newManager = newGame.getChunkManager();
-        const newNumLoaded = newManager.getNumInState(LOAD.LOADED);
+        const newNumLoaded = newManager.getNumInState(LoadStat.LOADED);
         const newLevels = newGame.getLevels();
         expect(newLevels).to.have.length(7);
         expect(newNumLoaded).to.equal(6);
@@ -224,7 +252,7 @@ describe('ChunkManager', function() {
         newGame.movePlayer(1, 1);
         newGame.movePlayer(2, 1);
         levels = newGame.getLevels();
-        expect(levels.length).to.equal(12);
+        expect(levels.length).to.equal(9 + 3);
 
         const masterBattles = newGameMaster.battles;
         const battleArrays = Object.values(masterBattles);

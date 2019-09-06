@@ -867,7 +867,6 @@ export const Parser = function() {
 
     /* Stores char/CSS className for the object for rendering purposes.*/
     this.storeRenderingInfo = (categ, obj) => {
-        console.log('Storing render info for', obj);
         let fg = '';
         let bg = '';
         if (obj.hasOwnProperty('color')) {
@@ -910,7 +909,6 @@ export const Parser = function() {
         }
         if (obj.hasOwnProperty('className')) {
             if (obj.hasOwnProperty('name')) {
-                console.log('ObjectShellParser adding', obj.name, obj.className);
                 RG.addCellStyle(categ, obj.name, obj.className);
                 if (obj.dontCreate) {
                     RG.addCellStyle(categ, obj.type, obj.className);

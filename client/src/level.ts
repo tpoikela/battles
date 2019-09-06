@@ -35,6 +35,9 @@ const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
 
 const RNG = Random.getRNG();
 
+// Prints console.warn when level has this many actors
+const actorWarnLimit = 1000;
+
 /* Possible callbacks:
  * showMsg: {msg: 'my msg'}
  */
@@ -396,9 +399,9 @@ export class Level extends Entity {
             if (this._map && this._map.hasXY(x, y)) {
                 this._addPropToLevelXY(RG.TYPE_ACTOR, actor, x, y);
                 RG.debug(this, 'Added actor to map x: ' + x + ' y: ' + y);
-                if (this._p.actors.length > 500) {
+                if (this._p.actors.length > actorWarnLimit) {
                     RG.warn('Level', 'addActor',
-                        `Over 500 actors. Last added: ${actor.getName()}`);
+                        `Over ${actorWarnLimit} actors. Last added: ${actor.getName()}`);
                 }
                 return true;
             }

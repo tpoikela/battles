@@ -296,12 +296,17 @@ export const FactoryWorld = function() {
 
     /* Adds actors and items into AreaTile level. Config for world/area should
      * already exists in the stack, so calling this.getConf() gets it. */
-    this.populateAreaLevel = (area: Area, x, y): void => {
+    this.populateAreaLevel = (area: Area, x: number, y: number): void => {
         const playerX = Math.floor(area.getSizeX() / 2);
         const playerY = area.getSizeY() - 1;
         const parser = ObjectShell.getParser();
 
-        const level = area.getTileXY(x, y).getLevel();
+        if (!area.isLoaded(x, y)) {
+            RG.err('FactoryWorld', 'populateAreaLevel',
+                `Cannot populate unloaded Tile ${x},${y}`);
+        }
+
+        const level = (area.getTileXY(x, y) as World.AreaTile).getLevel();
 
         const xDiff = Math.abs(playerX - x);
         const yDiff = playerY - y;

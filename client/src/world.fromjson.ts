@@ -5,6 +5,7 @@ import {FactoryWorld} from './factory.world';
 import {Entity} from './entity';
 import {Level} from './level';
 import * as Verify from './verify';
+import {LoadStat} from './interfaces';
 
 import dbg = require('debug');
 const debug = dbg('bitn:WorldFromJSON');
@@ -26,7 +27,7 @@ interface EntityMap {
 
 /* This class converts a serialized world back to World.Top object. It supports
  * unloaded AreaTiles, and does not create them as objects when
- * tilesLoaded[x][y] is false for that tile.
+ * tileStatus[x][y] is set to JSON/ON_DISK for that tile.
  *
  * This class resembles Factory.World (it's a partial copy-paste), but there
  * are intricacies when
@@ -151,7 +152,7 @@ export class WorldFromJSON {
             if (debug.enabled) {
                 this.printKeys('areaJSON keys', areaJSON);
             }
-            const area = this.restoreAreaFromJSON(areaJSON);
+            const area: World.Area = this.restoreAreaFromJSON(areaJSON);
 
             if (areaJSON.zonesCreated) { // Only during restore game
                 this.restoreCreatedZones(world, area);
@@ -166,7 +167,7 @@ export class WorldFromJSON {
     }
 
     /* Restores WorldArea from JSON. */
-    public restoreAreaFromJSON(areaJSON) {
+    public restoreAreaFromJSON(areaJSON): World.Area {
         this.verify('restoreAreaFromJSON', areaJSON,
             ['name', 'maxX', 'maxY']);
         this.pushScope(areaJSON);
@@ -180,7 +181,7 @@ export class WorldFromJSON {
         area.setHierName(this.getHierName());
 
         // Restore zone state variables
-        area.tilesLoaded = areaJSON.tilesLoaded;
+        area.tileStatus = areaJSON.tileStatus;
         area.zonesCreated = areaJSON.zonesCreated;
 
         this.setTileJSONForUnloadedTiles(area, areaJSON);
@@ -199,11 +200,11 @@ export class WorldFromJSON {
         return area;
     }
 
-    public restoreCreatedZones(world, area) {
+    public restoreCreatedZones(world, area: World.Area) {
         Object.keys(area.zonesCreated).forEach(xy => {
             const [xStr, yStr] = xy.split(',');
             const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
-            if (area.zonesCreated[xy] && area.tilesLoaded[x][y]) {
+            if (area.zonesCreated[xy] && area.isLoaded(x, y)) {
                 this.dbg(`\tRestoring created zones for tile ${x},${y}`);
                 this.restoreZonesForTile(world, area, x, y);
             }
@@ -228,14 +229,14 @@ export class WorldFromJSON {
     /* Used when creating area from existing levels. Uses id2level lookup table
      * to construct 2-d array of levels.*/
     public getAreaLevels(areaJSON) {
-        this.verify('getAreaLevels', areaJSON, ['tilesLoaded']);
+        this.verify('getAreaLevels', areaJSON, ['tileStatus']);
         ++this._IND;
         const levels = [];
         if (areaJSON.tiles) {
             areaJSON.tiles.forEach((tileCol, x) => {
                 const levelCol = [];
                 tileCol.forEach((tile, y) => {
-                    if (areaJSON.tilesLoaded[x][y]) {
+                    if (areaJSON.tileStatus[x][y] === LoadStat.LOADED) {
                         this.dbg(`Tile ${x},${y} is loaded`);
                         const level = this.id2level[tile.level];
                         if (level) {

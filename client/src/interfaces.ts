@@ -368,6 +368,29 @@ export interface IFactoryGameConf {
     owConf?: OWMapConf;
 }
 
+//-----------------------------------------------
+// enums for loading/storing game state to disk
+//-----------------------------------------------
+
+export enum LoadStat {
+    EMPTY = 'EMPTY',
+    LOADED = 'LOADED',
+    JSON = 'JSON',
+    ON_DISK = 'ON_DISK',
+
+    // Transition states for debugging
+    JSON2LOADED = 'JSON2LOADED',
+    LOADED2JSON = 'LOADED2JSON',
+    JSON2ON_DISK = 'JSON2ON_DISK',
+    ON_DISK2JSON = 'ON_DISK2JSON'
+}
+
+export enum CreateStat {
+    EMPTY = 'EMPTY',
+    CREATED = 'CREATED',
+    POPULATED = 'POPULATED'
+}
+
 //--------------------------------
 // ITEM/ACTOR GENERATION, SHELLS
 //--------------------------------
