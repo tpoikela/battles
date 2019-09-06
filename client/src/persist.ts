@@ -17,7 +17,9 @@ class InMemoryStore {
         if (!this.data.hasOwnProperty(key)) {
             console.warn(`No key |${key}| in InMemoryStore`);
         }
-        return this.data[key];
+        const data = this.data[key];
+        cb(data);
+        return data;
     }
 
     public setItem(key: string, data: any, cb) {
