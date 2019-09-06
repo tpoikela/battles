@@ -410,15 +410,16 @@ export class ChunkManager {
         if (this.isOnDisk(tx, ty)) {
             this.state[tx][ty].loadState = LoadStat.ON_DISK2JSON;
             const tileId = this.getTileId(tx, ty);
-            const data = this.persist.fromStorageWithKey(tileId);
-            this.area.setUnloaded2JSON(tx, ty);
-            if (typeof data === 'string') {
-                this.area.setTile(tx, ty, JSON.parse(data));
-            }
-            else {
-                this.area.setTile(tx, ty, data);
-            }
-            this.state[tx][ty].loadState = LoadStat.JSON;
+            this.persist.fromStorageWithKey(tileId, (data) => {
+                this.area.setUnloaded2JSON(tx, ty);
+                if (typeof data === 'string') {
+                    this.area.setTile(tx, ty, JSON.parse(data));
+                }
+                else {
+                    this.area.setTile(tx, ty, data);
+                }
+                this.state[tx][ty].loadState = LoadStat.JSON;
+            });
         }
         else {
             RG.err('ChunkManager', 'readTileFromDisk',
