@@ -280,14 +280,12 @@ export const GameMain = function() {
     /* Checks if player moved to a tile (from tile or was added). */
     this.checkIfTileChanged = (args) => {
         const {actor, src, target} = args;
-        console.log('checkIfTileChanged args', args);
 
         const areaLevels = [target];
         if (!RG.isNullOrUndef([src])) {
             areaLevels.push(src);
         }
 
-        console.log('WWW checkIfTileChanged() now');
         const area = this.getArea(0);
         if (area && (areaLevels.length === 2) && area.hasTiles(areaLevels)) {
             POOL.emitEvent(RG.EVT_TILE_CHANGED,
@@ -451,7 +449,6 @@ export const GameMain = function() {
                 if (index >= 0) {
                     if (this._players.length === 1) {
                         this._gameOver = true;
-                        console.log('PLAYER DIED!!');
                         RG.gameMsg('GAME OVER!');
                     }
                     this._players.splice(index, 1);
