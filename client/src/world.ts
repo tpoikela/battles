@@ -1334,12 +1334,6 @@ export class Area extends WorldBase {
                     if ((this._tiles[x][y] as IAreaTileOnDisk).level === id) {
                         return true;
                     }
-                    console.log('ZZZ returning false for ', id);
-                    /*
-                    if ((this._tiles[x][y] as IAreaTileJSON).level === id) {
-                        return true;
-                    }
-                    */
                 }
             }
         }
