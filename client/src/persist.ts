@@ -4,7 +4,9 @@
 const IDB_VERSION = 1;
 const localforage = require('localforage');
 
-class InMemoryStore {
+const LZString = require('lz-string');
+
+export class InMemoryStore {
     public data: {[key: string]: string};
     public name: string;
 
@@ -13,19 +15,28 @@ class InMemoryStore {
         this.data = {};
     }
 
-    public getItem(key: string, cb): string {
+    public getItem(key: string): string {
         if (!this.data.hasOwnProperty(key)) {
             console.warn(`No key |${key}| in InMemoryStore`);
         }
-        const data = this.data[key];
-        cb(data);
+        const dataCompr = this.data[key];
+        const data = LZString.decompress(dataCompr);
         return data;
     }
 
-    public setItem(key: string, data: any, cb) {
-        const str = JSON.stringify(data);
-        console.log(`setItem |${key}|, dataLen: ${str.length}`);
-        this.data[key] = str;
+    public setItem(key: string, data: any): void {
+        let str;
+        if (typeof data !== 'string') {
+            str = JSON.stringify(data);
+        }
+        else {
+            str = data;
+        }
+        console.log(`setItem |${key}|, dataLen BEFORE: ${str.length}`);
+        const dataCompr = LZString.compress(str);
+        const ratio = dataCompr.length / str.length;
+        console.log(`setItem |${key}|, dataLen AFTER: ${dataCompr.length}, ${ratio}%`);
+        this.data[key] = dataCompr;
     }
 
     public removeItem(key: string) {
@@ -36,10 +47,6 @@ class InMemoryStore {
 export function Persist(keyName: string) {
     // In unit test, replace with node-localstorage
     this.store = localforage;
-
-    this.useInMemory = () => {
-        this.store = new InMemoryStore(keyName);
-    };
 
     this.fromStorage = (cb) => {
         return this.store.getItem(keyName, cb);
