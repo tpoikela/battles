@@ -1401,10 +1401,8 @@ FromJSON.prototype.restoreChunkManager = function(game, gameJSON) {
     if (gameJSON.chunkManager) {
         const {chunkManager} = gameJSON;
         game.setEnableChunkUnload(true);
-        if (chunkManager.useInMemoryStore) {
-            // TODO fix ugly as hell
-            game._chunkManager.persist.store.data = chunkManager.data;
-        }
+        // TODO fix ugly as hell
+        game._chunkManager.store.data = chunkManager.data;
     }
 };
 
