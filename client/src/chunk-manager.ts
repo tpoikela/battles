@@ -5,7 +5,7 @@ import {ElementStairs} from './element';
 import {TCoord, LoadStat} from './interfaces';
 import {Level} from './level';
 import * as World from './world';
-import {Persist} from './persist';
+import {InMemoryStore} from './persist';
 
 type Stairs = ElementStairs;
 type AreaTileObj = World.AreaTileObj;
@@ -14,7 +14,6 @@ type AreaTile = World.AreaTile;
 
 import dbg = require('debug');
 const debug = dbg('bitn:ChunkManager');
-debug.enabled = true;
 
 function printTileConnections(msg: string, tileToConnect, id = -1) {
     RG.diag(msg);
@@ -61,7 +60,7 @@ export class ChunkManager {
 
     public useInMemoryStore: boolean; // For testing
 
-    public persist: any;
+    public store: InMemoryStore;
 
     constructor(game, area: World.Area) {
         const [sizeX, sizeY] = [area.getSizeX(), area.getSizeY()];
@@ -71,11 +70,7 @@ export class ChunkManager {
         this.game = game;
         this.state = [];
 
-        this.persist = new Persist(this.game.gameID);
-        this.useInMemoryStore = true;
-        if (this.useInMemoryStore) {
-            this.persist.useInMemory();
-        }
+        this.store = new InMemoryStore(this.game.gameID);
 
         for (let x = 0; x < sizeX; x++) {
             this.state[x] = [];
@@ -399,7 +394,7 @@ export class ChunkManager {
             RG.err('ChunkManager', 'writeTileToDisk',
                 `Expected JSON, got undefined ${tx},${ty}`);
         }
-        this.persist.toStorageWithKey(tileId, tileJSON);
+        this.store.setItem(tileId, tileJSON);
 
         this.area.setOnDisk(tx, ty, {onDisk: true, tileId,
                             level: (tileJSON! as IAreaTileJSON).level});
@@ -410,16 +405,15 @@ export class ChunkManager {
         if (this.isOnDisk(tx, ty)) {
             this.state[tx][ty].loadState = LoadStat.ON_DISK2JSON;
             const tileId = this.getTileId(tx, ty);
-            this.persist.fromStorageWithKey(tileId, (data) => {
-                this.area.setUnloaded2JSON(tx, ty);
-                if (typeof data === 'string') {
-                    this.area.setTile(tx, ty, JSON.parse(data));
-                }
-                else {
-                    this.area.setTile(tx, ty, data);
-                }
-                this.state[tx][ty].loadState = LoadStat.JSON;
-            });
+            const data = this.store.getItem(tileId);
+            this.area.setUnloaded2JSON(tx, ty);
+            if (typeof data === 'string') {
+                this.area.setTile(tx, ty, JSON.parse(data));
+            }
+            else {
+                this.area.setTile(tx, ty, data);
+            }
+            this.state[tx][ty].loadState = LoadStat.JSON;
         }
         else {
             RG.err('ChunkManager', 'readTileFromDisk',
@@ -442,9 +436,7 @@ export class ChunkManager {
             state: this.state,
             useInMemoryStore: this.useInMemoryStore
         };
-        if (this.useInMemoryStore) {
-            json.data = this.persist.store.data;
-        }
+        json.data = this.store.data;
         return json;
     }
 
