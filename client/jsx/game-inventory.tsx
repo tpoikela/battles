@@ -11,6 +11,12 @@ import {ItemBase} from '../src/item';
 import {ISelection} from './game-equip-slot';
 import {Keys} from '../src/keymap';
 
+// type Inventory = import('../src/inv').Inventory;
+type Equipment = import('../src/equipment').Equipment;
+type Container = import('../src/item').Container;
+type SentientActor = import('../src/actor').SentientActor;
+
+
 interface IGameInventoryProps {
   // count: number;
   doInvCmd: (cmd: any) => void;
@@ -18,7 +24,7 @@ interface IGameInventoryProps {
   handleKeyDown: (evt: any) => void;
   invMsg: string;
   msgStyle: string;
-  player: any;
+  player: SentientActor;
   selectEquipTop: (selection: ISelection) => void;
   selectItemTop: (item: ItemBase) => void;
   selectedItem: any;
@@ -185,7 +191,7 @@ export default class GameInventory extends React.Component {
   }
 
   /* When an item is clicked, selects it and adds count to the <input> */
-  public setSelectedItem(item): void {
+  public setSelectedItem(item: ItemBase): void {
     const msg = 'Inventory Selected: ' + item.toString();
     this.props.selectItemTop(item);
     this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
@@ -204,7 +210,7 @@ export default class GameInventory extends React.Component {
   public render() {
     const {player} = this.props;
     const inv = player.getInvEq().getInventory();
-    const eq = player.getInvEq().getEquipment();
+    const eq: Equipment = player.getInvEq().getEquipment();
     const maxWeight = player.getMaxWeight();
     const eqWeight = eq.getWeight();
 
@@ -228,7 +234,6 @@ export default class GameInventory extends React.Component {
 
           <div className='items-box col-md-6'>
             {itemTabs}
-            {itemButtons}
             <GameItems
               eqWeight={eqWeight}
               filter={this.state.filter}
@@ -255,6 +260,7 @@ export default class GameInventory extends React.Component {
           </div>
 
           <div className='col-md-6'>
+            {itemButtons}
             <button
                 className='btn btn-danger'
                 onClick={this.toggleScreen.bind(this, 'Inventory')}
@@ -267,9 +273,9 @@ export default class GameInventory extends React.Component {
     );
   }
 
-  public getItemTabs(inv) {
-      const types = {All: true};
-      inv.getItems().forEach(item => {
+  public getItemTabs(inv: Container) {
+      const types: {[key: string]: boolean} = {All: true};
+      inv.getItems().forEach((item: ItemBase) => {
           types[item.getType()] = true;
       });
       const tabNames = Object.keys(types);
