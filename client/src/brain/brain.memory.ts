@@ -23,7 +23,7 @@ export class Memory {
     protected _actors: ActorsMap;
     protected _enemyTypes: {[key: string]: true};
     protected _communications: BaseActor[];
-    protected _lastAttackedID: number;
+    protected _lastAttackedID: null | number;
 
     constructor() {
         this._actors = {};
@@ -36,6 +36,10 @@ export class Memory {
     /* Adds a generic enemy type. */
     public addEnemyType(type: string): void {
         this._enemyTypes[type] = true;
+    }
+
+    public hasEnemyType(type: string): boolean {
+        return this._enemyTypes[type];
     }
 
     /* Removes a generic enemy type. */
@@ -112,7 +116,7 @@ export class Memory {
             this._actors.friends = [];
         }
         if (!this.isFriend(actor)) {
-            this._actors.friends.push(actor);
+            this._actors.friends!.push(actor);
         }
     }
 
@@ -130,8 +134,10 @@ export class Memory {
     }
 
     public getLastSeen(actor: BaseActor): ICoordXY | null {
-        if (this._actors.seen[actor.getID()]) {
-            return this._actors.seen[actor.getID()];
+        if (this._actors.seen) {
+            if (this._actors.seen[actor.getID()]) {
+                return this._actors.seen[actor.getID()];
+            }
         }
         return null;
     }
