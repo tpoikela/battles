@@ -270,35 +270,43 @@ names.weapon = Object.keys(shellProps.weapon);
 shellProps.armour = {
     robe: {
         armourType: 'chest', weight: 1.0,
-        protection: 0, defense: 0
+        protection: 0, defense: 0,
+        value: 15
     },
     cuirass: {
         armourType: 'chest', weight: 2.0,
-        protection: 3, defense: -1, attack: -1
+        protection: 4, defense: -1, attack: -1,
+        value: 40
     },
     mail: {
-        armourType: 'chest', weight: 1.9,
-        protection: 3, defense: -1, attack: -1
+        armourType: 'chest', weight: 1.7,
+        protection: 3, defense: 1, attack: 0,
+        value: 30
     },
     boots: {
         armourType: 'feet', weight: 0.5,
-        protection: 1, defense: 0, attack: 0
+        protection: 1, defense: 0, attack: 0,
+        value: 15
     },
     helmet: {
         armourType: 'head', weight: 0.3,
-        protection: 1, defense: 0, attack: 0
+        protection: 1, defense: 0, attack: 0,
+        value: 15
     },
     collar: {
         armourType: 'neck', weight: 0.2,
-        protection: 1, defense: 0, attack: 0
+        protection: 1, defense: 0, attack: 0,
+        value: 15
     },
     shield: {
         armourType: 'shield', weight: 0.8,
-        protection: 2, defense: 1, attack: 0
+        protection: 2, defense: 1, attack: 0,
+        value: 15
     },
     buckler: {
         armourType: 'shield', weight: 0.4,
-        protection: 0, defense: 3, attack: 1
+        protection: 0, defense: 3, attack: 1,
+        value: 20
     }
 };
 names.armour = Object.keys(shellProps.armour);
@@ -361,6 +369,11 @@ shellProps.material = {
 
 names.materials = Object.keys(shellProps.material);
 
+const materialForTypes: {[key: string]: string[]} = {
+    weapon: names.materials.filter(name => !/(wooden|leather|cloth)/.test(name)),
+    armour: names.materials.slice(),
+};
+
 const itemTypes = ['armour', 'weapon'];
 
 /* Generates a random item shell according to the following rules:
@@ -372,7 +385,9 @@ ItemGen.genRandShell = function(type: string): IShell {
     let prefixName = '';
     let suffixName = '';
 
-    const material = RNG.arrayGetRand(names.materials);
+    const materialList: string[] = materialForTypes[type];
+    // const material = RNG.arrayGetRand(names.materials);
+    const material = RNG.arrayGetRand(materialList);
     const materialShell = shellProps.material[material];
     let materialItemShell = null;
     if (materialShell[type]) {

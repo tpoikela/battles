@@ -46,5 +46,5 @@ describe('ActorGen', () => {
         const sh3 = ActorGen.genShell({race: 'orc'});
         expect(sh3.race).to.equal('orc');
     });
-    
+
 });

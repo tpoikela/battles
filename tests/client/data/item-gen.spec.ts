@@ -52,11 +52,21 @@ describe('ItemGen', () => {
     });
 
     it('has function generate random item shells', () => {
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 50; i++) {
             const shell = ItemGen.genRandShell('weapon');
             expect(shell).to.have.property('name');
             expect(shell).to.have.property('type');
             expect(shell).to.have.property('value');
+            const {name, value} = shell;
+            console.log('name:', name, 'value:', value);
+        }
+        for (let i = 0; i < 50; i++) {
+            const shell = ItemGen.genRandShell('armour');
+            expect(shell).to.have.property('name');
+            expect(shell).to.have.property('type');
+            expect(shell).to.have.property('value');
+            const {name, value} = shell;
+            console.log('name:', name, 'value:', value);
         }
     });
 
