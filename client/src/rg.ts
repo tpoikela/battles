@@ -956,12 +956,14 @@ RG.formatSetterName = function(propName: string): string {
 RG.STATS = [
     'Accuracy', 'Agility', 'Magic', 'Perception', 'Strength', 'Willpower',
     'Spirituality'
-];
+] as string[];
 
+/* Creates arrays for stat names, setters and getters, map for default values,
+ * and LUT for mapping abbreviation (ie Acc => Accuracy). */
 RG.initStats = function(statArr: string[]): void {
     RG.STATS_LC = statArr.map((stat: string) => stat.toLowerCase());
 
-    RG.STATS_DEFAULTS = RG.STATS_LC.reduce((acc: object, curr: string) => {
+    RG.STATS_DEFAULTS = RG.STATS_LC.reduce((acc: {[key: string]: number}, curr: string) => {
         acc[curr] = 5;
         return acc;
     }, {});
@@ -971,18 +973,28 @@ RG.initStats = function(statArr: string[]): void {
     RG.GET_STATS = statArr.map((stat: string) => RG.formatGetterName(stat));
     RG.SET_STATS = statArr.map((stat: string) => RG.formatSetterName(stat));
 
-    RG.STATS_ABBR2STAT = statArr.reduce((acc: object, curr: string) => {
+    RG.STATS_ABBR2STAT = statArr.reduce((acc: {[key: string]: string}, curr: string) => {
         acc[curr.substr(0, 3)] = curr;
         return acc;
     }, {});
 };
 RG.initStats(RG.STATS);
 
-RG.getStatsObj = function(defValue: number): object {
+/* Creates new stats object with given default value. */
+RG.createStatsObj = function(
+    defValue: number, isLower: boolean = true
+): {[key: string]: number} {
     const res: any = {speed: defValue};
-    RG.STATS_LC.forEach((stat: string) => {
-        res[stat] = defValue;
-    });
+    if (isLower) {
+        RG.STATS_LC.forEach((stat: string) => {
+            res[stat] = defValue;
+        });
+    }
+    else {
+        RG.STATS.forEach((stat: string) => {
+            res[stat] = defValue;
+        });
+    }
     return res;
 };
 
