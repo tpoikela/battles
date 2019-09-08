@@ -412,7 +412,12 @@ function getFormattedReply(actor: BaseActor, name: string, chosenOpt: ILoreOpt):
     let msg = '';
     switch (name) {
         case 'shops': {
-            msg = `${chosenOpt.name} should have a shop ${textualDir} from here.`;
+            if (actor.has('Shopkeeper')) {
+                msg = `You are already in my shop. Welcome!`;
+            }
+            else {
+                msg = `${chosenOpt.name} should have a shop ${textualDir} from here.`;
+            }
             break;
         }
     }
