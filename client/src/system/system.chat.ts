@@ -9,6 +9,7 @@ import {Lore, format} from '../../data/lore';
 import {Constraints} from '../constraints';
 
 type Entity = import('../entity').Entity;
+type Memory = import('../brain').Memory;
 
 const NO_ACTORS_FOUND = Object.freeze([]);
 
@@ -36,9 +37,13 @@ export class SystemChat extends SystemBase {
         const dir = args.dir;
         const chatter: BaseActor = RG.toActor(ent);
 
-        const actors = this.getActorsInDirection(ent, dir);
+        const actors = this.getActorsInDirection(chatter, dir);
         let chatObj: null | ChatBase = null;
         actors.forEach(actor => {
+            if (actor.isEnemy(chatter)) {
+                const msg = this.getHostileMsg(chatter, actor);
+                RG.gameMsg({cell: actor.getCell(), msg});
+            }
             // First, we need to create the Chat object for the Menu
             Object.keys(this.registeredObjs).forEach((chatType: string) => {
                 if (actor.has(chatType)) {
@@ -85,7 +90,7 @@ export class SystemChat extends SystemBase {
     }
 
     /* Returns all actors in the given direction. */
-    public getActorsInDirection(ent, dir: TCoord): BaseActor[] {
+    public getActorsInDirection(ent: BaseActor, dir: TCoord): BaseActor[] {
         const [dX, dY] = [dir[0], dir[1]];
         const x = ent.getX() + dX;
         const y = ent.getY() + dY;
@@ -263,7 +268,7 @@ export class SystemChat extends SystemBase {
         let resp = null;
 
         const id = target.id;
-        const memory = actor.getBrain().getMemory();
+        const memory: Memory = actor.getBrain().getMemory();
 
         if (memory.hasSeen(id)) {
             resp = chatObj.getSelectionObject();
@@ -381,6 +386,16 @@ export class SystemChat extends SystemBase {
             allOk = allOk && constrFunc(ent);
         }
         return allOk;
+    }
+
+    protected getHostileMsg(chatter: BaseActor, actor: BaseActor): string {
+        const aName = actor.getName();
+        const cType = chatter.getType();
+        const memory: Memory = actor.getBrain().getMemory();
+        if (memory.hasEnemyType(cType)) {
+            return `${aName} shouts: 'Go away filthy ${cType}!'`;
+        }
+        return `${aName} is hostile and refuses to talk.`;
     }
 
 }
