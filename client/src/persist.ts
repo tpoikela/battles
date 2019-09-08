@@ -32,10 +32,8 @@ export class InMemoryStore {
         else {
             str = data;
         }
-        console.log(`setItem |${key}|, dataLen BEFORE: ${str.length}`);
         const dataCompr = LZString.compress(str);
-        const ratio = dataCompr.length / str.length;
-        console.log(`setItem |${key}|, dataLen AFTER: ${dataCompr.length}, ${ratio}%`);
+        // const ratio = dataCompr.length / str.length;
         this.data[key] = dataCompr;
     }
 
