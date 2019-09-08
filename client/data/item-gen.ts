@@ -222,13 +222,20 @@ names.suffix = {
     armour: Object.keys(suffix.armour)
 };
 
+// These are not added to ObjectShellParser, but mixed immediately
 const baseShells: StringMap<IShell> = {
     weapon: {
-        type: 'weapon', range: 1, value: 1, attack: 0, defense: 0
+        type: 'weapon', range: 1, value: 1, attack: 0, defense: 0,
+        char: '('
     },
     armour: {
         type: 'armour', value: 1, attack: 0, defense: 0,
-        protection: 0
+        protection: 0,
+        char: '['
+    },
+    missile: {
+        type: 'missile', value: 1, attack: 0, defense: 0,
+        char: '/'
     }
 };
 
@@ -253,8 +260,8 @@ shellProps.weapon = {
         value: 25,
     },
     axe: {
-        damage: '1d10', attack: 2, weight: 1.1, rarity: 3,
-        value: 30,
+        damage: '2d6', attack: 2, weight: 1.1, rarity: 3,
+        value: 35,
     },
     warhammer: {
         damage: '1d10', attack: 2, weight: 1.1, rarity: 2,
@@ -288,6 +295,11 @@ shellProps.armour = {
         protection: 1, defense: 0, attack: 0,
         value: 15
     },
+    greaves: {
+        armourType: 'legs', weight: 1.0,
+        protection: 2, defense: 0, attack: 1,
+        value: 20
+    },
     helmet: {
         armourType: 'head', weight: 0.3,
         protection: 1, defense: 0, attack: 0,
@@ -311,13 +323,32 @@ shellProps.armour = {
 };
 names.armour = Object.keys(shellProps.armour);
 
+
+shellProps.missile = {
+    'shuriken': {
+    },
+    'dart': {
+    },
+    'throwing knife': {
+    },
+    'throwing spear': {
+    },
+    'throwing axe': {
+    },
+};
+
 shellProps.material = {
     cloth: {
         weight: 0.5, value: 0.5, rarity: 1.0,
-        onEquip: [resistance('BLUNT', 'MEDIUM')]
+        armour: {
+            onEquip: [resistance('BLUNT', 'MEDIUM')]
+        }
     },
     leather: {
-        weight: 1.0, value: 1.0, rarity: 1.0
+        weight: 1.0, value: 1.0, rarity: 1.0,
+        armour: {
+            protection: 1
+        }
     },
     wooden: {
         weight: 1.0, value: 1.0, rarity: 1.0
@@ -326,43 +357,71 @@ shellProps.material = {
         weight: 1.7, value: 1.2, rarity: 1.0,
         weapon: {
             damage: '1d2 + 1'
+        },
+        armour: {
+            protection: '* 1.3', attack: -1
         }
     },
     steel: {
         weight: 1.5, value: 1.4, rarity: 1.5,
         weapon: {
-            damage: '1d3 + 2'
+            damage: '1d4 + 2'
+        },
+        armour: {
+            protection: '* 1.5', attack: -1
         }
     },
     mithril: {
+        className: 'cell-item-mithril',
         weight: 0.9, value: 3.0, rarity: 2.0,
         weapon: {
-            damage: '2d2 + 3'
+            damage: '2d3 + 3'
+        },
+        armour: {
+            protection: '* 1.7', attack: -1
         }
     },
     rubyglass: {
+        className: 'cell-item-ruby-glass',
         weight: 0.5, value: 5.0, rarity: 3.0,
         weapon: {
-            damage: '2d3 + 3'
+            damage: '2d4 + 3'
+        },
+        armour: {
+            protection: '* 1.95', defense: 2
         }
     },
     permaice: {
+        className: 'cell-item-ice',
         weight: 3.0, value: 8.0, rarity: 4.0,
         weapon: {
-            damage: '2d3 + 6'
+            damage: '3d4 + 6'
+        },
+        armour: {
+            protection: '* 3.0',
+            defense: -1, attack: -1
         }
     },
     forium: {
+        className: 'cell-item-magic',
         weight: 1.2, value: 7.0, rarity: 5.0,
         weapon: {
-            damage: '2d2 + 4'
+            damage: '2d4 + 4'
+        },
+        armour: {
+            protection: '* 2.2',
+            defense: 1
         }
     },
     void: { // No one knows the material really, not even dev
+        className: 'cell-item-void',
         weight: 1.4, value: 10.0, rarity: 8.0,
         weapon: {
-            damage: '2d2 + 6',
+            damage: '2d6 + 6',
             onAttackHit: [meleeHitDamage(2, '1d6 + 1', 'VOID')],
+        },
+        armour: {
+            protection: '* 2.0'
         }
     }
 };
