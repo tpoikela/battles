@@ -3,7 +3,10 @@
 
 import RG from '../src/rg';
 import {Dice} from '../src/dice';
-import {IAddCompObj, ICompSetterObj, IColor, IDiceInputArg} from '../src/interfaces';
+import {
+    IAddCompObj, ICompSetterObj, IColor, IDiceInputArg,
+    IShell
+} from '../src/interfaces';
 
 export const meleeHitDamage = (
     dmg: IDiceInputArg, dur: string | number, dmgType: string, msg?: string
@@ -61,12 +64,12 @@ export const color = function(fg: string, bg: string): IColor {
 };
 
 // TODO these should always be extended in mixNewShell instead of override
-const alwaysMergeProps = new Set<string>(
+const defaultMergeProps = new Set<string>(
     ['addComp', 'spells', 'inv', 'equip', 'onAttackHit']
 );
 
-// Always incremented (added) together
-const alwaysIncrProps = new Set<string>(
+// These props are incremented (added) by default
+const defaultIncrProps = new Set<string>(
     ['hp', 'maxHP', 'pp', 'maxPP', 'defense',
         'protection', 'attack', 'danger', 'speed',
         'rarity'
@@ -75,13 +78,13 @@ const alwaysIncrProps = new Set<string>(
 );
 
 /* Properties which are transformed using a function. */
-const alwaysTransform = {
+const defaultTransformProps = {
     damage: transformDamage,
     addDamage: transformAddDamage,
 };
 
-// These props are always multiplied
-const alwaysMultProps = new Set<string>(
+// These props are multiplied by default
+const defaultMultProps = new Set<string>(
     ['weight', 'value', 'rarity']
 );
 
@@ -106,8 +109,10 @@ export const mixNewShell = function(shells: any[], conf?: OverrideConf): any {
 };
 
 /* Adds a property to the shell. */
-function addShellProp(p: string, shell, newShell, conf?: OverrideConf): void {
-    if (alwaysMergeProps.has(p)) {
+function addShellProp(
+    p: string, shell: IShell, newShell: IShell, conf?: OverrideConf
+): void {
+    if (defaultMergeProps.has(p)) {
         if (newShell.hasOwnProperty(p)) {
             newShell[p] = newShell[p].concat(shell[p]);
         }
@@ -123,14 +128,14 @@ function addShellProp(p: string, shell, newShell, conf?: OverrideConf): void {
             newShell[p] = JSON.parse(JSON.stringify(shell[p]));
         }
         else {
-            if (alwaysIncrProps.has(p)) {
+            if (defaultIncrProps.has(p)) {
                 incrShellProp(p, shell, newShell);
             }
-            else if (alwaysMultProps.has(p)) {
+            else if (defaultMultProps.has(p)) {
                 multShellProp(p, shell, newShell);
             }
-            else if (alwaysTransform.hasOwnProperty(p)) {
-                alwaysTransform[p](p, shell, newShell);
+            else if (defaultTransformProps.hasOwnProperty(p)) {
+                defaultTransformProps[p](p, shell, newShell);
             }
             else {
                 newShell[p] = shell[p];
@@ -139,24 +144,85 @@ function addShellProp(p: string, shell, newShell, conf?: OverrideConf): void {
     }
 }
 
+// If property reads like '+
+const multOpRe = /(\*|\/)\s*(\d+(.\d+)?)/;
+const addOpRe = /(\+|-)\s*(\d+(.\d+)?)/;
+
 /* Adds the value of prop p in shell to newShell. */
-function incrShellProp(p, shell, newShell): void {
-    if (newShell.hasOwnProperty(p)) {
-        newShell[p] += shell[p];
+function incrShellProp(p: string, shell: IShell, newShell: IShell): void {
+    if (typeof shell[p] === 'number') {
+        if (newShell.hasOwnProperty(p)) {
+            newShell[p] += shell[p];
+        }
+        else {
+            newShell[p] = shell[p];
+        }
     }
     else {
-        newShell[p] = shell[p];
+        checkStringExpression(p, shell, newShell);
     }
 }
 
 /* Multiplies a shell property. */
-function multShellProp(p, shell, newShell): void {
-    if (newShell.hasOwnProperty(p)) {
-        newShell[p] *= shell[p];
+function multShellProp(p: string, shell: IShell, newShell: IShell): void {
+    if (typeof shell[p] === 'number') {
+        if (newShell.hasOwnProperty(p)) {
+            newShell[p] *= Math.round(shell[p]);
+        }
+        else {
+            newShell[p] = shell[p];
+        }
     }
     else {
-        newShell[p] = shell[p];
+        checkStringExpression(p, shell, newShell);
     }
+}
+
+
+/* Checks if shell[p] is an expression instead of number. */
+function checkStringExpression(p: string, shell: IShell, newShell: IShell): void {
+    const arr = parseOpAndValue(shell[p]);
+    if (!arr) {
+        RG.err('shell-utils.ts', 'checkStringExpression',
+            `Not legal expression |${shell[p]}|`);
+        return;
+    }
+
+    const [op, value] = arr;
+    if (newShell.hasOwnProperty(p)) {
+        if (op === '+') {
+            newShell[p] += value;
+        }
+        else if (op === '-') {
+            newShell[p] -= value;
+        }
+        else if (op === '*') {
+            newShell[p] = Math.round(newShell[p] * value);
+        }
+        else if (op === '/') {
+            newShell[p] = Math.round(newShell[p] / value);
+        }
+        else {
+            RG.err('shell-utils.ts', 'incrShellProp',
+                `Prop ${p} value illegal: ${shell[p]}`);
+        }
+    }
+    else {
+        newShell[p] = value;
+    }
+}
+
+function parseOpAndValue(expr: string): null | [string, number] {
+    let matched = multOpRe.exec(expr);
+    if (matched) {
+        return [matched[1], parseFloat(matched[2])];
+    }
+    matched = addOpRe.exec(expr);
+    if (matched) {
+        return [matched[1], parseFloat(matched[2])];
+    }
+    return null;
+
 }
 
 /* Transforms damage property. */
