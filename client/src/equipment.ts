@@ -122,14 +122,15 @@ export class Equipment {
         this.equipReduceWeightFactor = 1.0;
 
         this._slots = {
-            chest: new EquipSlot('chest'),
-            feet: new EquipSlot('feet'),
-            hand: new EquipSlot('hand'),
             head: new EquipSlot('head'),
+            neck: new EquipSlot('neck'),
+            chest: new EquipSlot('chest'),
+            hand: new EquipSlot('hand'),
+            shield: new EquipSlot('shield'),
+            legs: new EquipSlot('legs'),
+            feet: new EquipSlot('feet'),
             missile: new EquipSlot('missile', true),
             missileweapon: new EquipSlot('missileweapon'),
-            neck: new EquipSlot('neck'),
-            shield: new EquipSlot('shield'),
             spiritgem: new EquipSlot('spiritgem')
         };
 
