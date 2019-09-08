@@ -345,17 +345,10 @@ Stats.prototype.clearValues = function() {
     RG.SET_STATS.forEach((func: string) => {
         this[func](0);
     });
-    /*this.setAccuracy(0);
-    this.setAgility(0);
-    this.setStrength(0);
-    this.setWillpower(0);
-    this.setPerception(0);
-    this.setSpeed(0);*/
-    this.setMagic(0);
 };
 
 /* Convenience function for increase a stat. */
-Stats.prototype.incrStat = function(statName, addValue): void {
+Stats.prototype.incrStat = function(statName: string, addValue: number): void {
     const setter = 'set' + statName.capitalize();
     const getter = 'get' + statName.capitalize();
     const currValue = this[getter]();
@@ -375,13 +368,6 @@ Stats.prototype.toString = function(): string {
 
 Stats.prototype.equals = function(rhs): boolean {
     let res = this.getType() === rhs.getType();
-    /*res = res && this.getAccuracy() === rhs.getAccuracy();
-    res = res && this.getAgility() === rhs.getAgility();
-    res = res && this.getStrength() === rhs.getStrength();
-    res = res && this.getWillpower() === rhs.getWillpower();
-    res = res && this.getSpeed() === rhs.getSpeed();
-    res = res && this.getPerception() === rhs.getPerception();
-    res = res && this.getMagic() === rhs.getMagic();*/
     RG.GET_STATS.forEach((getFunc: string) => {
         res = res && this[getFunc]() === rhs[getFunc]();
     });
@@ -389,7 +375,7 @@ Stats.prototype.equals = function(rhs): boolean {
 };
 
 /* Stats modifier component. */
-const zeroStats = RG.getStatsObj(0);
+const zeroStats = RG.createStatsObj(0);
 export const StatsMods = DataComponent('StatsMods',
    Object.assign({tag: ''}, zeroStats));
 /*
