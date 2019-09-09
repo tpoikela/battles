@@ -10,7 +10,7 @@ import * as IF from '../src/interfaces';
 
 export const LevelGen: any = {};
 
-const getNumLevels = function(name) {
+const getNumLevels = function(name: string): number {
     switch (name) {
         case 'Cave': return 1;
         case 'Crypt': return 2;
@@ -20,8 +20,8 @@ const getNumLevels = function(name) {
     }
 };
 
-const getDungeonSizeXY = function(name) {
-    const mediumSize = [RG.LEVEL_MEDIUM_X, RG.LEVEL_MEDIUM_Y];
+const getDungeonSizeXY = function(name: string): [number, number] {
+    const mediumSize: [number, number] = [RG.LEVEL_MEDIUM_X, RG.LEVEL_MEDIUM_Y];
     switch (name) {
         case 'Cave': return [80, 50];
         case 'Cavern': return [200, 200];
@@ -32,6 +32,7 @@ const getDungeonSizeXY = function(name) {
         case 'Dungeon': return [100, 50];
 
         case 'Labyrinth': return [100, 100];
+        case 'Maze': return [80, 50];
 
         case 'Crypt': return mediumSize;
         case 'Tombs': return [100, 100];
@@ -58,7 +59,7 @@ const getConstraint = function(name): IF.ConstraintMap {
     }
 };
 
-const getDungeonType = function(name) {
+const getDungeonType = function(name: string): string {
     switch (name) {
         case 'Grotto': return 'Cave';
         case 'Cavern': return 'Cave';
@@ -80,7 +81,7 @@ const getMountainSizeXY = function(name) {
 // DUNGEON GENERATION
 //---------------------------------------------------------------------------
 
-LevelGen.getDungeonConf = (dungeonName): IF.DungeonConf =>  {
+LevelGen.getDungeonConf = (dungeonName: string): IF.DungeonConf =>  {
     let dungeonType = getDungeonType(dungeonName);
     const nLevels = getNumLevels(dungeonType);
     const constraint = getConstraint(dungeonType);
