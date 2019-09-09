@@ -68,6 +68,23 @@ export interface ICoordXY {
     level?: Level;
 }
 
+// Used for mapping coords between OW and AreaTile levels
+export interface ICoordObj {
+    xMap: number;
+    yMap: number;
+    nSubLevelsX: number;
+    nSubLevelsY: number;
+    x: number;
+    y: number;
+    slX: number;
+    slY: number;
+    aX: number;
+    aY: number;
+    subX: number;
+    subY: number;
+    subLevel: Level;
+}
+
 export type DestOrSrc = TCoord | Locatable;
 export type TLocatableElement = ElementBase & Locatable;
 
@@ -251,6 +268,7 @@ export interface ZoneConf {
     owX?: number; // Position in OWMap
     owY?: number; // Position in OWMap
     presetLevels?: {[key: string]: PresetLevelSpec[]};
+    uniqueName?: string;
     sqrPerActor?: number;
     sqrPerItem?: number;
     x?: number; // Position in area (tile x)
@@ -311,6 +329,7 @@ export interface AreaConf {
     nMountains?: number;
     presetLevels?: {[key: string]: Level[][]};
     zonesCreated?: boolean;
+    biome?: {[key: string]: string};
 }
 
 export interface PlayerStart {
