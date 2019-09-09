@@ -8,9 +8,19 @@
     color: $tree-color;
 }
 
+@mixin dark-green-elem {
+    background-color: $floor-bg-color;
+    color: darken($tree-color, 15%);
+}
+
 @mixin frozen-elem {
     background-color: $snow-white;
     color: $gray;
+}
+
+@mixin frozen-elem-dark {
+    background-color: $snow-white;
+    color: darke($gray, 15%);
 }
 
 .cell-elements {
@@ -159,9 +169,17 @@
     @include green-elem;
 };
 
+.cell-element-tree-large {
+    @include dark-green-elem;
+};
+
 .cell-element-snow-tree {
     @include frozen-elem;
 }
+
+.cell-element-tree-large-frozen {
+    @include frozen-elem-dark;
+};
 
 .cell-element-grass {
     @include green-elem;
