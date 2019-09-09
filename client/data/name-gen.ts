@@ -31,7 +31,7 @@ Names.place.generic = {
         // 'Burrows', 'Delves',
         // 'Haunt', 'Point',
         // 'Vault', 'Tunnels', 'Pits',
-        'Labyrinth' // , 'Maze'
+        'Labyrinth', 'Maze'
     ],
 
     mountain: [
@@ -75,6 +75,17 @@ Names.place.generic = {
 
     ]
 
+};
+
+Names.place.prefix = {
+    dungeon: [
+        'Winding', 'Dark', 'Ominous', 'Tranquil'
+    ]
+};
+
+Names.place.suffix = {
+    dungeon: [
+    ]
 };
 
 Names.place.unique = {
@@ -165,6 +176,22 @@ Names.getUniqueName = (type: string): string => {
     else {
         RG.err('name-gen.js', 'Names.getUniqueName',
           `No unique names for type ${type}`);
+    }
+    return '';
+};
+
+Names.getSuffix = (type: string): string => {
+    const suffixes = Names.place.suffix[type];
+    if (suffixes) {
+        return RNG.arrayGetRand(suffixes);
+    }
+    return '';
+};
+
+Names.getPrefix = (type: string): string => {
+    const prefixes = Names.place.suffix[type];
+    if (prefixes) {
+        return RNG.arrayGetRand(prefixes);
     }
     return '';
 };
