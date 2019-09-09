@@ -209,7 +209,8 @@ export interface IConstraint {
 }
 
 export interface ConstraintMap {
-    actor?: IConstraint;
+    actor?: IConstraint[];
+    shop?: IConstraint[];
     disposition?: any;
     cellsAround?: {[key: string]: string};
 }
@@ -258,8 +259,11 @@ export interface ZoneConf {
     connectToAreaXY?: AreaConnection[];
     constraint?: ConstraintMap;
     connectEdges?: boolean; // Used to create connections to all edges of levels
+    components?: object[];
     entrance?: string; // Name of entrance SubZone
     hasUniques?: boolean; // Set to true if zone has unique actors
+    groupType?: string;
+    friendly?: boolean;
     isEpic?: boolean; // Set to true for epic places
     levelX?: number; // Position inside AreaTile level
     levelY?: number; // Position inside AreaTile level

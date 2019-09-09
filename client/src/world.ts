@@ -15,7 +15,7 @@ import {Cell} from './map.cell';
 import {SentientActor} from './actor';
 import {FactoryLevel} from './factory.level';
 import * as Component from './component';
-import {TCoord, IWorldElemMap, LoadStat} from './interfaces';
+import {TCoord, IWorldElemMap, LoadStat, WorldConf} from './interfaces';
 import {Entity} from './entity';
 
 const POOL: EventPool = EventPool.getPool();
@@ -166,7 +166,7 @@ export const edgeHasConnections = (level: Level, edge: string): boolean => {
 /* Returns stairs leading to other zones. Used only for testing
 * purposes. */
 function getStairsOther(name: string, levels: Level[]): Stairs[] {
-    const stairs = [];
+    const stairs: Stairs[] = [];
     levels.forEach(level => {
         const sList = level.getStairs();
         sList.forEach((s: Stairs) => {
@@ -412,7 +412,7 @@ function connectSubZoneEdges(subZones: SubZoneBase[], sz1Arg, sz2Arg, l1, l2): b
     return true;
 }
 
-function getEntrance(levels: Level[], entrance: Entrance): Stairs {
+function getEntrance(levels: Level[], entrance: null | Entrance): null | Stairs {
     if (entrance === null) {return null;}
     const {x, y} = entrance;
     const entrLevel: Level = levels[entrance.levelNumber];
@@ -510,7 +510,7 @@ export class WorldBase extends Entity {
         this.type = type;
     }
 
-    public getParent(): WorldBase {
+    public getParent(): null | WorldBase {
         return this.parent;
     }
 
@@ -581,7 +581,7 @@ export class ZoneBase extends WorldBase {
     }
 
     public getLevels(): Level[] {
-        let res = [];
+        let res: Level[] = [];
         this._subZones.forEach(subFeat => {
             res = res.concat(subFeat.getLevels());
         });
@@ -600,7 +600,7 @@ export class ZoneBase extends WorldBase {
         connectSubZones(this._subZones, s1Arg, s2Arg, l1, l2);
     }
 
-    public findLevel(name: string, nLevel: number): Level {
+    public findLevel(name: string, nLevel: number): null | Level {
         const level = findLevel(name, this._subZones, nLevel);
         return level;
     }
@@ -612,7 +612,7 @@ export class ZoneBase extends WorldBase {
 
     /* Returns each entrance in each subzone. */
     public getEntrances(): Stairs[] {
-        const entrances = [];
+        const entrances: Stairs[] = [];
         this._subZones.forEach(sz => {
             const szEntr = sz.getEntrance();
             if (szEntr) {
@@ -669,7 +669,7 @@ export class SubZoneBase extends WorldBase {
     }
 
     /* Returns entrance/exit for the branch.*/
-    public getEntrance(): Stairs {
+    public getEntrance(): null | Stairs {
         return getEntrance(this._levels, this._entrance);
     }
 
@@ -878,14 +878,14 @@ export class Dungeon extends ZoneBase {
 
     /* Returns all entrances/exits for the dungeon.*/
     public getEntrances(): Stairs[] {
-        const res = [];
+        const res: Stairs[] = [];
         const nSubFeats = this._subZones.length;
         for (let i = 0; i < nSubFeats; i++) {
             const branch = this._subZones[i];
             if (this._entranceNames.indexOf(branch.getName()) >= 0) {
                 const entr = branch.getEntrance();
                 if (!RG.isNullOrUndef([entr])) {
-                    res.push(entr);
+                    res.push(entr!);
                 }
             }
         }
@@ -1510,7 +1510,7 @@ World.Area = Area;
  */
 export class Mountain extends ZoneBase {
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType('mountain');
 
@@ -1673,7 +1673,7 @@ export class MountainSummit extends SubZoneBase {
         this.setType('summit');
     }
 
-    public getEntrance() {
+    public getEntrance(): null {
         return null;
     }
 
@@ -1829,23 +1829,27 @@ export class WorldTop extends WorldBase {
     public currAreaIndex: number;
 
     private _areas: Area[];
-    private _conf: {[key: string]: any};
+    private _conf: WorldConf;
 
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType('world');
 
         this._areas = [];
 
         this.currAreaIndex = 0; // Points to current area
-        this._conf = {};
+        this._conf = {
+            name,
+            area: [],
+            nAreas: 0,
+        };
     }
 
-    public getConf() {
+    public getConf(): WorldConf {
         return this._conf;
     }
 
-    public setConf(conf) {this._conf = conf;}
+    public setConf(conf: WorldConf): void {this._conf = conf;}
 
     /* Adds an area into the world. */
     public addArea(area: Area): void {
@@ -1854,7 +1858,7 @@ export class WorldTop extends WorldBase {
     }
 
     public getLevels(): Level[] {
-        let levels = [];
+        let levels: Level[] = [];
         this._areas.map(area => {
             levels = levels.concat(area.getLevels());
         });
@@ -1867,8 +1871,8 @@ export class WorldTop extends WorldBase {
 
     /* Returns all zones of given type. */
     public getZones(type?: string): ZoneBase[] {
-        let zones = [];
-        this._areas.forEach(a => {
+        let zones: ZoneBase[] = [];
+        this._areas.forEach((a: Area) => {
             zones = zones.concat(a.getZones(type));
         });
         return zones;
@@ -1880,7 +1884,7 @@ export class WorldTop extends WorldBase {
 
     /* Returns all stairs in the world. */
     public getStairs(): Stairs[] {
-        const res = [];
+        const res: Stairs[] = [];
         this.getZones().forEach(zone =>
             zone.getLevels().forEach(l =>
                 l.getStairs().forEach(stair =>

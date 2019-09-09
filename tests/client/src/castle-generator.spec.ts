@@ -54,15 +54,13 @@ describe('CastleGenerator', () => {
     });
 
     it('can create accessible castles with surroundings', () => {
+        /*const cellsAround = {
+            N: 'wallmount', S: 'grass', E: 'wallmount', W: 'wallmount',
+            SE: 'grass', NE: 'grass', NW: 'water', SW: 'water'
+        };*/
         const cellsAround = {
-            N: 'wallmount',
-            S: 'grass',
-            E: 'wallmount',
-            W: 'wallmount',
-            SE: 'grass',
-            NE: 'grass',
-            NW: 'water',
-            SW: 'water'
+            N: 'wallmount', S: 'wallmount', E: 'wallmount', W: 'wallmount',
+            SE: 'grass', NE: 'grass', NW: 'water', SW: 'water'
         };
         const conf = CastleGenerator.getOptions();
         conf.cellsAround = cellsAround;
@@ -77,6 +75,7 @@ describe('CastleGenerator', () => {
                 console.error('[SERIOUS ERROR]: Level was');
                 level.debugPrintInASCII(); // Only if fails
             }
+            level.debugPrintInASCII(); // Only if fails
             expect(path.length).to.be.at.least(5);
         }
     });

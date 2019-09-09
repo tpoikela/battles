@@ -47,13 +47,13 @@ const getDungeonSizeXY = function(name: string): [number, number] {
 const getConstraint = function(name): IF.ConstraintMap {
     switch (name) {
         case 'Cave': return {
-            actor: {
+            actor: [{
               op: 'eq', prop: 'type',
               value: ['animal', 'goblin', 'beast']
-            }
+            }]
         };
         case 'Crypt': return {
-            actor: {op: 'eq', prop: 'type', value: 'undead'}
+            actor: [{op: 'eq', prop: 'type', value: 'undead'}]
         };
         default: return null;
     }

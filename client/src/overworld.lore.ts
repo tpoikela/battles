@@ -8,9 +8,15 @@ const RNG = Random.getRNG();
 
 export class OWLore {
 
+    // Indicates that x,y knows about [[x0, y0] ... [xN, yN]]
     public hasInfoAbout: {[key: string]: TCoord[]};
+
+    // Indicates that x,y is known to [[x0, y0] ... [xN, yN]]
     public isKnownBy: {[key: string]: any[]};
+
+    // Keeps track of visited x,y locations for building
     public xyVisited: {[key: string]: boolean};
+
     public zonesByXY: {[key: string]: ZoneConf[]};
 
     constructor() {
@@ -51,7 +57,7 @@ export class OWLore {
         this.hasInfoAbout[keyInfoSrc].push(xy);
     }
 
-    public hasInfo(xy: TCoord): boolean {
+    public hasInfoAboutXY(xy: TCoord): boolean {
         return this.hasInfoAbout.hasOwnProperty(this.getKey(xy));
     }
 
@@ -69,7 +75,7 @@ export class OWLore {
         Object.keys(this.zonesByXY).forEach((key: string) => {
             const zones: ZoneConf[] = this.zonesByXY[key];
             const xy = this.toCoord(key);
-            if (!this.hasInfo(xy)) {return;}
+            if (!this.hasInfoAboutXY(xy)) {return;}
 
             zones.forEach((knowerZone: ZoneConf) => {
                 const knownXY: TCoord[] = this.hasInfoAbout[key];
@@ -91,6 +97,8 @@ export class OWLore {
                 }
 
                 // TODO something about
+                console.log('knowerZone:', knowerZone.name,
+                    JSON.stringify(knowerZone.addComp));
             });
 
         });
@@ -120,5 +128,10 @@ export class OWLore {
     public getZoneMeta(zone: ZoneConf): object {
         const {x, y, levelX, levelY, owX, owY} = zone;
         return {x, y, levelX, levelY, owX, owY};
+    }
+
+    public toString(): string {
+        const res = 'OverWorld Lore:\n';
+        return res;
     }
 }

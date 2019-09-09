@@ -11,9 +11,10 @@ import dbg = require('debug');
 const debug = dbg('bitn:WorldFromJSON');
 import * as World from './world';
 
-import {IWorldElemMap} from './interfaces';
+import * as IF from './interfaces';
 
 type WorldBase = World.WorldBase;
+type WorldTop = World.WorldTop;
 
 // type FromJSON = import('./game.fromjson').FromJSON;
 
@@ -39,7 +40,7 @@ export class WorldFromJSON {
     public id2level: LevelMap;
     public id2entity: EntityMap;
     public _verif: any; // TODO VerifyConf;
-    public worldElemByID: IWorldElemMap; // TODO fix typings
+    public worldElemByID: IF.IWorldElemMap; // TODO fix typings
     public createAllZones: boolean;
     public fromJSON: any;
 
@@ -60,7 +61,7 @@ export class WorldFromJSON {
     public createPlace(placeJSON) {
         switch (placeJSON.type) {
             case 'world': return this.createWorld(placeJSON);
-            case 'quarter': {
+            case 'quarter': { // Used for debugging (Arena mode)
                 const fact = new FactoryWorld();
                 fact.setId2Level(this.id2level);
                 return fact.createCityQuarter(placeJSON);
@@ -72,7 +73,7 @@ export class WorldFromJSON {
     }
 
     /* Main function to call with a serialized JSON of WorldTop. */
-    public createWorld(placeJSON) {
+    public createWorld(placeJSON): WorldTop {
         let world = null;
         if (placeJSON.conf) {
             this.dbg('Creating a restored world now');
@@ -92,7 +93,7 @@ export class WorldFromJSON {
 
     /* Given a serialized WorldTop in JSON, returns the created
      * WorldTop object. */
-    public createRestoredWorld(worldJSON) {
+    public createRestoredWorld(worldJSON): WorldTop {
         if (!worldJSON.conf) {
             RG.err('WorldFromJSON', 'createRestoredWorld',
                 'No worldJSON.conf. Does not look like restored world.');
@@ -117,21 +118,21 @@ export class WorldFromJSON {
         return world;
     }
 
-    public pushScope(json) {
+    public pushScope(json): void {
         this._conf.pushScope(json);
         this.fact.pushScope(json);
         ++this._IND;
     }
 
-    public popScope(json) {
+    public popScope(json): void {
         this._conf.popScope(json);
         this.fact.popScope(json);
         --this._IND;
     }
 
-    public getHierName() {return this._conf.getScope().join('.');}
+    public getHierName(): string {return this._conf.getScope().join('.');}
 
-    public createWorldFromJSON(worldJSON) {
+    public createWorldFromJSON(worldJSON): WorldTop {
         const fact = new FactoryWorld();
         fact.setId2Level(this.id2level);
         fact.id2entity = this.id2entity;
@@ -200,7 +201,7 @@ export class WorldFromJSON {
         return area;
     }
 
-    public restoreCreatedZones(world, area: World.Area) {
+    public restoreCreatedZones(world: WorldTop, area: World.Area) {
         Object.keys(area.zonesCreated).forEach(xy => {
             const [xStr, yStr] = xy.split(',');
             const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
@@ -211,8 +212,10 @@ export class WorldFromJSON {
         });
     }
 
-    public restoreZonesForTile(world, area, x, y) {
-        const worldConf = world.getConf();
+    public restoreZonesForTile(
+        world: World.WorldTop, area: World.Area, x: number, y: number
+    ): void {
+        const worldConf: IF.WorldConf = world.getConf();
         this.pushScope(worldConf);
         const areaConf = area.getConf();
         this.pushScope(areaConf);
@@ -228,13 +231,13 @@ export class WorldFromJSON {
 
     /* Used when creating area from existing levels. Uses id2level lookup table
      * to construct 2-d array of levels.*/
-    public getAreaLevels(areaJSON) {
+    public getAreaLevels(areaJSON): Level[][] {
         this.verify('getAreaLevels', areaJSON, ['tileStatus']);
         ++this._IND;
-        const levels = [];
+        const levels: Level[][] = [];
         if (areaJSON.tiles) {
             areaJSON.tiles.forEach((tileCol, x) => {
-                const levelCol = [];
+                const levelCol: Level[] = [];
                 tileCol.forEach((tile, y) => {
                     if (areaJSON.tileStatus[x][y] === LoadStat.LOADED) {
                         this.dbg(`Tile ${x},${y} is loaded`);
@@ -263,7 +266,7 @@ export class WorldFromJSON {
         return levels;
     }
 
-    public setTileJSONForUnloadedTiles(area, areaJSON) {
+    public setTileJSONForUnloadedTiles(area: World.Area, areaJSON): void {
         const tiles = area.getTiles();
         tiles.forEach((tileCol, x) => {
             tileCol.forEach((tile, y) => {
@@ -291,7 +294,7 @@ export class WorldFromJSON {
     }
 
     /* Verifies that given config is OK. */
-    public verify(funcName: string, conf, list: any[]): void {
+    public verify(funcName: string, conf: {[key: string]: any}, list: any[]): void {
         this._verif.verifyConf(funcName, conf, list);
     }
 

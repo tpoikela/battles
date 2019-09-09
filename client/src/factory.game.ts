@@ -510,7 +510,7 @@ FactoryGame.prototype.createCityConfForPlayerHome = function(
         lY = pY;
     }
 
-    const homeConf = {
+    const homeConf: IF.CityConf = {
         name: 'Home town of ' + player.getName(),
         x: playerX, y: playerY,
         levelX: lX, levelY: lY,
@@ -532,7 +532,16 @@ FactoryGame.prototype.createCityConfForPlayerHome = function(
             nLevels: 1,
             entranceLevel: 0,
             nShops: 1
-        }]
+        }],
+        addComp: [
+            {comp: 'Lore', func: {
+                updateTopics: {mainQuest: [
+                    'Go north', 'Something is going on in the North',
+                    'Some speaks about ancient ice beasts waking up in the arctic!',
+                    'Two huge mountain passes divide this realm into regions'
+                ]}
+            }}
+        ]
     };
 
     player.setXY(lX, lY);

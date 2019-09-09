@@ -227,11 +227,17 @@ QuestTargetEvent.prototype.setTargetComp = function(target) {
 
 export function getQuestVerb(targetType: string): string {
     const type = targetType.toLowerCase();
-    console.log('getQuestVerb type is now', targetType);
     switch (type) {
         case 'location': return 'Find location';
         case 'reportlisten': return 'Talk to';
         case 'report': return 'Report info to';
-        default: return type;
+        case 'give': return 'Give item to';
+        case 'explore': return 'Explore';
+        case 'get': return 'Find item';
+        case 'listen': return 'Get info from';
+        default: {
+            console.log('getQuestVerb ret default for', targetType);
+            return type.toUpperCase();
+        }
     }
 }

@@ -41,4 +41,17 @@ describe('ObjectShellComps', () => {
         expect(mainQuest).to.have.length(1);
     });
 
+    it('can add 2 comps with same type', () => {
+        const shellData = {
+            addComp: [
+                {comp: 'Lore', func: {setTopics: {data: 123}}},
+                {comp: 'Lore', func: {setTopics: {mainQuest: ['abc']}}},
+            ]
+        };
+        compGen.addComponents(shellData, actor);
+        const loreComps = actor.getList('Lore');
+        expect(loreComps).to.have.length(2);
+
+    });
+
 });

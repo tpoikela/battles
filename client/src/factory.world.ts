@@ -36,6 +36,7 @@ type Random = import('./random').Random;
 type Stairs = Element.ElementStairs;
 type WorldBase = World.WorldBase;
 type WorldTop = World.WorldTop;
+type ZoneBase = World.ZoneBase;
 type Area = World.Area;
 type ConcreteSubZone = World.Branch | World.CityQuarter |
     World.MountainFace;
@@ -399,6 +400,7 @@ export const FactoryWorld = function() {
     this.createZonesFromTile = (area: Area, areaTileConf, tx, ty): void => {
         ZONE_TYPES.forEach(type => {
             const typeLc = type.toLowerCase();
+            const createFunc = 'create' + type;
             let nZones = 0;
             if (Array.isArray(areaTileConf[typeLc])) {
                 nZones = areaTileConf[typeLc].length;
@@ -406,7 +408,6 @@ export const FactoryWorld = function() {
             this.debug(`\t[${tx}][${ty}]: nZones (${type}) is now ${nZones}`);
             for (let i = 0; i < nZones; i++) {
                 const zoneConf = areaTileConf[typeLc][i];
-                const createFunc = 'create' + type;
                 const {x, y} = zoneConf;
 
                 // If tx,ty given, create only zones for tile tx,ty
@@ -419,6 +420,7 @@ export const FactoryWorld = function() {
                     if (!this.id2levelSet) {
                         this.createAreaZoneConnection(area, zone, zoneConf);
                     }
+                    this.addZoneComps(zone, zoneConf);
                 }
             }
 
@@ -1426,7 +1428,7 @@ FactoryWorld.prototype.createAreaZoneConnection = function(
 
 };
 
-FactoryWorld.prototype.addActorSpawner = function(level, parser, conf): void {
+FactoryWorld.prototype.addActorSpawner = function(level: Level, parser, conf): void {
     const maxDanger = conf.maxDanger + 1;
     const constr = [
         {op: 'eq', prop: 'type', value: ActorGen.getRaces()}
@@ -1437,13 +1439,19 @@ FactoryWorld.prototype.addActorSpawner = function(level, parser, conf): void {
 };
 
 
-FactoryWorld.prototype.addZoneComps = function(zone, zoneConf): void {
+FactoryWorld.prototype.addZoneComps = function(
+    zone: ZoneBase, zoneConf: IF.ZoneConf
+): void {
+    console.log('addZoneComps called with ', zoneConf.name);
     if (zoneConf.addComp) {
         const compGen = new ObjectShellComps();
         compGen.addComponents(zoneConf, zone);
+        console.log('addZoneComps added comps to', zoneConf.name, ',', zoneConf.addComp);
     }
     else if (zoneConf.components) {
         if (this.fromJSON) {
+            console.log('addZoneComps restoring comps for', zoneConf.name);
+            console.log('Comps are', zoneConf.components);
             this.fromJSON.addCompsToEntity(zone, zoneConf.components);
         }
         else {

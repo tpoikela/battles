@@ -1035,8 +1035,7 @@ function processSubLevel(
         return;
     }
 
-    const comps = getMainQuestComps(ow, x, y, owLore);
-    // const sideComps = getSideQuestComps(ow, x, y, owLore);
+    const mainComps = getMainQuestComps(ow, x, y, owLore);
 
     Object.keys(features).forEach(type => {
         const featureArray: OWSubFeature[] = features[type];
@@ -1074,7 +1073,7 @@ function processSubLevel(
                 debug('Adding final blacktower now');
                 zoneConf = addBlackTowerConfToArea(feat, coordObj, areaConf);
             }
-            addCompsToZone(zoneConf, comps);
+            addCompsToZone(zoneConf, mainComps);
             owLore.addZone([x, y], zoneConf);
         });
     });
@@ -1482,25 +1481,6 @@ function getMainQuestComps(ow: OWMap, x: number, y: number, owLore: OWLore): any
     }
     return comps;
 }
-
-function getSideQuestComps(ow: OWMap, x: number, y: number, owLore: OWLore): any[] {
-    const loreRange = 2;
-    const comps = [];
-    const xy: TCoord = [x, y];
-    const loreCoord = Geometry.getBoxAround(x, y, loreRange);
-    loreCoord.forEach((lXY: TCoord) => {
-        if (ow.hasFeatureAt(lXY)) {
-            /* const feats = ow.getFeaturesByXY(lXY);
-            const chosenFeat = getRNG().arrayGetRand(feats);*/
-            /* const dir = RG.getTextualDir(lXY, xy);
-            const msg = createLoreMsg(dir);
-            comps.push(createLoreObj(msg, 'sideQuest'));*/
-            owLore.addXYKnownBy(lXY, xy);
-        }
-    });
-    return comps;
-}
-
 
 /* Returns the bounding box of sublevel coordinates for given tile. For example,
  * tile 0,0 with xMap=3,yMap=5, returns [0, 4, 2, 0]. */
