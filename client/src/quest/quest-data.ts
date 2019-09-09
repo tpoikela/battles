@@ -2,6 +2,7 @@
 import RG from '../rg';
 import {Entity} from '../entity';
 import {Level} from '../level';
+import {getQuestVerb} from '../component/component.quest';
 
 type ZoneBase = import('../world').ZoneBase;
 
@@ -150,7 +151,7 @@ export class QuestData {
             // const value = this.next(step);
             const value = pair.target;
             const name = RG.getName(value);
-            res += step + ' ' + name + '. ';
+            res += getQuestVerb(step) + ' ' + name + '. ';
         });
         return res;
     }

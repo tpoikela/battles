@@ -62,7 +62,7 @@ export class Quest {
         }
     }
 
-    public setName(name): void {this.name = name;}
+    public setName(name: string): void {this.name = name;}
     public getName(): string {return this.name;}
     public setMotive(motive: string): void {this.motive = motive;}
     public getMotive(): string {return this.motive;}
