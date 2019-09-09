@@ -23,7 +23,7 @@ export const QuestGiver = UniqueDataComponent('QuestGiver', {
     questTargets: null
 });
 
-QuestGiver.prototype._init = function(descr) {
+QuestGiver.prototype._init = function(descr: string) {
     this.chatObj = new ChatQuest();
     this.descr = descr;
     this.questID = this.getID();
@@ -184,7 +184,7 @@ Quest.prototype.isTargetInQuest = function(targetComp) {
     return false;
 };
 
-Quest.prototype.toString = function() {
+Quest.prototype.toString = function(): string {
     let res = '';
     this.questTargets.forEach((obj, i) => {
         if (i > 0) {res += '. ';}
@@ -192,7 +192,8 @@ Quest.prototype.toString = function() {
             res += 'Talk to ' + obj.name;
         }
         else {
-            res += obj.targetType + ' ' + obj.name;
+            res += getQuestVerb(obj.targetType) + ' ' + obj.name;
+            // res += obj.targetType + ' ' + obj.name;
         }
     });
     return res;
@@ -224,3 +225,13 @@ QuestTargetEvent.prototype.setTargetComp = function(target) {
     this.targetComp = target;
 };
 
+export function getQuestVerb(targetType: string): string {
+    const type = targetType.toLowerCase();
+    console.log('getQuestVerb type is now', targetType);
+    switch (type) {
+        case 'location': return 'Find location';
+        case 'reportlisten': return 'Talk to';
+        case 'report': return 'Report info to';
+        default: return type;
+    }
+}
