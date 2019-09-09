@@ -167,7 +167,7 @@ function incrShellProp(p: string, shell: IShell, newShell: IShell): void {
 function multShellProp(p: string, shell: IShell, newShell: IShell): void {
     if (typeof shell[p] === 'number') {
         if (newShell.hasOwnProperty(p)) {
-            newShell[p] *= Math.round(shell[p]);
+            newShell[p] = newShell[p] * shell[p];
         }
         else {
             newShell[p] = shell[p];
