@@ -136,7 +136,8 @@ export class SystemChat extends SystemBase {
         }
         const newChatObj = this.getChatObject(ent, srcActor, compType);
         if (newChatObj) {
-            topObj.add({name: 'Do you know anything about ' + compType + '?',
+            const chatQuestion = this.getChatQuestion(compType);
+            topObj.add({name: chatQuestion,
                         option: newChatObj
             });
         }
@@ -386,6 +387,14 @@ export class SystemChat extends SystemBase {
             allOk = allOk && constrFunc(ent);
         }
         return allOk;
+    }
+
+    protected getChatQuestion(compType: string): string {
+        switch (compType) {
+            case 'QuestGiver':
+                return 'Can you give me some work to do?';
+        }
+        return 'Do you know anything about ' + compType + '?';
     }
 
     protected getHostileMsg(chatter: BaseActor, actor: BaseActor): string {
