@@ -1,3 +1,5 @@
+/* Component which renders character info like stats, components,
+ * level, battle and quest info. */
 
 import * as React from 'react';
 import ModalHeader from './modal-header';
@@ -77,7 +79,7 @@ export default class GameCharInfo extends React.Component {
 
 
   /* Returns the markup for shown tab element. */
-  public renderTabElement(tabName) {
+  public renderTabElement(tabName: string) {
     const actor = this.props.player;
     if (!actor) {return null;}
 
