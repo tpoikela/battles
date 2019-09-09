@@ -937,11 +937,13 @@ function addVillageToSubLevel(feat, owSubLevel: OWSubLevel, subLevel: Level) {
  */
 OverWorld.createWorldConf = function(
     ow, nSubLevelsX, nSubLevelsY, nTilesX, nTilesY
-) {
-    const worldConf = {
+): IF.WorldConf {
+    const worldConf: IF.WorldConf = {
         name: 'The North',
         nAreas: 1,
         area: [{
+            cols: 100,
+            rows: 100,
             name: 'The Northern Realm',
             maxX: nTilesX, maxY: nTilesY,
             biome: {},
@@ -953,7 +955,7 @@ OverWorld.createWorldConf = function(
             nCities: 0
         }]
     };
-    const areaConf = worldConf.area[0];
+    const areaConf: IF.AreaConf = worldConf.area[0];
 
     // const nSubLevelsX = subLevels.length;
     // const nSubLevelsY = subLevels[0].length;
@@ -1004,7 +1006,7 @@ OverWorld.createWorldConf = function(
             const subX = subLevel.getSubX();
             const subY = subLevel.getSubY();
 
-            const coordObj = {xMap, yMap, nSubLevelsX, nSubLevelsY,
+            const coordObj: IF.ICoordObj = {xMap, yMap, nSubLevelsX, nSubLevelsY,
                 x, y, slX, slY, aX, aY, subLevel, subX, subY};
 
             processSubLevel(ow, x, y, coordObj, areaConf, owLore);
@@ -1022,7 +1024,10 @@ OverWorld.createWorldConf = function(
 
 /* Adds zone features to the given subLevel of ow located at x,y. Adds also
  * necessary information into areaConf which will be used by Factory. */
-function processSubLevel(ow: OWMap, x: number, y: number, coordObj, areaConf, owLore: OWLore): void {
+function processSubLevel(
+    ow: OWMap, x: number, y: number, coordObj: IF.ICoordObj,
+    areaConf: IF.AreaConf, owLore: OWLore
+): void {
     const subLevel = ow.getSubLevel([x, y]);
     const features: OWFeatureMap = subLevel.getFeatures();
     if (Object.keys(features).length === 0) {
@@ -1085,11 +1090,14 @@ function addDungeonConfToArea(feat, coordObj, areaConf): IF.ZoneConf {
     let featY = mapY(coordD[0][1], slY, subY);
     [featX, featY] = moveXYFromBoundary([featX, featY]);
     const dName = Names.getGenericPlaceName('dungeon');
+    const uniqueName = Names.getUniqueName('dungeon');
+    console.log('Dungeon with name:', uniqueName);
 
-    const dungeonConf = LevelGen.getDungeonConf(dName);
+    const dungeonConf: IF.DungeonConf = LevelGen.getDungeonConf(dName);
+    dungeonConf.uniqueName = uniqueName;
     Object.assign(dungeonConf,
         {x: aX, y: aY, levelX: featX, levelY: featY,
-            owX: x, owY: y});
+            owX: x, owY: y, uniqueName});
     areaConf.nDungeons += 1;
     addMaxDangerAndValue(pX, pY, dungeonConf);
     areaConf.dungeon.push(dungeonConf);
@@ -1412,11 +1420,14 @@ function getPlayerPosition(coordObj) {
 }
 
 /* Map biomes from overworld into nTilesX * nTilesY space. */
-function addBiomeLocations(ow, areaConf) {
+function addBiomeLocations(ow: OWMap, areaConf: IF.AreaConf): void {
     const owSizeX = ow.getSizeX();
     const owSizeY = ow.getSizeY();
     const xMap = owSizeX / areaConf.maxX;
     const yMap = owSizeY / areaConf.maxY;
+    if (!areaConf.biome) {
+        areaConf.biome = {};
+    }
 
     for (let x = 0; x < areaConf.maxX; x++) {
         for (let y = 0; y < areaConf.maxY; y++) {
