@@ -149,10 +149,24 @@ const Elements = [
         }
     },
     {
+        name: 'large tree', className: 'cell-element-tree-large',
+        char: 'T', addComp: ['Impassable', 'Opaque'],
+        msg: {
+            onEnter: 'There is a large tree here.'
+        }
+    },
+    {
         name: 'snow-covered tree', className: 'cell-element-snow-tree',
         char: 'T', addComp: ['Opaque', 'Snowy'],
         msg: {
             onEnter: 'There is a snow-covered tree here.'
+        }
+    },
+    {
+        name: 'large frozen tree', className: 'cell-element-tree-large-frozen',
+        char: 'T', addComp: ['Impassable', 'Opaque'],
+        msg: {
+            onEnter: 'There is a large frozen tree here.'
         }
     },
     {
