@@ -1382,8 +1382,9 @@ export class Area extends WorldBase {
             zone.setParent(this);
         }
         else {
+            const [x, y] = [zone.tileX, zone.tileY];
             RG.err('Area', 'addZone',
-                `Tried to add zone to unloaded/onDisk tile`);
+                `Tried to add zone@${x},${y} to unloaded/onDisk tile`);
         }
     }
 
