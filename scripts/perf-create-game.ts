@@ -10,7 +10,7 @@ console.log('Seed used is', seed);
 
 const factory = new RG.FactoryGame();
 const startTime = new Date();
-const jsonTest = true;
+const jsonTest = false;
 
 const gameConf = {
     playerLevel: 'Medium',
