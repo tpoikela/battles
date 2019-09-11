@@ -99,9 +99,10 @@ export class QuestData {
         return this.path.map(pair => pair.target);
     }
 
-    public pop(targetType) {
+    public pop(targetType: string): QuestTargetObj | null {
         if (this._stacks[targetType]) {
-            return this._stacks[targetType].pop();
+            const val = this._stacks[targetType].pop();
+            if (val) {return val;}
         }
         return null;
     }
