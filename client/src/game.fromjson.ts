@@ -1316,7 +1316,9 @@ FromJSON.prototype.createTiles = function(game, jsonTiles: IAreaTileJSON[]) {
 
         const jsonCopy = JSON.parse(JSON.stringify(json));
         area.setTile(tx, ty, tile);
+        area.setLoaded(tx, ty);
         tileLevel.setParent(area);
+        fact.fromJSON = this;
         fact.createZonesFromTile(area, jsonCopy, tx, ty);
         this.restoreSerializedBattles(game, tile);
     });
@@ -1403,6 +1405,7 @@ FromJSON.prototype.restoreChunkManager = function(game, gameJSON) {
         game.setEnableChunkUnload(true);
         // TODO fix ugly as hell
         game._chunkManager.store.data = chunkManager.data;
+        game._chunkManager.recordedTileMoves = chunkManager.recordedTileMoves;
     }
 };
 
