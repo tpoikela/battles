@@ -1547,7 +1547,7 @@ RG.isItem = function(obj: any): obj is ItemBase {
 
 /* Returns true if given object is an entity. Can return false results
  * sometimes. */
-RG.isEntity = (obj: any): obj is Entity => {
+RG.isEntity = function(obj: any): obj is Entity {
     if (obj.comps && obj.compsByType && obj.add && obj.get) {
         return true;
     }
