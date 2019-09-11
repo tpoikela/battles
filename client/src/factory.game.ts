@@ -260,7 +260,7 @@ FactoryGame.prototype.createOverWorldGame = function(obj: IF.IFactoryGameConf, g
     this.progress('Creating Overworld Level Map...');
     const worldAndConf = OverWorld.createOverWorldLevel(
       overworld, owConf);
-    const [worldLevel, worldConf] = worldAndConf;
+    const [worldLevel, worldConf]: [Level, IF.WorldConf] = worldAndConf;
     this.progress('DONE');
 
     this.progress('Mapping settlements into territory areas..');
@@ -528,7 +528,7 @@ FactoryGame.prototype.createCityConfForPlayerHome = function(
             cellsAround: Geometry.getCellsAround(level.getMap(), cell)
         },
         quarter: [{
-            name: 'Square',
+            name: 'Town Square',
             nLevels: 1,
             entranceLevel: 0,
             nShops: 1
