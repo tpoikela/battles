@@ -175,7 +175,8 @@ export class SystemChat extends SystemBase {
         return chatObj;
     }
 
-    /* Adds additional chat items related to various quest objectives. */
+    /* Adds additional chat items related to various quest objectives. This lets
+    * player to inquire about their current quest targets. */
     public addQuestTargetItems(
         ent: BaseActor, actor: BaseActor, chatObj: ChatBase
     ): void {
@@ -279,11 +280,32 @@ export class SystemChat extends SystemBase {
             msg += ` I saw ${tName} ${dir} from here.`;
             RG.gameInfo(msg);
         }
+        else {
+            // Check if zone Lore has any info about this one
+            const zone = actor.getLevel().getParentZone();
+            if (zone.has('Lore')) {
+                const loreList = zone.getList('Lore');
+                loreList.forEach(loreComp => {
+                    const topics = loreComp.getTopics();
+                    if (topics.sideQuest) {
+                        const metaData = loreComp.getMetaData();
+                        const {name} = metaData;
+                        if (name === tName) {
+                            resp = () => {
+                                const dirMsg = this.rng.arrayGetRand(topics.sideQuest);
+                                const msg = `${aName} says: ${dirMsg}`;
+                                RG.gameInfo(msg);
+                            };
+                        }
+                    }
+                });
+            }
+        }
 
         if (tName !== '') {
             if (!resp) {
                 resp = () => {
-                    const msg = `${aName} says: I know not where ${tName} is`;
+                    const msg = `${aName} says: I don't know where ${tName} is`;
                     RG.gameInfo(msg);
                 };
             }
