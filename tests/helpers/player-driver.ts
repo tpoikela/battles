@@ -177,7 +177,9 @@ class BasicAttackProcessor extends ActionProcessor {
             const book = drv.player.getBook();
             if (book) {
                 const spell = book.getSpells()[0];
-                return spell.canCast();
+                if (spell) {
+                    return spell.canCast();
+                }
             }
         }
         return false;
