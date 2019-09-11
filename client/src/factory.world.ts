@@ -6,6 +6,7 @@ import {Constraints} from './constraints';
 
 const dbg = require('debug');
 const debug = dbg('bitn:Factory.World');
+const debugVerb = dbg('bitn:Factory.World-verb');
 
 import * as Verify from './verify';
 import {ConfStack} from './conf-stack';
@@ -938,6 +939,8 @@ export const FactoryWorld = function() {
             conf, ['name', 'nQuarters']);
         this.pushScope(conf);
 
+        debugVerb('createCity', conf.name, 'addComp is ', conf.addComp);
+
         const city = new World.City(conf.name);
         city.setHierName(this.getHierName());
 
@@ -1442,16 +1445,18 @@ FactoryWorld.prototype.addActorSpawner = function(level: Level, parser, conf): v
 FactoryWorld.prototype.addZoneComps = function(
     zone: ZoneBase, zoneConf: IF.ZoneConf
 ): void {
-    console.log('addZoneComps called with ', zoneConf.name);
+    debugVerb('addZoneComps called with ', zoneConf.name);
     if (zoneConf.addComp) {
         const compGen = new ObjectShellComps();
         compGen.addComponents(zoneConf, zone);
-        console.log('addZoneComps added comps to', zoneConf.name, ',', zoneConf.addComp);
+        debugVerb('addZoneComps added comps to', zoneConf.name, ',', zoneConf.addComp);
     }
     else if (zoneConf.components) {
         if (this.fromJSON) {
-            console.log('addZoneComps restoring comps for', zoneConf.name);
-            console.log('Comps are', zoneConf.components);
+            if (debugVerb.enabled) {
+                debugVerb('addZoneComps restoring comps for', zoneConf.name);
+                debugVerb('Comps are', zoneConf.components);
+            }
             this.fromJSON.addCompsToEntity(zone, zoneConf.components);
         }
         else {
