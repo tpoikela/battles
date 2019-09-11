@@ -4,6 +4,9 @@ import {TCoord, ZoneConf} from './interfaces';
 import {Lore, createLoreObj, ILoreEntry, format} from '../data/lore';
 import {Random} from './random';
 
+const dbg = require('debug');
+const debug = dbg('bitn:ow-lore');
+
 const RNG = Random.getRNG();
 
 export class OWLore {
@@ -19,11 +22,16 @@ export class OWLore {
 
     public zonesByXY: {[key: string]: ZoneConf[]};
 
+    public nZones: number;
+    public nAddedCompsTo: number;
+
     constructor() {
         this.hasInfoAbout = {};
         this.isKnownBy = {};
         this.xyVisited = {};
         this.zonesByXY = {};
+        this.nZones = 0;
+        this.nAddedCompsTo = 0;
     }
 
     public getKey(coord: TCoord): string {
@@ -67,6 +75,8 @@ export class OWLore {
             this.zonesByXY[key] = [];
         }
         this.zonesByXY[key].push(zoneConf);
+        ++this.nZones;
+        debug(`addZone ${zoneConf.name} to ${key}, nZones: ${this.nZones}`);
     }
 
     /* Builds the config for adding Lore components based on zoneConfs, and
@@ -96,13 +106,20 @@ export class OWLore {
                     knowerZone.addComp = [loreObj];
                 }
 
+                ++this.nAddedCompsTo;
+
                 // TODO something about
-                console.log('knowerZone:', knowerZone.name,
-                    JSON.stringify(knowerZone.addComp));
+                if (debug.enabled) {
+                    this.dbg('knowerZone:', knowerZone.name,
+                        knowerZone.x, knowerZone.y,
+                        JSON.stringify(knowerZone.addComp));
+                }
             });
 
         });
+        debug(`buildLore END. ${this.nAddedCompsTo}/${this.nZones} zones have addComp`);
     }
+
 
     public formatMsg(dir: string, zoneConf: ZoneConf): string {
         // const choices: ILoreEntry = Lore.getRand('typesDirections');
@@ -122,16 +139,22 @@ export class OWLore {
     }
 
     public debugPrint(): void {
-        console.log(this.zonesByXY);
+        debug.enabled = true;
+        debug(this.zonesByXY);
+        debug.enabled = false;
     }
 
     public getZoneMeta(zone: ZoneConf): object {
-        const {x, y, levelX, levelY, owX, owY} = zone;
-        return {x, y, levelX, levelY, owX, owY};
+        const {name, x, y, levelX, levelY, owX, owY} = zone;
+        return {name, x, y, levelX, levelY, owX, owY};
     }
 
     public toString(): string {
         const res = 'OverWorld Lore:\n';
         return res;
+    }
+
+    public dbg(...args: any[]): void {
+        debug(...args);
     }
 }
