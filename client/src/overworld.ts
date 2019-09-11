@@ -1017,7 +1017,7 @@ OverWorld.createWorldConf = function(
 
     const tEnd = Date.now();
     const tDur = tEnd - tStart;
-    console.log('Processing subLevels took ' + tDur + ' ms');
+    console.log('overworld.ts Processing subLevels took ' + tDur + ' ms');
     addBiomeLocations(ow, areaConf);
     return worldConf;
 };
@@ -1088,12 +1088,12 @@ function addDungeonConfToArea(feat, coordObj, areaConf): IF.ZoneConf {
     let featX = mapX(coordD[0][0], slX, subX);
     let featY = mapY(coordD[0][1], slY, subY);
     [featX, featY] = moveXYFromBoundary([featX, featY]);
+
     const dName = Names.getGenericPlaceName('dungeon');
     const uniqueName = Names.getUniqueName('dungeon');
-    console.log('Dungeon with name:', uniqueName);
-
     const dungeonConf: IF.DungeonConf = LevelGen.getDungeonConf(dName);
     dungeonConf.uniqueName = uniqueName;
+
     Object.assign(dungeonConf,
         {x: aX, y: aY, levelX: featX, levelY: featY,
             owX: x, owY: y, uniqueName});
@@ -1441,10 +1441,10 @@ function addBiomeLocations(ow: OWMap, areaConf: IF.AreaConf): void {
 }
 
 function getMainQuestComps(ow: OWMap, x: number, y: number, owLore: OWLore): any[] {
-    const loreRange = 2;
+    const loreRange = 5;
     const comps = [];
     const xy: TCoord = [x, y];
-    const loreCoord = Geometry.getBoxAround(x, y, loreRange);
+    const loreCoord: TCoord[] = Geometry.getBoxAround(x, y, loreRange);
 
     if (ow.hasPathAt(xy)) {
         const path: IF.ICoordXY[] = ow.getPathAtXY(xy);
@@ -1475,8 +1475,9 @@ function getMainQuestComps(ow: OWMap, x: number, y: number, owLore: OWLore): any
                 const dir = RG.getTextualDir(lXY, xy);
                 const msg = createDirNorthMsg(dir);
                 comps.push(createLoreObj(msg, 'mainQuest'));
-                owLore.addXYKnownBy(lXY, xy);
             }
+            owLore.addXYKnownBy(lXY, xy);
+            owLore.addXYKnownBy(xy, lXY);
         });
     }
     return comps;
