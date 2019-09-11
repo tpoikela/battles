@@ -386,6 +386,11 @@ export class QuestPopulate {
             // console.log(`TaskType |${taskType}| not implemented. Bail out..`);
             return false;
         }
+        if (!this.currQuest) {
+            RG.err('QuestPopulate', 'mapTask',
+                `currQuest must not be null/undefiend`);
+            return false;
+        }
 
         this.dbg('Processing taskType |' + taskType + '|');
         this.listOfAllTasks.push(taskType);
@@ -954,7 +959,7 @@ export class QuestPopulate {
 
             questData.keys().forEach(key => {
                 if (QuestPopulate.legalKeys.has(key)) {
-                    let target: QuestTargetObj = questData.next(key);
+                    let target: QuestTargetObj | null = questData.next(key);
                     while (target) {
                         // Custom create function can be given such as createBattle
                         // or createBook, which must return the target
@@ -1012,20 +1017,23 @@ export class QuestPopulate {
         this.dbg('addTargetsToGiver now, ID ' + questID);
 
         ++this.IND;
-        const pathTargets = questData.getPathTargets();
-        pathTargets.forEach(questTarget => {
-            this._checkTargetValidity(questTarget);
-            const targetComp = questTarget.get('QuestTarget');
-            if (targetComp) {
-                const [target, targetType] = [targetComp.getTarget(),
-                    targetComp.getTargetType()];
-                giverComp.addTarget(targetType, target);
-                targetComp.setQuestID(questID);
-            }
-            else {
-                const json = JSON.stringify(questTarget);
-                RG.err('QuestPopulate', 'addTargetsToGiver',
-                    `No QuestTarget found from target ${json}`);
+        const pathTargets: QuestTargetObj[] = questData.getPathTargets();
+        pathTargets.forEach((questTarget: QuestTargetObj) => {
+            if (RG.isEntity(questTarget)) {
+                const questEnt = questTarget as Entity;
+                this._checkTargetValidity(questEnt);
+                const targetComp = questEnt.get('QuestTarget');
+                if (targetComp) {
+                    const [target, targetType] = [targetComp.getTarget(),
+                        targetComp.getTargetType()];
+                    giverComp.addTarget(targetType, target);
+                    targetComp.setQuestID(questID);
+                }
+                else {
+                    const json = JSON.stringify(questTarget);
+                    RG.err('QuestPopulate', 'addTargetsToGiver',
+                        `No QuestTarget found from target ${json}`);
+                }
             }
         });
         --this.IND;
