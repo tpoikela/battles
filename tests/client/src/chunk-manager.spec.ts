@@ -20,6 +20,15 @@ chai.use(chaiBattles);
 
 const {ChunkManager, LOAD} = Chunk;
 
+const failingMoves = [
+    [4,10,4,11], [4,11,4,10], [4,10,4,11], [4,11,4,10], [4,10,4,11], [4,11,4,10],
+    [4,10,4,11], [3,10,4,10], [4,10,3,10], [4,11,4,10], [3,11,4,11], [3,10,3,11],
+    [3,11,3,10], [2,11,3,11], [3,11,2,11]
+];
+const normalizedFailed = failingMoves.map(arr => (
+    [arr[0] - 2, arr[1] - 8, arr[2] - 2, arr[3] - 8]
+));
+
 describe('ChunkManager', function() {
     this.timeout(10000);
 
@@ -50,6 +59,17 @@ describe('ChunkManager', function() {
         game = null;
         area = null;
         world = null;
+    });
+
+    it('can follow certain path of tiles', () => {
+        const manager = new ChunkManager(game, area);
+        const startPos = normalizedFailed[0];
+        manager.setPlayerTile(startPos[2], startPos[3]);
+        normalizedFailed.forEach((arr, i) => {
+            console.log(`Starting move ${i} now ${arr}`);
+            manager.setPlayerTile(...arr);
+        });
+
     });
 
     it('loads some tiles to mem, some to json and some to disk', () => {
