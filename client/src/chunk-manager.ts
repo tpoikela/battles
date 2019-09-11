@@ -14,6 +14,7 @@ type AreaTile = World.AreaTile;
 
 import dbg = require('debug');
 const debug = dbg('bitn:ChunkManager');
+debug.enabled = true;
 
 function printTileConnections(msg: string, tileToConnect, id = -1) {
     RG.diag(msg);
@@ -62,6 +63,9 @@ export class ChunkManager {
 
     public store: InMemoryStore;
 
+    // Stores how player moves between tiles
+    public recordedTileMoves: Array<[TCoord, TCoord]>;
+
     constructor(game, area: World.Area) {
         const [sizeX, sizeY] = [area.getSizeX(), area.getSizeY()];
         this.sizeX = sizeX;
@@ -71,6 +75,7 @@ export class ChunkManager {
         this.state = [];
 
         this.store = new InMemoryStore(this.game.gameID);
+        this.recordedTileMoves = [];
 
         for (let x = 0; x < sizeX; x++) {
             this.state[x] = [];
@@ -109,6 +114,8 @@ export class ChunkManager {
             debug(`## setPlayerTile START ${oldX},${oldY}->${px},${py}`);
             this.debugPrint();
         }
+
+        this.recordedTileMoves.push([[px, py], [oldX, oldY]]);
 
         // Will contain only coordinates of serialized tiles to load
         const loadedTiles: TCoord[] = [];
@@ -403,6 +410,7 @@ export class ChunkManager {
 
     public readTileFromDisk(px, py, tx, ty, moveDir): void {
         if (this.isOnDisk(tx, ty)) {
+            debug(`Reading ${tx},${ty} from disk now`);
             this.state[tx][ty].loadState = LoadStat.ON_DISK2JSON;
             const tileId = this.getTileId(tx, ty);
             const data = this.store.getItem(tileId);
@@ -434,7 +442,8 @@ export class ChunkManager {
     public toJSON() {
         const json: any = {
             state: this.state,
-            useInMemoryStore: this.useInMemoryStore
+            useInMemoryStore: this.useInMemoryStore,
+            recordedTileMoves: this.recordedTileMoves
         };
         json.data = this.store.data;
         return json;
