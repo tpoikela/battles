@@ -235,6 +235,17 @@ export function getQuestVerb(targetType: string): string {
         case 'explore': return 'Explore';
         case 'get': return 'Find item';
         case 'listen': return 'Get info from';
+        case 'winbattle': return 'Defeat enemy army in';
+        case 'finishbattle': return 'Fight battle until end in';
+        case 'kill': {
+            return 'Kill';
+        }
+        case 'read': {
+            return 'Read';
+        }
+        case 'damage': {
+            return 'Do some damage to';
+        }
         default: {
             console.log('getQuestVerb ret default for', targetType);
             return type.toUpperCase();
