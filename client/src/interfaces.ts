@@ -155,10 +155,17 @@ export interface ID2LevelMap {
     [key: number]: Level;
 }
 
+export interface Entrance {
+    levelNumber: number;
+    x: number;
+    y: number;
+}
+
 export interface SubZoneConf {
     name: string;
     nLevels: number;
     entranceLevel?: number;
+    entrance?: Entrance;
     constraint?: ConstraintMap;
 }
 
