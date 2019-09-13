@@ -13,8 +13,9 @@ import * as Component from '../../../client/src/component';
 import {FromJSON} from '../../../client/src/game.fromjson';
 import {EventPool} from '../../../client/src/eventpool';
 import {Level} from '../../../client/src/level';
-import {LoadStat} from '../../../client/src/interfaces';
+import * as IF from '../../../client/src/interfaces';
 
+const LoadStat = IF.LoadStat;
 const expect = chai.expect;
 chai.use(chaiBattles);
 
@@ -47,6 +48,15 @@ describe('ChunkManager', function() {
         game = new GameMain();
         area = new World.Area('north', sizeX, sizeY, cols, rows);
         world = new World.WorldTop('World');
+        const areaConf: IF.AreaConf = {
+            name: 'north', cols, rows, maxX: sizeX, maxY: sizeY
+        };
+        const worldConf: IF.WorldConf = {
+            name: 'World',
+            nAreas: 1,
+            area: [areaConf]
+        };
+        world.setConf(worldConf);
         player = new SentientActor('player');
         player.setIsPlayer(true);
         world.addArea(area);
@@ -66,7 +76,6 @@ describe('ChunkManager', function() {
         const startPos = normalizedFailed[0];
         manager.setPlayerTile(startPos[2], startPos[3]);
         normalizedFailed.forEach((arr, i) => {
-            console.log(`Starting move ${i} now ${arr}`);
             manager.setPlayerTile(...arr);
         });
 
