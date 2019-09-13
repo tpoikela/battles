@@ -937,8 +937,8 @@ export const FactoryWorld = function() {
             subZone.addEntrance(conf.entranceLevel!);
         }
         else if (conf.hasOwnProperty('entrance')) {
-            RG.err('FactoryWorld', '_addEntranceToSubZone',
-                `got conf: ${conf}`);
+            // RG.err('FactoryWorld', '_addEntranceToSubZone',
+            //     `got conf: ${conf}`);
             subZone.setEntranceLocation(conf.entrance);
         }
     };

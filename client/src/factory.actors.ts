@@ -173,7 +173,9 @@ FactoryActor.prototype.generateNActors = function(nActors, func, maxDanger) {
 
         if (actor) {
             // This levels up the actor to match current danger level
-            const objShell = parser.dbGet(RG.TYPE_ACTOR, actor.getName());
+            // const objShell = parser.dbGet(RG.TYPE_ACTOR, actor.getName());
+            const objShell = parser.dbGet({categ: RG.TYPE_ACTOR,
+                                          name: actor.getName()});
             const expLevel = maxDanger - objShell.danger;
             if (expLevel > 1) {
                 RG.levelUpActor(actor, expLevel);
