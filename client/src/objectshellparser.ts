@@ -20,7 +20,9 @@ import {IShell, StringMap, TShellFunc} from './interfaces';
 const RNG = Random.getRNG();
 export const ObjectShell: any = {};
 
+type Entity = import('./entity').Entity;
 type BaseActor = Actor.BaseActor;
+type SentientActor = Actor.SentientActor;
 type ItemBase = Item.ItemBase;
 
 export interface IShellInputData {
@@ -37,6 +39,8 @@ export interface IShellDb {
     effects?: StringMap<IShell>;
 }
 
+type DBKey = keyof IShellDb;
+
 export interface IShellDbDanger {
     [key: number]: IShellDb;
 }
@@ -45,143 +49,155 @@ export interface IShellDbDanger {
 // because it can implement all behaviour the rest are offering
 export interface IQueryDB {
     name?: string; // Specific name sought after
-    categ?: string; // actors, items, elements
+    categ?: DBKey; // actors, items, elements
     danger?: number;
     func?: TShellFunc; // Acceptance func for query
 }
 
-export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
-    this._db = db;
-    this._dbNoRandom = dbNoRandom;
-    this._compGen = new ObjectShellComps();
 
-    /* Maps obj props to function calls. Essentially this maps bunch of setters
-     * to different names. Following formats supported:
-     *
-     * 1. {factory: funcObj, func: "setter"}
-     *  Call obj["setter"]( funcObj(shell.field) )
-     *
-     * 2. {comp: "CompName", func: "setter"}
-     *  Create component comp of type "CompName".
-     *  Call comp["setter"]( shell.field)
-     *  Call obj.add(comp)
-     *
-     * 3. {comp: "CompName"}
-     *  Create component comp of type "CompName" with new CompName(shell.field)
-     *  Call obj.add(comp)
-     *
-     * 4. "setter"
-     *   Call setter obj["setter"](shell.field)
-     * */
-    const _propToCall: any = {
-        actors: {
-            type: 'setType',
+export class Creator {
+    protected _db: IShellDb;
+    protected _dbNoRandom: IShellDb;
+    protected _compGen: ObjectShellComps;
+    protected _propToCall: {[key in DBKey]: {[key: string]: any}};
 
-            attackRange: {comp: 'Combat', func: 'setAttackRange'},
-            attack: {comp: 'Combat', func: 'setAttack'},
-            defense: {comp: 'Combat', func: 'setDefense'},
-            damage: {comp: 'Combat', func: 'setDamageDie'},
-            numHits: {comp: 'Combat', func: 'setNumHits'},
+    constructor(db: IShellDb, dbNoRandom: IShellDb) {
+        this._db = db;
+        this._dbNoRandom = dbNoRandom;
+        this._compGen = new ObjectShellComps();
 
-            speed: {comp: 'Stats', func: 'setSpeed'},
-            strength: {comp: 'Stats', func: 'setStrength'},
-            accuracy: {comp: 'Stats', func: 'setAccuracy'},
-            agility: {comp: 'Stats', func: 'setAgility'},
-            willpower: {comp: 'Stats', func: 'setWillpower'},
-            perception: {comp: 'Stats', func: 'setPerception'},
-            magic: {comp: 'Stats', func: 'setMagic'},
-            spirituality: {comp: 'Stats', func: 'setSpirituality'},
+        /* Maps obj props to function calls. Essentially this maps bunch of setters
+         * to different names. Following formats supported:
+         *
+         * 1. {factory: funcObj, func: "setter"}
+         *  Call obj["setter"]( funcObj(shell.field) )
+         *
+         * 2. {comp: "CompName", func: "setter"}
+         *  Create component comp of type "CompName".
+         *  Call comp["setter"]( shell.field)
+         *  Call obj.add(comp)
+         *
+         * 3. {comp: "CompName"}
+         *  Create component comp of type "CompName" with new CompName(shell.field)
+         *  Call obj.add(comp)
+         *
+         * 4. "setter"
+         *   Call setter obj["setter"](shell.field)
+         * */
+        this._propToCall = {
+            actors: {
+                type: 'setType',
 
-            fovrange: {comp: 'Perception', func: 'setFOVRange'},
+                attackRange: {comp: 'Combat', func: 'setAttackRange'},
+                attack: {comp: 'Combat', func: 'setAttack'},
+                defense: {comp: 'Combat', func: 'setDefense'},
+                damage: {comp: 'Combat', func: 'setDamageDie'},
+                numHits: {comp: 'Combat', func: 'setNumHits'},
 
-            pp: {comp: 'SpellPower', func: ['setPP', 'setMaxPP']},
-            maxPP: {comp: 'SpellPower', func: 'setMaxPP'},
-            hp: {comp: 'Health', func: ['setHP', 'setMaxHP']},
-            danger: {comp: 'Experience', func: 'setDanger'},
-            brain: {func: 'setBrain', factory: this.createBrain}
-        },
-        items: {
-            // Generic item functions
-            type: 'setType',
-            value: 'setValue',
-            weight: {comp: 'Physical', func: 'setWeight'},
-            damageType: 'setDamageType',
+                speed: {comp: 'Stats', func: 'setSpeed'},
+                strength: {comp: 'Stats', func: 'setStrength'},
+                accuracy: {comp: 'Stats', func: 'setAccuracy'},
+                agility: {comp: 'Stats', func: 'setAgility'},
+                willpower: {comp: 'Stats', func: 'setWillpower'},
+                perception: {comp: 'Stats', func: 'setPerception'},
+                magic: {comp: 'Stats', func: 'setMagic'},
+                spirituality: {comp: 'Stats', func: 'setSpirituality'},
 
-            speed: {comp: 'Stats', func: 'setSpeed'},
-            strength: {comp: 'Stats', func: 'setStrength'},
-            accuracy: {comp: 'Stats', func: 'setAccuracy'},
-            agility: {comp: 'Stats', func: 'setAgility'},
-            willpower: {comp: 'Stats', func: 'setWillpower'},
-            perception: {comp: 'Stats', func: 'setPerception'},
-            magic: {comp: 'Stats', func: 'setMagic'},
-            spirituality: {comp: 'Stats', func: 'setSpirituality'},
+                fovrange: {comp: 'Perception', func: 'setFOVRange'},
 
-            armour: {
-                attack: 'setAttack',
-                defense: 'setDefense',
-                protection: 'setProtection',
-                armourType: 'setArmourType'
+                pp: {comp: 'SpellPower', func: ['setPP', 'setMaxPP']},
+                maxPP: {comp: 'SpellPower', func: 'setMaxPP'},
+                hp: {comp: 'Health', func: ['setHP', 'setMaxHP']},
+                danger: {comp: 'Experience', func: 'setDanger'},
+                brain: {func: 'setBrain', factory: this.createBrain}
             },
+            items: {
+                // Generic item functions
+                type: 'setType',
+                value: 'setValue',
+                weight: {comp: 'Physical', func: 'setWeight'},
+                damageType: 'setDamageType',
 
-            weapon: {
-                damage: 'setDamageDie',
-                attack: 'setAttack',
-                defense: 'setDefense',
-                weaponType: 'setWeaponType',
-                range: 'setAttackRange'
-            },
-            missile: {
-                damage: 'setDamageDie',
-                attack: 'setAttack',
-                range: 'setAttackRange'
-            },
-            food: {
-                energy: 'setEnergy'
-            }
-        },
-        elements: {
-            type: 'setType',
-            msg: 'setMsg'
-        }
-    };
+                speed: {comp: 'Stats', func: 'setSpeed'},
+                strength: {comp: 'Stats', func: 'setStrength'},
+                accuracy: {comp: 'Stats', func: 'setAccuracy'},
+                agility: {comp: 'Stats', func: 'setAgility'},
+                willpower: {comp: 'Stats', func: 'setWillpower'},
+                perception: {comp: 'Stats', func: 'setPerception'},
+                magic: {comp: 'Stats', func: 'setMagic'},
+                spirituality: {comp: 'Stats', func: 'setSpirituality'},
 
-    _propToCall.items.missileweapon = _propToCall.items.weapon;
-    _propToCall.items.missileweapon.fireRate = 'setFireRate';
-    _propToCall.items.ammo = _propToCall.items.missile;
-    _propToCall.items.ammo.ammoType = 'setAmmoType';
+                armour: {
+                    attack: 'setAttack',
+                    defense: 'setDefense',
+                    protection: 'setProtection',
+                    armourType: 'setArmourType'
+                },
+
+                weapon: {
+                    damage: 'setDamageDie',
+                    attack: 'setAttack',
+                    defense: 'setDefense',
+                    weaponType: 'setWeaponType',
+                    range: 'setAttackRange'
+                },
+                missile: {
+                    damage: 'setDamageDie',
+                    attack: 'setAttack',
+                    range: 'setAttackRange'
+                },
+                food: {
+                    energy: 'setEnergy'
+                }
+            },
+            elements: {
+                type: 'setType',
+                msg: 'setMsg'
+            },
+            effects: {}
+        };
+
+        this._propToCall.items.missileweapon = this._propToCall.items.weapon;
+        this._propToCall.items.missileweapon.fireRate = 'setFireRate';
+        this._propToCall.items.ammo = this._propToCall.items.missile;
+        this._propToCall.items.ammo.ammoType = 'setAmmoType';
+
+    }
 
     /* Returns an object shell, given category and name.*/
-    this.get = (categ: string, name: string): IShell | null => {
+    public get(categ: string, name: string): IShell | null {
         if (this._dbNoRandom[categ][name]) {
             return this._dbNoRandom[categ][name];
         }
         return this._db[categ][name];
-    };
+    }
 
     /* Returns an actual game object when given category and name. Note that
      * the blueprint must exist already in the database (blueprints must have
      * been parsed before). */
-    this.createActualObj = function(categ: string, name: string) {
+    public createActualObj(categ: DBKey, name: string): null | Entity {
         const shell = this.get(categ, name);
-        const propCalls = _propToCall[categ];
+        const propCalls = this._propToCall[categ];
         if (!shell) {
             RG.err('Creator', 'createActualObj',
                 `shell for ${name} is not found.`);
+            return null;
         }
 
-        const newObj = this.createNewObject(categ, shell);
+        const newObj = this.createNewObject(categ, shell) as Entity;
         if (!newObj) {
             RG.err('ObjectShell.creator', 'createActualObj',
                 `Failed to create obj with ${JSON.stringify(shell)}`);
+            return null;
         }
 
         // Example: {name: 'bat', addComp: 'Flying'}
-        if (shell.hasOwnProperty('addComp')) {
+        if (shell && shell.hasOwnProperty('addComp')) {
             this._compGen.addComponents(shell, newObj);
         }
 
         // If propToCall table has the same key as shell property, call
-        // function in _propToCall using the newly created object.
+        // function in this._propToCall using the newly created object.
         for (const p in shell) {
 
             // Called for basic type: actors, items...
@@ -199,7 +215,7 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
                         if (p === 'brain') {
                             const createdObj
                                 = funcName.factory(newObj, shell[p]);
-                            newObj[funcName.func](createdObj);
+                            (newObj as any)[funcName.func](createdObj);
                         }
                     }
                     // 3. Or call one of the object's methods with the value in
@@ -209,14 +225,14 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
                             if (funcName.hasOwnProperty(f)) {
                                 const fName = funcName[f];
                                 if (newObj.hasOwnProperty(fName)) {
-                                    newObj[fName](shell[p]);
+                                    (newObj as any)[fName](shell[p]);
                                 }
                             }
                         }
                     }
                 }
                 else { // 4. For strings, call the setter 'funcName' directly
-                    newObj[funcName](shell[p]);
+                    (newObj as any)[funcName](shell[p]);
                 }
             }
             // Check for subtypes
@@ -232,13 +248,13 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
                                 if (funcName2.hasOwnProperty(f2)) {
                                     const fName2 = funcName2[f2];
                                     if (newObj.hasOwnProperty(fName2)) {
-                                        newObj[funcName2[f2]](shell[p]);
+                                        (newObj as any)[funcName2[f2]](shell[p]);
                                     }
                                 }
                             }
                         }
                         else {
-                            newObj[funcName2](shell[p]);
+                            (newObj as any)[funcName2](shell[p]);
                         }
                     }
                 }
@@ -252,7 +268,12 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         }
 
         if (shell.hasOwnProperty('inv')) {
-            this.addInventoryItems(shell, newObj);
+            if (RG.isActor(newObj)) {
+                if (RG.isSentient(newObj)) {
+                    // TODO
+                    this.addInventoryItems(shell, newObj as any);
+                }
+            }
         }
 
         if (shell.hasOwnProperty('loot')) {
@@ -288,16 +309,16 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         }
 
         return newObj;
-    };
+    }
 
-    this.addEnemies = (shell: IShell, obj) => {
+    public addEnemies(shell: IShell, obj) {
         shell.enemies.forEach(enemyType => {
             obj.getBrain().addEnemyType(enemyType);
         });
-    };
+    }
 
     /* Creates a spellbook and adds specified spells into it. */
-    this.addSpellbookAndSpells = (shell: IShell, obj) => {
+    public addSpellbookAndSpells(shell: IShell, obj) {
         obj.setBook(new Spell.SpellBook(obj));
         shell.spells.forEach(spell => {
             const usedSpell = this.getUsedObject(spell);
@@ -309,10 +330,10 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
                 RG.err('Creator', 'addSpellbookAndSpells', msg);
             }
         });
-    };
+    }
 
 
-    this.addGoalsToObject = (shell: IShell, newObj) => {
+    public addGoalsToObject(shell: IShell, newObj) {
         if (RG.isActor(newObj)) {
             const {goals} = shell;
             goals.forEach(goal => {
@@ -327,9 +348,9 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
                 newObj.getBrain().getGoal().addEvaluator(newEval);
             });
         }
-    };
+    }
 
-    this.getUsedObject = (strOrObj) => {
+    public getUsedObject(strOrObj) {
         if (typeof strOrObj === 'object') {
             if (strOrObj.random) {
                 return RNG.arrayGetRand(strOrObj.random);
@@ -337,10 +358,10 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         }
         return strOrObj;
 
-    };
+    }
 
     /* Factory-method for creating the actual game objects.*/
-    this.createNewObject = (categ, obj) => {
+    public createNewObject(categ, obj) {
         switch (categ) {
             case RG.TYPE_ACTOR:
                 const type = obj.type;
@@ -390,36 +411,37 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
             default: break;
         }
         return null;
-    };
+    }
 
     // Adds the inventory items for the actors which are specified with 'inv'
-    this.addInventoryItems = function(shell, actor) {
+    public addInventoryItems(shell: IShell, actor: SentientActor) {
         const inv = shell.inv;
-        inv.forEach(item => {
+        inv.forEach((item: IShell) => {
             const name = item.name || item;
             const count = item.count || 1;
             const itemObj = this.createActualObj(RG.TYPE_ITEM, name);
             if (itemObj) {
-                itemObj.setCount(count);
-                actor.getInvEq().addItem(itemObj);
+                (itemObj as ItemBase).setCount(count);
+                // TODO
+                actor.getInvEq().addItem(itemObj as any);
             }
             else {
                 RG.err('Creator', 'addInventoryItems',
                     `itemObj for ${name} is null. Actor: ${actor.getName()}`);
             }
         });
-    };
+    }
 
     // Adds the loot component to the Actor object
-    this.addLootComponents = function(shell: IShell, actor): void {
+    public addLootComponents(shell: IShell, actor): void {
         const loot = shell.loot;
         const lootItem = this.createActualObj(RG.TYPE_ITEM, loot);
         const lootComp = new Component.Loot(lootItem);
         actor.add(lootComp);
-    };
+    }
 
     /* Adds equipped items given with shell.equip into the actor. */
-    this.addEquippedItems = function(shell: IShell, actor): void {
+    public addEquippedItems(shell: IShell, actor): void {
         const equip = shell.equip;
         let needShuffle = false;
         equip.forEach(item => {
@@ -427,7 +449,7 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
             const count = item.count || 1;
             const itemObj = this.createActualObj(RG.TYPE_ITEM, itemName);
             if (itemObj) {
-                itemObj.setCount(count);
+                (itemObj as ItemBase).setCount(count);
                 if (!actor.getInvEq().restoreEquipped(itemObj)) {
                     // Shuffle for the next round
                     needShuffle = true;
@@ -443,10 +465,10 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         if (needShuffle) {
             RNG.shuffle(shell.equip);
         }
-    };
+    }
 
     /* If shell has 'use', this adds specific use effect to the item.*/
-    this.addUseEffects = (shell: IShell, newObj): void => {
+    public addUseEffects(shell: IShell, newObj): void {
         newObj.useFuncs = [];
         newObj.useItem = this._db.effects.use.func.bind(newObj);
         if (typeof shell.use === 'object'
@@ -465,9 +487,9 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
         else {
             this._addUseEffectToItem(shell, newObj, shell.use);
         }
-    };
+    }
 
-    this._addUseEffectToItem = (shell: IShell, item, useName) => {
+    public _addUseEffectToItem(shell: IShell, item, useName) {
         const useFuncName = useName;
         if (this._db.effects.hasOwnProperty(useFuncName)) {
             const useEffectShell = this._db.effects[useFuncName];
@@ -507,11 +529,11 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
             RG.err('ObjectParser', 'addUseEffects',
                 'Unknown effect: |' + useFuncName + '|');
         }
-    };
+    }
 
     /* Verifies that the shell has all requirements, and adds them to the
      * object, into useArgs.reqName. */
-    this._verifyAndAddReq = (obj, item, reqName) => {
+    public _verifyAndAddReq(obj, item, reqName) {
         if (obj.hasOwnProperty(reqName)) {
             item.useArgs[reqName] = obj[reqName];
         }
@@ -519,10 +541,10 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
             RG.err('ObjectParser', '_verifyAndAddReq',
                 `Req |${reqName}| not specified in item shell. Item: ${item}`);
         }
-    };
+    }
 
     /* Creates actual game object from obj shell in given category.*/
-    this.createFromShell = function(categ: string, obj: IShell) {
+    public createFromShell(categ: DBKey, obj: IShell) {
         if (obj) {
             return this.createActualObj(categ, obj.name);
         }
@@ -531,19 +553,18 @@ export const Creator = function(db: IShellDb, dbNoRandom: IShellDb) {
                 'obj given must be defined.');
         }
         return null;
-    };
-
-};
-ObjectShell.Creator = Creator;
-
-Creator.prototype.createBrain = function(actor, brainName: string): void {
-    if (Brain[brainName]) {
-        return new Brain[brainName](actor);
     }
-    const msg = `ERROR. No brain type |${brainName}| found`;
-    RG.err('Creator', 'createBrain', msg);
-};
 
+    public createBrain(actor, brainName: string): void {
+        if (Brain[brainName]) {
+            return new Brain[brainName](actor);
+        }
+        const msg = `ERROR. No brain type |${brainName}| found`;
+        RG.err('Creator', 'createBrain', msg);
+    }
+
+}
+ObjectShell.Creator = Creator;
 
 /* Object handling the procedural generation. It has an object "database" and
  * objects can be pulled randomly from it. */
@@ -957,7 +978,7 @@ export class Parser {
     //   these would break the API in major way)
     //---------------------------------------------------------------
 
-    public createEntity(name) {
+    public createEntity(name: string) {
         if (this.hasObj(RG.TYPE_ITEM, name)) {
             return this.createItem(name);
         }
@@ -1011,7 +1032,7 @@ export class Parser {
     // Query methods for object shells
     //--------------------------------------------------------------------
 
-    public dbExists(categ, name): boolean {
+    public dbExists(categ: string, name: string): boolean {
         if (this._db.hasOwnProperty(categ)) {
             if (this._db[categ].hasOwnProperty(name)) {
                 return true;
@@ -1075,7 +1096,7 @@ export class Parser {
     //----------------------------------------------------------------------
 
     /* Creates a random actor based on danger value or a filter function.*/
-    public createRandomActor(obj) {
+    public createRandomActor(obj: IQueryDB) {
         const randShell = this._procgen.getRandomActor(obj);
         if (randShell) {
             return this._creator.createFromShell(RG.TYPE_ACTOR, randShell);
@@ -1113,7 +1134,7 @@ export class Parser {
     }
 
     public toJSON(): any {
-        const json = {
+        const json: any = {
             _base: {},
             _db: {},
             _dbDanger: this._dbDanger,
@@ -1127,12 +1148,12 @@ export class Parser {
     }
 
     /* Restore the parser from an existing DB. For save games mainly. */
-    public restoreFromDb (db): void {
+    public restoreFromDb(json: any): void {
         // TODO dbByName
         const props = ['_base', '_db', '_dbDanger', '_dbNoRandom'];
         props.forEach(dbName => {
-            Object.keys(db[dbName]).forEach(key => {
-                this[dbName][key] = db[dbName][key];
+            Object.keys(json[dbName]).forEach(key => {
+                this[dbName][key] = json[dbName][key];
             });
         });
     }
@@ -1153,7 +1174,7 @@ export const createItem = function(nameOrShell: string | IShell) {
     }
 };
 
-export const getParser = function() {
+export const getParser = function(): Parser {
     if (!ObjectShell.parserInstance) {
         const parser = new Parser();
         parser.parseShellData(Effects);
@@ -1172,7 +1193,7 @@ export const getParser = function() {
 };
 ObjectShell.getParser = getParser;
 
-export const restoreParser = function(json): void {
+export const restoreParser = function(json: any): void {
     const parser = new Parser();
     parser.restoreFromDb(json);
     parser.parseShellData(Effects);
