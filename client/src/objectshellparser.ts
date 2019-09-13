@@ -552,7 +552,7 @@ export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
     this._dbDanger = dbDanger;
 
     // Internal cache for proc generation
-    const _cache = {
+    this._cache = {
         actorWeights: {}
     };
 
@@ -688,10 +688,10 @@ export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
     // found. You can supply {func: ...} as a fallback solution.
     this.getRandomActorWeighted = function(min, max) {
         const key = min + ',' + max;
-        if (!_cache.actorWeights.hasOwnProperty(key)) {
-            _cache.actorWeights[key] = RG.getDangerProb(min, max);
+        if (!this._cache.actorWeights.hasOwnProperty(key)) {
+            this._cache.actorWeights[key] = RG.getDangerProb(min, max);
         }
-        const danger = RNG.getWeighted(_cache.actorWeights[key]);
+        const danger = RNG.getWeighted(this._cache.actorWeights[key]);
         const actor = this.getRandomActor({danger});
         return actor;
     };
@@ -709,7 +709,14 @@ ObjectShell.ProcGen = ProcGen;
 
 /* Object parser for reading game data. Game data is contained within shell
  * objects which are simply object literals without functions etc. */
-export const Parser = function() {
+export class Parser {
+
+    protected _base: any;
+    protected _db: any;
+    protected _dbDanger: any;
+    protected _dbNoRandom: any;
+    protected _creator: any;
+    protected _procgen: any;
 
     // NOTE: 'SHELL' means vanilla JS object, which has not been
     // created with new:
@@ -719,64 +726,65 @@ export const Parser = function() {
     //
     // Shells are used in external data file to describe game objects in a more
     // concise way. Game objects are created from shells by this object.
+    constructor() {
+        // Stores the base shells
+        this._base = {
+            actors: {},
+            effects: {},
+            items: {},
+            elements: {}
+        } as IShellDb;
 
-    // Stores the base shells
-    this._base = {
-        actors: {},
-        effects: {},
-        items: {},
-        elements: {}
-    } as IShellDb;
+        this._db = {
+            actors: {},
+            effects: {},
+            items: {},
+            elements: {}
+        } as IShellDb;
 
-    this._db = {
-        actors: {},
-        effects: {},
-        items: {},
-        elements: {}
-    } as IShellDb;
+        this._dbDanger = {} as IShellDbDanger; // All entries indexed by danger
 
-    this._dbDanger = {} as IShellDbDanger; // All entries indexed by danger
+        this._dbNoRandom = {
+            actors: {},
+            items: {},
+            elements: {}
+        } as IShellDb; // All entries excluded from random generation
 
-    this._dbNoRandom = {
-        actors: {},
-        items: {},
-        elements: {}
-    } as IShellDb; // All entries excluded from random generation
+        this._creator = new Creator(this._db, this._dbNoRandom);
+        this._procgen = new ProcGen(this._db, this._dbDanger);
+    }
 
-    this._creator = new Creator(this._db, this._dbNoRandom);
-    this._procgen = new ProcGen(this._db, this._dbDanger);
-
-    this.getCreator = function() {
+    public getCreator() {
         return this._creator;
-    };
+    }
 
-    this.getProcGen = function() {
+    public getProcGen() {
         return this._procgen;
-    };
+    }
     //-----------------------------------------------------------------------
     // "PARSING" METHODS
     //-----------------------------------------------------------------------
 
     /* Parses all shell data, items, monsters, level etc.*/
-    this.parseShellData = function(obj: IShellInputData): void {
+    public parseShellData(obj: IShellInputData): void {
         const keys = Object.keys(obj);
         for (let i = 0; i < keys.length; i++) {
             this.parseShellCateg(keys[i], obj[keys[i]]);
         }
-    };
+    }
 
     /* Parses one specific shell category, ie items or monsters.*/
-    this.parseShellCateg = function(categ: string, objsArray: IShell[]): void {
+    public parseShellCateg(categ: string, objsArray: IShell[]): void {
         for (let i = 0; i < objsArray.length; i++) {
             this.parseObjShell(categ, objsArray[i]);
         }
-    };
+    }
 
     /* Parses an object shell. Returns null for invalid objects, and
      * corresponding object for actual actors. If 'base' property exists,
      * all base properties will be added to the returned object.
      * */
-    this.parseObjShell = function(categ: string, obj: IShell): IShell {
+    public parseObjShell(categ: string, obj: IShell): IShell {
         if (this.validShellGiven(obj)) {
             // Get properties from base shell
             if (obj.hasOwnProperty('base')) {
@@ -803,39 +811,43 @@ export const Parser = function() {
         else {
             return null;
         }
-    };
+    }
 
     /* Checks that the object shell given is correctly formed.*/
-    this.validShellGiven = (obj: IShell): boolean => {
+    public validShellGiven(obj: IShell): boolean {
         if (!obj.hasOwnProperty('name')) {
             RG.err('Parser', 'validShellGiven',
                 `shell doesn't have a name. shell: ${JSON.stringify(obj)}`);
             return false;
         }
         return true;
-    };
+    }
 
     /* If an object doesn't have type, the name is chosen as its type.*/
-    this.addTypeIfUntyped = (obj: IShell): void => {
+    public addTypeIfUntyped(obj: IShell): void {
         if (!obj.hasOwnProperty('type')) {
             obj.type = obj.name;
         }
-    };
+    }
 
     /* Returns an object shell, given category and name.*/
-    this.get = (categ: string, name: string): IShell => this._db[categ][name];
+    public get(categ: string, name: string): IShell {
+        return this._db[categ][name];
+    }
 
     /* Return specified base shell.*/
-    this.getBase = (categ: string, name: string): IShell => this._base[categ][name];
+    public getBase(categ: string, name: string): IShell {
+        return this._base[categ][name];
+    }
 
     /* All shells can be used as base, not only ones with
      * 'dontCreate: true' */
-    this.storeForUsingAsBase = (categ: string, obj: IShell): void => {
+    public storeForUsingAsBase(categ: string, obj: IShell): void {
         this._base[categ][obj.name] = obj;
-    };
+    }
 
     /* Stores the object into given category.*/
-    this.storeIntoDb = function(categ: string, obj: IShell): void {
+    public storeIntoDb(categ: string, obj: IShell): void {
         if (this._db.hasOwnProperty(categ)) {
             this.storeForUsingAsBase(categ, obj);
 
@@ -863,10 +875,10 @@ export const Parser = function() {
                 'Unknown category: ' + categ);
         }
         this.storeRenderingInfo(categ, obj);
-    };
+    }
 
     /* Stores char/CSS className for the object for rendering purposes.*/
-    this.storeRenderingInfo = (categ, obj) => {
+    public storeRenderingInfo(categ, obj) {
         let fg = '';
         let bg = '';
         if (obj.hasOwnProperty('color')) {
@@ -918,18 +930,18 @@ export const Parser = function() {
                 RG.addCellStyle(categ, obj.type, obj.className);
             }
         }
-    };
+    }
 
     /* Returns true if shell base exists.*/
-    this.baseExists = (categ: string, baseName: string): boolean => {
+    public baseExists(categ: string, baseName: string): boolean {
         if (this._base.hasOwnProperty(categ)) {
             return this._base[categ].hasOwnProperty(baseName);
         }
         return false;
-    };
+    }
 
     /* Extends the given object shell with a given base shell.*/
-    this.extendObj = (obj: IShell, baseObj: IShell): IShell => {
+    public extendObj(obj: IShell, baseObj: IShell): IShell {
         for (const prop in baseObj) {
             if (!obj.hasOwnProperty(prop)) {
                 if (prop !== 'dontCreate') {
@@ -938,15 +950,14 @@ export const Parser = function() {
             }
         }
         return obj;
-    };
-
+    }
 
     //---------------------------------------------------------------
     // CREATE METHODS (to be removed, but kept now because removing
     //   these would break the API in major way)
     //---------------------------------------------------------------
 
-    this.createEntity = function(name) {
+    public createEntity(name) {
         if (this.hasObj(RG.TYPE_ITEM, name)) {
             return this.createItem(name);
         }
@@ -954,53 +965,53 @@ export const Parser = function() {
             return this.createActor(name);
         }
         return null;
-    };
+    }
 
-    this.createActor = function(name: string): BaseActor {
+    public createActor(name: string): BaseActor {
         return this.createActualObj(RG.TYPE_ACTOR, name);
-    };
+    }
 
-    this.createItem = function(name: string): ItemBase {
+    public createItem(name: string): ItemBase {
         return this.createActualObj(RG.TYPE_ITEM, name);
-    };
+    }
 
-    this.createElement = function(name: string) {
+    public createElement(name: string) {
         return this.createActualObj(RG.TYPE_ELEM, name);
-    };
+    }
 
-    this.hasItem = function(name: string) {
+    public hasItem(name: string) {
         return this.hasObj(RG.TYPE_ITEM, name);
-    };
+    }
 
-    this.hasObj = function(categ: string, name: string): boolean {
+    public hasObj(categ: string, name: string): boolean {
         return this.dbExists(categ, name);
-    };
+    }
 
     /* Returns an actual game object when given category and name. Note that
      * the shell must exist already in the database (shell must have
      * been parser before). */
-    this.createActualObj = function(categ: string, name: string) {
+    public createActualObj(categ: string, name: string) {
         if (!this.dbExists(categ, name)) {
             RG.err('Parser', 'createActualObj',
                 `Categ: ${categ} Name: ${name} doesn't exist.`);
             return null;
         }
         return this._creator.createActualObj(categ, name);
-    };
+    }
 
     /* Creates actual game object from obj shell in given category.*/
-    this.createFromShell = (categ: string, obj: IShell) => {
+    public createFromShell(categ: string, obj: IShell) {
         if (!this.dbExists(categ, obj.name)) {
             this.parseObjShell(categ, obj);
         }
         return this._creator.createFromShell(categ, obj);
-    };
+    }
 
     //--------------------------------------------------------------------
     // Query methods for object shells
     //--------------------------------------------------------------------
 
-    this.dbExists = (categ, name) => {
+    public dbExists(categ, name): boolean {
         if (this._db.hasOwnProperty(categ)) {
             if (this._db[categ].hasOwnProperty(name)) {
                 return true;
@@ -1010,31 +1021,35 @@ export const Parser = function() {
             return true;
         }
         return false;
-    };
+    }
 
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
-    this.dbGet = (query: IQueryDB) => this._procgen.dbGet(query);
-    this.dbGetActor = (query: IQueryDB) => {
+    public dbGet(query: IQueryDB) {
+        return this._procgen.dbGet(query);
+    }
+
+    public dbGetActor(query: IQueryDB) {
         const newQuery = {name: query.name, categ: RG.TYPE_ACTOR};
         return this._procgen.dbGet(newQuery);
-    };
-    this.dbGetItem = (query: IQueryDB) => {
+    }
+
+    public dbGetItem(query: IQueryDB) {
         const newQuery = {name: query.name, categ: RG.TYPE_ITEM};
         return this._procgen.dbGet(newQuery);
-    };
+    }
 
-    this.dbGetRand = (query: IQueryDB) => this._procgen.dbGetRand(query);
+    public dbGetRand(query: IQueryDB) {return this._procgen.dbGetRand(query);}
 
-    this.filter = function(categ, func) {
+    public filter(categ, func) {
         return this._procgen.filterCategWithFunc(categ, func);
-    };
+    }
 
-    this.filterItems = function(func) {
+    public filterItems(func) {
         return this._procgen.filterCategWithFunc(RG.TYPE_ITEM, func);
-    };
+    }
 
-    this.dbGetNoRandom = (query: IQueryDB): IShell[] => {
+    public dbGetNoRandom(query: IQueryDB): IShell[] {
         const name = query.name;
         const categ = query.categ;
         const danger = query.danger;
@@ -1053,25 +1068,25 @@ export const Parser = function() {
                 'Query by danger not implemented yet');
         }
         return [];
-    };
+    }
 
     //----------------------------------------------------------------------
     // RANDOMIZED METHODS for procedural generation
     //----------------------------------------------------------------------
 
     /* Creates a random actor based on danger value or a filter function.*/
-    this.createRandomActor = obj => {
+    public createRandomActor(obj) {
         const randShell = this._procgen.getRandomActor(obj);
         if (randShell) {
             return this._creator.createFromShell(RG.TYPE_ACTOR, randShell);
         }
         return null;
-    };
+    }
 
     // Uses engine's internal weighting algorithm when given a level number.
     // Note that this method can return null, if no correct danger level is
     // found. You can supply {func: ...} as a fallback solution.
-    this.createRandomActorWeighted = function(min, max, obj) {
+    public createRandomActorWeighted(min, max, obj) {
         const actorShell = this._procgen.getRandomActorWeighted(min, max);
         if (actorShell) {
             return this._creator.createFromShell(RG.TYPE_ACTOR, actorShell);
@@ -1080,7 +1095,7 @@ export const Parser = function() {
             return this.createRandomActor(obj);
         }
         return null;
-    };
+    }
 
     /* Creates a random item based on a selection function.
      *
@@ -1089,15 +1104,15 @@ export const Parser = function() {
      *  const item = createRandomItem({func: funcValueSel});
      *  // Above returns item with value > 100.
      *  */
-    this.createRandomItem = (obj: IQueryDB | TShellFunc) => {
+    public createRandomItem(obj: IQueryDB | TShellFunc) {
         const randShell = this._procgen.getRandomItem(obj);
         if (randShell) {
             return this._creator.createFromShell('items', randShell);
         }
         return null;
-    };
+    }
 
-    this.toJSON = function(): any {
+    public toJSON(): any {
         const json = {
             _base: {},
             _db: {},
@@ -1109,10 +1124,10 @@ export const Parser = function() {
             json._db[prop] = this._db[prop];
         });
         return json;
-    };
+    }
 
     /* Restore the parser from an existing DB. For save games mainly. */
-    this.restoreFromDb = function(db): void {
+    public restoreFromDb (db): void {
         // TODO dbByName
         const props = ['_base', '_db', '_dbDanger', '_dbNoRandom'];
         props.forEach(dbName => {
@@ -1120,9 +1135,9 @@ export const Parser = function() {
                 this[dbName][key] = db[dbName][key];
             });
         });
-    };
+    }
 
-};
+}
 ObjectShell.Parser = Parser;
 
 
