@@ -3,6 +3,8 @@ import RG from '../rg';
 import {ChatQuest} from '../chat';
 import {ComponentBase, Component} from './component.base';
 
+type Entity = import('../entity').Entity;
+
 const UniqueDataComponent = Component.UniqueDataComponent;
 const DataComponent = Component.DataComponent;
 const TransientDataComponent = Component.TransientDataComponent;
@@ -39,7 +41,7 @@ QuestGiver.prototype.hasReward = function() {
     return this.reward && (this.reward !== NO_QUEST_REWARD);
 };
 
-QuestGiver.prototype.giveQuest = function(target) {
+QuestGiver.prototype.giveQuest = function(target: Entity) {
     if (target) {
         this.questGivenTo = target;
         this.hasGivenQuest = true;
@@ -49,7 +51,9 @@ QuestGiver.prototype.giveQuest = function(target) {
     }
 };
 
-QuestGiver.prototype.addTarget = function(targetType, target) {
+QuestGiver.prototype.addTarget = function(
+    targetType: string, target
+): void {
     if (!target) {
         RG.err('QuestGiver', 'addTarget',
             `No target given. Type ${targetType}`);
@@ -95,7 +99,7 @@ QuestTarget.prototype.isKill = function() {
     return this.targetType === 'kill';
 };
 
-QuestTarget.prototype.toString = function() {
+QuestTarget.prototype.toString = function(): string {
     let name = '';
     if (this.target.getName) {
         name = this.target.getName();
