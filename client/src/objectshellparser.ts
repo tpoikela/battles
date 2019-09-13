@@ -568,18 +568,24 @@ ObjectShell.Creator = Creator;
 
 /* Object handling the procedural generation. It has an object "database" and
  * objects can be pulled randomly from it. */
-export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
-    this._db = db;
-    this._dbDanger = dbDanger;
+export class ProcGen {
+    protected _db: IShellDb;
+    protected _dbDanger: IShellDbDanger;
+    protected _cache: {[key: string]: {[key: string]: any}};
 
-    // Internal cache for proc generation
-    this._cache = {
-        actorWeights: {}
-    };
+    constructor(db: IShellDb, dbDanger: IShellDbDanger) {
+        this._db = db;
+        this._dbDanger = dbDanger;
+
+        // Internal cache for proc generation
+        this._cache = {
+            actorWeights: {}
+        };
+    }
 
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
-    this.dbGet = (query: IQueryDB): IShell | StringMap<IShell> => {
+    public dbGet(query: IQueryDB): IShell | StringMap<IShell> {
         const name = query.name;
         const categ = query.categ;
         const danger = query.danger;
@@ -617,7 +623,7 @@ export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
             }
         }
         return {};
-    };
+    }
 
     /* Filters given category with a function. Func gets each object as arg,
      * and must return either true or false. Function can be for example:
@@ -625,7 +631,7 @@ export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
      *   2.func(obj) {if (obj.hp > 25) return true;}.
      *   And it can be as complex as needed of course.
      * */
-    this.filterCategWithFunc = function(categ, func: TShellFunc): IShell[] {
+    public filterCategWithFunc(categ, func: TShellFunc): IShell[] {
         const objects: StringMap<IShell> = this.dbGet({categ});
         const res: IShell[] = [];
         const keys = Object.keys(objects);
@@ -639,7 +645,7 @@ export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
             }
         }
         return res;
-    };
+    }
 
     //---------------------------------------------------
     // RANDOMIZED METHODS for procedural generation
@@ -650,7 +656,7 @@ export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
      * returns a random actors with these constrains.
      * Ex2: {danger: 3, num:1}
      * returns randomly one entry which has danger 3.*/
-    this.dbGetRand = function(query: IQueryDB) {
+    public dbGetRand(query: IQueryDB) {
         const danger = query.danger;
         const categ = query.categ;
         if (typeof danger !== 'undefined') {
@@ -662,11 +668,10 @@ export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
             }
         }
         return null;
-    };
-
+    }
 
     /* Creates a random actor based on danger value or a filter function.*/
-    this.getRandomActor = function(obj: IQueryDB) {
+    public getRandomActor(obj: IQueryDB) {
         if (obj.hasOwnProperty('danger')) {
             const danger = obj.danger;
             const randShell = this.dbGetRand({danger, categ: RG.TYPE_ACTOR});
@@ -679,7 +684,7 @@ export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
             return RNG.arrayGetRand(res);
         }
         return null;
-    };
+    }
 
     /* Returns a random item based on a selection function.
      *
@@ -688,7 +693,7 @@ export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
      *  const item = createRandomItem({func: funcValueSel});
      *  // Above returns item with value > 100.
      */
-    this.getRandomItem = function(obj: IQueryDB | TShellFunc) {
+    public getRandomItem(obj: IQueryDB | TShellFunc) {
         if (typeof obj === 'function') {
             const res = this.filterCategWithFunc(RG.TYPE_ITEM, obj);
             return RNG.arrayGetRand(res);
@@ -702,30 +707,30 @@ export const ProcGen = function(db: IShellDb, dbDanger: IShellDbDanger) {
                 `No function with func. obj arg: ${JSON.stringify(obj)}`);
         }
         return null;
-    };
+    }
 
     // Uses engine's internal weighting algorithm when given a level number.
     // Note that this method can return null, if no correct danger level is
     // found. You can supply {func: ...} as a fallback solution.
-    this.getRandomActorWeighted = function(min, max) {
+    public getRandomActorWeighted(min, max) {
         const key = min + ',' + max;
         if (!this._cache.actorWeights.hasOwnProperty(key)) {
             this._cache.actorWeights[key] = RG.getDangerProb(min, max);
         }
         const danger = RNG.getWeighted(this._cache.actorWeights[key]);
-        const actor = this.getRandomActor({danger});
+        const actor = this.getRandomActor({danger: parseInt(danger, 10)});
         return actor;
-    };
+    }
 
     /* Returns a property from an object, selected randomly. For example,
      * given object {a: 1, b: 2, c: 3}, may return 1,2 or 3 with equal
      * probability.*/
-    this.getRandFromObj = obj => {
+    public getRandFromObj(obj) {
         const keys = Object.keys(obj);
         const randIndex = RNG.randIndex(keys);
         return obj[keys[randIndex]];
-    };
-};
+    }
+}
 ObjectShell.ProcGen = ProcGen;
 
 /* Object parser for reading game data. Game data is contained within shell
@@ -736,8 +741,8 @@ export class Parser {
     protected _db: any;
     protected _dbDanger: any;
     protected _dbNoRandom: any;
-    protected _creator: any;
-    protected _procgen: any;
+    protected _creator: Creator;
+    protected _procgen: ProcGen;
 
     // NOTE: 'SHELL' means vanilla JS object, which has not been
     // created with new:
@@ -989,29 +994,29 @@ export class Parser {
     }
 
     public createActor(name: string): BaseActor {
-        return this.createActualObj(RG.TYPE_ACTOR, name);
+        return this.createActualObj(RG.TYPE_ACTOR, name) as BaseActor;
     }
 
     public createItem(name: string): ItemBase {
-        return this.createActualObj(RG.TYPE_ITEM, name);
+        return this.createActualObj(RG.TYPE_ITEM, name) as ItemBase;
     }
 
     public createElement(name: string) {
         return this.createActualObj(RG.TYPE_ELEM, name);
     }
 
-    public hasItem(name: string) {
+    public hasItem(name: string): boolean {
         return this.hasObj(RG.TYPE_ITEM, name);
     }
 
-    public hasObj(categ: string, name: string): boolean {
+    public hasObj(categ: DBKey, name: string): boolean {
         return this.dbExists(categ, name);
     }
 
     /* Returns an actual game object when given category and name. Note that
      * the shell must exist already in the database (shell must have
      * been parser before). */
-    public createActualObj(categ: string, name: string) {
+    public createActualObj(categ: DBKey, name: string) {
         if (!this.dbExists(categ, name)) {
             RG.err('Parser', 'createActualObj',
                 `Categ: ${categ} Name: ${name} doesn't exist.`);
@@ -1021,7 +1026,7 @@ export class Parser {
     }
 
     /* Creates actual game object from obj shell in given category.*/
-    public createFromShell(categ: string, obj: IShell) {
+    public createFromShell(categ: DBKey, obj: IShell) {
         if (!this.dbExists(categ, obj.name)) {
             this.parseObjShell(categ, obj);
         }
@@ -1032,7 +1037,7 @@ export class Parser {
     // Query methods for object shells
     //--------------------------------------------------------------------
 
-    public dbExists(categ: string, name: string): boolean {
+    public dbExists(categ: DBKey, name: string): boolean {
         if (this._db.hasOwnProperty(categ)) {
             if (this._db[categ].hasOwnProperty(name)) {
                 return true;
