@@ -151,13 +151,19 @@ export const FactoryWorld = function() {
 
     /* Pushes the hier name and configuration on the stack. Config can be
     * queried with getConf(). */
-    this.pushScope = function(conf): void {
-        this._conf.pushScope(conf);
+    this.pushScope = function(conf: {[key: string]: any}): void {
+        if (conf) {
+            this._conf.pushScope(conf);
+        }
+        else {
+            RG.err('FactoryWorld', 'pushScope',
+              `Null/undef conf given`);
+        }
     };
 
     /* Removes given config and the name it contains from stacks. Reports an
     * error if removed name does not match the name in conf. */
-    this.popScope = function(conf): void {
+    this.popScope = function(conf: {[key: string]: any}): void {
         this._conf.popScope(conf);
     };
 
@@ -346,7 +352,7 @@ export const FactoryWorld = function() {
         this.addActorSpawner(level, parser, levelConf);
     };
 
-    this._createAllZones = (area, conf, tx = -1, ty = -1): void => {
+    this._createAllZones = (area: Area, conf, tx = -1, ty = -1): void => {
         this.debug(`_createAllZones ${tx}, ${ty}`);
         if (!conf.tiles) {
             // Is this ever entered? Can be removed?
@@ -924,11 +930,15 @@ export const FactoryWorld = function() {
         }
     };
 
-    this._addEntranceToSubZone = function(subZone: ConcreteSubZone, conf): void {
+    this._addEntranceToSubZone = function(
+        subZone: ConcreteSubZone, conf: IF.SubZoneConf
+    ): void {
         if (conf.hasOwnProperty('entranceLevel')) {
-            subZone.addEntrance(conf.entranceLevel);
+            subZone.addEntrance(conf.entranceLevel!);
         }
         else if (conf.hasOwnProperty('entrance')) {
+            RG.err('FactoryWorld', '_addEntranceToSubZone',
+                `got conf: ${conf}`);
             subZone.setEntranceLocation(conf.entrance);
         }
     };
