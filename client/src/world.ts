@@ -15,7 +15,8 @@ import {Cell} from './map.cell';
 import {SentientActor} from './actor';
 import {FactoryLevel} from './factory.level';
 import * as Component from './component';
-import {TCoord, IWorldElemMap, LoadStat, WorldConf} from './interfaces';
+import {TCoord, IWorldElemMap, LoadStat, WorldConf,
+    Entrance, AreaConf} from './interfaces';
 import {Entity} from './entity';
 
 const POOL: EventPool = EventPool.getPool();
@@ -33,11 +34,6 @@ type SubZonePair = [SubZoneBase, SubZoneBase];
 
 type ZoneObj = SubZoneBase | ZoneBase;
 
-interface Entrance {
-    levelNumber: number;
-    x: number;
-    y: number;
-}
 
 export interface IAreaTileJSON {
     level: number;
@@ -421,7 +417,7 @@ function getEntrance(levels: Level[], entrance: null | Entrance): null | Stairs 
 }
 
 /* Connects given array of area tiles together. */
-function connectTiles(tiles, sizeX, sizeY): void {
+function connectTiles(tiles: any[][], sizeX: number, sizeY: number): void {
     if (sizeX === 1 || sizeY === 1) {
         RG.err('world.js', 'connectTiles',
             'sizeX or sizeY == 1 not implemented.');
@@ -982,12 +978,12 @@ export class AreaTile {
     }
 
     /* Connect this tile to east and south tiles */
-    public connect(eastTile: AreaTile, southTile: AreaTile): void {
+    public connect(eastTile: null | AreaTile, southTile: null | AreaTile): void {
         const lastX = this.cols - 1;
         const lastY = this.rows - 1;
 
         // Connect to east tile, in y-direction
-        if (!RG.isNullOrUndef([eastTile])) {
+        if (eastTile) {
             const levelEast = eastTile.getLevel();
             const map = this._level.getMap();
             const mapEast = levelEast.getMap();
@@ -1011,7 +1007,7 @@ export class AreaTile {
         }
 
         // Connect to south tile, in x-direction
-        if (!RG.isNullOrUndef([southTile])) {
+        if (southTile) {
             const levelSouth = southTile.getLevel();
             const map = this._level.getMap();
             const mapSouth = levelSouth.getMap();
@@ -1141,9 +1137,10 @@ export class Area extends WorldBase {
 
     private _tiles: AreaTileObj[][];
 
-    private _conf: {[key: string]: any};
+    // private _conf: {[key: string]: any};
+    private _conf: AreaConf;
 
-    constructor(name, sizeX, sizeY, cols, rows, levels?: Level[][]) {
+    constructor(name: string, sizeX, sizeY, cols, rows, levels?: Level[][]) {
         super(name);
         this.setType('area');
         this._sizeX = parseInt(sizeX, 10);
@@ -1154,7 +1151,10 @@ export class Area extends WorldBase {
 
         this._tiles = [];
 
-        this._conf = {};
+        this._conf = {
+            maxX: this._sizeX, maxY: this._sizeY,
+            name, cols, rows
+        };
 
         // Control which tile has its zones created
         this.zonesCreated = {};
@@ -1165,7 +1165,6 @@ export class Area extends WorldBase {
         // TODO move to class methods
 
         this._init(levels);
-
     }
 
     public getSizeX(): number {
@@ -1222,8 +1221,13 @@ export class Area extends WorldBase {
         this._tiles[x][y] = tile;
     }
 
-    public setConf(conf) {
-        this._conf = conf;
+    public setConf(conf: AreaConf): void {
+        if (conf) {
+            this._conf = conf;
+        }
+        else {
+            RG.err('World.Area', 'setConf', 'Null/undef conf was set');
+        }
     }
 
     public getConf() {
@@ -1273,7 +1277,7 @@ export class Area extends WorldBase {
     }
 
     /* Connects all tiles together from the sides. */
-    public connectTiles() {
+    public connectTiles(): void {
         connectTiles(this._tiles, this._sizeX, this._sizeY);
     }
 
@@ -1434,6 +1438,10 @@ export class Area extends WorldBase {
             tileStatus: this.tileStatus,
             zonesCreated: this.zonesCreated
         };
+        if (!obj.conf) {
+            RG.err('World.Area', 'toJSON',
+                'Null conf in Area');
+        }
         return Object.assign(obj, json);
     }
 
@@ -1915,7 +1923,7 @@ export class WorldTop extends WorldBase {
         const area = this._areas.map(ar => ar.toJSON());
         let createAllZones = true;
         if (this.getConf().hasOwnProperty('createAllZones')) {
-            createAllZones = this.getConf().createAllZones;
+            createAllZones = !!this.getConf().createAllZones;
         }
         const obj = {
             conf: this.getConf(),
