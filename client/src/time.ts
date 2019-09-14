@@ -103,82 +103,93 @@ export class OneShotEvent extends GameEvent {
     }
 }
 
+type ActorOrEvent = BaseActor | GameEvent;
+
 /* Scheduler for the game actions. Time-based scheduler where each actor/event
 * is scheduled based on speed.  */
-export const Scheduler = function() { // {{{2
+export class Scheduler {
 
-    // Internally use ROT scheduler
-    this._scheduler = new ROT.Scheduler.Action();
-    this._scheduler._defaultDuration = 0;
-    this._scheduler._duration = 0;
+    public hasNotify: boolean;
+    protected _scheduler: any;
+    protected _events: GameEvent[];
+    protected _actors: BaseActor[];
 
-    // Store the scheduled events
-    this._events = [];
-    this._actors = [];
+    constructor() { // {{{2
 
-    this.hasNotify = true;
+        // Internally use ROT scheduler
+        this._scheduler = new ROT.Scheduler.Action();
+        this._scheduler._defaultDuration = 0;
+        this._scheduler._duration = 0;
 
-    // When an actor is killed, removes it from the scheduler.*/
-    POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
+        // Store the scheduled events
+        this._events = [];
+        this._actors = [];
 
-}; // }}} Scheduler
+        this.hasNotify = true;
 
-/* Adds an actor or event to the scheduler.*/
-Scheduler.prototype.add = function(actOrEvent, repeat, offset) {
-    this._scheduler.add(actOrEvent, repeat, offset);
-    if (actOrEvent.hasOwnProperty('isEvent')) {
-        this._events.push(actOrEvent);
+        // When an actor is killed, removes it from the scheduler.*/
+        POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
+
     }
-    else {
-        this._actors.push(actOrEvent);
-    }
-};
 
-// Returns next actor/event or null if no next actor exists.
-Scheduler.prototype.next = function() {
-    return this._scheduler.next();
-};
-
-/* Must be called after next() to re-schedule next slot for the
- * actor/event.*/
-Scheduler.prototype.setAction = function(action) {
-    this._scheduler.setDuration(action.getDuration());
-};
-
-/* Tries to remove an actor/event, Return true if success.*/
-Scheduler.prototype.remove = function(actOrEvent) {
-    if (actOrEvent.hasOwnProperty('isEvent')) {
-        return this.removeEvent(actOrEvent);
-    }
-    else {
-        const index = this._actors.indexOf(actOrEvent);
-        if (index !== -1) {
-            this._actors.splice(index, 1);
+    /* Adds an actor or event to the scheduler.*/
+    public add(actOrEvent: ActorOrEvent, repeat: boolean, offset: number): void {
+        this._scheduler.add(actOrEvent, repeat, offset);
+        if (actOrEvent.hasOwnProperty('isEvent')) {
+            this._events.push(actOrEvent as GameEvent);
+        }
+        else {
+            this._actors.push(actOrEvent as BaseActor);
         }
     }
-    return this._scheduler.remove(actOrEvent);
-};
 
-/* Removes an event from the scheduler. Returns true on success.*/
-Scheduler.prototype.removeEvent = function(actOrEvent) {
-    let index = -1;
-    if (actOrEvent.hasOwnProperty('isEvent')) {
-        index = this._events.indexOf(actOrEvent);
-        if (index !== -1) {
-            this._events.splice(index, 1);
+    // Returns next actor/event or null if no next actor exists.
+    public next(): ActorOrEvent {
+        return this._scheduler.next();
+    }
+
+    /* Must be called after next() to re-schedule next slot for the
+     * actor/event.*/
+    public setAction(action: Action): void {
+        this._scheduler.setDuration(action.getDuration());
+    }
+
+    /* Tries to remove an actor/event, Return true if success.*/
+    public remove(actOrEvent: ActorOrEvent): boolean {
+        if (actOrEvent.hasOwnProperty('isEvent')) {
+            return this.removeEvent(actOrEvent);
+        }
+        else {
+            const index = this._actors.indexOf(actOrEvent as BaseActor);
+            if (index !== -1) {
+                this._actors.splice(index, 1);
+            }
+        }
+        return this._scheduler.remove(actOrEvent);
+    }
+
+    /* Removes an event from the scheduler. Returns true on success.*/
+    public removeEvent(actOrEvent: ActorOrEvent): boolean {
+        let index = -1;
+        if (actOrEvent.hasOwnProperty('isEvent')) {
+            index = this._events.indexOf(actOrEvent as GameEvent);
+            if (index !== -1) {
+                this._events.splice(index, 1);
+            }
+        }
+        return this._scheduler.remove(actOrEvent);
+    }
+
+    public getTime(): number {
+        return this._scheduler.getTime();
+    }
+
+    public notify(evtName: string, args: any): void {
+        if (evtName === RG.EVT_ACTOR_KILLED) {
+            if (args.hasOwnProperty('actor')) {
+                this.remove(args.actor);
+            }
         }
     }
-    return this._scheduler.remove(actOrEvent);
-};
 
-Scheduler.prototype.getTime = function() {
-    return this._scheduler.getTime();
-};
-
-Scheduler.prototype.notify = function(evtName, args) {
-    if (evtName === RG.EVT_ACTOR_KILLED) {
-        if (args.hasOwnProperty('actor')) {
-            this.remove(args.actor);
-        }
-    }
-};
+}
