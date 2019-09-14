@@ -27,7 +27,7 @@ import * as IF from '../src/interfaces';
 import {Quest, QuestPopulate} from '../src/quest';
 
 import {EventPool} from '../src/eventpool';
-import {Factory} from '../src/factory';
+import {Factory, FactoryBase} from '../src/factory';
 import {FactoryLevel} from '../src/factory.level';
 import {FactoryWorld} from '../src/factory.world';
 import {World} from '../src/world';
@@ -42,6 +42,7 @@ const Stairs = Element.ElementStairs;
 
 export const DebugGame = function(fact, parser) {
     this._fact = fact;
+    this._factBase = new FactoryBase();
     this._parser = parser;
 };
 
@@ -115,7 +116,8 @@ DebugGame.prototype.createArena = function(obj, game, player) {
         food: () => true,
         gold: () => false
     };
-    this._fact.addNRandItems(level, this._parser, itemConf);
+
+    this._factBase.addNRandItems(level, this._parser, itemConf);
 
     const cols = level.getMap().cols;
     const rows = level.getMap().rows;
@@ -556,11 +558,12 @@ DebugGame.prototype.createLastBattle = function(game, obj) {
     // obj.cols, obj.rows, levelConf);
     this._listener = new ActorKillListener(this, game, level);
 
-    this._fact.createHumanArmy(level, this._parser);
+    const factBase = new FactoryBase();
+    factBase.createHumanArmy(level, this._parser);
 
     level.setOnFirstEnter(() => {
         const demonEvent = new Time.OneShotEvent(
-            this._fact.createDemonArmy.bind(this._fact, level, this._parser),
+            this._factBase.createDemonArmy.bind(this._fact, level, this._parser),
             100 * 20,
             'Demon hordes are unleashed from the unsilent abyss!');
         game.addEvent(demonEvent);
