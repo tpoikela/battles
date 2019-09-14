@@ -1,5 +1,5 @@
 
-import {BaseActor, ACTOR_NO_ACTION} from './actor';
+import {BaseActor} from './actor';
 import {BrainVirtual, BrainSpawner} from './brain/brain.virtual';
 import {BrainWeather} from './brain/brain.weather';
 import * as Component from './component/component';
