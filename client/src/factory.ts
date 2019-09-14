@@ -19,18 +19,22 @@ const POOL = EventPool.getPool();
 
 const RNG = Random.getRNG();
 
-const ItemConf = function(conf) {
-    const req = ['itemsPerLevel', 'maxValue', 'func'];
-    req.forEach(prop => {
-        if ((prop in conf)) {
-            this[prop] = conf[prop];
-        }
-        else {
-            const msg = `${prop} must be given`;
-            RG.err('ItemConf', 'new', msg);
-        }
-    });
-};
+type Parser = import('./objectshellparser').Parser;
+
+class ItemConf {
+    constructor(conf) {
+        const req = ['itemsPerLevel', 'maxValue', 'func'];
+        req.forEach(prop => {
+            if ((prop in conf)) {
+                this[prop] = conf[prop];
+            }
+            else {
+                const msg = `${prop} must be given`;
+                RG.err('ItemConf', 'new', msg);
+            }
+        });
+    }
+}
 
 export const Factory: any = {};
 
@@ -56,33 +60,47 @@ Factory.cityConfBase = conf => {
 /* Factory object for creating actors. */
 
 /* Factory object for creating some commonly used objects. */
-export const FactoryBase = function() {
-    this._verif = new Verify.Conf('FactoryBase');
-    this._actorFact = new FactoryActor();
-    this._itemFact = new FactoryItem();
-    this._levelFact = new FactoryLevel();
+export class FactoryBase {
+    protected _verif: Verify.Conf;
+    // protected _actorFact:  FactoryActor;
+    protected _actorFact: any;
+    protected _itemFact: FactoryItem;
+    protected _levelFact: FactoryLevel;
+    protected _parser: Parser;
+
+    constructor() {
+        this._verif = new Verify.Conf('FactoryBase');
+        this._actorFact = new FactoryActor();
+        this._itemFact = new FactoryItem();
+        this._levelFact = new FactoryLevel();
+    }
 
     /* Creates a new die object from array or die expression '2d4 + 3' etc.*/
-    this.createDie = strOrArray => {
+    public createDie(strOrArray) {
         return RG.createDie(strOrArray);
-    };
+    }
 
     /* Factory method for players.*/
-    this.createPlayer = (name, obj) => this._actorFact.createPlayer(name, obj);
+    public createPlayer(name: string, obj) {
+        return this._actorFact.createPlayer(name, obj);
+    }
 
     /* Factory method for monsters.*/
-    this.createActor = (name, obj = {}) => (
-        this._actorFact.createActor(name, obj)
-    );
+    public createActor(name: string, obj = {}) {
+        return this._actorFact.createActor(name, obj);
+    }
 
     /* Factory method for AI brain creation.*/
-    this.createBrain = (actor, brainName) =>
-        this._actorFact.createBrain(actor, brainName);
+    public createBrain(actor, brainName: string) {
+        return this._actorFact.createBrain(actor, brainName);
+    }
 
     /* Factory method for Spell creation. */
-    this.createSpell = name => this._actorFact.createSpell(name);
+    public createSpell(name: string) {
+        return this._actorFact.createSpell(name);
+    }
 
-    this.createElement = (elemType) => {
+    public createElement(elemType) {
         if (ELEM_MAP.elemTypeToObj[elemType]) {
             return ELEM_MAP.elemTypeToObj[elemType];
         }
@@ -91,30 +109,31 @@ export const FactoryBase = function() {
             case 'opendoor' : return new Element.ElementDoor(false);
             default: return null;
         }
-    };
+    }
 
-    this.createFloorCell = (x, y): Cell =>
-        new Cell(x, y, new Element.ElementBase('floor'));
+    public createFloorCell(x: number, y: number): Cell {
+        return new Cell(x, y, new Element.ElementBase('floor'));
+    }
 
-    this.createWallCell = (x, y): Cell =>
-        new Cell(x, y, new Element.ElementWall('wall'));
+    public createWallCell(x: number, y: number): Cell {
+        return new Cell(x, y, new Element.ElementWall('wall'));
+    }
 
     /* Factory method for creating levels.*/
-    this.createLevel = function(levelType, cols, rows, conf): Level {
+    public createLevel(levelType: string, cols, rows, conf): Level {
         return this._levelFact.createLevel(levelType, cols, rows, conf);
-    };
-
+    }
 
     /* Adds N random items to the level based on maximum value.*/
-    this.addNRandItems = (level, parser, conf) => {
+    public addNRandItems(level: Level, parser: Parser, conf) {
         this._verif.verifyConf('addNRandItems', conf, ['func', 'maxValue']);
         // Generate the items randomly for this level
         return this._itemFact.addNRandItems(level, parser, conf);
-    };
+    }
 
     /* Adds N random monsters to the level based on given danger level.
      * Returns the number of actors added. */
-    this.addNRandActors = (level: Level, parser, conf): number => {
+    public addNRandActors(level: Level, parser: Parser, conf): number {
         this._verif.verifyConf('addNRandActors', conf,
             ['maxDanger', 'actorsPerLevel']);
         // Generate the enemies randomly for this level
@@ -126,52 +145,50 @@ export const FactoryBase = function() {
         }
         Placer.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
         return actors.length;
-    };
+    }
 
-    this.setParser = parser => {
+    public setParser(parser: Parser) {
         this._parser = parser;
-    };
+    }
 
-    this.generateNActors = (nActors, func, maxDanger) => {
+    public generateNActors(nActors: number, func, maxDanger: number) {
         return this._actorFact.generateNActors(nActors, func, maxDanger);
-    };
-
+    }
 
     /* Adds a random number of gold coins to the level. */
-    this.addRandomGold = (level, parser, conf) => {
+    public addRandomGold(level: Level, parser: Parser, conf) {
         this._itemFact.addRandomGold(level, parser, conf);
-    };
+    }
 
-    this.createHumanArmy = (level, parser) => {
+    public createHumanArmy(level: Level, parser: Parser) {
         for (let y = 0; y < 2; y++) {
             for (let x = 0; x < 20; x++) {
-                const human = parser.createActualObj('actors', 'fighter');
+                const human = parser.createActor('fighter');
                 level.addActor(human, x + 1, 4 + y);
             }
 
-            const warlord = parser.createActualObj('actors', 'warlord');
+            const warlord = parser.createActor('warlord');
             level.addActor(warlord, 10, y + 7);
         }
-    };
+    }
 
-    this.createDemonArmy = (level, parser) => {
+    public createDemonArmy(level: Level, parser: Parser) {
         for (let y = 0; y < 2; y++) {
             for (let i = 0; i < 10; i++) {
-                const demon = parser.createActualObj('actors', 'Winter demon');
+                const demon = parser.createActor('Winter demon');
                 level.addActor(demon, i + 10, 14 + y);
                 POOL.emitEvent(RG.EVT_ACTOR_CREATED, {actor: demon,
                     level, msg: 'DemonSpawn'});
             }
         }
-    };
+    }
 
-    this.createBeastArmy = function(level, parser) {
+    public createBeastArmy(level: Level, parser: Parser) {
         const x0 = level.getMap().cols / 2;
         const y0 = level.getMap().rows / 2;
         for (let y = y0; y < y0 + 2; y++) {
             for (let x = x0; x < x0 + 10; x++) {
-                const beast = parser.createActualObj('actors',
-                    'Blizzard beast');
+                const beast = parser.createActor('Blizzard beast');
                 const xAct = x + 10;
                 const yAct = y + 14;
                 if (level.getMap().hasXY(xAct, yAct)) {
@@ -185,17 +202,17 @@ export const FactoryBase = function() {
                 }
             }
         }
-    };
+    }
 
-    this.addActorsToBbox = (level, bbox, conf) => {
+    public addActorsToBbox(level: Level, bbox, conf) {
         const nActors = conf.nActors || 4;
         const {maxDanger, func} = conf;
         const actors = this.generateNActors(nActors, func, maxDanger);
         Placer.addActorsToBbox(level, bbox, actors);
-    };
+    }
 
     /* Adds N items to the given level in bounding box coordinates. */
-    this.addItemsToBbox = (level, bbox, conf) => {
+    public addItemsToBbox(level: Level, bbox, conf) {
         const nItems = conf.nItems || 4;
         let itemConf = Object.assign({itemsPerLevel: nItems}, conf);
         itemConf = new ItemConf(itemConf);
@@ -203,6 +220,6 @@ export const FactoryBase = function() {
         const items = itemFact.generateItems(itemConf);
         const freeCells = level.getMap().getFreeInBbox(bbox);
         Placer.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
-    };
+    }
 
-};
+}
