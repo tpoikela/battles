@@ -9,15 +9,16 @@ import {ObjectShell} from '../objectshellparser';
 import {Random} from '../random';
 
 type Cell = import('../map.cell').Cell;
+type BaseActor = import('../actor').BaseActor;
 
-const spawnProb = 0.10;
+const spawnProb = 0.05;
 const RNG = Random.getRNG();
 const NO_ACTION = (): void => {};
 
 /* Brains for virtual actors such as spawners. */
 export class BrainVirtual extends BrainBase {
 
-    constructor(actor) {
+    constructor(actor: BaseActor) {
         super(actor);
         this.setType('Virtual');
     }
@@ -26,13 +27,13 @@ export class BrainVirtual extends BrainBase {
 /* Brain object used by Spawner virtual actors. */
 export class BrainSpawner extends BrainVirtual {
 
-    public constraint: IConstraint[];
-    public placeConstraint: IConstraint[];
     public spawnProb: number;
+    protected placeConstraint: IConstraint[];
+    protected constraint: IConstraint[];
     protected _constraintFunc: (shell) => boolean;
-    protected _placeConstraintFunc: (Cell) => boolean;
+    protected _placeConstraintFunc: (c: Cell) => boolean;
 
-    constructor(actor) {
+    constructor(actor: BaseActor) {
         super(actor);
         this.setType('Spawner');
         this.constraint = null;
@@ -67,11 +68,11 @@ export class BrainSpawner extends BrainVirtual {
         if (RG.isSuccess(this.spawnProb)) {
             return (): void => {
                 const level = this.getActor().getLevel();
-                let freeCell = null;
+                let freeCell: null | Cell = null;
 
                 if (this.placeConstraint) {
                     let watchdog = 100;
-                    const freeCells = level.getMap().getFree();
+                    const freeCells: Cell[] = level.getMap().getFree();
                     freeCell = RNG.arrayGetRand(freeCells);
                     while (!this._placeConstraintFunc(freeCell)) {
                         freeCell = RNG.arrayGetRand(freeCells);
@@ -82,18 +83,28 @@ export class BrainSpawner extends BrainVirtual {
                     freeCell = level.getFreeRandCell();
                 }
 
-                const [x, y] = [freeCell.getX(), freeCell.getY()];
-                const parser = ObjectShell.getParser();
-                const newActor = parser.createRandomActor(
-                    {func: this._constraintFunc});
-                if (newActor) {
-                    level.addActor(newActor, x, y);
-                    const name = newActor.getName();
-                    RG.gameMsg(`You feel danger at ${x}, ${y} from ${name}`);
+                if (freeCell) {
+                    const [x, y] = freeCell.getXY();
+                    const parser = ObjectShell.getParser();
+                    const newActor = parser.createRandomActor(
+                        {func: this._constraintFunc});
+                    if (newActor) {
+                        if (level.addActor(newActor, x, y)) {
+                            this.emitSpawnMsg(newActor);
+                        }
+                    }
                 }
             };
         }
         return NO_ACTION;
+    }
+
+    public emitSpawnMsg(newActor: BaseActor): void {
+        const level = newActor.getLevel();
+        const cell = newActor.getCell();
+        const cardDir = RG.getCardinalDirection(level, cell);
+        const msg = `${newActor.getName()} appears from path coming from ${cardDir}`;
+        RG.gameMsg({cell, msg});
     }
 
     public toJSON() {
