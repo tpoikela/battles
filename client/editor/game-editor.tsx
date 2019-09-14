@@ -36,7 +36,7 @@ import {Screen} from '../gui/screen';
 import {WorldConf} from '../src/world.creator';
 import {ZoneBase, SubZoneBase} from '../src/world';
 
-import {TCoord} from '../src/interfaces';
+import {TCoord, IFactoryGameConf } from '../src/interfaces';
 
 import * as Gen from '../src/generator';
 
@@ -580,7 +580,8 @@ export default class GameEditor extends Component {
 
   public generateGame(): void {
       const factGame = new FactoryGame();
-      this.game = factGame.createNewGame(this.state.levelConf.FullGame);
+      const conf = this.state.levelConf.FullGame as IFactoryGameConf;
+      this.game = factGame.createNewGame(conf);
   }
 
   public generateZone() {
