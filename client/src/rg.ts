@@ -18,6 +18,7 @@ type CellMap = import('./map').CellMap;
 type Level = import('./level').Level;
 type Damage = import('./mixin').Damage;
 type BrainGoalOriented = import('./brain').BrainGoalOriented;
+type BattleZone = import('./world').BattleZone;
 
 RG.gameTitle = 'Battles in the North (BitN)';
 
@@ -1562,6 +1563,15 @@ RG.isSentient = function(target: BaseActor): target is SentientActor {
     }
     return false;
 };
+
+RG.isBattleZone = function(target: any): target is BattleZone {
+    if (target) {
+        if (target.setBattle && target.getType() === 'battlezone') {
+            return true;
+        }
+    }
+    return false;
+}
 
 /* Can be queried if actor is still valid for serialisation or effects
  * like telepath or order giving. */
