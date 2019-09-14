@@ -9,6 +9,7 @@ import {Spell} from './spell';
 import * as Component from './component';
 import {SpawnerActor} from './actor.virtual';
 import {BrainSpawner} from './brain/brain.virtual';
+import { IConstraint } from './interfaces';
 
 import dbg = require('debug');
 const debug = dbg('bitn:FactoryActor');
@@ -200,11 +201,17 @@ FactoryActor.prototype.generateNActors = function(nActors, func, maxDanger) {
 };
 
 /* Creates a spawner with given constraints. */
-FactoryActor.prototype.createActorSpawner = function(maxDanger, constr: any[]) {
+FactoryActor.prototype.createActorSpawner = function(
+    maxDanger: number, constr: IConstraint[], placeConstr?: IConstraint[]
+): SpawnerActor {
     const spawner = new SpawnerActor('spawner');
     const spawnBrain = spawner.getBrain() as BrainSpawner;
-    const spawnConstr = [
-        {op: 'lte', prop: 'danger', value: maxDanger}].concat(constr);
+    let spawnConstr: IConstraint[] = [
+        {op: 'lte', prop: 'danger', value: maxDanger}];
+    spawnConstr = spawnConstr.concat(constr);
     spawnBrain.setConstraint(spawnConstr);
+    if (placeConstr) {
+        spawnBrain.setPlaceConstraint(placeConstr);
+    }
     return spawner;
 };
