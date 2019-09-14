@@ -1,6 +1,7 @@
 
 import RG from './rg';
 import {FromJSON} from './game.fromjson';
+import {GameMain} from './game';
 
 interface Storage {
     setItem: (key: string, data: string) => void;
@@ -95,7 +96,8 @@ export class GameSave {
             const dbString = this._storageRef.getItem('_battles_player_' + name);
             const dbObj = JSON.parse(dbString);
             const fromJSON = new FromJSON();
-            const game = fromJSON.createGame(dbObj.game);
+            let game = new GameMain();
+            game = fromJSON.createGame(game, dbObj.game);
             this._dungeonLevel = fromJSON.getDungeonLevel();
             return game;
         }
