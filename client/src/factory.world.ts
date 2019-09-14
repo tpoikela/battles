@@ -29,6 +29,7 @@ import {OWMap} from './overworld.map';
 
 import * as Element from './element';
 import * as IF from './interfaces';
+import { IConstraint } from './interfaces';
 
 const Stairs = Element.ElementStairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
@@ -1443,11 +1444,15 @@ FactoryWorld.prototype.createAreaZoneConnection = function(
 
 FactoryWorld.prototype.addActorSpawner = function(level: Level, parser, conf): void {
     const maxDanger = conf.maxDanger + 1;
-    const constr = [
+    const constr: IConstraint[] = [
         {op: 'eq', prop: 'type', value: ActorGen.getRaces()}
     ];
+    const placeConstr: IConstraint[] = [
+        {op: 'eq', func: 'getX', value: [0, level.getMap().cols - 1]},
+        {op: 'eq', func: 'getY', value: [0, level.getMap().rows - 1]},
+    ];
     const factActor = new FactoryActor();
-    const spawner = factActor.createActorSpawner(maxDanger, constr);
+    const spawner = factActor.createActorSpawner(maxDanger, constr, placeConstr);
     level.addVirtualProp(RG.TYPE_ACTOR, spawner);
 };
 
