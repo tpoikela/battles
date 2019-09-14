@@ -37,13 +37,13 @@ export class Engine {
     public isGUICommand: (code: number) => boolean;
     public doGUICommand: (code: number) => void;
 
-    public nextActor: Actor; // TODO add typings
-    public animation: Animation;
+    public nextActor: null | Actor; // TODO add typings
+    public animation: null | Animation;
     public animationCallback: (anim: Animation) => void;
 
     public _levelMap: {[key: number]: Level};
     public _activeLevels: number[]; // Only these levels are simulated
-    public _scheduler: any; // TODO = new Time.Scheduler();
+    public _scheduler: Time.Scheduler;
     public _msg: MessageHandler;
     public _eventPool: EventPool;
 
