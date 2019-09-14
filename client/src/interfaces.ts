@@ -211,7 +211,7 @@ export interface IConstraint {
     prop?: string;
     func?: string;
     comp?: string[];
-    value: any;
+    value: string | number | boolean | string[] | number[] | boolean[];
     args?: any;
 }
 
