@@ -17,9 +17,14 @@ import {CellMap} from './map';
 import {TCoord, IPlayerCmdInput} from './interfaces';
 import {ObjectShell} from './objectshellparser';
 
+type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
 type Battle = import('./game.battle').Battle;
 type SentientActor = import('./actor').SentientActor;
+type OWMap = import('./overworld.map').OWMap;
+type BrainPlayer = import('./brain').BrainPlayer;
+type WorldTop = World.WorldTop;
+type WorldBase = World.WorldBase;
 
 const POOL = EventPool.getPool();
 
@@ -31,9 +36,8 @@ export interface PlaceObj {
     y: number;
 }
 
-export interface IPlace {
+export interface IPlace extends WorldBase {
     getLevels(): Level[];
-    getName(): string;
 }
 
 export interface IGameMain {
@@ -41,105 +45,145 @@ export interface IGameMain {
 }
 
 /* Top-level main object for the game.  */
-export const GameMain = function() {
-    this._players = []; // List of players
-    this._places = {};
-    this._shownLevel = null; // One per game only
-    this._gameOver = false;
-    this.actorsKilled = {};
-    this.gameID = Date.now();
+export class GameMain {
 
-    this._enableChunkUnload = false;
-    this._chunkManager = null;
-    this._eventPool = POOL;
-    POOL.reset();
+    public hasNotify: boolean;
 
-    this.currPlaceIndex = 0; // Add support for more worlds
+    protected _players: SentientActor[];
+    protected _places: {[key: string]: WorldBase};
+    protected _shownLevel: null | Level;
+    protected _gameOver: boolean;
+    protected actorsKilled: {[key: number]: boolean};
+    protected gameID: number;
 
-    this._rng = new Random();
-    this._engine = new Engine(this._eventPool);
-    this._master = new GameMaster(this, this._eventPool);
+    protected _enableChunkUnload: boolean;
+    protected _chunkManager: null | ChunkManager;
+    protected _eventPool: EventPool;
 
-    this._worldSim = new WorldSimulation(this._eventPool);
-    this._engine.addRegularUpdate(this._worldSim);
-    this._engine.setSystemArgs({worldSim: this._worldSim});
+    protected currPlaceIndex: number;
 
-    this.visibleCells = [];
-    this.globalConf = {};
+    protected _rng: Random;
+    protected _engine: Engine;
+    protected _master: GameMaster;
 
-    // } end of constructor
+    protected _worldSim: WorldSimulation;
 
-    this.setGlobalConf = (conf) => {this.globalConf = conf;};
-    this.getGlobalConf = () => this.globalConf;
+    protected visibleCells: Cell[];
+    protected globalConf: {[key: string]: any};
 
-    this.shownLevel = () => this._shownLevel;
-    this.setShownLevel = (level) => {this._shownLevel = level;};
+    protected _overworld: OWMap;
 
-    this.getPool = (): EventPool => this._eventPool;
+    constructor() {
+        this.hasNotify = true;
+        this._players = []; // List of players
+        this._places = {};
+        this._shownLevel = null; // One per game only
+        this._gameOver = false;
+        this.actorsKilled = {};
+        this.gameID = Date.now();
+
+        this._enableChunkUnload = false;
+        this._chunkManager = null;
+        this._eventPool = POOL;
+        POOL.reset();
+
+        this.currPlaceIndex = 0; // Add support for more worlds
+
+        this._rng = new Random();
+        this._engine = new Engine(this._eventPool);
+        this._master = new GameMaster(this, this._eventPool);
+
+        this._worldSim = new WorldSimulation(this._eventPool);
+        this._engine.addRegularUpdate(this._worldSim);
+        this._engine.setSystemArgs({worldSim: this._worldSim});
+
+        this.visibleCells = [];
+        this.globalConf = {};
+
+        this._engine.playerCommandCallback = this.playerCommandCallback.bind(this);
+
+        // Re-assign the default Engine '() => false' function
+        this._engine.isGameOver = this.isGameOver;
+
+        this._eventPool.listenEvent(RG.EVT_ACTOR_KILLED, this);
+        this._eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+        this._eventPool.listenEvent(RG.EVT_TILE_CHANGED, this);
+        this._eventPool.listenEvent(RG.EVT_TILE_ENTERED, this);
+        this._eventPool.listenEvent(RG.EVT_TILE_LEFT, this);
+
+    } // end of constructor
+
+    public setGlobalConf(conf) {this.globalConf = conf;}
+    public getGlobalConf() {return this.globalConf;}
+
+    public shownLevel(): Level {return this._shownLevel;}
+    public setShownLevel(level: Level) {this._shownLevel = level;}
+
+    public getPool(): EventPool {return this._eventPool;}
 
     // GUI commands needed for some functions
-    this.setGUICallbacks = (isGUICmd, doGUICmd: (code) => void) => {
+    public setGUICallbacks(isGUICmd, doGUICmd: (code) => void) {
         this._engine.isGUICommand = isGUICmd;
         this._engine.doGUICommand = doGUICmd;
         const player = this.getPlayer();
         if (player) {
-            player.getBrain().addGUICallback('GOTO', doGUICmd);
+            (player.getBrain() as BrainPlayer).addGUICallback('GOTO', doGUICmd);
         }
-    };
+    }
 
-    this.setRNG = (rng) => {
+    public setRNG(rng: Random): void {
         this._rng = rng;
         Random.setRNG(this._rng);
-    };
+    }
 
-    this.playerCommandCallback = (actor) => {
+    public playerCommandCallback(actor) {
         this.visibleCells = actor.getBrain().getSeenCells();
         this._engine.setVisibleArea(this.shownLevel(), this.visibleCells);
-    };
-    this._engine.playerCommandCallback = this.playerCommandCallback.bind(this);
+    }
 
-    this.isGameOver = () => this._gameOver;
-    // Re-assign the default Engine '() => false' function
-    this._engine.isGameOver = this.isGameOver;
+    public isGameOver() {return this._gameOver;}
 
-    this.getLevels = (): Level[] => this._engine.getLevels();
-    this.getComponents = (): number[] => this._engine.getComponents();
-    this.getPlaces = () => this._places;
+    public getLevels(): Level[] {return this._engine.getLevels();}
+    public getComponents(): number[] {
+        return this._engine.getComponents();
+    }
 
-    this.getLevelsInAllPlaces = (): Level[] => {
+    public getPlaces() {return this._places;}
+
+    public getLevelsInAllPlaces(): Level[] {
         let levels: Level[] = [];
         Object.values(this._places).forEach((place: any) => {
             levels = levels.concat(place.getLevels());
         });
         return levels;
-    };
+    }
 
-    this.setEnableChunkUnload = (enable: boolean = true) => {
+    public setEnableChunkUnload(enable: boolean = true) {
         this._enableChunkUnload = enable;
         if (enable && this.getArea(0)) {
             const area = this.getArea(0);
             this._chunkManager = new ChunkManager(this, area);
         }
-    };
+    }
 
     /* Returns player(s) of the game.*/
-    this.getPlayer = (): SentientActor => {
+    public getPlayer(): SentientActor {
         return this._engine.getPlayer();
-    };
+    }
 
     /* Adds player to the game. By default, it's added to the first level if
      * player has no level yet.*/
-    this.addPlayer = (player: SentientActor, obj?: PlaceObj) => {
+    public addPlayer(player: SentientActor, obj?: PlaceObj): boolean {
         let levelOK = false;
         this._master.setPlayer(player);
         if (!RG.isNullOrUndef([player.getLevel()])) {
             levelOK = true;
         }
         else if (RG.isNullOrUndef([obj])) {
-            levelOK = _addPlayerToFirstLevel(player, this.getLevels());
+            levelOK = this._addPlayerToFirstLevel(player, this.getLevels());
         }
         else {
-            levelOK = _addPlayerToPlace(player, obj);
+            levelOK = this._addPlayerToPlace(player, obj);
         }
 
         if (levelOK) {
@@ -161,10 +205,10 @@ export const GameMain = function() {
         }
 
         return levelOK;
-    };
+    }
 
     /* Debug function for taking over controls of a given actor. */
-    this.useAsPlayer = (actorOrID) => {
+    public useAsPlayer(actorOrID) {
         let actor = actorOrID;
         if (Number.isInteger(actorOrID)) {
             actor = RG.ent(actorOrID);
@@ -175,23 +219,29 @@ export const GameMain = function() {
             actor.add(new Component.Player());
             this.addPlayer(actor);
         }
-    };
+    }
 
     /* Moves player to specified area tile. This is used for debugging purposes
      * mainly. Maybe to be used with quick travel system oneday. */
-    this.movePlayer = (tileX: number, tileY: number, levelX = 0, levelY = 0): void => {
+    public movePlayer(tileX: number, tileY: number, levelX = 0, levelY = 0): void {
         const player = this.getPlayer();
         const world: World.WorldTop = this.getCurrentWorld();
         const area: World.Area = world.getAreas()[0];
 
         let tile = null;
         if (this._enableChunkUnload) {
-            if (this._chunkManager.isLoaded(tileX, tileY)) {
-                tile = area.getTileXY(tileX, tileY);
+            if (this._chunkManager) {
+                if (this._chunkManager.isLoaded(tileX, tileY)) {
+                    tile = area.getTileXY(tileX, tileY);
+                }
+                else {
+                    this._chunkManager.setPlayerTile(tileX, tileY, null, null);
+                    tile = area.getTileXY(tileX, tileY);
+                }
             }
             else {
-                this._chunkManager.setPlayerTile(tileX, tileY);
-                tile = area.getTileXY(tileX, tileY);
+                RG.err('GameMain', 'movePlayer',
+                    `chunkUnload enabled, but no chunkManager created`);
             }
         }
         else {
@@ -225,9 +275,9 @@ export const GameMain = function() {
         else {
             console.error('Could not remove player from level');
         }
-    };
+    }
 
-    const _addPlayerToFirstLevel = (player: SentientActor, levels: Level[]) => {
+    public _addPlayerToFirstLevel(player: SentientActor, levels: Level[]) {
         let levelOK = false;
         if (levels.length > 0) {
             levelOK = levels[0].addActorToFreeCell(player);
@@ -244,25 +294,41 @@ export const GameMain = function() {
                 'No levels exist. Cannot add player.');
         }
         return levelOK;
-    };
+    }
 
     /* Adds player to the first found level of given place.
      * Name of place must be
      * specified as obj.place */
-    const _addPlayerToPlace = (player, obj) => {
+    public _addPlayerToPlace(player: SentientActor, obj): boolean {
         if (obj.hasOwnProperty('place')) {
             const place = obj.place;
             if (this._places.hasOwnProperty(place)) {
                 if (obj.hasOwnProperty('x') && obj.hasOwnProperty('y')) {
                     const placeObj = this._places[place];
-                    const area = placeObj.getAreas()[0];
-                    const tile = area.getTileXY(obj.x, obj.y);
-                    const levels = [tile.getLevel()];
-                    return _addPlayerToFirstLevel(player, levels);
+                    if (placeObj.getType() === 'world') {
+                        const area = (placeObj as WorldTop).getAreas()[0];
+
+                        if (area.isLoaded(obj.x, obj.y)) {
+                            const tile = area.getTileXY(obj.x, obj.y) as World.AreaTile;
+                            const levels = [tile.getLevel()];
+                            return this._addPlayerToFirstLevel(player, levels);
+                        }
+                        else {
+                            RG.err('GameMain', '_addPlayerToPlace',
+                                `Tried to add player to unloaded tile @${obj}`);
+                        }
+                    }
+                    else {
+                        RG.err('GameMain', '_addPlayerToPlace',
+                        `Tried to add player to non-world: ${placeObj.toJSON()}`);
+                    }
                 }
                 else {
-                    const levels = this._places[place].getLevels();
-                    return _addPlayerToFirstLevel(player, levels);
+                    const worldPlace: any = this._places[place];
+                    if (worldPlace.getLevels) {
+                        const levels = worldPlace.getLevels();
+                        return this._addPlayerToFirstLevel(player, levels);
+                    }
                 }
             }
             else {
@@ -274,11 +340,11 @@ export const GameMain = function() {
             RG.err('GameMain', '_addPlayerToPlace', 'obj.place must exist.');
         }
         return false;
-    };
+    }
 
 
     /* Checks if player moved to a tile (from tile or was added). */
-    this.checkIfTileChanged = (args) => {
+    public checkIfTileChanged(args) {
         const {actor, src, target} = args;
 
         const areaLevels = [target];
@@ -298,18 +364,18 @@ export const GameMain = function() {
         else if (this.isTileLevel(src)) {
             POOL.emitEvent(RG.EVT_TILE_LEFT, {actor, target, src});
         }
-    };
+    }
 
-    this.isTileLevel = (level: Level): boolean => {
+    public isTileLevel(level: Level): boolean {
         const area = this.getArea(0);
         if (area) {
             return area.hasTiles([level]);
         }
         return false;
-    };
+    }
 
     /* Checks if player exited an explored zone. */
-    this.checkIfExploredZoneLeft = (args) => {
+    public checkIfExploredZoneLeft(args) {
         const {actor, src, target} = args;
         let emitEvent = false;
         if (actor.has('GameInfo') && src && target) {
@@ -333,46 +399,46 @@ export const GameMain = function() {
             POOL.emitEvent(RG.EVT_EXPLORED_ZONE_LEFT,
                 {actor, target, src});
         }
-    };
+    }
 
-    this.getMessages = () => this._engine.getMessages();
-    this.clearMessages = () => { this._engine.clearMessages();};
-    this.hasNewMessages = () => this._engine.hasNewMessages();
+    public getMessages() {return this._engine.getMessages();}
+    public clearMessages() { this._engine.clearMessages();}
+    public hasNewMessages() {return this._engine.hasNewMessages();}
 
     /* Adds an actor to scheduler.*/
-    this.addActor = (actor) => {this._engine.addActor(actor);};
+    public addActor(actor) {this._engine.addActor(actor);}
 
     /* Removes an actor from a scheduler.*/
-    this.removeActor = (actor) => {this._engine.removeActor(actor);};
+    public removeActor(actor) {this._engine.removeActor(actor);}
 
     /* Adds an event to the scheduler.*/
-    this.addEvent = (gameEvent) => {this._engine.addEvent(gameEvent);};
+    public addEvent(gameEvent) {this._engine.addEvent(gameEvent);}
 
-    this.addActiveLevel = (level) => {this._engine.addActiveLevel(level);};
+    public addActiveLevel(level) {this._engine.addActiveLevel(level);}
 
     /* Adds one level to the game.*/
-    this.addLevel = (level) => {
+    public addLevel(level) {
         if (!this._engine.hasLevel(level)) {
             this._engine.addLevel(level);
         }
         else {
             this.errorDuplicateLevel('addLevel', level);
         }
-    };
+    }
 
     /* Adds given level to the game unless it already exists. */
-    this.addLevelUnlessExists = (level) => {
+    public addLevelUnlessExists(level) {
         if (!this._engine.hasLevel(level)) {
             this._engine.addLevel(level);
         }
-    };
+    }
 
-    this.removeLevels = (levels) => {
+    public removeLevels(levels) {
         this._engine.removeLevels(levels);
-    };
+    }
 
     /* Adds a place (dungeon/area) containing several levels.*/
-    this.addPlace = (place: IPlace): void => {
+    public addPlace(place: IPlace): void {
         if (typeof place.getLevels === 'function') {
             const name = place.getName();
             if (!this._places.hasOwnProperty(name) ) {
@@ -391,9 +457,12 @@ export const GameMain = function() {
                 this._engine.setSystemArgs({worldTop: place});
 
                 if (this.getArea(0)) {
-                    const area = this.getCurrentWorld().getCurrentArea();
-                    if (this._enableChunkUnload && !this._chunkManager) {
-                        this._chunkManager = new ChunkManager(this, area);
+                    const world: null | WorldTop = this.getCurrentWorld();
+                    if (world) {
+                        const area = world.getCurrentArea();
+                        if (this._enableChunkUnload && !this._chunkManager) {
+                            this._chunkManager = new ChunkManager(this, area);
+                        }
                     }
                 }
             }
@@ -406,41 +475,40 @@ export const GameMain = function() {
             RG.err('GameMain', 'addPlace',
                 'Added place must have getLevels()');
         }
-    };
+    }
 
-    this.hasPlaces = () => Object.keys(this._places).length > 0;
+    public hasPlaces() {return Object.keys(this._places).length > 0;}
 
     /* Returns the visible map to be rendered by the GUI. */
-    this.getVisibleMap = (): CellMap => {
+    public getVisibleMap(): CellMap {
         const player = this.getPlayer();
         const map = player.getLevel().getMap();
         return map;
-    };
+    }
 
-    this.simulate = (nTurns = 1) => {
+    public simulate(nTurns: number): void {
         this._engine.simulateGame(nTurns);
-    };
+    }
 
-    this.simulateGame = (nTurns = 1) => {
+    public simulateGame(nTurns: number): void {
         this._engine.simulateGame(nTurns);
-    };
+    }
 
     /* Must be called to advance the game by one player action. Non-player
      * actions are executed after the player action.*/
-    this.update = (obj: IPlayerCmdInput) => {this._engine.update(obj);};
+    public update(obj: IPlayerCmdInput) {this._engine.update(obj);}
 
-    this.getArea = (index: number) => {
+    public getArea(index: number) {
         const world = this.getCurrentWorld();
         if (world && typeof world.getAreas === 'function') {
             return world.getAreas()[index];
         }
         return null;
-    };
+    }
 
     /* Used by the event pool. Game receives notifications about different
      * game events from child components. */
-    this.hasNotify = true;
-    this.notify = (evtName, args) => {
+    public notify(evtName, args) {
         if (evtName === RG.EVT_ACTOR_KILLED) {
             this.actorsKilled[args.actor.getID()] = true;
             if (args.actor.isPlayer()) {
@@ -507,16 +575,11 @@ export const GameMain = function() {
         else if (evtName === RG.EVT_TILE_LEFT) {
             this._worldSim.setUpdateRates(5);
         }
-    };
-    this._eventPool.listenEvent(RG.EVT_ACTOR_KILLED, this);
-    this._eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
-    this._eventPool.listenEvent(RG.EVT_TILE_CHANGED, this);
-    this._eventPool.listenEvent(RG.EVT_TILE_ENTERED, this);
-    this._eventPool.listenEvent(RG.EVT_TILE_LEFT, this);
+    }
 
     /* Adds one battle to the game. If active = true, battle level is activated
      * and battle started immediately. */
-    this.addBattle = (battle: Battle, id = -1, active = false): void => {
+    public addBattle(battle: Battle, id = -1, active = false): void {
         const level = battle.getLevel();
         this.addLevel(level);
         if (active) {
@@ -525,10 +588,10 @@ export const GameMain = function() {
         if (this.hasPlaces() && id > -1) {
             this._addBattleZoneToArea(battle, id);
         }
-    };
+    }
 
     /* Creates a new zone and adds it into area. */
-    this._addBattleZoneToArea = (battle: Battle, parentID) => {
+    public _addBattleZoneToArea(battle: Battle, parentID) {
         const level = battle.getLevel();
         const zoneName = 'Zone of ' + battle.getName();
         const battleZone = new World.BattleZone(zoneName);
@@ -545,34 +608,44 @@ export const GameMain = function() {
             RG.err('GameMain', '_addBattleZoneToArea',
             `ID ${parentID} not found in area.`);
         }
-    };
+    }
 
-    this.getChunkManager = () => this._chunkManager;
+    public getChunkManager(): null | ChunkManager {
+        return this._chunkManager;
+    }
 
-    this.getGameMaster = () => this._master;
-    this.setGameMaster = (master) => {
+    public getGameMaster(): GameMaster {return this._master;}
+
+    public setGameMaster(master: GameMaster) {
         this._master = master;
         this._master.setPlayer(this.getPlayer());
-        const world = Object.values(this._places)[0];
-        this._master.setWorld(world);
-        this._master.setGame(this);
-    };
+        const world = this.getCurrentWorld();
+        if (world) {
+            this._master.setWorld(world);
+            this._master.setGame(this);
+        }
+        else {
+            RG.warn('GameMain', 'setGameMaster',
+                `Cannot set gameMaster without existing world`);
+        }
+    }
 
-    this.getOverWorld = () => this._overworld;
-    this.setOverWorld = (ow) => {
+    public getOverWorld(): OWMap {return this._overworld;}
+
+    public setOverWorld(ow: OWMap): void {
       this._overworld = ow;
       this._worldSim.setOverWorld(ow);
       this._engine.setSystemArgs({owMap: ow});
-    };
+    }
 
-    this.setWorldSim = (ws: WorldSimulation) => {
+    public setWorldSim(ws: WorldSimulation) {
         ws.setPool(this._eventPool);
         this._worldSim = ws;
         this._engine.setSystemArgs({worldSim: this._worldSim});
-    };
+    }
 
     /* Serializes the game object into JSON. */
-    this.toJSON = () => {
+    public toJSON() {
         const parser = ObjectShell.getParser();
         const obj: any = { // TODO fix typings
             gameID: this.gameID,
@@ -592,7 +665,7 @@ export const GameMain = function() {
 
         if (!this.hasPlaces()) {
             // Serialize levels directly if there's no world hierarchy
-            const levels = [];
+            const levels: Level[] = [];
             const _levels = this._engine.getLevels();
             _levels.forEach((level) => {
                 levels.push(level.toJSON());
@@ -624,24 +697,24 @@ export const GameMain = function() {
         }
 
         return obj;
-    };
+    }
 
     /* Returns true if the menu is shown instead of the level. */
-    this.isMenuShown = () => {
+    public isMenuShown() {
         return this._engine.isMenuShown();
-    };
+    }
 
     /* Returns the current menu object. */
-    this.getMenu = () => {
+    public getMenu() {
         const player = this.getPlayer();
         if (player) {
-            return player.getBrain().getMenu();
+            return (player.getBrain() as BrainPlayer).getMenu();
         }
         return null;
-    };
+    }
 
     /* Sets the function to be called for animations. */
-    this.setAnimationCallback = (cb) => {
+    public setAnimationCallback(cb) {
         if (typeof cb === 'function') {
             this._engine.animationCallback = cb;
         }
@@ -649,20 +722,20 @@ export const GameMain = function() {
             RG.warn('GameMain', 'setAnimationCallback',
                 'Callback must be a function.');
         }
-    };
+    }
 
     /* Returns true if engine has animation to play. */
-    this.hasAnimation = () => this._engine.hasAnimation();
-    this.finishAnimation = () => this._engine.finishAnimation();
+    public hasAnimation() {return this._engine.hasAnimation();}
+    public finishAnimation() {return this._engine.finishAnimation();}
 
     /* Gets the next animation frame. */
-    this.getAnimationFrame = () => this._engine.animation.nextFrame();
+    public getAnimationFrame() {return this._engine.animation.nextFrame();}
 
-    this.enableAnimations = () => {this._engine.enableAnimations();};
-    this.disableAnimations = () => {this._engine.disableAnimations();};
+    public enableAnimations() {this._engine.enableAnimations();}
+    public disableAnimations() {this._engine.disableAnimations();}
 
     /* Returns the player tile position in overworld map. */
-    this.getPlayerOwPos = (): TCoord | null => {
+    public getPlayerOwPos(): TCoord | null {
         const player = this.getPlayer();
         if (!this._overworld || !player) {
             return null;
@@ -686,11 +759,11 @@ export const GameMain = function() {
         const pX = Math.floor(coordX / xMap);
         const pY = Math.floor(coordY / yMap);
         return [pX, pY];
-    };
+    }
 
     /* When player is inside a zone, tries to find the area tile location by
      * traversing the world hierarchy. */
-    this.tryToGetTileXY = () => {
+    public tryToGetTileXY() {
       const level = this.getPlayer().getLevel();
       let parent = level.getParent();
       while (parent) {
@@ -706,26 +779,29 @@ export const GameMain = function() {
         }
       }
       return null;
-    };
+    }
 
-    this.setOverWorldExplored = (xy) => {
+    public setOverWorldExplored(xy) {
         const box = Geometry.getBoxAround(xy[0], xy[1], 1, true);
         box.forEach((coord) => {
             this._overworld.setExplored(coord);
         });
-    };
+    }
 
     /* Returns the current world where the player is .*/
-    this.getCurrentWorld = () => {
+    public getCurrentWorld(): null | WorldTop {
         const places = Object.values(this.getPlaces());
         if (places.length > this.currPlaceIndex) {
-            return places[this.currPlaceIndex];
+            const world = places[this.currPlaceIndex];
+            if (world.getType() === 'world') {
+                return world as WorldTop;
+            }
         }
         return null;
-    };
+    }
 
     /* Generic find function for debugging. */
-    this.find = (filter, levelId = -1, filterFunc = 'find') => {
+    public find(filter, levelId = -1, filterFunc = 'find'): null | any[] {
         const levels = this._engine.getLevels();
         if (levelId === -1) {
             const level = this.getPlayer().getLevel();
@@ -745,9 +821,9 @@ export const GameMain = function() {
             }
         }
         return null;
-    };
+    }
 
-    this.errorDuplicateLevel = (funcName, level) => {
+    public errorDuplicateLevel(funcName, level) {
         const parent = level.getParent();
         const json = level.toJSON();
         delete json.elements;
@@ -761,10 +837,10 @@ export const GameMain = function() {
         msg += ' JSON: ' + JSON.stringify(json, null, 1);
 
         RG.err('GameMain', funcName, msg);
-    };
+    }
 
-    this.entityPrint = () => {
+    public entityPrint() {
         RG.diag(Entity.num);
-    };
+    }
 
-}; // }}} GameMain
+}
