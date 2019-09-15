@@ -22,7 +22,7 @@ import {BBox} from './bbox';
 const MIN_ACTORS_ROOM = 2;
 const RNG = Random.getRNG();
 
-import {TCoord, TShellFunc, IShell} from './interfaces';
+import {TCoord, TShellFunc, IShell, ItemConf, ActorConf} from './interfaces';
 type Level = import('./level').Level;
 type House = import('./generator').House;
 
@@ -70,16 +70,16 @@ export class DungeonPopulate {
         const maxValue = this.maxValue;
 
         let mainLootAdded = false;
-        const roomsDone = {}; // Keep track of finished rooms
+        const roomsDone: {[key: number]: boolean} = {}; // Keep track of finished rooms
 
         if (extras.bigRooms) {
             extras.bigRooms.forEach(bigRoom => {
                 const {room, type} = bigRoom;
                 const bbox: BBox = BBox.fromBBox(room.getBbox());
                 const areaSize = room.getAreaSize();
-                const actorConf = {
+                const actorConf: ActorConf = {
                     maxDanger,
-                    func: actor => actor.danger <= maxDanger + 2,
+                    actor: actor => actor.danger <= maxDanger + 2,
                     nActors: 0 // To be set later
                 };
 
@@ -130,13 +130,13 @@ export class DungeonPopulate {
                     // Add optional, less potent loot stuff
                     const areaSize = room.getAreaSize();
                     const nItems = Math.ceil(areaSize / 10);
-                    const itemConf = {maxValue, itemsPerLevel: nItems,
-                        func: item => item.value <= maxValue
+                    const itemConf: ItemConf = {maxValue, itemsPerLevel: nItems,
+                        item: item => item.value <= maxValue
                     };
                     this.addItemsToBbox(level, bbox, itemConf);
 
                     const coord = Geometry.getCoordBbox(bbox);
-                    coord.forEach(xy => {
+                    coord.forEach((xy: TCoord) => {
                         const enemy = new Element.ElementMarker('e');
                         enemy.setTag('enemy');
                         level.addElement(enemy, xy[0], xy[1]);
@@ -153,9 +153,9 @@ export class DungeonPopulate {
                 const areaSize = room.getAreaSize();
 
                 // Add actors into the room
-                const actorConf = {
+                const actorConf: ActorConf = {
                     maxDanger,
-                    func: actor => actor.danger <= maxDanger,
+                    actor: actor => actor.danger <= maxDanger,
                     nActors: Math.floor(areaSize / 6)
                 };
                 if (actorConf.nActors < MIN_ACTORS_ROOM) {
@@ -165,8 +165,8 @@ export class DungeonPopulate {
 
                 // Add items into the room
                 const nItems = Math.ceil(areaSize / 20);
-                const itemConf = {maxValue, itemsPerLevel: nItems,
-                    func: item => item.value <= maxValue
+                const itemConf: ItemConf = {maxValue, itemsPerLevel: nItems,
+                    item: item => item.value <= maxValue
                 };
                 this.addItemsToBbox(level, bbox, itemConf);
 
@@ -583,9 +583,10 @@ export class DungeonPopulate {
         return actor;
     }
 
-    public addActorsToBbox(level: Level, bbox: BBox, conf): boolean {
+    public addActorsToBbox(level: Level, bbox: BBox, conf: ActorConf): boolean {
         const nActors = conf.nActors || 4;
-        const {maxDanger, func} = conf;
+        const {maxDanger} = conf;
+        const func = conf.actor;
         let actors = conf.actors;
         if (!actors) {
             actors = this._actorFact.generateNActors(nActors, func, maxDanger);
