@@ -9,12 +9,16 @@ import {Spell} from './spell';
 import * as Component from './component';
 import {SpawnerActor} from './actor.virtual';
 import {BrainSpawner} from './brain/brain.virtual';
-import { IConstraint } from './interfaces';
+import {IConstraint, IShell, TShellFunc} from './interfaces';
+
+type Parser = ObjectShell.Parser;
+type IQueryDB = import('./objectshellparser').IQueryDB;
+type BaseActor = Actor.BaseActor;
 
 import dbg = require('debug');
 const debug = dbg('bitn:FactoryActor');
 
-const initCombatant = (comb, obj) => {
+const initCombatant = (comb: BaseActor, obj): void => {
     const {hp, att, def, prot} = obj;
 
     if (!RG.isNullOrUndef([hp])) {
@@ -57,36 +61,40 @@ export class ActorRandomizer {
 }
 
 /* Factory object for creating the actors. */
-export const FactoryActor = function() {
-    this._randomizer = new ActorRandomizer();
+export class FactoryActor {
+    protected _randomizer: ActorRandomizer;
 
-    this.dbg = function(...args: any[]): void {
+    constructor() {
+        this._randomizer = new ActorRandomizer();
+    }
+
+    public dbg(...args: any[]): void {
         if (debug.enabled) {
             debug(...args);
         }
-    };
+    }
 
     /* Creates a player actor. */
-    this.createPlayer = function(name, obj) {
+    public createPlayer(name: string, obj) {
         const player = new Actor.SentientActor(name);
         player.setIsPlayer(true);
         initCombatant(player, obj);
         this._randomizer.adjustActor(player);
         return player;
-    };
+    }
 
-    this.createRandomActor = function(query) {
-        const parser = ObjectShell.getParser();
+    public createRandomActor(query: IQueryDB): null | Actor.BaseActor {
+        const parser: Parser = ObjectShell.getParser();
         return parser.createRandomActor(query);
-    };
+    }
 
-    this.createActorByName = function(name: string): Actor.BaseActor {
-        const parser = ObjectShell.getParser();
+    public createActorByName(name: string): Actor.BaseActor {
+        const parser: Parser = ObjectShell.getParser();
         return parser.createActor(name);
-    };
+    }
 
     /* Factory method for non-player actors. */
-    this.createActor = function(name, obj: any = {}): Actor.SentientActor {
+    public createActor(name: string, obj: any = {}): Actor.SentientActor {
         const actor = new Actor.SentientActor(name);
         actor.setType(name);
 
@@ -103,10 +111,10 @@ export const FactoryActor = function() {
             }
         }
         return actor;
-    };
+    }
 
     /* Factory method for AI brain creation.*/
-    this.createBrain = (actor, brainName) => {
+    public createBrain(actor: BaseActor, brainName: string) {
         switch (brainName) {
             case 'Flame': return new Brain.BrainFlame(actor);
             case 'GoalOriented': return new Brain.BrainGoalOriented(actor);
@@ -125,93 +133,92 @@ export const FactoryActor = function() {
                 return new Brain.BrainSentient(actor);
             }
         }
-    };
-
-
-};
-
-FactoryActor.prototype.createSpell = function(spellName) {
-    if (Spell.hasOwnProperty(spellName)) {
-        return new Spell[spellName]();
     }
-    else {
-        const keys = Object.keys(Spell).join('\n\t');
-        RG.err('FactoryActor', 'createSpell',
-            `No spell ${spellName} found in Spell: \n\t${keys}`);
-    }
-    return null;
-};
 
-/* Generates N actors based on constraints and returns a list of actors. */
-FactoryActor.prototype.generateNActors = function(nActors, func, maxDanger) {
-    if (!Number.isInteger(maxDanger) || maxDanger <= 0) {
-        RG.err('Factory.Actor', 'generateNActors',
-            'maxDanger (> 0) must be given. Got: ' + maxDanger);
-    }
-    if (maxDanger < 3) {maxDanger = 3;} // maxDanger 1/2 not very interesting
-
-    const parser = ObjectShell.getParser();
-    const actors = [];
-    const defaultFunc = { // Used if no func given
-        func: actor => actor.danger <= maxDanger
-    };
-    for (let i = 0; i < nActors; i++) {
-
-        // Generic randomization with danger level
-        let actor = null;
-        if (!func) {
-            actor = parser.createRandomActorWeighted(1, maxDanger,
-                defaultFunc);
+    public createSpell(spellName: string) {
+        if (Spell.hasOwnProperty(spellName)) {
+            return new Spell[spellName]();
         }
         else {
-            actor = parser.createRandomActor({
-                func: actShell => (
-                    func(actShell) &&
-                    actShell.danger <= maxDanger
-                )
-            });
+            const keys = Object.keys(Spell).join('\n\t');
+            RG.err('FactoryActor', 'createSpell',
+                `No spell ${spellName} found in Spell: \n\t${keys}`);
         }
-
-        if (actor) {
-            // This levels up the actor to match current danger level
-            // const objShell = parser.dbGet(RG.TYPE_ACTOR, actor.getName());
-            const objShell = parser.dbGet({categ: RG.TYPE_ACTOR,
-                                          name: actor.getName()});
-            const expLevel = maxDanger - objShell.danger;
-            if (expLevel > 1) {
-                RG.levelUpActor(actor, expLevel);
-            }
-            actors.push(actor);
-        }
-        else {
-            let msg = 'Factory Could not meet constraints for actor.';
-            msg += ' maxDanger: ' + maxDanger;
-            RG.diag(msg);
-            if (func.constraint) {
-                const json = JSON.stringify(func.constraint);
-                RG.diag('Used constraints were: ' + json);
-            }
-            else if (!func) {
-                RG.diag('No func was given, so used randomWeighted');
-            }
-        }
-
+        return null;
     }
-    return actors;
-};
 
-/* Creates a spawner with given constraints. */
-FactoryActor.prototype.createActorSpawner = function(
-    maxDanger: number, constr: IConstraint[], placeConstr?: IConstraint[]
-): SpawnerActor {
-    const spawner = new SpawnerActor('spawner');
-    const spawnBrain = spawner.getBrain() as BrainSpawner;
-    let spawnConstr: IConstraint[] = [
-        {op: 'lte', prop: 'danger', value: maxDanger}];
-    spawnConstr = spawnConstr.concat(constr);
-    spawnBrain.setConstraint(spawnConstr);
-    if (placeConstr) {
-        spawnBrain.setPlaceConstraint(placeConstr);
+    /* Generates N actors based on constraints and returns a list of actors. */
+    public generateNActors(nActors: number, func: TShellFunc, maxDanger: number): BaseActor[] {
+        if (!Number.isInteger(maxDanger) || maxDanger <= 0) {
+            RG.err('Factory.Actor', 'generateNActors',
+                'maxDanger (> 0) must be given. Got: ' + maxDanger);
+        }
+        if (maxDanger < 3) {maxDanger = 3;} // maxDanger 1/2 not very interesting
+
+        const parser: Parser = ObjectShell.getParser();
+        const actors: BaseActor[] = [];
+        const defaultFunc = { // Used if no func given
+            func: (actor: IShell) => actor.danger <= maxDanger
+        };
+        for (let i = 0; i < nActors; i++) {
+
+            // Generic randomization with danger level
+            let actor = null;
+            if (!func) {
+                actor = parser.createRandomActorWeighted(1, maxDanger,
+                    defaultFunc);
+            }
+            else {
+                actor = parser.createRandomActor({
+                    func: actShell => (
+                        func(actShell) &&
+                        actShell.danger <= maxDanger
+                    )
+                });
+            }
+
+            if (actor) {
+                // This levels up the actor to match current danger level
+                // const objShell = parser.dbGet(RG.TYPE_ACTOR, actor.getName());
+                const objShell = parser.dbGet({categ: RG.TYPE_ACTOR,
+                                              name: actor.getName()});
+                const expLevel = maxDanger - objShell.danger;
+                if (expLevel > 1) {
+                    RG.levelUpActor(actor, expLevel);
+                }
+                actors.push(actor);
+            }
+            else {
+                let msg = 'Factory Could not meet constraints for actor.';
+                msg += ' maxDanger: ' + maxDanger;
+                RG.diag(msg);
+                if ((func as any).constraint) {
+                    const json = JSON.stringify((func as any).constraint);
+                    RG.diag('Used constraints were: ' + json);
+                }
+                else if (!func) {
+                    RG.diag('No func was given, so used randomWeighted');
+                }
+            }
+
+        }
+        return actors;
     }
-    return spawner;
-};
+
+    /* Creates a spawner with given constraints. */
+    public createActorSpawner(
+        maxDanger: number, constr: IConstraint[], placeConstr?: IConstraint[]
+    ): SpawnerActor {
+        const spawner = new SpawnerActor('spawner');
+        const spawnBrain = spawner.getBrain() as BrainSpawner;
+        let spawnConstr: IConstraint[] = [
+            {op: 'lte', prop: 'danger', value: maxDanger}];
+        spawnConstr = spawnConstr.concat(constr);
+        spawnBrain.setConstraint(spawnConstr);
+        if (placeConstr) {
+            spawnBrain.setPlaceConstraint(placeConstr);
+        }
+        return spawner;
+    }
+}
+
