@@ -10,7 +10,7 @@ import {Geometry} from '../geometry';
 import {BBox} from '../bbox';
 import {Random} from '../random';
 import {ELEM} from '../../data/elem-constants';
-import {DungeonPopulate} from '../dungeon-populate';
+//import {DungeonPopulate} from '../dungeon-populate';
 import {ActorGen} from '../../data/actor-gen';
 import {ObjectShell} from '../objectshellparser';
 import {SentientActor} from '../actor';
@@ -245,10 +245,10 @@ export class NestGenerator extends LevelGenerator {
     public populateNestArea(level: Level, bbox: BBox, conf: PartialNestOpts): void {
         const {actorConstr} = conf;
         if (actorConstr) {
-            const dungPopul = new DungeonPopulate();
+            // const dungPopul = new DungeonPopulate();
             const actors: SentientActor[] = this.getActorsForNest(actorConstr);
-            const actorConf = {actors};
-            if (dungPopul.addActorsToBbox(level, bbox, actorConf)) {
+            //const actorConf = {actors};
+            if (Placer.addActorsToBbox(level, bbox, actors)) {
                 actors.forEach(actor => {
                     const evalGuard = new EvaluatorGuardArea(0.7, bbox);
                     const brain = actor.getBrain() as BrainGoalOriented;
