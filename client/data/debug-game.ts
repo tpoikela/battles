@@ -109,14 +109,13 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     const numFree = level.getMap().getFree().length;
     const itemsPerLevel = Math.round(numFree / sqrPerItem);
 
-    const itemConf = {
+    const itemConf: IF.ItemConf = {
         itemsPerLevel,
-        func: (item) => (item.value <= 2500),
+        item: (item) => (item.value <= 2500),
         maxValue: 2500,
         food: () => true,
         gold: () => false
     };
-
     this._factBase.addNRandItems(level, this._parser, itemConf);
 
     const cols = level.getMap().cols;
