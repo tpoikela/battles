@@ -21,7 +21,7 @@ export class MessageHandler { // {{{2
 
     public hasNotify: boolean;
 
-    protected _lastMsg: IMessage;
+    protected _lastMsg: null | IMessage;
     protected _messages: IMessage[];
     protected _prevMessages: IMessage[];
     protected _hasNew: boolean;
@@ -49,7 +49,12 @@ export class MessageHandler { // {{{2
                 }
 
                 if (this._lastMsg && this._lastMsg.msg === msgObj.msg) {
-                    this._lastMsg.count += 1;
+                    if (this._lastMsg.count) {
+                        this._lastMsg.count += 1;
+                    }
+                    else {
+                        this._lastMsg.count = 1;
+                    }
                 }
                 else {
                     this._lastMsg = msgObj;
@@ -87,8 +92,8 @@ export class MessageHandler { // {{{2
 
 /* Serializes the messages. Currently filters out messages with
  * 'cell' specified as this cannot be serialised correctly. */
-function msgToJSON(messages: IMessage[]): any {
-    const res = [];
+function msgToJSON(messages: IMessage[]): IMessage[] {
+    const res: IMessage[] = [];
     messages.forEach((msg: IMessage) => {
         if (!msg.cell) {
             res.push(msg);
