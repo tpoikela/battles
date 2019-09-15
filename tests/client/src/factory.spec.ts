@@ -5,7 +5,7 @@ import {ItemRandomizer as ItemRand} from '../../../client/src/factory.items';
 import {FactoryBase} from '../../../client/src/factory';
 import {FactoryGame} from '../../../client/src/factory.game';
 import {FactoryLevel} from '../../../client/src/factory.level';
-import {FactoryWorld} from '../../../client/src/factory.world';
+// import {FactoryWorld} from '../../../client/src/factory.world';
 import * as Item from '../../../client/src/item';
 import {SentientActor} from '../../../client/src/actor';
 
