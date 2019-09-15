@@ -4,35 +4,62 @@
 import RG from './rg';
 import {Random} from './random';
 import {Placer} from './placer';
-import {ObjectShell} from './objectshellparser';
+import {ObjectShell, IQueryDB, Parser} from './objectshellparser';
 import {Dice} from './dice';
 import * as Component from './component';
-import {ItemConstr} from './interfaces';
+import {ItemConstr, IShell, ItemConf, ShopConf} from './interfaces';
 
 const RNG = Random.getRNG();
 
+type TAdjustFunc = (item: ItemBase, val: number) => void;
+type ItemBase = import('./item').ItemBase;
+type BaseActor = import('./actor').BaseActor;
+type SentientActor = import('./actor').SentientActor;
+type Level = import('./level').Level;
+type Cell = import('./map.cell').Cell;
+
 /* This object is used to randomize item properties during procedural
  * generation.*/
-export const ItemRandomizer = function() {
+export class ItemRandomizer {
+
+    protected _foodWeights: {[key: string]: number};
+    protected _runeWeights: {[key: string]: number};
+    protected _adjustFunctions: {[key: string]: TAdjustFunc};
+
+    constructor() {
+        this._foodWeights = RG.getFoodWeightDistr();
+        this._runeWeights = RG.getRuneChargeDistr();
+        /* LUT for functions to call on specific items.*/
+        this._adjustFunctions = {
+            food: this._adjustFoodItem.bind(this),
+            goldcoin: this._adjustGoldCoin.bind(this),
+            missile: this._adjustMissile.bind(this),
+            weapon: this._adjustWeapon.bind(this),
+            armour: this._adjustArmour.bind(this),
+            ammo: this._adjustMissile.bind(this),
+            rune: this._adjustRune.bind(this)
+            // mineral: _adjustMineral
+        };
+
+    }
 
     /* Only public function. All logic is deferred to private functions.
      * Adjusts the properties of given item, based also on maxValue.*/
-    this.adjustItem = (item, val) => {
+    public adjustItem(item: ItemBase, val: number) {
         const itemType = item.getType();
-        if (_adjustFunctions.hasOwnProperty(itemType)) {
-            _adjustFunctions[itemType](item, val);
+        if (this._adjustFunctions.hasOwnProperty(itemType)) {
+            this._adjustFunctions[itemType](item, val);
         }
-    };
+    }
 
     /* Distr. of food weights.*/
-    const _foodWeights = RG.getFoodWeightDistr();
 
-    const _adjustFoodItem = food => {
-        const weight = RNG.getWeighted(_foodWeights);
-        food.setWeight(weight);
-    };
+    public _adjustFoodItem(food: ItemBase) {
+        const weight = RNG.getWeighted(this._foodWeights);
+        food.setWeight(parseInt(weight, 10));
+    }
 
-    const _adjustGoldCoin = (gold, nLevel) => {
+    public _adjustGoldCoin(gold: ItemBase, nLevel: number) {
         if (!RG.isNullOrUndef([nLevel])) {
             const goldWeights = RG.getGoldCoinCountDistr(nLevel);
             const count = RNG.getWeighted(goldWeights);
@@ -42,22 +69,24 @@ export const ItemRandomizer = function() {
             RG.err('ItemRandomizer', '_adjustGoldCoin',
                 'nLevel is not defined.');
         }
-    };
+    }
 
-    const _adjustMissile = missile => {
+    public _adjustMissile(missile: ItemBase): void {
         const count = RNG.getUniformInt(5, 15);
         missile.setCount(count);
-    };
+    }
 
-    const _isCombatMod = val => val >= 0.0 && val <= 0.02;
-    const _isStatsMod = val => val >= 0.1 && val <= 0.12;
+    protected _isCombatMod(val: number) {return val >= 0.0 && val <= 0.02;}
+    protected _isStatsMod(val: number) {return val >= 0.1 && val <= 0.12;}
 
-    const _getRandStat = () => RNG.arrayGetRand(RG.STATS);
+    protected _getRandStat(): string {
+        return RNG.arrayGetRand(RG.STATS);
+    }
 
     /* Adjust damage, attack, defense and value of a weapon. */
-    const _adjustWeapon = weapon => {
+    protected _adjustWeapon(weapon) {
         const randVal = RNG.getUniform();
-        if (_isCombatMod(randVal)) {
+        if (this._isCombatMod(randVal)) {
             const bonus = RNG.getUniformInt(1, 5);
             const type = RNG.getUniformInt(0, 4);
             switch (type) {
@@ -79,7 +108,7 @@ export const ItemRandomizer = function() {
             }
             RG.scaleItemValue('combat', bonus, weapon);
         }
-        else if (_isStatsMod(randVal)) {
+        else if (this._isStatsMod(randVal)) {
             const bonus = RNG.getUniformInt(1, 3);
             let stats = null;
             if (weapon.has('Stats')) {
@@ -90,69 +119,131 @@ export const ItemRandomizer = function() {
                 stats.clearValues();
                 weapon.add(stats);
             }
-            const randStat = _getRandStat();
+            const randStat = this._getRandStat();
             const getName = 'get' + randStat;
             const setName = 'set' + randStat;
             stats[setName](stats[getName]() + bonus);
             RG.scaleItemValue('stats', bonus, weapon);
         }
-    };
+    }
 
-    const _adjustArmour = armour => {
-        _adjustWeapon(armour); // The same function works fine for this
-    };
+    protected _adjustArmour(armour) {
+        this._adjustWeapon(armour); // The same function works fine for this
+    }
 
-    const _runeWeights = RG.getRuneChargeDistr();
-    const _adjustRune = rune => {
-        const charges = RNG.getWeighted(_runeWeights);
+    protected _adjustRune(rune) {
+        const charges = RNG.getWeighted(this._runeWeights);
         rune.setCharges(charges);
-    };
+    }
 
-    /* const _adjustMineral = mineral => {
+    /* public _adjustMineral = mineral => {
 
     };*/
 
-    /* LUT for functions to call on specific items.*/
-    const _adjustFunctions = {
-        food: _adjustFoodItem,
-        goldcoin: _adjustGoldCoin,
-        missile: _adjustMissile,
-        weapon: _adjustWeapon,
-        armour: _adjustArmour,
-        ammo: _adjustMissile,
-        rune: _adjustRune
-        // mineral: _adjustMineral
-    };
-
-};
+}
 
 /* Factory object for creating items. */
-export const FactoryItem = function() {
-    this._itemRandomizer = new ItemRandomizer();
+export class FactoryItem {
+
+    public static addItemsToActor(actor: SentientActor, items: ItemConstr[]): void {
+        let createdItem = null;
+        items.forEach(item => {
+            createdItem = FactoryItem.createItemFromConstr(item);
+            if (createdItem) {
+                actor.getInvEq().addItem(createdItem);
+            }
+        });
+    }
+
+    /* Given actor and gear type (mithril, ruby, permaice ...), tries to
+     * equip a full gear of items to the actor. */
+    public static equipFullGearType(actor: SentientActor, type: string): boolean {
+        const parser = ObjectShell.getParser();
+        const nameRegexp = new RegExp(type);
+        const items = parser.filterItems((item: IShell) => (
+            item.type === 'armour' && nameRegexp.test(item.name)
+        ));
+        return FactoryItem.equipItemsToActor(actor, items);
+    }
+
+    /* Equips one melee weapon of given type to the actor. */
+    public static equipWeaponOfType(actor: SentientActor, type: string): boolean {
+        const parser = ObjectShell.getParser();
+        const nameRegexp = new RegExp(type);
+        const items = parser.filterItems((item: IShell) => (
+            item.type === 'weapon' && nameRegexp.test(item.name)
+        ));
+        const oneWeapon = RNG.arrayGetRand(items);
+        return FactoryItem.equipItemsToActor(actor, [oneWeapon]);
+    }
+
+    /* Tries to equip the list of given items to actor. Each item can be a
+     * string or {name: 'xxx', count: 3} object. */
+    public static equipItemsToActor(actor: SentientActor, items: ItemConstr[]): boolean {
+        let createdItem = null;
+        let ok = true;
+        items.forEach(item => {
+            createdItem = FactoryItem.createItemFromConstr(item);
+            if (createdItem) {
+                const count = createdItem.getCount();
+                actor.getInvEq().addItem(createdItem);
+                ok = ok && actor.getInvEq().equipNItems(createdItem, count);
+            }
+        });
+        return ok;
+    }
+
+    public static createItemFromConstr(item: ItemConstr): null | ItemBase {
+        const parser: Parser = ObjectShell.getParser();
+        let createdItem = null;
+        if (typeof item === 'string') {
+            createdItem = parser.createItem(item);
+        }
+        else if (typeof item === 'object') {
+            if (item.func) {
+                createdItem = parser.createRandomItem({func: item.func});
+            }
+            else {
+                if (item.name) {
+                    createdItem = parser.createItem(item.name);
+                }
+            }
+            if (createdItem && item.count) {
+                createdItem.setCount(Dice.getValue(item.count));
+            }
+        }
+        return createdItem;
+    }
+
+    protected _itemRandomizer: ItemRandomizer;
+
+    constructor() {
+        this._itemRandomizer = new ItemRandomizer();
+    }
 
     /* Called for random items. Adjusts some of their attributes randomly.*/
-    const _doItemSpecificAdjustments = (item, val) => {
+    public _doItemSpecificAdjustments(item: ItemBase, val: number) {
         this._itemRandomizer.adjustItem(item, val);
-    };
+    }
 
-    this.createItem = function(query) {
+    public createItem(query: IQueryDB): ItemBase {
         const parser = ObjectShell.getParser();
         return parser.createRandomItem(query);
-    };
+    }
 
     /* Adds N random items to the given level. Uses parser to generate the
      * items. */
-    this.addNRandItems = (level, conf) => {
+    public addNRandItems(level: Level, conf: ItemConf): number {
         const items = this.generateItems(conf);
         const parser = ObjectShell.getParser();
 
         if (conf.food) {
             const food = parser.createRandomItem({
-                func: item => item.type === 'food'
+                func: (item: IShell) => item.type === 'food'
             });
 
             if (food) {
-                _doItemSpecificAdjustments(food, conf.maxValue);
+                this._doItemSpecificAdjustments(food, conf.maxValue);
                 items.push(food);
             }
             else {
@@ -162,44 +253,55 @@ export const FactoryItem = function() {
         }
         Placer.addPropsToFreeCells(level, items, RG.TYPE_ITEM);
         return items.length;
-    };
+    }
 
-    this.generateItems = function(conf) {
+    public generateItems(conf: ItemConf): ItemBase[] {
         const nItems = conf.itemsPerLevel || conf.nItems;
-        const items = [];
-        const parser = ObjectShell.getParser();
+        const items: ItemBase[] = [];
+        if (!nItems) {return items;}
+
+        const parser: Parser = ObjectShell.getParser();
         for (let j = 0; j < nItems; j++) {
-            const item = parser.createRandomItem({func: conf.func});
+            const item = parser.createRandomItem({func: conf.item});
             if (item) {
-                _doItemSpecificAdjustments(item, conf.maxValue);
+                this._doItemSpecificAdjustments(item, conf.maxValue);
                 items.push(item);
             }
         }
         return items;
-    };
+    }
 
-    this.generateGold = function(conf) {
+    public generateGold(conf: ItemConf): ItemBase[] {
         const nGold = conf.goldPerLevel || conf.nGold;
-        const parser = ObjectShell.getParser();
-        const goldItems = [];
+        const parser: Parser = ObjectShell.getParser();
+        const goldItems: ItemBase[] = [];
+        if (!nGold) {
+            return goldItems;
+        }
         for (let i = 0; i < nGold; i++) {
-            const gold = parser.createActualObj(RG.TYPE_ITEM,
-                RG.GOLD_COIN_NAME);
-            _doItemSpecificAdjustments(gold, conf.nLevel);
+            const gold = parser.createItem(RG.GOLD_COIN_NAME);
+            if (!RG.isNullOrUndef([conf.nLevel])) {
+                this._doItemSpecificAdjustments(gold, conf.nLevel!);
+            }
+            else {
+                RG.warn('FactoryItem', 'generateGold',
+                    `nLevel null/undef in conf ${JSON.stringify(conf)}`);
+            }
             goldItems.push(gold);
         }
         return goldItems;
-    };
+    }
 
     /* Adds a random number of gold coins to the level. */
-    this.addRandomGold = (level, parser, conf) => {
+    public addRandomGold(level: Level, parser: Parser, conf: ItemConf) {
         const goldItems = this.generateGold(conf);
         Placer.addPropsToFreeCells(level, goldItems, RG.TYPE_ITEM);
-    };
+    }
 
     /* Returns a shop item based on the configuration. */
-    this.getShopItem = (n, conf) => {
-        let shopItem = null;
+    public getShopItem(n: number, conf: ShopConf): null | ItemBase {
+        let shopItem: null | ItemBase = null;
+
         if (conf.shopFunc) {
             if (typeof conf.shopFunc[n] === 'function') {
                 shopItem = conf.parser.createRandomItem({
@@ -212,99 +314,40 @@ export const FactoryItem = function() {
             }
         }
         else if (Array.isArray(conf.shopType)) {
-            shopItem = conf.parser.createRandomItem({
-                func: item => item.type === conf.shopType[n]
-            });
+            if (conf.shopType.length < n) {
+                shopItem = conf.parser.createRandomItem({
+                    func: (item: IShell) => item.type === conf.shopType![n]
+                });
+            }
+            else {
+                RG.err('FactoryItem', 'getShopItem',
+                    `${n} out of bounds in conf. ${JSON.stringify(conf.shopType)}`);
+            }
         }
         else if (typeof conf.shopType === 'string') {
             shopItem = conf.parser.createRandomItem({
-                func: item => item.type === conf.shopType
+                func: (item: IShell) => item.type === conf.shopType
             });
         }
         else { // Fallback, if no config
             shopItem = conf.parser.createRandomItem({
-                func: item => item.value <= 50 + n * 100
+                func: (item: IShell) => item.value <= 50 + n * 100
             });
         }
-        _doItemSpecificAdjustments(shopItem, 50 + n * 100);
+        if (shopItem) {
+            this._doItemSpecificAdjustments(shopItem, 50 + n * 100);
+        }
         return shopItem;
-    };
+    }
 
-    this.addItemsToCells = function(level, parser, cells, conf) {
+    public addItemsToCells(level: Level, parser: Parser, cells: Cell[], conf: ItemConf) {
         if (!conf.maxValue) {
             RG.err('FactoryItem', 'addItemsToCells',
                 'conf is missing maxValue');
         }
         const items = this.generateItems(conf);
         Placer.addPropsToCells(level, cells, items, RG.TYPE_ITEM);
-    };
-};
-
-FactoryItem.addItemsToActor = function(actor, items: ItemConstr[]) {
-    let createdItem = null;
-    items.forEach(item => {
-        createdItem = FactoryItem.createItemFromConstr(item);
-        if (createdItem) {
-            actor.getInvEq().addItem(createdItem);
-        }
-    });
-};
-
-/* Given actor and gear type (mithril, ruby, permaice ...), tries to
- * equip a full gear of items to the actor. */
-FactoryItem.equipFullGearType = function(actor, type) {
-    const parser = ObjectShell.getParser();
-    const nameRegexp = new RegExp(type);
-    const items = parser.filterItems(item => (
-        item.type === 'armour' && nameRegexp.test(item.name)
-    ));
-    return FactoryItem.equipItemsToActor(actor, items);
-};
-
-/* Equips one melee weapon of given type to the actor. */
-FactoryItem.equipWeaponOfType = function(actor, type) {
-    const parser = ObjectShell.getParser();
-    const nameRegexp = new RegExp(type);
-    const items = parser.filterItems(item => (
-        item.type === 'weapon' && nameRegexp.test(item.name)
-    ));
-    const oneWeapon = RNG.arrayGetRand(items);
-    return FactoryItem.equipItemsToActor(actor, [oneWeapon]);
-};
-
-/* Tries to equip the list of given items to actor. Each item can be a
- * string or {name: 'xxx', count: 3} object. */
-FactoryItem.equipItemsToActor = function(actor, items: ItemConstr[]) {
-    let createdItem = null;
-    let ok = true;
-    items.forEach(item => {
-        createdItem = FactoryItem.createItemFromConstr(item);
-        if (createdItem) {
-            const count = createdItem.getCount();
-            actor.getInvEq().addItem(createdItem);
-            ok = ok && actor.getInvEq().equipNItems(createdItem, count);
-        }
-    });
-    return ok;
-};
-
-
-FactoryItem.createItemFromConstr = function(item: ItemConstr) {
-    const parser = ObjectShell.getParser();
-    let createdItem = null;
-    if (typeof item === 'string') {
-        createdItem = parser.createItem(item);
     }
-    else if (typeof item === 'object') {
-        if (item.func) {
-            createdItem = parser.createRandomItem({func: item.func});
-        }
-        else {
-            createdItem = parser.createItem(item.name);
-        }
-        if (createdItem && item.count) {
-            createdItem.setCount(Dice.getValue(item.count));
-        }
-    }
-    return createdItem;
-};
+
+
+}
