@@ -631,7 +631,7 @@ export class ProcGen {
      *   2.func(obj) {if (obj.hp > 25) return true;}.
      *   And it can be as complex as needed of course.
      * */
-    public filterCategWithFunc(categ, func: TShellFunc): IShell[] {
+    public filterCategWithFunc(categ: DBKey, func: TShellFunc): IShell[] {
         const objects: StringMap<IShell> = this.dbGet({categ});
         const res: IShell[] = [];
         const keys = Object.keys(objects);
@@ -656,14 +656,14 @@ export class ProcGen {
      * returns a random actors with these constrains.
      * Ex2: {danger: 3, num:1}
      * returns randomly one entry which has danger 3.*/
-    public dbGetRand(query: IQueryDB) {
+    public dbGetRand(query: IQueryDB): null | IShell {
         const danger = query.danger;
         const categ = query.categ;
         if (typeof danger !== 'undefined') {
             if (typeof categ !== 'undefined') {
                 if (this._dbDanger.hasOwnProperty(danger)) {
                     const entries = this._dbDanger[danger][categ];
-                    return this.getRandFromObj(entries);
+                    return this.getRandFromObj<IShell>(entries!);
                 }
             }
         }
@@ -671,7 +671,7 @@ export class ProcGen {
     }
 
     /* Creates a random actor based on danger value or a filter function.*/
-    public getRandomActor(obj: IQueryDB) {
+    public getRandomActor(obj: IQueryDB): null | IShell {
         if (obj.hasOwnProperty('danger')) {
             const danger = obj.danger;
             const randShell = this.dbGetRand({danger, categ: RG.TYPE_ACTOR});
@@ -680,7 +680,7 @@ export class ProcGen {
             }
         }
         else if (obj.hasOwnProperty('func')) {
-            const res = this.filterCategWithFunc( RG.TYPE_ACTOR, obj.func);
+            const res: IShell[] = this.filterCategWithFunc( RG.TYPE_ACTOR, obj.func);
             return RNG.arrayGetRand(res);
         }
         return null;
@@ -693,13 +693,13 @@ export class ProcGen {
      *  const item = createRandomItem({func: funcValueSel});
      *  // Above returns item with value > 100.
      */
-    public getRandomItem(obj: IQueryDB | TShellFunc) {
+    public getRandomItem(obj: IQueryDB | TShellFunc): null | IShell {
         if (typeof obj === 'function') {
-            const res = this.filterCategWithFunc(RG.TYPE_ITEM, obj);
+            const res: IShell[] = this.filterCategWithFunc(RG.TYPE_ITEM, obj);
             return RNG.arrayGetRand(res);
         }
         else if (obj.hasOwnProperty('func')) {
-            const res = this.filterCategWithFunc(RG.TYPE_ITEM, (obj as IShell).func);
+            const res: IShell[] = this.filterCategWithFunc(RG.TYPE_ITEM, (obj as IShell).func);
             return RNG.arrayGetRand(res);
         }
         else {
@@ -712,7 +712,7 @@ export class ProcGen {
     // Uses engine's internal weighting algorithm when given a level number.
     // Note that this method can return null, if no correct danger level is
     // found. You can supply {func: ...} as a fallback solution.
-    public getRandomActorWeighted(min, max) {
+    public getRandomActorWeighted(min: number, max: number): null | IShell {
         const key = min + ',' + max;
         if (!this._cache.actorWeights.hasOwnProperty(key)) {
             this._cache.actorWeights[key] = RG.getDangerProb(min, max);
@@ -725,7 +725,7 @@ export class ProcGen {
     /* Returns a property from an object, selected randomly. For example,
      * given object {a: 1, b: 2, c: 3}, may return 1,2 or 3 with equal
      * probability.*/
-    public getRandFromObj(obj) {
+    public getRandFromObj<T>(obj: StringMap<T>): T {
         const keys = Object.keys(obj);
         const randIndex = RNG.randIndex(keys);
         return obj[keys[randIndex]];
@@ -1067,11 +1067,11 @@ export class Parser {
 
     public dbGetRand(query: IQueryDB) {return this._procgen.dbGetRand(query);}
 
-    public filter(categ, func) {
+    public filter(categ: DBKey, func): IShell[] {
         return this._procgen.filterCategWithFunc(categ, func);
     }
 
-    public filterItems(func) {
+    public filterItems(func): IShell[] {
         return this._procgen.filterCategWithFunc(RG.TYPE_ITEM, func);
     }
 
@@ -1101,10 +1101,10 @@ export class Parser {
     //----------------------------------------------------------------------
 
     /* Creates a random actor based on danger value or a filter function.*/
-    public createRandomActor(obj: IQueryDB) {
+    public createRandomActor(obj: IQueryDB): null | BaseActor {
         const randShell = this._procgen.getRandomActor(obj);
         if (randShell) {
-            return this._creator.createFromShell(RG.TYPE_ACTOR, randShell);
+            return this._creator.createFromShell(RG.TYPE_ACTOR, randShell) as BaseActor;
         }
         return null;
     }
@@ -1112,13 +1112,13 @@ export class Parser {
     // Uses engine's internal weighting algorithm when given a level number.
     // Note that this method can return null, if no correct danger level is
     // found. You can supply {func: ...} as a fallback solution.
-    public createRandomActorWeighted(min, max, obj) {
+    public createRandomActorWeighted(min, max, obj?: IQueryDB): null | BaseActor {
         const actorShell = this._procgen.getRandomActorWeighted(min, max);
         if (actorShell) {
-            return this._creator.createFromShell(RG.TYPE_ACTOR, actorShell);
+            return this._creator.createFromShell(RG.TYPE_ACTOR, actorShell) as BaseActor;
         }
         else if (!RG.isNullOrUndef([obj])) {
-            return this.createRandomActor(obj);
+            return this.createRandomActor(obj!);
         }
         return null;
     }
@@ -1130,10 +1130,10 @@ export class Parser {
      *  const item = createRandomItem({func: funcValueSel});
      *  // Above returns item with value > 100.
      *  */
-    public createRandomItem(obj: IQueryDB | TShellFunc) {
+    public createRandomItem(obj: IQueryDB | TShellFunc): null | ItemBase {
         const randShell = this._procgen.getRandomItem(obj);
         if (randShell) {
-            return this._creator.createFromShell('items', randShell);
+            return this._creator.createFromShell('items', randShell) as ItemBase;
         }
         return null;
     }
