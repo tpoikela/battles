@@ -163,7 +163,7 @@ export class FactoryGame {
     public createEmptyGame(obj, game: GameMain, player: SentientActor): GameMain {
         // Add given levels to the game
         if (obj.levels) {
-            obj.levels.forEach(level => {
+            obj.levels.forEach((level: Level) => {
                 const extras = level.getExtras();
                 game.addLevel(level);
 
@@ -553,7 +553,7 @@ export class FactoryGame {
         return dispos.getTable();
     }
 
-    public getAreaXYFromOWTileXY(owX, owY) {
+    public getAreaXYFromOWTileXY(owX: number, owY: number) {
         const coordMap = new OverWorld.CoordMap({xMap: 10, yMap: 10});
         return coordMap.getAreaXYFromOWTileXY(owX, owY);
     }
