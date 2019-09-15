@@ -3,7 +3,6 @@ import RG from './rg';
 
 import {Cell} from './map.cell';
 import {Level} from './level';
-import {MapGenerator} from './generator';
 import * as Verify from './verify';
 import {Placer} from './placer';
 
@@ -14,6 +13,7 @@ import {EventPool} from '../src/eventpool';
 import {Random} from './random';
 import * as Element from './element';
 import {ELEM_MAP} from '../data/elem-constants';
+import {ItemConf, ActorConf, TShellFunc} from './interfaces';
 
 const POOL = EventPool.getPool();
 
@@ -21,27 +21,12 @@ const RNG = Random.getRNG();
 
 type Parser = import('./objectshellparser').Parser;
 
-class ItemConf {
-    constructor(conf) {
-        const req = ['itemsPerLevel', 'maxValue', 'func'];
-        req.forEach(prop => {
-            if ((prop in conf)) {
-                this[prop] = conf[prop];
-            }
-            else {
-                const msg = `${prop} must be given`;
-                RG.err('ItemConf', 'new', msg);
-            }
-        });
-    }
-}
-
 export const Factory: any = {};
 
 /* Returns a basic configuration for a city level. */
-Factory.cityConfBase = conf => {
+Factory.cityConfBase = (conf) => {
     const userConf = conf || {};
-    const obj = {
+    const obj: any = {
         nShops: 1,
         shopFunc: [
             item => item.type === RNG.arrayGetRand(RG.SHOP_TYPES)
@@ -57,13 +42,10 @@ Factory.cityConfBase = conf => {
 // FACTORY OBJECTS
 //---------------------------------------------------------------------------
 
-/* Factory object for creating actors. */
-
 /* Factory object for creating some commonly used objects. */
 export class FactoryBase {
     protected _verif: Verify.Conf;
-    // protected _actorFact:  FactoryActor;
-    protected _actorFact: any;
+    protected _actorFact: FactoryActor;
     protected _itemFact: FactoryItem;
     protected _levelFact: FactoryLevel;
     protected _parser: Parser;
@@ -125,20 +107,20 @@ export class FactoryBase {
     }
 
     /* Adds N random items to the level based on maximum value.*/
-    public addNRandItems(level: Level, parser: Parser, conf) {
-        this._verif.verifyConf('addNRandItems', conf, ['func', 'maxValue']);
+    public addNRandItems(level: Level, parser: Parser, conf: ItemConf) {
+        this._verif.verifyConf('addNRandItems', conf, ['item', 'maxValue']);
         // Generate the items randomly for this level
-        return this._itemFact.addNRandItems(level, parser, conf);
+        return this._itemFact.addNRandItems(level, conf);
     }
 
     /* Adds N random monsters to the level based on given danger level.
      * Returns the number of actors added. */
-    public addNRandActors(level: Level, parser: Parser, conf): number {
+    public addNRandActors(level: Level, parser: Parser, conf: ActorConf): number {
         this._verif.verifyConf('addNRandActors', conf,
             ['maxDanger', 'actorsPerLevel']);
         // Generate the enemies randomly for this level
         const maxDanger = conf.maxDanger;
-        const actors = this.generateNActors(conf.actorsPerLevel, conf.func,
+        const actors = this.generateNActors(conf.actorsPerLevel, conf.actor,
             maxDanger);
         if (!actors) {
             return 0;
@@ -151,12 +133,12 @@ export class FactoryBase {
         this._parser = parser;
     }
 
-    public generateNActors(nActors: number, func, maxDanger: number) {
+    public generateNActors(nActors: number, func: TShellFunc, maxDanger: number) {
         return this._actorFact.generateNActors(nActors, func, maxDanger);
     }
 
     /* Adds a random number of gold coins to the level. */
-    public addRandomGold(level: Level, parser: Parser, conf) {
+    public addRandomGold(level: Level, parser: Parser, conf: ItemConf) {
         this._itemFact.addRandomGold(level, parser, conf);
     }
 
@@ -212,10 +194,10 @@ export class FactoryBase {
     }
 
     /* Adds N items to the given level in bounding box coordinates. */
-    public addItemsToBbox(level: Level, bbox, conf) {
+    public addItemsToBbox(level: Level, bbox, conf: ItemConf) {
         const nItems = conf.nItems || 4;
-        let itemConf = Object.assign({itemsPerLevel: nItems}, conf);
-        itemConf = new ItemConf(itemConf);
+        const itemConf = Object.assign({itemsPerLevel: nItems}, conf);
+        // itemConf = new ItemConf(itemConf);
         const itemFact = new FactoryItem();
         const items = itemFact.generateItems(itemConf);
         const freeCells = level.getMap().getFreeInBbox(bbox);
