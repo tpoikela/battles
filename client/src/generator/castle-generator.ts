@@ -23,7 +23,7 @@ import {ELEM} from '../../data/elem-constants';
 const RNG = Random.getRNG();
 const Room = ROT.Map.Feature.Room;
 
-import {TCoord, ICoordXY} from '../interfaces';
+import {TCoord, ICoordXY, ItemConf} from '../interfaces';
 type CellMap = import('../map').CellMap;
 type Cell = import('../map.cell').Cell;
 type ElementLever = Element.ElementLever;
@@ -151,8 +151,8 @@ export class CastleGenerator extends LevelGenerator {
         const itemFunc = item => ((
             (item.value <= (2 * maxValue)) && (item.value >= maxValue)
         ));
-        const itemConf = {
-            func: itemFunc, maxValue, nItems: 1
+        const itemConf: ItemConf = {
+            item: itemFunc, maxValue, nItems: 1
         };
         const factItem = new FactoryItem();
         storerooms.forEach(room => {
@@ -166,7 +166,7 @@ export class CastleGenerator extends LevelGenerator {
         if (RG.isSuccess(GOLD_VAULT_CHANCE)) {
             const goldRoom = RNG.arrayGetRand(storerooms);
             const wealth = RNG.getUniformInt(6, 12);
-            const goldItems = factItem.generateGold({nGold: 5, nLevel: wealth});
+            const goldItems = factItem.generateGold({nGold: 5, nLevel: wealth, maxValue});
             if (Placer.addPropsToRoom(level, goldRoom, goldItems)) {
                 nAdded += goldItems.length;
             }
