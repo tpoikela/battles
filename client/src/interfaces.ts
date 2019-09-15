@@ -16,6 +16,7 @@ type Locatable = import('./mixin').Locatable;
 type ElemTemplate = import('./template').ElemTemplate;
 type WorldBase = import('./world').WorldBase;
 type Dice = import('./dice').Dice;
+type Parser = import('./objectshellparser').Parser;
 
 //---------------------------
 // GENERIC type definitions
@@ -218,7 +219,7 @@ export interface IConstraint {
 export interface ConstraintMap {
     actor?: IConstraint[];
     shop?: IConstraint[];
-    disposition?: any;
+    disposition?: {[key: string]: string};
     cellsAround?: {[key: string]: string};
 }
 
@@ -226,6 +227,67 @@ export type TConstraintArg = IConstraint | IConstraint[];
 
 export interface IWorldElemMap {
     [key: number]: WorldBase;
+}
+
+export interface ActorConf {
+    maxDanger: number;
+    actorsPerLevel?: number;
+    actor?: TShellFunc;
+    nActors?: number;
+    actors?: BaseActor[];
+}
+
+export interface ItemConf {
+    maxValue: number;
+
+    nLevel?: number;
+    itemsPerLevel?: number;
+    nItems?: number;
+    item?: TShellFunc;
+    food?: boolean | TShellFunc;
+    gold?: boolean | TShellFunc;
+    goldPerLevel?: number;
+    nGold?: number;
+}
+
+export interface LevelConf {
+    maxDanger: number;
+    maxValue: number;
+    minValue?: number;
+
+    // TODO remove one of these
+    x?: number;
+    y?: number;
+    cols?: number;
+    rows?: number;
+
+    alignment?: string;
+    disposition?: {[key: string]: string};
+    friendly?: boolean; // All actors are friendly
+    actor?: TShellFunc;
+    actorsPerLevel?: number;
+
+    roomCount?: number;
+    dungeonType?: string;
+    levelType?: string;
+    wallType?: string;
+
+    food?: boolean | TShellFunc;
+    // func?: (shell) => boolean;
+    gold?: boolean | TShellFunc;
+    item?: TShellFunc;
+    itemsPerLevel?: number;
+    sqrPerActor?: number;
+    sqrPerItem?: number;
+    nLevel?: number;
+    markersPreserved?: boolean;
+}
+
+export interface ShopConf {
+    parser: Parser;
+    nShops: number;
+    shopType?: string | string[];
+    shopFunc?: TShellFunc[];
 }
 
 //-------------------------------------------------------------
