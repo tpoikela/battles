@@ -29,7 +29,7 @@ import {OWMap} from './overworld.map';
 
 import * as Element from './element';
 import * as IF from './interfaces';
-import { IConstraint } from './interfaces';
+import { IConstraint, LevelConf } from './interfaces';
 
 const Stairs = Element.ElementStairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
@@ -52,24 +52,6 @@ interface GlobalConf {
     set: boolean;
 }
 
-interface LevelConf {
-    x?: number;
-    y?: number;
-    actor?: (actor) => boolean;
-    actorsPerLevel?: number;
-    dungeonType?: string;
-    food?: () => boolean;
-    func?: (shell) => boolean;
-    gold?: () => boolean;
-    item?: (shell) => boolean;
-    itemsPerLevel?: number;
-    maxDanger: number;
-    maxValue: number;
-    sqrPerActor?: number;
-    sqrPerItem?: number;
-    nLevel?: number;
-    markersPreserved?: boolean;
-}
 
 /* Determines the x-y sizes for different types of levels. */
 const levelSizes = {
@@ -345,9 +327,9 @@ export const FactoryWorld = function() {
         };
         this.setAreaLevelConstraints(levelConf, x, y);
 
-        levelConf.func = levelConf.item;
+        levelConf.item = levelConf.item;
         fact.addNRandItems(level, parser, levelConf);
-        levelConf.func = levelConf.actor;
+        levelConf.actor = levelConf.actor;
         fact.addNRandActors(level, parser, levelConf);
 
         this.addActorSpawner(level, parser, levelConf);
