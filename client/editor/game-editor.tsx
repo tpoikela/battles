@@ -46,7 +46,7 @@ interface IConf {
 
 const KeyMap = Keys.KeyMap;
 
-const NO_VISIBLE_CELLS = [];
+const NO_VISIBLE_CELLS: Cell[] = [];
 
 const editorLevelTypes: string[] = [
   'FullGame',
@@ -88,7 +88,7 @@ const getSelection = (c0: Cell, c1: Cell, map: CellMap): Cell[] => {
     return res;
 };
 
-const startSimulation = (startTime, level) =>
+const startSimulation = (startTime: number, level: Level) =>
   () => (
     {
       level,
@@ -98,7 +98,7 @@ const startSimulation = (startTime, level) =>
     }
   );
 
-const updateLevelAndErrorMsg = (level, msg) => (
+const updateLevelAndErrorMsg = (level: Level, msg: string) => (
   () => ({
     level, errorMsg: msg
   })
