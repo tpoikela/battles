@@ -4,11 +4,13 @@ import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import * as Component from '../component';
 import * as Item from '../item';
-import {ObjectShell} from '../objectshellparser';
+import {ObjectShell, Parser} from '../objectshellparser';
+import {IShell} from '../interfaces';
 
 const NO_DAMAGE_SRC = RG.NO_DAMAGE_SRC;
 type Cell = import('../map.cell').Cell;
 type Level = import('../level').Level;
+type BaseActor = import('../actor').BaseActor;
 
 const POOL = EventPool.getPool();
 
@@ -246,19 +248,21 @@ export class SystemDeath extends SystemBase {
         }
     }
 
-    /* When an actor dies, it can be spawned as undead. */
+    /* Creates required shell for actor to be created as undead. */
     protected _addSpawnableUndeadActor(actor): void {
         if (actor.getType() === 'undead' || actor.has('Undead')) {
             return;
         }
         const baseName = actor.get('Named').getBaseName();
-        const parser = ObjectShell.getParser();
-        const found = parser.dbGet({name: baseName,
+        const parser: Parser = ObjectShell.getParser();
+        const found: IShell = parser.dbGet({name: baseName,
             categ: RG.TYPE_ACTOR});
         if (found) {
             const shell = found;
             const newShell = JSON.parse(JSON.stringify(shell));
             newShell.type = 'undead';
+            newShell.enemies = RG.ACTOR_RACES;
+            newShell.tag = 'killed';
             if (newShell.addComp) {
                 if (Array.isArray(newShell.addComp)) {
                     newShell.addComp.push('Undead');
@@ -272,7 +276,9 @@ export class SystemDeath extends SystemBase {
             }
             newShell.name = 'undead ' + newShell.name;
             newShell.color = {fg: 'Cyan', bg: 'Black'};
-            parser.parseObjShell(RG.TYPE_ACTOR, newShell);
+            if (!parser.hasObj(RG.TYPE_ACTOR, newShell.name)) {
+                parser.parseObjShell(RG.TYPE_ACTOR, newShell);
+            }
         }
     }
 
