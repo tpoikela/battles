@@ -50,7 +50,6 @@ export interface SelectionObject {
     funcToCall?: () => void;
 }
 
-
 type VoidFunc = () => void;
 interface MenuCallObj {
     funcToCall: VoidFunc;
@@ -124,7 +123,7 @@ export class MenuBase {
     public post: string[];
     public parent: MenuBase | null;
     public table: MenuTable;
-    public callback: (any) => void | null;
+    public callback: (arg: any) => void | null;
     public returnMenu: MenuBase | null;
     protected _showMenu: boolean;
 
@@ -164,12 +163,12 @@ export class MenuBase {
         return this.parent;
     }
 
-    public addItem(code: number, item) {
+    public addItem(code: number, item: MenuItem): void {
         const index = Keys.codeToIndex(code);
         this.table[index] = item;
     }
 
-    public showMenu() {return this._showMenu;}
+    public showMenu(): boolean {return this._showMenu;}
 
     public setCallback(cb) {
         this.callback = cb;
