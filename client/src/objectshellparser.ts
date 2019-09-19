@@ -165,11 +165,11 @@ export class Creator {
     }
 
     /* Returns an object shell, given category and name.*/
-    public get(categ: string, name: string): IShell | null {
-        if (this._dbNoRandom[categ][name]) {
-            return this._dbNoRandom[categ][name];
+    public get(categ: DBKey, name: string): IShell | null {
+        if (this._dbNoRandom[categ]![name]) {
+            return this._dbNoRandom[categ]![name];
         }
-        return this._db[categ][name];
+        return this._db[categ]![name];
     }
 
     /* Returns an actual game object when given category and name. Note that
@@ -791,16 +791,23 @@ export class Parser {
     // "PARSING" METHODS
     //-----------------------------------------------------------------------
 
-    /* Parses all shell data, items, monsters, level etc.*/
+    /* Parses all shell data, items, actors, level etc.*/
     public parseShellData(obj: IShellInputData): void {
-        const keys = Object.keys(obj);
+        const keys = Object.keys(obj) as DBKey[];
         for (let i = 0; i < keys.length; i++) {
-            this.parseShellCateg(keys[i], obj[keys[i]]);
+            const shells: undefined | IShell[] = obj[keys[i]];
+            if (Array.isArray(shells)) {
+                this.parseShellCateg(keys[i], shells);
+            }
+            else {
+                RG.err('ObjectShell.Parser', 'parseShellData',
+                    `${keys[i]} is not an array of shells!`);
+            }
         }
     }
 
-    /* Parses one specific shell category, ie items or monsters.*/
-    public parseShellCateg(categ: string, objsArray: IShell[]): void {
+    /* Parses one specific shell category, ie items or actors. */
+    public parseShellCateg(categ: DBKey, objsArray: IShell[]): void {
         for (let i = 0; i < objsArray.length; i++) {
             this.parseObjShell(categ, objsArray[i]);
         }
@@ -810,7 +817,7 @@ export class Parser {
      * corresponding object for actual actors. If 'base' property exists,
      * all base properties will be added to the returned object.
      * */
-    public parseObjShell(categ: string, obj: IShell): IShell {
+    public parseObjShell(categ: DBKey, obj: IShell): IShell {
         if (this.validShellGiven(obj)) {
             // Get properties from base shell
             if (obj.hasOwnProperty('base')) {
@@ -857,23 +864,23 @@ export class Parser {
     }
 
     /* Returns an object shell, given category and name.*/
-    public get(categ: string, name: string): IShell {
+    public get(categ: DBKey, name: string): IShell {
         return this._db[categ][name];
     }
 
     /* Return specified base shell.*/
-    public getBase(categ: string, name: string): IShell {
+    public getBase(categ: DBKey, name: string): IShell {
         return this._base[categ][name];
     }
 
     /* All shells can be used as base, not only ones with
      * 'dontCreate: true' */
-    public storeForUsingAsBase(categ: string, obj: IShell): void {
+    public storeForUsingAsBase(categ: DBKey, obj: IShell): void {
         this._base[categ][obj.name] = obj;
     }
 
     /* Stores the object into given category.*/
-    public storeIntoDb(categ: string, obj: IShell): void {
+    public storeIntoDb(categ: DBKey, obj: IShell): void {
         if (this._db.hasOwnProperty(categ)) {
             this.storeForUsingAsBase(categ, obj);
 
@@ -904,7 +911,7 @@ export class Parser {
     }
 
     /* Stores char/CSS className for the object for rendering purposes.*/
-    public storeRenderingInfo(categ, obj) {
+    public storeRenderingInfo(categ: DBKey, obj) {
         let fg = '';
         let bg = '';
         if (obj.hasOwnProperty('color')) {
@@ -959,7 +966,7 @@ export class Parser {
     }
 
     /* Returns true if shell base exists.*/
-    public baseExists(categ: string, baseName: string): boolean {
+    public baseExists(categ: DBKey, baseName: string): boolean {
         if (this._base.hasOwnProperty(categ)) {
             return this._base[categ].hasOwnProperty(baseName);
         }
