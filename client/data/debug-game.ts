@@ -30,7 +30,7 @@ import {EventPool} from '../src/eventpool';
 import {Factory, FactoryBase} from '../src/factory';
 import {FactoryLevel} from '../src/factory.level';
 import {FactoryWorld} from '../src/factory.world';
-import {World} from '../src/world';
+import * as World from '../src/world';
 import {WorldCreator} from '../src/world.creator';
 import {WinCondition} from '../src/win-condition';
 import {Room} from '../../lib/bsp';
@@ -72,7 +72,11 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     const area = new World.Area('Wrapper area', 2, 2, 10, 10);
     area.addZone('City', city);
     const world = new World.WorldTop('Wrapper world');
+    const worldConf = world.getConf();
     world.addArea(area);
+    worldConf.nAreas = 1;
+    worldConf.area = [area.getConf()];
+    world.setConf(worldConf);
     game.addPlace(world);
 
     const spirit = this._parser.createActor('Wolf spirit');
