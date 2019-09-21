@@ -95,9 +95,14 @@ export class SystemDeath extends SystemBase {
         if (att !== NO_DAMAGE_SRC && !att.has('Dead')) {
             const defLevel = def.get('Experience').getExpLevel();
             const defDanger = def.get('Experience').getDanger();
-            const expPoints = new Component.ExpPoints(defLevel + defDanger);
-            att.add(expPoints);
-            att.get('Experience').incrNumKilled();
+            if (att.has('Experience')) {
+                const expPoints = new Component.ExpPoints(defLevel + defDanger);
+                att.add(expPoints);
+                att.get('Experience').incrNumKilled();
+            }
+            else {
+                console.log(`Killer was ${att.getName()} without Experience`);
+            }
 
             // Give additional battle experience
             if (att.has('InBattle')) {
