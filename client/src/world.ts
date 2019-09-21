@@ -1151,10 +1151,7 @@ export class Area extends WorldBase {
 
         this._tiles = [];
 
-        this._conf = {
-            maxX: this._sizeX, maxY: this._sizeY,
-            name, cols, rows
-        };
+        this._conf = this.createAreaConfig();
 
         // Control which tile has its zones created
         this.zonesCreated = {};
@@ -1405,11 +1402,13 @@ export class Area extends WorldBase {
         return res;
     }
 
-    public createAreaConfig() {
+    public createAreaConfig(): AreaConf {
         return {
             name: this.getName(),
             maxX: this._sizeX,
-            maxY: this._sizeY
+            maxY: this._sizeY,
+            cols: this._cols,
+            rows: this._rows
         };
     }
 
@@ -1939,8 +1938,8 @@ export class WorldTop extends WorldBase {
 
     /* Creates config for each area. This is mainly required for testing. */
     public createAreaConfig() {
-        const areaConf = [];
-        this._areas.forEach(function(area) {
+        const areaConf: AreaConf[] = [];
+        this._areas.forEach((area) => {
             areaConf.push(area.createAreaConfig());
         });
         return areaConf;
