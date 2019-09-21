@@ -566,6 +566,9 @@ export class FromJSON {
             if (brainJSON.spawnProb) {
                 brainObj.spawnProb = brainJSON.spawnProb;
             }
+            if (brainJSON.hasOwnProperty('spawnLeft')) {
+                brainObj.spawnLeft = brainJSON.spawnLeft;
+            }
 
             // Create the memory (if any)
             const memObj = brainObj.getMemory();
