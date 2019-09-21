@@ -28,6 +28,7 @@ export class BrainVirtual extends BrainBase {
 export class BrainSpawner extends BrainVirtual {
 
     public spawnProb: number;
+    public spawnLeft: number;
     protected placeConstraint: IConstraint[];
     protected constraint: IConstraint[];
     protected _constraintFunc: (shell) => boolean;
@@ -41,6 +42,7 @@ export class BrainSpawner extends BrainVirtual {
         this.placeConstraint = null;
         this._placeConstraintFunc = null;
         this.spawnProb = spawnProb;
+        this.spawnLeft = 100;
     }
 
     public setConstraint(constraint: TConstraintArg) {
@@ -65,7 +67,7 @@ export class BrainSpawner extends BrainVirtual {
 
     /* Spawns an actor to the current level (if any). */
     public decideNextAction(): () => void {
-        if (RG.isSuccess(this.spawnProb)) {
+        if (this.spawnLeft !== 0 && RG.isSuccess(this.spawnProb)) {
             return (): void => {
                 const level = this.getActor().getLevel();
                 let freeCell: null | Cell = null;
@@ -90,6 +92,7 @@ export class BrainSpawner extends BrainVirtual {
                         {func: this._constraintFunc});
                     if (newActor) {
                         if (level.addActor(newActor, x, y)) {
+                            --this.spawnLeft;
                             this.emitSpawnMsg(newActor);
                         }
                     }
@@ -111,7 +114,8 @@ export class BrainSpawner extends BrainVirtual {
         const obj: any = {
             type: this.getType(),
             constraint: this.constraint,
-            spawnProb: this.spawnProb
+            spawnProb: this.spawnProb,
+            spawnLeft: this.spawnLeft
         };
         if (this.placeConstraint) {
             obj.placeConstraint = this.placeConstraint;
