@@ -20,7 +20,8 @@ import {CmdInput, IPlayerCmdInput,
 
 import {ContextProcessor, EnemyContextProcessor,
     ZoneContextProcessor,
-    AreaContextProcessor, ExploreContextProcessor} from './context-processors';
+    AreaContextProcessor, ExploreContextProcessor,
+    RandomContextProcessor} from './context-processors';
 
 type Stairs = import('../../client/src/element').ElementStairs;
 type Level = import('../../client/src/level').Level;
@@ -48,6 +49,7 @@ export interface DriverContext {
 *  and the driver will act as an AI controlling the player. */
 export class DriverBase {
 
+    public name: string;
     public player: SentientActor;
     protected _game: any;
     protected _keyBuffer: CmdInput[];
@@ -56,6 +58,7 @@ export class DriverBase {
         if (player) {
             this.player = player;
         }
+        this.name = 'DriverBase';
         this._game = game;
         this._keyBuffer = [];
     }
@@ -86,6 +89,13 @@ export class DriverBase {
             return this._keyBuffer.shift()!;
         }
         return null;
+    }
+
+    /* Return final report as a string. */
+    public getReport(): string {
+        let msg = `${this.name}, Player: ${this.player.getName()}`;
+        msg += `\nKeys in buffer: ${JSON.stringify(this._keyBuffer)}`;
+        return msg;
     }
 
 }
@@ -307,11 +317,14 @@ export class PlayerDriver extends DriverBase {
         this.hasNotify = true;
         POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
 
+        // Specialized ones first, generic ones last, order is very important
+        // as first match wins
         this.contextProcs = [
             new EnemyContextProcessor('enemyContext', this),
             new AreaContextProcessor('areaContext', this),
             new ZoneContextProcessor('zoneContext', this),
-            new ExploreContextProcessor('zoneContext', this)
+            new ExploreContextProcessor('zoneContext', this),
+            new RandomContextProcessor('randomContext', this)
         ];
 
         this.actionProcs = {
@@ -375,8 +388,11 @@ export class PlayerDriver extends DriverBase {
                 }
             }
         });
-        // if (this.action === '') {this.checkForEnemies();}
-        if (this.action === '') {this.tryExploringAround(visible);}
+        if (this.action === '') {
+            RG.err('PlayerDriver', 'nextCmd()',
+                'No contextProc matches! At least one proc must always match!');
+        }
+        // if (this.action === '') {this.tryExploringAround(visible);}
 
         //-------------------------------------------------------
         // Command post-processing, get command for Brain.Player
@@ -403,6 +419,7 @@ export class PlayerDriver extends DriverBase {
         }
     }
 
+    /*
     public tryExploringAround(visible: Cell[]): void {
         const map = this.player.getLevel().getMap();
         const pCell = this.player.getCell();
@@ -454,6 +471,7 @@ export class PlayerDriver extends DriverBase {
             this.action = 'path';
         }
     }
+    */
 
     public tryToSetPathToCell(cells: Cell[]): void {
         // const [pX, pY] = this.player.getXY();
@@ -861,7 +879,7 @@ export class PlayerDriver extends DriverBase {
     }
 
     public setPathAction(toXY: TCoord): boolean {
-        this.debug(`>> Looking for shortest path to cell ${toXY[0]},${toXY[1]}`);
+        this.debug(`>> setPathAction(): Looking for shortest path to cell ${toXY[0]},${toXY[1]}`);
         const pCell = this.player.getCell();
         const [pX, pY] = [pCell.getX(), pCell.getY()];
         const path = getShortestPath(pX, pY, toXY[0], toXY[1],
@@ -970,6 +988,11 @@ export class PlayerDriver extends DriverBase {
                 this.state.tilesVisited[id] += 1;
             }
         }
+    }
+
+    public getReport(): string {
+        let msg = super.getReport();
+        return msg;
     }
 
     /* Used by the path-finding algorith. */
