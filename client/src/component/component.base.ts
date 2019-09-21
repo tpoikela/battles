@@ -452,10 +452,11 @@ ComponentBase.prototype.toString = function() {
 /* Creates a simple JSON representation of the component. NOTE: This relies on
  * getters and setters being named similarly, ie getABC/setABC! Don't rely on
  * this function if you need something more sophisticated. */
+const reGet = /^get/;
 ComponentBase.prototype.toJSON = function() {
     const obj = {};
     for (const p in this) {
-        if (/^get/.test(p)) {
+        if (reGet.test(p)) {
             const getter = p;
             if (getter !== 'getEntity') {
                 if (typeof this[getter] === 'function') {
