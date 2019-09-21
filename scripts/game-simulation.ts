@@ -47,7 +47,8 @@ function main() {
             playerLevel: 'Medium',
             sqrPerItem: 100,
             sqrPerActor: 100,
-            yMult: 0.5,
+            xMult: 1.0,
+            yMult: 1.0,
             playerClass: 'Blademaster',
             playerRace: 'human',
             playerName: pName
@@ -149,6 +150,7 @@ function main() {
         catcher.hasNotify = false;
     }
     console.log('===== End Game simulation =====');
+    console.log(driver.getReport());
 }
 
 main();
