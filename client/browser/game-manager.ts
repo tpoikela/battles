@@ -774,7 +774,7 @@ export class GameManager {
         this.resetGameState();
         this.resetGameControls();
 
-        if (!!this.gameConf.seed) {
+        if (RG.isNullOrUndef([this.gameConf.seed])) {
             this.gameConf.seed = new Date().getTime();
         }
 
