@@ -9,10 +9,12 @@ const LZString = require('lz-string');
 export class InMemoryStore {
     public data: {[key: string]: string};
     public name: string;
+    protected compress: boolean;
 
-    constructor(name: string) {
+    constructor(name: string, compress: boolean = true) {
         this.name = name;
         this.data = {};
+        this.compress = compress;
     }
 
     public getItem(key: string): string {
@@ -20,8 +22,11 @@ export class InMemoryStore {
             console.warn(`No key |${key}| in InMemoryStore`);
         }
         const dataCompr = this.data[key];
-        const data = LZString.decompress(dataCompr);
-        return data;
+        if (this.compress) {
+            const data = LZString.decompress(dataCompr);
+            return data;
+        }
+        return dataCompr;
     }
 
     public setItem(key: string, data: any): void {
@@ -32,9 +37,14 @@ export class InMemoryStore {
         else {
             str = data;
         }
-        const dataCompr = LZString.compress(str);
-        // const ratio = dataCompr.length / str.length;
-        this.data[key] = dataCompr;
+        if (this.compress) {
+            const dataCompr = LZString.compress(str);
+            // const ratio = dataCompr.length / str.length;
+            this.data[key] = dataCompr;
+        }
+        else {
+            this.data[key] = str;
+        }
     }
 
     public removeItem(key: string) {
