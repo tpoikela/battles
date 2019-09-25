@@ -1145,7 +1145,7 @@ export class QuestPopulate {
         else if (RG.isItem(target)) {
             // TODO add proper random name generation
             const itemName = 'Quest item ' + this.rng.getUniformInt(0, 1000000);
-            console.log('addUniqueName rand item name ' + itemName);
+            // console.log('addUniqueName rand item name ' + itemName);
             named.setUniqueName(itemName);
         }
     }
