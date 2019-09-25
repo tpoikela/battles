@@ -14,7 +14,7 @@ type AreaTile = World.AreaTile;
 
 import dbg = require('debug');
 const debug = dbg('bitn:ChunkManager');
-debug.enabled = true;
+// debug.enabled = true;
 
 function printTileConnections(msg: string, tileToConnect, id = -1) {
     RG.diag(msg);
