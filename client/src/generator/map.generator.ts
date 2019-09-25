@@ -85,8 +85,15 @@ interface ASCIIToElemMap {
     [key: string]: ElementBase | ElemMapFunc | ConstBaseElem;
 }
 
+interface AllowConf {
+    exclude?: {
+        bbox: BBox;
+    }
+    maxY?: number;
+}
+
 /* Returns true if given coordinates are in allowed area. */
-const inAllowedArea = function(x0, y0, x1, y1, conf) {
+const inAllowedArea = function(x0, y0, x1, y1, conf: AllowConf) {
     let ok = true;
     if (conf.exclude) {
         if (conf.exclude.bbox) {

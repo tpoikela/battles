@@ -19,6 +19,7 @@ type Level = import('./level').Level;
 type Damage = import('./mixin').Damage;
 type BrainGoalOriented = import('./brain').BrainGoalOriented;
 type BattleZone = import('./world').BattleZone;
+type ZoneBase = import('./world').ZoneBase;
 
 RG.gameTitle = 'Battles in the North (BitN)';
 
@@ -1571,7 +1572,16 @@ RG.isBattleZone = function(target: any): target is BattleZone {
         }
     }
     return false;
-}
+};
+
+/*
+RG.isZone = function(target: any): target is ZoneBase {
+    if (target) {
+        return target instanceof ZoneBase;
+    }
+    return false;
+};
+*/
 
 /* Can be queried if actor is still valid for serialisation or effects
  * like telepath or order giving. */

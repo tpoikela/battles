@@ -6,10 +6,16 @@ type BaseActor = import('../actor').BaseActor;
 
 const MEM_NO_ACTORS: BaseActor[] = [];
 
+interface SeenCoord {
+    x: number;
+    y: number;
+    level: number;
+}
+
 interface ActorsMap {
     enemies?: BaseActor[];
     friends?: BaseActor[];
-    seen?: {[key: string]: ICoordXY};
+    seen?: {[key: string]: SeenCoord};
     enemyGroups?: number[];
     friendGroups?: number[];
 }
@@ -133,7 +139,7 @@ export class Memory {
         return false;
     }
 
-    public getLastSeen(actor: BaseActor): ICoordXY | null {
+    public getLastSeen(actor: BaseActor): SeenCoord | null {
         if (this._actors.seen) {
             if (this._actors.seen[actor.getID()]) {
                 return this._actors.seen[actor.getID()];

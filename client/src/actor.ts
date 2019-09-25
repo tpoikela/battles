@@ -70,7 +70,7 @@ export class BaseActor extends Entity {
     }
 
     // TODO add Level type and fix errors
-    public getLevel() {return this.get('Location').getLevel();}
+    public getLevel(): Level {return this.get('Location').getLevel();}
     public getX(): number {return this.get('Location').getX();}
     public getY(): number {return this.get('Location').getY();}
     public getXY(): TCoord {return this.get('Location').getXY();}

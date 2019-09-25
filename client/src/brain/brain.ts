@@ -266,12 +266,17 @@ export class BrainSentient extends BrainBase {
             return this._cache.seen;
         }
         const map = this._actor.getLevel().getMap();
-        this._cache.seen = map.getCellsInFOV(this._actor);
-        if (this._actor.has('Telepathy')) {
-            const otherSeen = Brain.getTelepathyCells(this._actor);
-            this._cache.seen = this._cache.seen.concat(otherSeen);
+        if (RG.isSentient(this._actor)) {
+            this._cache.seen = map.getCellsInFOV(this._actor as SentientActor);
+            if (this._actor.has('Telepathy')) {
+                const otherSeen = Brain.getTelepathyCells(this._actor);
+                this._cache.seen = this._cache.seen.concat(otherSeen);
+            }
+            return this._cache.seen;
         }
-        return this._cache.seen;
+        RG.warn('Brain', 'Sentient',
+            `Called with non-sentient actor ${this._actor.getName()}`);
+        return [] as Cell[];
     }
 
     /* Checks if the actor can melee attack given x,y coordinate.*/

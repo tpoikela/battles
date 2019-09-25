@@ -173,7 +173,7 @@ export class AreaContextProcessor extends ContextProcessor {
         // Enter an unvisited passage, if found
         if (pCell.hasPassage()) {
             const conn = pCell.getConnection();
-            const targetLevel = conn.getTargetLevel();
+            const targetLevel = conn.getTargetLevel() as Level;
             if (!this.hasVisited(targetLevel)) {
                 this.drv.action = 'stairs';
                 this.visitedLevels[targetLevel.getID()] = this.drv.nTurns;

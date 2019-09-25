@@ -19,6 +19,7 @@ type ActionCallback = import('../time').ActionCallback;
 type BrainGoalOriented = import('./brain.goaloriented').BrainGoalOriented;
 type ItemBase = import('../item').ItemBase;
 type Cell = import('../map.cell').Cell;
+type Level = import('../level').Level;
 
 const RNG = Random.getRNG();
 const KeyMap = Keys.KeyMap;
@@ -387,7 +388,7 @@ class MarkList {
      * can be shown in the mark list. */
     public addMark(tag?: string): void {
         const [x, y] = this._actor.getXY();
-        const level = this._actor.getLevel();
+        const level: Level = this._actor.getLevel();
         const id = level.getID();
         const markObj: MarkObject = {id, x, y};
         if (tag) {markObj.tag = tag;}
@@ -461,13 +462,14 @@ class MarkList {
             // Determine tag from a cell
             const cell = this._actor.getLevel().getMap().getCell(x, y);
             if (cell.hasElements()) {
-                const elem = cell.getElements()[0];
+                const elem = cell.getElements()![0];
                 listMsg += ' ' + elem.getName();
                 if (cell.hasConnection()) {
                     const conn = cell.getConnection();
-                    const targetLevel = conn.getTargetLevel();
+                    const targetLevel = conn!.getTargetLevel();
                     if (targetLevel) {
-                        const parent = targetLevel.getParent();
+                        const level: Level = targetLevel as Level;
+                        const parent = level.getParent();
                         if (parent) {
                             listMsg += ' - ' + parent.getName();
                         }
@@ -475,13 +477,13 @@ class MarkList {
                 }
             }
             else if (cell.hasItems()) {
-                listMsg += ' ' + cell.getItems()[0].getName();
+                listMsg += ' ' + cell.getItems()![0].getName();
             }
         }
         return listMsg;
     }
 
-    public markExists(id, x, y) {
+    public markExists(id: number, x: number, y: number): boolean {
         const markList = this._marks[id];
         const index = markList.findIndex(m => (
             m.x === x && m.y === y

@@ -73,7 +73,7 @@ export class LevelCallback {
 }
 
 
-type LevelParent = Battle | SubZoneBase;
+export type LevelParent = Battle | SubZoneBase;
 
 export type LevelExtraType = number | string | boolean | {[key: string]: LevelExtraType | LevelExtraType[]};
 
@@ -116,7 +116,7 @@ export class Level extends Entity {
     public editorID: number; // Used in editor only
 
     private _map: CellMap;
-    private _parent: any;
+    private _parent: null | LevelParent;
     private _p: LevelProps;
     private _levelNo: number;
     private _callbacks: {[key: string]: (arg: any) => void};
@@ -164,7 +164,7 @@ export class Level extends Entity {
         return [this._map.cols, this._map.rows];
     }
 
-    public getParent(): LevelParent {
+    public getParent(): null | LevelParent {
         return this._parent;
     }
 

@@ -8,6 +8,8 @@ import * as Component from './component/component';
 
 type BrainPlayer = import('./brain/brain.player').BrainPlayer;
 type SentientActor = import ('./actor').SentientActor;
+type Cell = import('./map.cell').Cell;
+type ElementShop = import('./element').ElementShop;
 
 export const Cmd: any = {};
 
@@ -133,20 +135,27 @@ export class CmdDropItem extends CmdBase {
 
   public execute(obj) {
       const invEq = this._actor.getInvEq();
-      const actorCell = this._actor.getCell();
+      const actorCell: null | Cell = this._actor.getCell();
       let result = false;
       let msg = `Failed to drop ${obj.item.getName()}`;
       const dropCount = obj.count <= obj.item.getCount() ? obj.count
         : obj.item.getCount();
 
       let hasActiveShop = false;
-      if (actorCell.hasShop()) {
-          const shop = actorCell.getShop();
-          hasActiveShop = !shop.isAbandoned();
+      if (actorCell) {
+          if (actorCell.hasShop()) {
+              const shop = actorCell.getShop() as ElementShop;
+              hasActiveShop = !shop.isAbandoned();
+          }
+      }
+      else {
+          RG.err('CmdDropItem', 'execute',
+              'Null actorCell. Cannot execute cmd');
+          return;
       }
 
       if (hasActiveShop) {
-          const shopElem = actorCell.getPropType('shop')[0];
+          const shopElem = actorCell.getShop() as ElementShop;
           const price = shopElem.getItemPriceForSelling(obj.item, dropCount);
 
           const confirmCb = () => {

@@ -19,12 +19,15 @@ import {ObjectShell} from './objectshellparser';
 
 type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
+type LevelParent = import('./level').LevelParent;
 type Battle = import('./game.battle').Battle;
 type SentientActor = import('./actor').SentientActor;
 type OWMap = import('./overworld.map').OWMap;
 type BrainPlayer = import('./brain').BrainPlayer;
 type WorldTop = World.WorldTop;
+type AreaTile = World.AreaTile;
 type WorldBase = World.WorldBase;
+type ZoneBase = World.ZoneBase;
 
 const POOL = EventPool.getPool();
 
@@ -741,13 +744,13 @@ export class GameMain {
     /* Returns the player tile position in overworld map. */
     public getPlayerOwPos(): TCoord | null {
         const player = this.getPlayer();
-        if (!this._overworld || !player) {
+        const world = this.getCurrentWorld();
+        if (!this._overworld || !player || !world) {
             return null;
         }
 
         const overworld = this._overworld;
-        const world = this.getCurrentWorld();
-        const area = world.getAreas()[0];
+        const area: World.Area = world.getAreas()[0];
         let xy = area.findTileXYById(player.getLevel().getID());
 
         if (!xy) {
@@ -767,9 +770,9 @@ export class GameMain {
 
     /* When player is inside a zone, tries to find the area tile location by
      * traversing the world hierarchy. */
-    public tryToGetTileXY() {
-      const level = this.getPlayer().getLevel();
-      let parent = level.getParent();
+    public tryToGetTileXY(): null | TCoord {
+      const level: Level = this.getPlayer().getLevel();
+      let parent: LevelParent | WorldBase | null = level.getParent();
       while (parent) {
         if (parent.getParent) {
           parent = parent.getParent();
@@ -778,16 +781,16 @@ export class GameMain {
           parent = null;
         }
 
-        if (parent && parent.getTileXY) {
-          return parent.getTileXY();
+        if (parent && (parent as ZoneBase).getTileXY) {
+          return (parent as ZoneBase).getTileXY();
         }
       }
       return null;
     }
 
-    public setOverWorldExplored(xy) {
+    public setOverWorldExplored(xy: TCoord): void {
         const box = Geometry.getBoxAround(xy[0], xy[1], 1, true);
-        box.forEach((coord) => {
+        box.forEach((coord: TCoord) => {
             this._overworld.setExplored(coord);
         });
     }

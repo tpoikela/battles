@@ -10,6 +10,7 @@ import {TCoord} from './interfaces';
 type Cell = import('./map.cell').Cell;
 type ItemBase = import('./item').ItemBase;
 type SentientActor = import('./actor').SentientActor;
+type ElementShop = import('./element').ElementShop;
 
 const {
     GOAL_ACTIVE,
@@ -149,10 +150,10 @@ export class GoalThief extends GoalBase {
     }
 
     public isInActiveShop(): boolean {
-        const cell = this.actor.getCell();
-        if (cell.hasShop()) {
-            const shop = cell.getShop();
-            if (!shop.isAbandoned()) {
+        const cell: null | Cell = this.actor.getCell();
+        if (cell && cell.hasShop()) {
+            const shop: null | ElementShop = cell.getShop();
+            if (shop && !shop.isAbandoned()) {
                 this.shops[cell.getKeyXY()] = cell;
                 return true;
             }
@@ -163,10 +164,10 @@ export class GoalThief extends GoalBase {
     public tryToSellItem(): void {
         const inventory = this.actor.getInvEq().getInventory();
         const itemToSell: ItemBase = RNG.arrayGetRand(inventory.getItems());
-        const actorCell = this.actor.getCell();
+        const actorCell: null | Cell = this.actor.getCell();
 
-        if (itemToSell) {
-            const shopElem = actorCell.getPropType('shop')[0];
+        if (actorCell && itemToSell) {
+            const shopElem = actorCell.getPropType('shop')[0] as ElementShop;
             // const price = shopElem.getItemPriceForSelling(itemToSell);
             const trans = new Component.Transaction();
             trans.setArgs({item: itemToSell, seller: this.actor,
