@@ -1,9 +1,9 @@
 
 import ROT from '../../lib/rot';
 import RG from './rg';
-import {Cell, CellJSON, CellPropsKey} from './map.cell';
+import {Cell, CellJSON} from './map.cell';
 import {ElementBase, ElementWall, ElementMarker, ElementXY} from './element';
-import {TCoord, ConstBaseElem, TCellProp} from './interfaces';
+import {TCoord, ConstBaseElem, TCellProp, TPropType} from './interfaces';
 import {BBox} from './bbox';
 import {ELEM_MAP} from '../data/elem-constants';
 
@@ -29,7 +29,7 @@ export interface CellMapJSON {
  * for rendering while the Map.Level contains high-level information about
  * game objects such as actors, items and elements (stairs/traps). */
 export class CellMap {
-    public static fromJSON: (json) => CellMap;
+    public static fromJSON: (json: {[key: string]: any}) => null | CellMap;
 
     public static invertMap(map: CellMap): void {
         for (let x = 0; x < map.cols; x++) {
@@ -107,15 +107,15 @@ export class CellMap {
     }
 
     /* Sets a property for the underlying cell.*/
-    public setProp(x: number, y: number, prop: CellPropsKey, obj: TCellProp): void {
+    public setProp(x: number, y: number, prop: TPropType, obj: TCellProp): void {
         this._map[x][y].setProp(prop, obj);
     }
 
-    public removeProp(x: number, y: number, prop: CellPropsKey, obj: TCellProp): boolean {
+    public removeProp(x: number, y: number, prop: TPropType, obj: TCellProp): boolean {
         return this._map[x][y].removeProp(prop, obj);
     }
 
-    public moveProp(fromXY: TCoord, toXY: TCoord, prop: CellPropsKey, obj: TCellProp): boolean {
+    public moveProp(fromXY: TCoord, toXY: TCoord, prop: TPropType, obj: TCellProp): boolean {
         if (this.removeProp(fromXY[0], fromXY[1], prop, obj)) {
             this.setProp(toXY[0], toXY[1], prop, obj);
             return true;
@@ -572,7 +572,7 @@ export class CellMap {
     }
 }
 
-CellMap.fromJSON = function(json: any): CellMap {
+CellMap.fromJSON = function(json: {[key: string]: any}): null | CellMap {
     if (json.encoded) {
         const {defaultType} = json;
         const elemObj = ELEM_MAP.elemIndexToElemObj[defaultType];
@@ -593,4 +593,5 @@ CellMap.fromJSON = function(json: any): CellMap {
         });
         return map;
     }
+    return null;
 };
