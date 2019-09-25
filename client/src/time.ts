@@ -8,8 +8,6 @@ const POOL = EventPool.getPool();
 type BaseActor = import('./actor').BaseActor;
 type Level = import('./level').Level;
 
-export const Time = {};
-
 export type ActionCallback = () => void;
 
 /* Models an action. Each action has a duration and a callback.  */
@@ -24,10 +22,10 @@ export class Action {
         this._energy = 0;
     }
 
-    public setEnergy(en) {this._energy = en;}
-    public getEnergy() {return this._energy;}
-    public getDuration() {return this._duration;}
-    public doAction() {this._cb();}
+    public setEnergy(en: number): void {this._energy = en;}
+    public getEnergy(): number {return this._energy;}
+    public getDuration(): number {return this._duration;}
+    public doAction(): void {this._cb();}
 }
 
 //---------------------------------------------------------------------------
@@ -42,7 +40,7 @@ export class GameEvent {
     public dur: number;
     protected _repeat: boolean;
     protected _offset: number;
-    protected _level: Level;
+    protected _level: null | Level;
 
     constructor(dur: number, cb: () => void, repeat: boolean, offset: number) {
         this.isEvent = true; // Needed for the scheduler
@@ -65,13 +63,13 @@ export class GameEvent {
     public setOffset(offset: number): void {this._offset = offset;}
 
     public setLevel(level: Level): void {this._level = level;}
-    public getLevel(): Level {return this._level;}
+    public getLevel(): null | Level {return this._level;}
 
 }
 
 /* Regeneration event. Initialized with an actor. */
 export class RegenEvent extends GameEvent {
-    constructor(actor, dur) {
+    constructor(actor: BaseActor, dur: number) {
         const _regenerate = () => {
             actor.get('Health').addHP(1);
         };
@@ -114,7 +112,7 @@ export class Scheduler {
     protected _events: GameEvent[];
     protected _actors: BaseActor[];
 
-    constructor() { // {{{2
+    constructor() {
 
         // Internally use ROT scheduler
         this._scheduler = new ROT.Scheduler.Action();

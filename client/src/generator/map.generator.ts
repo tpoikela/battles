@@ -88,7 +88,7 @@ interface ASCIIToElemMap {
 interface AllowConf {
     exclude?: {
         bbox: BBox;
-    }
+    };
     maxY?: number;
 }
 
@@ -251,14 +251,14 @@ export class MapGenerator {
     public defaultMapElem: ConstBaseElem;
     private _mapGen: any;
     private _mapType: string | null;
-    private _wall: number;
+    private _wallID: number;
 
     constructor() { // {{{2
         this.cols = RG.LEVEL_MEDIUM_X;
         this.rows = RG.LEVEL_MEDIUM_Y;
         this._mapGen = new ROT.Map.Arena(this.cols, this.rows);
         this._mapType = null;
-        this._wall = 1;
+        this._wallID = 1;
         this.defaultMapElem = ELEM.FLOOR;
     }
 
@@ -280,7 +280,7 @@ export class MapGenerator {
             const floorElem = MapGenerator.getFloorElem(conf.floorType);
             const map = new CellMap(this.cols, this.rows, this.defaultMapElem);
             this._mapGen.create((x, y, val) => {
-                if (val === this._wall) {
+                if (val === this._wallID) {
                     map.setBaseElemXY(x, y, wallElem);
                 }
                 else {
@@ -306,7 +306,7 @@ export class MapGenerator {
         map.randomize(0.9);
         for (let i = 0; i < 5; i++) {map.create();}
         map.connect(null, 1);
-        this._wall = 0;
+        this._wallID = 0;
         return map;
     }
 
@@ -317,7 +317,7 @@ export class MapGenerator {
         map.randomize(0.52);
         for (let i = 0; i < 5; i++) {map.create();}
         map.connect(null, 1);
-        this._wall = 0;
+        this._wallID = 0;
         return map;
     }
 

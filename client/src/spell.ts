@@ -292,6 +292,10 @@ const getDirSpellArgs = function(spell: Spell, args): SpellArgs {
 Spell.getDirSpellArgs = getDirSpellArgs;
 
 interface ISpell {
+    _name: string;
+    _new: string;
+    _dice: {[key: string]: Dice};
+
     toString(): string;
     toJSON(): any;
     setCaster(actor: SentientActor): void;
@@ -301,8 +305,9 @@ interface ISpell {
     canCast(): boolean;
     hasDice(name: string): boolean;
     getCastingPower(): number;
+    getPower(): number;
+    getRange(): number;
 }
-// type Spell = any;
 type Spell = ISpell;
 
 //------------------------------------------------------
@@ -479,7 +484,7 @@ SpellBase.prototype.setPower = function(power: number) {this._power = power;};
 
 type CastFunc = () => void;
 
-SpellBase.prototype.getCastFunc = function(actor, args: SpellArgs): CastFunc {
+SpellBase.prototype.getCastFunc = function(actor, args: SpellArgs): null | CastFunc {
     if (args.dir || args.target || args.src) {
         args.src = actor;
         return () => {
@@ -520,7 +525,7 @@ SpellBase.prototype.getCasterStatBonus = function(
     return Math.round(statValue / div);
 };
 
-SpellBase.prototype.equals = function(rhs): boolean {
+SpellBase.prototype.equals = function(rhs: Spell): boolean {
     let equals = this.getName() === rhs.getName();
     equals = equals && this.getPower() === rhs.getPower();
     equals = equals && this.getRange() === rhs.getRange();

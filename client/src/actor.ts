@@ -292,19 +292,19 @@ export class SentientActor extends BaseActor {
         this._spellbook = book;
     }
 
-    public getBook(): SpellBook {
+    public getBook(): undefined | SpellBook {
         return this._spellbook;
     }
 
     /* Returns carrying capacity of the actor.*/
-    public getMaxWeight() {
+    public getMaxWeight(): number {
         const statStr = this.get('Stats').getStrength();
         const eqStr = this._invEq.getEquipment().getStrength();
         return 2 * statStr + 2 * eqStr + this._maxWeight;
     }
 
     /* Marks actor as player. Cannot unset player.*/
-    public setIsPlayer(isPlayer) {
+    public setIsPlayer(isPlayer: boolean): void {
         if (isPlayer) {
             this._brain = new BrainPlayer(this);
             addPlayerBrainComps(this);
@@ -320,7 +320,7 @@ export class SentientActor extends BaseActor {
     }
 
     /* Used when controlling other actors with the "real player" actor .*/
-    public setPlayerCtrl(isPlayer) {
+    public setPlayerCtrl(isPlayer: boolean): void {
         if (isPlayer) {
             this.add(new Component.PlayerControlled());
             this._actualBrain = this._brain;
@@ -338,7 +338,7 @@ export class SentientActor extends BaseActor {
     }
 
     /* Returns the cell where this actor is located at.*/
-    public getCell() {
+    public getCell(): null | Cell {
         const x = this.getX();
         const y = this.getY();
         const level = this.getLevel();
@@ -348,7 +348,7 @@ export class SentientActor extends BaseActor {
         return null;
     }
 
-    public isInLevel(level) {
+    public isInLevel(level: Level): boolean {
         if (this.getLevel()) {
             return this.getLevel().getID() === level.getID();
         }
