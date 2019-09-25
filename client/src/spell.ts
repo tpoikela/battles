@@ -298,6 +298,9 @@ interface ISpell {
     equals(spell: ISpell): boolean;
     getName(): string;
     getSelectionObject(actor: SentientActor): SelectionObject;
+    canCast(): boolean;
+    hasDice(name: string): boolean;
+    getCastingPower(): number;
 }
 // type Spell = any;
 type Spell = ISpell;

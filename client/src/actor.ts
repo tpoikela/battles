@@ -17,7 +17,11 @@ type ActionCallback = Time.ActionCallback;
 type ItemArmour = import('./item').Armour;
 type ItemBase = import('./item').ItemBase;
 type MissileWeapon = import('./item').MissileWeapon;
+// type ItemMissile = import('./item').Missile;
+// type ItemAmmo = import('./item').Ammo;
 type Cell = import('./map.cell').Cell;
+type ActorClass = import('./actor-class').ActorClassBase;
+type SpellBook = import('./spell').SpellBook;
 
 export const Actor: any = {};
 
@@ -163,8 +167,8 @@ export class SentientActor extends BaseActor {
 
     protected _invEq: Inventory;
     protected _maxWeight: number;
-    protected _actorClass: any;
-    protected _spellbook?: any;
+    protected _actorClass: ActorClass;
+    protected _spellbook?: SpellBook;
     protected _actualBrain?: any;
 
     constructor(name: string, build = true) {
@@ -192,7 +196,7 @@ export class SentientActor extends BaseActor {
         this.add(perception);
     }
 
-    public getFOVRange() {
+    public getFOVRange(): number {
         let range = this.get('Perception').getFOVRange();
         if (this.has('EagleEye')) {range += 2;}
         return range;
@@ -276,19 +280,19 @@ export class SentientActor extends BaseActor {
         return bonus;
     }
 
-    public setActorClass(classObj) {
+    public setActorClass(classObj: ActorClass): void {
         this._actorClass = classObj;
     }
 
-    public getActorClass() {
+    public getActorClass(): ActorClass {
         return this._actorClass;
     }
 
-    public setBook(book) {
+    public setBook(book: SpellBook): void {
         this._spellbook = book;
     }
 
-    public getBook() {
+    public getBook(): SpellBook {
         return this._spellbook;
     }
 
