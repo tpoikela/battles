@@ -270,7 +270,6 @@ export class NestGenerator extends LevelGenerator {
                 actors.push(parser.createFromShell(RG.TYPE_ACTOR, shell));
             }
         });
-        console.log(`NEST There will be ${actors.length} placed now`);
         return actors;
     }
 
