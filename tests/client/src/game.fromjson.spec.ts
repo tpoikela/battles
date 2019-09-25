@@ -309,6 +309,7 @@ describe('Game.FromJSON', function() {
         const json = capitalLevel.toJSON();
 
         const newLevel = fromJSON.restoreLevel(json);
+        fromJSON.restoreEntityData();
         const nActorsAfter = newLevel.getActors().length;
         expect(nActorsAfter).to.equal(nActorsBefore);
 
