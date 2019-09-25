@@ -55,6 +55,14 @@ export type DiceValue = Dice | IDiceInputArg;
 
 export type TCellProp = ItemBase | BaseActor | ElementXY;
 
+export interface CellProps {
+    actors?: TCellProp[];
+    items?: TCellProp[];
+    elements?: TCellProp[];
+}
+
+export type TPropType = keyof CellProps;
+
 export type ConstBaseElem = Readonly<ElementBase>;
 
 export type TPrim = number | string | boolean;
