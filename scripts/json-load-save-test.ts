@@ -11,36 +11,79 @@ const debug = console.error;
 // const fname = '/home/tpoikela/Downloads/bsave_1567344532809_saveGame_Wuff_REF.json';
 //const fname = '/home/tpoikela/Downloads/bsave_1567367171988_saveGame_Greyth.json';
 // const fname = '/home/tpoikela/Downloads/bsave_1567368790924_saveGame_Greyth.json';
-const fname = '/home/tpoikela/Downloads/bsave_1567528939024_saveGame_Greyth.json';
+//const fname = '/home/tpoikela/Downloads/bsave_1569063816154_saveGame_Hurgh.json';
+const fname = '/home/tpoikela/Downloads/bsave_1569355855632_saveGame_TestPlayer.json';
 debug('Reading the JSON file...');
-const buf = fs.readFileSync(fname).toString();
 
 // console.log(buf);
+const timeRecords = {
+    start: {} as any,
+    end: {} as any,
+    dur: {} as any
+};
 
+debug('Reading the input file..');
+const buf = fs.readFileSync(fname).toString();
+debug('Trimming the read data..');
+const jsonStr = buf.trim();
 debug('Parsing now the original file...');
-const jsonParsed = JSON.parse(buf.trim());
+timeRecords.start.parse = Date.now();
+const jsonParsed = JSON.parse(jsonStr);
+timeRecords.end.parse = Date.now();
+timeRecords.dur.parse = timeRecords.end.parse - timeRecords.start.parse;
+console.log(`Parsing took ${timeRecords.dur.parse} ms`);
 
 // let totalLen = 0;
 let callDepth = 0;
 const maxCallDepth = 20;
 let IND = 0;
+const printSizes = false;
 
-debug('Analysing now the original file...');
-printSize(jsonParsed, '');
+if (printSizes) {
+    debug('Analysing now the original file...');
+    printSize(jsonParsed, '');
+}
 
-const testNewGame = false;
-if (testNewGame) {
-    debug('Creating new game from original file...');
-    const fromJSON = new RG.FromJSON();
-    let game = new RG.GameMain();
-    game = fromJSON.createGame(game, jsonParsed);
+let loadedGameParsed = jsonParsed;
+const testNewGame = true;
 
-    console.log('\nNow trying to size of the game again...');
-    console.log('\n====>>>> Going for second round');
-    debug('Serialising new game now to JSON...');
-    const loadedGameParsed = game.toJSON();
-    debug('Analysing serialized new game now...');
-    printSize(loadedGameParsed, '');
+for (let i = 0; i < 3; i++) {
+    if (testNewGame) {
+        debug(`Starting round ${i+1}/3 now.`);
+        timeRecords.start.begin = Date.now();
+        debug('Creating new game from original file...');
+        const fromJSON = new RG.FromJSON();
+        let game = new RG.GameMain();
+        timeRecords.start.create = Date.now();
+        game = fromJSON.createGame(game, loadedGameParsed);
+        timeRecords.end.create = Date.now();
+        // game.simulate();
+        console.log('\nNow trying to size of the game again...');
+        console.log('\n====>>>> Going for second round');
+        if (printSizes) {
+            debug('Analysing serialized new game now...');
+            printSize(loadedGameParsed, '');
+        }
+
+        for (let j = 0; j < 1; j++) {
+            const key = `tile_${i},${j}`;
+            timeRecords.start[key] = Date.now();
+            game.movePlayer(i, j);
+            timeRecords.end[key] = Date.now();
+            timeRecords.dur[key] = timeRecords.end[key] - timeRecords.start[key];
+        }
+
+        debug('Serialising new game now to JSON...');
+        timeRecords.start.toJson = Date.now();
+        loadedGameParsed = game.toJSON();
+        timeRecords.end.toJson = Date.now();
+
+        timeRecords.dur.create = timeRecords.end.create - timeRecords.start.create;
+        timeRecords.dur.toJson = timeRecords.end.toJson - timeRecords.start.toJson;
+        Object.keys(timeRecords.dur).forEach((key: string) => {
+            console.log(`${key} took ${timeRecords.dur[key]} ms`);
+        });
+    }
 }
 
 //---------------------------------------------------------------------------
