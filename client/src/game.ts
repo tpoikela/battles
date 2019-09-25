@@ -44,13 +44,17 @@ export interface IGameMain {
     getPlayer(): SentientActor;
 }
 
+export interface PlaceData {
+    [key: string]: WorldBase;
+}
+
 /* Top-level main object for the game.  */
 export class GameMain {
 
     public hasNotify: boolean;
 
     protected _players: SentientActor[];
-    protected _places: {[key: string]: WorldBase};
+    protected _places: PlaceData;
     protected _shownLevel: null | Level;
     protected _gameOver: boolean;
     protected actorsKilled: {[key: number]: boolean};
@@ -148,7 +152,7 @@ export class GameMain {
         return this._engine.getComponents();
     }
 
-    public getPlaces() {return this._places;}
+    public getPlaces(): PlaceData {return this._places;}
 
     public getLevelsInAllPlaces(): Level[] {
         let levels: Level[] = [];
@@ -344,7 +348,7 @@ export class GameMain {
 
 
     /* Checks if player moved to a tile (from tile or was added). */
-    public checkIfTileChanged(args) {
+    public checkIfTileChanged(args): void {
         const {actor, src, target} = args;
 
         const areaLevels = [target];

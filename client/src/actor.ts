@@ -1,7 +1,7 @@
 
 import RG from './rg';
 import {Entity} from './entity';
-import {TCoord} from './interfaces';
+import {TCoord, TPropType} from './interfaces';
 
 import * as Component from './component/component';
 import {compsToJSON} from './component/component.base';
@@ -33,20 +33,28 @@ export class BaseActor extends Entity {
 
     protected _brain: BrainBase;
 
-    constructor(name: string) {
+    constructor(name: string, build = true) {
         super();
+        this.add(new Component.Action());
         const named = new Component.Named();
         named.setName(name);
         this.add(named);
-        this.add(new Component.Action());
+        if (build) {
+            this.build();
+        }
+    }
+
+    public build(): void {
         this.add(new Component.Location());
         this.add(new Component.Typed('BaseActor', RG.TYPE_ACTOR));
     }
 
-    public getType() {return this.get('Typed').getObjType();}
-    public setType(type) {return this.get('Typed').setObjType(type);}
-    public getPropType() {return this.get('Typed').getPropType();}
-    public setPropType(type) {return this.get('Typed').setPropType(type);}
+    public getType(): string {return this.get('Typed').getObjType();}
+    public setType(type: string): void {
+        return this.get('Typed').setObjType(type);
+    }
+    public getPropType(): TPropType {return this.get('Typed').getPropType();}
+    public setPropType(type: TPropType) {return this.get('Typed').setPropType(type);}
 
     public getCell(): Cell | null {
         return this.get('Location').getCell();
@@ -60,16 +68,18 @@ export class BaseActor extends Entity {
     public setLevel(level: Level): void {
         return this.get('Location').setLevel(level);
     }
+
+    // TODO add Level type and fix errors
     public getLevel() {return this.get('Location').getLevel();}
     public getX(): number {return this.get('Location').getX();}
     public getY(): number {return this.get('Location').getY();}
     public getXY(): TCoord {return this.get('Location').getXY();}
-    public setXY(x, y): void {
+    public setXY(x: number, y: number): void {
         this.get('Location').setXY(x, y);
     }
 
     /* Returns true if actor is a player.*/
-    public isPlayer() {
+    public isPlayer(): boolean {
         return this.has('Player') || this.has('PlayerControlled');
     }
 
@@ -157,8 +167,12 @@ export class SentientActor extends BaseActor {
     protected _spellbook?: any;
     protected _actualBrain?: any;
 
-    constructor(name: string) {
-        super(name);
+    constructor(name: string, build = true) {
+        super(name, build);
+    }
+
+    public build(): void {
+        super.build();
 
         this._brain = new BrainGoalOriented(this);
         this._brain.getMemory().addEnemyType('player');

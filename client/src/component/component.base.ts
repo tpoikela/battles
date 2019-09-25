@@ -445,7 +445,7 @@ ComponentBase.prototype.is = function(type: string): boolean {
     return this._type === type;
 };
 
-ComponentBase.prototype.toString = function() {
+ComponentBase.prototype.toString = function(): string {
     return 'Component: ' + this.getType();
 };
 
@@ -453,18 +453,35 @@ ComponentBase.prototype.toString = function() {
  * getters and setters being named similarly, ie getABC/setABC! Don't rely on
  * this function if you need something more sophisticated. */
 const reGet = /^get/;
+
+// Stores getters/setters for faster access
+const funcCache: {[key: string]: Array<[string, string]>} = {};
+// ComponentBase.useFuncCache = true;
+
 ComponentBase.prototype.toJSON = function() {
     const obj = {};
-    for (const p in this) {
-        if (reGet.test(p)) {
-            const getter = p;
-            if (getter !== 'getEntity') {
-                if (typeof this[getter] === 'function') {
-                    const setter = getter.replace('get', 'set');
-                    if (typeof this[setter] === 'function') {
-                        // To de-serialize, we can then do
-                        //   obj[setter](json[setter])
-                        obj[setter] = this[getter]();
+    const type: string = this.getType();
+    if (/*ComponentBase.useFuncCache &&*/ funcCache[type]) {
+        funcCache[type].forEach((getSet: [string, string]) => {
+            const getter: string = getSet[0];
+            const setter: string = getSet[1];
+            obj[setter] = this[getter]();
+        });
+    }
+    else {
+        funcCache[type] = [];
+        for (const p in this) {
+            if (reGet.test(p)) {
+                const getter = p;
+                if (getter !== 'getEntity') {
+                    if (typeof this[getter] === 'function') {
+                        const setter = getter.replace('get', 'set');
+                        if (typeof this[setter] === 'function') {
+                            // To de-serialize, we can then do
+                            //   obj[setter](json[setter])
+                            obj[setter] = this[getter]();
+                            funcCache[type].push([getter, setter]);
+                        }
                     }
                 }
             }

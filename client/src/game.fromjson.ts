@@ -20,7 +20,8 @@ import {ELEM_MAP} from '../data/elem-constants';
 import {ObjectShell, Parser} from './objectshellparser';
 import {Component, ComponentBase} from './component';
 import {Item} from './item';
-import {Actor, SentientActor} from './actor';
+import {Inventory} from './inv';
+import {Actor, BaseActor, SentientActor} from './actor';
 import {CellMap} from './map';
 import * as Element from './element';
 import {FactoryWorld} from './factory.world';
@@ -29,6 +30,7 @@ import {Random} from './random';
 import {OverWorld} from './overworld';
 import * as Time from './time';
 import {WorldSimulation} from './world.simulation';
+import {Entity} from './entity';
 
 import {Brain} from './brain';
 import {BrainPlayer} from './brain/brain.player';
@@ -38,7 +40,7 @@ import {JsonMap, LoadStat, TCoord} from './interfaces';
 
 type IAreaTileJSON = World.IAreaTileJSON;
 type Stairs = Element.ElementStairs;
-type Entity = import('./entity').Entity;
+// type Entity = import('./entity').Entity;
 type ConnectionObj = Element.ConnectionObj;
 type ElementXY = Element.ElementXY;
 type WorldBase = World.WorldBase;
@@ -347,7 +349,7 @@ export class FromJSON {
     }
 
 
-    public restoreEntity(json, entity: Entity) {
+    public restoreEntity(json, entity: Entity): void {
         if (RG.isActor(entity)) {
             this.createBrain(json.brain, entity);
             this._addEntityFeatures(json, entity);
@@ -358,19 +360,19 @@ export class FromJSON {
         else {
             this.restoreLevelEntity(json, entity);
         }
-        return entity;
+        // return entity;
     }
 
 
-    public _addEntityFeatures(obj, entity) {
-        this.addCompsToEntity(entity, obj.components);
-        this.createInventoryItems(obj, entity);
-        this.createEquippedItems(obj, entity);
+    public _addEntityFeatures(json, entity) {
+        this.addCompsToEntity(entity, json.components);
+        this.createInventoryItems(json, entity);
+        this.createEquippedItems(json, entity);
         /* if (obj.fovRange) {
             entity.setFOVRange(obj.fovRange);
         }*/
-        if (obj.spellbook) {
-            this.createSpells(obj, entity);
+        if (json.spellbook) {
+            this.createSpells(json, entity);
         }
     }
 
@@ -453,7 +455,10 @@ export class FromJSON {
     public getCompValue(
         comp, compJSON, setFunc, valueToSet
     ) {
-        if (!RG.isNullOrUndef([valueToSet])) {
+        if (typeof valueToSet === 'string' || typeof valueToSet === 'number') {
+            return valueToSet;
+        }
+        else if (!RG.isNullOrUndef([valueToSet])) {
             if (Array.isArray(valueToSet)) {
                 // For array, call this function recursively
                 if ((valueToSet as any).$objRefArray) {
@@ -732,9 +737,12 @@ export class FromJSON {
         return itemObj;
     }
 
-    public createInventoryItems(obj, player) {
-        if (obj.hasOwnProperty('inventory')) {
-            const itemObjs = obj.inventory;
+    public createInventoryItems(json, player) {
+        if (json.new === 'Sentient') {
+            player._invEq = new Inventory(player);
+        }
+        if (json.hasOwnProperty('inventory')) {
+            const itemObjs = json.inventory;
             for (let i = 0; i < itemObjs.length; i++) {
                 const itemObj = this.createItem(itemObjs[i]);
                 player.getInvEq().addItem(itemObj);
@@ -912,7 +920,7 @@ export class FromJSON {
 
     /* Creates the actor and sets entity ID refs, but does not restore all
      * entity data. */
-    public createActor(json) {
+    public createActor(json): BaseActor {
         if (json.type === null) {
             RG.err('FromJSON', 'createActor',
                 `json.type null, json: ${JSON.stringify(json)}`);
@@ -920,7 +928,7 @@ export class FromJSON {
 
         let entity = null;
         if (json.new && Actor[json.new]) {
-            entity = new Actor[json.new](json.name);
+            entity = new Actor[json.new](json.name, false);
         }
         else {
             let msg = '';
@@ -930,11 +938,13 @@ export class FromJSON {
             }
             else {
                 const keys = Object.keys(Actor);
-                msg = `${json.new} not in RG.Actor: ${keys}. JSON obj: ` + jsonStr;
+                msg = `Constr ${json.new} not in Actor: ${keys}. JSON obj: ` + jsonStr;
             }
             RG.err('Game.FromJSON', 'createActor', msg);
         }
 
+        entity.add(new Component.Location());
+        entity.add(new Component.Typed('BaseActor', RG.TYPE_ACTOR));
         entity.setType(json.type);
         entity.setID(json.id);
         this.addEntityInfo(entity, json);
@@ -943,7 +953,7 @@ export class FromJSON {
 
 
     /* Adds entity info to restore the entity references back to objects. */
-    public addEntityInfo(entity, json) {
+    public addEntityInfo(entity, json): void {
         this.addObjRef('entity', entity, json);
     }
 
@@ -1205,7 +1215,8 @@ export class FromJSON {
     }
 
 
-    public restoreEntityData() {
+    public restoreEntityData(): void {
+        const entNumBefore = JSON.parse(JSON.stringify(Entity.num));
         Object.keys(this.id2EntityJson).forEach(id => {
             const json = this.id2EntityJson[id];
             const entity = this.id2entity[id];
@@ -1218,6 +1229,10 @@ export class FromJSON {
                 RG.err('FromJSON', 'restoreEntityData',
                     `ID: ${id} ${msg}`);
             }
+        });
+        const entNumAfter = JSON.parse(JSON.stringify(Entity.num));
+        Object.keys(entNumAfter).forEach((key: string) => {
+            console.log(`${key}: ${entNumAfter[key] - entNumBefore[key]}`);
         });
     }
 

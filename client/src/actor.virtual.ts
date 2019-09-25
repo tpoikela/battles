@@ -8,29 +8,35 @@ import * as Component from './component/component';
  * inside a level. */
 export class VirtualActor extends BaseActor {
 
-    constructor(name: string) {
-        super(name);
-        this._brain = new BrainVirtual(this);
+    constructor(name: string, build = true) {
+        super(name, build);
+        if (build) {
+            this._brain = new BrainVirtual(this);
+        }
     }
 
 }
 
 export class WeatherActor extends BaseActor {
 
-    constructor(name: string) {
-        super(name);
-        this._brain = new BrainWeather(this);
+    constructor(name: string, build = true) {
+        super(name, build);
+        if (build) {
+            this._brain = new BrainWeather(this);
+        }
     }
 
 }
 
 export class SpawnerActor extends BaseActor {
 
-    constructor(name: string) { // {{{2
-        super(name);
-        this._brain = new BrainSpawner(this);
-        this.add(new Component.Stats());
-        this.get('Stats').setSpeed(10);
+    constructor(name: string, build = true) { // {{{2
+        super(name, build);
+        if (build) {
+            this._brain = new BrainSpawner(this);
+            this.add(new Component.Stats());
+            this.get('Stats').setSpeed(10);
+        }
     }
 
     public getSpeed(): number {
