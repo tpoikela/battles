@@ -4,7 +4,7 @@ import * as Element from './element';
 import {BaseActor} from './actor';
 import * as Item from './item';
 import {ELEM_MAP} from '../data/elem-constants';
-import {TCoord, ConstBaseElem, TCellProp} from './interfaces';
+import {TCoord, ConstBaseElem, TCellProp, CellProps, TPropType} from './interfaces';
 
 const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 
@@ -14,14 +14,6 @@ type LeverDoor = Element.ElementLeverDoor;
 type Stairs = Element.ElementStairs;
 type SentientActor = import('./actor').SentientActor;
 type ElementMarker = Element.ElementMarker;
-
-interface CellProps {
-    actors?: TCellProp[];
-    items?: TCellProp[];
-    elements?: TCellProp[];
-}
-
-export type CellPropsKey = keyof CellProps;
 
 export interface CellJSON {
     t: string; // Type of this cell
@@ -98,14 +90,14 @@ export class Cell {
     public getBaseElem(): ConstBaseElem { return this._baseElem; } // TODO safe null
 
     /* Returns true if the cell has props of given type.*/
-    public hasProp(prop: CellPropsKey): boolean {
+    public hasProp(prop: TPropType): boolean {
         if (!this._p) {return false;}
         return this._p.hasOwnProperty(prop);
     }
 
     /* Returns the given type of props, or null if does not have any props of that
      * type. */
-    public getProp(prop: CellPropsKey): TCellProp[] | null {
+    public getProp(prop: TPropType): TCellProp[] | null {
         if (this._p && this._p[prop]) {
             return this._p[prop] as TCellProp[];
         }
@@ -190,7 +182,7 @@ export class Cell {
     public getProps(): TCellProp[] {
         let res: TCellProp[] = [];
         if (!this._p) {return res;}
-        Object.keys(this._p).forEach((key: CellPropsKey ) => {
+        Object.keys(this._p).forEach((key: TPropType ) => {
             res = res.concat(this._p[key]!.slice());
         });
         return res;
@@ -382,7 +374,7 @@ export class Cell {
     }
 
     /* Add given obj with specified property type.*/
-    public setProp(prop: CellPropsKey, obj: TCellProp): void {
+    public setProp(prop: TPropType, obj: TCellProp): void {
         if (obj.getType() === 'connection' && this.hasConnection()) {
             let msg = `${this.getX()},${this.getY()}`;
             msg += `\nExisting: ${JSON.stringify(this.getConnection())}`;
@@ -414,12 +406,12 @@ export class Cell {
         }
     }
 
-    public removeProps(propType: CellPropsKey): void {
+    public removeProps(propType: TPropType): void {
         delete this._p[propType];
     }
 
     /* Removes the given object from cell properties.*/
-    public removeProp(prop: CellPropsKey, obj: TCellProp): boolean {
+    public removeProp(prop: TPropType, obj: TCellProp): boolean {
         if (this.hasProp(prop)) {
             const props = this._p[prop];
             const index = props!.indexOf(obj);
@@ -484,7 +476,7 @@ export class Cell {
         const result = [this._baseElem.getType()];
         if (!this._p) {return result;}
 
-        const keys = Object.keys(this._p) as CellPropsKey[];
+        const keys = Object.keys(this._p) as TPropType[];
         keys.forEach(propType => {
             const props = this.getProp(propType);
             // props must exist, otherwise it is not in keys
@@ -505,7 +497,7 @@ export class Cell {
 
         const keys = Object.keys(this._p);
         for (let i = 0; i < keys.length; i++) {
-            const prop = keys[i] as CellPropsKey;
+            const prop = keys[i] as TPropType;
             // arrpPops must exist, otherwise it is not in keys
             const arrProps = this._p[prop]!;
             for (let j = 0; j < arrProps.length; j++) {
@@ -523,7 +515,7 @@ export class Cell {
         if (!this._p) {return props;}
 
         if (this._baseElem.getType() === propType) {return [this._baseElem];}
-        Object.keys(this._p).forEach((prop: CellPropsKey) => {
+        Object.keys(this._p).forEach((prop: TPropType) => {
             // arrpPops must exist, otherwise it is not in keys
             const arrProps = this._p[prop]!;
             for (let i = 0; i < arrProps.length; i++) {
@@ -540,7 +532,7 @@ export class Cell {
         const result: any[] = [];
         if (!this._p) {return result;}
 
-        Object.keys(this._p).forEach((propType: CellPropsKey) => {
+        Object.keys(this._p).forEach((propType: TPropType) => {
             // props must exist, otherwise it is not in keys
             const props = this._p[propType]!;
             props.forEach(propObj => {
