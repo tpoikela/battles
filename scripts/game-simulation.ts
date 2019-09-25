@@ -194,7 +194,7 @@ function restoreGameFromFile(fname: string) {
     const jsonParsed = JSON.parse(buf);
     const fromJSON = new RG.FromJSON();
 
-    let game = new RG.Game();
+    let game = new RG.GameMain();
     game = fromJSON.createGame(game, jsonParsed);
 
     let driver = null;
