@@ -458,37 +458,6 @@ export class SentientActor extends BaseActor {
         return 0;
     }
 
-    //-------------------------------------------------------------
-    // Stats-related methods (these take eq and boosts into account
-    //-------------------------------------------------------------
-
-    /*
-    public getAccuracy(): number {
-        return this.getStatVal('Accuracy');
-    }
-
-    public getAgility(): number {
-        return this.getStatVal('Agility');
-    }
-
-    public getStrength(): number {
-        return this.getStatVal('Strength');
-    }
-
-    public getWillpower(): number {
-        return this.getStatVal('Willpower');
-    }
-
-
-    public getPerception(): number {
-        return this.getStatVal('Perception');
-    }
-
-    public getMagic(): number {
-        return this.getStatVal('Magic');
-    }
-    */
-
     public getSpeed(): number {
         return this.getStatVal('Speed');
     }
@@ -497,6 +466,7 @@ export class SentientActor extends BaseActor {
         const getter = RG.formatGetterName(stat);
         let value = this.get('Stats')[getter]();
         value += this.getInvEq().getEquipment()[getter]();
+        // value += this.getInvEq().getEquipment().getStat(name);
         value += this._addFromCompList('StatsMods', getter);
         return value;
     }
