@@ -373,7 +373,6 @@ for (let i = 0; i < _equipMods.length; i++) {
     };
 }
 
-
 export interface Equipment {
     getAccuracy(): number;
     getAgility(): number;
@@ -382,6 +381,7 @@ export interface Equipment {
     getMagic(): number;
     getPerception(): number;
     getProtection(): number;
+    getSpirituality(): number;
     getSpeed(): number;
     getStrength(): number;
     getWillpower(): number;
