@@ -432,7 +432,7 @@ function buildMapLevel(ow, coordMap): [Level, WorldConf] {
 }
 
 /* Returns a subLevel created based on the tile type. */
-function createSubLevel(ow: OWMap, owX, owY, xMap, yMap): Level {
+function createSubLevel(ow: OWMap, owX: number, owY: number, xMap, yMap): Level {
     const owMap: string[][] = ow.getMap();
     const type: string = owMap[owX][owY];
     const biomeType: string = ow.getBiome(owX, owY);
@@ -446,7 +446,7 @@ function createSubLevel(ow: OWMap, owX, owY, xMap, yMap): Level {
     const owSubLevel = new OWSubLevel(subLevel);
     ow.addSubLevel([owX, owY], owSubLevel);
 
-    addSubLevelWalls(type, owSubLevel, subLevel);
+    addSubLevelWalls(ow, owX, owY, type, owSubLevel, subLevel);
 
     // TODO Add other features such as cities, dungeons etc to the level.
     addSubLevelFeatures(ow, owX, owY, subLevel);
@@ -507,7 +507,10 @@ function addBiomeFeaturesSubLevel(biomeType: string, subLevel: Level): void {
 
 /* Adds the "mountain" walls into the overworld subLevel and the CellMap
  * sublevel. */
-function addSubLevelWalls(type: string, owSubLevel: OWSubLevel, subLevel: Level) {
+function addSubLevelWalls(
+    ow: OWMap,
+    owX: number, owY: number, type: string, owSubLevel: OWSubLevel, subLevel: Level
+): void {
     const map = subLevel.getMap();
 
     const canConnectNorth = OW.N_HAS_CONN.findIndex(item => item === type) >= 0;
@@ -517,6 +520,8 @@ function addSubLevelWalls(type: string, owSubLevel: OWSubLevel, subLevel: Level)
 
     const subX = map.cols;
     const subY = map.rows;
+    const owSizeX = ow.getSizeX();
+    const owSizeY = ow.getSizeY();
 
     const midX = Math.floor(subX / 2);
     const midY = Math.floor(subY / 2);
@@ -524,6 +529,7 @@ function addSubLevelWalls(type: string, owSubLevel: OWSubLevel, subLevel: Level)
     const MEAN_WX = 5;
     const MEAN_WY = 5;
     const STDDEV_W = 3;
+    const filterW = 3; // Experimentally chosen to be good filter window
     let width = null;
 
     let startY = -1;
@@ -540,20 +546,27 @@ function addSubLevelWalls(type: string, owSubLevel: OWSubLevel, subLevel: Level)
         startY = midY;
         endY = subY - 1;
     }
+    if (owX === 0) {startY = 0;}
+    else if (owX === owSizeX - 1) {endY = subY - 1;}
 
-    let widths = getWidthMovingAvg(endY + 1, MEAN_WX, STDDEV_W, subX, 3);
+    let widths: number[] = getWidthMovingAvg(endY + 1, MEAN_WX, STDDEV_W, subX, filterW);
     // Draw line from center to north
     if (canConnectNorth || canConnectSouth) {
         const wall = new OWWall('vertical');
         for (let y = startY; y <= endY; y++) {
             width = widths[y - startY];
-            const tile = [];
+            const tile: TCoord[] = [];
             if (width === 1) {width = MEAN_WX;}
-            for (let x = midX - (width - 1); x <= midX + (width - 1); x++) {
-                map.setBaseElemXY(x, y, ELEM.WALL_MOUNT);
+            let x0 = midX - (width - 1);
+            let x1 = midX + (width - 1);
+            if (owX === 0) {x0 = 0;}
+            if (owX === owSizeX - 1) {x1 = subX - 1;}
+
+            for (let x = x0; x <= x1; x++) {
+                // map.setBaseElemXY(x, y, ELEM.WALL_MOUNT);
                 tile.push([x, y]);
             }
-            // map.setBaseElems(tile, ELEM.WALL_MOUNT);
+            map.setBaseElems(tile, ELEM.WALL_MOUNT);
             wall.addWallCoord(tile);
         }
         owSubLevel.addWall(wall);
@@ -573,19 +586,26 @@ function addSubLevelWalls(type: string, owSubLevel: OWSubLevel, subLevel: Level)
         startX = 0;
         endX = midX - 1;
     }
+    if (owY === 0) {startX = 0;}
+    else if (owY === owSizeY - 1) {endX = subX - 1;}
 
-    widths = getWidthMovingAvg(endX + 1, MEAN_WY, STDDEV_W, subX, 3);
+    widths = getWidthMovingAvg(endX + 1, MEAN_WY, STDDEV_W, subX, filterW);
     if (canConnectEast || canConnectWest) {
         const wall = new OWWall('horizontal');
         for (let x = startX; x <= endX; x++) {
             width = widths[x - startX];
-            const tile = [];
+            const tile: TCoord[] = [];
             if (width === 1) {width = MEAN_WY;}
-            for (let y = midY - (width - 1); y <= midY + (width - 1); y++) {
-                map.setBaseElemXY(x, y, ELEM.WALL_MOUNT);
+            let y0 = midY - (width - 1);
+            let y1 = midY + (width - 1);
+
+            if (owY === 0) {y0 = 0;}
+            if (owY === owSizeY - 1) {y1 = subY - 1;}
+            for (let y = y0; y <= y1; y++) {
+                // map.setBaseElemXY(x, y, ELEM.WALL_MOUNT);
                 tile.push([x, y]);
             }
-            // map.setBaseElems(tile, ELEM.WALL_MOUNT);
+            map.setBaseElems(tile, ELEM.WALL_MOUNT);
             wall.addWallCoord(tile);
         }
         owSubLevel.addWall(wall);
@@ -593,9 +613,8 @@ function addSubLevelWalls(type: string, owSubLevel: OWSubLevel, subLevel: Level)
 
 }
 
-function getWallWidth(mean, stddev, subSize) {
+function getWallWidth(mean: number, stddev: number, subSize: number): number {
     let width = Math.floor(getRNG().getNormal(mean, stddev));
-    // width = Math.floor(width + coeff * width);
 
     if (width > subSize / 2) {
         width = subSize / 2 - 1;
@@ -607,13 +626,15 @@ function getWallWidth(mean, stddev, subSize) {
 }
 
 /* Gets the width using moving average algorithm. */
-function getWidthMovingAvg(nElem, mean, stddev, subSize, filterW) {
-    const unfiltered = [];
+function getWidthMovingAvg(
+    nElem: number, mean: number, stddev: number, subSize: number, filterW: number
+): number[] {
+    const unfiltered: number[] = [];
     for (let i = 0; i < nElem; i++) {
         unfiltered.push(getWallWidth(mean, stddev, subSize));
     }
 
-    const filtered = [];
+    const filtered: number[] = [];
     for (let i = 0; i < filterW; i++) {
         filtered.push(unfiltered[i]);
     }
@@ -634,11 +655,13 @@ function getWidthMovingAvg(nElem, mean, stddev, subSize, filterW) {
     return filtered;
 }
 
-function getFiltered(arr, i, filterW) {
+/* Applies window filter to number i, using given samples. This smoothes out the
+ * noise in mountain walls, reduces big spikes. */
+function getFiltered(samples: number[], i: number, filterW: number): number {
     const num = 2 * filterW + 1;
     let sum = 0;
     for (let n = i - filterW; n <= i + filterW; n++) {
-        sum += arr[n];
+        sum += samples[n];
     }
     return Math.floor(sum / num);
 }
@@ -817,10 +840,10 @@ function getAccessibleMountainCoord(subLevel: Level, edges = true): TCoord[] {
 
     // Sometimes no free cells are found, just skip this
     if (freeXY.length === 0) {
-        return null;
+        return [];
     }
 
-    let coord = [];
+    let coord: TCoord[] = [];
     let watchdog = 10 * WATCHDOG_MAX;
     while (!placed) {
         const xyRand = getRNG().arrayGetRand(freeXY);
@@ -1075,12 +1098,15 @@ function processSubLevel(
             }
             addCompsToZone(zoneConf, mainComps);
             owLore.addZone([x, y], zoneConf);
+            if (zoneConf.uniqueName) {
+                zoneConf.name = zoneConf.uniqueName;
+            }
         });
     });
 
 }
 
-function addDungeonConfToArea(feat, coordObj, areaConf): IF.ZoneConf {
+function addDungeonConfToArea(feat: OWSubFeature, coordObj, areaConf: IF.AreaConf): IF.ZoneConf {
     const [pX, pY] = getPlayerPosition(coordObj);
     const coordD = feat.coord;
     const {x, y, aX, aY, slX, slY, subX, subY} = coordObj;
@@ -1097,13 +1123,13 @@ function addDungeonConfToArea(feat, coordObj, areaConf): IF.ZoneConf {
     Object.assign(dungeonConf,
         {x: aX, y: aY, levelX: featX, levelY: featY,
             owX: x, owY: y, uniqueName});
-    areaConf.nDungeons += 1;
+    areaConf.nDungeons! += 1;
     addMaxDangerAndValue(pX, pY, dungeonConf);
-    areaConf.dungeon.push(dungeonConf);
+    areaConf.dungeon!.push(dungeonConf);
     return dungeonConf;
 }
 
-function addMountainConfToArea(feat, coordObj, areaConf): IF.ZoneConf {
+function addMountainConfToArea(feat: OWSubFeature, coordObj, areaConf: IF.AreaConf): IF.ZoneConf {
     const [pX, pY] = getPlayerPosition(coordObj);
     const coordM = feat.coord;
     const {x, y, aX, aY, slX, slY, subX, subY} = coordObj;
@@ -1118,24 +1144,24 @@ function addMountainConfToArea(feat, coordObj, areaConf): IF.ZoneConf {
             owX: x, owY: y
         });
     addMaxDangerAndValue(pX, pY, mountConf);
-    areaConf.nMountains += 1;
-    areaConf.mountain.push(mountConf);
+    areaConf.nMountains! += 1;
+    areaConf.mountain!.push(mountConf);
     return mountConf;
 }
 
 /* Adds maxDanger and maxValue props into the configuration. At the moment, this
  * is based on the distance from player (+ plus some randomisation). */
-function addMaxDangerAndValue(pX: number, pY: number, zoneConf): void {
+function addMaxDangerAndValue(pX: number, pY: number, zoneConf: IF.ZoneConf): void {
     const {x, y} = zoneConf;
-    const dX = Math.abs(pX - x);
-    const dY = Math.abs(pY - y);
+    const dX = Math.abs(pX - x!);
+    const dY = Math.abs(pY - y!);
     zoneConf.maxDanger = RG.getMaxDanger(dX, dY);
     zoneConf.maxValue = RG.getMaxValue(dX, dY);
 
     if (getRNG().getUniform() <= RG.EPIC_PROB) {
         zoneConf.isEpic = true;
-        zoneConf.maxDanger *= 2;
-        zoneConf.maxValue *= 3;
+        zoneConf.maxDanger! *= 2;
+        zoneConf.maxValue! *= 3;
     }
 }
 
