@@ -55,6 +55,7 @@ export interface PlaceData {
 export class GameMain {
 
     public hasNotify: boolean;
+    public debugEnabled: boolean;
 
     protected _players: SentientActor[];
     protected _places: PlaceData;
@@ -82,6 +83,9 @@ export class GameMain {
 
     constructor() {
         this.hasNotify = true;
+        this.debugEnabled = false;
+
+        this.notify = this.notify.bind(this);
         this._players = []; // List of players
         this._places = {};
         this._shownLevel = null; // One per game only
@@ -110,7 +114,7 @@ export class GameMain {
         this._engine.playerCommandCallback = this.playerCommandCallback.bind(this);
 
         // Re-assign the default Engine '() => false' function
-        this._engine.isGameOver = this.isGameOver;
+        this._engine.isGameOver = this.isGameOver.bind(this);
 
         this._eventPool.listenEvent(RG.EVT_ACTOR_KILLED, this);
         this._eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
@@ -516,6 +520,7 @@ export class GameMain {
     /* Used by the event pool. Game receives notifications about different
      * game events from child components. */
     public notify(evtName, args) {
+        this.dbg(`Received event ${evtName} with args`, args);
         if (evtName === RG.EVT_ACTOR_KILLED) {
             this.actorsKilled[args.actor.getID()] = true;
             if (args.actor.isPlayer()) {
@@ -523,10 +528,15 @@ export class GameMain {
                 const index = this._players.indexOf(actor);
                 if (index >= 0) {
                     if (this._players.length === 1) {
+                        this.dbg('Setting the game to be over now');
                         this._gameOver = true;
                         RG.gameMsg('GAME OVER!');
                     }
                     this._players.splice(index, 1);
+                }
+                else {
+                    RG.err('Game', 'notify',
+                      'No player found from list: ' + JSON.stringify(this._players));
                 }
             }
         }
@@ -848,6 +858,12 @@ export class GameMain {
 
     public entityPrint() {
         RG.diag(Entity.num);
+    }
+
+    public dbg(...args: any[]): void {
+        if (this.debugEnabled) {
+            console.log('[Game DEBUG]: ', ...args);
+        }
     }
 
 }
