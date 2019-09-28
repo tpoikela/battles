@@ -1,14 +1,13 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
-import {Random} from '../random';
 import * as Component from '../component';
 import {Brain} from '../brain';
 
 /* Processes entities with attack-related components.*/
 export class SystemAttack extends SystemBase {
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool?) {
         super(RG.SYS.ATTACK, compTypes, pool);
     }
 
