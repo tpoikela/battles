@@ -345,6 +345,7 @@ export interface ZoneConf {
     levelX?: number; // Position inside AreaTile level
     levelY?: number; // Position inside AreaTile level
     maxDanger?: number;
+    maxValue?: number;
     name: string;
     owX?: number; // Position in OWMap
     owY?: number; // Position in OWMap
