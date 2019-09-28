@@ -6,6 +6,7 @@
 import chai from 'chai';
 import {chaiBattles} from '../../helpers/chai-battles';
 import RG from '../../../client/src/rg';
+import {Keys} from '../../../client/src/keymap';
 import {RGTest} from '../../roguetest';
 import {GameMain} from '../../../client/src/game';
 import {WinCondition} from '../../../client/src/win-condition';
@@ -67,6 +68,9 @@ describe('Game.Main', () => {
         expect(game.shownLevel()).to.equal(level);
         expect(actor.getLevel()).to.equal(level);
 
+        const npc = new SentientActor('npc');
+        level.addActor(npc, 2, 2);
+
         const newMap = level.getMap();
         checkMap(newMap, cols, rows);
 
@@ -78,6 +82,11 @@ describe('Game.Main', () => {
 
         const explCells = level.exploreCells(actor);
         expect(explCells.length).to.equal(145);
+
+        const dmgComp = new Component.Damage(100, 'slash');
+        dmgComp.setSource(npc);
+        actor.add(dmgComp);
+        game.update({code: Keys.KEY.REST});
     });
 
     it('can add player to the specified location', () => {
