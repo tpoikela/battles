@@ -51,6 +51,10 @@ QuestGiver.prototype.giveQuest = function(target: Entity) {
     }
 };
 
+QuestGiver.prototype.numTargets = function(): number {
+    return this.questTargets.length;
+};
+
 QuestGiver.prototype.addTarget = function(
     targetType: string, target
 ): void {
