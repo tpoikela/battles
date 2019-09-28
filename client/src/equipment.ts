@@ -186,6 +186,22 @@ export class Equipment {
         return Object.keys(this._slots);
     }
 
+    public getFreeSlotTypes(): string[] {
+        const res: string[] = [];
+        this.getSlotTypes().forEach((name: string) => {
+            if (Array.isArray(this._slots[name])) {
+                const slots = this._slots[name] as EquipSlot[];
+                if (!(slots[0] as EquipSlot).hasItem()) {
+                    res.push(name);
+                }
+            }
+            else if (!(this._slots[name] as EquipSlot).hasItem()) {
+                res.push(name);
+            }
+        });
+        return res;
+    }
+
     public getItems(slotType?: string): EquipSlot[] | ItemBase[] {
         if (slotType && this._hasSlot(slotType)) {
             if (Array.isArray(this._slots[slotType])) {
