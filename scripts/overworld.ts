@@ -25,7 +25,8 @@ let conf: any = {
     worldY: mult * 400
 };
 
-const xMult = 2;
+const xMult = 2 * 2;
+const yMult = 2 * 3;
 
 mult = 1;
 conf = {
@@ -37,13 +38,13 @@ conf = {
     // nVWalls: 4,
     nVWalls: [0.8],
     owTilesX: xMult * 40,
-    owTilesY: mult * 40,
+    owTilesY: yMult * 40,
     worldX: xMult * 400,
-    worldY: mult * 400,
+    worldY: yMult * 400,
     nLevelsX: xMult * 4,
-    nLevelsY: mult * 4,
+    nLevelsY: yMult * 4,
     areaX: xMult * 4,
-    areaY: mult * 4,
+    areaY: yMult * 4,
     printResult: true
 };
 
