@@ -1,15 +1,18 @@
 
 import RG from '../rg';
-import {ObjectShell} from '../objectshellparser';
+import {ObjectShell, Parser} from '../objectshellparser';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import * as Component from '../component';
 import {emitZoneEvent} from './system.utils';
+import {IShell} from '../interfaces';
 
-const parser = ObjectShell.getParser();
+const parser: Parser = ObjectShell.getParser();
 
 type Entity = import('../entity').Entity;
 type HandleFunc = (ent, qEvent, questComp) => void;
+type ItemBase = import('../item').ItemBase;
+type Equipment = import('../equipment').Equipment;
 
 export class SystemQuest extends SystemBase {
 
@@ -126,7 +129,7 @@ export class SystemQuest extends SystemBase {
             ent.add(expComp);
 
             // Give reward, items + any other info
-            this.giveQuestReward(ent, giverComp);
+            this.giveQuestReward(ent, giver, giverComp);
             emitZoneEvent(giver.getLevel(), RG.ZONE_EVT.QUEST_COMPLETED,
                 {questGiver: giver});
         }
@@ -136,23 +139,31 @@ export class SystemQuest extends SystemBase {
 
     }
 
-    public giveQuestReward(ent, comp): void {
+    public giveQuestReward(ent, giver, comp): void {
         if (comp.hasReward()) {
             if (!comp.getHasGivenReward()) {
                 comp.setHasGivenReward(true);
                 const reward = comp.getReward();
                 // Right now, only items are supported, later add support for
                 // info etc
+                let rewardItem: null | ItemBase = null;
                 if (reward.type === 'item') {
                     const rewardName = reward.name;
 
-                    const item = parser.createItem(rewardName);
-                    if (item) {
-                        let msg = `${ent.getName()} receives ${item.getName()} as`;
+                    rewardItem = parser.createItem(rewardName);
+                    if (rewardItem) {
+                        let msg = `${ent.getName()} receives ${rewardItem.getName()} as`;
                         msg += ' a reward for completing the quest';
                         questMsg({cell: ent.getCell(), msg});
-                        ent.getInvEq().getInventory().addItem(item);
                     }
+                }
+                else if (reward.type === 'generate') {
+                    rewardItem = this.generateQuestRewardItem(ent, comp, giver);
+                }
+
+                // If item was created, give it to entity
+                if (rewardItem) {
+                    ent.getInvEq().getInventory().addItem(rewardItem);
                 }
             }
             else {
@@ -160,6 +171,62 @@ export class SystemQuest extends SystemBase {
                 questMsg({cell: ent.getCell(), msg});
             }
         }
+    }
+
+    public generateQuestRewardItem(ent, comp, giver): null | ItemBase {
+        const eq: Equipment = ent.getInvEq().getEquipment();
+        const freeSlotTypes: string[] = eq.getFreeSlotTypes();
+        const [minVal, maxVal] = questMinMaxValue(comp.numTargets());
+        const valueOk = (shell: IShell) => shell.value >= minVal && shell.value <= maxVal;
+
+        if (freeSlotTypes.length > 0) {
+            const randType = this.rng.arrayGetRand(freeSlotTypes);
+            let func = (shell: IShell) => (
+                shell.armourType === randType && valueOk(shell)
+            );
+            let item = parser.createRandomItem({func});
+            if (item) {
+                console.log('generateQuestRewardItem Returning item ', item.getName());
+                return item;
+            }
+
+            // Maybe randType is missile/spiritgem/hand
+            if (randType === 'hand') {
+                func = (shell: IShell) => valueOk(shell) && shell.type === 'weapon';
+            }
+            else if (randType === 'spiritgem') {
+                func = (shell: IShell) => (
+                    valueOk(shell) && shell.type === 'spiritgem'
+                );
+            }
+            else if (randType === 'missile') {
+                func = (shell: IShell) => (
+                    valueOk(shell) &&
+                    (shell.type === 'missile' || shell.type === 'ammo')
+                );
+            }
+            else if (randType === 'missileweapon') {
+                func = (shell: IShell) => (
+                    valueOk(shell) && shell.type === 'missileweapon'
+                );
+            }
+
+            item = parser.createRandomItem({func});
+            if (item) {
+                console.log('generateQuestRewardItem Returning item ', item.getName());
+                return item;
+            }
+        }
+        else {
+            // NO free slots, generate something else
+            const func = (shell: IShell) => (
+                valueOk(shell) && (shell.type === 'rune' ||
+                                            shell.type === 'potion')
+            );
+            const item = parser.createRandomItem({func});
+            if (item) {return item;}
+        }
+        return null;
     }
 
     public processQuestEvent(ent, qEvent) {
@@ -450,4 +517,17 @@ function isEventValidForThisQuest(qEvent, questComp) {
 
 function questMsg(obj) {
     RG.gameInfo(obj);
+}
+
+function questMinMaxValue(len: number): [number, number] {
+    switch (len) {
+        case 1: return [75, 150];
+        case 2: return [90, 190];
+        case 3: return [100, 220];
+        case 4: return [120, 250];
+        default: return [
+            120 + 30 * (len - 4),
+            250 + 30 * (len - 4),
+        ];
+    }
 }
