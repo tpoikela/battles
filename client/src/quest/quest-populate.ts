@@ -33,6 +33,8 @@ type WorldCity = import('../world').City;
 
 import {ElementXY, ElementShop} from '../element';
 
+const maxZoneRange = 10;
+
 //---------------------------------------------------------------------------
 // OBJECT QUEST-POPULATE
 //---------------------------------------------------------------------------
@@ -130,6 +132,7 @@ export class QuestPopulate {
         this.pool = POOL;
     }
 
+    /* Resets all variables which must cleared before next quest populate. */
     public resetData(): void {
         this.questData = {quests: []};
         this.questList = [];
@@ -905,6 +908,18 @@ export class QuestPopulate {
         let zones: ZoneBase[] = areaTile.getZones();
         zones = zones.filter(zz => zz.getType() !== 'battlezone');
 
+        // Check if there are suitable zones nearby
+        const [zX,zY] = zone.getTileXY();
+        const zonesInRange = zones.filter(zz => {
+            const xy = zz.getTileXY();
+            const [dX, dY] = RG.dXdY([zX, zY], xy);
+            return (dX <= maxZoneRange && dY <= maxZoneRange);
+        });
+        if (zonesInRange.length > 1) {
+            console.log(`Found ${zonesInRange.length} zones in range`);
+            zones = zonesInRange;
+        }
+
         let newZone: ZoneBase = this.rng.arrayGetRand(zones);
         if (zones.length > 1) {
             while (newZone.getID() === zone.getID()) {
@@ -916,7 +931,7 @@ export class QuestPopulate {
         return this.rng.arrayGetRand(newZone.getLevels());
     }
 
-    public getNewExploreLocation(zone, areaTile): Level | null {
+    public getNewExploreLocation(zone: ZoneBase, areaTile: AreaTile): Level | null {
         const dungeons = areaTile.getZones('Dungeon');
         const mountains = areaTile.getZones('Mountain');
         const allZones = dungeons.concat(mountains);
