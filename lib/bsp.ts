@@ -9,6 +9,8 @@ import ROT from './rot';
 
 export const BSP: any = {};
 
+type ArrayCoord = Array<[number, number]>;
+
 const OPTS = {
     discardByRatio: true,
     hRatio: 0.35,
@@ -21,19 +23,21 @@ const OPTS = {
     minRoomH: 2
 };
 
+type TLeaf = any;
+
 export class Tree {
 
     public lchild: Tree | null;
     public rchild: Tree | null;
-    public leaf: any;
+    public leaf: TLeaf;
 
-    constructor(leaf) {
+    constructor(leaf: TLeaf) {
         this.leaf = leaf;
         this.lchild = null;
         this.rchild = null;
     }
 
-    public getLeafs() {
+    public getLeafs(): TLeaf[] {
         if (this.lchild === null && this.rchild === null) {
             return [this.leaf];
         }
@@ -43,7 +47,7 @@ export class Tree {
         }
     }
 
-    public getLevel(level, queue) {
+    public getLevel(level: number, queue) {
         if (!queue) {
             queue = [];
         }
@@ -65,22 +69,29 @@ export class Tree {
 
 BSP.Tree = Tree;
 
-const Point = function(x, y) {
-    this.x = x;
-    this.y = y;
-};
+export class Point {
+    constructor(public x: number, public y: number) {
+    }
+}
 
+export class Container {
+    public x: number;
+    public y: number;
+    public w: number;
+    public h: number;
+    public center: Point;
 
-const Container = function(x, y, w, h) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.center = new Point(
-        this.x + Math.floor(this.w / 2),
-        this.y + Math.floor(this.h / 2)
-    );
-};
+    constructor(x: number, y: number, w: number, h: number) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.center = new Point(
+            this.x + Math.floor(this.w / 2),
+            this.y + Math.floor(this.h / 2)
+        );
+    }
+}
 BSP.Container = Container;
 
 //--------------
@@ -94,7 +105,7 @@ export class Room {
     public h: number;
     public w: number;
 
-    constructor(container) {
+    constructor(container: Container) {
         this.x = container.x + Room.rng.getUniformInt(1, Math.floor(container.w / 3));
         this.y = container.y + Room.rng.getUniformInt(1, Math.floor(container.h / 3));
         this.w = container.w - (this.x - container.x) - 1;
@@ -107,8 +118,8 @@ export class Room {
     }
 
     /* Returns all x,y coordinates occupied by the room. */
-    public getCoord() {
-        const coord = [];
+    public getCoord(): ArrayCoord {
+        const coord: Array<[number, number]> = [];
         const startX = this.x;
         const endX = startX + (this.w - 1);
         const startY = this.y;
@@ -169,8 +180,8 @@ export class BSPGen {
     }
 
     /* Creates and returns coordinates for path between containers c1 and c2. */
-    public createPath(c1, c2) {
-        const path = [];
+    public createPath(c1: Container, c2: Container): ArrayCoord {
+        const path: ArrayCoord = [];
         const center1 = c1.center;
         const center2 = c2.center;
         if (center1.x === center2.x) { // vertical
@@ -283,17 +294,17 @@ export class BSPGen {
         return [containerTree, rooms];
     }
 
-    public createWithRoomsAndPaths(cols, rows, iter = 5) {
+    public createWithRoomsAndPaths(cols: number, rows: number, iter = 5) {
         const mainContainer = new Container(0, 0, cols, rows);
         const containerTree = this.splitContainer(mainContainer, iter);
 
         const leafs = containerTree.getLeafs();
-        const rooms = [];
+        const rooms: Room[] = [];
         leafs.forEach(leaf => {
             rooms.push(new Room(leaf));
         });
 
-        const paths = [];
+        const paths: ArrayCoord[] = [];
         this.createPaths(containerTree, paths);
 
         this.generated = {
@@ -305,11 +316,11 @@ export class BSPGen {
     /* Creates paths between the nodes of the tree. These paths are placed into
      * paths variable. Each path is an array of coordinates.
      */
-    public createPaths(tree, paths) {
+    public createPaths(tree: Tree, paths: ArrayCoord[]): ArrayCoord[] {
         if (tree.lchild === null || tree.rchild === null) {
             return [];
         }
-        const path = this.createPath(tree.lchild.leaf, tree.rchild.leaf);
+        const path: ArrayCoord = this.createPath(tree.lchild.leaf, tree.rchild.leaf);
         if (path.length > 0) {
             paths.push(path);
         }
@@ -318,7 +329,7 @@ export class BSPGen {
         return paths;
     }
 
-    public get(prop) {
+    public get(prop: string): any {
         if (this.generated.hasOwnProperty(prop)) {
             return this.generated[prop];
         }
