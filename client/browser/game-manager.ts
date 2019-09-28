@@ -920,7 +920,10 @@ export class GameManager {
 
     /* Calls a GUI command corresponding to the code.*/
     public doGUICommand(code, ...args) {
-        if (this.guiCommands.hasOwnProperty(code)) {
+        if (this.gameGUIState.useModeEnabled) {
+            this.guiCommands[Keys.GUI.Use](code);
+        }
+        else if (this.guiCommands.hasOwnProperty(code)) {
             console.log('doGUICommand() Calling GUI command with code', code);
             this.guiCommands[code](code);
         }
@@ -929,6 +932,7 @@ export class GameManager {
         }
         else {
             console.error('Unknown keycode for GUI command.');
+            this.gameGUIState.useModeEnabled = false;
         }
     }
 
