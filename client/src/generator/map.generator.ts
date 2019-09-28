@@ -311,7 +311,7 @@ export class MapGenerator {
     }
 
     /* Creates a cellular type dungeon and makes all areas connected.*/
-    public createCellular(cols, rows) {
+    public createCellular(cols: number, rows: number) {
         const map = new ROT.Map.Cellular(cols, rows,
             {connected: true});
         map.randomize(0.52);
@@ -321,13 +321,13 @@ export class MapGenerator {
         return map;
     }
 
-    public createRooms(cols, rows) {
+    public createRooms(cols: number, rows: number) {
         const map = new ROT.Map.Digger(cols, rows,
             {roomWidth: [5, 20], dugPercentage: 0.7});
         return map;
     }
 
-    public createTownBSP(cols, rows, conf): MapObj {
+    public createTownBSP(cols: number, rows: number, conf): MapObj {
         const maxHouseX = conf.maxHouseX || 100;
         const maxHouseY = conf.maxHouseY || 100;
 
