@@ -918,7 +918,7 @@ export class AreaTile {
 
     private _level: Level;
 
-    constructor(x, y, area) {
+    constructor(x: number, y: number, area: Area) {
         this._tileX = x;
         this._tileY = y;
         this._area = area;
