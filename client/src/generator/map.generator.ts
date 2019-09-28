@@ -298,7 +298,7 @@ export class MapGenerator {
 
     /* Creates "ruins" type level with open outer edges and inner
      * "fortress" with some tunnels. */
-    public createRuins(cols, rows, conf = {}) {
+    public createRuins(cols: number, rows: number, conf = {}) {
         let ruinsConf = {born: [4, 5, 6, 7, 8],
             survive: [2, 3, 4, 5], connected: true};
         ruinsConf = Object.assign(ruinsConf, conf);
