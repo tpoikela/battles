@@ -5,7 +5,7 @@ import RG from '../../../client/src/rg';
 import {BaseActor, SentientActor} from '../../../client/src/actor';
 import * as Component from '../../../client/src/component';
 import {EventPool} from '../../../client/src/eventpool';
-import {System} from '../../../client/src/system';
+import {System, SystemQuest} from '../../../client/src/system';
 import {Quest, QuestPopulate} from '../../../client/src/quest';
 import {Entity} from '../../../client/src/entity';
 import {ItemBase} from '../../../client/src/item';
@@ -23,7 +23,7 @@ describe('System.Quest', () => {
     let questPopul = null;
     let systems = null;
     let sysBaseAction = null;
-    let sysQuest = null;
+    let sysQuest: SystemQuest = null;
     let sysDamage = null;
     let sysDeath = null;
     let pool = null;
@@ -36,7 +36,7 @@ describe('System.Quest', () => {
         const rng = RGTest.createRNG(1);
         pool = EventPool.getPool();
         questPopul = new QuestPopulate({rng});
-        sysQuest = new System.Quest(['GiveQuest', 'QuestCompleted',
+        sysQuest = new SystemQuest(['GiveQuest', 'QuestCompleted',
             'QuestTargetEvent'], pool);
 
         sysBaseAction = new System.BaseAction(['Pickup', 'Read', 'Give'], pool);
@@ -53,6 +53,22 @@ describe('System.Quest', () => {
         level = city.getLevels()[0];
         quester = new SentientActor('hero');
         level.addActor(quester, 1, 1);
+    });
+
+    it('handles reward giving after quests', () => {
+        const reportQuestTasks = ['<goto>already_there', '<report>listen',
+            '<goto>already_there', 'report'];
+        const reportQuest = new Quest('Report info to actor', reportQuestTasks);
+        questPopul.mapQuestToResources(reportQuest, city, null);
+        questPopul.addQuestComponents(city);
+
+        const actors = level.getActors();
+
+        const giver = actors.find(actor => actor.has('QuestGiver'));
+        const giverComp = giver.get('QuestGiver');
+        giverComp.setReward({type: 'generate'});
+        sysQuest.rng.setSeed(Date.now());
+        sysQuest.generateQuestRewardItem(quester, giverComp, giver);
     });
 
     // Note we don't create separate it() blocks for all tests because that
