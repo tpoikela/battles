@@ -30,6 +30,8 @@ type ItemOrNull = ItemBase | null;
 type ZoneBase = import('../world').ZoneBase;
 type AreaTile = import('../world').AreaTile;
 type WorldCity = import('../world').City;
+type WorldTop = import('../world').WorldTop;
+type Area = import('../world').Area;
 
 import {ElementXY, ElementShop} from '../element';
 
@@ -61,6 +63,8 @@ interface QuestPopulData {
     return: any[];
     zone: any[];
 }
+
+type QDataKey = keyof QuestPopulData;
 
 interface QuestFlags {
     alreadyKnowIt: boolean;
@@ -157,6 +161,14 @@ export class QuestPopulate {
         this.questGivers = new Map();
     }
 
+    public getCurrQuest(): QuestData {
+        if (this.currQuest) {
+            return this.currQuest;
+        }
+        RG.err('QuestPopulate', 'getCurrQuest', 'currQuest is null!');
+        return new QuestData(); // For linting only
+    }
+
     public setDebug(val: boolean): void {
         this.debug = val;
         debug.enabled = val;
@@ -185,16 +197,17 @@ export class QuestPopulate {
         });
     }
 
-    public addQuestPopulData(key: string, populData): void {
-        if (!this._data.has(this.currQuest)) {
-            this.initQuestPopulDataForQuest(this.currQuest);
+    public addQuestPopulData(key: QDataKey, populData): void {
+        const currQuest = this.getCurrQuest();
+        if (!this._data.has(currQuest)) {
+            this.initQuestPopulDataForQuest(this.getCurrQuest());
         }
 
-        if (this._data.get(this.currQuest).hasOwnProperty(key)) {
-            this._data.get(this.currQuest)[key].push(populData);
+        if (this._data.get(currQuest)!.hasOwnProperty(key)) {
+            this._data.get(currQuest)![key].push(populData);
         }
         else {
-            const keys = Object.keys(this._data.get(this.currQuest)).join(',');
+            const keys = Object.keys(this._data.get(currQuest)).join(',');
             RG.err('QuestPopulate', 'addQuestPopulData',
                `Key ${key} not present. Choices: ${keys}`);
         }
@@ -203,10 +216,11 @@ export class QuestPopulate {
     /* Returns previous item of given type. Type refers to actor/item/place/element.
      * */
     public getQuestPopulData(
-        type: string, searchParen: boolean = false
+        type: QDataKey, searchParen: boolean = false
     ): Entity | Location | null {
-        if (this._data.has(this.currQuest)) {
-            const qData: QuestPopulData = this._data.get(this.currQuest);
+        const currQuest = this.getCurrQuest();
+        if (this._data.has(currQuest)) {
+            const qData: QuestPopulData = this._data.get(currQuest)!;
             if (qData.hasOwnProperty(type) && qData[type].length > 0) {
                 const n = qData[type].length;
                 return qData[type][n - 1];
@@ -241,8 +255,12 @@ export class QuestPopulate {
 
     /* Creates quests for given tile x,y in area in world. Returns the number
      * of quests successfully created. */
-    public createQuests(world, area, x, y): number {
-        const areaTile: AreaTile = area.getTileXY(x, y);
+    public createQuests(world: WorldTop, area: Area, x: number, y: number): number {
+        if (!area.isLoaded(x, y)) {
+            RG.err('QuestPopulate', 'createQuests',
+                `Tried to create quests for unloaded AreaTile[${x}][${y}]!`);
+        }
+        const areaTile: AreaTile = area.getTileXY(x, y) as AreaTile;
         const cities: WorldCity[] = areaTile.getZones('City') as WorldCity[];
         let numCreated = 0;
         cities.forEach((city: WorldCity) => {
@@ -714,7 +732,9 @@ export class QuestPopulate {
             }
         }
         if (createNew) {
-            // TODO
+            RG.warn('QuestPopulate', 'getActorForQuests',
+              `No suitable actor found. Using ${actor.getName()}. ` +
+                  `May bring undesirable effects`);
         }
         return actor;
     }
@@ -1013,6 +1033,7 @@ export class QuestPopulate {
             const questGiver = this.getActorForQuests(level.getActors());
             const giverComp = new Component.QuestGiver(questData.getDescr());
             this.addTargetsToGiver(giverComp, questData);
+            giverComp.setReward({type: 'generate'});
 
             questGiver.add(giverComp);
             this.addUniqueName(questGiver);
