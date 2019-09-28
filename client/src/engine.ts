@@ -149,10 +149,11 @@ export class Engine {
     // Not a useless function, re-assigned in Game.Main, but needed
     // here for testing Engine without Game.Main
     public isGameOver(): boolean {
+        // RG.err('Engine', 'isGameOver', 'Should not be called');
         return false;
     }
 
-    public isActiveLevel(level): boolean {
+    public isActiveLevel(level: Level): boolean {
         const index = this._activeLevels.indexOf(level.getID());
         return index >= 0;
     }
@@ -257,6 +258,7 @@ export class Engine {
         // Loop systems once per player action
         this.sysMan.updateLoopSystems();
 
+        let watchdog = 10000;
         // Next/act until player found, then go back waiting for key...
         while (!this.nextActor.isPlayer() && !this.isGameOver()) {
 
@@ -271,6 +273,13 @@ export class Engine {
                 RG.err('Game.Engine', 'updateGameLoop',
                     'Game loop out of events! Fatal!');
                 break; // if errors suppressed (testing), breaks the loop
+            }
+            // Added for debugging for now
+            --watchdog;
+            if (watchdog <= 0) {
+                RG.err('Engine', 'updateGameLoop',
+                     'GameLoop stuck. 10K events taken, no player');
+                break;
             }
         }
         if (!this.isGameOver()) {
