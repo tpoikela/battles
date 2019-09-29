@@ -34,6 +34,8 @@ import { IConstraint, LevelConf } from './interfaces';
 const Stairs = Element.ElementStairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
 
+type Entity = import('./entity').Entity;
+type SentientActor = import('./actor').SentientActor;
 type Random = import('./random').Random;
 type Stairs = Element.ElementStairs;
 type WorldBase = World.WorldBase;
@@ -41,16 +43,8 @@ type WorldTop = World.WorldTop;
 type ZoneBase = World.ZoneBase;
 type Area = World.Area;
 type ConcreteSubZone = World.Branch | World.CityQuarter |
-    World.MountainFace;
-
-interface GlobalConf {
-    levelSize: string;
-    dungeonX: number;
-    dungeonY: number;
-    sqrPerActor: number;
-    sqrPerItem: number;
-    set: boolean;
-}
+    World.MountainFace | World.MountainSummit;
+type FromJSON = import('./game.fromjson').FromJSON;
 
 
 /* Determines the x-y sizes for different types of levels. */
@@ -87,42 +81,63 @@ const levelSizes = {
  * generated procedurally, and the factory will then use the configuration for
  * building the world. Separation of concerns, you know.
  */
-export const FactoryWorld = function() {
-    this._verif = new Verify.Conf('FactoryWorld');
-    this.factZone = new FactoryZone();
+export class FactoryWorld {
+    public _verif: Verify.Conf;
+    public factZone: FactoryZone;
 
-    // Creates all zones when the area is created if true. Setting it to true
-    // makes creation of game very slow, as the full game is built in one go
-    this.createAllZones = true;
-    this.worldElemByID = {} as {[key: number]: WorldBase}; // Stores world elements by ID
+    public createAllZones: boolean;
+    public worldElemByID: {[key: number]: WorldBase}; // Stores world elements by ID
 
-    this.presetLevels = {};
+    public presetLevels: {[key: string]: any}; // TODO
 
-    this._conf = new ConfStack();
+    public _conf: ConfStack;
 
-    // Can be used to pass already created levels to different zones. For
-    // example, after restore game, no new levels should be created
-    this.id2level = {} as IF.ID2LevelMap;
-    this.id2levelSet = false;
-    this.id2entity = {};
+    public id2level: IF.ID2LevelMap;
+    public id2levelSet: boolean;
+    public id2entity: {[key: number]: Entity};
+
+    public fromJSON: null | FromJSON;
+    public overworld: null | OWMap;
+
+    constructor() {
+        this._verif = new Verify.Conf('FactoryWorld');
+        this.factZone = new FactoryZone();
+
+        // Creates all zones when the area is created if true. Setting it to true
+        // makes creation of game very slow, as the full game is built in one go
+        this.createAllZones = true;
+        this.worldElemByID = {} as {[key: number]: WorldBase}; // Stores world elements by ID
+
+        this.presetLevels = {};
+
+        this._conf = new ConfStack();
+
+        // Can be used to pass already created levels to different zones. For
+        // example, after restore game, no new levels should be created
+        this.id2level = {} as IF.ID2LevelMap;
+        this.id2levelSet = false;
+        this.id2entity = {};
+        this.fromJSON = null;
+        this.overworld = null;
+    }
 
     //----------------------------------------------------------------------
     // FUNCTIONS
     //----------------------------------------------------------------------
-    this.setRNG = function(rng: Random): void {
+    public setRNG(rng: Random): void {
         this.factZone.setRNG(rng);
-    };
+    }
 
 
-    this.setPresetLevels = function(levels: Level[]): void {
+    public setPresetLevels(levels: {[key: string]: Level}): void {
         this.presetLevels = levels;
         this.debug('PresetLevels were set.');
-    };
+    }
 
     /* If id2level is set, factory does not construct any levels. It uses
      * id2level as a lookup table instead. This is mainly used when restoring a
      * saved game. */
-    this.setId2Level = function(id2level: IF.ID2LevelMap) {
+    public setId2Level(id2level: IF.ID2LevelMap) {
         if (Object.keys(id2level).length === 0) {
             RG.warn('FactoryWorld', 'setId2Level',
                 'There are no levels/keys present in id2level map. Bug?');
@@ -130,11 +145,11 @@ export const FactoryWorld = function() {
         this.id2level = id2level;
         this.id2levelSet = true;
         this.debug('Id2Level was set OK.');
-    };
+    }
 
     /* Pushes the hier name and configuration on the stack. Config can be
     * queried with getConf(). */
-    this.pushScope = function(conf: {[key: string]: any}): void {
+    public pushScope(conf: {[key: string]: any}): void {
         if (conf) {
             this._conf.pushScope(conf);
         }
@@ -142,19 +157,19 @@ export const FactoryWorld = function() {
             RG.err('FactoryWorld', 'pushScope',
               `Null/undef conf given`);
         }
-    };
+    }
 
     /* Removes given config and the name it contains from stacks. Reports an
     * error if removed name does not match the name in conf. */
-    this.popScope = function(conf: {[key: string]: any}): void {
+    public popScope(conf: {[key: string]: any}): void {
         this._conf.popScope(conf);
-    };
+    }
 
     /* Initializes the global configuration such as level size. */
-    this.setGlobalConf = function(conf: any = {}): void {
+    public setGlobalConf(conf: any = {}): void {
         const levelSize = conf.levelSize || 'Medium';
         const sqrPerActor = conf.sqrPerActor || RG.ACTOR_MEDIUM_SQR;
-        const globalConf: GlobalConf = {
+        const globalConf: IF.GlobalConf = {
             levelSize,
             dungeonX: levelSizes.dungeon[levelSize].x,
             dungeonY: levelSizes.dungeon[levelSize].y,
@@ -164,26 +179,26 @@ export const FactoryWorld = function() {
         };
         this._conf.setGlobalConf(globalConf);
         this.debug('globalConf set to ' + JSON.stringify(globalConf));
-    };
+    }
 
-    this.getGlobalConf = function(): GlobalConf {
+    public getGlobalConf(): IF.GlobalConf {
         return this._conf.getGlobalConf();
-    };
+    }
 
     /* Returns a config value. */
-    this.getConf = function(keys: string) {
+    public getConf(keys: string) {
         return this._conf.getConf(keys);
-    };
+    }
 
-    this.setOverWorld = function(overworld: OWMap): void {
+    public setOverWorld(overworld: OWMap): void {
         this.overworld = overworld;
-    };
+    }
 
     /* Returns the full hierarchical name of the zone. */
-    this.getHierName = (): string => this._conf.getScope().join('.');
+    public getHierName(): string {return this._conf.getScope().join('.');}
 
     /* Creates a world using given configuration. */
-    this.createWorld = function(conf: IF.WorldConf): World.WorldTop {
+    public createWorld(conf: IF.WorldConf): World.WorldTop {
         this._verif.verifyConf('createWorld', conf, ['name', 'nAreas']);
         if (!this.getGlobalConf().set) {
             this.setGlobalConf({});
@@ -207,11 +222,11 @@ export const FactoryWorld = function() {
         this.popScope(conf);
         this.addWorldID(conf, world);
         return world;
-    };
+    }
 
 
     /* Creates an area which can be added to a world. */
-    this.createArea = function(conf: IF.AreaConf): World.Area {
+    public createArea(conf: IF.AreaConf): World.Area {
         this._verif.verifyConf('createArea', conf,
             ['name', 'maxX', 'maxY']);
         this.pushScope(conf);
@@ -244,9 +259,9 @@ export const FactoryWorld = function() {
         }
         this.popScope(conf);
         return area;
-    };
+    }
 
-    this.restoreCreatedZones = (world: WorldTop, area: Area, areaConf: IF.AreaConf): void => {
+    public restoreCreatedZones(world: WorldTop, area: Area, areaConf: IF.AreaConf): void {
         Object.keys(areaConf.zonesCreated).forEach(keyXY => {
             const [xStr, yStr] = keyXY.split(',');
             const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
@@ -255,10 +270,10 @@ export const FactoryWorld = function() {
                 this.createZonesForTile(world, area, x, y);
             }
         });
-    };
+    }
 
     /* Creates zones for given area tile x,y with located in area areaName. */
-    this.createZonesForTile = (world: WorldTop, area: Area, x: number, y: number): void => {
+    public createZonesForTile(world: WorldTop, area: Area, x: number, y: number): void {
         // Setup the scope & conf stacks
         if (!area.tileHasZonesCreated(x, y)) {
             this.debug(`Creating Area ${x},${y} zones (not created yet)`);
@@ -283,11 +298,11 @@ export const FactoryWorld = function() {
         else {
             this.debug(`Area ${x},${y} zones already created`);
         }
-    };
+    }
 
     /* Adds actors and items into AreaTile level. Config for world/area should
      * already exists in the stack, so calling this.getConf() gets it. */
-    this.populateAreaLevel = (area: Area, x: number, y: number): void => {
+    public populateAreaLevel(area: Area, x: number, y: number): void {
         const playerX = Math.floor(area.getSizeX() / 2);
         const playerY = area.getSizeY() - 1;
         const parser = ObjectShell.getParser();
@@ -328,14 +343,14 @@ export const FactoryWorld = function() {
         this.setAreaLevelConstraints(levelConf, x, y);
 
         levelConf.item = levelConf.item;
-        fact.addNRandItems(level, parser, levelConf);
+        fact.addNRandItems(level, parser, levelConf as IF.ItemConf);
         levelConf.actor = levelConf.actor;
-        fact.addNRandActors(level, parser, levelConf);
+        fact.addNRandActors(level, parser, levelConf as IF.ActorConf);
 
         this.addActorSpawner(level, parser, levelConf);
-    };
+    }
 
-    this._createAllZones = (area: Area, conf, tx = -1, ty = -1): void => {
+    public _createAllZones(area: Area, conf, tx = -1, ty = -1): void {
         this.debug(`_createAllZones ${tx}, ${ty}`);
         if (!conf.tiles) {
             // Is this ever entered? Can be removed?
@@ -350,9 +365,9 @@ export const FactoryWorld = function() {
             const areaTileConf = conf.tiles[tx][ty];
             this.createZonesFromTile(area, areaTileConf, tx, ty);
         }
-    };
+    }
 
-    this.createZonesFromArea = (area: Area, conf, tx = -1, ty = -1): void => {
+    public createZonesFromArea(area: Area, conf, tx = -1, ty = -1): void {
         this.debug(`createZonesFromArea ${tx}, ${ty}`);
         ZONE_TYPES.forEach(type => {
             const typeLc = type.toLowerCase();
@@ -383,11 +398,11 @@ export const FactoryWorld = function() {
             }
 
         });
-    };
+    }
 
     /* Used when 'tiles' exists inside areaConf. Usually when restoring a saved
      * game. */
-    this.createZonesFromTile = (area: Area, areaTileConf, tx, ty): void => {
+    public createZonesFromTile(area: Area, areaTileConf, tx, ty): void {
         ZONE_TYPES.forEach(type => {
             const typeLc = type.toLowerCase();
             const createFunc = 'create' + type;
@@ -415,11 +430,11 @@ export const FactoryWorld = function() {
             }
 
         });
-    };
+    }
 
     /* Used when creating area from existing levels. Uses id2level lookup table
      * to construct 2-d array of levels.*/
-    this.getAreaLevels = (conf): Level[][] => {
+    public getAreaLevels(conf): Level[][] {
         const levels: Level[][] = [];
         if (conf.tiles) {
             conf.tiles.forEach((tileCol) => {
@@ -443,9 +458,9 @@ export const FactoryWorld = function() {
 
         }
         return levels;
-    };
+    }
 
-    this.createDungeon = function(conf): World.Dungeon {
+    public createDungeon(conf): World.Dungeon {
         this._verif.verifyConf('createDungeon', conf,
             ['name', 'nBranches']);
         this.pushScope(conf);
@@ -494,10 +509,10 @@ export const FactoryWorld = function() {
 
         this.popScope(conf);
         return dungeon;
-    };
+    }
 
     /* Creates one dungeon branch and all levels inside it. */
-    this.createBranch = function(conf): World.Branch {
+    public createBranch(conf): World.Branch {
         this._verif.verifyConf('createBranch', conf,
             ['name', 'nLevels']);
         this.pushScope(conf);
@@ -572,7 +587,7 @@ export const FactoryWorld = function() {
                 this.addFixedFeatures(i, level, branch);
             }
 
-            branch.addLevel(level);
+            branch.addLevel(level as Level); // Should be Level at this point
         }
 
         // Do connecting only if not restoring the branch
@@ -588,11 +603,11 @@ export const FactoryWorld = function() {
 
         this.popScope(conf);
         return branch;
-    };
+    }
 
     /* Returns a level from presetLevels if any exist for the current level
      * number. */
-    this.getFromPresetLevels = (i, presetLevels: IF.LevelObj[]): Level | null =>  {
+    public getFromPresetLevels(i: number, presetLevels: IF.LevelObj[]): IF.LevelSpecStub | Level | null  {
         let foundLevel = null;
         if (presetLevels.length > 0) {
             const levelObj = presetLevels.find(lv => lv.nLevel === i);
@@ -601,43 +616,43 @@ export const FactoryWorld = function() {
             }
         }
         return foundLevel;
-    };
+    }
 
-    const _errorOnFunc = val => {
+    public _errorOnFunc(val: any): void {
         if (typeof val === 'function') {
             RG.err('Factory', '_errorOnFunc',
                 `Function constraint not supported anymore: ${val.toString()}`);
         }
-    };
+    }
 
     /* Sets the randomization constraints for the level based on current
      * configuration. */
-    this.setLevelConstraints = function(levelConf): void {
+    public setLevelConstraints(levelConf): void {
         const constraint = this.getConf('constraint');
         const constrFact = new Constraints();
         if (constraint) {
             const hierName = this.getHierName();
             // this._verifyConstraintKeys(constraint);
             if (constraint.actor) {
-                _errorOnFunc(constraint.actor);
+                this._errorOnFunc(constraint.actor);
                 levelConf.actor = constrFact.getConstraints(constraint.actor);
                 const str = JSON.stringify(constraint.actor);
                 this.debug(`Found actor constraint for ${hierName}: ${str}`);
             }
             if (constraint.item) {
-                _errorOnFunc(constraint.item);
+                this._errorOnFunc(constraint.item);
                 levelConf.item = constrFact.getConstraints(constraint.item);
                 const str = JSON.stringify(constraint.item);
                 this.debug(`Found item constraint for ${hierName}: ${str}`);
             }
             if (constraint.food) {
-                _errorOnFunc(constraint.food);
+                this._errorOnFunc(constraint.food);
                 levelConf.food = constrFact.getConstraints(constraint.food);
                 const str = JSON.stringify(constraint.food);
                 this.debug(`Found food constraint for ${hierName}: ${str}`);
             }
             if (constraint.gold) {
-                _errorOnFunc(constraint.gold);
+                this._errorOnFunc(constraint.gold);
                 levelConf.gold = constrFact.getConstraints(constraint.gold);
                 const str = JSON.stringify(constraint.gold);
                 this.debug(`Found gold constraint for ${hierName}: ${str}`);
@@ -675,9 +690,9 @@ export const FactoryWorld = function() {
         if (wallType) {levelConf.wallType = wallType;}
         if (floorType) {levelConf.floorType = floorType;}
         if (isFriendly) {levelConf.friendly = true;}
-    };
+    }
 
-    this._verifyConstraintKeys = function(constraint): void {
+    public _verifyConstraintKeys(constraint): void {
         const keys = new Set(['actor', 'item', 'food', 'gold', 'shop',
             'disposition'
         ]);
@@ -688,9 +703,9 @@ export const FactoryWorld = function() {
                     `Unsupported key ${key} in ${json}`);
             }
         });
-    };
+    }
 
-    this.setAreaLevelConstraints = function(levelConf, aX, aY): void {
+    public setAreaLevelConstraints(levelConf, aX, aY): void {
         const key = aX + ',' + aY;
         const constraints = this.getConf('constraint');
         if (constraints && constraints.hasOwnProperty(key)) {
@@ -702,10 +717,10 @@ export const FactoryWorld = function() {
             this.setLevelConstraints(levelConf);
             this.popScope(conf);
         }
-    };
+    }
 
     /* Adds fixed features such as stairs, actors and items into the level. */
-    this.addFixedFeatures = function(nLevel, level, zone): void {
+    public addFixedFeatures(nLevel, level, zone): void {
         const create = this.getConf('create');
 
         // Actor creation
@@ -737,10 +752,10 @@ export const FactoryWorld = function() {
                 }
             });
         }
-    };
+    }
 
     /* Returns preset levels (if any) for the current zone. */
-    this.getPresetLevels = function(hierName: string, subZoneConf) {
+    public getPresetLevels(hierName: string, subZoneConf) {
 
         // First check the configuration
         const presetLevels = this.getConf('presetLevels');
@@ -776,9 +791,9 @@ export const FactoryWorld = function() {
         }
 
         return [];
-    };
+    }
 
-    this.createMountain = function(conf: IF.MountainConf): World.Mountain {
+    public createMountain(conf: IF.MountainConf): World.Mountain {
         this._verif.verifyConf('createMountain', conf,
             ['name', 'nFaces', 'face']);
         this.pushScope(conf);
@@ -833,9 +848,9 @@ export const FactoryWorld = function() {
 
         this.popScope(conf);
         return mountain;
-    };
+    }
 
-    this.createMountainFace = function(conf: IF.FaceConf): World.MountainFace {
+    public createMountainFace(conf: IF.FaceConf): World.MountainFace {
         if (this.id2levelSet) {
             this._verif.verifyConf('createMountainFace', conf,
                 ['name', 'nLevels']);
@@ -848,8 +863,8 @@ export const FactoryWorld = function() {
         const faceName = conf.name;
         this.pushScope(conf);
         const face = new World.MountainFace(faceName);
-        const mLevelConf = { x: conf.x, y: conf.y};
-
+        const mLevelConf: LevelConf = { x: conf.x, y: conf.y,
+            maxValue: 100, maxDanger: 4};
         this.setLevelConstraints(mLevelConf);
 
         for (let i = 0; i < conf.nLevels; i++) {
@@ -867,22 +882,26 @@ export const FactoryWorld = function() {
         this._addEntranceToSubZone(face, conf);
         this.popScope(conf);
         return face;
-    };
+    }
 
     /* Creates a subzone for mountain summit. Creates the levels contained in
      * that subzone. */
-    this.createSummit = function(conf: IF.SummitConf): World.MountainSummit {
+    public createSummit(conf: IF.SummitConf): World.MountainSummit {
         this._verif.verifyConf('createSummit', conf, ['name', 'nLevels']);
         this.pushScope(conf);
         const summit = new World.MountainSummit(conf.name);
 
-        const summitLevelConf = Object.assign({}, conf);
+        const summitLevelConf: any = Object.assign({}, conf); // TODO fix types
+
         this.setLevelConstraints(summitLevelConf);
         this.addMaxDangerIfMissing(summitLevelConf);
 
         for (let i = 0; i < conf.nLevels; i++) {
             let level = null;
             if (!this.id2levelSet) {
+                if (!summitLevelConf.maxDanger) {
+                    summitLevelConf.maxDanger = 4;
+                }
                 level = this.factZone.createSummitLevel(summitLevelConf);
                 const dungFeat = new DungeonFeatures('mountain');
                 if (i === (conf.nLevels - 1)) {
@@ -899,9 +918,9 @@ export const FactoryWorld = function() {
         this._addEntranceToSubZone(summit, conf);
         this.popScope(conf);
         return summit;
-    };
+    }
 
-    this.addMaxDangerIfMissing = function(conf): void {
+    public addMaxDangerIfMissing(conf): void {
         if (!Number.isInteger(conf.maxDanger)) {
             conf.maxDanger = this.getConf('maxDanger');
         }
@@ -911,9 +930,9 @@ export const FactoryWorld = function() {
                 conf.maxValue = maxValue;
             }
         }
-    };
+    }
 
-    this._addEntranceToSubZone = function(
+    public _addEntranceToSubZone(
         subZone: ConcreteSubZone, conf: IF.SubZoneConf
     ): void {
         if (conf.hasOwnProperty('entranceLevel')) {
@@ -924,10 +943,10 @@ export const FactoryWorld = function() {
             //     `got conf: ${conf}`);
             subZone.setEntranceLocation(conf.entrance);
         }
-    };
+    }
 
     /* Creates a City and all its sub-zones. */
-    this.createCity = function(conf: IF.CityConf): World.City {
+    public createCity(conf: IF.CityConf): World.City {
         this._verif.verifyConf('createCity',
             conf, ['name', 'nQuarters']);
         this.pushScope(conf);
@@ -976,10 +995,10 @@ export const FactoryWorld = function() {
 
         this.popScope(conf);
         return city;
-    };
+    }
 
     /* Createa CityQuarter which can be added to a city. */
-    this.createCityQuarter = function(conf: IF.QuarterConf): World.CityQuarter {
+    public createCityQuarter(conf: IF.QuarterConf): World.CityQuarter {
         this._verif.verifyConf('createCityQuarter',
             conf, ['name', 'nLevels']);
         this.pushScope(conf);
@@ -1016,16 +1035,18 @@ export const FactoryWorld = function() {
                     level = this.id2level[id];
                 }
             }
-            else if (level.stub) {
+            else if ((level as IF.LevelSpecStub).stub) {
+                const stubObj = level as IF.LevelSpecStub;
                 const levelFact = new LevelFactory(this);
-                level = levelFact.create(level.new, level.args);
+                // TODO fix type
+                level = levelFact.create(stubObj.new, stubObj.args as any) as Level;
                 if (!level) {
                     RG.err('Factory', 'createCityQuarter',
                         'Stub found but cannot create level');
                 }
                 if (debug.enabled) {
                     this.debug('Creating level from stub ' +
-                        JSON.stringify(level.stub));
+                        JSON.stringify(stubObj.stub));
                 }
             }
             else if (conf.createPresetLevels && conf.create) {
@@ -1035,6 +1056,7 @@ export const FactoryWorld = function() {
                 this.debug(`cityQuarter ${hierName} ${i} from preset level`);
             }
 
+            level = level as Level; // Should be settled now
             // Need to add the shops to the quarter
             if (!this.id2levelSet) {
                 if (level.hasExtras()) {
@@ -1063,7 +1085,7 @@ export const FactoryWorld = function() {
                 shopObj.setCoord(shop.coord);
                 shopObj._isAbandoned = shop.isAbandoned;
                 if (!shop.isAbandoned) {
-                    const keeper = this.id2entity[shop.shopkeeper];
+                    const keeper = this.id2entity[shop.shopkeeper] as SentientActor;
                     if (keeper) {
                         shopObj.setShopkeeper(keeper);
                     }
@@ -1081,9 +1103,9 @@ export const FactoryWorld = function() {
 
         this.popScope(conf);
         return quarter;
-    };
+    }
 
-    this.createBattleZone = conf => {
+    public createBattleZone(conf): World.BattleZone {
         this.pushScope(conf);
         const battleZone = new World.BattleZone(conf.name);
         if (!this.id2levelSet) {
@@ -1103,12 +1125,11 @@ export const FactoryWorld = function() {
         }
         this.popScope(conf);
         return battleZone;
-    };
-
+    }
 
     /* Returns the name for connection elem based on zoneType and
      * zone configuration. */
-    this.getConnectionName = function(conf, zoneType, stairs) {
+    public getConnectionName(conf, zoneType, stairs): string {
         let name = '';
         if (zoneType === 'city') {
             name = 'town';
@@ -1128,10 +1149,10 @@ export const FactoryWorld = function() {
             name = isDown ? 'stairsDown' : 'stairsUp';
         }
         return name;
-    };
+    }
 
     /* Returns x,y coord for stairs placed on the tile level. */
-    this.getTileStairsXY = (level, conf) => {
+    public getTileStairsXY(level, conf) {
         let [tsX, tsY] = [conf.levelX, conf.levelY];
         const isNull = RG.isNullOrUndef([tsX, tsY]);
         if (isNull) {
@@ -1151,9 +1172,9 @@ export const FactoryWorld = function() {
         }
 
         return [tsX, tsY];
-    };
+    }
 
-    this.getEntryStairs = (entryLevel, entryStairs, zoneStairs) => {
+    public getEntryStairs(entryLevel, entryStairs, zoneStairs) {
         // Connection OK, remove the stairs, otherwise use the
         // existing entrance
         if (zoneStairs.length > 0) {
@@ -1170,12 +1191,12 @@ export const FactoryWorld = function() {
             return zoneStairs;
         }
         return entryStairs;
-    };
+    }
 
     /* Processes each 'connectToAreaXY' object. Requires current zone and tile
      * level we are connecting to. Connection type depends on the type of zone.
      */
-    this.processConnObject = (conn, zone, tileLevel) => {
+    public processConnObject(conn, zone, tileLevel) {
         const nLevel = conn.nLevel;
         const x = conn.levelX;
         const y = conn.levelY;
@@ -1241,12 +1262,12 @@ export const FactoryWorld = function() {
             RG.err('Factory.World', 'createAreaZoneConnection',
                 `No level found. ${msg}`);
         }
-    };
+    }
 
     /* Creates the actual connection objects such as stairs or passages, and
      * adds them into the zone level. Returns the created objects for connecting
      * them into the tile level. */
-    this.createNewZoneConnects = (zone, zoneLevel): Stairs | Stairs[] => {
+    public createNewZoneConnects(zone, zoneLevel): Stairs | Stairs[] {
         let zoneStairs = null;
         if (zone.getType() === 'dungeon') {
             zoneStairs = this.createDungeonZoneConnect(zone, zoneLevel);
@@ -1260,10 +1281,10 @@ export const FactoryWorld = function() {
                 'passage', 'south', true);
         }
         return zoneStairs;
-    };
+    }
 
     /* Creates the connection for dungeon zone and returns the connection. */
-    this.createDungeonZoneConnect = (zone, zoneLevel): Stairs | Stairs[] => {
+    public createDungeonZoneConnect(zone, zoneLevel): Stairs | Stairs[] {
         this.debug('Creating dungeon connection');
         let sX = 0;
         let sY = 0;
@@ -1283,9 +1304,9 @@ export const FactoryWorld = function() {
         const zoneStairs = new Stairs('stairsUp', zoneLevel);
         zoneLevel.addStairs(zoneStairs, sX, sY);
         return zoneStairs;
-    };
+    }
 
-    this.createCityZoneConnect = (zone, zoneLevel): Stairs[] => {
+    public createCityZoneConnect(zone, zoneLevel): Stairs[] {
         let zoneStairs = null;
         this.debug('Creating new city edge connection');
         let allEdgeExits = [];
@@ -1313,9 +1334,9 @@ export const FactoryWorld = function() {
             this.debug('City edge connection failed. Added stairs');
         }
         return zoneStairs;
-    };
+    }
 
-    this.debugPrintCityConns = (zoneType, entryLevel) => {
+    public debugPrintCityConns(zoneType, entryLevel) {
         if (debug.enabled && zoneType === 'city') {
             const conns = entryLevel.getConnections();
             let jsonStr = JSON.stringify(conns[0], null, 1);
@@ -1325,24 +1346,21 @@ export const FactoryWorld = function() {
             this.debug(`First/last conn: ${jsonStr}`);
             this.debug(`conn length after: ${conns.length}`);
         }
-    };
+    }
 
     /* Adds a world ID to the given element. */
-    this.addWorldID = function(conf, worldElem) {
+    public addWorldID(conf, worldElem) {
       if (!RG.isNullOrUndef([conf.id])) {
           worldElem.setID(conf.id);
       }
       this.worldElemByID[worldElem.getID()] = worldElem;
-    };
+    }
 
     /* Creates quests for AreaTile[x][y] of the given area. */
-    this.createQuests = function(world, area, x, y) {
+    public createQuests(world, area, x, y) {
         const questPopul = new QuestPopulate();
         questPopul.createQuests(world, area, x, y);
-    };
-
-}; // FactoryWorld
-
+    }
 
 /* Creates a connection between an area and a zone such as city, mountain
  * or dungeon. Unless configured, connects the zone entrance to a random
@@ -1352,126 +1370,127 @@ export const FactoryWorld = function() {
  * @param {object} conf - Config for the zone
  * @return {void}
  * */
-FactoryWorld.prototype.createAreaZoneConnection = function(
-    area, zone, conf: IF.ZoneConf
-): void {
-    this._verif.verifyConf('createAreaZoneConnection', conf, ['x', 'y']);
-    this.debug('Creating area-zone connections');
+    public createAreaZoneConnection(
+        area, zone, conf: IF.ZoneConf
+    ): void {
+        this._verif.verifyConf('createAreaZoneConnection', conf, ['x', 'y']);
+        this.debug('Creating area-zone connections');
 
-    const {x, y} = conf;
-    const tile = area.getTileXY(x, y);
-    const tileLevel = tile.getLevel();
-    debugPrintConfAndTile(conf, tileLevel, ' CALL 1');
+        const {x, y} = conf;
+        const tile = area.getTileXY(x, y);
+        const tileLevel = tile.getLevel();
+        debugPrintConfAndTile(conf, tileLevel, ' CALL 1');
 
-    if (typeof zone.getEntrances !== 'function') {
-        // No entrance for zone, error out
-        RG.err('Factory.World', 'createAreaZoneConnection',
-            'No getEntrances method for zone.');
-    }
+        if (typeof zone.getEntrances !== 'function') {
+            // No entrance for zone, error out
+            RG.err('Factory.World', 'createAreaZoneConnection',
+                'No getEntrances method for zone.');
+        }
 
-    const entrances = zone.getEntrances();
-    if (entrances.length > 0) {
-        let entryStairs: Stairs = entrances[0];
-        const entryLevel: Level = entryStairs.getSrcLevel();
-        const zoneType: string = zone.getType();
+        const entrances = zone.getEntrances();
+        if (entrances.length > 0) {
+            let entryStairs: Stairs = entrances[0];
+            const entryLevel: Level = entryStairs.getSrcLevel();
+            const zoneType: string = zone.getType();
 
-        this.debug('Connecting area-zone by entrance');
+            this.debug('Connecting area-zone by entrance');
 
-        let conns = null;
-        if (zoneType.match(/(city|mountain)/) || conf.connectEdges) {
+            let conns = null;
+            if (zoneType.match(/(city|mountain)/) || conf.connectEdges) {
 
-            if (debug.enabled) {
-                conns = entryLevel.getConnections();
-                this.debug(`conn length before: ${conns.length}`);
+                if (debug.enabled) {
+                    conns = entryLevel.getConnections();
+                    this.debug(`conn length before: ${conns.length}`);
+                }
+
+                const zoneStairs: Stairs | Stairs[] = this.createNewZoneConnects(zone,
+                    entryLevel);
+                entryStairs = this.getEntryStairs(entryLevel, entryStairs,
+                    zoneStairs);
             }
 
-            const zoneStairs: Stairs | Stairs[] = this.createNewZoneConnects(zone,
-                entryLevel);
-            entryStairs = this.getEntryStairs(entryLevel, entryStairs,
-                zoneStairs);
-        }
+            const connName = this.getConnectionName(conf, zoneType, entryStairs);
 
-        const connName = this.getConnectionName(conf, zoneType, entryStairs);
-
-        debugPrintConfAndTile(conf, tileLevel, ' CALL 2');
-        const tileStairs = new Stairs(connName, tileLevel, entryLevel);
-        const [tileSX, tileSY] = this.getTileStairsXY(tileLevel, conf);
-        try {
-            tileLevel.addStairs(tileStairs, tileSX, tileSY);
-            tileStairs.connect(entryStairs);
-        }
-        catch (e) {
-            RG.log('Given conf: ' + JSON.stringify(conf));
-            throw e;
-        }
-
-        this.debugPrintCityConns(zoneType, entryLevel);
-    }
-    else if (!conf.hasOwnProperty('connectToAreaXY')) {
-        const msg = `No entrances in ${zone.getHierName()}.`;
-        RG.err('Factory.World', 'createAreaZoneConnection',
-            `${msg}. Cannot connect to tile.`);
-    }
-
-    // Make extra connections between the area and zone. This is useful
-    // if city/dungeon needs to have 2 or more entrances in different places
-    if (conf.hasOwnProperty('connectToAreaXY')) {
-        const connectionsXY = conf.connectToAreaXY;
-        connectionsXY.forEach(conn => {
-            this.processConnObject(conn, zone, tileLevel);
-        });
-    }
-
-};
-
-FactoryWorld.prototype.addActorSpawner = function(level: Level, parser, conf): void {
-    const maxDanger = conf.maxDanger + 1;
-    const constr: IConstraint[] = [
-        {op: 'eq', prop: 'type', value: ActorGen.getRaces()}
-    ];
-    const placeConstr: IConstraint[] = [
-        {op: 'eq', func: 'getX', value: [0, level.getMap().cols - 1]},
-        {op: 'eq', func: 'getY', value: [0, level.getMap().rows - 1]},
-    ];
-    const factActor = new FactoryActor();
-    const spawner = factActor.createActorSpawner(maxDanger, constr, placeConstr);
-    level.addVirtualProp(RG.TYPE_ACTOR, spawner);
-};
-
-
-FactoryWorld.prototype.addZoneComps = function(
-    zone: ZoneBase, zoneConf: IF.ZoneConf
-): void {
-    debugVerb('addZoneComps called with ', zoneConf.name);
-    if (zoneConf.addComp) {
-        const compGen = new ObjectShellComps();
-        compGen.addComponents(zoneConf, zone);
-        debugVerb('addZoneComps added comps to', zoneConf.name, ',', zoneConf.addComp);
-    }
-    else if (zoneConf.components) {
-        if (this.fromJSON) {
-            if (debugVerb.enabled) {
-                debugVerb('addZoneComps restoring comps for', zoneConf.name);
-                debugVerb('Comps are', zoneConf.components);
+            debugPrintConfAndTile(conf, tileLevel, ' CALL 2');
+            const tileStairs = new Stairs(connName, tileLevel, entryLevel);
+            const [tileSX, tileSY] = this.getTileStairsXY(tileLevel, conf);
+            try {
+                tileLevel.addStairs(tileStairs, tileSX, tileSY);
+                tileStairs.connect(entryStairs);
             }
-            this.fromJSON.addCompsToEntity(zone, zoneConf.components);
-        }
-        else {
-            RG.err('FactoryWorld', 'addZoneComps',
-                'Failed to restore zone comps: fromJSON not set');
-        }
-    }
-};
+            catch (e) {
+                RG.log('Given conf: ' + JSON.stringify(conf));
+                throw e;
+            }
 
-/* Used for printing debug messages only. Can be enabled with
- * DEBUG= env var. */
-FactoryWorld.prototype.debug = function(msg: string): void {
-    if (debug.enabled) {
-        let scope = this.getHierName();
-        if (!scope) {scope = 'EMPTY';}
-        debug(`|${scope}| ${msg}`);
+            this.debugPrintCityConns(zoneType, entryLevel);
+        }
+        else if (!conf.hasOwnProperty('connectToAreaXY')) {
+            const msg = `No entrances in ${zone.getHierName()}.`;
+            RG.err('Factory.World', 'createAreaZoneConnection',
+                `${msg}. Cannot connect to tile.`);
+        }
+
+        // Make extra connections between the area and zone. This is useful
+        // if city/dungeon needs to have 2 or more entrances in different places
+        if (conf.hasOwnProperty('connectToAreaXY')) {
+            const connectionsXY = conf.connectToAreaXY;
+            connectionsXY.forEach(conn => {
+                this.processConnObject(conn, zone, tileLevel);
+            });
+        }
+
     }
-};
+
+    public addActorSpawner(level: Level, parser, conf): void {
+        const maxDanger = conf.maxDanger + 1;
+        const constr: IConstraint[] = [
+            {op: 'eq', prop: 'type', value: ActorGen.getRaces()}
+        ];
+        const placeConstr: IConstraint[] = [
+            {op: 'eq', func: 'getX', value: [0, level.getMap().cols - 1]},
+            {op: 'eq', func: 'getY', value: [0, level.getMap().rows - 1]},
+        ];
+        const factActor = new FactoryActor();
+        const spawner = factActor.createActorSpawner(maxDanger, constr, placeConstr);
+        level.addVirtualProp(RG.TYPE_ACTOR, spawner);
+    }
+
+    public addZoneComps(
+        zone: ZoneBase, zoneConf: IF.ZoneConf
+    ): void {
+        debugVerb('addZoneComps called with ', zoneConf.name);
+        if (zoneConf.addComp) {
+            const compGen = new ObjectShellComps();
+            compGen.addComponents(zoneConf, zone);
+            debugVerb('addZoneComps added comps to', zoneConf.name, ',', zoneConf.addComp);
+        }
+        else if (zoneConf.components) {
+            if (this.fromJSON) {
+                if (debugVerb.enabled) {
+                    debugVerb('addZoneComps restoring comps for', zoneConf.name);
+                    debugVerb('Comps are', zoneConf.components);
+                }
+                this.fromJSON.addCompsToEntity(zone, zoneConf.components);
+            }
+            else {
+                RG.err('FactoryWorld', 'addZoneComps',
+                    'Failed to restore zone comps: fromJSON not set');
+            }
+        }
+    }
+
+    /* Used for printing debug messages only. Can be enabled with
+     * DEBUG= env var. */
+    public debug(msg: string): void {
+        if (debug.enabled) {
+            let scope = this.getHierName();
+            if (!scope) {scope = 'EMPTY';}
+            debug(`|${scope}| ${msg}`);
+        }
+    }
+
+} // FactoryWorld
 
 function debugPrintConfAndTile(conf, tileLevel, tag) {
     if (conf.name === 'Iron hills') {
