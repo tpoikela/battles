@@ -170,13 +170,6 @@ export interface Entrance {
     y: number;
 }
 
-export interface SubZoneConf {
-    name: string;
-    nLevels: number;
-    entranceLevel?: number;
-    entrance?: Entrance;
-    constraint?: ConstraintMap;
-}
 
 export interface RandWeights {
     [key: string]: number;
@@ -186,7 +179,7 @@ export type LevelConnection = [string, string, number, number];
 
 export interface LevelObj {
     nLevel: number;
-    level: Level;
+    level: Level | LevelSpecStub;
 }
 
 export interface LevelSpecStub {
@@ -237,6 +230,16 @@ export interface IWorldElemMap {
     [key: number]: WorldBase;
 }
 
+export interface GlobalConf {
+    levelSize: string;
+    dungeonX: number;
+    dungeonY: number;
+    sqrPerActor: number;
+    sqrPerItem: number;
+    set: boolean;
+}
+
+
 export interface ActorConf {
     maxDanger: number;
     actorsPerLevel?: number;
@@ -259,8 +262,10 @@ export interface ItemConf {
 }
 
 export interface LevelConf {
-    maxDanger: number;
-    maxValue: number;
+    // maxDanger: number;
+    maxDanger?: number;
+    // maxValue: number;
+    maxValue?: number;
     minValue?: number;
 
     // TODO remove one of these
@@ -289,6 +294,10 @@ export interface LevelConf {
     sqrPerItem?: number;
     nLevel?: number;
     markersPreserved?: boolean;
+
+    nShops?: number;
+    shopType?: string | string[];
+    shopFunc?: TShellFunc[];
 }
 
 export interface ShopConf {
@@ -355,6 +364,16 @@ export interface ZoneConf {
     sqrPerItem?: number;
     x?: number; // Position in area (tile x)
     y?: number; // Position in area (tile y)
+}
+
+export interface SubZoneConf {
+    name: string;
+    nLevels: number;
+    entranceLevel?: number;
+    entrance?: Entrance;
+    constraint?: ConstraintMap;
+    maxDanger?: number;
+    maxValue?: number;
 }
 
 export interface BranchConf extends SubZoneConf {

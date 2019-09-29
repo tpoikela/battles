@@ -1544,7 +1544,7 @@ export class Mountain extends ZoneBase {
 
     }
 
-    public findLevel(name: string, nLevel: number): Level {
+    public findLevel(name: string, nLevel: number): null | Level {
         const faces = this.getFaces();
         const summits = this.getSummits();
         let level = findLevel(name, faces, nLevel);
@@ -1554,23 +1554,23 @@ export class Mountain extends ZoneBase {
         return level;
     }
 
-    public addSummit(summit): void {
+    public addSummit(summit: MountainSummit): void {
         this.addSubZone(summit);
     }
 
-    public addFace(face): void {
+    public addFace(face: MountainFace): void {
         this.addSubZone(face);
     }
 
-    public getFaces() {
+    public getFaces(): SubZoneBase[] {
         return this._subZones.filter(sz => sz.getType() === 'face');
     }
 
-    public getSummits() {
+    public getSummits(): SubZoneBase[] {
         return this._subZones.filter(sz => sz.getType() === 'summit');
     }
 
-    public connectFaceAndSummit(face, summit, l1, l2) {
+    public connectFaceAndSummit(face, summit, l1, l2): void {
         const [sz1, sz2] = this.getSubZoneArgs(face, summit);
         if (sz2.getType() !== 'summit') {
             const type = sz2.getType();
@@ -1584,7 +1584,7 @@ export class Mountain extends ZoneBase {
         connectLevelsConstrained(connFace, connSummit);
     }
 
-    public connectSubZones(s1Arg, s2Arg, l1, l2) {
+    public connectSubZones(s1Arg, s2Arg, l1, l2): void {
         const [sz1, sz2] = this.getSubZoneArgs(s1Arg, s2Arg);
         // const sz1 = this.findSubZone(s1Arg);
         // const sz2 = this.findSubZone(s2Arg);
@@ -1676,13 +1676,28 @@ World.MountainFace = MountainFace;
 //-------------------------
 /* A summit of the mountain consisting of at least one Level. */
 export class MountainSummit extends SubZoneBase {
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType('summit');
     }
 
     public getEntrance(): null {
         return null;
+    }
+
+    public addEntrance(levelNumber: number): void {
+        if (this._entrance === null) {
+            const level = this._levels[levelNumber];
+            const stairs = new ElementStairs('stairsDown', level);
+            const map = level.getMap();
+            const midX = Math.floor(map.cols / 2);
+            const maxY = map.rows - 1;
+            const x = midX;
+            const y = maxY;
+            if (level.addStairs(stairs, x, y)) {
+                this._entrance = {levelNumber, x, y};
+            }
+        }
     }
 
 }

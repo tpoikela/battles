@@ -3,10 +3,7 @@ import RG from './rg';
 
 import dbg = require('debug');
 const debug = dbg('bitn:ConfStack');
-
-interface GlobalConf {
-    [key: string]: any;
-}
+import {GlobalConf} from './interfaces';
 
 /* An Object for managing configuration/scope stacks when creating a world. */
 export class ConfStack {
@@ -16,12 +13,19 @@ export class ConfStack {
     public confStack: any[];
 
     constructor() {
-        this.globalConf = {};
+        this.globalConf = {
+            levelSize: 'Medium',
+            dungeonX: 80,
+            dungeonY: 40,
+            sqrPerActor: 200,
+            sqrPerItem: 200,
+            set: false
+        };
         this.scope = [];
         this.confStack = [];
     }
 
-    public setGlobalConf(conf) {
+    public setGlobalConf(conf: GlobalConf) {
         this.globalConf = conf;
     }
 

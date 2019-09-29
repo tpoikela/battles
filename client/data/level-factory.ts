@@ -28,7 +28,7 @@ export class LevelFactory {
         this.createFunc[name] = createFunc;
     }
 
-    public create(name, args: LevelArgs): Level | LevelObj[] {
+    public create(name: string, args: LevelArgs): null | Level | LevelObj[] {
         // Check if this is a default level
         if (LevelFactory.levels.hasOwnProperty(name)) {
             return LevelFactory.levels[name](...args);

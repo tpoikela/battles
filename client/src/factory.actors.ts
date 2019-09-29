@@ -18,7 +18,14 @@ type BaseActor = Actor.BaseActor;
 import dbg = require('debug');
 const debug = dbg('bitn:FactoryActor');
 
-const initCombatant = (comb: BaseActor, obj): void => {
+interface IStats {
+    hp: number;
+    att: number;
+    def: number;
+    prot: number;
+}
+
+const initCombatant = (comb: BaseActor, obj: IStats): void => {
     const {hp, att, def, prot} = obj;
 
     if (!RG.isNullOrUndef([hp])) {

@@ -587,7 +587,8 @@ export default class GameEditor extends Component {
   public generateZone() {
     const zoneType = this.state.zoneType;
     const fact = new FactoryWorld();
-    const featConf = this.state.zoneConf[zoneType];
+    // TODO better type
+    const featConf: any = this.state.zoneConf[zoneType];
 
     try {
       let feat = null;

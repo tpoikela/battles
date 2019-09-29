@@ -15,6 +15,7 @@ import * as IF from './interfaces';
 
 type WorldBase = World.WorldBase;
 type WorldTop = World.WorldTop;
+type FromJSON = import('./game.fromjson').FromJSON;
 
 // type FromJSON = import('./game.fromjson').FromJSON;
 
@@ -42,11 +43,11 @@ export class WorldFromJSON {
     public _verif: any; // TODO VerifyConf;
     public worldElemByID: IF.IWorldElemMap; // TODO fix typings
     public createAllZones: boolean;
-    public fromJSON: any;
+    public fromJSON: FromJSON;
 
     private _conf: any; // TODO ConfStack;
     private _IND: 0;
-    private fact: any; // TODO FactoryWorld;
+    private fact: FactoryWorld; // TODO FactoryWorld;
 
     constructor(id2level: LevelMap, id2entity: EntityMap) {
         this.id2level = id2level;
@@ -58,14 +59,15 @@ export class WorldFromJSON {
         this._IND = 0; // Used for indenting debug messages
     }
 
-    public createPlace(placeJSON) {
+    public createPlace(placeJSON): null | WorldTop {
         switch (placeJSON.type) {
             case 'world': return this.createWorld(placeJSON);
-            case 'quarter': { // Used for debugging (Arena mode)
+            /*case 'quarter': { // Used for debugging (Arena mode)
                 const fact = new FactoryWorld();
                 fact.setId2Level(this.id2level);
                 return fact.createCityQuarter(placeJSON);
             }
+            */
             default: RG.err('WorldFromJSON', 'createPlace',
                 `No place ${placeJSON.type} implemented yet`);
         }
