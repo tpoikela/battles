@@ -35,8 +35,8 @@ export const Game: any = {};
 
 export interface PlaceObj {
     place: string;
-    x: number;
-    y: number;
+    x?: number;
+    y?: number;
 }
 
 export interface IPlace extends WorldBase {
@@ -310,7 +310,7 @@ export class GameMain {
     /* Adds player to the first found level of given place.
      * Name of place must be
      * specified as obj.place */
-    public _addPlayerToPlace(player: SentientActor, obj): boolean {
+    public _addPlayerToPlace(player: SentientActor, obj: PlaceObj): boolean {
         if (obj.hasOwnProperty('place')) {
             const place = obj.place;
             if (this._places.hasOwnProperty(place)) {
