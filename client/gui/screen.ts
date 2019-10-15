@@ -4,6 +4,7 @@ import {Viewport} from './viewport';
 
 type Cell = import('../src/map.cell').Cell;
 type CellMap = import('../src/map').CellMap;
+type Frame = import('../src/animation').Frame;
 
 interface Styles {
     [key: string]: string;
@@ -72,7 +73,7 @@ const getClassesAndCharsWithRLE = function(
     seen: Cell[] | string,
     cells: Cell[],
     selCell: TSelectedCell,
-    anim?,
+    anim?: Frame,
     styles: Styles = {},
     funcClassSrc?,
     funcCharSrc?
@@ -181,15 +182,16 @@ const getClassesAndCharsWithRLE = function(
 };
 
 /* Same as above but optimized for showing the full map in the game editor.
-*  Does not take into account cells seen by player. */
-const getClassesAndCharsFullMap = function(cells: Cell[], selCell) {
+*  Does not take into account cells seen by player, so should be faster for
+*  full map rendering. */
+const getClassesAndCharsFullMap = function(cells: Cell[], selCell: TSelectedCell) {
     const cssClasses: string[] = [];
     const asciiChars: string[] = [];
 
     let selX = -1;
     let selY = -1;
 
-    if (selCell !== null) {
+    if (selCell !== null && !Array.isArray(selCell)) {
         selX = selCell.getX();
         selY = selCell.getY();
     }
@@ -383,7 +385,7 @@ export class Screen {
     }
 
     public renderWithRLE(playX: number, playY: number, map: CellMap,
-                         visibleCells: Cell[], anim?, funcClassSrc?, funcCharSrc?) {
+                         visibleCells: Cell[], anim?: Frame, funcClassSrc?, funcCharSrc?) {
         this.isRLE = true;
         this._initRender(playX, playY, map);
         let yCount = 0;
@@ -487,7 +489,7 @@ export class ScreenBuffered extends Screen {
     }
 
     public renderWithRLE(playX: number, playY: number, map: CellMap,
-                         visibleCells: Cell[], anim?, funcClassSrc?, funcCharSrc?) {
+                         visibleCells: Cell[], anim?: Frame, funcClassSrc?, funcCharSrc?) {
         if (!visibleCells) {
             RG.err('ScreenBuffered', 'renderWithRLE', 'undef visibleCells');
         }
