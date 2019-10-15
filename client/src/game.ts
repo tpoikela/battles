@@ -28,6 +28,7 @@ type WorldTop = World.WorldTop;
 type AreaTile = World.AreaTile;
 type WorldBase = World.WorldBase;
 type ZoneBase = World.ZoneBase;
+type Frame = import('./animation').Frame;
 
 const POOL = EventPool.getPool();
 
@@ -746,7 +747,12 @@ export class GameMain {
     public finishAnimation() {return this._engine.finishAnimation();}
 
     /* Gets the next animation frame. */
-    public getAnimationFrame() {return this._engine.animation.nextFrame();}
+    public getAnimationFrame(): null | Frame {
+        if (this._engine.animation) {
+            return this._engine.animation.nextFrame();
+        }
+        return null;
+    }
 
     public enableAnimations() {this._engine.enableAnimations();}
     public disableAnimations() {this._engine.disableAnimations();}
