@@ -368,7 +368,7 @@ export class MenuSelectTarget extends MenuSelectCell {
                 }
                 return this; // Keep menu open
             }
-            else if (code === KeyMap.KEY.TARGET) {
+            else if (code === Keys.KEY.TARGET) {
                 const keyIndex = Keys.codeToIndex(code);
                 const retVal = this.table[keyIndex];
                 if ((retVal as MenuCallObj).funcToCall) {
