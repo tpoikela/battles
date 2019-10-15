@@ -45,9 +45,7 @@ export class Dice {
             const arr: number[] = Dice.parseDieSpec((strOrNumOrDie as string));
             return new Dice(arr[0], arr[1], arr[2]).roll();
         }
-        else {
-            return (strOrNumOrDie as Dice).roll();
-        }
+        return (strOrNumOrDie as Dice).roll();
     }
 
     /* Parses die expression like '2d4' or '3d5 + 4' and returns it as an array [2,
