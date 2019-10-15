@@ -8,6 +8,8 @@ import {Brain} from './brain';
 
 const RNG = Random.getRNG();
 
+// TODO into class
+
 /* Used to add details like bosses and distinct room features into dungeon
  * levels. */
 export const DungeonFeatures = function(zoneType) {
