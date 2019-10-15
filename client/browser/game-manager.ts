@@ -31,6 +31,7 @@ import {OWMap} from '../src/overworld.map';
 import {KeyCode} from '../gui/keycode';
 import {ObjectShell} from '../src/objectshellparser';
 import {verifySaveData} from '../src/verify';
+import {Frame} from '../src/animation';
 
 import {Persist} from '../src/persist';
 import md5 = require('js-md5');
@@ -177,7 +178,7 @@ export class GameManager {
     public hasNotify: boolean;
     public savedPlayerList: SentientActor[];
     public animationID: number;
-    public animation: Animation;
+    public animation: null | Frame;
 
     constructor(updateCb: UpdateFunc) {
         if (!updateCb) {
@@ -259,6 +260,14 @@ export class GameManager {
         this.playerDriver = new PlayerDriver(player, this.game);
         player.remove('Hunger');
         // this.playerDriver.screenPeriod = -1;
+        this.setAutoModeNoFinish();
+    }
+
+    public setAutoMode(): void {
+        this.ctrlMode = 'AUTOMATIC';
+    }
+
+    public setAutoModeNoFinish(): void {
         this.ctrlMode = 'AUTOMATIC';
         this.finishAutoOnSight = false;
     }
@@ -842,9 +851,6 @@ export class GameManager {
         }
     }
 
-    public setAutoMode(): void {
-        this.ctrlMode = 'AUTOMATIC';
-    }
 
     public getCellCurrMap(x, y): Cell | null {
         const map = this.game.getPlayer().getLevel().getMap();
@@ -875,9 +881,9 @@ export class GameManager {
     /* Plays the animation until all animation frames have been shown. */
     public playAnimation(): void {
         if (this.game.hasAnimation()) {
-            const anim = this.game.getAnimationFrame();
-            this.animation = anim;
-            this.updateCb({render: true, animation: anim});
+            const animFrame = this.game.getAnimationFrame();
+            this.animation = animFrame;
+            this.updateCb({render: true, animation: animFrame});
             this.animationID = requestAnimationFrame(
                 this.playAnimation.bind(this));
         }
@@ -893,8 +899,7 @@ export class GameManager {
         const player = this.game.getPlayer();
         this.playerDriver = new DriverBase(player, this.game);
         this.playerDriver.setKeys(jsonKeysArray);
-        this.ctrlMode = 'AUTOMATIC';
-        this.finishAutoOnSight = false;
+        this.setAutoModeNoFinish();
     }
 
     /* Called when a JSON file is imported. This can be a save game or a
