@@ -1,6 +1,5 @@
 
-import RG from './rg';
-import {Level} from './level';
+type Level = import('./level').Level;
 
 export interface FrameEntry {
     char: string;
@@ -43,11 +42,11 @@ export class Animation {
         this.frames = [];
     }
 
-    setLevel(level: Level) {
+    public setLevel(level: Level) {
         this.levelID = level.getID();
     }
 
-    addFrame(frame: Frame) {
+    public addFrame(frame: Frame) {
         for (let i = 0; i < this.slowDown; i++) {
             ++this.numFrames;
             this.frames.push(frame);
@@ -55,17 +54,17 @@ export class Animation {
     }
 
     /* Advances animation to the next frame, and returns the frame */
-    nextFrame(): Frame {
+    public nextFrame(): Frame {
         const frame = this.frames[this.currFrame++];
         return frame;
     }
 
-    hasFrames(): boolean {
+    public hasFrames(): boolean {
         return this.currFrame < this.frames.length;
     }
 
     /* Combines the frames of two animations together. */
-    combine(animation: Animation) {
+    public combine(animation: Animation) {
         let frameIndex = 0;
         while (animation.hasFrames()) {
             const frame = animation.nextFrame();
@@ -85,7 +84,7 @@ export class Animation {
 
     /* Returns true if any frame in the animation contains at least one coordinates
      * from the given list. */
-    hasCoord(coordMap): boolean {
+    public hasCoord(coordMap: {[key: string]: any}): boolean {
         const nFrames = this.frames.length;
         for (let n = 0; n < nFrames; n++) {
             const frame: Frame = this.frames[n];
