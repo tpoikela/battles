@@ -66,13 +66,25 @@ export class LevelSurroundings {
                     ratio: 0.6, skipTypes,
                     forestSize: 300, nForests: 10
                 };
-                const bbox: BBox = Geometry.dirToBbox(colsArea, rowsArea, dir);
-                mapgen.addLakes(mountLevel.getMap(), lakeConf, bbox);
+                const bbox: null | BBox = Geometry.dirToBbox(colsArea, rowsArea, dir);
+                if (bbox) {
+                    mapgen.addLakes(mountLevel.getMap(), lakeConf, bbox);
+                }
+                else {
+                    RG.err('LevelSurroundings', 'surroundWithCellsAround',
+                        `Received null bbox from dir ${dir}, if water`);
+                }
             }
             else if (cellsAround[dir] === 'tree') {
                 const forestConf = {ratio: 1, skipTypes, nForests: 10};
-                const bbox: BBox = Geometry.dirToBbox(colsArea, rowsArea, dir);
-                mapgen.addForest(mountLevel.getMap(), forestConf, bbox);
+                const bbox: null | BBox = Geometry.dirToBbox(colsArea, rowsArea, dir);
+                if (bbox) {
+                    mapgen.addForest(mountLevel.getMap(), forestConf, bbox);
+                }
+                else {
+                    RG.err('LevelSurroundings', 'surroundWithCellsAround',
+                        `Received null bbox from dir ${dir}, if tree`);
+                }
             }
         });
 
