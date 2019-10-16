@@ -30,6 +30,7 @@ import {Level} from './level';
 import {SentientActor} from './actor';
 
 type Parser = import('./objectshellparser').Parser;
+// type Cell = import('./map.cell').Cell;
 
 import * as IF from './interfaces';
 
@@ -635,12 +636,12 @@ export class FactoryGame {
 
 /* Given x,y for AreaTile, finds all rivals occupying at least one ow tile
  * tile that AreaTile, and returns them as array. */
-    public getConstrWeightsForAreaXY(aX, aY, terrMap) {
-        const terrMapXY = terrMap.getMap();
+    public getConstrWeightsForAreaXY(aX: number, aY: number, terrMap: Territory) {
+        const terrMapXY: string[][] = terrMap.getMap();
         const coordMap = new CoordMap({xMap: 10, yMap: 10});
 
         const bbox = coordMap.getOWTileBboxFromAreaTileXY(aX, aY);
-        const cells = Geometry.getCellsInBbox(terrMapXY, bbox);
+        const cells: string[] = Geometry.getCellsInBbox(terrMapXY, bbox);
         const hist = Geometry.histArrayVals(cells);
         let types = Object.keys(hist);
         types = types.filter(type => (type !== '#' && type !== '.'));
@@ -650,7 +651,6 @@ export class FactoryGame {
             const actualType = terrMap.getName(typeChar);
             weights[actualType] = hist[typeChar];
         });
-        // types = types.map(typeChar => terrMap.getName(typeChar));
         return weights;
     }
 
