@@ -318,9 +318,9 @@ export class GameManager {
     }
 
     /* Returns true if given command is a GUI command. */
-    public isGUICommand(code): boolean {
+    public isGUICommand(code: number): boolean {
         if (this.gameGUIState) {
-            if (this.gameGUIState.autoTarget && code === Keys.VK_t) {
+            if (this.gameGUIState.autoTarget && code === Keys.VK.t) {
                 return false;
             }
             else if (this.gameGUIState.useModeEnabled) {
@@ -378,7 +378,7 @@ export class GameManager {
 
     public isValidKey(keyCode: number): boolean {
         return Keys.isValidKey(keyCode) ||
-            this.guiCommands[keyCode] ||
+            !!this.guiCommands[keyCode] ||
             Keys.isNumeric(keyCode);
     }
 
