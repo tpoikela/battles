@@ -7,7 +7,7 @@ type Cell = import('./map.cell').Cell;
 type CellMap = import('./map').CellMap;
 type Level = import('./level').Level;
 
-export const Path: any = {};
+// export const Path: any = {};
 
 const NO_PATH = Object.freeze([]);
 
@@ -69,6 +69,29 @@ export class PathAlgoXY {
             cb(xy[0], xy[1]);
         });
     }
+}
+
+export class Path {
+    public static getPossiblePath: (x0, y0, x1, y1, cb?: PassableCb) => ICoordXY[];
+    public static getShortestPath: (x0, y0, x1, y1, cb?: PassableCb) => ICoordXY[];
+
+    public static getShortestSeenPath: (actor, map: CellMap, x1, y1) => ICoordXY[];
+    public static getShortestPassablePath: (map: CellMap, x0, y0, x1, y1) => ICoordXY[];
+    public static getActorToActorPath: (map: CellMap, x0, y0, x1, y1) => ICoordXY[];
+    public static getShortestActorPath: (map: CellMap, x0, y0, x1, y1, cb?: PassableCb) => ICoordXY[];
+    public static getShortestPassablePathWithDoors: (map: CellMap, x0, y0, x1, y1) => ICoordXY[];
+
+    public static shortestDist: (x0, y0, x1, y1) => number;
+    public static getPathWeight: (map: CellMap, coord: ICoordXY[]) => number;
+
+    public static getMinWeightPath: (map: CellMap, x0, y0, x1, y1, pathFunc?: PathFunc) => ICoordXY[];
+    public static getMinWeightOrShortest: (map: CellMap, x0, y0, x1, y1, passableFuncs) => ICoordXY[];
+
+    public static getWeightPathSegmented: (
+        map: CellMap, x0, y0, x1, y1, nSeg, pathFunc?: PathFunc) => ICoordXY[];
+    public static getPathSeg: (dist: number, nSeg: number) => number[];
+
+    public static getPathFromEdgeToCell: (level: Level, elemType: string) => ICoordXY[];
 }
 
 Path.getPossiblePath = function(x0, y0, x1, y1, cb: PassableCb = DEFAULT_CB): ICoordXY[] {
@@ -173,7 +196,7 @@ Path.getActorToActorPath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
 
 /* Returns shortest path for actor in x0,y0, excluding the source point. If
  * destination point is impassable, returns an empty array. */
-Path.getShortestActorPath = function(map: CellMap, x0, y0, x1, y1, cb): ICoordXY[] {
+Path.getShortestActorPath = function(map: CellMap, x0, y0, x1, y1, cb?: PassableCb): ICoordXY[] {
     const coords = [];
     const passableCb = (x, y) => {
         if (map.hasXY(x, y)) {
@@ -199,8 +222,8 @@ Path.getShortestActorPath = function(map: CellMap, x0, y0, x1, y1, cb): ICoordXY
     return coords;
 };
 
-Path.getShortestPassablePathWithDoors = function(map: CellMap, x0, y0, x1, y1) {
-    const coords = [];
+Path.getShortestPassablePathWithDoors = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
+    const coords: ICoordXY[] = [];
     const passableCbDoor = (x, y) => {
         if (map.hasXY(x, y)) {
             return map.isPassable(x, y) || map.getCell(x, y).hasDoor();
@@ -246,7 +269,7 @@ Path.getPathWeight = (map: CellMap, coord: ICoordXY[]): number => {
  * This algorithm will
  * tunnel through any obstacles eventually. Optionally takes the path function
  * as last argument or uses the default getShortestPassablePath. */
-Path.getMinWeightPath = function(map: CellMap, x0, y0, x1, y1, pathFunc) {
+Path.getMinWeightPath = function(map: CellMap, x0, y0, x1, y1, pathFunc?: PathFunc): ICoordXY[] {
     let coordPassable = [];
     if (pathFunc) {
         coordPassable = pathFunc(map, x0, y0, x1, y1);
@@ -272,10 +295,10 @@ Path.getMinWeightPath = function(map: CellMap, x0, y0, x1, y1, pathFunc) {
 
 /* Given map and two x,y points, calculates min paths between these points using
  * the list of path functions. */
-Path.getMinWeightOrShortest = function(map: CellMap, x0, y0, x1, y1, passableFuncs) {
-    const coordShortest = Path.getShortestPath(x0, y0, x1, y1);
-    const paths = [];
-    passableFuncs.forEach(passableCb => {
+Path.getMinWeightOrShortest = function(map: CellMap, x0, y0, x1, y1, passableFuncs: PassableCb[]): ICoordXY[] {
+    const coordShortest: ICoordXY[] = Path.getShortestPath(x0, y0, x1, y1);
+    const paths: ICoordXY[][] = [];
+    passableFuncs.forEach((passableCb: PassableCb) => {
         const path = Path.getShortestPath(x0, y0, x1, y1, passableCb);
         if (path.length > 0) {
             paths.push(path);
@@ -283,7 +306,7 @@ Path.getMinWeightOrShortest = function(map: CellMap, x0, y0, x1, y1, passableFun
     });
     paths.push(coordShortest);
 
-    let minPath = null;
+    let minPath: ICoordXY[] = [];
     let minWeight = -1;
     paths.forEach(path => {
         const pathWeight = Path.getPathWeight(map, path);
@@ -299,12 +322,12 @@ Path.getMinWeightOrShortest = function(map: CellMap, x0, y0, x1, y1, passableFun
  * weighted path for each of those segments. This makes the
  * path look more realistic, but of course less optimal.
  */
-Path.getWeightPathSegmented = function(map: CellMap, x0, y0, x1, y1, nSeg, pathFunc) {
+Path.getWeightPathSegmented = function(map: CellMap, x0, y0, x1, y1, nSeg, pathFunc?: PathFunc): ICoordXY[] {
     const dX = x1 - x0;
     const dY = y1 - y0;
     const segX = Path.getPathSeg(dX, nSeg);
     const segY = Path.getPathSeg(dY, nSeg);
-    let finalPath = [];
+    let finalPath: ICoordXY[] = [];
 
     let [startX, startY] = [x0, y0];
     for (let i = 0; i < nSeg; i++) {
