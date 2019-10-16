@@ -58,29 +58,29 @@ describe('BrainPlayer', () => {
     it('Accepts key commands', () => {
         const brain = new BrainPlayer(player);
 
-        brain.decideNextAction({code: Keys.VK_r});
+        brain.decideNextAction({code: Keys.VK.r});
         expect(player.getSpeed()).to.equal(120);
         expect(brain.isRunModeEnabled()).to.equal(true);
         expect(brain.energy).to.equal(0);
-        brain.decideNextAction({code: Keys.VK_s});
+        brain.decideNextAction({code: Keys.VK.s});
         expect(brain.isRunModeEnabled()).to.equal(false);
         expect(brain.energy).to.equal(RG.energy.REST);
 
-        brain.decideNextAction({code: Keys.VK_c});
+        brain.decideNextAction({code: Keys.VK.c});
         expect(brain.energy).to.equal(RG.energy.MOVE);
 
-        brain.decideNextAction({code: Keys.VK_x});
+        brain.decideNextAction({code: Keys.VK.x});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
 
-        brain.decideNextAction({code: Keys.VK_r}); // Enable run mode
-        brain.decideNextAction({code: Keys.VK_c}); // Move
+        brain.decideNextAction({code: Keys.VK.r}); // Enable run mode
+        brain.decideNextAction({code: Keys.VK.c}); // Move
         expect(brain.energy).to.equal(RG.energy.RUN);
 
     });
 
     it('Has cmds for more complex things', () => {
         const brain = new BrainPlayer(player);
-        brain.decideNextAction({code: Keys.VK_s});
+        brain.decideNextAction({code: Keys.VK.s});
         expect(brain.energy).to.equal(RG.energy.REST);
 
         // No missile equipped
@@ -135,14 +135,14 @@ describe('BrainPlayer', () => {
         brain.toggleFightMode();
 
         expect(brain.energy).to.equal(0);
-        let attackCallback = brain.decideNextAction({code: Keys.VK_x});
+        let attackCallback = brain.decideNextAction({code: Keys.VK.x});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
         attackCallback();
         expect(player.get('StatsMods').getSpeed()).to.equal(20);
         expect(player.getSpeed()).to.equal(120);
 
         brain.toggleFightMode();
-        attackCallback = brain.decideNextAction({code: Keys.VK_x});
+        attackCallback = brain.decideNextAction({code: Keys.VK.x});
         attackCallback();
         expect(player.getSpeed()).to.equal(80);
     });
@@ -227,7 +227,7 @@ describe('BrainPlayer', () => {
         expect(brain.isMenuShown()).to.equal(false);
 
         // Select direction (a == left)
-        func = brain.decideNextAction({code: Keys.VK_a});
+        func = brain.decideNextAction({code: Keys.VK.a});
         expect(func).to.be.a('function');
     });
 
