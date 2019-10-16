@@ -35,6 +35,7 @@ import {Path} from '../src/path';
 import {Screen} from '../gui/screen';
 import {WorldConf} from '../src/world.creator';
 import {ZoneBase, SubZoneBase} from '../src/world';
+import {BBox} from '../src/bbox';
 
 import {TCoord, IFactoryGameConf } from '../src/interfaces';
 
@@ -79,7 +80,7 @@ const getSelection = (c0: Cell, c1: Cell, map: CellMap): Cell[] => {
     if (x0 === x1 && y0 === y1) {
       return [c0];
     }
-    const bb = Geometry.getBoxCornersForCells(c0, c1);
+    const bb: BBox = Geometry.getBoxCornersForCells(c0, c1);
     const coord = Geometry.getBox(bb.ulx, bb.uly, bb.lrx, bb.lry);
     const res: Cell[] = [];
     coord.forEach((xy: TCoord) => {
@@ -824,19 +825,26 @@ export default class GameEditor extends Component {
     }
   }
 
-  public getBBoxForInsertion() {
+  public getBBoxForInsertion(): null | BBox {
     const c0 = this.state.selectBegin;
     const c1 = this.state.selectEnd;
-    return Geometry.getBoxCornersForCells(c0, c1);
+    if (c0 && c1) {
+      return Geometry.getBoxCornersForCells(c0, c1);
+    }
+    return null;
   }
 
-  public insertElement() {
-    const {ulx, uly, lrx, lry} = this.getBBoxForInsertion();
+  public insertElement(): void {
+    const bbox = this.getBBoxForInsertion();
+    if (!bbox) {return;}
+    const {ulx, uly, lrx, lry} = bbox;
     this.debugMsg('insertElement: ' + `${ulx}, ${uly}, ${lrx}, ${lry}`);
     const level = this.state.level;
+    if (!level) {return;}
+
     try {
       Geometry.insertElements(level, this.state.elementType,
-        {ulx, uly, lrx, lry});
+        new BBox(ulx, uly, lrx, lry));
     }
     catch (e) {
       this.setState({errorMsg: e.message});
@@ -844,10 +852,15 @@ export default class GameEditor extends Component {
     this.setStateWithLevel(level);
   }
 
-  public insertActor() {
-    const {ulx, uly, lrx, lry} = this.getBBoxForInsertion();
+  public insertActor(): void {
+    const bbox = this.getBBoxForInsertion();
+    if (!bbox) {return;}
+
+    const {ulx, uly, lrx, lry} = bbox;
     this.debugMsg('insertActor: ' + `${ulx}, ${uly}, ${lrx}, ${lry}`);
     const level = this.state.level;
+    if (!level) {return;}
+
     try {
       Geometry.insertActors(level, this.state.actorName,
         {ulx, uly, lrx, lry}, this.parser);
@@ -860,9 +873,13 @@ export default class GameEditor extends Component {
     }
   }
 
-  public insertItem() {
-    const {ulx, uly, lrx, lry} = this.getBBoxForInsertion();
+  public insertItem(): void {
+    const bbox = this.getBBoxForInsertion();
+    if (!bbox) {return;}
+    const {ulx, uly, lrx, lry} = bbox;
     const level = this.state.level;
+    if (!level) {return;}
+
     try {
       Geometry.insertItems(level, this.state.itemName,
         {ulx, uly, lrx, lry}, this.parser);
