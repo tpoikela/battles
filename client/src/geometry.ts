@@ -37,11 +37,22 @@ interface ITileConf {
 
 /* Contains generic 2D geometric functions for square/rectangle/triangle
  * generation and level manipulation. */
-export const Geometry: any = {
+export class Geometry {
+
+    public static floodfill: (map: CellMap, cell: Cell, type: StrOrFunc, diag?: boolean) => Cell[];
+    public static floodfillPassable: (map: CellMap, diag?: boolean) => Cell[];
+    public static floodfill2D: (
+        map: any[][], xy: TCoord, value: any, lut?, diag?: boolean) => TCoord[];
+
+    public static getMassCenter: (arr: TCoord[]) => TCoord;
+    public static squareFill: (map, cell, type, dXdY) => Cell[];
+    public static histArrayVals: (array: number[] | string[]) => {[key: string]: number};
+    public static tesselateLine: (x0, y0, x1, y1, thr, coord) => void;
+    public static getCaveConnLine: (x0, y0, x1, y1, conf?) => TCoord[];
 
     /* Returns all coord in a box around x0,y0 within distance d. Last arg can
      * be used to include the coordinate itself in the result. */
-    getBoxAround(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
+    public static getBoxAround(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
         verifyInt([x0, y0]);
         const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
@@ -53,9 +64,9 @@ export const Geometry: any = {
         }
         if (incSelf) {res.push([x0, y0]);}
         return res;
-    },
+    }
 
-    getCrossAround(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
+    public static getCrossAround(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
         verifyInt([x0, y0, d]);
         const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
@@ -70,9 +81,9 @@ export const Geometry: any = {
         if (incSelf) {res.push([x0, y0]);}
         return res;
 
-    },
+    }
 
-    getDiagCross(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
+    public static getDiagCross(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
         verifyInt([x0, y0, d]);
         const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
@@ -86,9 +97,9 @@ export const Geometry: any = {
         }
         if (incSelf) {res.push([x0, y0]);}
         return res;
-    },
+    }
 
-    getCrossCaveConn(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
+    public static getCrossCaveConn(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
         verifyInt([x0, y0, d]);
         const res: TCoord[] = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
@@ -102,11 +113,11 @@ export const Geometry: any = {
         }
         if (incSelf) {res.push([x0, y0]);}
         return res;
-    },
+    }
 
     /* Returns a box of coordinates given starting point and end points
      * (inclusive). */
-    getBox(x0: number, y0: number, maxX: number, maxY: number): TCoord[] {
+    public static getBox(x0: number, y0: number, maxX: number, maxY: number): TCoord[] {
         verifyInt([x0, y0, maxX, maxY]);
         const res: TCoord[] = [];
         for (let x = x0; x <= maxX; x++) {
@@ -115,10 +126,10 @@ export const Geometry: any = {
             }
         }
         return res;
-    },
+    }
 
     /* Converts old (SoCE) style bbox to BitN bbox. */
-    convertBbox(bbox: BBoxType): BBox {
+    public static convertBbox(bbox: BBoxType): BBox {
         if (bbox.hasOwnProperty('llx')) {
             return BBox.fromBBox({
                 ulx: (bbox as BBoxOld).llx,
@@ -128,40 +139,40 @@ export const Geometry: any = {
             });
         }
         return BBox.fromBBox(bbox as IBBox);
-    },
+    }
 
-    getCoordBbox(bbox: BBox): TCoord[] {
+    public static getCoordBbox(bbox: BBox): TCoord[] {
         const {ulx, uly, lrx, lry} = bbox;
         return this.getBox(ulx, uly, lrx, lry);
-    },
+    }
 
-    getBorderForBbox(bbox: BBox): TCoord[] {
+    public static getBorderForBbox(bbox: BBox): TCoord[] {
         const {ulx, uly, lrx, lry} = bbox;
         return this.getHollowBox(ulx, uly, lrx, lry);
-    },
+    }
 
-    getCellsInBbox(map2D: any[][], bbox: BBox): Cell[] {
+    public static getCellsInBbox<T>(map2D: T[][], bbox: BBox): T[] {
         const coord = this.getCoordBbox(bbox);
-        const result: Cell[] = [];
+        const result: T[] = [];
         coord.forEach((xy: TCoord) => {
             result.push(map2D[xy[0]][xy[1]]);
         });
         return result;
-    },
+    }
 
-    isInBbox(x: number, y: number, bbox: BBox): boolean {
+    public static isInBbox(x: number, y: number, bbox: BBox): boolean {
         const {ulx, uly, lrx, lry} = bbox;
         return x >= ulx && x <= lrx && y >= uly && y <= lry;
-    },
+    }
 
-    isValidBbox(bbox: any): boolean {
+    public static isValidBbox(bbox: any): boolean {
         if (!bbox) {return false;}
         const {ulx, uly, lrx, lry} = bbox;
         return !RG.isNullOrUndef([ulx, uly, lrx, lry]);
-    },
+    }
 
     /* Converts a direction into bbox based on cols, rows. */
-    dirToBbox(cols: number, rows: number, dir: TCoord): null | BBox {
+    public static dirToBbox(cols: number, rows: number, dir: TCoord | string): null | BBox {
         const colsDiv = Math.round(cols / 3);
         const rowsDiv = Math.round(rows / 3);
         const cBbox = {ulx: colsDiv, uly: rowsDiv,
@@ -179,12 +190,12 @@ export const Geometry: any = {
             RG.err('Geometry', 'dirToBbox', `Invalid dir ${dir} given.`);
         }
         return null;
-    },
+    }
 
     /* Given two cells, returns bounding box defined by upper-left
      * and lower-right corners.
      */
-    getBoxCornersForCells(c0: Cell, c1: Cell): BBox {
+    public static getBoxCornersForCells(c0: Cell, c1: Cell): BBox {
       const [x0, y0] = [c0.getX(), c0.getY()];
       const [x1, y1] = [c1.getX(), c1.getY()];
       const ulx = x0 <= x1 ? x0 : x1;
@@ -192,11 +203,11 @@ export const Geometry: any = {
       const uly = y0 <= y1 ? y0 : y1;
       const lry = y1 > y0 ? y1 : y0;
       return BBox.fromBBox({ulx, uly, lrx, lry});
-    },
+    }
 
     /* Given start x,y and end x,y coordinates, returns all x,y coordinates in
      * the border of the rectangle.*/
-    getHollowBox(x0: number, y0: number, maxX: number, maxY: number): TCoord[] {
+    public static getHollowBox(x0: number, y0: number, maxX: number, maxY: number): TCoord[] {
         verifyInt([x0, y0, maxX, maxY]);
         const res: TCoord[] = [];
         for (let x = x0; x <= maxX; x++) {
@@ -207,9 +218,9 @@ export const Geometry: any = {
             }
         }
         return res;
-    },
+    }
 
-    getHollowDiamond(x0: number, y0: number, size: number): Diamond {
+    public static getHollowDiamond(x0: number, y0: number, size: number): Diamond {
         verifyInt([x0, y0, size]);
         const RightX = x0 + 2 * size;
         const midX = x0 + size;
@@ -249,22 +260,22 @@ export const Geometry: any = {
         }
         diamond.coord = coord;
         return diamond;
-    },
+    }
 
     /* Returns true if given coordinate is one of the corners defined by the
      * box. */
-    isCorner(
+    public static isCorner(
         x: number, y: number, ulx: number, uly: number, lrx: number, lry: number
     ): boolean {
         if (x === ulx || x === lrx) {
             return y === uly || y === lry;
         }
         return false;
-    },
+    }
 
     /* Removes all xy-pairs from the first array that are contained also in the
      * 2nd one. Returns number of elements removed. */
-    removeMatching(modified: ICoordMap | TCoord[], toBeRemoved: TCoord[]): number {
+    public static removeMatching(modified: ICoordMap | TCoord[], toBeRemoved: TCoord[]): number {
         let nFound = 0;
         if (Array.isArray(modified)) {
             toBeRemoved.forEach(xy => {
@@ -289,12 +300,12 @@ export const Geometry: any = {
             });
         }
         return nFound;
-    },
+    }
 
     /* Given a map and a cell, returns a map of cell types around the given
      * cell. Keys are directions N, S, E, W...
      */
-    getCellsAround(map: CellMap, cell: Cell): ICellDirMap {
+    public static getCellsAround(map: CellMap, cell: Cell): ICellDirMap {
         const xy = cell.getXY();
         const coordAround: TCoord[] = this.getBoxAround(xy[0], xy[1], 1);
         const cellsAround: Cell[] = map.getCellsWithCoord(coordAround);
@@ -306,13 +317,13 @@ export const Geometry: any = {
             cellMap[dir] = c.getBaseElem().getType();
         });
         return cellMap;
-    },
+    }
 
     /* Tiles the list of levels to main level l1. Tiled levels placed
      * side-by-side and aligned based on the conf. 'alignRight' will be
      * implemented when needed.
      */
-    tileLevels(l1: Level, levels: Level[], conf: ITileConf): void {
+    public static tileLevels(l1: Level, levels: Level[], conf: ITileConf): void {
       const {x, y} = conf;
       let currX = x;
       let currY = y;
@@ -339,11 +350,11 @@ export const Geometry: any = {
         });
 
       }
-    },
+    }
 
     /* Does a full Map.Level merge from l2 to l1.
     * Actors, items and elements included. l1 will be the merged level. */
-    mergeLevels(l1: Level, l2: Level, startX, startY): void {
+    public static mergeLevels(l1: Level, l2: Level, startX, startY): void {
         const m1 = l1.getMap();
         const m2 = l2.getMap();
 
@@ -401,10 +412,10 @@ export const Geometry: any = {
             RG.err('Geometry', 'mergeLevels',
                 `Num actors new: ${numActorsNew1}, exp: ${numExpActors}`);
         }
-    },
+    }
 
     /* Merges m2 into m1 starting from x,y in m1. Does not move items/actors. */
-    mergeMapBaseElems(m1: CellMap, m2: CellMap, startX: number, startY: number): void {
+    public static mergeMapBaseElems(m1: CellMap, m2: CellMap, startX: number, startY: number): void {
         if (m1.cols < m2.cols) {
             const got = `m1: ${m1.cols} m2: ${m2.cols}`;
             RG.err('Geometry', 'mergeMapBaseElems',
@@ -425,9 +436,9 @@ export const Geometry: any = {
                 }
             }
         }
-    },
+    }
 
-    mergeMapCellsUnsafe(m1, m2, startX, startY): void {
+    public static mergeMapCellsUnsafe(m1, m2, startX, startY): void {
         const endX = startX + m2.cols - 1;
         const endY = startY + m2.rows - 1;
         for (let x = startX; x <= endX; x++) {
@@ -442,9 +453,9 @@ export const Geometry: any = {
                 }
             }
         }
-    },
+    }
 
-    mergeMaps(m1, m2, startX, startY, mergeCb = (c1, c2) => true): void {
+    public static mergeMaps(m1, m2, startX, startY, mergeCb = (c1, c2) => true): void {
         const endX = startX + m2.cols - 1;
         const endY = startY + m2.rows - 1;
         for (let x = startX; x <= endX; x++) {
@@ -459,11 +470,11 @@ export const Geometry: any = {
             }
         }
 
-    },
+    }
 
     /* Calls the callback cb for each x,y coord in given bbox. Checks that x,y
      * is within the bounds of given map. */
-    iterateMapWithBBox(map, bbox, cb) {
+    public static iterateMapWithBBox(map, bbox, cb) {
         for (let x = bbox.ulx; x <= bbox.lrx; x++) {
             for (let y = bbox.uly; y <= bbox.lry; y++) {
                 if (map.hasXY(x, y)) {
@@ -471,9 +482,9 @@ export const Geometry: any = {
                 }
             }
         }
-    },
+    }
 
-    insertEntity(l1: Level, type, bbox, parser): void {
+    public static insertEntity(l1: Level, type, bbox, parser): void {
         switch (type) {
             case RG.TYPE_ACTOR:
                 this.insertActors(l1, type, bbox, parser);
@@ -487,11 +498,11 @@ export const Geometry: any = {
             default: RG.err('Geometry', 'insertEntity',
                 `No type ${type} supported`);
         }
-    },
+    }
 
     /* Inserts elements into the given level as rectangle bounded by the
      * coordinates given. */
-    insertElements(l1: Level, elemType: string, bbox: BBox) {
+    public static insertElements(l1: Level, elemType: string, bbox: BBox) {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
             const elem = RG.FACT.createElement(elemType);
@@ -502,11 +513,11 @@ export const Geometry: any = {
                 m1._map[x][y].setProp('elements', elem);
             }
         });
-    },
+    }
 
     /* Inserts actors into the given level as rectangle bounded by the
      * coordinates given. Skips non-free cells. */
-    insertActors(l1: Level, actorName, bbox, parser) {
+    public static insertActors(l1: Level, actorName, bbox, parser) {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
             if (m1.getCell(x, y).isFree()) {
@@ -515,11 +526,11 @@ export const Geometry: any = {
                 l1.addActor(actor, x, y);
             }
         });
-    },
+    }
 
     /* Inserts items into the given level as rectangle bounded by the
      * coordinates given. Skips non-free cells. */
-    insertItems(l1: Level, itemName, bbox, parser): void {
+    public static insertItems(l1: Level, itemName, bbox, parser): void {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
             if (m1.getCell(x, y).isFree()) {
@@ -527,13 +538,13 @@ export const Geometry: any = {
                 l1.addItem(item, x, y);
             }
         });
-    },
+    }
 
 
     /* Given a list of coordinates (can be any shape), checks if a box xDim *
      * yDim fits anywhere. Returns true if OK, and
      * 'result' will be a list of x,y pairs for the box. */
-    getFreeArea(freeCoord: TCoord[], xDim, yDim, result: TCoord[]): boolean {
+    public static getFreeArea(freeCoord: TCoord[], xDim, yDim, result: TCoord[]): boolean {
         let found = false;
         const left = freeCoord.slice();
         const lookupXY = {};
@@ -567,15 +578,15 @@ export const Geometry: any = {
             }
         }
         return found;
-    },
+    }
 
-    isLine(x0, y0, x1, y1): boolean {
+    public static isLine(x0, y0, x1, y1): boolean {
         const isLine = x0 === x1 || y0 === y1
             || Math.abs(x1 - x0) === Math.abs(y1 - y0);
         return isLine;
-    },
+    }
 
-    xyInLine(coord: TCoord[]): boolean {
+    public static xyInLine(coord: TCoord[]): boolean {
         for (let i = 1; i < coord.length; i++) {
             const [xy0, xy1] = [coord[i], coord[i - 1]];
             const [x0, y0] = xy0;
@@ -585,11 +596,11 @@ export const Geometry: any = {
             }
         }
         return true;
-    },
+    }
 
     /* Returns true if all coordinates in array have same x- or y-coordinates.
      * */
-    sameXOrY(coord: TCoord[]): boolean {
+    public static sameXOrY(coord: TCoord[]): boolean {
         for (let i = 1; i < coord.length; i++) {
             const [xy0, xy1] = [coord[i], coord[i - 1]];
             const [x0, y0] = xy0;
@@ -599,12 +610,12 @@ export const Geometry: any = {
             }
         }
         return true;
-    },
+    }
 
     /* Returns all coordinates within straight line between two points. Returns
      * empty array if there is no line. Straight means all cardinal directions.
      */
-    getStraightLine(x0, y0, x1, y1, incEnds = true): TCoord[] {
+    public static getStraightLine(x0, y0, x1, y1, incEnds = true): TCoord[] {
         if (this.isLine(x0, y0, x1, y1)) {
             const res = [];
             const dX = x1 === x0 ? 0 : (x1 - x0) / Math.abs(x1 - x0);
@@ -626,7 +637,7 @@ export const Geometry: any = {
             return res;
         }
         return [];
-    },
+    }
 
    /* Returns an array of xy-pairs belonging to Bresenham line from
     *  x1,y1 -> x2,y2
@@ -634,7 +645,7 @@ export const Geometry: any = {
     * https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS
     *   /FOURTH_EDITION/PROGRAMS/bresenham.c
     */
-    getBresenham(x1, y1, x2, y2): TCoord[] {
+    public static getBresenham(x1, y1, x2, y2): TCoord[] {
         let [dx, dy, i, e] = [0, 0, 0, 0];
         let [incx, incy, inc1, inc2] = [0, 0, 0, 0];
         let [x, y] = [0, 0];
@@ -682,11 +693,11 @@ export const Geometry: any = {
             }
         }
         return bresLine;
-    },
+    }
 
     /* Returns a path from x0,y0 to x1,y1 which resembles "straight" line.
     * TODO remove this as getBresenham() is now used. */
-    getMissilePath(x0, y0, x1, y1, incEnds = true) {
+    public static getMissilePath(x0, y0, x1, y1, incEnds = true) {
         let res = [];
         if (this.isLine(x0, y0, x1, y1)) {
             res = this.getStraightLine(x0, y0, x1, y1, incEnds);
@@ -778,7 +789,7 @@ export const Geometry: any = {
         return res;
     }
 
-};
+}
 
 
 /* From: https://en.wikipedia.org/wiki/Flood_fill
@@ -1025,9 +1036,9 @@ Geometry.squareFill = function(map, cell, type, dXdY): Cell[] {
     return result;
 };
 
-Geometry.histArrayVals = function(array) {
-    const hist = {};
-    array.forEach(value => {
+Geometry.histArrayVals = function(array: number[] | string[]): {[key: string]: number} {
+    const hist: {[key: string]: number} = {};
+    array.forEach((value: number | string) => {
         if (hist[value]) {hist[value] += 1;}
         else {hist[value] = 1;}
     });
