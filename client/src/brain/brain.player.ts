@@ -446,6 +446,7 @@ class MarkList {
         }
     }
 
+    /* //TODO remove
     public getMark(selectCode) {
         const index = Keys.codeToIndex(selectCode);
         if (this._marks.length <= index) {
@@ -453,8 +454,9 @@ class MarkList {
         }
         return null;
     }
+    */
 
-    public getMarkListMsg(mark) {
+    public getMarkListMsg(mark: MarkObject): string {
         const {x, y} = mark;
         let listMsg = `${x}, ${y}`;
         if (mark.tag) {listMsg += ` ${mark.tag}`;}
