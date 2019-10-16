@@ -39,7 +39,7 @@ class KeyMap {
     }
 
     public isRest(code: number): boolean {
-        return (code === Keys.VK_s || code === Keys.VK_PERIOD);
+        return (code === Keys.VK.s || code === Keys.VK.PERIOD);
     }
     public isPickup(code: number): boolean {
         return code === Keys.KEY.PICKUP;
@@ -126,7 +126,7 @@ class KeyMap {
             const newY = y + diff[1];
             return [newX, newY];
         }
-        else if (code === Keys.VK_s) {
+        else if (code === Keys.VK.s) {
             return [x, y];
         }
         else {
@@ -156,7 +156,7 @@ class KeyMap {
             dY = dXArg[1];
         }
         if (dX !== 0) {dX = dX / Math.abs(dX);}
-        if (dY !== 0) {dY = dY / Math.abs(dY);}
+        if (dY !== 0) {dY = dY! / Math.abs(dY!);}
 
         switch (dX) {
             case -1:
@@ -209,80 +209,87 @@ class KeyMap {
 
 }
 
-interface Keys {
-    KeyMap: KeyMap;
-    KEY: {[key: string]: number};
-    GUI: {[key: string]: number};
-    [key: string]: any;
+export class Keys {
+    public static KeyMap: KeyMap;
+    public static VK: {[key: string]: number};
+    public static KEY: {[key: string]: number};
+    public static GUI: {[key: string]: number};
+    public static menuIndices: Array<string | number>;
+    public static EXIT_INDEX: number;
+    //[key: string]: any;
+
+    public static codeToMenuChar: (code: number) => string | number;
+    public static selectIndexToCode: (indexChar: string | number) => number;
+
+    public static codeToIndex: (code: number) => number;
+
+    public static isNumeric: (keyCode: number) => boolean;
+    public static isValidKey: (keyCode: number) => boolean;
+    public static getChar: (keyCode: number) => string;
 }
+Keys.KeyMap = new KeyMap();
 
-export const Keys: Keys = {
-    KeyMap: new KeyMap(),
-    KEY: {},
-    GUI: {}
-};
-
+Keys.VK = {};
 /* eslint-disable */
-Keys.VK_a = ROT.VK_A + 32;
-Keys.VK_b = ROT.VK_B + 32;
-Keys.VK_c = ROT.VK_C + 32;
-Keys.VK_d = ROT.VK_D + 32;
-Keys.VK_e = ROT.VK_E + 32;
-Keys.VK_f = ROT.VK_F + 32;
-Keys.VK_g = ROT.VK_G + 32;
-Keys.VK_h = ROT.VK_H + 32;
-Keys.VK_i = ROT.VK_I + 32;
-Keys.VK_j = ROT.VK_J + 32;
-Keys.VK_k = ROT.VK_K + 32;
-Keys.VK_l = ROT.VK_L + 32;
-Keys.VK_m = ROT.VK_M + 32;
-Keys.VK_n = ROT.VK_N + 32;
-Keys.VK_o = ROT.VK_O + 32;
-Keys.VK_p = ROT.VK_P + 32;
-Keys.VK_q = ROT.VK_Q + 32;
-Keys.VK_r = ROT.VK_R + 32;
-Keys.VK_s = ROT.VK_S + 32;
-Keys.VK_t = ROT.VK_T + 32;
-Keys.VK_u = ROT.VK_U + 32;
-Keys.VK_v = ROT.VK_V + 32;
-Keys.VK_w = ROT.VK_W + 32;
-Keys.VK_x = ROT.VK_X + 32;
-Keys.VK_y = ROT.VK_Y + 32;
-Keys.VK_z = ROT.VK_Z + 32;
+Keys.VK.a = ROT.VK_A + 32;
+Keys.VK.b = ROT.VK_B + 32;
+Keys.VK.c = ROT.VK_C + 32;
+Keys.VK.d = ROT.VK_D + 32;
+Keys.VK.e = ROT.VK_E + 32;
+Keys.VK.f = ROT.VK_F + 32;
+Keys.VK.g = ROT.VK_G + 32;
+Keys.VK.h = ROT.VK_H + 32;
+Keys.VK.i = ROT.VK_I + 32;
+Keys.VK.j = ROT.VK_J + 32;
+Keys.VK.k = ROT.VK_K + 32;
+Keys.VK.l = ROT.VK_L + 32;
+Keys.VK.m = ROT.VK_M + 32;
+Keys.VK.n = ROT.VK_N + 32;
+Keys.VK.o = ROT.VK_O + 32;
+Keys.VK.p = ROT.VK_P + 32;
+Keys.VK.q = ROT.VK_Q + 32;
+Keys.VK.r = ROT.VK_R + 32;
+Keys.VK.s = ROT.VK_S + 32;
+Keys.VK.t = ROT.VK_T + 32;
+Keys.VK.u = ROT.VK_U + 32;
+Keys.VK.v = ROT.VK_V + 32;
+Keys.VK.w = ROT.VK_W + 32;
+Keys.VK.x = ROT.VK_X + 32;
+Keys.VK.y = ROT.VK_Y + 32;
+Keys.VK.z = ROT.VK_Z + 32;
 
-Keys.VK_A = ROT.VK_A;
-Keys.VK_B = ROT.VK_B;
-Keys.VK_C = ROT.VK_C;
-Keys.VK_D = ROT.VK_D;
-Keys.VK_E = ROT.VK_E;
-Keys.VK_F = ROT.VK_F;
-Keys.VK_G = ROT.VK_G;
-Keys.VK_H = ROT.VK_H;
-Keys.VK_I = ROT.VK_I;
-Keys.VK_J = ROT.VK_J;
-Keys.VK_K = ROT.VK_K;
-Keys.VK_L = ROT.VK_L;
-Keys.VK_M = ROT.VK_M;
-Keys.VK_N = ROT.VK_N;
-Keys.VK_O = ROT.VK_O;
-Keys.VK_P = ROT.VK_P;
-Keys.VK_Q = ROT.VK_Q;
-Keys.VK_R = ROT.VK_R;
-Keys.VK_S = ROT.VK_S;
-Keys.VK_T = ROT.VK_T;
-Keys.VK_U = ROT.VK_U;
-Keys.VK_V = ROT.VK_V;
-Keys.VK_W = ROT.VK_W;
-Keys.VK_X = ROT.VK_X;
-Keys.VK_Y = ROT.VK_Y;
-Keys.VK_Z = ROT.VK_Z;
+Keys.VK.A = ROT.VK_A;
+Keys.VK.B = ROT.VK_B;
+Keys.VK.C = ROT.VK_C;
+Keys.VK.D = ROT.VK_D;
+Keys.VK.E = ROT.VK_E;
+Keys.VK.F = ROT.VK_F;
+Keys.VK.G = ROT.VK_G;
+Keys.VK.H = ROT.VK_H;
+Keys.VK.I = ROT.VK_I;
+Keys.VK.J = ROT.VK_J;
+Keys.VK.K = ROT.VK_K;
+Keys.VK.L = ROT.VK_L;
+Keys.VK.M = ROT.VK_M;
+Keys.VK.N = ROT.VK_N;
+Keys.VK.O = ROT.VK_O;
+Keys.VK.P = ROT.VK_P;
+Keys.VK.Q = ROT.VK_Q;
+Keys.VK.R = ROT.VK_R;
+Keys.VK.S = ROT.VK_S;
+Keys.VK.T = ROT.VK_T;
+Keys.VK.U = ROT.VK_U;
+Keys.VK.V = ROT.VK_V;
+Keys.VK.W = ROT.VK_W;
+Keys.VK.X = ROT.VK_X;
+Keys.VK.Y = ROT.VK_Y;
+Keys.VK.Z = ROT.VK_Z;
 /* eslint-enable */
 
-Keys.VK_COMMA = 44;
-Keys.VK_PERIOD = 46;
-Keys.VK_LT = 60;
-Keys.VK_GT = 62;
-
+Keys.VK.COMMA = 44;
+Keys.VK.PERIOD = 46;
+Keys.VK.LT = 60;
+Keys.VK.GT = 62;
 
 Keys.menuIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f',
     'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
@@ -302,7 +309,7 @@ const reCharLC = /[a-z]/;
 const reCharUC = /[A-Z]/;
 
 /* Convert a selection index into a keycode. For example, if user presses 'a',
- * this function should return keycode for a, ie Keys.VK_a. */
+ * this function should return keycode for a, ie Keys.VK.a. */
 Keys.selectIndexToCode = (indexChar: string | number): number => {
     const arrayIndex = Keys.menuIndices.findIndex(val => val === indexChar);
     if (arrayIndex >= 0) {
@@ -311,7 +318,7 @@ Keys.selectIndexToCode = (indexChar: string | number): number => {
         }
         else if (reCharLC.test(indexChar as string)) {
             const addToCode = arrayIndex - Keys.menuIndices.indexOf('a');
-            return Keys.VK_a + addToCode;
+            return Keys.VK.a + addToCode;
         }
         else if (reCharUC.test(indexChar as string)) {
             const addToCode = arrayIndex - Keys.menuIndices.indexOf('A');
@@ -329,8 +336,8 @@ Keys.codeToIndex = (code: number): number => {
     if (code >= ROT.VK_0 && code <= ROT.VK_9) {
         return code - ROT.VK_0;
     }
-    else if (code >= Keys.VK_a && code <= Keys.VK_z) {
-        return code - Keys.VK_a + Keys.menuIndices.indexOf('a');
+    else if (code >= Keys.VK.a && code <= Keys.VK.z) {
+        return code - Keys.VK.a + Keys.menuIndices.indexOf('a');
     }
     else if (code >= ROT.VK_A && code <= ROT.VK_Z) {
         return code - ROT.VK_A + Keys.menuIndices.indexOf('A');
@@ -355,35 +362,35 @@ Keys.KEY.MOVE_SW = ROT.VK_Z + 32;
 Keys.KEY.MOVE_W = ROT.VK_A + 32;
 Keys.KEY.MOVE_NW = ROT.VK_Q + 32;
 
-Keys.KEY.ABILITY = Keys.VK_k;
+Keys.KEY.ABILITY = Keys.VK.k;
 Keys.KEY.CHAT = ROT.VK_C;
 Keys.KEY.DELETE = ROT.VK_D;
 Keys.KEY.DOOR = ROT.VK_O + 32;
 Keys.KEY.FIGHT = ROT.VK_F + 32;
 Keys.KEY.GIVE = ROT.VK_G;
-Keys.KEY.GOTO = Keys.VK_g;
-Keys.KEY.JUMP = Keys.VK_j;
+Keys.KEY.GOTO = Keys.VK.g;
+Keys.KEY.JUMP = Keys.VK.j;
 Keys.KEY.LOOK = ROT.VK_L + 32;
-Keys.KEY.MARK = Keys.VK_b;
+Keys.KEY.MARK = Keys.VK.b;
 Keys.KEY.MULTI = ROT.VK_SPACE;
-Keys.KEY.NEXT = Keys.VK_n;
+Keys.KEY.NEXT = Keys.VK.n;
 Keys.KEY.NEXT_ITEM = ROT.VK_H + 32;
 Keys.KEY.ORDER = ROT.VK_O;
-Keys.KEY.PICKUP = Keys.VK_COMMA;
+Keys.KEY.PICKUP = Keys.VK.COMMA;
 Keys.KEY.POWER = ROT.VK_P + 32;
 Keys.KEY.PREV = ROT.VK_P + 32;
-Keys.KEY.QUIT_MENU = Keys.VK_q;
+Keys.KEY.QUIT_MENU = Keys.VK.q;
 Keys.KEY.READ = ROT.VK_R;
 Keys.KEY.REST = ROT.VK_S + 32;
 Keys.KEY.RUN = ROT.VK_R + 32;
-Keys.KEY.SELECT = Keys.VK_s;
+Keys.KEY.SELECT = Keys.VK.s;
 Keys.KEY.SELECT_ALL = ROT.VK_A;
-Keys.KEY.TARGET = Keys.VK_t;
-Keys.KEY.USE_ABILITY = Keys.VK_k;
-Keys.KEY.USE_STAIRS_DOWN = Keys.VK_GT;
-Keys.KEY.USE_STAIRS_UP = Keys.VK_LT;
-Keys.KEY.YES = Keys.VK_y;
-Keys.KEY.NO = Keys.VK_n;
+Keys.KEY.TARGET = Keys.VK.t;
+Keys.KEY.USE_ABILITY = Keys.VK.k;
+Keys.KEY.USE_STAIRS_DOWN = Keys.VK.GT;
+Keys.KEY.USE_STAIRS_UP = Keys.VK.LT;
+Keys.KEY.YES = Keys.VK.y;
+Keys.KEY.NO = Keys.VK.n;
 Keys.KeyMap.initMap();
 
 Keys.KEY.NO_ACTION = ROT.VK_CAPS_LOCK;
@@ -394,11 +401,11 @@ Keys.GUI.CharInfo = ROT.VK_I;
 Keys.GUI.Goto = Keys.KEY.GOTO;
 Keys.GUI.Help = ROT.VK_H;
 Keys.GUI.Help2 = ROT.VK_QUESTION_MARK;
-Keys.GUI.Inv = Keys.VK_i;
-Keys.GUI.Look = Keys.VK_l;
-Keys.GUI.Map = Keys.VK_m;
+Keys.GUI.Inv = Keys.VK.i;
+Keys.GUI.Look = Keys.VK.l;
+Keys.GUI.Map = Keys.VK.m;
 Keys.GUI.OwMap = ROT.VK_M;
-Keys.GUI.Use = Keys.VK_u;
+Keys.GUI.Use = Keys.VK.u;
 
 Keys.isValidKey = (keyCode: number): boolean => {
     let found = false;
