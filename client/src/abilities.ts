@@ -4,6 +4,8 @@ import {Random} from './random';
 import {Geometry} from './geometry';
 import * as Menu from './menu';
 import * as Component from './component/component';
+import { CellMap } from './map';
+import { TCoord } from './interfaces';
 
 type ItemBase = import('./item').ItemBase;
 type SentientActor = import('./actor').SentientActor;
@@ -96,7 +98,9 @@ export class Area extends AbilityBase {
 
     public getCells(): Cell[] {
         const [x0, y0] = this.actor.getXY();
-        return Geometry.getBoxAround(x0, y0, this.range);
+        const map: CellMap = this.actor.getLevel().getMap();
+        const coord: TCoord[] =  Geometry.getBoxAround(x0, y0, this.range);
+        return map.getCellsWithCoord(coord);
     }
 
     public getMenuItem(): MenuItem {
