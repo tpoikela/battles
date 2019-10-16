@@ -12,7 +12,7 @@ import * as Component from './component/component';
 import {BBox} from './bbox';
 
 // Import types only
-import {TCoord, TCellProp} from './interfaces';
+import {TCoord, TCellProp, ICoordXY } from './interfaces';
 type ZoneBase = import('./world').ZoneBase;
 type SubZoneBase = import('./world').SubZoneBase;
 type Battle = import('./game.battle').Battle;
@@ -91,6 +91,7 @@ export type LevelExtras = Extras & {
     terms?: any[];
     rooms?: any[];
     endPoint?: TCoord;
+    criticalPath?: ICoordXY[];
     /* connectEdges?: boolean;
     isCollapsed?: boolean;*/
 };
