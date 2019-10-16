@@ -141,7 +141,7 @@ export class Territory {
         return null;
     }
 
-    public _markEmpty(x, y): void {
+    public _markEmpty(x: number, y: number): void {
         this.map[x][y] = EMPTY;
         this.empty[x + ',' + y] = [x, y];
         ++this.numEmpty;
@@ -153,7 +153,7 @@ export class Territory {
     }
 
     /* Gets the rival name of x,y cell. */
-    public getRival(xy) {
+    public getRival(xy: TCoord): string | null {
         const [x, y] = xy;
         const char = this.map[x][y];
         return this.getName(char);
@@ -163,7 +163,7 @@ export class Territory {
      * marks all cells in this.map as empty which have '.' in map,
      * and all cells full, which have '#' in given map.
      */
-    public useMap(map, cellInfo) {
+    public useMap(map: any[][], cellInfo: {[key: string]: boolean}) {
         this.numEmpty = 0;
         for (let x = 0; x < map.length; x++) {
             for (let y = 0; y < map[0].length; y++) {
@@ -188,7 +188,7 @@ export class Territory {
         let numTurnsTaken = 0;
 
         while (this._hasTurnsLeftToProcess(numTurnsTaken, maxTurns)) {
-            const next = this.currRivals.shift();
+            const next = this.currRivals.shift()!; // Always exists
             // TODO Check if there is weight on the size
 
             const {name} = next;
@@ -252,7 +252,7 @@ export class Territory {
         return (this.numCells - this.numEmpty) / this.numCells;
     }
 
-    public _hasTurnsLeftToProcess(numTurns, maxTurns) {
+    public _hasTurnsLeftToProcess(numTurns, maxTurns): boolean {
         return (this.hasEmpty()
             && (this.currRivals.length > 0)
             && (numTurns !== maxTurns)
@@ -454,7 +454,7 @@ export class Territory {
 
             contData.areas = {};
             startX.forEach((x, i) => {
-                const xy = [x, startY[i]];
+                const xy: TCoord = [x, startY[i]];
                 const lut = {};
                 const coordXY = Geometry.floodfill2D(this.map, xy, char, lut, diag);
                 contData.areas[_key(xy)] = coordXY;
