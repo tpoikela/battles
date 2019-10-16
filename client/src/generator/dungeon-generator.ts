@@ -687,11 +687,11 @@ export class DungeonGenerator extends LevelGenerator {
         const [cx1, cy1] = extras.endPoint;
 
         const map = level.getMap();
-        const pathFunc = (x: number, y: number) => {
+        const pathFunc = (x: number, y: number): boolean => {
             return map.isPassable(x, y) || map.getCell(x, y).hasDoor();
         };
 
-        let criticalPath = Path.getShortestPath(cx2, cy2, cx1, cy1, pathFunc);
+        let criticalPath: ICoordXY[] = Path.getShortestPath(cx2, cy2, cx1, cy1, pathFunc);
         if (criticalPath.length === 0) {
             const newPathFunc = (x: number, y: number) => {
                 return !(/wall/).test(map.getCell(x, y).getBaseElem().getType());
@@ -712,7 +712,7 @@ export class DungeonGenerator extends LevelGenerator {
             }
         }
 
-        const pathBrokenFunc = (x, y) => {
+        const pathBrokenFunc = (x: number, y: number) => {
             return pathFunc(x, y) &&
                 !map.getCell(x, y).hasMarker('path broken');
 
@@ -744,7 +744,7 @@ export class DungeonGenerator extends LevelGenerator {
         // that path
         this._addWallsToBrokenPath(level);
 
-        criticalPath.forEach(xy => {
+        criticalPath.forEach((xy: ICoordXY) => {
             const critPathElem = new ElementMarker('*');
             critPathElem.setTag('critical_path');
             level.addElement(critPathElem, xy.x, xy.y);
