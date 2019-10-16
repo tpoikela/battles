@@ -165,8 +165,8 @@ class BasicAttackProcessor extends ActionProcessor {
             }
         }
         else if (this.willDoRangedAttack(drv)) {
-            drv.setKeys([Keys.VK_t]);
-            return {code: Keys.VK_t};
+            drv.setKeys([Keys.VK.t]);
+            return {code: Keys.VK.t};
         }
         else {
             if (Math.abs(dX) <= 1 && Math.abs(dY) <= 1) {
@@ -936,7 +936,7 @@ export class PlayerDriver extends DriverBase {
         };
     }
 
-    public debug(msg, obj = null): void {
+    public debug(msg: string, obj = null): void {
         if (debug.enabled) {
             const pre = `T${this.nTurns}: `;
             let post = '';
@@ -969,7 +969,7 @@ export class PlayerDriver extends DriverBase {
     /* Returns true if player should pick up item from this cell. */
     public shouldPickupFromCell(pCell: Cell): boolean {
         if (pCell.hasItems()) {
-            const items = pCell.getItems();
+            const items = pCell.getItems()!;
             if (items[0].getType() !== RG.ITEM_CORPSE) {
                 return this.getLastAction() !== 'pickup';
             }
@@ -977,7 +977,7 @@ export class PlayerDriver extends DriverBase {
         return false;
     }
 
-    public notify(evtName, args): void {
+    public notify(evtName: string, args: any): void {
         if (evtName === RG.EVT_TILE_CHANGED) {
             const {actor, target} = args;
             if (actor === this.player) {
@@ -991,12 +991,12 @@ export class PlayerDriver extends DriverBase {
     }
 
     public getReport(): string {
-        let msg = super.getReport();
+        const msg = super.getReport();
         return msg;
     }
 
     /* Used by the path-finding algorith. */
-    private _passableCallback(x, y): boolean {
+    private _passableCallback(x: number, y: number): boolean {
         const map = this.player.getLevel().getMap();
         let res = map.isPassable(x, y);
 
