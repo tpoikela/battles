@@ -221,7 +221,8 @@ export interface ConstraintMap {
     actor?: IConstraint[];
     shop?: IConstraint[];
     disposition?: {[key: string]: string};
-    cellsAround?: {[key: string]: string};
+    // cellsAround?: {[key: string]: string};
+    cellsAround?: ICellDirMap;
 }
 
 export type TConstraintArg = IConstraint | IConstraint[];
