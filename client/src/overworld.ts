@@ -148,13 +148,14 @@ export class OWWall {
 export class OWSubFeature {
     public type: string;
     public coord: TCoord[];
-    public cellsAround: {[key: string]: string};
+    // public cellsAround: {[key: string]: string};
+    public cellsAround: IF.ICellDirMap;
     public alignment: string;
 
     constructor(type: string, coord: TCoord[]) {
         this.type = type;
         this.coord = coord;
-        this.cellsAround = null;
+        this.cellsAround = {} as IF.ICellDirMap;
 
         if (Array.isArray(coord)) {
             if (coord.length === 0) {
