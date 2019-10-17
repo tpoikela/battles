@@ -1230,10 +1230,12 @@ export class FromJSON {
                     `ID: ${id} ${msg}`);
             }
         });
-        const entNumAfter = JSON.parse(JSON.stringify(Entity.num));
-        Object.keys(entNumAfter).forEach((key: string) => {
-            console.log(`${key}: ${entNumAfter[key] - entNumBefore[key]}`);
-        });
+        if (debug.enabled) {
+            const entNumAfter = JSON.parse(JSON.stringify(Entity.num));
+            Object.keys(entNumAfter).forEach((key: string) => {
+                console.log(`${key}: ${entNumAfter[key] - entNumBefore[key]}`);
+            });
+        }
     }
 
 
