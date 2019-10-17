@@ -6,6 +6,7 @@ import * as Menu from './menu';
 import * as Component from './component/component';
 import { CellMap } from './map';
 import { TCoord } from './interfaces';
+import { MenuArg } from './menu';
 
 type ItemBase = import('./item').ItemBase;
 type SentientActor = import('./actor').SentientActor;
@@ -130,7 +131,7 @@ export class Item extends AbilityBase {
     /* Constructs a table of items to select from. */
     public getMenuItem(): MenuItem {
         const items = this.actor.getInvEq().getInventory().getItems();
-        const itemMenuItems = items.map(item => (
+        const itemMenuItems: MenuArg[] = items.map(item => (
             [
                 item.toString(),
                 this.activate.bind(this, item)
@@ -243,7 +244,7 @@ export class Abilities {
     }
 
     public getMenu() {
-        const menuArgs = Object.values(this.abilities).map(abil => (
+        const menuArgs: MenuItem[] = Object.values(this.abilities).map(abil => (
             abil.getMenuItem()
         ));
         const menu = new Menu.MenuWithQuit(menuArgs);
@@ -252,7 +253,7 @@ export class Abilities {
         return menu;
     }
 
-    public addAbility(ability: AbilityBase) {
+    public addAbility(ability: AbilityBase): void {
         this.abilities[ability.getName()] = ability;
         ability.actor = this.actor;
     }
