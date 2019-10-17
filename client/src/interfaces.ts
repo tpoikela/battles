@@ -375,6 +375,7 @@ export interface SubZoneConf {
     constraint?: ConstraintMap;
     maxDanger?: number;
     maxValue?: number;
+    createPresetLevels?: LevelSpecStub;
 }
 
 export interface BranchConf extends SubZoneConf {
