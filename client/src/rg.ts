@@ -19,7 +19,6 @@ type Level = import('./level').Level;
 type Damage = import('./mixin').Damage;
 type BrainGoalOriented = import('./brain').BrainGoalOriented;
 type BattleZone = import('./world').BattleZone;
-type ZoneBase = import('./world').ZoneBase;
 
 RG.gameTitle = 'Battles in the North (BitN)';
 
@@ -42,7 +41,7 @@ RG.getCssClassForCell = function(cell: Cell, isVisible: boolean): string {
 };
 
 /* Same as getClassName, but optimized for viewing the full map. */
-RG.getCssClassFullMap = function(cell: Cell): string {
+RG.getCssClassFullMap = function(cell: Cell): string | null {
     this.cellRenderArray = this.cellRenderVisible;
 
     if (!cell.hasProps()) {
@@ -71,7 +70,7 @@ RG.getCharForCell = function(cell: Cell, isVisible: boolean): string {
 };
 
 /* Same as getChar, but optimized for full map viewing. */
-RG.getCharFullMap = function(cell: Cell): string {
+RG.getCharFullMap = function(cell: Cell): string | null {
     this.cellRenderArray = this.cellRenderVisible;
 
     if (!cell.hasProps()) {
@@ -81,7 +80,7 @@ RG.getCharFullMap = function(cell: Cell): string {
 
     for (let i = 0; i < 3; i++) {
         if (cell.hasProp(this.cellRenderVisible[i])) {
-            const props = cell.getProp(this.cellRenderVisible[i]);
+            const props = cell.getProp(this.cellRenderVisible[i])!;
             const styles = this.charStyles[this.cellRenderVisible[i]];
             return this.getPropClassOrChar(styles, props[0]);
         }
@@ -1492,19 +1491,19 @@ RG.printObjList = function(list: any[], funcs: string | string[], filterFunc) {
 };
 
 // To create player commands
-RG.getUseCmd = function(item, target): IPlayerCmdInput {
+RG.getUseCmd = function(item: ItemBase, target): IPlayerCmdInput {
     return {cmd: 'use', item, target};
 };
 
-RG.getDropCmd = function(item, count): IPlayerCmdInput {
+RG.getDropCmd = function(item: ItemBase, count: number): IPlayerCmdInput {
     return {cmd: 'drop', item, count};
 };
 
-RG.getEquipCmd = function(item, count): IPlayerCmdInput {
+RG.getEquipCmd = function(item: ItemBase, count: number): IPlayerCmdInput {
     return {cmd: 'equip', item, count};
 };
 
-RG.getUnequipCmd = function(name, slotNumber, count): IPlayerCmdInput {
+RG.getUnequipCmd = function(name: string, slotNumber: number, count: number): IPlayerCmdInput {
     return {cmd: 'unequip', slot: name, slotNumber, count};
 };
 
@@ -1574,15 +1573,6 @@ RG.isBattleZone = function(target: any): target is BattleZone {
     return false;
 };
 
-/*
-RG.isZone = function(target: any): target is ZoneBase {
-    if (target) {
-        return target instanceof ZoneBase;
-    }
-    return false;
-};
-*/
-
 /* Can be queried if actor is still valid for serialisation or effects
  * like telepath or order giving. */
 RG.isActorActive = (target: Entity): boolean => {
@@ -1603,7 +1593,7 @@ RG.getItemUseType = (item: ItemBase, targetOrObj: Target): string => {
         if ((target as Cell).getActors) {
             const tCell = target as Cell;
             if (tCell.hasActors()) {
-                target = tCell.getActors()[0];
+                target = tCell.getFirstActor() as BaseActor;
             }
         }
     }
@@ -1699,11 +1689,11 @@ RG.getCardinalDirection = (level: Level, cell: Cell): string => {
 
 /* Returns a textual (human-readable) interpretation of x,y difference between
  * to targets. */
-RG.getTextualDir = (dest: DestOrSrc, src: DestOrSrc, tol = 10): string => {
+RG.getTextualDir = (dest: DestOrSrc, src: DestOrSrc, tol: number = 10): string => {
     let res = '';
     const [dX, dY] = RG.dXdY(dest, src);
-    const dXNew = dX / 10;
-    const dYNew = dY / 10;
+    const dXNew = dX / tol;
+    const dYNew = dY / tol;
     if (dYNew > 0) {res += 'south';}
     else if (dYNew < 0) {res += 'north';}
     if (dXNew > 0) {res += 'east';}
@@ -1717,7 +1707,7 @@ RG.getTextualDir = (dest: DestOrSrc, src: DestOrSrc, tol = 10): string => {
 // RG ARRAY METHODS
 //-------------------------------------------------------------
 
-type Map2D = any[][];
+type Map2D<T = any> = T[][];
 
 /* Debugging function for printing 2D map row-by-row. */
 RG.printMap = (map: Map2D | CellMap): void => {
@@ -1751,8 +1741,8 @@ RG.forEach2D = <T>(arr: T[][], func: ForEachCb<T>): void => {
 type MapCb<T> = (x: number, y: number, val?: T) => T;
 /* Similar to Array.map, but maps a 2D array to an array of values. */
 RG.map2D = <T>(arr: T[][], func: MapCb<T>): T[] => {
-    const res = [];
-    RG.forEach2D(arr, (i: number, j: number, val) => {
+    const res: T[] = [];
+    RG.forEach2D(arr, (i: number, j: number, val: T) => {
         res.push(func(i, j, val));
     });
     return res;
@@ -1769,8 +1759,8 @@ RG.copy2D = <T>(arr: T[][]): T[][] => {
     return copy;
 };
 
-RG.colsToRows = (arr: any[][]): any[][] => {
-    const res = [];
+RG.colsToRows = <T>(arr: T[][]): T[][] => {
+    const res: T[][] = [];
     const sizeY = arr[0].length;
     const sizeX = arr.length;
     for (let y = 0; y < sizeY; y++) {
@@ -1786,15 +1776,15 @@ RG.colsToRows = (arr: any[][]): any[][] => {
  * positions. */
 RG.flattenTo2D = (arr: any): any[][] => {
     const sizeY = arr.length;
-    const res = [];
+    const res: any[][] = [];
     for (let y = 0; y < sizeY; y++) {
         let row = arr[y];
         row = flat(row);
         res.push(row);
     }
     function flat(data: any): any[] {
-        let r = [];
-        data.forEach(e => {
+        let r: any[] = [];
+        data.forEach((e: any) => {
             if (Array.isArray(e)) {
                 r = r.concat(flat(e));
             }
@@ -1808,7 +1798,7 @@ RG.flattenTo2D = (arr: any): any[][] => {
 };
 
 RG.uniquifyCoord = (arr: TCoord[]): TCoord[] => {
-    const seen = {};
+    const seen: {[key: string]: boolean} = {};
     const res = [];
     for (let i = 0; i < arr.length; i++) {
         const [x, y] = arr[i];
@@ -1838,13 +1828,13 @@ RG.inSameLevel = (ent1, ent2): boolean => {
 };
 
 /* Returns a game message for cell which cannot be travelled. */
-RG.getImpassableMsg = (actor, cell, str) => {
+RG.getImpassableMsg = (actor: any, cell: Cell, str: string) => {
     const type = cell.getBaseElem().getType();
     const cellMsg = `cannot venture beyond ${type}`;
     return `${str} ${cellMsg}`;
 };
 
-RG.formatLocationName = (level): string => {
+RG.formatLocationName = (level: Level): string => {
     const feat = level.getParent();
     if (!feat) {return '';}
     switch (feat.getType()) {
@@ -1852,13 +1842,18 @@ RG.formatLocationName = (level): string => {
         case 'face': // Fall through
         case 'quarter': {
             const parent = feat.getParent();
-            const subName = feat.getName();
-            const zoneName = parent.getName();
-            if (subName === zoneName) {
-                return subName;
+            if (parent) {
+                const subName = feat.getName();
+                const zoneName = parent.getName();
+                if (subName === zoneName) {
+                    return subName;
+                }
+                // return `${subName} of ${zoneName}`;
+                return `${zoneName}`;
             }
-            // return `${subName} of ${zoneName}`;
-            return `${zoneName}`;
+            else {
+                RG.err('RG', 'formatLocationName', 'parent is null');
+            }
         }
         default: return feat.getName();
     }
