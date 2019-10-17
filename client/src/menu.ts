@@ -42,10 +42,13 @@ export interface IMenu {
     [key: string]: string | string[];
 }
 
+type TSelectRetVal = MenuItem | SelectionObject | SelectionFunc | MenuFunction
+    | null;
+
 export interface SelectionObject {
     showMenu: () => boolean;
     getMenu?: () => IMenu;
-    select: (code: number) => SelectionObject | SelectionFunc | null;
+    select: (code: number) => TSelectRetVal;
     showMsg?: () => void;
     funcToCall?: () => void;
 }
@@ -73,7 +76,7 @@ interface MenuArgObj {
 
 type MenuArgArray = [string, MenuFunction];
 
-export type MenuArg = MenuArgObj | MenuArgArray;
+export type MenuArg = MenuArgObj | MenuArgArray | MenuItem;
 
 const createMenuTable = function(args: MenuArg[]): MenuTable {
     const table = {};
@@ -104,11 +107,11 @@ const createMenuTable = function(args: MenuArg[]): MenuTable {
     return table;
 };
 
-Menu.isSelectionDone = function(selection): boolean {
+Menu.isSelectionDone = function(selection: any): boolean {
     return typeof selection === 'function';
 };
 
-Menu.isMenuItem = function(selection): boolean {
+Menu.isMenuItem = function(selection: any): boolean {
     return selection && typeof selection === 'object';
 };
 
@@ -123,7 +126,7 @@ export class MenuBase {
     public post: string[];
     public parent: MenuBase | null;
     public table: MenuTable;
-    public callback: (arg: any) => void | null;
+    public callback: MenuFunction | null;
     public returnMenu: MenuBase | null;
     protected _showMenu: boolean;
 
@@ -207,7 +210,7 @@ export class MenuBase {
         console.log(`MENU ${this.name}`, ...args);
     }
 
-    public select(code) {
+    public select(code: number): TSelectRetVal {
         const selectIndex = Keys.codeToIndex(code);
         if (this.table.hasOwnProperty(selectIndex)) {
             const selection = this.table[selectIndex];
@@ -221,6 +224,7 @@ export class MenuBase {
                 return selection;
             }
         }
+        return Menu.EXIT_MENU;
     }
 
     /* Called if this menu is selected from a parent menu. */
@@ -239,7 +243,7 @@ export class MenuInfoOnly extends MenuBase {
         super();
     }
 
-    public select(code) {
+    public select(code: number): TSelectRetVal {
         const selection = Keys.codeToIndex(code);
         if (selection === 0) {
             return Menu.EXIT_MENU;
@@ -265,13 +269,13 @@ Menu.InfoOnly = MenuInfoOnly;
 export class MenuWithQuit extends MenuBase {
     public onQuit: VoidFunc | boolean;
 
-    constructor(args?) {
+    constructor(args: MenuArg[] = []) {
         super(args);
         const quitIndex = Keys.codeToIndex(Keys.KEY.QUIT_MENU);
         this.table[quitIndex] = ['Quit menu', Menu.EXIT_MENU];
     }
 
-    public select(code) {
+    public select(code: number): TSelectRetVal {
         const selection = Keys.codeToIndex(code);
         if (this.table.hasOwnProperty(selection)) {
             const value = this.table[selection][1];
@@ -287,11 +291,12 @@ Menu.WithQuit = MenuWithQuit;
 
 /* This menu can be used for functionality requiring always a selection. */
 export class MenuSelectRequired extends MenuBase {
-    constructor(args) {
+
+    constructor(args: MenuArg[] = []) {
         super(args);
     }
 
-    public select(code) {
+    public select(code: number): TSelectRetVal {
         const selection = Keys.codeToIndex(code);
         if (this.table.hasOwnProperty(selection)) {
             return this.table[selection][1];
@@ -318,7 +323,7 @@ export class MenuSelectCell extends MenuBase {
         this._enableSelectAll = true;
     }
 
-    public select(code) {
+    public select(code: number): TSelectRetVal {
         if (KeyMap.inMoveCodeMap(code)) {
             this.callback(code);
             return this;
@@ -338,23 +343,21 @@ export class MenuSelectCell extends MenuBase {
         return Menu.EXIT_MENU;
     }
 }
-
-RG.extend2(MenuSelectCell, MenuBase);
 Menu.SelectCell = MenuSelectCell;
 
 //---------------------------------------------------------------------------
 
 export class MenuSelectTarget extends MenuSelectCell {
 
-    public targetCallback: (any) => void;
+    public targetCallback: null | MenuFunction;
 
     constructor(args: MenuArg[] = []) {
         super(args);
         this.targetCallback = null;
     }
 
-    public select(code) {
-        const val = MenuSelectCell.prototype.select.call(this, code);
+    public select(code: number): TSelectRetVal {
+        const val = super.select(code);
         if (val === Menu.EXIT_MENU) {
             if (KeyMap.isNextTarget(code)) {
                 if (this.targetCallback) {
@@ -384,13 +387,13 @@ export class MenuSelectTarget extends MenuSelectCell {
 
 /* This menu can be used when direction selection is required. */
 export class MenuSelectDir extends MenuBase {
-    constructor(args) {
+    constructor(args: MenuArg[] = []) {
         super(args);
         this._showMenu = false;
     }
 
     /* Returns a callback bound to the dXdY of selection code. */
-    public select(code) {
+    public select(code: number): TSelectRetVal {
         if (KeyMap.inMoveCodeMap(code)) {
             const dXdY = Keys.KeyMap.getDir(code);
             if (this.callback) {
@@ -409,14 +412,14 @@ Menu.SelectDir = MenuSelectDir;
 /* This menu can be used when direction selection is required. */
 export class MenuConfirm extends MenuBase {
 
-    constructor(args) {
+    constructor(args: MenuArg[] = []) {
         super(args);
         this._showMenu = false;
         this.msg = 'Do you want to confirm the action [y/n]?';
     }
 
     /* Returns a callback bound to the dXdY of selection code. */
-    public select(code) {
+    public select(code: number): TSelectRetVal {
         if (KeyMap.isConfirmYes(code)) {
             if (this.callback) {
                 return this.callback;
@@ -467,8 +470,8 @@ export class PlayerMissileMenu extends MenuSelectCell {
         // brain.selectCell();
     }
 
-    public select(code) {
-        const val = MenuSelectCell.prototype.select.call(this, code);
+    public select(code: number): TSelectRetVal {
+        const val = super.select(code);
         if (val !== Menu.EXIT_MENU) {
             return val;
         }
@@ -491,7 +494,6 @@ export class PlayerMissileMenu extends MenuSelectCell {
                 return Menu.EXIT_MENU;
             }
         }
-        return Menu.EXIT_MENU;
     }
 
 }
@@ -530,7 +532,7 @@ export class MenuWithState extends MenuWithQuit {
 
     }
 
-    public select(code) {
+    public select(code: number): TSelectRetVal {
         if (this.keyToState.hasOwnProperty(code)) {
             this.menuState = this.keyToState[code];
             return this;
