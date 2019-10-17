@@ -1,5 +1,4 @@
 
-import RG from '../src/rg';
 import {FactoryLevel} from '../src/factory.level';
 import {Castle} from '../data/tiles.castle';
 import {Placer} from '../src/placer';
@@ -12,6 +11,7 @@ import {ObjectShell} from '../src/objectshellparser';
 import {LevelUtils} from '../src/level-utils';
 
 import {BBox} from '../src/bbox';
+import {BaseActor} from '../src/actor';
 
 const dwarvenCityConf = {
   outerColsRatio: 0.45,
@@ -189,7 +189,7 @@ export class DwarvenCity {
           elite: 50, rifleman: 50,
           commander: 20
       };
-      const actors = [];
+      const actors: BaseActor[] = [];
       Object.keys(actorConf).forEach(key => {
         const name = `dwarven ${key}`;
         const num = actorConf[key];
@@ -198,7 +198,7 @@ export class DwarvenCity {
             actors.push(actor);
         }
       });
-      Placer.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
+      Placer.addPropsToCells(level, freeCells, actors);
 
       // Add items, avoid placing anything to "hallways" of castles
     }

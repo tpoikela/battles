@@ -134,10 +134,10 @@ export class Capital {
             actors.push(trainer);
         }
 
-        Placer.addPropsToFreeCells(mainLevel, actors, RG.TYPE_ACTOR);
+        Placer.addPropsToFreeCells(mainLevel, actors);
 
         const items = [parser.createItem('Longsword')];
-        Placer.addPropsToFreeCells(mainLevel, items, RG.TYPE_ITEM);
+        Placer.addPropsToFreeCells(mainLevel, items);
 
         this.level = mainLevel;
     }
