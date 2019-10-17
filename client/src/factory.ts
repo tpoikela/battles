@@ -125,7 +125,7 @@ export class FactoryBase {
         if (!actors) {
             return 0;
         }
-        Placer.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
+        Placer.addPropsToFreeCells(level, actors);
         return actors.length;
     }
 
@@ -201,7 +201,7 @@ export class FactoryBase {
         const itemFact = new FactoryItem();
         const items = itemFact.generateItems(itemConf);
         const freeCells = level.getMap().getFreeInBbox(bbox);
-        Placer.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
+        Placer.addPropsToCells(level, freeCells, items);
     }
 
 }
