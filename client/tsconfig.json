@@ -3,7 +3,8 @@
     "compilerOptions": {
         "strictNullChecks": true,
         "noImplicitAny": true,
-        "noImplicitReturns": true
+        "noImplicitReturns": true,
+        "strict": true
     },
     "files": [
         "./**/*"
