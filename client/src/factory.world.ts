@@ -75,6 +75,10 @@ const levelSizes = {
     }
 };
 
+interface PresetLevels {
+    [key: string]: Level | Level[] | Level[][];
+}
+
 /* Factory object for creating worlds and zones. Uses conf object which is
  * somewhat involved. For an example, see ../data/conf.world.js. This Factory
  * does not have any procedural generation. The configuration object can be
@@ -88,7 +92,7 @@ export class FactoryWorld {
     public createAllZones: boolean;
     public worldElemByID: {[key: number]: WorldBase}; // Stores world elements by ID
 
-    public presetLevels: {[key: string]: any}; // TODO
+    public presetLevels: PresetLevels;
 
     public _conf: ConfStack;
 
@@ -129,7 +133,7 @@ export class FactoryWorld {
     }
 
 
-    public setPresetLevels(levels: {[key: string]: Level}): void {
+    public setPresetLevels(levels: PresetLevels): void {
         this.presetLevels = levels;
         this.debug('PresetLevels were set.');
     }
@@ -781,7 +785,7 @@ export class FactoryWorld {
             const {createPresetLevels} = subZoneConf;
             const levelFact = new LevelFactory(this);
             const levels = levelFact.create(createPresetLevels.new,
-                createPresetLevels.args);
+                createPresetLevels.args as any); // TODO fix
             if (!levels) {
                 let msg = 'Found createPresetLevels but no levels created';
                 msg += ' conf: ' + JSON.stringify(subZoneConf);
