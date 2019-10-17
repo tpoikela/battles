@@ -251,7 +251,7 @@ export class FactoryItem {
                     'Item.Food was not created properly.');
             }
         }
-        Placer.addPropsToFreeCells(level, items, RG.TYPE_ITEM);
+        Placer.addPropsToFreeCells(level, items);
         return items.length;
     }
 
@@ -295,7 +295,7 @@ export class FactoryItem {
     /* Adds a random number of gold coins to the level. */
     public addRandomGold(level: Level, parser: Parser, conf: ItemConf) {
         const goldItems = this.generateGold(conf);
-        Placer.addPropsToFreeCells(level, goldItems, RG.TYPE_ITEM);
+        Placer.addPropsToFreeCells(level, goldItems);
     }
 
     /* Returns a shop item based on the configuration. */
@@ -346,7 +346,7 @@ export class FactoryItem {
                 'conf is missing maxValue');
         }
         const items = this.generateItems(conf);
-        Placer.addPropsToCells(level, cells, items, RG.TYPE_ITEM);
+        Placer.addPropsToCells(level, cells, items);
     }
 
 
