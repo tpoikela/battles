@@ -68,11 +68,21 @@ export type DiceValue = Dice | IDiceInputArg;
 
 export type TCellProp = ItemBase | BaseActor | ElementXY;
 
+export interface CellPropMap<T> {
+    actors: T;
+    items: T;
+    elements: T;
+}
+
+export type CellProps = Partial<CellPropMap<TCellProp[]>>;
+/*
 export interface CellProps {
+
     actors?: TCellProp[];
     items?: TCellProp[];
     elements?: TCellProp[];
 }
+*/
 
 export type TPropType = keyof CellProps;
 
