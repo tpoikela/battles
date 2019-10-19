@@ -1011,10 +1011,10 @@ export class FromJSON {
             game.setGlobalConf(gameJSON.globalConf);
         }
         if (gameJSON.cellStyles) {
-            RG.cellStyles = gameJSON.cellStyles;
+            RG.cellStyles = gameJSON.cellStyles as any; // TODO fix
         }
         if (gameJSON.charStyles) {
-            RG.charStyles = gameJSON.charStyles;
+            RG.charStyles = gameJSON.charStyles as any; // TODO fix
         }
         if (gameJSON.actorsKilled) {
             this.actorsKilled = gameJSON.actorsKilled;

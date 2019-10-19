@@ -440,7 +440,7 @@ export class SystemMovement extends SystemBase {
         const coord = xOld + ', ' + yOld;
         RG.diag('\n\nSystem.Movement list of actors:');
         RG.printObjList(level.getActors(),
-            ['getID', 'getName', 'getX', 'getY']);
+            ['getID', 'getName', 'getX', 'getY'], '');
         this._diagnoseRemovePropError(xOld, yOld, map, ent);
         RG.err('MovementSystem', 'moveActorTo',
             'Couldn\'t remove ent |' + ent.getName() + '| @ ' + coord);

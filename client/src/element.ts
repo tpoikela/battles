@@ -71,7 +71,6 @@ export class ElementBase extends Mixin.Typed(Entity) {
         }
         type = type || name;
         super({propType: RG.TYPE_ELEM, type});
-        RG.elementsCreated += 1; // Used for debugging only
         this._name = name;
         this.msg = {};
     }
@@ -146,7 +145,6 @@ export class ElementBase extends Mixin.Typed(Entity) {
     }
 }
 Element.Base = ElementBase;
-RG.elementsCreated = 0;
 
 export class ElementWall extends ElementBase {
 

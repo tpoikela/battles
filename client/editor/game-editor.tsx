@@ -517,7 +517,7 @@ export default class GameEditor extends Component {
         }
       }
     }
-    else if (keyCode === RG.VK_s) {
+    else if (keyCode === Keys.VK.s) {
       const cell = this.getFirstSelectedCell();
       const selectMode = !this.state.selectMode;
       if (!this.state.selectMode) {

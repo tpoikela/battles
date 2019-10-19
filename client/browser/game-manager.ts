@@ -907,7 +907,7 @@ export class GameManager {
     public onLoadCallback(jsonData, updateCb: () => void): void {
         if (jsonData.plugin) {
             const entry = this.pluginManager.readJSON(jsonData);
-            const parser = RG.ObjectShell.getParser();
+            const parser = ObjectShell.getParser();
             parser.parseShellData(entry.getData());
             (window as any).parser = parser;
         }

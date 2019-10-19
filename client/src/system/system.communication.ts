@@ -10,8 +10,8 @@ export class SystemCommunication extends SystemBase {
 
     private _msgFunc: {[key: string]: (ent, msg) => void};
 
-    constructor(compTypes, pool?: EventPool) {
-        super('Communication', compTypes, pool);
+    constructor(compTypes: string[], pool?: EventPool) {
+        super(RG.SYS.COMMUNICATION, compTypes, pool);
 
         // Dispatch table for different messages
         this._msgFunc = {

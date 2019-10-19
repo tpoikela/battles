@@ -3,6 +3,7 @@
 import RG from './rg';
 import {CellMap} from './map';
 import * as Element from './element';
+import {ELEM} from '../data/elem-constants';
 
 type TextInput = string | string[];
 type ElementBase = Element.ElementBase;
@@ -74,20 +75,20 @@ MapASCII.DefaultMapper = function() {
 };
 
 MapASCII.DefaultMapper.prototype.getBaseElem = function(
-    x: number, y: number, char: string): ElementBase
+    x: number, y: number, char: string): Readonly<ElementBase>
 {
     switch (char) {
-        case '.': return RG.ELEM.FLOOR;
-        case '+': return RG.ELEM.FLOOR;
-        case '#': return RG.ELEM.WALL;
-        case 'x': return RG.ELEM.WALL;
-        case 'x': return RG.ELEM.WALL;
-        case 'l': return RG.ELEM.LAVA;
-        case 'w': return RG.ELEM.WATER;
-        case 'W': return RG.ELEM.WATER;
+        case '.': return ELEM.FLOOR;
+        case '+': return ELEM.FLOOR;
+        case '#': return ELEM.WALL;
+        case 'x': return ELEM.WALL;
+        case 'X': return ELEM.WALL;
+        case 'l': return ELEM.LAVA;
+        case 'w': return ELEM.WATER;
+        case 'W': return ELEM.WATER;
         default: break;
     }
-    return RG.ELEM.FLOOR;
+    return ELEM.FLOOR;
 };
 
 MapASCII.DefaultMapper.prototype.getObjects = function(

@@ -727,7 +727,7 @@ export class FactoryGame {
 
             // Reset cell explored status, because game-editor sets all cells as
             // explored for viewing purposes
-            RG.setAllExplored(level, false);
+            RG.setAllExplored(level);
             return {
                 nLevel: presetItem.nLevel,
                 level

@@ -19,7 +19,7 @@ const DOOR = '+';
 export class House {
 
     public coord: {[key: string]: TCoord[]};
-    public map: any[][];
+    public map: string[][];
     public x: number;
     public y: number;
     public cX: number;
@@ -31,7 +31,7 @@ export class House {
     public floor: TCoord[];
     public walls: TCoord[];
 
-    constructor(map) {
+    constructor(map: string[][]) {
         this.coord = {};
         this.map = RG.copy2D(map);
         this.trimEmpty();
@@ -43,7 +43,7 @@ export class House {
 
         let totalX = 0;
         let totalY = 0;
-        RG.forEach2D(map, (x, y, val) => {
+        RG.forEach2D(map, (x: number, y: number, val: string) => {
             if (!this.coord[val]) {this.coord[val] = [];}
             this.coord[val].push([x, y]);
             if (val === FLOOR) {
@@ -62,6 +62,7 @@ export class House {
         this.cX = Math.round(totalX / numFloor);
         this.cY = Math.round(totalY / numFloor);
         this.numFloor = numFloor;
+        // this.door = null;
     }
 
     public getCenter(): TCoord {

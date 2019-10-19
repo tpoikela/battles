@@ -29,7 +29,7 @@ export class ItemBase extends Entity {
     public isOwnable: boolean;
     public useArgs: any;
     public isUsable: boolean;
-    protected _owner: Owner;
+    protected _owner: null | Owner;
 
     constructor(name: string) {
         super();
@@ -55,7 +55,7 @@ export class ItemBase extends Entity {
 
     /* Returns the top-level owner. Used mainly to recover actor owner of items
      * inside inventory. */
-    public getTopOwner(): Owner {
+    public getTopOwner(): null | Owner {
         let owner = this._owner;
         while ((owner as ItemBase).getOwner) {
             owner = (owner as ItemBase).getOwner();
@@ -64,19 +64,19 @@ export class ItemBase extends Entity {
     }
 
     /* Returns the direct owner of this object.*/
-    public getOwner(): Owner {return this._owner;}
+    public getOwner(): null | Owner {return this._owner;}
 
-    public getX(): number {
+    public getX(): null | number {
         if (this._owner) {return this._owner.getX();}
         return null;
     }
 
-    public getY(): number {
+    public getY(): null | number {
         if (this._owner) {return this._owner.getY();}
         return null;
     }
 
-    public getXY(): TCoord {
+    public getXY(): null | TCoord {
         if (this._owner) {return this._owner.getXY();}
         return null;
     }

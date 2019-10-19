@@ -57,11 +57,6 @@ export class FactoryBase {
         this._levelFact = new FactoryLevel();
     }
 
-    /* Creates a new die object from array or die expression '2d4 + 3' etc.*/
-    public createDie(strOrArray) {
-        return RG.createDie(strOrArray);
-    }
-
     /* Factory method for players.*/
     public createPlayer(name: string, obj) {
         return this._actorFact.createPlayer(name, obj);

@@ -62,10 +62,10 @@ const levelSizes = {
         Huge: {x: 140, y: 60}
     },
     dungeon: {
-        Small: {x: RG.LEVEL_SMALL_X, y: RG.LEVEL_SMALL_Y},
-        Medium: {x: RG.LEVEL_MEDIUM_X, y: RG.LEVEL_MEDIUM_Y},
-        Large: {x: RG.LEVEL_LARGE_X, y: RG.LEVEL_LARGE_Y},
-        Huge: {x: RG.LEVEL_HUGE_X, y: RG.LEVEL_HUGE_Y}
+        Small: {x: 40, y: 20},
+        Medium: {x: 60, y: 30},
+        Large: {x: 80, y: 40},
+        Huge: {x: 140, y: 60}
     },
     city: {
         Small: {x: 40, y: 20},

@@ -11,7 +11,7 @@ import {Constraints} from '../constraints';
 type Entity = import('../entity').Entity;
 type Memory = import('../brain').Memory;
 
-const NO_ACTORS_FOUND = Object.freeze([]);
+const NO_ACTORS_FOUND: BaseActor[] = [];
 
 /* This system handles all entity movement.*/
 export class SystemChat extends SystemBase {
@@ -19,12 +19,13 @@ export class SystemChat extends SystemBase {
     protected factFuncs: {[key: string]: () => any};
     protected registeredObjs: {[key: string]: boolean};
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool?) {
         super(RG.SYS.CHAT, compTypes, pool);
         this.factFuncs = {};
         this.registeredObjs = {
             Trainer: true, QuestGiver: true
         };
+        this.loreData = {};
     }
 
     /* More lore can be added for chatting. */
@@ -42,7 +43,7 @@ export class SystemChat extends SystemBase {
         actors.forEach(actor => {
             if (actor.isEnemy(chatter)) {
                 const msg = this.getHostileMsg(chatter, actor);
-                RG.gameMsg({cell: actor.getCell(), msg});
+                RG.gameMsg({cell: actor.getCell()!, msg});
             }
             // First, we need to create the Chat object for the Menu
             Object.keys(this.registeredObjs).forEach((chatType: string) => {
@@ -61,7 +62,7 @@ export class SystemChat extends SystemBase {
                 // TODO spirits react differently
                 chatObj = this.getGenericChatObject(ent, actor);
                 const msg = `You chat with ${actor.getName()} for a while.`;
-                RG.gameMsg({cell: chatter.getCell(), msg});
+                RG.gameMsg({cell: chatter.getCell()!, msg});
             }
 
             // Then, we add relevant chat options for that object
@@ -99,7 +100,7 @@ export class SystemChat extends SystemBase {
         if (map.hasXY(x, y)) {
             const cell = map.getCell(x, y);
             if (cell.hasActors()) {
-                return cell.getActors();
+                return cell.getActors()!; // Exists due to hasActors()
             }
             else {
                 const msg = 'There is no one to talk to.';
@@ -108,9 +109,9 @@ export class SystemChat extends SystemBase {
         }
         else {
             const msg = 'There is no one to talk to.';
-            RG.gameMsg({cell: ent.getCell(), msg});
+            RG.gameMsg({cell: ent.getCell()!, msg});
         }
-        return NO_ACTORS_FOUND as BaseActor[];
+        return NO_ACTORS_FOUND.slice();
     }
 
     /* Chat object has two options. Either it's a persistent with the actor, or
@@ -372,22 +373,34 @@ export class SystemChat extends SystemBase {
             loreComps.forEach(loreComp => {
                 if (loreComp.hasTopic('mainQuest')) {
                     const msg = this.rng.arrayGetRand(loreComp.getTopics().mainQuest);
-                    chatObj.add({
-                        name: 'Can you tell me anything about the North?',
-                        option: () => {
-                            RG.gameInfo({cell: ent.getCell(), msg});
-                        }
-                    });
+                    if (typeof msg === 'string') {
+                        chatObj.add({
+                            name: 'Can you tell me anything about the North?',
+                            option: () => {
+                                RG.gameInfo({cell: ent.getCell(), msg});
+                            }
+                        });
+                    }
+                    else {
+                        RG.err('SystemChat', 'addZoneLoreItems',
+                        `Expected msg to be string. Got ${JSON.stringify(msg)}`);
+                    }
                 }
 
                 if (loreComp.hasTopic('sideQuest')) {
                     const msg = this.rng.arrayGetRand(loreComp.getTopics().sideQuest);
-                    chatObj.add({
-                        name: 'What can you tell me about this area?',
-                        option: () => {
-                            RG.gameInfo({cell: ent.getCell(), msg});
-                        }
-                    });
+                    if (typeof msg === 'string') {
+                        chatObj.add({
+                            name: 'What can you tell me about this area?',
+                            option: () => {
+                                RG.gameInfo({cell: ent.getCell(), msg});
+                            }
+                        });
+                    }
+                    else {
+                        RG.err('SystemChat', 'addZoneLoreItems',
+                        `Expected msg to be string. Got ${JSON.stringify(msg)}`);
+                    }
                 }
             });
         }

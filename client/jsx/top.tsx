@@ -766,7 +766,7 @@ export class BattlesTop extends React.Component {
         if (msg.errorMsg) {
             msgText = msg.errorMsg;
         }
-        RG.diag('showMsg:', msgText);
+        RG.diag('showMsg:' + msgText);
         console.log('showMsg arg:', msg);
         this.setState({msg: msgText});
     }

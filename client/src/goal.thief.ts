@@ -185,7 +185,7 @@ export class GoalThief extends GoalBase {
         let nextGoal = null;
         const knownShopCells = Object.values(this.shops);
         if (knownShopCells.length > 0) {
-            const shopCell = RG.arrayGetRand(knownShopCells);
+            const shopCell = RNG.arrayGetRand(knownShopCells);
             return new Goal.FollowPath(this.actor, shopCell.getXY());
         }
         const seenCells = this.actor.getBrain().getSeenCells();

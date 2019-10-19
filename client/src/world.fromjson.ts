@@ -17,6 +17,8 @@ type WorldBase = World.WorldBase;
 type WorldTop = World.WorldTop;
 type FromJSON = import('./game.fromjson').FromJSON;
 
+type AreaLevelOrString = World.AreaLevelOrString;
+
 // type FromJSON = import('./game.fromjson').FromJSON;
 
 interface LevelMap {
@@ -233,13 +235,13 @@ export class WorldFromJSON {
 
     /* Used when creating area from existing levels. Uses id2level lookup table
      * to construct 2-d array of levels.*/
-    public getAreaLevels(areaJSON): Level[][] {
+    public getAreaLevels(areaJSON): AreaLevelOrString[][] {
         this.verify('getAreaLevels', areaJSON, ['tileStatus']);
         ++this._IND;
-        const levels: Level[][] = [];
+        const levels: AreaLevelOrString[][] = [];
         if (areaJSON.tiles) {
             areaJSON.tiles.forEach((tileCol, x) => {
-                const levelCol: Level[] = [];
+                const levelCol: AreaLevelOrString[] = [];
                 tileCol.forEach((tile, y) => {
                     if (areaJSON.tileStatus[x][y] === LoadStat.LOADED) {
                         this.dbg(`Tile ${x},${y} is loaded`);

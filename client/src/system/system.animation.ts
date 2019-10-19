@@ -64,13 +64,13 @@ export class SystemAnimation extends SystemBase {
         const dY = args.dir[1];
         let rangeLeft = args.range;
 
-        let lineChar = RG.dirToChar(args.dir);
+        let lineChar: string = RG.dirToChar(args.dir);
         if (args.lineChar) {
-            lineChar = {args};
+            lineChar = args.lineChar;
         }
 
         const animation = this._createAnimation(args);
-        const frame = {};
+        const frame: Frame = {};
         if (args.ray) {
             while (rangeLeft > 0) {
                 x += dX;

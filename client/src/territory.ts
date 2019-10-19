@@ -77,7 +77,7 @@ export class Territory {
     public maxFillRatio: number;
 
     // By default, use only 4 directions to advance rivals
-    public dirs: string[];
+    public dirs: TCoord[];
 
     constructor(cols, rows, conf = {}) {
         this.map = new Array(cols);
@@ -344,11 +344,11 @@ export class Territory {
         return this.rng.arrayGetRand(Object.values(open));
     }
 
-    public getEmptyAdjacentXY(xy: TCoord): TCoord {
-        const dirs = this.dirs.slice();
+    public getEmptyAdjacentXY(xy: TCoord): null | TCoord {
+        const dirs: TCoord[] = this.dirs.slice();
         this.rng.shuffle(dirs);
         while (dirs.length > 0) {
-            const nextDir = dirs.shift();
+            const nextDir: TCoord = dirs.shift()!; // Exists, due to len check
             const [nX, nY] = RG.newXYFromDir(nextDir, xy);
             if (this.hasXY(nX, nY)) {
                 if (this.map[nX][nY] === EMPTY) {
@@ -364,7 +364,7 @@ export class Territory {
             nX < this.map.length && nY < this.map[0].length;
     }
 
-    public _closeCell(name, xy): void {
+    public _closeCell(name: string, xy: TCoord): void {
         const key = _key(xy);
         this.terrData[name].closed[key] = xy;
         delete this.terrData[name].open[key];
@@ -374,7 +374,7 @@ export class Territory {
         return this.numEmpty > 0;
     }
 
-    public mapToString() {
+    public mapToString(): string[] {
         const sizeY = this.map[0].length;
         const sizeX = this.map.length;
 
@@ -390,8 +390,8 @@ export class Territory {
     }
 
     /* Histogram of how many cells each contestant occupies. */
-    public getAreaProportions() {
-        const hist = {};
+    public getAreaProportions(): {[key: string]: number} {
+        const hist: {[key: string]: number} = {};
         Object.keys(this.occupiedBy).forEach(name => {
             hist[name] = this.occupiedBy[name].length;
         });

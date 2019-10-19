@@ -8,7 +8,7 @@ type MissileWeapon = import('../item').MissileWeapon;
 
 export class SystemAttackRanged extends SystemBase {
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool?) {
         super(RG.SYS.ATTACK_RANGED, compTypes, pool);
     }
 
@@ -61,7 +61,7 @@ export class SystemAttackRanged extends SystemBase {
                     const mComp = new Component.Missile(actor);
                     mComp.setTargetXY(x, y);
                     mComp.setDamage(RG.getMissileDamage(actor, missile));
-                    mComp.setAttack(RG.getMissileAttack(actor, missile));
+                    mComp.setAttack(RG.getMissileAttack(actor));
                     mComp.setRange(RG.getMissileRange(actor, missile));
                     missile.add(mComp);
                     ent.get('Action').setEnergy(RG.energy.MISSILE);

@@ -15,7 +15,9 @@ import {BBox} from './bbox';
 import {TCoord, TCellProp, ICoordXY } from './interfaces';
 type ZoneBase = import('./world').ZoneBase;
 type SubZoneBase = import('./world').SubZoneBase;
+type Area = import('./world').Area;
 type Battle = import('./game.battle').Battle;
+
 type Cell = import('./map.cell').Cell;
 type CellMap = import('./map').CellMap;
 type House = import('./generator').House;
@@ -73,7 +75,7 @@ export class LevelCallback {
 }
 
 
-export type LevelParent = Battle | SubZoneBase;
+export type LevelParent = Battle | SubZoneBase | Area;
 
 export type LevelExtraType = number | string | boolean | {[key: string]: LevelExtraType | LevelExtraType[]};
 

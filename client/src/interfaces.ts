@@ -10,7 +10,11 @@ type Level = import('./level').Level;
 type ElementStairs = import('./element').ElementStairs;
 type ElementBase = import('./element').ElementBase;
 type ElementXY = import('./element').ElementXY;
+
 type ItemBase = import('./item').ItemBase;
+type ItemAmmo = import('./item').Ammo;
+type ItemMissile = import('./item').Missile;
+
 type BaseActor = import('./actor').BaseActor;
 type Locatable = import('./mixin').Locatable;
 type ElemTemplate = import('./template').ElemTemplate;
@@ -36,6 +40,15 @@ export type TNoFuncVal =
 export interface NoFunctionObject {
     [key: string]: TNoFuncVal;
 }
+
+export interface IObjRef {
+    $objRef: {
+        type: string;
+        id: number;
+    };
+}
+
+export type TObjRefArray = IObjRef[] & {$objRefArray: boolean};
 
 export interface NoFunctionArray extends Array<TNoFuncVal> { }
 
@@ -94,11 +107,12 @@ export interface ICoordObj {
     subLevel: Level;
 }
 
-export type DestOrSrc = TCoord | Locatable;
+export type DestOrSrc = TCoord | Locatable | Cell;
 export type TLocatableElement = ElementBase & Locatable;
 
 /* Used to pass player input (keys/mouse) to the game */
 export interface IPlayerCmdInput {
+    callback?: (obj: any) => void;
     code?: number;
     cmd?: string;
     target?: Cell;
@@ -147,15 +161,15 @@ export interface IBBox {
     lry: number;
 }
 
-export interface ICellDirMap {
-    N: string;
-    S: string;
-    E: string;
-    W: string;
-    NE: string;
-    NW: string;
-    SE: string;
-    SW: string;
+export interface ICellDirMap<T = string> {
+    N: T;
+    S: T;
+    E: T;
+    W: T;
+    NE: T;
+    NW: T;
+    SE: T;
+    SW: T;
 }
 
 export type TCardinalDir = keyof ICellDirMap;
@@ -307,6 +321,9 @@ export interface ShopConf {
     shopType?: string | string[];
     shopFunc?: TShellFunc[];
 }
+
+
+export type AmmoOrMissile = ItemMissile | ItemAmmo;
 
 //-------------------------------------------------------------
 // Interfaces used in actor classes to specify starting items

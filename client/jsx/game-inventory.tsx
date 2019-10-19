@@ -93,7 +93,7 @@ export default class GameInventory extends React.Component {
   public dropItem(): void {
     if (this.props.selectedItem !== null) {
       const cmd = RG.getDropCmd(this.props.selectedItem, this.getCount());
-      cmd.callback = function(obj) {
+      cmd.callback = (obj: any): void => {
         let msgStyle = 'text-success';
         if (!obj.result) {
           msgStyle = 'text-danger';
@@ -101,7 +101,7 @@ export default class GameInventory extends React.Component {
         this.props.setInventoryMsg(
           {invMsg: obj.msg, msgStyle});
         this.props.selectItemTop(null);
-      }.bind(this);
+      };
       this.props.doInvCmd(cmd);
     }
     else {

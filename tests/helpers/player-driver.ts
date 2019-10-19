@@ -199,7 +199,7 @@ class BasicAttackProcessor extends ActionProcessor {
         const player = drv.player;
         const [eX, eY] = drv.enemy!.getXY();
         const [aX, aY] = player.getXY();
-        const miss = player.getInvEq().getEquipment().getItem('missile');
+        const miss = player.getInvEq().getMissile();
 
         if (miss) {
             const range = RG.getMissileRange(player, miss);
@@ -970,7 +970,7 @@ export class PlayerDriver extends DriverBase {
     public shouldPickupFromCell(pCell: Cell): boolean {
         if (pCell.hasItems()) {
             const items = pCell.getItems()!;
-            if (items[0].getType() !== RG.ITEM_CORPSE) {
+            if (items[0].getType() !== RG.ITEM.CORPSE) {
                 return this.getLastAction() !== 'pickup';
             }
         }

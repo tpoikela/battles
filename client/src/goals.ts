@@ -749,7 +749,7 @@ export class GoalAttackActor extends GoalBase {
     public canMissileAttack(): boolean {
         const [eX, eY] = this.targetActor.getXY();
         const [aX, aY] = this.actor.getXY();
-        const miss = this.actor.getInvEq().getEquipment().getItem('missile');
+        const miss = this.actor.getInvEq().getMissile();
         if (miss) {
             const range = RG.getMissileRange(this.actor, miss);
             const getDist = Path.shortestDist(eX, eY, aX, aY);

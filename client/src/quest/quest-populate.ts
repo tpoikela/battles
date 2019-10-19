@@ -1220,7 +1220,7 @@ export class QuestPopulate {
         if (location) {
             level.addItem(book);
             // TODO setText() some info about the location etc
-            const placeName = RG.formatLocationName(location);
+            const placeName = RG.formatLocationName(location as Level); // TODO fix unsafe
             const bookText = ['Quest hint where to go:'];
             bookText.push('You should go to place called ' + placeName);
             book.setText(bookText);

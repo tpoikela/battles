@@ -503,9 +503,11 @@ export class Geometry {
     /* Inserts elements into the given level as rectangle bounded by the
      * coordinates given. */
     public static insertElements(l1: Level, elemType: string, bbox: BBox) {
+        RG.err('Geometry', 'insertElements', 'Not supported');
+        /* TODO add support
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
-            const elem = RG.FACT.createElement(elemType);
+            const elem = FACT.createElement(elemType);
             if (elemType.match(/(wall|floor)/)) {
                 m1._map[x][y].setBaseElem(elem);
             }
@@ -513,11 +515,12 @@ export class Geometry {
                 m1._map[x][y].setProp('elements', elem);
             }
         });
+        */
     }
 
     /* Inserts actors into the given level as rectangle bounded by the
      * coordinates given. Skips non-free cells. */
-    public static insertActors(l1: Level, actorName, bbox, parser) {
+    public static insertActors(l1: Level, actorName: string, bbox, parser) {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
             if (m1.getCell(x, y).isFree()) {
@@ -530,7 +533,7 @@ export class Geometry {
 
     /* Inserts items into the given level as rectangle bounded by the
      * coordinates given. Skips non-free cells. */
-    public static insertItems(l1: Level, itemName, bbox, parser): void {
+    public static insertItems(l1: Level, itemName: string, bbox, parser): void {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
             if (m1.getCell(x, y).isFree()) {

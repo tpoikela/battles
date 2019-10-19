@@ -47,7 +47,7 @@ export interface IAreaTileOnDisk {
     onDisk: boolean;
 }
 
-export type AreaTileObj = AreaTile | IAreaTileJSON | IAreaTileOnDisk;
+export type AreaTileObj = AreaTile | IAreaTileJSON | IAreaTileOnDisk | string;
 
 const RNG = Random.getRNG();
 
@@ -1115,6 +1115,8 @@ export class AreaTile {
 }
 World.AreaTile = AreaTile;
 
+
+export type AreaLevelOrString = Level | string;
 //------------------
 // Area
 //------------------
@@ -1140,7 +1142,7 @@ export class Area extends WorldBase {
     // private _conf: {[key: string]: any};
     private _conf: AreaConf;
 
-    constructor(name: string, sizeX, sizeY, cols, rows, levels?: Level[][]) {
+    constructor(name: string, sizeX, sizeY, cols, rows, levels?: AreaLevelOrString[][]) {
         super(name);
         this.setType('area');
         this._sizeX = parseInt(sizeX, 10);
@@ -1214,7 +1216,7 @@ export class Area extends WorldBase {
         return this._tiles;
     }
 
-    public setTile(x, y, tile: AreaTileObj) {
+    public setTile(x: number, y: number, tile: AreaTileObj): void {
         this._tiles[x][y] = tile;
     }
 
@@ -1227,11 +1229,11 @@ export class Area extends WorldBase {
         }
     }
 
-    public getConf() {
+    public getConf(): AreaConf {
         return this._conf;
     }
 
-    public _init(levels?: Level[][]): void {
+    public _init(levels?: AreaLevelOrString[][]): void {
         // Create the tiles
         for (let x = 0; x < this._sizeX; x++) {
             const tileColumn = [];
@@ -1254,8 +1256,8 @@ export class Area extends WorldBase {
 
                 if (level !== RG.LEVEL_NOT_LOADED) {
                     this.tileStatus[x][y] = LoadStat.LOADED;
-                    level.setParent(this);
-                    newTile.setLevel(level);
+                    (level as Level).setParent(this);
+                    newTile.setLevel(level as Level);
                     tileColumn.push(newTile);
                 }
                 else {

@@ -7,6 +7,9 @@ import RG from '../src/rg';
 import {Names} from './name-gen';
 import {WorldConf} from '../src/world.creator';
 import * as IF from '../src/interfaces';
+import {Random} from '../src/random';
+
+const RAND = Random.getRNG();
 
 export const LevelGen: any = {};
 
@@ -21,7 +24,7 @@ const getNumLevels = function(name: string): number {
 };
 
 const getDungeonSizeXY = function(name: string): [number, number] {
-    const mediumSize: [number, number] = [RG.LEVEL_MEDIUM_X, RG.LEVEL_MEDIUM_Y];
+    const mediumSize: [number, number] = [80, 40];
     switch (name) {
         case 'Cave': return [80, 50];
         case 'Cavern': return [200, 200];
@@ -36,7 +39,7 @@ const getDungeonSizeXY = function(name: string): [number, number] {
 
         case 'Crypt': return mediumSize;
         case 'Tombs': return [100, 100];
-        case 'Catacombs': return [RG.LEVEL_HUGE_X, RG.LEVEL_HUGE_Y];
+        case 'Catacombs': return [140, 60];
 
         default: return mediumSize;
     }
@@ -138,13 +141,13 @@ const getNumQuarters = (cityType) => {
         case 'Village': return 1;
         case 'Town': return 2;
         case 'Fort': return 1;
-        case 'Stronghold': return RG.RAND.getUniformInt(2, 4);
-        case 'Capital': return RG.RAND.getUniformInt(3, 5);
+        case 'Stronghold': return RAND.getUniformInt(2, 4);
+        case 'Capital': return RAND.getUniformInt(3, 5);
         default: return 1;
     }
 };
 
-const getRandomShopType = () => RG.RAND.arrayGetRand(RG.SHOP_TYPES);
+const getRandomShopType = () => RAND.arrayGetRand(RG.SHOP_TYPES);
 
 /* Adds shop generation constraints for the quarter. */
 const addShopConstraints = (qConf, conf) => {
@@ -153,7 +156,7 @@ const addShopConstraints = (qConf, conf) => {
     const qName = conf.name;
 
     if (qName === 'Market' || qName === 'Bazaar') {
-        const nShops = RG.RAND.getUniformInt(1, 3);
+        const nShops = RAND.getUniformInt(1, 3);
         qConf.nShops = nShops;
         qConf.constraint.shop = [];
         for (let i = 0; i < nShops; i++) {

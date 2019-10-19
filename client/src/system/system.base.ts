@@ -55,7 +55,7 @@ export abstract class SystemBase {
         ent.add(compClone);
     }
 
-    public type: string; // Type of the system
+    public type: symbol; // Type of the system
     public compTypes: string[];
     public entities: {[key: string]: Entity};
 
@@ -71,7 +71,7 @@ export abstract class SystemBase {
 
     protected legalArgs: string[];
 
-    constructor(type: string, compTypes: string[], pool?: EventPool) {
+    constructor(type: symbol, compTypes: string[], pool?: EventPool) {
         if (!Array.isArray(compTypes)) {
             RG.err('System.Base', 'new',
                 '2nd arg must be an array of component types');

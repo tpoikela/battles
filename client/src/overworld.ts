@@ -1480,7 +1480,7 @@ function getMainQuestComps(ow: OWMap, x: number, y: number, owLore: OWLore): any
             const nextIndex = index + 1;
             if (nextIndex < path.length) {
                 const nXY = path[nextIndex];
-                const dir = RG.getTextualDir(nXY, xy);
+                const dir = RG.getTextualDir([nXY.x, nXY.y], xy);
 
                 // TODO placeholder for more intelligent msg
                 const msg = createDirNorthMsg(dir);

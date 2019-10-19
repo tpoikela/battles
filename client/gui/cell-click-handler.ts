@@ -117,7 +117,7 @@ export class CellClickHandler extends DriverBase {
 
         if (!map.isExplored(toX, toY)) {
             this._keyBuffer = [];
-            RG.gameMsg({msg: 'Cannot move to unexplored cell.'});
+            RG.gameMsg('Cannot move to unexplored cell.');
             return;
         }
 

@@ -15,7 +15,7 @@ import {ObjectShellComps} from './objectshellcomps';
 
 import {ActorGen} from '../data/actor-gen';
 
-import {IShell, StringMap, TShellFunc} from './interfaces';
+import {IShell, StringMap, TShellFunc, TPropType} from './interfaces';
 
 const RNG = Random.getRNG();
 export const ObjectShell: any = {};
@@ -39,7 +39,7 @@ export interface IShellDb {
     effects?: StringMap<IShell>;
 }
 
-type DBKey = keyof IShellDb;
+type DBKey = TPropType | 'effects';
 
 export interface IShellDbDanger {
     [key: number]: IShellDb;
@@ -345,7 +345,8 @@ export class Creator {
                         newEval[prop](goal[prop]);
                     }
                 });
-                newObj.getBrain().getGoal().addEvaluator(newEval);
+                const brain = newObj.getBrain();
+                (brain as any).getGoal().addEvaluator(newEval); // TODO fix
             });
         }
     }

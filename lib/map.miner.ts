@@ -3,6 +3,7 @@ import ROT from './rot';
 import RG from '../client/src/rg';
 import {Geometry as Geom} from '../client/src/geometry';
 import {Path} from '../client/src/path';
+import {TCoord} from '../client/src/interfaces';
 import '../client/src/utils';
 
 import dbg = require('debug');
@@ -31,7 +32,7 @@ export interface MapOptions {
     nSmooth?: number;
     dirWeights?: {[key: string]: number};
     maxMinersOp?: MinerOp;
-};
+}
 
 /* Contains code to generate miner-based caves and caverns. This is very
  * different from Cellular automate, and produces different results as well.
@@ -306,8 +307,8 @@ MapMiner.prototype._getXYToDig = function(miner) {
     const rng = this._options.rng;
 
     // Pre-check if any valid (WALL) cells are around
-    const box = Geom.getBoxAround(miner.x, miner.y, 1);
-    const undugXY = box.filter(xy => (
+    const box: TCoord[] = Geom.getBoxAround(miner.x, miner.y, 1);
+    const undugXY: TCoord[] = box.filter(xy => (
         this._map[xy[0]][xy[1]] === WALL &&
         this.inBounds(xy[0], xy[1])
     ));
@@ -321,11 +322,11 @@ MapMiner.prototype._getXYToDig = function(miner) {
     // Map x,y coord around to vectors, and filter those with given weights in
     // this._options.dirWeights
     const undugDirs = undugXY.map(xy => {
-        const dXdY = [xy[0] - miner.x, xy[1] - miner.y];
-        return RG.dXdYToDir(dXdY);
+        const _dXdY: TCoord = [xy[0] - miner.x, xy[1] - miner.y];
+        return RG.dXdYToDir(_dXdY);
     });
     const minerWeights = miner.dirWeights;
-    const dirsLeft = {};
+    const dirsLeft: {[key: string]: number} = {};
     undugDirs.forEach(dir => {
         if (minerWeights[dir]) {
             dirsLeft[dir] = minerWeights[dir];
@@ -341,6 +342,11 @@ MapMiner.prototype._getXYToDig = function(miner) {
 
     let dir = rng.getWeightedValue(dirsLeft);
     let dXdY = RG.dirTodXdY(dir);
+    if (!dXdY) {
+        RG.err('Map.Miner', 'getXYToDig', 'Got null dir!');
+        return;
+    }
+
     let [x, y] = [miner.x + dXdY[0], miner.y + dXdY[1]];
 
     this.dbg(`dir: ${dir}, COMP: dXdY: ${dXdY}, x,y: ${x},${y}`);

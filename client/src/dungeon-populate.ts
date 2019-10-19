@@ -310,8 +310,8 @@ export class DungeonPopulate {
 
     public addLootToPoint(level: Level, point: TCoord) {
         const maxValue = this.maxValue;
-        const lootTypes = [RG.ITEM_POTION, RG.ITEM_SPIRITGEM, RG.ITEM_AMMUNITION,
-            RG.ITEM_POTION, RG.ITEM_RUNE];
+        const lootTypes = [RG.ITEM.POTION, RG.ITEM.SPIRITGEM, RG.ITEM.AMMUNITION,
+            RG.ITEM.POTION, RG.ITEM.RUNE];
         const generatedType = RNG.arrayGetRand(lootTypes);
 
         const parser = ObjectShell.getParser();

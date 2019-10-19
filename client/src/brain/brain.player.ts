@@ -351,7 +351,7 @@ class TargetingFSM {
             const path = Geometry.getBresenham(ax, ay, tx, ty);
 
             const invEq = actor.getInvEq();
-            const missile = invEq.getEquipped('missile');
+            const missile = invEq.getMissile();
             if (missile) {
                 const missRange = RG.getMissileRange(actor, missile);
                 if ((path.length - 1) <= missRange) {

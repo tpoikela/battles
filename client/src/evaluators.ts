@@ -543,6 +543,8 @@ export class EvaluatorGoHome extends EvaluatorBase {
         this.timeToHomeSick = RNG.getUniformInt(20, 40);
         this.timeToStay = 0;
         this.maxDistHome = 5;
+        this.x = -1;
+        this.y = -1;
     }
 
     public calculateDesirability(actor): number {
@@ -556,7 +558,7 @@ export class EvaluatorGoHome extends EvaluatorBase {
         }
 
         if (this.timeToStay > 0) {
-            const xy = [this.x, this.y];
+            const xy: TCoord = [this.x, this.y];
             if (RG.withinRange(this.maxDistHome, xy, actor)) {
                 this.timeToStay -= 1;
             }
