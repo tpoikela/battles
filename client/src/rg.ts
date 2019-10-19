@@ -5,7 +5,7 @@ const $DEBUG = 0;
 
 import './utils';
 import {TCardinalDir, TCoord, DestOrSrc, IPlayerCmdInput, ICellDirMap,
-    TPropType, AmmoOrMissile, TObjRefArray, IObjRef} from './interfaces';
+    TPropType, AmmoOrMissile, TObjRefArray, IObjRef, CellPropMap} from './interfaces';
 import {Random} from './random';
 import {EventPool} from './eventpool';
 
@@ -43,6 +43,28 @@ type Map2D<T = any> = T[][];
 type ForEachCb<T> = (x: number, y: number, val?: T) => void;
 type MapCb<T> = (x: number, y: number, val?: T) => T;
 
+interface GetChar {
+    getChar: string;
+    default: string;
+}
+
+interface GetClass {
+    getClassName: string;
+    default: string;
+}
+
+interface StateQuery {
+    [key: string]: string;
+    default: string;
+}
+
+type StyleEntry = GetChar | StateQuery | GetClass;
+
+interface StyleEntryMap {
+    [key: string]: StyleEntry | string;
+    default: string;
+}
+
 class RGClass {
 
     public POOL: EventPool;
@@ -59,8 +81,9 @@ class RGClass {
     public cellRenderAlways: TPropType[] = ['items', 'elements'];
     public cellRenderArray: TPropType[];
 
-    public charStyles: {[key: string]: any};
-    public cellStyles: {[key: string]: any};
+    //public charStyles: {[key: string]: any};
+    public charStyles: CellPropMap<StyleEntryMap>;
+    public cellStyles: CellPropMap<StyleEntryMap>;
 
     public DMG: {[key: string]: string};
     public classNameDMG: {[key: string]: string};
@@ -224,6 +247,7 @@ class RGClass {
     public CLICKED_ACTOR: any;
     public debugZoneEvents: boolean = false;
 
+
     constructor() {
         this.POOL = EventPool.getPool();
         // These are used to select rendered characters for map cells.
@@ -263,7 +287,7 @@ class RGClass {
             items: {
                 default: '?',
                 corpse: '§'
-            }
+            },
         };
 
         // These are used to select the CSS class for map cells.
@@ -675,7 +699,7 @@ class RGClass {
 
         if (!cell.hasProps()) {
             const baseType = cell.getBaseElem().getType();
-            return this.cellStyles.elements[baseType];
+            return this.cellStyles.elements[baseType] as string;
         }
 
         for (let i = 0; i < 3; i++) {
@@ -698,13 +722,13 @@ class RGClass {
         return cellChar;
     }
 
-/* Same as getChar, but optimized for full map viewing. */
+    /* Same as getChar, but optimized for full map viewing. */
     public getCharFullMap(cell: Cell): string | null {
         this.cellRenderArray = this.cellRenderVisible;
 
         if (!cell.hasProps()) {
             const baseType = cell.getBaseElem().getType();
-            return this.charStyles.elements[baseType];
+            return this.charStyles.elements[baseType] as string;
         }
 
         for (let i = 0; i < 3; i++) {
@@ -735,11 +759,11 @@ class RGClass {
         }
 
         const baseType = cell.getBaseElem().getType();
-        return this.cellStyles.elements[baseType];
+        return this.cellStyles.elements[baseType] as string;
     }
 
-/* styles is either a LUT of chars or LUT of CSS classnames. */
-    public getPropClassOrChar(styles, propObj): string {
+    /* styles is either a LUT of chars or LUT of CSS classnames. */
+    public getPropClassOrChar(styles: StyleEntryMap, propObj: any): string {
 
         // Return by name, this is for object shells generally
         let lookupKey = null;
@@ -757,7 +781,8 @@ class RGClass {
         if (styles.hasOwnProperty(lookupKey)) {
             if (typeof styles[lookupKey] === 'object') {
                 // Invoke a state querying function
-                for (const p in styles[lookupKey]) {
+                const entry = styles[lookupKey] as StyleEntry;
+                for (const p in entry) {
                     if (p !== 'default') {
                         const funcToCall = p;
                         const res = propObj[funcToCall]();
@@ -765,7 +790,7 @@ class RGClass {
                         // If func returned true, use value ie
                         // isClosed: '+' returns '+' if isClosed() === true
                         if (res === true) {
-                            return styles[lookupKey][p];
+                            return entry[p];
                         }
                         // Else if func returned non-false value, use the
                         // returned value, ie getChar() returned 'A'
@@ -774,24 +799,25 @@ class RGClass {
                         }
                     }
                 }
-                return styles[lookupKey].default;
+                return entry.default;
 
             }
-            return styles[lookupKey];
+            return styles[lookupKey] as string;
         }
         else {
             return styles.default;
         }
     }
 
-/* Returns char which is rendered on the map cell based on cell contents.*/
+    /* Returns char which is rendered on the map cell based on cell contents.*/
     public getCellChar(cell: Cell): string {
         if (!cell.isExplored()) {return 'X';}
 
         for (let i = 0; i < this.cellRenderArray.length; i++) {
-            // const propType = this.cellRenderArray[i];
             if (cell.hasProp(this.cellRenderArray[i])) {
-                const props = cell.getProp(this.cellRenderArray[i]);
+                // Should exist due to hasProp
+                const props = cell.getProp(this.cellRenderArray[i])!;
+
                 const styles = this.charStyles[this.cellRenderArray[i]];
                 const propObj = props[0];
                 return this.getPropClassOrChar(styles, propObj);
@@ -799,14 +825,14 @@ class RGClass {
         }
 
         const baseType = cell.getBaseElem().getType();
-        return this.charStyles.elements[baseType];
+        return this.charStyles.elements[baseType] as string;
     }
 
 
-/* Adds a CSS class for given prop and type. For example, "actors", "wolf",
- * "cell-actor-wolf" uses CSS class .cell-actor-wolf to style cells with
- * wolves in them. */
-    public addCellStyle(prop: string, type: string, cName: string): void {
+    /* Adds a CSS class for given prop and type. For example, "actors", "wolf",
+     * "cell-actor-wolf" uses CSS class .cell-actor-wolf to style cells with
+     * wolves in them. */
+    public addCellStyle(prop: TPropType, type: string, cName: string): void {
         if (this.cellStyles.hasOwnProperty(prop)) {
             this.cellStyles[prop][type] = cName;
         }
@@ -815,15 +841,15 @@ class RGClass {
         }
     }
 
-    public removeCellStyle(prop: string, type: string): void {
+    public removeCellStyle(prop: TPropType, type: string): void {
         if (this.cellStyles.hasOwnProperty(prop)) {
             delete this.cellStyles[prop][type];
         }
     }
 
-/* Adds a char to render for given prop and type. Example: "actors",
- * "wolf", "w" renders 'w' for cells containing wolves.*/
-    public addCharStyle(prop: string, type: string, charName: string): void {
+    /* Adds a char to render for given prop and type. Example: "actors",
+     * "wolf", "w" renders 'w' for cells containing wolves.*/
+    public addCharStyle(prop: TPropType, type: string, charName: string): void {
         if (this.charStyles.hasOwnProperty(prop)) {
             this.charStyles[prop][type] = charName;
         }
@@ -832,29 +858,31 @@ class RGClass {
         }
     }
 
-    public removeCharStyle(prop: string, type: string): void {
+    public removeCharStyle(prop: TPropType, type: string): void {
         if (this.charStyles.hasOwnProperty(prop)) {
             delete this.charStyles[prop][type];
         }
     }
 
-    public getChar(prop: string, name: string, state = null): string {
+    public getChar(prop: TPropType, name: string, state: string | null = null): string {
         if (this.charStyles.hasOwnProperty(prop)) {
             if (state) {
-                return this.charStyles[prop][name][state];
+                const stateQuery: StateQuery = this.charStyles[prop][name] as StateQuery;
+                return stateQuery[state] as string;
             }
-            return this.charStyles[prop][name];
+            return this.charStyles[prop][name] as string; // TODO fix to safer
         }
         return 'X';
     }
 
-    public getCssClass(prop, name, state = null): string {
+    public getCssClass(prop: TPropType, name: string, state: string | null = null): string {
         if (this.cellStyles.hasOwnProperty(prop)) {
             if (state) {
-                return this.cellStyles[prop][name][state];
+                const stateQuery: StateQuery = this.cellStyles[prop][name] as StateQuery;
+                return stateQuery[state] as string;
             }
             if (this.cellStyles[prop].hasOwnProperty(name)) {
-                return this.cellStyles[prop][name];
+                return this.cellStyles[prop][name] as string; // TODO fix to safer
             }
         }
         return '';
@@ -1069,7 +1097,7 @@ class RGClass {
     }
 
     public getMissileDamage(att: SentientActor, miss: MissType): number {
-        if (RG.isAmmoOrMissile(miss)) {
+        if (this.isAmmoOrMissile(miss)) {
             let dmg = miss.rollDamage();
             dmg += this.getMissileDamageAdded(att, miss);
             return dmg;
@@ -1114,7 +1142,7 @@ class RGClass {
     }
 
     public getMissileRange(att: SentientActor, miss: MissType): number {
-        if (!RG.isAmmoOrMissile(miss)) {
+        if (!this.isAmmoOrMissile(miss)) {
             return 2;
         }
 
@@ -2075,8 +2103,7 @@ class RGClass {
         return rng.getUniform() <= prob;
     }
 
-
-/* A debug function which prints info about given entity. */
+    /* A debug function which prints info about given entity. */
     public ent(whatever: any): null | Entity {
         if ((window as any).PLAYER) {
             const level = (window as any).PLAYER.getLevel();
@@ -2136,14 +2163,14 @@ class RGClass {
         return true;
     }
 
-// -------------------------------------------------
-// Functions for emitting in-game messages to player
-// -------------------------------------------------
+    // -------------------------------------------------
+    // Functions for emitting in-game messages to player
+    // -------------------------------------------------
 
-// Accepts 2 different arguments:
-// 1. A simple string messages
-// 2. {msg: "Your message", cell: Origin cell of messaage}
-// Using 2. messages can be easily filtered by position.
+    // Accepts 2 different arguments:
+    // 1. A simple string messages
+    // 2. {msg: "Your message", cell: Origin cell of messaage}
+    // Using 2. messages can be easily filtered by position.
     public gameMsg(msg: GameMsg): void {
         this.emitMsgEvent('prim', msg);
     }
@@ -2168,12 +2195,12 @@ class RGClass {
         this.emitMsgEvent('danger', msg);
     }
 
-/* To signal an internal error using the "normal" message interface */
+    /* To signal an internal error using the "normal" message interface */
     public gameIntError(msg: GameMsg) {
         this.emitMsgEvent('bg-danger text-white', msg);
     }
 
-/* Emits message event with cell origin, style and message. */
+    /* Emits message event with cell origin, style and message. */
     public emitMsgEvent(style: string, msg: GameMsg): void {
         let newMsg = '';
         if (typeof msg === 'object') {
@@ -2193,7 +2220,7 @@ class RGClass {
     }
 
     /* Destroys item (typically after use). */
-    public destroyItemIfNeeded(item) {
+    public destroyItemIfNeeded(item: ItemBase): void {
         if (this.isOneShotItem(item)) {
             if (item.getCount() === 1) {
                 const msg = {item};
