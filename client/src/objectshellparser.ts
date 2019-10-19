@@ -908,11 +908,13 @@ export class Parser {
             RG.err('ObjectParser', 'storeIntoDb',
                 'Unknown category: ' + categ);
         }
-        this.storeRenderingInfo(categ, obj);
+        if (categ !== 'effects') {
+            this.storeRenderingInfo(categ, obj);
+        }
     }
 
     /* Stores char/CSS className for the object for rendering purposes.*/
-    public storeRenderingInfo(categ: DBKey, obj) {
+    public storeRenderingInfo(categ: TPropType, obj: IShell): void {
         let fg = '';
         let bg = '';
         if (obj.hasOwnProperty('color')) {
