@@ -10,34 +10,51 @@ import RG from '../src/rg';
 
 type LevelArgs = [number, number, any];
 
+interface IFactory {
+    createLevel(name: string, ...args: any[]): Level;
+}
+
+type CreateLevelFunc = (...args: any[]) => Level | LevelObj[];
 
 /* Factory for creating levels by specifying their name. */
 export class LevelFactory {
 
-    public static levels: {[key: string]: (...args: any[]) => Level | LevelObj[]};
+    public static levels: {[key: string]: CreateLevelFunc};
 
-    public fact: any;
-    public createFunc: {[key: string]: (...args: any[]) => Level | LevelObj[]};
+    public fact: IFactory;
+    public createFunc: {[key: string]: CreateLevelFunc};
 
-    constructor(fact) {
+    constructor(fact: IFactory) {
         this.fact = fact;
         this.createFunc = {};
     }
 
-    public addFunction(name: string, createFunc): void {
+    public addFunction(name: string, createFunc: CreateLevelFunc): void {
         this.createFunc[name] = createFunc;
     }
 
-    public create(name: string, args: LevelArgs): null | Level | LevelObj[] {
+    /* Always returns an array of level (unless null), which contains nLevel and
+     * level object together. */
+    public create(name: string, args: LevelArgs): null | LevelObj[] {
         // Check if this is a default level
         if (LevelFactory.levels.hasOwnProperty(name)) {
-            return LevelFactory.levels[name](...args);
+            const levels = LevelFactory.levels[name](...args);
+            if (Array.isArray(levels)) {
+                return levels;
+            }
+            return [{level: levels, nLevel: 0}];
         }
         else if (this.createFunc.hasOwnProperty(name)) {
-            return this.createFunc[name](...args);
+            const levels = this.createFunc[name](...args);
+            if (Array.isArray(levels)) {
+                return levels;
+            }
+            return [{level: levels, nLevel: 0}];
+
         }
         else if (this.fact) {
-            return this.fact.createLevel(name, ...args);
+            const level = this.fact.createLevel(name, ...args);
+            return [{level, nLevel: 0}];
         }
         else {
             RG.err('LevelFactory', 'create',

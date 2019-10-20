@@ -13,6 +13,7 @@ import {ConfStack} from './conf-stack';
 import * as World from './world';
 import {FactoryBase} from './factory';
 import {FactoryZone} from './factory.zone';
+import {FactoryLevel} from './factory.level';
 import {FactoryActor} from './factory.actors';
 import {ObjectShell} from './objectshellparser';
 import {ObjectShellComps} from './objectshellcomps';
@@ -783,7 +784,7 @@ export class FactoryWorld {
         // Finally, check subZoneConf.createPresetLevels: ...
         if (subZoneConf && subZoneConf.createPresetLevels) {
             const {createPresetLevels} = subZoneConf;
-            const levelFact = new LevelFactory(this);
+            const levelFact = new LevelFactory(new FactoryLevel());
             const levels = levelFact.create(createPresetLevels.new,
                 createPresetLevels.args as any); // TODO fix
             if (!levels) {
@@ -1041,12 +1042,15 @@ export class FactoryWorld {
             }
             else if ((level as IF.LevelSpecStub).stub) {
                 const stubObj = level as IF.LevelSpecStub;
-                const levelFact = new LevelFactory(this);
+                const levelFact = new LevelFactory(new FactoryLevel());
                 // TODO fix type
-                level = levelFact.create(stubObj.new, stubObj.args as any) as Level;
-                if (!level) {
-                    RG.err('Factory', 'createCityQuarter',
-                        'Stub found but cannot create level');
+                const levelObj = levelFact.create(stubObj.new, stubObj.args as any);
+                if (levelObj) {
+                    level = levelObj[0].level;
+                    if (!level) {
+                        RG.err('Factory', 'createCityQuarter',
+                            'Stub found but cannot create level');
+                    }
                 }
                 if (debug.enabled) {
                     this.debug('Creating level from stub ' +

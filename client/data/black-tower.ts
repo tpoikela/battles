@@ -7,9 +7,12 @@ import {CastleGenerator} from '../src/generator';
 import {FactoryZone} from '../src/factory.zone';
 import {Geometry} from '../src/geometry';
 import {FactoryLevel} from '../src/factory.level';
-import {LevelObj} from '../src/interfaces';
+import {LevelObj, IShell} from '../src/interfaces';
 
 const tileSize = 9;
+
+type TemplateLevel = import('../src/template.level').TemplateLevel;
+type Level = import('../src/level').Level;
 
 export class BlackTower {
 
@@ -28,8 +31,6 @@ export class BlackTower {
         this.tileSize = conf.tileSize || tileSize;
         this.tilesX = Math.round(this.cols / tileSize);
         this.tilesY = Math.round(this.rows / tileSize);
-        /* if (this.tilesX % 2 === 0) {++this.tilesX;}
-        if (this.tilesY % 2 === 0) {++this.tilesY;}*/
         this.conf = conf;
     }
 
@@ -61,7 +62,7 @@ export class BlackTower {
             Math.round(this.tilesY / 2)
         ];
         castleConf.callbacks = {};
-        const afterInitCb = level => {
+        const afterInitCb = (level: TemplateLevel) => {
             Vault.templates.all.forEach(templ => {level.addTemplate(templ);});
             Vault.func.createHugeVault(midXTile - 1, midYTile - 2, level,
                 'vault_center1', 'entrance_n');
@@ -83,7 +84,7 @@ export class BlackTower {
             const maxDanger = this.getDanger(i) + 5;
             const populConf = {
                 maxDanger,
-                actorFunc: actor => actor.base === 'WinterBeingBase'
+                actorFunc: (actor: IShell) => actor.base === 'WinterBeingBase'
             };
             castleGen.populateStoreRooms(level, populConf);
         });
@@ -91,12 +92,12 @@ export class BlackTower {
         return levels.map((level, i) => ({nLevel: i, level}));
     }
 
-    public getDanger(nLevel) {
+    public getDanger(nLevel: number): number {
         return 7 + 3 * nLevel; // arbitraty, to tune
     }
 
     /* Adds properties like actors and items into levels. */
-    public addProps(levels) {
+    public addProps(levels: Level[]): void {
         const factZone = new FactoryZone();
         levels.forEach((level, i) => {
             const maxDanger = this.getDanger(i);
@@ -107,7 +108,7 @@ export class BlackTower {
                 sqrPerItem: 200,
                 sqrPerActor: 40 - 2 * i,
                 maxDanger,
-                actor: actor => actor.base === 'WinterBeingBase'
+                actor: (actor: IShell) => actor.base === 'WinterBeingBase'
             };
             factZone.addItemsAndActors(level, conf);
 
@@ -129,7 +130,7 @@ export class BlackTower {
     }
 
     /* Generate the outside yard for the first level. */
-    public generateYard(levels): void {
+    public generateYard(levels: Level[]): void {
         const level0 = levels[0];
         const scaleYard = 1.4;
 

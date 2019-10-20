@@ -320,11 +320,15 @@ describe('FactoryWorld', function() {
 
         const tile00 = area.getTileXY(0, 0);
         const tileLevel = tile00.getLevel();
-        // ql1.debugPrintInASCII();
         // tileLevel.debugPrintInASCII();
 
-        expect(ql0.getStairs()).to.have.length(1);
-        expect(ql1.getStairs()).to.have.length(1);
+        if (ql1.getStairs().length === 0) {
+            console.error('Assertion will fail soon');
+            ql1.debugPrintInASCII();
+        }
+
+        expect(ql0.getStairs(), 'ql0 has stairs').to.have.length(1);
+        expect(ql1.getStairs(), 'ql1 has stairs').to.have.length(1);
 
         // expect(l0.getConnections().length).to.be.above(10);
         expect(ql1.getConnections().length).to.be.above(10);

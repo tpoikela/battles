@@ -47,7 +47,7 @@ const getDungeonSizeXY = function(name: string): [number, number] {
 };
 
 /* Returns generation constraints based on the level name. */
-const getConstraint = function(name): IF.ConstraintMap {
+const getConstraint = function(name: string): null | IF.ConstraintMap {
     switch (name) {
         case 'Cave': return {
             actor: [{
@@ -74,7 +74,7 @@ const getDungeonType = function(name: string): string {
     }
 };
 
-const getMountainSizeXY = function(name) {
+const getMountainSizeXY = function(name: string): [number, number] {
     switch (name) {
         default: return [80, 240];
     }
