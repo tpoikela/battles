@@ -33,6 +33,7 @@ interface PopulConf {
     theme?: string;
     maxDanger?: number;
     maxValue?: number;
+    actorFunc?: TShellFunc;
 }
 
 const probSpecialItem = 0.5;
@@ -55,6 +56,12 @@ export class DungeonPopulate {
 
         this._itemFact = new FactoryItem();
         this._actorFact = new FactoryActor();
+        if (conf.actorFunc) {
+            this.actorFunc = conf.actorFunc;
+        }
+        else {
+            this.actorFunc = (actor) => !!actor && true;
+        }
     }
 
     /* Populates the level with actors and items. Some potential features to use

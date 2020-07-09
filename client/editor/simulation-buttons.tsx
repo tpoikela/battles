@@ -61,7 +61,7 @@ export default class SimulationButtons extends React.Component {
           className={ctrlBtnClass}
           id='playFastSimulation'
           onClick={this.callback}
-        >>>>
+        >{'>>>'}
         </button>
 
         <button
