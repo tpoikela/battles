@@ -26,6 +26,10 @@ build:
   script:
     - npm run build
 
+simulation:
+  script:
+    - node_modules/.bin/ts-node scripts/game-simulation.ts --class Marksman --name Archer --maxturns 10000 --nomsg --seed $RANDOM
+
 #test_db:
 #  script:
 #    - npm install
