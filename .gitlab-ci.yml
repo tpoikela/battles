@@ -22,6 +22,10 @@ test_async:
     - npm install
     - npm run test
 
+build:
+  script:
+    - npm run build
+
 #test_db:
 #  script:
 #    - npm install
