@@ -1200,7 +1200,7 @@ function mapX(x: number, slX: number, subSizeX: number): number {
  * an AreaTile.
  * slY = sub-level y index in area tile. For longer expl, see mapY() above.
  */
-function mapY(y, slY, subSizeY): number {
+function mapY(y: number, slY: number, subSizeY: number): number {
     if (Number.isInteger(y)) {
         return y + slY * subSizeY;
     }
