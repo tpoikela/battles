@@ -132,7 +132,7 @@ export class SystemMovement extends SystemBase {
             }
             else if (newCell.hasPassage()) {
                 const passage = newCell.getPassage();
-                const level = passage.getTargetLevel() as Level;
+                const level = passage!!.getTargetLevel() as Level;
                 const dir = RG.getCardinalDirection(level, newCell);
                 let msg = `You see a passage to ${dir} here.`;
                 const parent = level.getParent();
@@ -144,7 +144,7 @@ export class SystemMovement extends SystemBase {
             }
             else if (newCell.hasConnection()) {
                 const connection = newCell.getConnection();
-                const level = connection.getTargetLevel() as Level;
+                const level = connection!!.getTargetLevel() as Level;
                 let msg = 'You see an entrance here';
 
                 const parent = level.getParent();
@@ -160,7 +160,7 @@ export class SystemMovement extends SystemBase {
             }
 
             if (!prevCell.hasShop() && newCell.hasShop()) {
-                const shop = newCell.getShop();
+                const shop = newCell.getShop()!!;
                 if (shop.isAbandoned()) {
                     RG.gameMsg('This shop seems to be abandoned');
                 }
@@ -169,7 +169,7 @@ export class SystemMovement extends SystemBase {
                 }
             }
             else if (newCell.hasShop()) {
-                const shop = newCell.getShop();
+                const shop = newCell.getShop()!!;
                 if (!shop.isAbandoned()) {
                     RG.gameMsg('You can drop items to sell them here.');
                 }
@@ -177,7 +177,7 @@ export class SystemMovement extends SystemBase {
         }
 
         if (newCell.hasItems()) {
-            const items = newCell.getItems();
+            const items = newCell.getItems()!!; // Safe !! due to hasItems()
             const topItem = items[0];
             let topItemName = topItem.getName();
             if (topItem.getCount() > 1) {
