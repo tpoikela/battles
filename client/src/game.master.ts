@@ -362,6 +362,8 @@ export class GameMaster {
     /* Returns the selection object for player to select an army. */
     public getSelArmyObject(player, battle: Battle) {
         const armies = battle.getArmies();
+
+        // This function called when player selects an army to join
         const selArmyFunc = selection => {
             const army = armies[selection];
             const battleLevel = battle.getLevel();
@@ -385,6 +387,11 @@ export class GameMaster {
                 player.add(new Component.Groups());
             }
             player.get('Groups').addGroup(army.getID());
+            army.getActors().forEach(actor => {
+                if (actor.isEnemy(player)) {
+                    actor.getBrain().getMemory().removeEnemy(player);
+                }
+            });
 
             if (!battleLevel.moveActorTo(player, pX, pY)) {
                 RG.err('GameMaster', 'getSelArmyObject',
