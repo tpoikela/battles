@@ -218,7 +218,7 @@ export class SeasonManager {
         const key = this._owPos[0] + ',' + this._owPos[1];
         const currBiome = this._biomeMap[key];
         if (currBiome) {
-            console.log('currBiome found was ' + currBiome);
+            // console.log('currBiome found was ' + currBiome);
             const possibleSeason = biomePossibleSeasons[currBiome];
 
             if (possibleSeason[0] === 'all') {return this._currSeason;}
@@ -233,6 +233,7 @@ export class SeasonManager {
             RG.err('SeasonManager', 'getSeasonModified',
                 `currBiome not found with key ${key}`);
         }
+        return '';
     }
 
     public setPool(pool?: EventPool): void {
