@@ -165,13 +165,14 @@ export class SystemMovement extends SystemBase {
                     RG.gameMsg('This shop seems to be abandoned');
                 }
                 else {
-                    RG.gameMsg('You have entered a shop.');
+                    const msg = 'You can drop items to sell them here.';
+                    RG.gameMsg('You have entered a shop. ' + msg);
                 }
             }
             else if (newCell.hasShop()) {
                 const shop = newCell.getShop()!!;
                 if (!shop.isAbandoned()) {
-                    RG.gameMsg('You can drop items to sell them here.');
+                    // RG.gameMsg('You can drop items to sell them here.');
                 }
             }
         }
