@@ -132,19 +132,23 @@ function main() {
             console.log(e2);
             jsonStr = JSON.stringify(driver);
         }
-        const fname = 'save_dumps/battles_game_error_dump.json';
-        fs.writeFileSync(fname, jsonStr);
+        if (saveGameEnabled) {
+            const fname = 'save_dumps/battles_game_error_dump.json';
+            fs.writeFileSync(fname, jsonStr);
+        }
     }
 
     const nTiles = Object.keys(driver.state.tilesVisited).length;
     console.log(`Player visited ${nTiles} different tiles`);
-
     console.log('Simulation OK. Saving final state');
 
     const nTurns = driver.nTurns;
     const finalFname = `save_dumps/${pName}_game_final_${nTurns}.json`;
-    saveGameToFile(finalFname, nTurns, newGame, driver);
-    console.log('Final state saved to file ' + finalFname);
+
+    if (saveGameEnabled) {
+        saveGameToFile(finalFname, nTurns, newGame, driver);
+        console.log('Final state saved to file ' + finalFname);
+    }
 
     if (catcher) {
         catcher.hasNotify = false;
