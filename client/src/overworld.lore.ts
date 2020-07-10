@@ -1,7 +1,7 @@
 
 import RG from './rg';
 import {TCoord, ZoneConf} from './interfaces';
-import {Lore, createLoreObj, ILoreEntry, format} from '../data/lore';
+import {Lore, createLoreObj, formatMsg} from '../data/lore';
 import {Random} from './random';
 
 const dbg = require('debug');
@@ -127,7 +127,7 @@ export class OWLore {
         const templ: string = Lore.getRandText('typesDirections');
         const namePre = this.getNamePre(zoneConf);
         const namePost = this.getNamePost(zoneConf);
-        return format(templ, {dir, name: zoneConf.name, namePre, namePost});
+        return formatMsg(templ, {dir, name: zoneConf.name, namePre, namePost});
     }
 
     public getNamePre(zoneConf: ZoneConf): string {

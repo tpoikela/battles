@@ -28,7 +28,8 @@ export function Typed<TBase extends Constructor>(Base: TBase) {
         private _propType: string;
 
         constructor(...args: any[]) {
-            if (Base) {super(...args);}
+            // if (Base) {super(...args);}
+            super(...args);
             this.type = args.length > 0 ? args[0].type : '';
             this._propType = args.length > 0 ? args[0].propType : '';
         }
@@ -62,6 +63,7 @@ export interface Locatable {
     getLevel: () => any; // Add typings
 }
 
+const NO_COORD = null;
 
 /* Mixin used in Locatable objects with x,y coordinates. */
 export function Locatable<TBase extends Constructor>(Base: TBase) {
@@ -69,13 +71,13 @@ export function Locatable<TBase extends Constructor>(Base: TBase) {
     return class extends Base {
         private _x: null | number;
         private _y: null | number;
-        private _level: any;
+        private _level: null | Level;
 
         constructor(...args: any[]) {
             super(...args);
-            this._x = null;
-            this._y = null;
-            this._level = null;
+            this._x = NO_COORD;
+            this._y = NO_COORD;
+            this._level = NO_COORD;
         }
 
         public setX(x: number) {this._x = x; }
@@ -100,7 +102,8 @@ export function Locatable<TBase extends Constructor>(Base: TBase) {
         /* Accessing the current cell of object. */
         public getCell(): Cell {
             if (this._level) {
-              return this._level.getMap().getCell(this._x, this._y);
+                const [xx, yy] = [this._x as number, this._y as number];
+                return this._level.getMap().getCell(xx, yy);
             }
             RG.err('Locatable', 'getCell',
                 'Level is null. This call was most likely a bug');
@@ -149,14 +152,14 @@ export function Locatable<TBase extends Constructor>(Base: TBase) {
 /* Mixin for objects requiring a damage roll. */
 export const DamageRoll = (superclass) => class extends superclass {
 
-    public damageDie: any;
+    public damageDie: Dice;
 
     constructor(args?: MixinArgs) {
         super(args);
         this.damageDie = Dice.create('1d4');
     }
 
-    public rollDamage() {
+    public rollDamage(): number {
         if (this.getEntity().hasOwnProperty('getWeapon')) {
             const weapon = this.getEntity().getWeapon();
             if (weapon !== null) {return weapon.rollDamage();}
@@ -164,11 +167,11 @@ export const DamageRoll = (superclass) => class extends superclass {
         return this.damageDie.roll();
     }
 
-    public getDamageDie() {
+    public getDamageDie(): Dice {
         return this.damageDie;
     }
 
-    public setDamageDie(strOrDie) {
+    public setDamageDie(strOrDie: Dice | string): void {
         if (typeof strOrDie === 'string') {
             this.damageDie = Dice.create(strOrDie);
         }

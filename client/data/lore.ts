@@ -176,7 +176,7 @@ export function compile(text: string): (arg: any) => string {
     return ejs.compile(text);
 }
 
-export function format(text: string, args: LoreFormatArgs): string {
+export function formatMsg(text: string, args: LoreFormatArgs): string {
     return ejs.compile(text)(args);
 };
 
@@ -184,14 +184,14 @@ export function format(text: string, args: LoreFormatArgs): string {
 export function createDirNorthMsg(dir: string): string {
     const choices: ILoreEntry = RNG.arrayGetRand(Lore.northDirections);
     const templ: string = RNG.arrayGetRand(choices.text);
-    const msg =  format(templ, {dir});
+    const msg =  formatMsg(templ, {dir});
     return msg;
 }
 
 export function createLoreMsg(dir: string): string {
     const choices: ILoreEntry = RNG.arrayGetRand(Lore.northDirections);
     const templ: string = RNG.arrayGetRand(choices.text);
-    const msg =  format(templ, {dir});
+    const msg =  formatMsg(templ, {dir});
     return msg;
 }
 

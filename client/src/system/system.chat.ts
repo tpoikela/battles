@@ -5,7 +5,7 @@ import {Chat, ChatBase} from '../chat';
 import {SystemQuest} from './system.quest';
 import {TCoord, ILoreTopics, ILoreOpt} from '../interfaces';
 import {BaseActor} from '../actor';
-import {Lore, format} from '../../data/lore';
+import {Lore, formatMsg} from '../../data/lore';
 import {Constraints} from '../constraints';
 
 type Entity = import('../entity').Entity;
@@ -357,7 +357,7 @@ export class SystemChat extends SystemBase {
 
         const level = ent.getLevel();
         console.log('chosenText is ' + chosenText);
-        const msg = format(chosenText, {level, target: actor, asker: ent});
+        const msg = formatMsg(chosenText, {level, target: actor, asker: ent});
         chatObj.add({
             name: 'Have you heard anything interesting lately?',
             option: () => {
