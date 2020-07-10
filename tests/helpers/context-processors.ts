@@ -13,7 +13,7 @@ type Cell = import('../../client/src/map.cell').Cell;
 import dbg = require('debug');
 const debug = dbg('bitn:ContextProcessor');
 
-debug.enabled = true;
+debug.enabled = false;
 
 const RNG = Random.getRNG();
 
@@ -26,11 +26,15 @@ export class ContextProcessor {
     public processContext(): boolean {
         if (this.isWithinContext()) {
             const action = this.drv.action;
-            console.log(`${this.name} isWithinContext() OK, start action |${action}|`);
+            if (debug.enabled) {
+                console.log(`${this.name} isWithinContext() OK, start action |${action}|`);
+            }
             const ok = this._process();
             const newAction = this.drv.action;
             if (action !== newAction) {
-                console.log(`${this.name} modified action |${action}| -> |${newAction}|`);
+                if (debug.enabled) {
+                    console.log(`${this.name} modified action |${action}| -> |${newAction}|`);
+                }
             }
             return ok;
         }

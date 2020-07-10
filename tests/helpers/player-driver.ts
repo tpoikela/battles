@@ -34,7 +34,7 @@ const {getShortestPath} = Path;
 import dbg = require('debug');
 const debug = dbg('bitn:PlayerDriver');
 
-debug.enabled = true;
+debug.enabled = false;
 
 const MOVE_DIRS = [-1, 0, 1];
 const LINE = '='.repeat(78);
