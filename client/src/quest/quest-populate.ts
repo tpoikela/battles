@@ -1221,7 +1221,7 @@ export class QuestPopulate {
             level.addItem(book);
             // TODO setText() some info about the location etc
             const placeName = RG.formatLocationName(location as Level); // TODO fix unsafe
-            const bookText = ['Quest hint where to go:'];
+            const bookText = ['To proceed on your quest:'];
             bookText.push('You should go to place called ' + placeName);
             book.setText(bookText);
             book.addMetaData('place', {levelID: location.getID(), name: placeName});
