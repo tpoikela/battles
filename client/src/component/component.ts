@@ -1025,7 +1025,7 @@ Groups.prototype._init = function() {
 
 Groups.prototype.addGroup = function(id: number) {
     const index = this.groups.indexOf(id);
-    if (index >= 0) {this.groups.push(id);}
+    if (index < 0) {this.groups.push(id);}
 };
 
 Groups.prototype.hasGroupId = function(ids: number[]): boolean {
