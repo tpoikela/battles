@@ -26,6 +26,8 @@ const IND_EXPLORED = 0;
 const IND_LIGHT_PASSES = 1;
 const IND_IS_PASSABLE = 2;
 
+// This is to optimize the memory footprint per cell, it's not visible outside,
+// and limits x- and y to 16 bits.
 const X_POS = 0x0000ffff;
 const Y_POS = 0xffff0000;
 const Y_SHIFT = 16;
