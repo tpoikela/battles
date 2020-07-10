@@ -44,7 +44,7 @@ export class SystemChat extends SystemBase {
             if (actor.isEnemy(chatter)) {
                 const msg = this.getHostileMsg(chatter, actor);
                 RG.gameMsg({cell: actor.getCell()!, msg});
-                return;
+                // return;
             }
             // First, we need to create the Chat object for the Menu
             Object.keys(this.registeredObjs).forEach((chatType: string) => {
