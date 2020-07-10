@@ -62,7 +62,7 @@ QuestGiver.prototype.addTarget = function(
         RG.err('QuestGiver', 'addTarget',
             `No target given. Type ${targetType}`);
     }
-    const name = RG.getName(target);
+    const name = RG.getNameForQuest(target);
     if (!RG.isEmpty(name)) {
         const targetData = {
             id: target.getID(), name, targetType,
@@ -133,6 +133,7 @@ QuestTarget.prototype.toJSON = function() {
     return json;
 };
 
+/* Added to quest targets which require escorting them somewhere. */
 export const QuestEscortTarget = DataComponent('QuestEscortTarget', {
     escortTo: -1, question: 'Can I help you safely somewhere?'
 });
@@ -195,12 +196,12 @@ Quest.prototype.isTargetInQuest = function(targetComp) {
 Quest.prototype.toString = function(): string {
     let res = '';
     this.questTargets.forEach((obj, i) => {
-        if (i > 0) {res += '. ';}
+        if (i > 0) {res += '. ';} // Add dots after first item
         if (obj.targetType === 'subquest') {
             res += 'Talk to ' + obj.name;
         }
         else {
-            res += getQuestVerb(obj.targetType) + ' ' + obj.name;
+            res += getQuestVerb(obj.targetType) + ' ' + obj.toString();
             // res += obj.targetType + ' ' + obj.name;
         }
     });
