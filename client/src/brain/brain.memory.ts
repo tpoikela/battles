@@ -100,7 +100,9 @@ export class Memory {
     public isFriend(actor: BaseActor): boolean {
         if (this._actors.hasOwnProperty('friends')) {
             const index = this._actors.friends!.indexOf(actor);
-            return index >= 0;
+            if (index >= 0) {
+                return true;
+            }
         }
         // Checks for group enemy (ie in Army)
         if (this._actors.friendGroups) {
