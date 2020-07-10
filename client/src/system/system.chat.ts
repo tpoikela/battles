@@ -44,6 +44,7 @@ export class SystemChat extends SystemBase {
             if (actor.isEnemy(chatter)) {
                 const msg = this.getHostileMsg(chatter, actor);
                 RG.gameMsg({cell: actor.getCell()!, msg});
+                return;
             }
             // First, we need to create the Chat object for the Menu
             Object.keys(this.registeredObjs).forEach((chatType: string) => {
@@ -288,6 +289,7 @@ export class SystemChat extends SystemBase {
                 const loreList = zone.getList('Lore');
                 loreList.forEach(loreComp => {
                     const topics = loreComp.getTopics();
+                    console.log('Found loreTopics: ', topics);
                     if (topics.sideQuest) {
                         const metaData = loreComp.getMetaData();
                         const {name} = metaData;
@@ -356,7 +358,6 @@ export class SystemChat extends SystemBase {
         }
 
         const level = ent.getLevel();
-        console.log('chosenText is ' + chosenText);
         const msg = formatMsg(chosenText, {level, target: actor, asker: ent});
         chatObj.add({
             name: 'Have you heard anything interesting lately?',
