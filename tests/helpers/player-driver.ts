@@ -104,13 +104,15 @@ interface CoordMap {
     [key: string]: TCoord;
 }
 
+type TCoord3 = [number, number, number];
+
 interface DriverState {
     exploreTurns: number;
     usePassage: boolean;
     useStairs: boolean;
     exitZone: boolean;
     path: ICoordXY[];
-    stairsStack: Array<[number, number, number]>;
+    stairsStack: TCoord3[];
     tilesVisited: {[key: string]: number};
     visitedStairs: {[key: string]: CoordMap};
     visited: NoFunctionObject; // cell: id,x,y
@@ -216,7 +218,9 @@ class BasicAttackProcessor extends ActionProcessor {
             // TODO test for a clean shot
         }
         else {
-            console.log('No missile equipped. Cannot do attack');
+            if (debug.enabled) {
+                console.log('No missile equipped. Cannot do attack');
+            }
         }
         return false;
     }
