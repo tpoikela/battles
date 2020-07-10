@@ -1321,7 +1321,7 @@ class RGClass {
         return this.classNameDMG[dmgType];
     }
 
-/* Converts key of format X,Y to [X, Y]. */
+    /* Converts key of format X,Y to [X, Y]. */
     public key2Num(key: string): [number, number] {
         const [x, y] = key.split(',');
         return [parseInt(x, 10), parseInt(y, 10)];
@@ -1340,16 +1340,30 @@ class RGClass {
         return false;
     }
 
-/* Returns name of object, or its parent's if object has no name. */
+    /* Returns name of object, or its parent's if object has no name. */
     public getName(obj: any): string {
         if (obj.getName) {
             return obj.getName();
+        }
+        else if (obj.getParentZone) {
+            const name = this.formatLocationName(obj);
+            return name;
         }
         else if (obj.getParent) {
             const parent = obj.getParent();
             return parent.getName();
         }
         return ''; // Should this be an error?
+    }
+
+
+    /* Returns a name that is used in quests to give info about the target. */
+    public getNameForQuest(obj: any): string {
+        const name = this.getName(obj);
+        if (name === 'exploration') {
+            return this.getName(obj.getLevel());
+        }
+        return name;
     }
 
     public getObjRefArray(type: string, arr: any[]): TObjRefArray {
