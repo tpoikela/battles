@@ -67,6 +67,8 @@ export class GameSave {
         this._checkStorageValid();
         let dbString = this._storageRef.getItem(this._playerList);
         const dbObj = JSON.parse(dbString);
+        if (!dbObj) {return;}
+
         if (dbObj.hasOwnProperty(name)) {
             delete dbObj[name];
         }
