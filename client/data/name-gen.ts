@@ -174,7 +174,7 @@ Names.getUniqueName = (type: string): string => {
         return fullName;
     }
     else {
-        RG.err('name-gen.js', 'Names.getUniqueName',
+        RG.err('name-gen.ts', 'Names.getUniqueName',
           `No unique names for type ${type}`);
     }
     return '';
