@@ -9,6 +9,10 @@ const debug = dbg('bitn:ow-lore');
 
 const RNG = Random.getRNG();
 
+/* This class is used to create the lore information required to create the
+ * corresponding components. It also extracts surrounding zones for given zone,
+ * to create the lore info.
+ */
 export class OWLore {
 
     // Indicates that x,y knows about [[x0, y0] ... [xN, yN]]
@@ -89,31 +93,37 @@ export class OWLore {
 
             zones.forEach((knowerZone: ZoneConf) => {
                 const knownXY: TCoord[] = this.hasInfoAbout[key];
-                const rXY = RNG.arrayGetRand(knownXY);
 
-                const zoneList: ZoneConf[] = this.zonesByXY[this.getKey(rXY)];
-                if (!zoneList) {return;}
+                knownXY.forEach((c: TCoord) => {
+                    const rXY = c;
+                    const zoneList: ZoneConf[] = this.zonesByXY[this.getKey(rXY)];
+                    if (!zoneList) {return;}
 
-                const knownZone: ZoneConf = RNG.arrayGetRand(zoneList);
-                const dir = RG.getTextualDir(rXY, xy);
-                const msg = this.formatMsg(dir, knownZone);
-                const metaData = this.getZoneMeta(knownZone);
-                const loreObj = createLoreObj(msg, 'sideQuest', metaData);
-                if (knowerZone.addComp) {
-                    knowerZone.addComp.push(loreObj);
-                }
-                else {
-                    knowerZone.addComp = [loreObj];
-                }
+                    zoneList.forEach((sz: ZoneConf) => {
+                        const knownZone: ZoneConf = sz;
+                        const dir = RG.getTextualDir(rXY, xy);
+                        const msg = this.formatMsg(dir, knownZone);
+                        const metaData = this.getZoneMeta(knownZone);
+                        const loreObj = createLoreObj(msg, 'sideQuest', metaData);
 
-                ++this.nAddedCompsTo;
+                        if (knowerZone.addComp) {
+                            knowerZone.addComp.push(loreObj);
+                        }
+                        else {
+                            knowerZone.addComp = [loreObj];
+                        }
 
-                // TODO something about
-                if (debug.enabled) {
-                    this.dbg('knowerZone:', knowerZone.name,
-                        knowerZone.x, knowerZone.y,
-                        JSON.stringify(knowerZone.addComp));
-                }
+                        ++this.nAddedCompsTo;
+
+                        // TODO something about
+                        if (debug.enabled) {
+                            this.dbg('knowerZone:', knowerZone.name,
+                                knowerZone.x, knowerZone.y,
+                                JSON.stringify(knowerZone.addComp));
+                        }
+                    });
+                });
+
             });
 
         });

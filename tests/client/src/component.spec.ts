@@ -281,3 +281,29 @@ describe('Component.Quest', () => {
         expect(json).to.not.be.empty;
     });
 });
+
+describe('Component.Lore', () => {
+    it('can be queried for lore information', () => {
+        const loreKeeper = new SentientActor('loreKeeper');
+        const loreComp = new Component.Lore();
+        const metaData = {x: 0, y: 1, name: 'Castle'};
+        loreComp.addEntry({topic: 'sideQuest', msg: 'Go south', metaData});
+
+        const topics = loreComp.getLoreTopics();
+        expect(topics).to.deep.equal(['sideQuest']);
+
+        expect(loreComp.hasTopic('location')).to.equal(false);
+        expect(loreComp.hasTopic('sideQuest')).to.equal(true);
+
+        loreComp.addTopic('mainQuest', ['msg1', 'msg2']);
+        const entries = loreComp.getKey({topic: 'mainQuest'});
+        expect(entries).to.have.length(1);
+
+
+        loreComp.addTopic('mainQuest', 'msg3');
+
+        const mainMsg = loreComp.getMsg('mainQuest');
+        expect(mainMsg).to.have.length(3);
+
+    });
+});

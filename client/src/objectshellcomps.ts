@@ -99,7 +99,14 @@ export class ObjectShellComps {
                 const compName = compData.comp;
                 if (newObj.has(compName) && typeof fname === 'string') {
                     // 1. Call existing comp with setter (fname)
-                    newObj.get(compName)[fname](val);
+                    const comp = newObj.get(compName);
+                    if (typeof comp[fname] === 'function') {
+                        newObj.get(compName)[fname](val);
+                    }
+                    else {
+                        RG.err('ObjectShellComps', 'addCompToObj',
+                           `${fname} is not a function on comp ${compName}`);
+                    }
                 }
                 else { // 2. Or create a new component
                     const comp = this.createComponent(compName);

@@ -1544,45 +1544,71 @@ export const Entrapped = UniqueTagComponent('Entrapped');
 
 /* Component attached to Level/Places for Lore. */
 export const Lore = DataComponent('Lore', {
-    topics: null, metaData: null
+    entries: null
 });
 
 Lore.prototype._init = function() {
-    this.topics = {};
-    this.metaData = {};
+    this.entries = [];
 };
+
+Lore.prototype.addEntry = function(entry: any): void {
+    this.entries.push(entry);
+};
+
+
+Lore.prototype.getKey = function(query: any): any[] {
+    const entries: any[] = [];
+    this.entries.forEach(entry => {
+        let entryAdded = false;
+        Object.keys(query).forEach(qq => {
+            if (entry[qq] === query[qq]) {
+                if (!entryAdded) {
+                    entries.push(entry);
+                }
+                entryAdded = true;
+            }
+        });
+    });
+    return entries;
+};
+
+
+Lore.prototype.getMsg = function(topic: string): string[] {
+    let res: string[] = [];
+    this.entries.forEach(entry => {
+        if (entry.topic === topic) {
+            const msg = entry.msg;
+            if (Array.isArray(msg)) {
+                res = res.concat(msg);
+            }
+            else {
+                res.push(msg);
+            }
+        }
+    });
+    return res;
+};
+
 
 Lore.prototype.addTopic = function(key: string, msg: any): void {
-    if (!this.topics[key]) {
-        this.topics[key] = [];
-    }
-    if (Array.isArray(msg)) {
-        this.topics[key] = this.topics[key].concat(msg);
-    }
-    else {
-        this.topics[key].push(msg);
-    }
+    const obj = {topic: key, msg};
+    this.entries.push(obj);
 };
 
-Lore.prototype.updateMetaData = function(metaData: object): void {
-    Object.keys(metaData).forEach((key: string) => {
-        this.metaData[key] = metaData[key];
-    });
-};
-
-Lore.prototype.updateTopics = function(topics: {[key: string]: any}): void {
-    Object.keys(topics).forEach((name: string) => {
-        this.addTopic(name, topics[name]);
-    });
-};
 
 Lore.prototype.hasTopic = function(key: string): boolean {
-    return this.topics.hasOwnProperty(key);
+    const topics = this.getLoreTopics();
+    const idx = topics.indexOf(key);
+    return idx >= 0;
 };
 
 
-Lore.prototype.getLoreTopics = function(): ILoreTopics {
-    return this.topics;
+Lore.prototype.getLoreTopics = function(): string[] {
+    const topics: string[] = [];
+    this.entries.forEach(e => {
+        topics.push(e.topic);
+    });
+    return topics;
 };
 
 export const DrainStat = TransientDataComponent('DrainStat', {

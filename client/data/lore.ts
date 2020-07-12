@@ -191,7 +191,7 @@ export function createDirNorthMsg(dir: string): string {
 export function createLoreMsg(dir: string): string {
     const choices: ILoreEntry = RNG.arrayGetRand(Lore.northDirections);
     const templ: string = RNG.arrayGetRand(choices.text);
-    const msg =  formatMsg(templ, {dir});
+    const msg = formatMsg(templ, {dir});
     return msg;
 }
 
@@ -200,13 +200,11 @@ export function createLoreMsg(dir: string): string {
 export function createLoreObj(msg: string, topic: string, metaData?: object) {
     const compObj: any = {
         comp: 'Lore', func: {
-            updateTopics: {
-                [topic]: [msg]
-            }
+            addEntry: {topic, msg}
         }
     };
     if (metaData) {
-        compObj.func.updateMetaData = metaData;
+        compObj.func.addEntry.metaData = metaData;
     }
     return compObj;
 }

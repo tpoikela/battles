@@ -598,7 +598,7 @@ export class FactoryGame {
             }],
             addComp: [
                 {comp: 'Lore', func: {
-                    updateTopics: {mainQuest: [
+                    addEntry: {topic: 'mainQuest', msg: [
                         'Go north', 'Something is going on in the North',
                         'Some speaks about ancient ice beasts waking up in the arctic!',
                         'Two huge mountain passes divide this realm into regions'
@@ -613,7 +613,7 @@ export class FactoryGame {
 
 /* Creates the procgen constraints for given area level. This is used in
  * FactoryWorld when populating the levels with items/actors. */
-    public createAreaLevelConstraints( worldConf, terrMap: Territory) {
+    public createAreaLevelConstraints(worldConf, terrMap: Territory) {
         const areaConf = worldConf.area[0];
         const constraints = {};
         for (let x = 0; x < areaConf.maxX; x++) {

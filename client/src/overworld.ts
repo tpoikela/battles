@@ -1059,7 +1059,7 @@ function processSubLevel(
         return;
     }
 
-    const mainComps = getMainQuestComps(ow, x, y, owLore);
+    const mainComps = getMainQuestLoreComps(ow, x, y, owLore);
 
     Object.keys(features).forEach(type => {
         const featureArray: OWSubFeature[] = features[type];
@@ -1467,7 +1467,7 @@ function addBiomeLocations(ow: OWMap, areaConf: IF.AreaConf): void {
     }
 }
 
-function getMainQuestComps(ow: OWMap, x: number, y: number, owLore: OWLore): any[] {
+function getMainQuestLoreComps(ow: OWMap, x: number, y: number, owLore: OWLore): any[] {
     const loreRange = 5;
     const comps = [];
     const xy: TCoord = [x, y];

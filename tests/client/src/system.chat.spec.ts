@@ -95,15 +95,16 @@ describe('System.Chat', () => {
         const subZone = new World.CityQuarter('Test quarter');
         subZone.addLevel(level);
         zone.addSubZone(subZone);
-        const mainLore = {mainQuest: ['Just a message']};
+        // const mainLore = {mainQuest: ['Just a message']};
         const mainLoreComp = new Component.Lore();
-        mainLoreComp.updateTopics(mainLore);
+        mainLoreComp.addTopic('mainQuest', ['Just a message']);
         zone.add(mainLoreComp);
 
         moveAndChat(chatter, knower);
         const sideLoreComp = new Component.Lore();
-        const sideLore = {sideQuest: ['Another side quest msg']};
-        sideLoreComp.updateTopics(sideLore);
+        // const sideLore = {sideQuest: ['Another side quest msg']};
+        sideLoreComp.addTopic('sideQuest', ['Another side quest msg']);
+        // sideLoreComp.updateTopics(sideLore);
         zone.add(sideLoreComp);
         updateSystems([chatSys]);
 

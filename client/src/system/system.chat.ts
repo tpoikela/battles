@@ -325,12 +325,12 @@ export class SystemChat extends SystemBase {
     ): void {
         const loreComps = actor.getLevel().getList('Lore');
         loreComps.forEach(lore => {
-            const topics: ILoreTopics = lore.getLoreTopics();
-            Object.keys(topics).forEach(name => {
+            const topics: string[] = lore.getLoreTopics();
+            topics.forEach(name => {
                 chatObj.add({
                     name: getTopicQuestion(name),
                     option: () => {
-                        const chosenOpt = this.rng.arrayGetRand(topics[name]);
+                        const chosenOpt = this.rng.arrayGetRand(lore.getMsg(name));
                         const opt = getFormattedReply(actor, name, chosenOpt);
                         RG.gameInfo({cell: ent.getCell(), msg: opt});
                     }
@@ -373,7 +373,12 @@ export class SystemChat extends SystemBase {
             const loreComps = zone.getList('Lore');
             loreComps.forEach(loreComp => {
                 if (loreComp.hasTopic('mainQuest')) {
-                    const msg = this.rng.arrayGetRand(loreComp.getTopics().mainQuest);
+                    const entries = loreComp.getKey({topic: 'mainQuest'});
+                    const entry = this.rng.arrayGetRand(entries);
+                    let msg = entry.msg;
+                    if (Array.isArray(msg)) {
+                        msg = this.rng.arrayGetRand(msg);
+                    }
                     if (typeof msg === 'string') {
                         chatObj.add({
                             name: 'Can you tell me anything about the North?',
@@ -389,7 +394,12 @@ export class SystemChat extends SystemBase {
                 }
 
                 if (loreComp.hasTopic('sideQuest')) {
-                    const msg = this.rng.arrayGetRand(loreComp.getTopics().sideQuest);
+                    const entries = loreComp.getKey({topic: 'sideQuest'});
+                    const entry = this.rng.arrayGetRand(entries);
+                    let msg = entry.msg;
+                    if (Array.isArray(msg)) {
+                        msg = this.rng.arrayGetRand(msg);
+                    }
                     if (typeof msg === 'string') {
                         chatObj.add({
                             name: 'What can you tell me about this area?',
