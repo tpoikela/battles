@@ -200,7 +200,7 @@ export function createLoreMsg(dir: string): string {
 export function createLoreObj(msg: string, topic: string, metaData?: object) {
     const compObj: any = {
         comp: 'Lore', func: {
-            addEntry: {topic, msg}
+            addEntry: {topic, respMsg: msg}
         }
     };
     if (metaData) {

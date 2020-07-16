@@ -141,10 +141,15 @@ export class Memory {
         return false;
     }
 
-    public getLastSeen(actor: BaseActor): SeenCoord | null {
+    public getLastSeen(actor: BaseActor | number): SeenCoord | null {
+        let id = actor as number;
+        if (RG.isActor(actor)) {
+            id = actor.getID();
+        }
+
         if (this._actors.seen) {
-            if (this._actors.seen[actor.getID()]) {
-                return this._actors.seen[actor.getID()];
+            if (this._actors.seen[id]) {
+                return this._actors.seen[id];
             }
         }
         return null;

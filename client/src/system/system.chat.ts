@@ -3,17 +3,23 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {Chat, ChatBase} from '../chat';
 import {SystemQuest} from './system.quest';
-import {TCoord, ILoreTopics, ILoreOpt} from '../interfaces';
+import {TCoord, ILoreOpt, ILoreEntry, TLoreMsg} from '../interfaces';
 import {BaseActor} from '../actor';
 import {Lore, formatMsg} from '../../data/lore';
 import {Constraints} from '../constraints';
+
+import {ComponentLore} from '../component/component';
 
 type Entity = import('../entity').Entity;
 type Memory = import('../brain').Memory;
 
 const NO_ACTORS_FOUND: BaseActor[] = [];
 
-/* This system handles all entity movement.*/
+const QUERY_LOC_FROM_MEM = 'queryLocationFromMemory';
+
+const ERROR_STR = '<ERROR: You should not see this. A bug found >';
+
+/* This system handles all entity chat operations. */
 export class SystemChat extends SystemBase {
     protected loreData: {[key: string]: any};
     protected factFuncs: {[key: string]: () => any};
@@ -170,6 +176,7 @@ export class SystemChat extends SystemBase {
         return null;
     }
 
+    /* Used when actor has no specific chat object present. */
     public getGenericChatObject(ent, actor: BaseActor): ChatBase {
         const chatObj = new Chat.ChatBase();
         const aName = actor.getName();
@@ -270,19 +277,10 @@ export class SystemChat extends SystemBase {
         const aName = actor.getName();
         const tName = target.name;
         let resp = null;
+        let inMemory = false;
+        [inMemory, resp] = this.actorHasInMemory(target, actor, chatObj);
 
-        const id = target.id;
-        const memory: Memory = actor.getBrain().getMemory();
-
-        if (memory.hasSeen(id)) {
-            resp = chatObj.getSelectionObject();
-            const {x, y} = memory.getLastSeen(id);
-            const dir = RG.getTextualDir([x, y], actor);
-            let msg = `${aName} says: I know where ${tName} is.`;
-            msg += ` I saw ${tName} ${dir} from here.`;
-            RG.gameInfo(msg);
-        }
-        else {
+        if (!inMemory) {
             // Check if zone Lore has any info about this one
             const zone = actor.getLevel().getParentZone();
             if (zone.has('Lore')) {
@@ -319,25 +317,36 @@ export class SystemChat extends SystemBase {
         }
     }
 
+
     /* Add lore-specific items belonging to Level to the chat object. */
     public addLevelLoreItems(
         ent: BaseActor, actor: BaseActor, chatObj: ChatBase
     ): void {
-        const loreComps = actor.getLevel().getList('Lore');
-        loreComps.forEach(lore => {
-            const topics: string[] = lore.getLoreTopics();
-            topics.forEach(name => {
-                chatObj.add({
-                    name: getTopicQuestion(name),
-                    option: () => {
-                        const chosenOpt = this.rng.arrayGetRand(lore.getMsg(name));
-                        const opt = getFormattedReply(actor, name, chosenOpt);
-                        RG.gameInfo({cell: ent.getCell(), msg: opt});
-                    }
+        const loreComps: ComponentLore[] = actor.getLevel().getList('Lore');
+        loreComps.forEach((loreComp: ComponentLore) => {
+            const topics: string[] = loreComp.getLoreTopics();
+            topics.forEach((name: string) => {
+
+                const entries: ILoreEntry[] = loreComp.getKey({topic: name});
+                entries.forEach((entry: ILoreEntry) => {
+                    const question = this.getTopicQuestion(actor, name, entry);
+                    chatObj.add({
+                        name: question,
+                        option: () => {
+                            const chosenMsg = this.getRespMsgFromEntry(actor, entry);
+                            const opt = this.getFormattedReply(actor, name, chosenMsg as any);
+                            // TODO if there are names/IDs, add these to create new
+                            // lore h
+                            this.checkEntryForRevealed(loreComp, entry);
+                            RG.gameInfo({cell: ent.getCell()!, msg: opt});
+                        }
+                    });
                 });
+
             });
         });
     }
+
 
     public addGenericLoreItems(
         ent: BaseActor, actor: BaseActor, chatObj: ChatBase
@@ -368,53 +377,128 @@ export class SystemChat extends SystemBase {
     }
 
     public addZoneLoreItems(ent, actor: BaseActor, chatObj: ChatBase): void {
-        const zone = actor.getLevel().getParentZone();
+        // We've checked existence of zone already before call
+        const zone = actor.getLevel().getParentZone()!;
         if (zone.has('Lore')) {
-            const loreComps = zone.getList('Lore');
-            loreComps.forEach(loreComp => {
+            const loreComps: ComponentLore[] = zone.getList('Lore');
+            loreComps.forEach((loreComp: ComponentLore) => {
                 if (loreComp.hasTopic('mainQuest')) {
-                    const entries = loreComp.getKey({topic: 'mainQuest'});
+                    const entries: any[] = loreComp.getKey({topic: 'mainQuest'});
                     const entry = this.rng.arrayGetRand(entries);
-                    let msg = entry.msg;
-                    if (Array.isArray(msg)) {
-                        msg = this.rng.arrayGetRand(msg);
-                    }
-                    if (typeof msg === 'string') {
+                    const msg = this.getRespMsgFromEntry(actor, entry);
+                    const opt = this.getFormattedReply(actor, 'mainQuest', msg as any);
+
+                    if (typeof opt === 'string') {
                         chatObj.add({
                             name: 'Can you tell me anything about the North?',
                             option: () => {
-                                RG.gameInfo({cell: ent.getCell(), msg});
+                                this.checkEntryForRevealed(loreComp, entry);
+                                RG.gameInfo({cell: ent.getCell(), msg: opt});
                             }
                         });
                     }
                     else {
                         RG.err('SystemChat', 'addZoneLoreItems',
-                        `Expected msg to be string. Got ${JSON.stringify(msg)}`);
+                            `Expected msg to be string. Got ${JSON.stringify(msg)}`);
                     }
                 }
 
                 if (loreComp.hasTopic('sideQuest')) {
-                    const entries = loreComp.getKey({topic: 'sideQuest'});
+                    const entries: any[] = loreComp.getKey({topic: 'sideQuest'});
                     const entry = this.rng.arrayGetRand(entries);
-                    let msg = entry.msg;
-                    if (Array.isArray(msg)) {
-                        msg = this.rng.arrayGetRand(msg);
-                    }
-                    if (typeof msg === 'string') {
+                    const msg = this.getRespMsgFromEntry(actor, entry);
+                    const opt = this.getFormattedReply(actor, 'sideQuest', msg as any);
+
+                    if (typeof opt === 'string') {
                         chatObj.add({
                             name: 'What can you tell me about this area?',
                             option: () => {
-                                RG.gameInfo({cell: ent.getCell(), msg});
+                                this.checkEntryForRevealed(loreComp, entry);
+                                RG.gameInfo({cell: ent.getCell(), msg: opt});
                             }
                         });
                     }
                     else {
                         RG.err('SystemChat', 'addZoneLoreItems',
-                        `Expected msg to be string. Got ${JSON.stringify(msg)}`);
+                        `Expected msg to be string. Got ${JSON.stringify(opt)}`);
                     }
                 }
             });
         }
+    }
+
+    /* Does preformatting of message (when cmds are used), or selects string
+     * randomly from an array. */
+    protected getRespMsgFromEntry(actor, entry: ILoreEntry): TLoreMsg {
+        let msg = entry.respMsg;
+        if (!msg && (entry as any).msg) {
+            RG.err('System.Chat', 'getRespMsgFromEntry',
+               'entry.msg not supported. Use entry.respMsg from now on');
+        }
+        if (Array.isArray(msg)) {
+            msg = this.rng.arrayGetRand(msg);
+        }
+
+        if (typeof msg === 'string') {
+            return msg as string;
+        }
+        else if (entry.cmd) {
+            switch (entry.cmd) {
+                case QUERY_LOC_FROM_MEM: {
+                    console.log('Hit switch-case QUERY_LOC_FROM_MEM');
+                    return {xy: actor.getXY(), name: entry.names![0]};
+                }
+                default: {
+                    RG.err('System.Chat', 'getRespMsgFromEntry',
+                        `No cmd ${entry.cmd} supported`);
+                }
+            }
+        }
+
+        const json = {msg, entry};
+        RG.err('System.Chat', 'getRespMsgFromEntry',
+           'Only string/string[] msg supported in entry. Got: ' + JSON.stringify(json));
+        return ERROR_STR;
+    }
+
+
+    protected getAskMsgFromEntry(actor, entry: ILoreEntry): string {
+        if ((entry as any).msg) {
+            let err = 'entry.msg not supported. Use entry.askMsg from now on';
+            err += ' Got: ' + JSON.stringify((entry as any).msg);
+            RG.err('System.Chat', 'getRespMsgFromEntry', err);
+        }
+        if (entry.askMsg) {
+            const msg = entry.askMsg;
+            if (Array.isArray(msg)) {
+                return this.rng.arrayGetRand(msg);
+            }
+            else if (typeof msg === 'string') {
+                return msg;
+            }
+        }
+        RG.err('System.Chat', 'getAskMsgFromEntry',
+            'entry.askMsg does not exist');
+        return ERROR_STR;
+    }
+
+    protected actorHasInMemory(target, actor, chatObj): [boolean, any] {
+        const aName = actor.getName();
+        const tName = target.name;
+        let resp = null;
+        const id = target.id;
+        const memory: Memory = actor.getBrain().getMemory();
+
+        if (memory.hasSeen(id)) {
+            resp = chatObj.getSelectionObject();
+            const {x, y} = memory.getLastSeen(id);
+            const dir = RG.getTextualDir([x, y], actor);
+            let msg = `${aName} says: I know where ${tName} is.`;
+            msg += ` I saw ${tName} ${dir} from here.`;
+            RG.gameInfo(msg);
+            return [true, resp];
+        }
+        return [false, resp];
     }
 
     protected _meetsAllReq(chosenOpt, ent, actor): boolean {
@@ -453,44 +537,103 @@ export class SystemChat extends SystemBase {
         return `${aName} is hostile and refuses to talk.`;
     }
 
+    /* This checks the current lore entry, if choosing that will reveal any new
+     * info to the player. */
+    protected checkEntryForRevealed(loreComp: ComponentLore, entry: ILoreEntry): void {
+        if (entry.revealNames) {
+            entry.revealNames.forEach((newName: string) => {
+                const msg = ['Where can I find ' + newName + '?'];
+                const newEntry: ILoreEntry = {topic: 'custom', askMsg: msg, names: [newName]};
+                newEntry.cmd = QUERY_LOC_FROM_MEM;
+                // Currently only 1 name/ID supported
+                if (entry.revealIds) {
+                    if (entry.revealNames!.length === 1 && entry.revealIds.length === 1) {
+                        newEntry.ids = entry.revealIds.slice();
+                    }
+                }
+                loreComp.addEntry(newEntry);
+            });
+            /*
+            if (entry.revealIds) {
+                newEntry.ids = []
+                entry.revealIds.forEach((newId: number) => {
+                    newEntry.ids.push(newId);
+                    loreComp.addEntry(newEntry);
+                });
+            }
+            */
+        }
+        // loreComp.addEntry(newEntry);
+    }
+
+    protected getTopicQuestion(actor, topicName: string, entry: ILoreEntry): string {
+        const questions: any = {
+            quests: 'Is anyone looking for help here?',
+            places: 'Do you know what places are nearby?',
+            shops:  'Is there a place for trading?',
+            people: 'What can you tell me about people here?',
+            world: 'Do you have any rumors from faraway lands?',
+        };
+        if (questions[topicName]) {
+            return questions[topicName];
+        }
+        else if (topicName === 'custom') {
+            return this.getAskMsgFromEntry(actor, entry);
+        }
+        else {
+            RG.err('system.chat.ts', 'getTopicQuestion',
+               `No match for topic ${topicName}`);
+        }
+        return ERROR_STR;
+    }
+
+    protected getFormattedReply(
+        actor: BaseActor, topic: string, chosenOpt: ILoreOpt
+    ): string {
+        // No processing needed, just return what we got
+        console.log(topic + '| getFormattedReply msg is ', chosenOpt);
+        if (typeof chosenOpt === 'string') {
+            return chosenOpt;
+        }
+
+        // TODO Need to query some attributes for the reply
+
+        // Contains a hint for a direction
+        let textualDir = '';
+        if (chosenOpt.xy) {
+            textualDir = RG.getTextualDir(chosenOpt.xy, actor);
+        }
+
+        let msg = '';
+        switch (topic) {
+            case 'shops': {
+                if (actor.has('Shopkeeper')) {
+                    msg = `You are already in my shop. Welcome!`;
+                }
+                else {
+                    msg = `${chosenOpt.name} should have a shop ${textualDir} from here.`;
+                }
+                break;
+            }
+            case 'custom': {
+                if (textualDir !== '') {
+                    msg = `I saw ${chosenOpt.name} ${textualDir} from here.`;
+                }
+                else {
+                    msg = `I saw ${chosenOpt.name} around, but don't remember where.`;
+                }
+                break;
+            }
+        }
+        console.log(topic + '| getFormattedReply return msg ', msg);
+        return msg;
+    }
+
 }
 
 //------------------
 // HELPER FUNCTIONS
 //------------------
 
-function getTopicQuestion(topicName: string): string {
-    const questions = {
-        quests: 'Is anyone looking for help here?',
-        places: 'Do you know what places are nearby?',
-        shops:  'Is there a place for trading?',
-        people: 'What can you tell me about people here?',
-        world: 'Do you have any rumors from faraway lands?',
-    };
-    return questions[topicName];
-}
 
-function getFormattedReply(actor: BaseActor, name: string, chosenOpt: ILoreOpt): string {
-    if (typeof chosenOpt === 'string') {
-        return chosenOpt;
-    }
-    let textualDir = '';
-    if (chosenOpt.xy) {
-        textualDir = RG.getTextualDir(chosenOpt.xy, actor);
-    }
-
-    let msg = '';
-    switch (name) {
-        case 'shops': {
-            if (actor.has('Shopkeeper')) {
-                msg = `You are already in my shop. Welcome!`;
-            }
-            else {
-                msg = `${chosenOpt.name} should have a shop ${textualDir} from here.`;
-            }
-            break;
-        }
-    }
-    return msg;
-}
 

@@ -92,7 +92,11 @@ export class OWLore {
             if (!this.hasInfoAboutXY(xy)) {return;}
 
             zones.forEach((knowerZone: ZoneConf) => {
-                const knownXY: TCoord[] = this.hasInfoAbout[key];
+                let knownXY: TCoord[] = this.hasInfoAbout[key];
+
+                // NOTE: This loop has perf issue, if all coords are iterated
+                // through
+                knownXY = [RNG.arrayGetRand(knownXY)];
 
                 knownXY.forEach((c: TCoord) => {
                     const rXY = c;
@@ -102,7 +106,7 @@ export class OWLore {
                     zoneList.forEach((sz: ZoneConf) => {
                         const knownZone: ZoneConf = sz;
                         const dir = RG.getTextualDir(rXY, xy);
-                        const msg = this.formatMsg(dir, knownZone);
+                        const msg = this.formatRespMsg(dir, knownZone);
                         const metaData = this.getZoneMeta(knownZone);
                         const loreObj = createLoreObj(msg, 'sideQuest', metaData);
 
@@ -131,7 +135,7 @@ export class OWLore {
     }
 
 
-    public formatMsg(dir: string, zoneConf: ZoneConf): string {
+    public formatRespMsg(dir: string, zoneConf: ZoneConf): string {
         // const choices: ILoreEntry = Lore.getRand('typesDirections');
         // const templ: string = RNG.arrayGetRand(choices.text);
         const templ: string = Lore.getRandText('typesDirections');

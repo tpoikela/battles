@@ -106,6 +106,15 @@ describe('System.Chat', () => {
         sideLoreComp.addTopic('sideQuest', ['Another side quest msg']);
         // sideLoreComp.updateTopics(sideLore);
         zone.add(sideLoreComp);
+
+        const revealComp = new Component.Lore();
+        revealComp.addEntry({
+            topic: 'places', msg: 'Where are the caves?',
+            revealNames: ['Hidden caves of unit testing']
+        });
+        chatter.getLevel().add(revealComp);
+        // zone.add(revealComp);
+
         updateSystems([chatSys]);
 
         const brain = chatter.getBrain() as BrainPlayer;

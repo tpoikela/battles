@@ -41,3 +41,13 @@ Texts.battle.beastsSlain =
 
 Texts.battle.enemiesDead =
     'All enemies are dead! You emerge victorious. Congratulations!';
+
+
+Texts.mainQuest = [
+    'Go north',
+    'Something is going on in the North',
+    'Some speak about ancient ice beasts waking up in the arctic!',
+    'Two huge mountain passes divide this realm into regions',
+    'If you follow the Great Road to north, you will reach a city carved into the mountain',
+    'Recently, the breezes from north have been colder than before',
+];

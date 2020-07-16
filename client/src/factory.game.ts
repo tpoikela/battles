@@ -24,6 +24,7 @@ import {ObjectShell} from './objectshellparser';
 import {OverWorld, CoordMap} from './overworld';
 import {Random} from './random';
 import {TerritoryMap} from '../data/territory-map';
+import {Texts} from '../data/texts';
 import {Territory} from './territory';
 import {WorldConf} from './world.creator';
 import {Level} from './level';
@@ -598,11 +599,7 @@ export class FactoryGame {
             }],
             addComp: [
                 {comp: 'Lore', func: {
-                    addEntry: {topic: 'mainQuest', msg: [
-                        'Go north', 'Something is going on in the North',
-                        'Some speaks about ancient ice beasts waking up in the arctic!',
-                        'Two huge mountain passes divide this realm into regions'
-                    ]}
+                    addEntry: {topic: 'mainQuest', respMsg: Texts.mainQuest}
                 }}
             ]
         };

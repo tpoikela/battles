@@ -302,7 +302,7 @@ describe('Component.Lore', () => {
 
         loreComp.addTopic('mainQuest', 'msg3');
 
-        const mainMsg = loreComp.getMsg('mainQuest');
+        const mainMsg = loreComp.getRespMsg('mainQuest');
         expect(mainMsg).to.have.length(3);
 
     });

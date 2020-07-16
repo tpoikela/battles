@@ -594,21 +594,22 @@ export type TAddCompSpec = AddCompType[];
 // Lore interfaces
 //------------------
 
-export interface ILoreData {
-    topics: ILoreTopics;
-}
-
-export interface ILoreTopics {
-    quests: any;
-    places: any;
-    shops: any;
-    people: any;
-    world: any;
-}
-
 export interface ILoreOpt {
     xy?: TCoord;
     name?: string;
+}
+
+export type TLoreMsg = ILoreOpt | string | string[];
+
+export interface ILoreEntry {
+    topic: string;
+    askMsg?: TLoreMsg;
+    respMsg?: TLoreMsg;
+    names?: string[];
+    ids?: number[];
+    revealNames?: string[];
+    revealIds?: number[];
+    cmd?: string;
 }
 
 //------------------------------

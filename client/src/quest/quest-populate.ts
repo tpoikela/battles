@@ -17,6 +17,7 @@ import * as Item from '../item';
 import * as Component from '../component';
 import {Entity} from '../entity';
 import {Level} from '../level';
+import {ILoreEntry} from '../interfaces';
 
 import {QuestData, QuestTargetObj, QuestObjSurrogate} from './quest-data';
 import {Quest, Task} from './quest-task';
@@ -1038,8 +1039,12 @@ export class QuestPopulate {
             questGiver.add(giverComp);
             this.addUniqueName(questGiver);
 
-            level.get('Lore').addTopic('quests',
-               questGiver.getName() + ' could have some work for you');
+            const questLoreEntry: ILoreEntry = {topic: 'quests',
+                respMsg: questGiver.getName() + ' could have some work for you',
+                revealNames: [questGiver.getName()],
+                revealIds: [questGiver.getID()]
+            };
+            level.get('Lore').addEntry(questLoreEntry);
 
             // TODO fix typings
             const giver = questGiver as unknown;

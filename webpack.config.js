@@ -25,7 +25,7 @@ const config = {
 
     devServer: {
         hot: false,
-        // inline: true,
+        // inline: false,
         port: 3030,
         // index.html will be server from here
         contentBase: path.join(__dirname, './'),
