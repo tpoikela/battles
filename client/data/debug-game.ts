@@ -23,7 +23,7 @@ import {VirtualActor, WeatherActor} from '../src/actor.virtual';
 import {ELEM} from '../data/elem-constants';
 import {ItemGen} from '../data/item-gen';
 import * as IF from '../src/interfaces';
-import {Parser} from '../src/objectshellparser';
+import {Parser, Creator} from '../src/objectshellparser';
 
 import {Quest, QuestPopulate} from '../src/quest';
 
@@ -375,6 +375,13 @@ export class DebugGame {
         });
         const necroSword = parser.createFromShell(RG.TYPE_ITEM, necroSwordShell);
         player.getInvEq().addItem(necroSword);
+
+        const eggShell = {
+            ability: {
+                addEntity: {entityName: 'Chicken egg'}
+            }
+        };
+        parser.getCreator().addAbilityEffects(eggShell, player);
 
         return game;
     }
