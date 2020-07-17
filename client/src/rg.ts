@@ -427,7 +427,9 @@ class RGClass {
         this.USE = {
             DRINK: 'DRINK',
             DIG: 'DIG',
-            LEVER: 'LEVER'
+            LEVER: 'LEVER',
+            SKILL: 'SKILL',  // For actors only
+            DEFAULT: ''
         };
 
         this.LEVEL_ID_ADD = 1000000000;
@@ -1620,7 +1622,7 @@ class RGClass {
         return [xSrc + dir[0], ySrc + dir[1]];
     }
 
-/* Returns the dX,dY of two coordinates or objects. */
+    /* Returns the dX,dY of two coordinates or objects. */
     public dXdY(dest: DestOrSrc, src: DestOrSrc): TCoord {
         let [xDest, yDest, xSrc, ySrc] = [0, 0, 0, 0];
         if (Array.isArray(dest)) {
@@ -1900,7 +1902,7 @@ class RGClass {
     }
 
 /* Returns the use type (ie drink or dig or hit...) for a item/target pair. */
-    public getItemUseType(item: ItemBase, targetOrObj: Target): string {
+    public getEffectUseType(item: ItemBase|BaseActor, targetOrObj: Target): string {
         let target = targetOrObj;
         if ((targetOrObj as TargetWrapper).target) {
             const tWrap = targetOrObj as TargetWrapper;
@@ -1912,7 +1914,12 @@ class RGClass {
                 }
             }
         }
+
         const itemType = item.getType();
+        if (RG.isActor(item)) {
+            return this.USE.SKILL;
+        }
+
         switch (itemType) {
             case 'potion': {
                 if (this.isActor(target)) {
@@ -1920,9 +1927,9 @@ class RGClass {
                 }
                 break;
             }
-            default: return '';
+            default: return this.USE.DEFAULT;
         }
-        return '';
+        return this.USE.DEFAULT;
     }
 
     /* Given gold weight, returns the equivalent in coins.*/
