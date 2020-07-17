@@ -68,7 +68,7 @@ export interface ActorShell {
     equip?: Item[];
     inv?: Item[];
 
-    ability?: IAbility[];
+    ability?: IAbility;
 
 }
 
@@ -104,9 +104,9 @@ export const ActorsData: ActorShell[] = [
         color: color('White', 'Red'),
         damage: '1d1', hp: 1,
         noRandom: true, enemies: [],
-        ability: [{createEntity: { // TODO effects don't support actors
-            entityName: 'Chicken egg'
-        }}]
+        ability: {
+            addEntity: {entityName: 'Chicken egg'}
+        }
     },
     {
         name: 'rat', char: 'r', base: 'animal'
