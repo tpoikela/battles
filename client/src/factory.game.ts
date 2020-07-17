@@ -561,9 +561,12 @@ export class FactoryGame {
     }
 
 /* Creates the starting home village for the player. */
-    public createCityConfForPlayerHome( worldConf, player, level, playerX, playerY) {
+    public createCityConfForPlayerHome(
+        worldConf: IF.WorldConf, player, level: Level, playerX, playerY
+    ): void {
+        // Extract fee cell for home town, not adjacent to connection
         let cell = level.getFreeRandCell();
-        while (cell.hasConnection()) {
+        while (cell && cell.hasConnection()) {
             cell = level.getFreeRandCell();
         }
 
@@ -573,6 +576,8 @@ export class FactoryGame {
             lX = pX;
             lY = pY;
         }
+        // Update cell if coord has changed
+        cell = level.getMap().getCell(lX, lY);
 
         const homeConf: IF.CityConf = {
             name: 'Home town of ' + player.getName(),
@@ -605,7 +610,7 @@ export class FactoryGame {
         };
 
         player.setXY(lX, lY);
-        worldConf.area[0].city.push(homeConf);
+        worldConf.area[0].city!.push(homeConf);
     }
 
 /* Creates the procgen constraints for given area level. This is used in
