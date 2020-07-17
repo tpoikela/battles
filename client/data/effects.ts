@@ -40,6 +40,13 @@ const getTargetActor = (obj) => {
     return null;
 };
 
+const getTopOwnerActor = (itemOrActor) => {
+    if (itemOrActor.getTopOwner) {
+        return itemOrActor.getTopOwner();
+    }
+    return itemOrActor;
+};
+
 const createUseItemComp = (item, target, effArgs?: EffArgs) => {
     const useItem = new Component.UseItem();
     useItem.setTarget(target);
@@ -47,9 +54,11 @@ const createUseItemComp = (item, target, effArgs?: EffArgs) => {
     if (effArgs) {
         useItem.setEffect(effArgs);
     }
-    const useType = RG.getItemUseType(item, target);
+    const useType = RG.getEffectUseType(item, target);
     useItem.setUseType(useType);
-    item.getTopOwner().add(useItem);
+
+    const owner = getTopOwnerActor(item);
+    owner.add(useItem);
 };
 
 const getDuration = function(durStr: string): number {
@@ -63,8 +72,8 @@ export const Effects = {
 
     // Effects can be used in items freely.
     // Each obj arg will have {target:cell}
-    // In use-function, 'this' bound to the used item
-    // Item user is generally item owner: const user = this.getOwner();
+    // In use-function, 'this' bound to the used item or actor with ability
+    // Item user is generally item owner: const user = this.getTopOwner();
 
     // Each effect entry looks like the following
     // { name: "effectName",
@@ -88,7 +97,7 @@ export const Effects = {
         // Calls each use-function implementation
         {
             name: 'use',
-            func(obj) {
+            func(obj, idx=-1) {
                 if (this.getCharges) {
                     if (this.getCharges() === 0) {
                         const name = this.getName();
@@ -96,6 +105,12 @@ export const Effects = {
                         return false;
                     }
                 }
+                // This is used when one of the effects/abilities is chosen
+                if (idx >= 0) {
+                    return this.useFuncs[idx].call(this, obj);
+                }
+
+                // This is used for items when no specific effect chosen
                 for (let i = 0; i < this.useFuncs.length; i++) {
                     if (this.useFuncs[i].call(this, obj)) {
                         return true;
@@ -205,7 +220,8 @@ export const Effects = {
         {
             name: 'digger',
             func(obj) {
-                const name = this.getTopOwner().getName();
+                const owner = getTopOwnerActor(this);
+                const name = owner.getName();
                 const msg = `${name} digs through stone with ${this.getName()}`;
                 const effArgs = {
                     // name: this.useArgs.name,
@@ -262,7 +278,7 @@ export const Effects = {
                     setters: {
                         setDamageDie: dmgDie,
                         setProb: this.useArgs.prob,
-                        setSource: this.getTopOwner()
+                        setSource: getTopOwnerActor(this)
                     }
                 };
                 createUseItemComp(this, obj, effArgs);
@@ -282,7 +298,7 @@ export const Effects = {
                     const expiration = new Component.Expiration();
                     expiration.addEffect(stunComp, stunDur);
 
-                    const itemOwner = this.getTopOwner();
+                    const itemOwner = getTopOwnerActor(this);
                     stunComp.setSource(itemOwner);
 
                     actor.add(stunComp);
