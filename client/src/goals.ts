@@ -1459,6 +1459,41 @@ export class GoalCommunicate extends GoalBase {
 }
 Goal.Communicate = GoalCommunicate;
 
+
+export class GoalUseSkill extends GoalBase {
+    constructor(actor) {
+        super(actor);
+        this.setType('GoalUseSkill');
+    }
+
+    public activate(): void {
+        this.useActorSkill();
+    }
+
+    public process(): GoalStatus {
+        this.activateIfInactive();
+        return GoalStatus.GOAL_COMPLETED;
+    }
+
+    protected useActorSkill(): void {
+        // Need a direction for using the ability
+        // Need AI directions how to use the ability (damaging/healing etc)
+        //
+        const cellsAround: Cell[] = Brain.getCellsAroundActor(this.actor);
+        const cell = RNG.arrayGetRand(cellsAround);
+        const target = {target: cell};
+        const idx = 0;
+        if (this.actor.useSkill) {
+            this.actor.useSkill(cell, idx);
+        }
+        else {
+            RG.err('GoalUseSkill', 'useActorSkill',
+                'Tried to use a skill but no actor.useSkill() found');
+        }
+    }
+
+}
+
 function statusToString(status: GoalStatus): string {
     return Goal.StatusStrings[status];
 }
