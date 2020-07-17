@@ -250,8 +250,9 @@ export class Abilities {
 
         // This adds any useFunctions to the abilities menu
         if ((this.actor as any).useFuncs) {
-            (this.actor as any).useFuncs.forEach(func => {
-                menuArgs.push(this.getMenuItemForUseFunc(func));
+            (this.actor as any).useFuncs.forEach((func, i) => {
+                const useEff = this.actor.get('UseEffects').getEffects();
+                menuArgs.push(this.getMenuItemForUseFunc(func, useEff[i]));
             });
         }
 
@@ -266,7 +267,7 @@ export class Abilities {
         ability.actor = this.actor;
     }
 
-    public getMenuItemForUseFunc(func): MenuItem {
+    public getMenuItemForUseFunc(func, useEff): MenuItem {
         // TODO Add MenuDir
         const menuDir = new Menu.MenuSelectDir([]);
         const funcCellWrap = (dXdY) => {
@@ -275,7 +276,16 @@ export class Abilities {
             func.call(this.actor, {target: cell});
         };
         menuDir.setCallback(funcCellWrap);
-        return [func.name, menuDir];
+        return [this.getEffName(useEff), menuDir];
+    }
+
+    public getEffName(useEff): string {
+        for (const p in useEff) {
+            if (useEff[p].name) {
+                return useEff[p].name;
+            }
+        }
+        return '<ERROR: No effect name given >';
     }
 
     public toJSON() {

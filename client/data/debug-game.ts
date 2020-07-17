@@ -378,7 +378,7 @@ export class DebugGame {
 
         const eggShell = {
             ability: {
-                addEntity: {entityName: 'Chicken egg'}
+                addEntity: {name: 'Lay an egg', entityName: 'Chicken egg'}
             }
         };
         parser.getCreator().addAbilityEffects(eggShell, player);

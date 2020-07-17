@@ -398,6 +398,6 @@ function getTargetCellOrFail(useArgs) {
     }
     const json = JSON.stringify(useArgs);
     RG.err('system.effects.js', 'getTargetCellOrFail',
-        'Prop target must exist in useArgs ' + json);
+        'Prop target must exist in useArgs. Got: |' + json);
     return null;
 }

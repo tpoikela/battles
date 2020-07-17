@@ -823,5 +823,14 @@ describe('Data query functions for objects', function() {
         expect(soughtEvals).to.have.length(2);
     });
 
+    it('can add abilities to actors', () => {
+        const chicken = parser.createActor('chicken');
+        expect(chicken).to.have.property('useFuncs');
+        expect(chicken.useFuncs).to.have.length(1);
+        const cell = RGUnitTests.wrapObjWithCell(chicken);
+        const useOk = chicken.useSkill({target: cell});
+        expect(chicken.has('UseItem')).to.equal(true);
+    });
+
 });
 
