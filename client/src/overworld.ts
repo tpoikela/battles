@@ -1059,7 +1059,7 @@ function processSubLevel(
         return;
     }
 
-    const mainComps = getMainQuestLoreComps(ow, x, y, owLore);
+    const mainComps: IF.IAddCompObj[] = getMainQuestLoreComps(ow, x, y, owLore);
 
     Object.keys(features).forEach(type => {
         const featureArray: OWSubFeature[] = features[type];
@@ -1166,7 +1166,7 @@ function addMaxDangerAndValue(pX: number, pY: number, zoneConf: IF.ZoneConf): vo
     }
 }
 
-function addCompsToZone(conf: IF.ZoneConf, comps): void {
+function addCompsToZone(conf: IF.ZoneConf, comps: IF.IAddCompObj[]): void {
     if (conf.addComp) {
         conf.addComp = conf.addComp.concat(comps);
     }
@@ -1467,9 +1467,11 @@ function addBiomeLocations(ow: OWMap, areaConf: IF.AreaConf): void {
     }
 }
 
-function getMainQuestLoreComps(ow: OWMap, x: number, y: number, owLore: OWLore): any[] {
+function getMainQuestLoreComps(
+    ow: OWMap, x: number, y: number, owLore: OWLore
+): IF.IAddCompObj[] {
     const loreRange = 5;
-    const comps = [];
+    const comps: IF.IAddCompObj[] = [];
     const xy: TCoord = [x, y];
     const loreCoord: TCoord[] = Geometry.getBoxAround(x, y, loreRange);
 
