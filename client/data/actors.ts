@@ -16,6 +16,10 @@ interface ItemObj {
 
 type Item = string | ItemObj;
 
+interface IAbility {
+    [key: string]: any;
+}
+
 // Defines all possible attributes which can be given
 export interface ActorShell {
     name: string; // Only name is mandatory
@@ -64,6 +68,8 @@ export interface ActorShell {
     equip?: Item[];
     inv?: Item[];
 
+    ability?: IAbility[];
+
 }
 
 /* Instructions:
@@ -92,6 +98,15 @@ export const ActorsData: ActorShell[] = [
         protection: 0,
         range: 1, danger: 1, speed: 100, brain: 'Animal',
         enemies: RG.ACTOR_RACES
+    },
+    {
+        name: 'chicken', char: 'c', base: 'animal',
+        color: color('White', 'Red'),
+        damage: '1d1', hp: 1,
+        noRandom: true, enemies: [],
+        ability: [{createEntity: { // TODO effects don't support actors
+            entityName: 'Chicken egg'
+        }}]
     },
     {
         name: 'rat', char: 'r', base: 'animal'
