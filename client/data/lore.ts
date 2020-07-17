@@ -5,7 +5,7 @@ const ejs = require('ejs');
 
 import RG from '../src/rg';
 import {Random} from '../src/random';
-import {IConstraint} from '../src/interfaces';
+import {IConstraint, IAddCompObj} from '../src/interfaces';
 
 const RNG = Random.getRNG();
 
@@ -151,8 +151,8 @@ Lore.typesDirections = [
 
 Lore.northDirections = Lore.directions;
 
-/* Use this to preprocess template literals with your favourite js template
- * engine. */
+/* Use this to preprocess template literals for your favourite js template
+ * engine. Here we format it for ejs. */
 export function prep(strings: TemplateStringsArray, ...args: any[]) {
     let s = strings[0];
     for (let i = 0; i < args.length; i++) {
@@ -197,7 +197,9 @@ export function createLoreMsg(dir: string): string {
 
 /* Creates the object which is used to create and initialize Lore component for
  * this zone. */
-export function createLoreObj(msg: string, topic: string, metaData?: object) {
+export function createLoreObj(
+    msg: string, topic: string, metaData?: object
+): IAddCompObj {
     const compObj: any = {
         comp: 'Lore', func: {
             addEntry: {topic, respMsg: msg}
