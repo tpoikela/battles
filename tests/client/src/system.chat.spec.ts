@@ -109,7 +109,7 @@ describe('System.Chat', () => {
 
         const revealComp = new Component.Lore();
         revealComp.addEntry({
-            topic: 'places', msg: 'Where are the caves?',
+            topic: 'places', askMsg: 'Where are the caves?',
             revealNames: ['Hidden caves of unit testing']
         });
         chatter.getLevel().add(revealComp);

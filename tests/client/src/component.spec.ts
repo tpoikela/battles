@@ -287,7 +287,7 @@ describe('Component.Lore', () => {
         const loreKeeper = new SentientActor('loreKeeper');
         const loreComp = new Component.Lore();
         const metaData = {x: 0, y: 1, name: 'Castle'};
-        loreComp.addEntry({topic: 'sideQuest', msg: 'Go south', metaData});
+        loreComp.addEntry({topic: 'sideQuest', respMsg: 'Go south', metaData});
 
         const topics = loreComp.getLoreTopics();
         expect(topics).to.deep.equal(['sideQuest']);
