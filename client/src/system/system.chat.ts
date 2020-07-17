@@ -464,10 +464,13 @@ export class SystemChat extends SystemBase {
                 }
             }
         }
+        else if (msg!.xy) {
+            return msg as ILoreOpt;
+        }
 
         const json = {msg, entry};
         RG.err('System.Chat', 'getRespMsgFromEntry',
-           'Only string/string[] msg supported in entry. Got: ' + JSON.stringify(json));
+           'Only str/str[]/ILoreOpt msg supported in entry. Got: ' + JSON.stringify(json));
         return ERROR_STR;
     }
 
