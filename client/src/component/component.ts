@@ -1012,6 +1012,27 @@ Shopkeeper._init = function() {
 /* Component which models a shop transaction. */
 export const Transaction = TransientDataComponent('Transaction', {args: null});
 
+
+/* Required to store the effects into an actor/entity. */
+export const UseEffects = UniqueDataComponent('UseEffects', {
+    effects: null
+});
+
+UseEffects.prototype._init = function(): void {
+    this.effects = [];
+};
+
+UseEffects.prototype.addEffect = function(effect): void {
+    this.effects.push(effect);
+};
+
+UseEffects.prototype.hasEffect = function(name: string): boolean {
+    const index = this.effects.findIndex(eff => {
+        return eff.hasOwnProperty(name);
+    });
+    return index >= 0;
+};
+
 //--------------------------------------------
 // Battle-related components
 //--------------------------------------------
