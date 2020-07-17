@@ -1483,8 +1483,8 @@ export class GoalUseSkill extends GoalBase {
         const cell = RNG.arrayGetRand(cellsAround);
         const target = {target: cell};
         const idx = 0;
-        if (this.actor.useSkill) {
-            this.actor.useSkill(cell, idx);
+        if ((this.actor as any).useSkill) {
+            (this.actor as any).useSkill(cell, idx);
         }
         else {
             RG.err('GoalUseSkill', 'useActorSkill',
