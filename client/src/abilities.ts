@@ -247,6 +247,14 @@ export class Abilities {
         const menuArgs: MenuItem[] = Object.values(this.abilities).map(abil => (
             abil.getMenuItem()
         ));
+
+        // This adds any useFunctions to the abilities menu
+        if ((this.actor as any).useFuncs) {
+            (this.actor as any).useFuncs.forEach(func => {
+                menuArgs.push(this.getMenuItemForUseFunc(func));
+            });
+        }
+
         const menu = new Menu.MenuWithQuit(menuArgs);
         menu.setName('MenuAbilities');
         menu.addPre('Select an ability to use:');
@@ -256,6 +264,18 @@ export class Abilities {
     public addAbility(ability: AbilityBase): void {
         this.abilities[ability.getName()] = ability;
         ability.actor = this.actor;
+    }
+
+    public getMenuItemForUseFunc(func): MenuItem {
+        // TODO Add MenuDir
+        const menuDir = new Menu.MenuSelectDir([]);
+        const funcCellWrap = (dXdY) => {
+            const [x, y] = RG.newXYFromDir(dXdY, this.actor);
+            const cell = this.actor.getLevel().getMap().getCell(x, y);
+            func.call(this.actor, {target: cell});
+        };
+        menuDir.setCallback(funcCellWrap);
+        return [func.name, menuDir];
     }
 
     public toJSON() {
