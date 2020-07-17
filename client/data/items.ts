@@ -1112,6 +1112,9 @@ const Items: ObjectShell[] = [
         color: color('white', 'blue')
     },
     {
+        name: 'Chicken egg', base: 'FoodBase', energy: 1300, value: value(25)
+    },
+    {
         name: 'Potatoes', base: 'FoodBase', energy: 1200, value: value(20)
     },
     {
