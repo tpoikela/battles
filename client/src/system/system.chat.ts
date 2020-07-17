@@ -443,10 +443,20 @@ export class SystemChat extends SystemBase {
             return msg as string;
         }
         else if (entry.cmd) {
+            // This switch implements differents "cmds" that are required in
+            // querying response data such as x,y coords from actor memory
             switch (entry.cmd) {
                 case QUERY_LOC_FROM_MEM: {
-                    console.log('Hit switch-case QUERY_LOC_FROM_MEM');
-                    return {xy: actor.getXY(), name: entry.names![0]};
+                    const name = entry.names![0];
+                    const id = entry.ids[0];
+                    const memory: Memory = actor.getBrain().getMemory();
+                    if (memory.hasSeen(id)) {
+                        const {x, y} = memory.getLastSeen(id)!; // hasSeen called
+                        return {xy: [x, y], name};
+                    }
+                    else {
+                        return `I haven't seen ${name} around here.`;
+                    }
                 }
                 default: {
                     RG.err('System.Chat', 'getRespMsgFromEntry',
@@ -491,7 +501,7 @@ export class SystemChat extends SystemBase {
 
         if (memory.hasSeen(id)) {
             resp = chatObj.getSelectionObject();
-            const {x, y} = memory.getLastSeen(id);
+            const {x, y} = memory.getLastSeen(id)!; // hasSeen called
             const dir = RG.getTextualDir([x, y], actor);
             let msg = `${aName} says: I know where ${tName} is.`;
             msg += ` I saw ${tName} ${dir} from here.`;
@@ -551,19 +561,11 @@ export class SystemChat extends SystemBase {
                         newEntry.ids = entry.revealIds.slice();
                     }
                 }
-                loreComp.addEntry(newEntry);
-            });
-            /*
-            if (entry.revealIds) {
-                newEntry.ids = []
-                entry.revealIds.forEach((newId: number) => {
-                    newEntry.ids.push(newId);
+                if (!loreComp.hasEntry(newEntry)) {
                     loreComp.addEntry(newEntry);
-                });
-            }
-            */
+                }
+            });
         }
-        // loreComp.addEntry(newEntry);
     }
 
     protected getTopicQuestion(actor, topicName: string, entry: ILoreEntry): string {
@@ -630,10 +632,3 @@ export class SystemChat extends SystemBase {
     }
 
 }
-
-//------------------
-// HELPER FUNCTIONS
-//------------------
-
-
-
