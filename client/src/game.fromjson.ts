@@ -353,6 +353,7 @@ export class FromJSON {
         if (RG.isActor(entity)) {
             this.createBrain(json.brain, entity);
             this._addEntityFeatures(json, entity);
+            this.addEffectsToEntity(entity);
         }
         else if (RG.isElement(entity)) {
             this.restoreElementEntity(json, entity);
@@ -410,6 +411,20 @@ export class FromJSON {
                 const newCompObj = this.createComponent(name, compJSON);
                 ent.add(newCompObj);
             }
+        }
+    }
+
+    public addEffectsToEntity(ent: Entity): void {
+        if (ent.has('UseEffects')) {
+            const effects = ent.get('UseEffects').getEffects();
+            if (effects.length === 0) {
+                RG.err('Game.FromJSON', 'addEffectsToEntity',
+                   'effects length was 0');
+            }
+            effects.forEach(eff => {
+                const shell = {use: eff};
+                this._parser.getCreator().addUseEffects(shell, ent);
+            });
         }
     }
 
