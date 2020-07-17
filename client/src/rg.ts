@@ -1954,7 +1954,7 @@ class RGClass {
         if (dXNew > 0) {res += 'east';}
         else if (dXNew < 0) {res += 'west';}
 
-        if (res === '') {res = 'nearby from here';}
+        if (res === '') {res = 'nearby';}
         return res;
     }
 
