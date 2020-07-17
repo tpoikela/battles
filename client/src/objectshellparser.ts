@@ -308,6 +308,10 @@ export class Creator {
             this.addGoalsToObject(shell, newObj);
         }
 
+        if (shell.hasOwnProperty('ability')) {
+            this.addAbilityEffects(shell, newObj);
+        }
+
         return newObj;
     }
 
@@ -471,49 +475,61 @@ export class Creator {
     /* If shell has 'use', this adds specific use effect to the item.*/
     public addUseEffects(shell: IShell, newObj): void {
         newObj.useFuncs = [];
-        newObj.useItem = this._db.effects.use.func.bind(newObj);
-        if (typeof shell.use === 'object'
-            && shell.use.hasOwnProperty('length')) {
+        if (RG.isItem(newObj)) {
+            newObj.useItem = this._db.effects.use.func.bind(newObj);
+        }
+        else if (RG.isActor(newObj)) {
+            (newObj as any).useSkill = this._db.effects.use.func.bind(newObj);
+        }
+
+        if (Array.isArray(shell.use)) {
             for (let i = 0; i < shell.use.length; i++) {
-                this._addUseEffectToItem(shell, newObj, shell.use[i]);
+                this._addUseEffectToEntity(shell, newObj, shell.use[i]);
             }
         }
         else if (typeof shell.use === 'object') {
             for (const p in shell.use) {
                 if (shell.use.hasOwnProperty(p)) {
-                    this._addUseEffectToItem(shell, newObj, p);
+                    this._addUseEffectToEntity(shell, newObj, p);
                 }
             }
         }
         else {
-            this._addUseEffectToItem(shell, newObj, shell.use);
+            this._addUseEffectToEntity(shell, newObj, shell.use);
         }
     }
 
-    public _addUseEffectToItem(shell: IShell, item, useName) {
+    public _addUseEffectToEntity(shell: IShell, newObj: any, useName: string): void {
         const useFuncName = useName;
         if (this._db.effects.hasOwnProperty(useFuncName)) {
             const useEffectShell = this._db.effects[useFuncName];
             const useFuncVar = useEffectShell.func;
-            item.useFuncs.push(useFuncVar);
+            newObj.useFuncs.push(useFuncVar);
+
+            if (newObj.has('UseEffects')) {
+                const addedShell = {[useName]: shell.use[useName]};
+                if (!newObj.get('UseEffects').hasEffect(useName)) {
+                    newObj.get('UseEffects').addEffect(addedShell);
+                }
+            }
 
             if (useEffectShell.hasOwnProperty('requires')) {
                 if (shell.use.hasOwnProperty(useName)) {
-                    item.useArgs = {};
+                    newObj.useArgs = {};
                     const reqs = useEffectShell.requires;
                     if (typeof reqs === 'object') {
                         for (let i = 0; i < reqs.length; i++) {
-                            this._verifyAndAddReq(shell.use[useName], item, reqs[i]);
+                            this._verifyAndAddReq(shell.use[useName], newObj, reqs[i]);
                         }
                     }
                     else {
-                        this._verifyAndAddReq(shell.use[useName], item, reqs);
+                        this._verifyAndAddReq(shell.use[useName], newObj, reqs);
                     }
                 }
                 else {
                     RG.err('ObjectParser', 'addUseEffects',
                         `useEffect shell has 'requires'.
-                        Item shell 'use' must be an object.`
+                        newObj shell 'use' must be an object.`
                     );
                 }
             }
@@ -521,7 +537,7 @@ export class Creator {
                 const opts = useEffectShell.optional;
                 opts.forEach(option => {
                     if (shell.use[useName].hasOwnProperty(option)) {
-                        item.useArgs[option] = shell.use[useName][option];
+                        newObj.useArgs[option] = shell.use[useName][option];
                     }
                 });
             }
@@ -530,6 +546,17 @@ export class Creator {
             RG.err('ObjectParser', 'addUseEffects',
                 'Unknown effect: |' + useFuncName + '|');
         }
+    }
+
+
+    public addAbilityEffects(shell: IShell, newObj): void {
+        if (!shell.use) {
+            shell.use = shell.ability;
+        }
+        if (!newObj.has('UseEffects')) {
+            newObj.add(new Component.UseEffects());
+        }
+        this.addUseEffects(shell, newObj);
     }
 
     /* Verifies that the shell has all requirements, and adds them to the
@@ -781,13 +808,14 @@ export class Parser {
         this._procgen = new ProcGen(this._db, this._dbDanger);
     }
 
-    public getCreator() {
+    public getCreator(): Creator {
         return this._creator;
     }
 
-    public getProcGen() {
+    public getProcGen(): ProcGen {
         return this._procgen;
     }
+
     //-----------------------------------------------------------------------
     // "PARSING" METHODS
     //-----------------------------------------------------------------------
