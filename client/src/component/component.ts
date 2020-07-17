@@ -1551,12 +1551,14 @@ export interface ComponentLore {
     addTopic(key: string, msg: any): void;
     getLoreTopics(): string[];
     addEntry(entry: ILoreEntry): void;
+    hasEntry(entry: ILoreEntry): boolean;
 }
 
 
 /* Component attached to Level/Places for Lore. */
 export const Lore = DataComponent('Lore', {
-    entries: null
+    entries: null, // Stores actual Lore entries into list
+    tag: '' // Used for internal bookkeeping only
 });
 
 Lore.prototype._init = function() {
@@ -1575,6 +1577,37 @@ Lore.prototype.addEntry = function(entry: ILoreEntry): void {
             `Given entry has no topic: ${JSON.stringify(entry)}`);
     }
     this.entries.push(entry);
+};
+
+
+Lore.prototype.hasEntry = function(entry: ILoreEntry): boolean {
+    let hasEntry = false;
+    const entries = this.getKey({topic: entry.topic});
+    entries.forEach((otherEntry: ILoreEntry) => {
+        hasEntry = hasEntry || this.compareEntry(entry, otherEntry);
+    });
+    return hasEntry;
+};
+
+/* Compares two lore entries for similarity. */
+Lore.prototype.compareEntry = function(lhs: ILoreEntry, rhs: ILoreEntry): boolean {
+    if (lhs.topic !== rhs.topic) {return false;}
+    if (lhs.askMsg || rhs.askMsg) {
+        if (lhs.askMsg !== rhs.askMsg) {return false;}
+    }
+    if (lhs.respMsg || rhs.respMsg) {
+        if (lhs.respMsg !== rhs.respMsg) {return false;}
+    }
+    if (lhs.names && rhs.names) {
+        if (lhs.names.length !== rhs.names.length) {
+            return false;
+        }
+    }
+    else if (lhs.names || rhs.names) {
+        return false;
+    }
+
+    return true;
 };
 
 
