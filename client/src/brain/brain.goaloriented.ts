@@ -93,19 +93,12 @@ export class BrainAnimal extends BrainGoalOriented {
     constructor(actor) {
         super(actor);
         this.setType('Animal');
-        this.goal = new GoalsTop.ThinkBasic(actor);
+        // this.goal = new GoalsTop.ThinkBasic(actor);
         this._memory.addEnemyType('player');
         this._memory.addEnemyType('human');
-        this.getGoal = () => this.goal;
-        this.setGoal = goal => {this.goal = goal;};
-    }
-
-    /* Must return function. */
-    public decideNextAction(): ActionCallback | null {
-        this._cache.seen = null;
-        this.goal.process();
-        this._cache.seen = null;
-        return ACTION_ALREADY_DONE;
+        // Already in base class
+        // this.getGoal = () => this.goal;
+        // this.setGoal = goal => {this.goal = goal;};
     }
 }
 Brain.Animal = BrainAnimal;
