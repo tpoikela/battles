@@ -2,7 +2,7 @@
 /* This file contains the top-level goals for actors. */
 
 import RG from './rg';
-import {Goal, GoalStatus} from './goals';
+import {GoalBase,  Goal, GoalStatus} from './goals';
 import {Random} from './random';
 
 import {Evaluator, EvaluatorBase, EvaluatorOrders} from './evaluators';
@@ -30,7 +30,7 @@ interface IBiasMap {
 /* Base class for all top-level goals. Includes evaluator logic and goal
  * arbitration.
  */
-export class GoalTop extends Goal.Base {
+export class GoalTop extends GoalBase {
 
     protected evaluators: EvaluatorBase[];
 
@@ -46,6 +46,18 @@ export class GoalTop extends Goal.Base {
 
     public addEvaluator(evaluator: EvaluatorBase): void {
         this.evaluators.push(evaluator);
+    }
+
+    public addEvalByName(name: string, bias: number): void {
+        const newEval = new Evaluator[name](bias);
+        this.evaluators.push(newEval);
+    }
+
+    public hasEvalType(name: string): boolean {
+        const idx = this.evaluators.findIndex(ee => (
+            ee.type === name
+        ));
+        return idx >= 0;
     }
 
     public activate(): void {
@@ -83,12 +95,12 @@ export class GoalTop extends Goal.Base {
     }
 
     public toJSON(): any {
-        const evals = [];
+        const evals: any = [];
         this.evaluators.forEach(ev => {
             // Orders difficult to serialize as it can contain reference to any
             // arbitrary goal (can be top-level goal). That would require tons
             // of object refs, and it's a lot of work
-            if (ev.getType() !== 'Orders') {
+            if (ev.getType() !== 'Orders' || ev.getType() !== 'UseSkill') {
                 evals.push(ev.toJSON());
             }
         });
@@ -118,6 +130,9 @@ export class GoalTop extends Goal.Base {
         }
 
         if (chosenEval) {
+            if (this.actor.getName() === 'chicken') {
+                console.log('For chicken, chose eval ', chosenEval.getType());
+            }
             chosenEval.setActorGoal(this.actor);
         }
         else {
@@ -154,7 +169,7 @@ export class ThinkBasic extends GoalTop {
         this.updateEvaluators();
     }
 
-    public updateEvaluators() {
+    public updateEvaluators(): void {
         this.removeEvaluators();
         this.evaluators.push(new Evaluator.AttackActor(this.bias.attack));
         this.evaluators.push(new Evaluator.Flee(this.bias.flee));
@@ -163,15 +178,15 @@ export class ThinkBasic extends GoalTop {
 
     /* Can be used to "inject" goals for the actor. The actor uses
      * Evaluator.Orders to check if it will obey the order. */
-    public giveOrders(evaluator) {
+    public giveOrders(evaluator: EvaluatorOrders): void {
         // TODO remove this evaluator after the check
-        this.dbg('Received an order!!', evaluator);
+        this.dbg('Received an order!!' + JSON.stringify(evaluator));
         this.addEvaluator(evaluator);
     }
 
     /* Clears the given orders. Useful if a new order needs to be issued to
      * override the existing one. */
-    public clearOrders() {
+    public clearOrders(): void {
         const orders = this.evaluators.filter(ev => ev.isOrder());
         orders.forEach((order) => {
             const evOrder = order as EvaluatorOrders;
@@ -183,7 +198,7 @@ export class ThinkBasic extends GoalTop {
         });
     }
 
-    public addGoal(goal) {
+    public addGoal(goal: GoalBase): void {
         const type = goal.getType();
         this.dbg(`addGoal() ${type}`);
         if (!this.isGoalPresent(type)) {
