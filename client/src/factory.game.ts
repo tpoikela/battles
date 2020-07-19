@@ -600,7 +600,12 @@ export class FactoryGame {
                 name: 'Town Square',
                 nLevels: 1,
                 entranceLevel: 0,
-                nShops: 1
+                nShops: 1,
+                create: {
+                    actor: [
+                        {name: 'chicken', num: 15, nLevel: 0}
+                    ]
+                },
             }],
             addComp: [
                 {comp: 'Lore', func: {
