@@ -55,6 +55,13 @@ export class Memory {
         }
     }
 
+    /* Removes all existing enemy types. */
+    public removeEnemyTypes(): void {
+        Object.keys(this._enemyTypes).forEach(key => {
+            this.removeEnemyType(key);
+        });
+    }
+
     public addEnemyGroup(groupId: number): void {
         if (!this._actors.enemyGroups) {
             this._actors.enemyGroups = [];
