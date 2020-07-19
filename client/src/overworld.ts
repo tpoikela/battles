@@ -1390,7 +1390,7 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     const featY = mapY(xy[1], slY, subY);
     const tName = 'Elder raventhrone';
 
-    const dungeonConf = LevelGen.getDungeonConf(tName);
+    const dungeonConf: IF.DungeonConf = LevelGen.getDungeonConf(tName);
     if (debugBlackTower) {
         debug(`BlackTower: Placing to player position.`);
         addToPlayerPosition(dungeonConf, coordObj);
@@ -1406,6 +1406,7 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     dungeonConf.branch[0].nLevels = 5;
     const nLastLevel = dungeonConf.branch[0].nLevels - 1;
     dungeonConf.branch[0].createPresetLevels = {
+        stub: false,
         new: 'BlackTower',
         args: [180, 90]
     };
