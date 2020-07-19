@@ -395,6 +395,7 @@ describe('FactoryWorld', function() {
                 entranceLevel: 0,
                 nLevels,
                 createPresetLevels: {
+                    stub: false,
                     new: 'BlackTower',
                     args: [180, 90, {nLevels}]
                 },

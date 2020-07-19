@@ -75,7 +75,6 @@ describe('CastleGenerator', () => {
                 console.error('[SERIOUS ERROR]: Level was');
                 level.debugPrintInASCII(); // Only if fails
             }
-            level.debugPrintInASCII(); // Only if fails
             expect(path.length).to.be.at.least(5);
         }
     });
