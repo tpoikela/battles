@@ -154,6 +154,14 @@ export const ActorsData: ActorShell[] = [
         hp: 9, danger: 3, addComp: 'Flying'
     },
     {
+        name: 'cloud of horseflies', char: 'i', base: 'animal',
+        color: color('Orange', 'black'),
+        damage: '1d3', speed: 115,
+        defense: 10, addComp: 'Flying',
+        onHit: [{addComp: 'Paralysis', duration: '1'}],
+        danger: 3
+    },
+    {
         name: 'wolf', char: 'w', base: 'animal',
         attack: 4, defense: 2, damage: '1d6',
         hp: 15, danger: 3
@@ -253,6 +261,15 @@ export const ActorsData: ActorShell[] = [
             {addComp: 'Stun', duration: '1d2 + 1'}
         ],
         addComp: [resistance('ICE', 'STRONG')]
+    },
+    {
+        name: 'giant horsefly', char: 'I', base: 'animal',
+        color: color('Orange', 'black'),
+        attack: 10, defense: 15, damage: '3d3',
+        hp: 25, speed: 110,
+        addComp: 'Flying',
+        onHit: [{addComp: 'Paralysis', duration: '1'}],
+        danger: 8
     },
     {
         name: 'mammoth', char: 'M', base: 'animal',
