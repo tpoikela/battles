@@ -22,8 +22,15 @@ export const orderWithGoal = (actor: BaseActor, obj): void => {
         const brain = actor.getBrain() as BrainGoalOriented;
         if (typeof (brain.getGoal) === 'function') {
             const topGoal = brain.getGoal();
-            topGoal.clearOrders();
-            topGoal.giveOrders(orderEval);
+            const thinkGoal = topGoal as any;
+            if (thinkGoal.clearOrders) {
+                thinkGoal.clearOrders();
+                thinkGoal.giveOrders(orderEval);
+            }
+            else {
+                RG.err('goals-battle.ts', 'orderWithGoal',
+                    'No clearOrders found from the top goal');
+            }
         }
         else {
             const msg = 'Actor without getGoal: ' + JSON.stringify(actor);
@@ -47,8 +54,11 @@ export const injectOrderEval = (target: SentientActor, goal: GoalBase, args) => 
         orderEval.setArgs({srcActor: args.src, goal});
         const brain = target.getBrain() as BrainGoalOriented;
         const topGoal = brain.getGoal();
-        topGoal.clearOrders();
-        topGoal.giveOrders(orderEval);
+        const thinkGoal = topGoal as any;
+        if (thinkGoal.clearOrders) {
+            thinkGoal.clearOrders();
+            thinkGoal.giveOrders(orderEval);
+        }
     }
 };
 
@@ -83,7 +93,10 @@ export const giveClearOrders = (target: BaseActor, args) => {
         if (!target.isEnemy(src)) {
             const brain = target.getBrain() as BrainGoalOriented;
             const topGoal = brain.getGoal();
-            topGoal.clearOrders();
+            const thinkGoal = topGoal as any;
+            if (thinkGoal.clearOrders) {
+                thinkGoal.clearOrders();
+            }
         }
     }
 };
