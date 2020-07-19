@@ -319,6 +319,9 @@ export class Creator {
         shell.enemies.forEach(enemyType => {
             obj.getBrain().addEnemyType(enemyType);
         });
+        if (shell.enemies.length === 0) {
+            obj.getBrain().getMemory().removeEnemyTypes();
+        }
     }
 
     /* Creates a spellbook and adds specified spells into it. */
@@ -480,6 +483,13 @@ export class Creator {
         }
         else if (RG.isActor(newObj)) {
             (newObj as any).useSkill = this._db.effects.use.func.bind(newObj);
+            const brain = (newObj.getBrain()) as any;
+            if (brain.getGoal) {
+                // Prevent adding double evaluator
+                if (!brain.getGoal().hasEvalType('UseSkill')) {
+                    brain.getGoal().addEvalByName('UseSkill', 1.0);
+                }
+            }
         }
 
         if (Array.isArray(shell.use)) {
