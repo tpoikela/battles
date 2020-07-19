@@ -241,12 +241,22 @@ export interface IConstraint {
     args?: any;
 }
 
+export interface ICreate {
+    name: string;
+    num?: number;
+    nLevel: number;
+}
+
 export interface ConstraintMap {
     actor?: IConstraint[];
     shop?: IConstraint[];
     disposition?: {[key: string]: string};
     // cellsAround?: {[key: string]: string};
     cellsAround?: ICellDirMap;
+}
+
+export interface CreateMap {
+    actor?: ICreate[];
 }
 
 export type TConstraintArg = IConstraint | IConstraint[];
@@ -403,6 +413,7 @@ export interface SubZoneConf {
     maxDanger?: number;
     maxValue?: number;
     createPresetLevels?: LevelSpecStub;
+    create?: CreateMap;
 }
 
 export interface BranchConf extends SubZoneConf {
