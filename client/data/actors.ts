@@ -9,6 +9,8 @@ const defaultBrain = 'GoalOriented';
 const demonBrain = 'GoalOriented';
 const undeadBrain = 'GoalOriented';
 
+const NO_ENEMIES: any[] = [];
+
 interface ItemObj {
     name: string;
     count: number;
@@ -101,11 +103,14 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'chicken', char: 'c', base: 'animal',
-        color: color('White', 'Red'),
+        color: color('Red', 'White'),
         damage: '1d1', hp: 1,
-        noRandom: true, enemies: [],
+        noRandom: true, enemies: NO_ENEMIES,
         ability: {
-            addEntity: {entityName: 'Chicken egg'}
+            addEntity: {
+                entityName: 'Chicken egg',
+                endMsg: 'Chicken lays an egg onto the ground!'
+            }
         }
     },
     {
