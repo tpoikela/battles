@@ -589,7 +589,7 @@ export class FactoryWorld {
                 }
             }
             else if (conf.createPresetLevels && conf.create) {
-                this.addFixedFeatures(i, level, branch);
+                this.addFixedFeatures(i, level as Level, branch);
             }
 
             branch.addLevel(level as Level); // Should be Level at this point
@@ -612,7 +612,9 @@ export class FactoryWorld {
 
     /* Returns a level from presetLevels if any exist for the current level
      * number. */
-    public getFromPresetLevels(i: number, presetLevels: IF.LevelObj[]): IF.LevelSpecStub | Level | null  {
+    public getFromPresetLevels(
+        i: number, presetLevels: IF.LevelObj[]
+    ): IF.LevelSpecStub | Level | null  {
         let foundLevel = null;
         if (presetLevels.length > 0) {
             const levelObj = presetLevels.find(lv => lv.nLevel === i);
@@ -725,7 +727,7 @@ export class FactoryWorld {
     }
 
     /* Adds fixed features such as stairs, actors and items into the level. */
-    public addFixedFeatures(nLevel, level, zone): void {
+    public addFixedFeatures(nLevel: number, level: Level, zone): void {
         const create = this.getConf('create');
 
         // Actor creation
@@ -734,12 +736,19 @@ export class FactoryWorld {
             createActors.forEach(createActor => {
                 if (createActor.nLevel === nLevel) {
                     const actorName = createActor.name;
-                    if (createActor.hasOwnProperty('target') &&
-                        zone.getName() === createActor.target) {
-                        this.factZone.addActorToLevel(actorName, level);
+                    let numActors = 1;
+                    if (createActor.num) {
+                        numActors = createActor.num;
                     }
-                    else {
-                        this.factZone.addActorToLevel(actorName, level);
+
+                    for (let i = 0; i < numActors; i++) {
+                        if (createActor.hasOwnProperty('target') &&
+                            zone.getName() === createActor.target) {
+                            this.factZone.addActorToLevel(actorName, level);
+                        }
+                        else {
+                            this.factZone.addActorToLevel(actorName, level);
+                        }
                     }
                 }
             });
@@ -1058,7 +1067,7 @@ export class FactoryWorld {
                 }
             }
             else if (conf.createPresetLevels && conf.create) {
-                this.addFixedFeatures(i, level, quarter);
+                this.addFixedFeatures(i, level as Level, quarter);
             }
             else {
                 this.debug(`cityQuarter ${hierName} ${i} from preset level`);
