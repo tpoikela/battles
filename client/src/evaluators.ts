@@ -655,3 +655,70 @@ export class EvaluatorCommunicate extends EvaluatorBase {
     }
 }
 Evaluator.Communicate = EvaluatorCommunicate;
+
+
+export class EvaluatorUseSkill extends EvaluatorBase {
+
+    protected cooldown: number;
+    protected maxCooldown: number;
+    protected aiType: string;
+
+    constructor(actorBias: number) {
+        super(actorBias);
+        this.type = 'UseSkill';
+        this.maxCooldown = 100;
+        this.cooldown = RNG.getUniformInt(10, 2 * this.maxCooldown);
+        this.aiType = 'aiCell';
+    }
+
+    public calculateDesirability(actor): number {
+        if (!aiShouldUseSkill(this, actor)) {
+            return RG.BIAS.NOT_POSSIBLE;
+        }
+        if (this.cooldown === 0) {
+            this.cooldown = RNG.getUniformInt(10, 2 * this.maxCooldown);
+            console.log('EvalUseSkill cooldown at 0.');
+            return this.actorBias;
+        }
+        else {
+            this.cooldown -= 1;
+            return RG.BIAS.NOT_POSSIBLE;
+        }
+    }
+
+    public setArgs(args: any): void {
+        this.cooldown = args.cooldown;
+        this.maxCooldown = args.maxCooldown;
+        this.aiType = args.aiType;
+    }
+
+    public toJSON() {
+        const json: any = super.toJSON();
+        json.args = {
+            cooldown: this.cooldown,
+            maxCooldown: this.maxCooldown,
+            aiType: this.aiType
+        };
+        return json;
+    }
+
+}
+Evaluator.UseSkill = EvaluatorUseSkill;
+
+function aiShouldUseSkill(evaluator, actor): boolean {
+    // Options for AIs:
+    //   0. aiSelf
+    //   1. aiCell
+    //   2. aiFreeCell
+    if (evaluator.aiType === 'aiFreeCell') {
+        const cells = actor.getBrain().getFreeCellsAround();
+        return cells.length > 0;
+    }
+
+    //   3. aiFriendlyCell
+    //   4. aiEnemyCell
+    //   5. aiFriendlyRanged
+    //   6. aiEnemyRanged
+    //   7. ...
+    return false;
+}
