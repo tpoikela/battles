@@ -519,10 +519,10 @@ export class BrainSentient extends BrainBase {
     /* Returns all free cells around the actor owning the brain.*/
     public getFreeCellsAround(): Cell[] {
         const cellsAround = Brain.getCellsAroundActor(this._actor);
-        return cellsAround.filter(cell => cell.isFree());
+        return cellsAround.filter((c: Cell) => c.isFree());
     }
 
-    public getRandAdjacentFreeCell(): Cell {
+    public getRandAdjacentFreeCell(): Cell | null {
         const cellsAround = this.getFreeCellsAround();
         if (cellsAround.length > 0) {
             return RNG.arrayGetRand(cellsAround);
@@ -532,55 +532,3 @@ export class BrainSentient extends BrainBase {
 }
 
 Brain.Sentient = BrainSentient;
-
-/* Brain object used by archers. */
-/*
-export class BrainArcher extends BrainSentient {
-    constructor(actor) {
-        super(actor);
-        this.setType('Archer');
-    }
-
-    public canDoRangedAttack(): boolean {
-        const seenCells = this.getSeenCells();
-        const enemy = this.findEnemyCell(seenCells);
-        const x = enemy.getX();
-        const y = enemy.getY();
-        const actorX = this._actor.getX();
-        const actorY = this._actor.getY();
-        const miss = (this._actor as SentientActor).getInvEq().getEquipment().getItem('missile');
-        if (miss) {
-            const range = RG.getMissileRange(this._actor, miss);
-            const getDist = shortestDist(x, y, actorX, actorY);
-            if (getDist <= range) {return true;}
-            // TODO test for a clean shot
-        }
-        return false;
-    }
-
-    public doRangedAttack(): () => void {
-        const seenCells = this.getSeenCells();
-        const enemy = this.findEnemyCell(seenCells);
-        const x = enemy.getX();
-        const y = enemy.getY();
-        const mComp = new Component.Missile(this._actor);
-
-        const invEq = (this._actor as SentientActor).getInvEq();
-        const missile = invEq.unequipAndGetItem('missile', 1, 0);
-        mComp.setTargetXY(x, y);
-        mComp.setDamage(RG.getMissileDamage(this._actor, missile));
-        mComp.setAttack(RG.getMissileAttack(this._actor, missile));
-        mComp.setRange(RG.getMissileRange(this._actor, missile));
-        missile.add(mComp);
-        return ACTION_ALREADY_DONE;
-    }
-
-    public decideNextAction(): ActionCallback | null {
-        this._cache.seen = null;
-        // return BTree.startBehavTree(Models.Archer.tree, this._actor)[0];
-        RG.err('BrainArcher', 'decideNextAction', 'Not supported anymore');
-        return null;
-    }
-}
-Brain.Archer = BrainArcher;
-*/
