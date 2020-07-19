@@ -367,8 +367,8 @@ export class DebugGame {
             giver.getName() + ' is looking for someone.');
         level.add(loreComp);
 
-        const necrowurm = parser.createActor('necrowurm');
-        level.addActor(necrowurm, player.getX() - 1, player.getY());
+        // const necrowurm = parser.createActor('necrowurm');
+        // level.addActor(necrowurm, player.getX() - 1, player.getY());
 
         const necroSwordShell = ItemGen.buildShell({
             type: 'weapon', name: 'sword', material: 'steel', suffix: 'ofNecropotence'
@@ -382,6 +382,13 @@ export class DebugGame {
             }
         };
         parser.getCreator().addAbilityEffects(eggShell, player);
+
+        const freeCells2: Cell[] = level.getMap().getCells(c => c.isFree());
+        for (let i = 0; i < 50; i++) {
+            const cell = RNG.arrayGetRand(freeCells2);
+            const chicken = parser.createActor('chicken');
+            level.addActor(chicken, cell.getX(), cell.getY());
+        }
 
         return game;
     }
