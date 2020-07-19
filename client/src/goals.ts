@@ -70,6 +70,10 @@ export class GoalBase {
         this._debug = false;
     }
 
+    public setDebug(enable: boolean): void {
+        this._debug = enable;
+    }
+
     public dbg(msg: string): void {
         if (debug.enabled || this._debug) {
             let nameMatch = false;
@@ -89,7 +93,7 @@ export class GoalBase {
         }
     }
 
-    public setCategory(category: GoalType) {
+    public setCategory(category: GoalType): void {
         this.category = category;
     }
 
@@ -109,7 +113,9 @@ export class GoalBase {
         return this.planBGoal !== null;
     }
 
-    public getPlanB(): GoalBase {return this.planBGoal;}
+    public getPlanB(): GoalBase | null {
+        return this.planBGoal;
+    }
 
     public activate(): void {
         // This should usually initialize subgoals for composite goal.
@@ -167,7 +173,7 @@ export class GoalBase {
                     status = GoalStatus.GOAL_ACTIVE;
                 }
                 else if (status === GoalStatus.GOAL_FAILED && subGoal.hasPlanB()) {
-                    this.subGoals[0] = subGoal.getPlanB();
+                    this.subGoals[0] = subGoal.getPlanB()!; // hasPlanB called already
                     // Need to change the type to prevent evaluation changing
                     this.subGoals[0].setType(subGoal.getType());
                     status = GoalStatus.GOAL_ACTIVE;
@@ -1437,7 +1443,8 @@ export class GoalCommunicate extends GoalBase {
 
     public process(): GoalStatus {
         this.activateIfInactive();
-        return GoalStatus.GOAL_COMPLETED;
+        this.status = GoalStatus.GOAL_COMPLETED;
+        return this.status;
     }
 
     public communicateEnemies(): void {
@@ -1446,7 +1453,10 @@ export class GoalCommunicate extends GoalBase {
         const enemies = memory.getEnemyActors();
         const seenCells = brain.getSeenCells();
         const friendCell = brain.findFriendCell(seenCells);
-        const friendActor = friendCell.getActors()[0];
+        if (!friendCell) {return;}
+
+        // Should have at least one friend cell/actor available now
+        const friendActor = friendCell.getActors()![0];
 
         const comComp = new Component.Communication();
         const msg = {type: 'Enemies', enemies, src: this.actor};
@@ -1472,19 +1482,19 @@ export class GoalUseSkill extends GoalBase {
 
     public process(): GoalStatus {
         this.activateIfInactive();
-        return GoalStatus.GOAL_COMPLETED;
+        this.status = GoalStatus.GOAL_COMPLETED;
+        return this.status;
     }
 
     protected useActorSkill(): void {
         // Need a direction for using the ability
         // Need AI directions how to use the ability (damaging/healing etc)
-        //
         const cellsAround: Cell[] = Brain.getCellsAroundActor(this.actor);
         const cell = RNG.arrayGetRand(cellsAround);
         const target = {target: cell};
         const idx = 0;
         if ((this.actor as any).useSkill) {
-            (this.actor as any).useSkill(cell, idx);
+            (this.actor as any).useSkill(target, idx);
         }
         else {
             RG.err('GoalUseSkill', 'useActorSkill',
@@ -1493,6 +1503,7 @@ export class GoalUseSkill extends GoalBase {
     }
 
 }
+Goal.UseSkill = GoalUseSkill;
 
 function statusToString(status: GoalStatus): string {
     return Goal.StatusStrings[status];
