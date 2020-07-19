@@ -345,7 +345,8 @@ export const Effects = {
                     targetType: ['cell'],
                     entityName: this.useArgs.entityName,
                     effectType: 'AddEntity',
-                    duration: this.useArgs.duration
+                    duration: this.useArgs.duration,
+                    endMsg: this.useArgs.endMsg
                 };
                 createUseItemComp(this, obj, effArgs);
                 return true;
