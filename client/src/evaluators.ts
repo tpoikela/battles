@@ -656,7 +656,7 @@ export class EvaluatorCommunicate extends EvaluatorBase {
 }
 Evaluator.Communicate = EvaluatorCommunicate;
 
-
+/* Evaluator is needed for actors which have usable skills. */
 export class EvaluatorUseSkill extends EvaluatorBase {
 
     protected cooldown: number;
@@ -722,3 +722,17 @@ function aiShouldUseSkill(evaluator, actor): boolean {
     //   7. ...
     return false;
 }
+
+export class EvaluatorTreasureHunter extends EvaluatorBase {
+
+    constructor(actorBias: number) {
+        super(actorBias);
+        this.type = 'TreasureHunter';
+    }
+
+    public calculateDesirability(/* actor */): number {
+        return this.actorBias;
+    }
+
+}
+Evaluator.TreasureHunter = EvaluatorTreasureHunter;
