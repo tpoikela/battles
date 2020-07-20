@@ -206,6 +206,7 @@ export class GoalThief extends GoalBase {
         const hasItems = !inventory.isEmpty();
         let nextGoal = null;
         const actorCell = this.actor.getCell();
+        if (!actorCell) {return;}
 
         if (hasItems && this.isInActiveShop()) {
             this.tryToSellItem();
@@ -218,7 +219,7 @@ export class GoalThief extends GoalBase {
             const seenCells = this.actor.getBrain().getSeenCells();
             const elemsCache = {};
             nextGoal = ifItemFoundCreateGoal(this.actor, seenCells, elemsCache,
-                cell => cell.hasElements());
+                (cell: Cell) => cell.hasElements());
 
             if (!nextGoal && !actorCell.hasDoor() && this.doorCooldown <= 0) {
                 // Else if a door is seen, go inside
@@ -256,7 +257,7 @@ export class GoalThief extends GoalBase {
     }
 
     /* Callback given to Goal.Explore for each x,y explored. */
-    public exploreCallback(x, y): void {
+    public exploreCallback(x: number, y: number): void {
         const map = this.actor.getLevel().getMap();
         if (map.hasXY(x, y)) {
             const cell = map.getCell(x, y);
