@@ -12,6 +12,7 @@ import {Castle} from '../data/tiles.castle';
 import {MapGenerator} from '../src/generator';
 import {Geometry} from '../src/geometry';
 import {BBox} from '../src/bbox';
+import {ItemConf, ActorConf} from '../src/interfaces';
 
 const TILE_SIZE = 7;
 
@@ -106,9 +107,9 @@ export class AbandonedFort {
 
     // Add items to free cells inside the castle
     const castleFreeCells = mainMap.getFreeInBbox(castleBbox);
-    const itemConf = {
+    const itemConf: ItemConf = {
         itemsPerLevel: 50, nLevel: 0,
-        func: item => item.value >= 100 && item.value <= 200,
+        item: item => item.value >= 100 && item.value <= 200,
         maxValue: 500
     };
     itemFact.addItemsToCells(mainLevel, parser, castleFreeCells, itemConf);
@@ -116,9 +117,9 @@ export class AbandonedFort {
     const fortActors = {'Mighty raven': true, 'Winter demon': true,
         'Cryomancer': true, 'Ice djinn': true, 'Stormrider': true,
         'Snow leopard': true};
-    const actorConf = {
+    const actorConf: ActorConf = {
         actorsPerLevel: 500,
-        func: actor => fortActors.hasOwnProperty(actor.name),
+        actor: actor => fortActors.hasOwnProperty(actor.name),
         maxDanger: 10
     };
 
