@@ -2,7 +2,7 @@
 /* This file contains the top-level goals for actors. */
 
 import RG from './rg';
-import {GoalBase,  Goal, GoalStatus} from './goals';
+import {GoalBase, Goal, GoalStatus, statusToString} from './goals';
 import {Random} from './random';
 
 import {Evaluator, EvaluatorBase, EvaluatorOrders} from './evaluators';
@@ -72,11 +72,14 @@ export class GoalTop extends GoalBase {
         this.activateIfInactive();
         const status = this.processSubGoals();
         if (status === GOAL_COMPLETED || status === GOAL_FAILED) {
-            this.dbg(`process() COMPL/FAILED got status ${status}`);
+            if (this._debug) {
+                const statStr = statusToString(status);
+                this.dbg(`process() COMPL/FAILED got status ${statStr}`);
+            }
             return GOAL_INACTIVE;
         }
         this.removeFinishedOrFailed();
-        this.dbg(`process() got status ${status}`);
+        this.dbg(`process() got status ${statusToString(status)}`);
         return status;
     }
 
