@@ -7,6 +7,7 @@
 import RG from './rg';
 import {Goal, GoalBase} from './goals';
 import {GoalThief} from './goal.thief';
+import {GoalTreasureHunter} from './goal.treasure-hunter';
 import {Random} from './random';
 import {SpellArgs} from './spell';
 import {Brain} from './brain';
@@ -16,6 +17,7 @@ import {BBox} from './bbox';
 type SentientActor = import('./actor').SentientActor;
 
 Goal.Thief = GoalThief;
+Goal.TreasureHunter = GoalTreasureHunter;
 
 export const Evaluator: any = {};
 Evaluator.hist = {};
