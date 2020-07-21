@@ -37,7 +37,7 @@ import {WorldConf} from '../src/world.creator';
 import {ZoneBase, SubZoneBase} from '../src/world';
 import {BBox} from '../src/bbox';
 
-import {TCoord, IFactoryGameConf } from '../src/interfaces';
+import {TCoord, IFactoryGameConf, ItemConf, ActorConf} from '../src/interfaces';
 
 import * as Gen from '../src/generator';
 
@@ -204,6 +204,8 @@ export default class GameEditor extends Component {
     super(props);
     this.handleKeyDown = this.handleKeyDown.bind(this);
 
+    /* Most of these are shown defaults in the editor when opened. These can be
+    * freely changed when debugging. */
     const state: IGameEditorState = {
       debug: false,
       boardClassName: 'game-board-player-view',
@@ -215,8 +217,8 @@ export default class GameEditor extends Component {
       zoneConf: {shown: ''},
 
       levelX: 80,
-      levelY: 50,
-      levelType: 'Cave',
+      levelY: 28,
+      levelType: 'arena',
 
       subLevelX: 20,
       subLevelY: 7,
@@ -235,8 +237,8 @@ export default class GameEditor extends Component {
       selectBegin: null,
       selectEnd: null,
 
-      elementType: 'floor',
-      actorName: '',
+      elementType: 'stairsUp',
+      actorName: 'treasure hunter',
       itemName: '',
       numEntities: 20,
 
@@ -772,8 +774,8 @@ export default class GameEditor extends Component {
   public generateItems() {
     const itemFunc = this.state.itemFunc;
     const maxValue = this.state.maxValue;
-    const conf = {
-      func: itemFunc, maxValue,
+    const conf: ItemConf = {
+      item: itemFunc, maxValue,
       itemsPerLevel: this.state.numEntities
     };
     const level = this.state.level;
@@ -807,10 +809,10 @@ export default class GameEditor extends Component {
       level.removeActor(actor);
     });
 
-    const conf = {
+    const conf: ActorConf = {
       maxDanger: 20,
       actorsPerLevel: this.state.numEntities,
-      func: (actor) => (actor.danger < 100)
+      actor: (actor) => (actor.danger < 100)
     };
 
     const fact = new FactoryBase();
@@ -842,9 +844,12 @@ export default class GameEditor extends Component {
     const level = this.state.level;
     if (!level) {return;}
 
+    const fact = new FactoryBase();
+    const factFunc = (type) => fact.createElement(type);
+
     try {
       Geometry.insertElements(level, this.state.elementType,
-        new BBox(ulx, uly, lrx, lry));
+        new BBox(ulx, uly, lrx, lry), factFunc);
     }
     catch (e) {
       this.setState({errorMsg: e.message});
@@ -1454,8 +1459,10 @@ export default class GameEditor extends Component {
     }
   }
 
-  public setShownLevel(args) {
-    DebugUtilsGUI.setDebugHandle('LEVEL', args.level);
+  public setShownLevel(args): void {
+    if ((window as any).LEVEL !== args.level) {
+        DebugUtilsGUI.setDebugHandle('LEVEL', args.level);
+    }
     this.setState(args);
   }
 

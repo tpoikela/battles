@@ -147,7 +147,14 @@ export class CastleGenerator extends LevelGenerator {
         let nAdded = 0;
         const extras = level.getExtras();
         const storerooms = extras.storeroom as LevelExtraType[];
+
         const {maxValue} = conf;
+        if (!maxValue) {
+            RG.err('CastleGenerator', 'addItemsToCastle',
+                'maxValue was not given in conf ' + JSON.stringify(conf));
+            return 0;
+        }
+
         const itemFunc = item => ((
             (item.value <= (2 * maxValue)) && (item.value >= maxValue)
         ));

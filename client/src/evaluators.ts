@@ -7,6 +7,7 @@
 import RG from './rg';
 import {Goal, GoalBase} from './goals';
 import {GoalThief} from './goal.thief';
+import {GoalTreasureHunter} from './goal.treasure-hunter';
 import {Random} from './random';
 import {SpellArgs} from './spell';
 import {Brain} from './brain';
@@ -16,6 +17,7 @@ import {BBox} from './bbox';
 type SentientActor = import('./actor').SentientActor;
 
 Goal.Thief = GoalThief;
+Goal.TreasureHunter = GoalTreasureHunter;
 
 export const Evaluator: any = {};
 Evaluator.hist = {};
@@ -656,7 +658,7 @@ export class EvaluatorCommunicate extends EvaluatorBase {
 }
 Evaluator.Communicate = EvaluatorCommunicate;
 
-
+/* Evaluator is needed for actors which have usable skills. */
 export class EvaluatorUseSkill extends EvaluatorBase {
 
     protected cooldown: number;
@@ -722,3 +724,17 @@ function aiShouldUseSkill(evaluator, actor): boolean {
     //   7. ...
     return false;
 }
+
+export class EvaluatorTreasureHunter extends EvaluatorBase {
+
+    constructor(actorBias: number) {
+        super(actorBias);
+        this.type = 'TreasureHunter';
+    }
+
+    public calculateDesirability(/* actor */): number {
+        return this.actorBias;
+    }
+
+}
+Evaluator.TreasureHunter = EvaluatorTreasureHunter;

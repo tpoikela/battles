@@ -9,7 +9,7 @@ import {EventPool} from '../../../client/src/eventpool';
 class Listener {
 
     public hasNotify: boolean;
-    protected notified: boolean;
+    public notified: boolean;
 
     constructor() {
         this.hasNotify = true;
@@ -48,14 +48,17 @@ describe('DayManager', () => {
         expect(listener.notified).to.equal(false);
 
         pool.removeListener(listener);
-        pool.listenEvent(RG.EVT_DAY_CHANGED, listener);
+
+        const listener2 = new Listener();
+        pool.listenEvent(RG.EVT_DAY_CHANGED, listener2);
 
         while (!dayMan.dayChanged()) {
             dayMan.update();
         }
+
         const firstPhase = dayMan.getCurrPhase();
-        expect(firstPhase).to.equal(RG.DAY.DAWN);
-        expect(listener.notified).to.equal(true);
+        expect(firstPhase).to.equal(RG.DAY.NIGHT);
+        expect(listener2.notified).to.equal(true);
     });
 
 });

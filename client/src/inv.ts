@@ -50,6 +50,10 @@ export class Inventory {
         return this._inv.getRemovedItem();
     }
 
+    public hasItemNamed(name: string): boolean {
+        return this._inv.hasItemWith(item => item.getName() === name);
+    }
+
     /* For using item inside the container. */
     public useItem(item: ItemBase, obj): boolean {
         if (this._inv.hasItem(item)) {

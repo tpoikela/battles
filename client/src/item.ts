@@ -667,6 +667,11 @@ export class Container extends ItemBase {
         return index >= 0;
     }
 
+    public hasItemWith(func: (item: ItemBase) => boolean): boolean {
+        const index = this._items.findIndex(func);
+        return index >= 0;
+    }
+
     /* Tries to remove an item. Returns true on success, false otherwise.*/
     public removeItem(item: ItemBase): boolean {
         if (this.hasItem(item)) {
