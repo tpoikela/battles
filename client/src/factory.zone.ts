@@ -105,7 +105,8 @@ export class FactoryZone {
             const goldConf = {
                 goldPerLevel,
                 nLevel: conf.nLevel + 1,
-                maxValue: itemConf.maxValue
+                maxValue: itemConf.maxValue,
+                item: () => true
             };
             this._factBase.addRandomGold(level, this._parser, goldConf);
         }
