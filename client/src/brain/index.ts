@@ -17,6 +17,9 @@ export * from './brain.virtual';
 import * as BG from './brain.goaloriented';
 export * from './brain.goaloriented';
 
+import {BrainNeedDriven} from './brain.need-driven';
+export * from './brain.need-driven';
+
 Brain.Animal = BG.BrainAnimal;
 Brain.Commander = BG.BrainCommander;
 Brain.Explorer = BG.BrainExplorer;
@@ -28,5 +31,6 @@ Brain.Flame = BG.BrainFlame;
 Brain.Cloud = BG.BrainCloud;
 Brain.Virtual = BrainVirtual;
 Brain.Weather = BrainWeather;
+Brain.NeedDriven = BrainNeedDriven;
 
 export {Brain};
