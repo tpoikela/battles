@@ -316,7 +316,7 @@ export class Creator {
     }
 
     public addEnemies(shell: IShell, obj) {
-        shell.enemies.forEach(enemyType => {
+        shell.enemies.forEach((enemyType: string) => {
             obj.getBrain().addEnemyType(enemyType);
         });
         if (shell.enemies.length === 0) {
