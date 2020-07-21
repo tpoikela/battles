@@ -493,7 +493,7 @@ export class Geometry {
                 this.insertItems(l1, type, bbox, parser);
                 break;
             case RG.TYPE_ELEM:
-                this.insertElements(l1, type, bbox);
+                this.insertElements(l1, type, bbox, parser);
                 break;
             default: RG.err('Geometry', 'insertEntity',
                 `No type ${type} supported`);
@@ -502,20 +502,19 @@ export class Geometry {
 
     /* Inserts elements into the given level as rectangle bounded by the
      * coordinates given. */
-    public static insertElements(l1: Level, elemType: string, bbox: BBox) {
-        RG.err('Geometry', 'insertElements', 'Not supported');
-        /* TODO add support
+    public static insertElements(l1: Level, elemType: string, bbox: BBox, factFunc) {
+        // RG.err('Geometry', 'insertElements', 'Not supported');
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
-            const elem = FACT.createElement(elemType);
-            if (elemType.match(/(wall|floor)/)) {
-                m1._map[x][y].setBaseElem(elem);
+            const elem = factFunc(elemType);
+            if (elem.getX && elem.getY) {
+                console.log('Geometry.insertElements, added to', x, y);
+                l1.addElement(elem, x, y);
             }
             else {
-                m1._map[x][y].setProp('elements', elem);
+                m1._map[x][y].setBaseElem(elem);
             }
         });
-        */
     }
 
     /* Inserts actors into the given level as rectangle bounded by the
