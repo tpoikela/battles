@@ -840,5 +840,11 @@ describe('Data query functions for objects', function() {
 
     });
 
+    it('can create treasure hunter', () => {
+        const hunter = parser.createActor('treasure hunter');
+        RGUnitTests.wrapIntoLevel([hunter]);
+        const action = hunter.getBrain().decideNextAction();
+    });
+
 });
 
