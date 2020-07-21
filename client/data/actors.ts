@@ -22,6 +22,11 @@ interface IAbility {
     [key: string]: any;
 }
 
+interface IGoal {
+    name: string;
+    bias: number;
+}
+
 // Defines all possible attributes which can be given
 export interface ActorShell {
     name: string; // Only name is mandatory
@@ -71,6 +76,7 @@ export interface ActorShell {
     inv?: Item[];
 
     ability?: IAbility;
+    goals?: IGoal[];
 
 }
 
@@ -1079,6 +1085,12 @@ export const ActorsData: ActorShell[] = [
         name: 'fighter', base: 'human', hp: 25,
         attack: 4, defense: 4, damage: '1d8',
         danger: 5
+    },
+    {
+        name: 'treasure hunter', base: 'human', hp: 25,
+        attack: 4, defense: 4, damage: '1d8',
+        danger: 5,
+        goals: [{name: 'TreasureHunter', bias: 0.9}]
     },
     {
         name: 'warlord', char: 'W', base: 'human', hp: 35,
