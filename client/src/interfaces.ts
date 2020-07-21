@@ -283,17 +283,21 @@ export interface ActorConf {
     actors?: BaseActor[];
 }
 
-export interface ItemConf {
+/* Used for procgen of gold items. */
+export interface GoldConf {
     maxValue: number;
-
-    nLevel?: number;
-    itemsPerLevel?: number;
-    nItems?: number;
-    item?: TShellFunc;
-    food?: boolean | TShellFunc;
     gold?: boolean | TShellFunc;
     goldPerLevel?: number;
     nGold?: number;
+    nLevel?: number;
+}
+
+/* Used for procgen of any items. */
+export interface ItemConf extends GoldConf {
+    itemsPerLevel?: number;
+    nItems?: number;
+    item: TShellFunc;
+    food?: boolean | TShellFunc;
 }
 
 export interface LevelConf {
