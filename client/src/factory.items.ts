@@ -7,7 +7,7 @@ import {Placer} from './placer';
 import {ObjectShell, IQueryDB, Parser} from './objectshellparser';
 import {Dice} from './dice';
 import * as Component from './component';
-import {ItemConstr, IShell, ItemConf, ShopConf} from './interfaces';
+import {ItemConstr, IShell, ItemConf, GoldConf, ShopConf} from './interfaces';
 
 const RNG = Random.getRNG();
 
@@ -271,7 +271,7 @@ export class FactoryItem {
         return items;
     }
 
-    public generateGold(conf: ItemConf): ItemBase[] {
+    public generateGold(conf: GoldConf): ItemBase[] {
         const nGold = conf.goldPerLevel || conf.nGold;
         const parser: Parser = ObjectShell.getParser();
         const goldItems: ItemBase[] = [];
