@@ -8,8 +8,9 @@ import {Brain} from './brain';
 import {Path, PathFunc} from './path';
 import {Random} from './random';
 import {SpellArgs} from './spell';
-import {ICoordXY, TCoord} from './interfaces';
+import {ICoordXY, TCoord, IConstraint} from './interfaces';
 import {BBox} from './bbox';
+import {Constraints} from './constraints';
 
 type Memory = import('./brain').Memory;
 type SentientActor = import('./actor').SentientActor;
@@ -86,8 +87,8 @@ export class GoalBase {
             if (nameMatch) {
                 const ind = '  '.repeat(IND);
                 const name = this.actor.getName();
-                const status = statusToString(this.status);
-                const typeAndStat = `[${this.getType()}] ${status}`;
+                const statStr = statusToString(this.status);
+                const typeAndStat = `[${this.getType()}] st: ${statStr}`;
                 console.log(`${ind}${typeAndStat} ${name} ${msg}`);
             }
         }
@@ -191,7 +192,7 @@ export class GoalBase {
         }
 
         --IND;
-        this.dbg(`End processSubGoals() with status ${status}`);
+        this.dbg(`End processSubGoals() with status ${statusToString(status)}`);
         if (debug.enabled) {
             this.dbg(`  subGoals left: ${this.subGoals.map(g => g.getType())}`);
         }
@@ -243,6 +244,7 @@ export class GoalBase {
         return false;
     }
 
+    /* Adds a new subgoal to the front of sub-goal list. */
     public addSubGoal(goal: GoalBase): void {
         if (!Array.isArray(this.subGoals)) {
             this.subGoals = [];
@@ -324,11 +326,12 @@ export class GoalFollowPath extends GoalBase {
     public process(): GoalStatus {
         this.activateIfInactive();
         if (this.path.length > 0) {
-            return this.followPath();
+            this.status = this.followPath();
+            return this.status;
         }
         this.dbg('process() ret GoalStatus.GOAL_COMPLETED');
         this.status = GoalStatus.GOAL_COMPLETED;
-        return GoalStatus.GOAL_COMPLETED;
+        return this.status;
     }
 
     public followPath(): GoalStatus {
@@ -647,7 +650,7 @@ export class GoalPatrol extends GoalBase {
     public process(): GoalStatus {
         this.activateIfInactive();
         this.status = this.processSubGoals();
-        this.dbg(`GoalPatrol process(), got subStatus: ${this.status}`);
+        this.dbg(`GoalPatrol process(), got subStatus: ${statusToString(this.status)}`);
         const firstGoal = this.subGoals[0];
         if (firstGoal.isCompleted()) {
             this.nextPatrolPoint();
@@ -898,9 +901,14 @@ export class GoalShootActor extends GoalBase {
 //---------------------------------------------------------------------------
 export class GoalExplore extends GoalBase {
 
+    // How many turns the exploration will last, -1 will last forever
     public dur: number;
+
+    // dX,dY is direction currently being explored
     public dX: number;
     public dY: number;
+
+    // If set, called after each turn of exploration
     public exploreCb: (x: number, y: number) => void;
 
     constructor(actor, dur = -1) {
@@ -1202,9 +1210,10 @@ export class GoalGetItem extends GoalBase {
         this.targetItem = targetItem;
     }
 
-    public activate() {
+    public activate(): void {
         // Options for getting an item are:
         //   1. Find it
+        this.status = GoalStatus.GOAL_ACTIVE;
         const itemId = this.targetItem.getID();
         const brain = this.actor.getBrain();
         const seenCells = brain.getSeenCells();
@@ -1226,15 +1235,12 @@ export class GoalGetItem extends GoalBase {
             const [iX, iY] = foundCell.getXY();
             // If on top of it, pick it up
             if (x === iX && y === iY) {
-                const pickup = new Component.Pickup();
-                this.actor.add(pickup);
-                this.status = GoalStatus.GOAL_COMPLETED;
+                this.pickupItem();
             }
             else { // otherwise try to move closer
                 const goal = new GoalFollowPath(this.actor, [iX, iY]);
                 this.removeAllSubGoals();
                 this.addSubGoal(goal);
-                this.status = this.processSubGoals();
             }
         }
         else {
@@ -1246,12 +1252,107 @@ export class GoalGetItem extends GoalBase {
         this.activateIfInactive();
         if (this.hasSubGoals()) {
             this.status = this.processSubGoals();
+            // Found the item, now must pick it up
+            if (this.status === GoalStatus.GOAL_COMPLETED) {
+                this.status = GoalStatus.GOAL_ACTIVE;
+            }
+        }
+        else if (this.isActive()) {
+            this.pickupItem();
         }
         return this.status;
     }
 
+    protected pickupItem(): void {
+        const pickup = new Component.Pickup();
+        this.actor.add(pickup);
+        this.status = GoalStatus.GOAL_COMPLETED;
+    }
+
 }
 Goal.GetItem = GoalGetItem;
+
+/* Goal for finding an item matching constraints. */
+export class GoalFindItem extends GoalBase {
+    public constraint: IConstraint;
+    protected _foundItem: null | ItemBase;
+    protected _cbFound: (item: ItemBase) => void;
+
+    constructor(actor, constr, cbFound) {
+        super(actor);
+        this.setType('GoalFindItem');
+        this.constraint = constr;
+        this._foundItem = null;
+        this._cbFound = cbFound;
+    }
+
+    public activate(): void {
+        // Options for getting an item are:
+        //   1. Find it
+        // const itemId = this.targetItem.getID();
+        // this.checkForItems();
+    }
+
+    public process(): GoalStatus {
+        this.activateIfInactive();
+        this.checkForItems();
+        if (this.hasSubGoals()) {
+            this.status = this.processSubGoals();
+        }
+        return this.status;
+    }
+
+    public checkForItems(): void {
+        if (this._foundItem) {
+            return;
+        }
+        const brain = this.actor.getBrain();
+        const seenCells = brain.getSeenCells();
+
+        // TODO shuffle cells
+
+        // Check if we can see the item here
+        let foundCell: Cell;
+        seenCells.forEach(cell => {
+            if (!foundCell && cell.hasItems()) {
+                foundCell = cell;
+            }
+        });
+
+        let goal = null;
+
+        if (foundCell) {
+            const ctr = new Constraints();
+            const cellItems: ItemBase[] = foundCell.getItems();
+            const cFunc = ctr.getConstraints(this.constraint);
+            let found = false;
+
+            console.log('Found items number ' + cellItems.length);
+
+            cellItems.forEach(item => {
+                if (!found && cFunc(item)) {
+                    found = true;
+                    this._foundItem = item;
+                    goal = new GoalGetItem(this.actor, item);
+                    this.removeAllSubGoals();
+                    console.log('Added goal for finding item ' + item.getName());
+                    this.addSubGoal(goal);
+                }
+            });
+        }
+
+        if (!this.hasSubGoals()) {
+            const exploreDur = 100;
+            goal = new GoalExplore(this.actor, exploreDur);
+            this.removeAllSubGoals();
+            this.addSubGoal(goal);
+        }
+    }
+
+}
+Goal.FindItem = GoalFindItem;
+
+
 //---------------------------------------------------------------------------
 /* An actor goal to explore the given area. */
 //---------------------------------------------------------------------------
@@ -1505,6 +1606,85 @@ export class GoalUseSkill extends GoalBase {
 }
 Goal.UseSkill = GoalUseSkill;
 
-function statusToString(status: GoalStatus): string {
+/* Can be used to change level. Uses explore goal first, unless exit coordinate
+ * is given. */
+export class GoalChangeLevel extends GoalBase {
+    public coord: TCoord | null;
+
+    constructor(actor, coord?: TCoord) {
+        super(actor);
+        this.setType('GoalChangeLevel');
+        this.coord = coord;
+    }
+
+    public activate(): void {
+        this.status = GoalStatus.GOAL_ACTIVE;
+        this.tryToFindStairs();
+    }
+
+    public process(): GoalStatus {
+        // this.activateIfInactive();
+        this.status = GoalStatus.GOAL_ACTIVE;
+        this.tryToFindStairs();
+        if (this.hasSubGoals()) {
+            this.status = this.processSubGoals();
+            // Found the stairs, now must use it for the last turn
+            if (this.status === GoalStatus.GOAL_COMPLETED) {
+                this.status = GoalStatus.GOAL_ACTIVE;
+            }
+        }
+        else if (this.isActive()) {
+            this.useStairs();
+        }
+        return this.status;
+    }
+
+    protected tryToFindStairs(): void {
+        if (this.coord) {
+            const [aX, aY] = this.actor.getXY();
+            const [x, y] = this.coord;
+            if (aX === x && aY === y) {
+                console.log('Found stairs @', x, y);
+                this.useStairs();
+            }
+            else {
+                if (!this.hasSubGoals()) {
+                    const newGoal = new Goal.FollowPath(this.actor, this.coord);
+                    this.removeAllSubGoals(); // Stop Exploring
+                    this.addSubGoal(newGoal);
+                }
+            }
+        }
+        else {
+            if (!this.hasSubGoals()) {
+                const newGoal = new Goal.Explore(this.actor, 100);
+                newGoal.setCallback(this.exploreCallback.bind(this));
+                this.removeAllSubGoals(); // Stop Exploring
+                this.addSubGoal(newGoal);
+            }
+        }
+    }
+
+    protected useStairs(): void {
+        const useStairs = new Component.UseStairs();
+        this.actor.add(useStairs);
+        this.removeAllSubGoals(); // Stop Exploring
+        this.status = GoalStatus.GOAL_COMPLETED;
+    }
+
+    protected exploreCallback(x: number, y: number): void {
+        const map = this.actor.getLevel().getMap();
+        if (map.hasXY(x, y)) {
+            const cell = map.getCell(x, y);
+            if (cell.hasConnection()) {
+                this.coord = [x, y];
+            }
+        }
+    }
+
+}
+Goal.ChangeLevel = GoalChangeLevel;
+
+export function statusToString(status: GoalStatus): string {
     return Goal.StatusStrings[status];
 }
