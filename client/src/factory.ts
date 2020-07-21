@@ -20,6 +20,7 @@ const POOL = EventPool.getPool();
 const RNG = Random.getRNG();
 
 type Parser = import('./objectshellparser').Parser;
+const Stairs = Element.ElementStairs;
 
 export const Factory: any = {};
 
@@ -77,13 +78,15 @@ export class FactoryBase {
         return this._actorFact.createSpell(name);
     }
 
-    public createElement(elemType) {
+    public createElement(elemType: string): null | Element.ElementBase {
         if (ELEM_MAP.elemTypeToObj[elemType]) {
             return ELEM_MAP.elemTypeToObj[elemType];
         }
         switch (elemType) {
             case 'door' : return new Element.ElementDoor(true);
             case 'opendoor' : return new Element.ElementDoor(false);
+            case 'stairsUp' : return new Stairs(elemType);
+            case 'stairsDown' : return new Stairs(elemType);
             default: return null;
         }
     }
