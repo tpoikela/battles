@@ -284,21 +284,22 @@ export class SystemChat extends SystemBase {
             // Check if zone Lore has any info about this one
             const zone = actor.getLevel().getParentZone();
             if (zone.has('Lore')) {
-                const loreList = zone.getList('Lore');
-                loreList.forEach(loreComp => {
-                    const topics = loreComp.getTopics();
-                    console.log('Found loreTopics: ', topics);
-                    if (topics.sideQuest) {
-                        const metaData = loreComp.getMetaData();
-                        const {name} = metaData;
-                        if (name === tName) {
+                const loreList: ComponentLore[] = zone.getList('Lore');
+                loreList.forEach((loreComp: ComponentLore) => {
+                    const entries: ILoreEntry[] = loreComp.getKey({topic: 'sideQuest'});
+                    entries.forEach((entry: ILoreEntry) => {
+                        const {names} = entry;
+                        if (names && names.find((nn) => nn === tName)) {
                             resp = () => {
-                                const dirMsg = this.rng.arrayGetRand(topics.sideQuest);
-                                const msg = `${aName} says: ${dirMsg}`;
+                                const chosenMsg = this.getRespMsgFromEntry(actor, entry);
+                                const opt = this.getFormattedReply(actor, 'sideQuest',
+                                    chosenMsg as any);
+                                // const dirMsg = this.rng.arrayGetRand(topics.sideQuest);
+                                const msg = `${aName} says: ${opt}`;
                                 RG.gameInfo(msg);
                             };
                         }
-                    }
+                    });
                 });
             }
         }
