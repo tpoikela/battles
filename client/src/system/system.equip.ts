@@ -79,6 +79,10 @@ export class SystemEquip extends SystemBase {
             }
             obj.callback({msg, result});
         }
+        else {
+            const equipMsg = `${ent.getName()} equips ${item.getName()}`;
+            RG.gameMsg({msg: equipMsg, cell: ent.getCell()});
+        }
 
         // If equip was success, handle equip effects
         if (result && item.has('AddOnEquip')) {
