@@ -15,6 +15,7 @@ import {Constraints} from './constraints';
 type Memory = import('./brain').Memory;
 type SentientActor = import('./actor').SentientActor;
 type ItemBase = import('./item').ItemBase;
+type Inventory = import('./inv').Inventory;
 
 const RNG = Random.getRNG();
 export const Goal: any = {};
@@ -1248,7 +1249,7 @@ export class GoalGetItem extends GoalBase {
         }
     }
 
-    public process() {
+    public process(): GoalStatus {
         this.activateIfInactive();
         if (this.hasSubGoals()) {
             this.status = this.processSubGoals();
@@ -1272,6 +1273,7 @@ export class GoalGetItem extends GoalBase {
 }
 Goal.GetItem = GoalGetItem;
 
+
 /* Goal for finding an item matching constraints. */
 export class GoalFindItem extends GoalBase {
     public constraint: IConstraint;
@@ -1287,6 +1289,7 @@ export class GoalFindItem extends GoalBase {
     }
 
     public activate(): void {
+        this.status = GoalStatus.GOAL_ACTIVE;
         // Options for getting an item are:
         //   1. Find it
         // const itemId = this.targetItem.getID();
@@ -1327,15 +1330,12 @@ export class GoalFindItem extends GoalBase {
             const cFunc = ctr.getConstraints(this.constraint);
             let found = false;
 
-            console.log('Found items number ' + cellItems.length);
-
             cellItems.forEach(item => {
                 if (!found && cFunc(item)) {
                     found = true;
                     this._foundItem = item;
                     goal = new GoalGetItem(this.actor, item);
                     this.removeAllSubGoals();
-                    console.log('Added goal for finding item ' + item.getName());
                     this.addSubGoal(goal);
                 }
             });
@@ -1352,6 +1352,26 @@ export class GoalFindItem extends GoalBase {
 }
 Goal.FindItem = GoalFindItem;
 
+export class GoalFindWeapon extends GoalFindItem {
+    constructor(actor) {
+        super(actor, {op: 'eq', func: 'getType', value: 'weapon'}, () => true);
+    }
+}
+Goal.FindWeapon = GoalFindWeapon;
+
+export class GoalFindFood extends GoalFindItem {
+    constructor(actor) {
+        super(actor, {op: 'eq', func: 'getType', value: 'food'}, () => true);
+    }
+}
+Goal.FindFood = GoalFindFood;
+
+export class GoalFindGold extends GoalFindItem {
+    constructor(actor) {
+        super(actor, {op: 'eq', func: 'getType', value: 'gold'}, () => true);
+    }
+}
+Goal.FindGold = GoalFindGold;
 
 //---------------------------------------------------------------------------
 /* An actor goal to explore the given area. */
@@ -1606,8 +1626,39 @@ export class GoalUseSkill extends GoalBase {
 }
 Goal.UseSkill = GoalUseSkill;
 
+
+export class GoalEquip extends GoalBase {
+    constructor(actor) {
+        super(actor);
+        this.setType('GoalEquip');
+    }
+
+    public activate(): void {
+        this.equipSomething();
+    }
+
+    public process(): GoalStatus {
+        this.activateIfInactive();
+        this.status = GoalStatus.GOAL_COMPLETED;
+        return this.status;
+    }
+
+    protected equipSomething(): void {
+        // Find something randomly from inv, and try to equip
+        const inv: Inventory = this.actor.getInvEq();
+        const items = inv.getInventory().getItems();
+        const item = RNG.arrayGetRand(items);
+        const eqComp = new Component.Equip();
+        eqComp.setIsRemove(false);
+        eqComp.setArgs({item});
+        this.actor.add(eqComp);
+    }
+
+}
+Goal.Equip = GoalEquip;
+
 /* Can be used to change level. Uses explore goal first, unless exit coordinate
- * is given. */
+ * is given directly. Then tries to change level through that direction. */
 export class GoalChangeLevel extends GoalBase {
     public coord: TCoord | null;
 
@@ -1684,6 +1735,29 @@ export class GoalChangeLevel extends GoalBase {
 
 }
 Goal.ChangeLevel = GoalChangeLevel;
+
+export class GoalRest extends GoalBase {
+    constructor(actor) {
+        super(actor);
+        this.setType('GoalRest');
+    }
+
+    public activate(): void {
+        this.rest();
+    }
+
+    public process(): GoalStatus {
+        this.activateIfInactive();
+        this.status = GoalStatus.GOAL_COMPLETED;
+        return this.status;
+    }
+
+    protected rest(): void {
+        this.actor.add(new Component.Rest());
+    }
+
+}
+Goal.Rest = GoalRest;
 
 export function statusToString(status: GoalStatus): string {
     return Goal.StatusStrings[status];
