@@ -44,6 +44,12 @@ export class GoalTop extends GoalBase {
         this.evaluators = [];
     }
 
+    public removeEvaluatorsByType(type: string): void {
+        this.evaluators = this.evaluators.filter(ee => (
+            ee.getType() !== type
+        ));
+    }
+
     public addEvaluator(evaluator: EvaluatorBase): void {
         this.evaluators.push(evaluator);
     }
@@ -133,9 +139,6 @@ export class GoalTop extends GoalBase {
         }
 
         if (chosenEval) {
-            if (this.actor.getName() === 'chicken') {
-                console.log('For chicken, chose eval ', chosenEval.getType());
-            }
             chosenEval.setActorGoal(this.actor);
         }
         else {
@@ -159,7 +162,7 @@ export class ThinkBasic extends GoalTop {
     constructor(actor) {
         super(actor);
         this.setType('ThinkBasic');
-        const [lowRange, hiRange] = [0.5, 1.5];
+        const [lowRange, hiRange] = [0.75, 1.5];
 
         this.bias = {
             attack: RNG.getUniformRange(lowRange, hiRange),
