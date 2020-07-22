@@ -247,6 +247,10 @@ export class Inventory {
         return this._eq.getItem(slotType);
     }
 
+    public getFreeEquipSlots(): string[] {
+        return this._eq.getFreeSlotTypes();
+    }
+
     /* Used when restoring/creating new actors, and immediately equipping items.
      * Bypasses some safety checks. */
     public restoreEquipped(item: ItemBase): boolean {
