@@ -124,7 +124,15 @@ export class FactoryActor {
     public createBrain(actor: BaseActor, brainName: string) {
         switch (brainName) {
             case 'Flame': return new Brain.BrainFlame(actor);
-            case 'GoalOriented': return new Brain.BrainGoalOriented(actor);
+            case 'GoalOriented': {
+                if (RG.isSentient(actor)) {
+                    return new Brain.BrainGoalOriented(actor);
+                }
+                else {
+                    RG.err('RG', 'createBrain',
+                        'Can only create GoalOriented for sentient actor');
+                }
+            }
             case 'NonSentient': return new Brain.BrainNonSentient(actor);
             case 'SpellCaster': return new Brain.BrainSpellCaster(actor);
             case 'Spirit': return new Brain.BrainSpirit(actor);
