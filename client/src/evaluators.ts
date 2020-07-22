@@ -63,7 +63,7 @@ export class EvaluatorBase {
             ++Evaluator.hist[this.type];
         }
         else {
-            RG.err('EvaluatorBase', 'setActorGoal',
+            RG.err(`EvaluatorBase (${this.type})`, 'setActorGoal',
                 `No Goal.${this.type} found!`);
         }
     }
@@ -128,10 +128,6 @@ export class EvaluatorExplore extends EvaluatorBase {
     }
 
     public calculateDesirability(/* actor */): number {
-        /* const enemyCells = RG.Brain.getEnemyCellsAround(actor);
-        if (enemyCells.length > 0) {
-            return 0.01;
-        }*/
         return this.actorBias;
     }
 
@@ -173,7 +169,7 @@ export class EvaluatorFlee extends EvaluatorBase {
         return Evaluator.NOT_POSSIBLE;
     }
 
-    public setActorGoal(actor) {
+    public setActorGoal(actor): void {
         if (this.enemyActor) {
             const topGoal = actor.getBrain().getGoal();
             const goal = new Goal.FleeFromActor(actor, this.enemyActor);
@@ -738,3 +734,51 @@ export class EvaluatorTreasureHunter extends EvaluatorBase {
 
 }
 Evaluator.TreasureHunter = EvaluatorTreasureHunter;
+
+export class EvaluatorRest extends EvaluatorBase {
+
+    constructor(actorBias: number) {
+        super(actorBias);
+        this.type = 'Rest';
+    }
+
+    public calculateDesirability(/* actor */): number {
+        return this.actorBias;
+    }
+
+}
+Evaluator.Rest = EvaluatorRest;
+
+export class EvaluatorFindWeapon extends EvaluatorBase {
+
+    constructor(actorBias: number) {
+        super(actorBias);
+        this.type = 'FindWeapon';
+    }
+
+    public calculateDesirability(/* actor */): number {
+        return this.actorBias;
+    }
+
+}
+Evaluator.FindWeapon = EvaluatorFindWeapon;
+
+
+export class EvaluatorGeneric extends EvaluatorBase {
+    constructor(actorBias: number, type: string) {
+        super(actorBias);
+        this.type = type;
+    }
+
+    public calculateDesirability(/* actor */): number {
+        return this.actorBias;
+    }
+
+}
+Evaluator.Generic = EvaluatorGeneric;
+
+
+export function createEval(type: string, bias: number): EvaluatorGeneric {
+    return new EvaluatorGeneric(bias, type);
+}
+Evaluator.create = createEval;
