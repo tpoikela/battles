@@ -8,6 +8,7 @@ import {IAddCompObj, TAddCompSpec, IColor} from '../src/interfaces';
 const defaultBrain = 'GoalOriented';
 const demonBrain = 'GoalOriented';
 const undeadBrain = 'GoalOriented';
+const needBrain = 'NeedDriven';
 
 const NO_ENEMIES: any[] = [];
 
@@ -1059,6 +1060,7 @@ export const ActorsData: ActorShell[] = [
         range: 1, hp: 75, danger: 15,
         equip: ['Mithril armour']
     },
+
     // HUMANS
     {
         name: 'human', char: '@', type: 'human',
@@ -1116,6 +1118,12 @@ export const ActorsData: ActorShell[] = [
         brain: 'SpellCaster',
         spells: ['SummonKin'], maxPP: 30, pp: 30,
         danger: 10
+    },
+    {
+        name: 'traveller', char: 't', base: 'human', hp: 35,
+        attack: 5, defense: 6, damage: '3d3',
+        danger: 6,
+        brain: needBrain, addComp: ['Hunger']
     },
 
     // WILDLINGS
