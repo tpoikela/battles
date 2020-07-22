@@ -1,6 +1,5 @@
 
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 
 import EditorTopMenu from './editor-top-menu';
 import EditorGameBoard from './editor-game-board';
@@ -27,7 +26,7 @@ import {GameMain} from '../src/game';
 import {Geometry} from '../src/geometry';
 import {Keys} from '../src/keymap';
 import {Level} from '../src/level';
-// import {MapWall} from '../../lib/map.wall';
+
 import {OWMap} from '../src/overworld.map';
 import {ObjectShell} from '../src/objectshellparser';
 import {OverWorld} from '../src/overworld';
@@ -37,13 +36,9 @@ import {WorldConf} from '../src/world.creator';
 import {ZoneBase, SubZoneBase} from '../src/world';
 import {BBox} from '../src/bbox';
 
-import {TCoord, IFactoryGameConf, ItemConf, ActorConf} from '../src/interfaces';
+import {TCoord, IFactoryGameConf, ItemConf, ActorConf, TShellFunc} from '../src/interfaces';
 
 import * as Gen from '../src/generator';
-
-interface IConf {
-    [key: string]: any;
-}
 
 const KeyMap = Keys.KeyMap;
 
@@ -134,7 +129,7 @@ export interface IGameEditorState {
       errorMsg: string;
       msg: string;
 
-      itemFunc: (item) => boolean;
+      itemFunc: TShellFunc;
       maxValue: number;
 
       selectMode: boolean;
@@ -238,7 +233,7 @@ export default class GameEditor extends Component {
       selectEnd: null,
 
       elementType: 'stairsUp',
-      actorName: 'treasure hunter',
+      actorName: 'traveller',
       itemName: '',
       numEntities: 20,
 
@@ -358,7 +353,7 @@ export default class GameEditor extends Component {
     return null;
   }
 
-  public getCellCurrMap(x, y): Cell | null {
+  public getCellCurrMap(x: number, y: number): Cell | null {
     const map = this.getCurrMap();
     if (map && map.hasXY(x, y)) {
       return map.getCell(x, y);
@@ -367,19 +362,19 @@ export default class GameEditor extends Component {
   }
 
   /* Handles right clicks of the context menu. */
-  public handleRightClick(evt, data, cell): void {
+  public handleRightClick(evt, data, cell: Cell): void {
       const [x, y] = cell.getXY();
       this.useClickHandler(x, y, cell, data.type);
   }
 
-  public useClickHandler(x, y, cell, cmd): void {
+  public useClickHandler(x: number, y: number, cell: Cell, cmd): void {
     const clickHandler = new EditorClickHandler(this.state.level);
     if (clickHandler.handleClick(x, y, cell, cmd)) {
       this.setState({level: this.state.level});
     }
   }
 
-  public onMouseOverCell(x, y): void {
+  public onMouseOverCell(x: number, y: number): void {
     const cell = this.getCellCurrMap(x, y);
     if (cell) {
       this.setState({mouseOverCell: cell});
@@ -403,7 +398,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  public onMouseDown(x, y): void {
+  public onMouseDown(x: number, y: number): void {
     if (!this.state.selectMode) {
       const cell = this.getCellCurrMap(x, y);
       this.setState({selectMode: true, selectBegin: cell, selectEnd: cell});
@@ -426,7 +421,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  public onMouseOver(x, y): void {
+  public onMouseOver(x: number, y: number): void {
     const cell = this.getCellCurrMap(x, y);
     if (this.state.selectMode) {
       if (cell) {
@@ -1825,7 +1820,7 @@ export default class GameEditor extends Component {
   // Templates + Config stuff
   //-----------------------------
 
-  public importConfig() {
+  public importConfig(): void {
     if (this.state.lastTouchedConf) {
       const shown = this.state.lastTouchedConf.shown;
       const conf = this.state.lastTouchedConf[shown];
@@ -1849,17 +1844,18 @@ export default class GameEditor extends Component {
   }
 
   public menuCallback(cmd: string, args?: any): void {
-    if (typeof this[cmd] === 'function') {
+    const thisObj = this as any;
+    if (typeof thisObj[cmd] === 'function') {
       if (Array.isArray(args)) {
           if (args.length === 1) {
-              this[cmd](args);
+              thisObj[cmd](args);
           }
           else {
-              this[cmd](...args);
+              thisObj[cmd](...args);
           }
       }
       else {
-          this[cmd](args);
+          thisObj[cmd](args);
       }
     }
     else {
