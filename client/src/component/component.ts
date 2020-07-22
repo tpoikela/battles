@@ -884,11 +884,15 @@ SpellPower.prototype.decrPP = function(pp) {
     this.PP -= pp;
 };
 
+SpellPower.prototype.propLeft = function(): number {
+    return this.PP / this.maxPP;
+};
+
 SpellPower.prototype.hasPower = function() {
     return this.PP > 0;
 };
 
-SpellPower.prototype.canCast = function(spellPP) {
+SpellPower.prototype.canCast = function(spellPP: number): boolean {
     return this.PP >= spellPP;
 };
 
