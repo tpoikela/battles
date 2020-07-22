@@ -10,6 +10,7 @@ import * as Component from '../component/component';
 import {Random} from '../random';
 
 type ActionCallback = import('../time').ActionCallback;
+type SentientActor = import('../actor').SentientActor;
 
 const RNG = Random.getRNG();
 
@@ -19,7 +20,7 @@ const Brain: any = {};
 export class BrainGoalOriented extends BrainSentient {
     protected goal: GoalsTop.GoalTop;
 
-    constructor(actor) {
+    constructor(actor: SentientActor) {
         super(actor);
         this.setType('GoalOriented');
         this.goal = new GoalsTop.ThinkBasic(actor);
