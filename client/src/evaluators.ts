@@ -43,19 +43,23 @@ export class EvaluatorBase {
     // To change the evaluation frequency
     public evalCount: number;
     public evalMaxCount: number;
+    public isOneShot: boolean;
 
     constructor(actorBias: number) {
         this.actorBias = actorBias;
         this.type = 'Base';
         this.evalCount = 0;
         this.evalMaxCount = 1;
+        this.isOneShot = false;
     }
 
     public calculateDesirability(actor): number {
         throw new Error('Pure virtual function');
     }
 
-    public setActorGoal(actor, ...args): void {
+    /* THis is used to inject any arbitrary args to a Goal. You need to override
+     * this in derived class with the desired args. */
+    public setActorGoal(actor, ...args: any[]): void {
         const topGoal = actor.getBrain().getGoal();
         if (Goal[this.type]) {
             const goal = new Goal[this.type](actor, ...args);
@@ -764,7 +768,31 @@ export class EvaluatorFindWeapon extends EvaluatorBase {
 Evaluator.FindWeapon = EvaluatorFindWeapon;
 
 
+export class EvaluatorFindAmmo extends EvaluatorBase {
+
+    public ammoType: string;
+
+    constructor(actorBias: number) {
+        super(actorBias);
+        this.type = 'FindAmmo';
+        this.ammoType = 'bow';
+    }
+
+    public calculateDesirability(/* actor */): number {
+        return this.actorBias;
+    }
+
+    public setActorGoal(actor) {
+        super.setActorGoal(actor, this.ammoType);
+    }
+
+}
+Evaluator.FindAmmo = EvaluatorFindAmmo;
+
+
 export class EvaluatorGeneric extends EvaluatorBase {
+    public args: any[];
+
     constructor(actorBias: number, type: string) {
         super(actorBias);
         this.type = type;
@@ -772,6 +800,10 @@ export class EvaluatorGeneric extends EvaluatorBase {
 
     public calculateDesirability(/* actor */): number {
         return this.actorBias;
+    }
+
+    public setActorGoal(actor): void {
+        super.setActorGoal(actor, ...this.args);
     }
 
 }
