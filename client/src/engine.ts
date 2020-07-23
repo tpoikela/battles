@@ -257,13 +257,14 @@ export class Engine {
 
         // Loop systems once per player action
         this.sysMan.updateLoopSystems();
+        const turnArgs = {timeOfDay: 0};
 
         let watchdog = 10000;
         // Next/act until player found, then go back waiting for key...
         while (!this.nextActor.isPlayer() && !this.isGameOver()) {
 
             // TODO refactor R1
-            const action = this.nextActor.nextAction();
+            const action = this.nextActor.nextAction(turnArgs);
             this.doAction(action);
             this.sysMan.updateSystems(); // All systems for each actor
             this._scheduler.setAction(action);
