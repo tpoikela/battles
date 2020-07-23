@@ -232,14 +232,15 @@ export interface AreaConnection {
 }
 
 /* Used in procedural constraints to specify conditions. */
-export interface IConstraint {
+export type IConstraint = {
     op: string;
-    prop?: string;
-    func?: string;
-    comp?: string[];
     value: string | number | boolean | string[] | number[] | boolean[];
     args?: any;
-}
+} & (
+    | {prop: string; func?: never; comp?: never;}
+    | {prop?: never; func: string; comp?: never;}
+    | {prop?: never; func?: never; comp: string[];}
+);
 
 export interface ICreate {
     name: string;
