@@ -58,6 +58,7 @@ export abstract class SystemBase {
     public type: symbol; // Type of the system
     public compTypes: string[];
     public entities: {[key: string]: Entity};
+    public enabled: boolean; // If set to false, system is disabled
 
     // If set to true, only one comp has to match the compTypes, otherwise all
     // components in compTypes must be present
@@ -87,6 +88,7 @@ export abstract class SystemBase {
 
         /* Listens to add/removes for each component type in compTypes.*/
         this.hasNotify = true;
+        this.enabled = true;
 
         this.legalArgs = [];
 
@@ -164,9 +166,11 @@ export abstract class SystemBase {
     }
 
     public update(): void {
-        for (const e in this.entities) {
-            if (!e) {continue;}
-            this.updateEntity(this.entities[e]);
+        if (this.enabled) {
+            for (const e in this.entities) {
+                if (!e) {continue;}
+                this.updateEntity(this.entities[e]);
+            }
         }
     }
 
