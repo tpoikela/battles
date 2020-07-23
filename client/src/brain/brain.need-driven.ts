@@ -30,10 +30,10 @@ export class BrainNeedDriven extends BrainSentient {
     }
 
     /* Must return function. */
-    public decideNextAction(): ActionCallback | null {
+    public decideNextAction(turnArgs): ActionCallback | null {
         this._cache.seen = null;
         if (this.needUpdatePeriod === 0) {
-            this.needs.process(this.goal);
+            this.needs.process(this.goal, turnArgs);
             this.needUpdatePeriod = 10;
         }
         else {
