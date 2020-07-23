@@ -1,1 +1,7 @@
 public/**/*.js
+node_modules
+build/
+ts_tests/
+tests/
+typings/
+scripts/

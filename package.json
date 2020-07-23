@@ -12,7 +12,6 @@
     "core-js-bundle": "^3.3.2",
     "csstype": "^2.6.7",
     "ejs": "^2.7.1",
-    "eslint": "^4.19.1",
     "file-loader": "^2.0.0",
     "file-saver": "^1.3.8",
     "js-md5": "^0.7.3",
@@ -39,6 +38,8 @@
     "@types/chai": "^4.2.11",
     "@types/chai-enzyme": "^0.6.7",
     "@types/mocha": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^3.7.0",
+    "@typescript-eslint/parser": "^3.7.0",
     "acorn": "^6.3.0",
     "awesome-typescript-loader": "^5.2.1",
     "chai": "^4.2.0",
@@ -47,9 +48,10 @@
     "electron": "^7.2.4",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.2",
+    "eslint": "^7.5.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-prefer-object-spread": "^1.1.0",
-    "eslint_d": "^5.3.1",
+    "eslint_d": "^9.1.1",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "fake-indexeddb": "^2.1.1",
     "html-loader": "^0.5.5",
@@ -119,7 +121,8 @@
     "start": "python -m SimpleHTTPServer",
     "test": "ts-mocha --exclude 'tests/client/browser/*.ts' 'tests/client/**/*.spec.ts'",
     "test:watch": "mocha --watch -r ts-node/register 'tests/client/**/*.spec.ts'",
-    "test:tsx": "mocha -r ts-node/register --require tests/helpers/browser.ts 'tests/client/**/*.spec.tsx'"
+    "test:tsx": "mocha -r ts-node/register --require tests/helpers/browser.ts 'tests/client/**/*.spec.tsx'",
+    "lint": "eslint . client/**/*.{ts,tsx}"
   },
   "license": "MIT",
   "bugs": {
