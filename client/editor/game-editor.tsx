@@ -816,7 +816,7 @@ export default class GameEditor extends Component {
     this.setStateWithLevel(level);
   }
 
-  public debugMsg(msg): void {
+  public debugMsg(msg: string): void {
     if (this.state.debug) {
       console.log('[DEBUG] ' + msg);
     }
@@ -840,7 +840,7 @@ export default class GameEditor extends Component {
     if (!level) {return;}
 
     const fact = new FactoryBase();
-    const factFunc = (type) => fact.createElement(type);
+    const factFunc = (type: string) => fact.createElement(type);
 
     try {
       Geometry.insertElements(level, this.state.elementType,
