@@ -389,8 +389,8 @@ export class Ammo extends Weapon {
         this._ammoType = '';
     }
 
-    public setAmmoType(type) {this._ammoType = type;}
-    public getAmmoType() {return this._ammoType;}
+    public setAmmoType(type: string): void {this._ammoType = type;}
+    public getAmmoType(): string {return this._ammoType;}
 
     public copy(rhs: Ammo): void {
         super.copy(rhs);
