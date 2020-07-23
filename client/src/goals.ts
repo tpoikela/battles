@@ -1352,26 +1352,42 @@ export class GoalFindItem extends GoalBase {
 }
 Goal.FindItem = GoalFindItem;
 
+const CB_TRUE = () => true;
+
 export class GoalFindWeapon extends GoalFindItem {
     constructor(actor) {
-        super(actor, {op: 'eq', func: 'getType', value: 'weapon'}, () => true);
+        super(actor, {op: 'eq', func: 'getType', value: 'weapon'}, CB_TRUE);
     }
 }
 Goal.FindWeapon = GoalFindWeapon;
 
 export class GoalFindFood extends GoalFindItem {
     constructor(actor) {
-        super(actor, {op: 'eq', func: 'getType', value: 'food'}, () => true);
+        super(actor, {op: 'eq', func: 'getType', value: 'food'}, CB_TRUE);
     }
 }
 Goal.FindFood = GoalFindFood;
 
 export class GoalFindGold extends GoalFindItem {
     constructor(actor) {
-        super(actor, {op: 'eq', func: 'getType', value: 'gold'}, () => true);
+        super(actor, {op: 'eq', func: 'getType', value: 'gold'}, CB_TRUE);
     }
 }
 Goal.FindGold = GoalFindGold;
+
+export class GoalFindAmmo extends GoalFindItem {
+    constructor(actor, ammoType: string) {
+        super(actor, {op: 'eq', func: 'getAmmoType', value: ammoType}, CB_TRUE);
+    }
+}
+Goal.FindAmmo = GoalFindAmmo;
+
+export class GoalFindMissile extends GoalFindItem {
+    constructor(actor) {
+        super(actor, {op: 'eq', func: 'getType', value: 'missile'}, CB_TRUE);
+    }
+}
+Goal.FindMissile = GoalFindMissile;
 
 //---------------------------------------------------------------------------
 /* An actor goal to explore the given area. */
@@ -1648,10 +1664,17 @@ export class GoalEquip extends GoalBase {
         const inv: Inventory = this.actor.getInvEq();
         const items = inv.getInventory().getItems();
         const item = RNG.arrayGetRand(items);
-        const eqComp = new Component.Equip();
-        eqComp.setIsRemove(false);
-        eqComp.setArgs({item});
-        this.actor.add(eqComp);
+        if (item) {
+            const eqComp = new Component.Equip();
+            eqComp.setIsRemove(false);
+            eqComp.setArgs({item});
+            this.actor.add(eqComp);
+        }
+        else {
+            const msg = JSON.stringify(this.actor);
+            RG.err('GoalEquip', 'equipSomething',
+                'GoalEquip issued although no items to equip ' + msg);
+        }
     }
 
 }
