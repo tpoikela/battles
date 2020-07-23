@@ -110,7 +110,7 @@ export class BaseActor extends Entity {
     public getEquipProtection(): number {return 0;}
 
     /* Returns the next action for this actor.*/
-    public nextAction(obj?): Time.Action | null {
+    public nextAction(obj?): Time.Action {
         // Use actor brain to determine the action
         const cb: ActionCallback = this._brain.decideNextAction(obj);
         let action = null;
