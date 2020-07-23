@@ -148,12 +148,12 @@ export class GameMain {
         Random.setRNG(this._rng);
     }
 
-    public playerCommandCallback(actor) {
+    public playerCommandCallback(actor): void {
         this.visibleCells = actor.getBrain().getSeenCells();
         this._engine.setVisibleArea(this.shownLevel(), this.visibleCells);
     }
 
-    public isGameOver() {return this._gameOver;}
+    public isGameOver(): boolean {return this._gameOver;}
 
     public getLevels(): Level[] {return this._engine.getLevels();}
     public getComponents(): number[] {
