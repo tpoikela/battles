@@ -87,6 +87,11 @@ export class WorldSimulation {
 
     }
 
+    /* Returns time of day in minutes. */
+    public getTimeOfDayMins(): number {
+        return this.dayMan.getTimeMins();
+    }
+
     public getSeason(): string {
         return this.seasonMan.getSeason();
     }
