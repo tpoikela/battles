@@ -140,6 +140,9 @@ export class GoalTop extends GoalBase {
 
         if (chosenEval) {
             chosenEval.setActorGoal(this.actor);
+            if (chosenEval.isOneShot) {
+                this.removeEvaluator(chosenEval);
+            }
         }
         else {
             RG.err('GoalTop', 'arbitrate',
@@ -148,6 +151,14 @@ export class GoalTop extends GoalBase {
         this.dbg('arbitrate() finished');
     }
 
+    public removeEvaluator(evalObj: EvaluatorBase): boolean {
+        const idx = this.evaluators.indexOf(evalObj);
+        if (idx >= 0) {
+            this.evaluators.splice(idx, 1);
+            return true;
+        }
+        return false;
+    }
 }
 GoalsTop.Top = GoalTop;
 
