@@ -76,7 +76,7 @@ function weaponNeeds(actor: SentientActor): EvaluatorTuple[] {
         // TODO check inventory for weapons and equip
         if (!wpn) {
             // this.dbg('No weapons in inv. Trying to find one');
-            evals.push(['FindWeapon', NEED_BIAS.FindWeapon]);
+            evals.push(['FindWeapon', NEED_BIAS.FindWeapon, {isOneShot: true}]);
         }
         else {
             // this.dbg('Found Weapon in inv. Trying to equip one');
@@ -98,13 +98,13 @@ function ammoNeeds(actor: SentientActor): EvaluatorTuple[] {
     const evals: EvaluatorTuple[] = [];
     if (missWeapon) {
         const ammoType = missWeapon.getType();
-        evals.push(['FindAmmo' , NEED_BIAS.FindAmmo, {ammoType}]);
+        evals.push(['FindAmmo' , NEED_BIAS.FindAmmo, {ammoType, isOneShot: true}]);
     }
     else if (!miss) {
         const items = inv.getInventory().getItems();
         const missile = items.find(i => i.getType() === RG.ITEM.MISSILE);
         if (!missile) {
-            evals.push(['FindMissile' , NEED_BIAS.FindMissile]);
+            evals.push(['FindMissile' , NEED_BIAS.FindMissile, {isOneShot: true}]);
         }
         else {
             evals.push(['Equip', NEED_BIAS.Equip, {isOneShot: true}]);
