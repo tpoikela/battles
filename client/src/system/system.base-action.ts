@@ -365,6 +365,10 @@ export class SystemBaseAction extends SystemBase {
                 RG.gameMsg({cell, msg});
             }
         }
+        else {
+            const msg = `${ent.getName()} seems to be resting.`;
+            RG.gameMsg({cell, msg});
+        }
     }
 
     /* Used to create events in response to specific actions. */
