@@ -121,7 +121,7 @@ export class GoalTop extends GoalBase {
 
     protected arbitrate(): void {
         this.dbg('arbitrate() started');
-        if (this.evaluators.length === 0) {
+        if (!this.isActive() && this.evaluators.length === 0) {
             RG.err('GoalTop', 'arbitrate',
                 `No evaluators in ${this.getType}, actor: ${this.actor}`);
         }
@@ -139,12 +139,14 @@ export class GoalTop extends GoalBase {
         }
 
         if (chosenEval) {
-            chosenEval.setActorGoal(this.actor);
-            if (chosenEval.isOneShot) {
-                this.removeEvaluator(chosenEval);
+            if (bestRated !== Evaluator.NOT_POSSIBLE) {
+                chosenEval.setActorGoal(this.actor);
+                if (chosenEval.isOneShot) {
+                    this.removeEvaluator(chosenEval);
+                }
             }
         }
-        else {
+        else if (!this.isActive()) {
             RG.err('GoalTop', 'arbitrate',
                 'No next goal found');
         }
