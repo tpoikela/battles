@@ -24,8 +24,8 @@ export class BrainNeedDriven extends BrainSentient {
 
         // For pure need-driven, no evaluators are added
         this.goal.removeEvaluators();
-        this.goal.addEvaluator(new Evaluator.AttackActor(1.0));
-        this.goal.addEvaluator(new Evaluator.Explore(0.75));
+        this.goal.addEvaluator(new Evaluator.AttackActor(1.5));
+        // this.goal.addEvaluator(new Evaluator.Explore(0.75));
         this.needUpdatePeriod = 0;
     }
 
@@ -34,7 +34,7 @@ export class BrainNeedDriven extends BrainSentient {
         this._cache.seen = null;
         if (this.needUpdatePeriod === 0) {
             this.needs.process(this.goal, turnArgs);
-            this.needUpdatePeriod = 10;
+            this.needUpdatePeriod = 0;
         }
         else {
             this.needUpdatePeriod -= 1;
