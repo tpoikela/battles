@@ -36,6 +36,7 @@ describe('System.Chat', () => {
         chatter.getInvEq().addItem(coins);
 
         const trainer = new SentientActor('trainer');
+        trainer.getBrain().getMemory().removeEnemyType('player');
         RGUnitTests.wrapIntoLevel([chatter, trainer]);
 
         trainer.get('Stats').setAccuracy(20);
@@ -71,6 +72,7 @@ describe('System.Chat', () => {
         const wizTrainer = new SentientActor('wizTrainer');
         wizTrainer.add(new Component.Trainer());
         wizTrainer.add(new Component.QuestGiver());
+        wizTrainer.getBrain().getMemory().removeEnemyType('player');
         RGUnitTests.wrapIntoLevel([chatter, wizTrainer]);
 
         moveAndChat(chatter, wizTrainer);
@@ -90,6 +92,7 @@ describe('System.Chat', () => {
 
     it('can handle various Lore objects in chats', () => {
         const knower = new SentientActor('know-it-all');
+        knower.getBrain().getMemory().removeEnemyType('player');
         const level = RGUnitTests.wrapIntoLevel([chatter, knower]);
         const zone = new World.City('Test city');
         const subZone = new World.CityQuarter('Test quarter');
