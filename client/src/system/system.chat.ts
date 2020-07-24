@@ -46,12 +46,15 @@ export class SystemChat extends SystemBase {
 
         const actors = this.getActorsInDirection(chatter, dir);
         let chatObj: null | ChatBase = null;
-        actors.forEach(actor => {
+        for (let i = 0; i < actors.length; i++) {
+            const actor = actors[i];
+
             if (actor.isEnemy(chatter)) {
                 const msg = this.getHostileMsg(chatter, actor);
                 RG.gameMsg({cell: actor.getCell()!, msg});
-                // return;
+                continue;
             }
+
             // First, we need to create the Chat object for the Menu
             Object.keys(this.registeredObjs).forEach((chatType: string) => {
                 if (actor.has(chatType)) {
@@ -86,7 +89,7 @@ export class SystemChat extends SystemBase {
                 this.addGenericLoreItems(chatter, actor, chatObj);
                 this.addZoneLoreItems(ent, actor, chatObj);
             }
-        });
+        }
 
         if (chatObj) {
             const entBrain = chatter.getBrain();
