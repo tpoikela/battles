@@ -109,7 +109,7 @@ export class GoalTop extends GoalBase {
             // Orders difficult to serialize as it can contain reference to any
             // arbitrary goal (can be top-level goal). That would require tons
             // of object refs, and it's a lot of work
-            if (ev.getType() !== 'Orders' || ev.getType() !== 'UseSkill') {
+            if (ev.getType() !== 'Orders' && ev.getType() !== 'UseSkill') {
                 evals.push(ev.toJSON());
             }
         });
