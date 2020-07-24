@@ -54,6 +54,7 @@
     "eslint_d": "^9.1.1",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "fake-indexeddb": "^2.1.1",
+    "hard-source-webpack-plugin": "^0.13.1",
     "html-loader": "^0.5.5",
     "istanbul": "~0.4.5",
     "jsdom": "^15.2.0",

@@ -1,6 +1,7 @@
 
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isDevel = !isProduction;
@@ -79,7 +80,8 @@ const config = {
         new ExtractTextPlugin({
             allChunks: true,
             filename: 'style.css'
-        })
+        }),
+        new HardSourceWebpackPlugin()
     ],
 
     externals: {
