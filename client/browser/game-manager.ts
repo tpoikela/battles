@@ -641,13 +641,13 @@ export class GameManager {
     /* Sets some global variables which ease up the debugging with console.
      */
     public setDebugRefsToWindow(): void {
-        if (debug.enabled) {
+        // if (debug.enabled) {
             (window as any).GAME = this.game; // For debugging
             const player = this.game.getPlayer();
             (window as any).PLAYER = player; // For debugging
             (window as any).RG = RG; // For debugging
             (window as any).PARSER = ObjectShell.getParser(); // For debugging
-        }
+        // }
     }
 
     /* Returns the next key, either from player or from click handler. */
@@ -1049,15 +1049,17 @@ export class GameManager {
         }
         console.log(`Cell: ${JSON.stringify(cell)}`);
         if (cell.hasActors()) {
-            const actors = cell.getActors();
-            console.log(`Actors: ${JSON.stringify(actors)}`);
+            const actors = cell.getActors()!;
+            console.log(`window.ACTOR set. Actors: ${JSON.stringify(actors)}`);
+            (window as any).ACTOR = actors[0];
             /* if (debug.enabled) {
                 RG.CLICKED_ACTOR = actors[0];
             }*/
         }
         if (cell.hasConnection()) {
             const conns = cell.getPropType('connection');
-            console.log(`Actors: ${JSON.stringify(conns)}`);
+            console.log(`Connection: ${JSON.stringify(conns)}`);
+            (window as any).CONNECTION = conns[0];
         }
     }
 
