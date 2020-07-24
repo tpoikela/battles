@@ -192,7 +192,7 @@ export default class GameEditor extends Component {
   public intervalID: any;
   public frameID: null | number;
   public nextCode: number;
-  public game: any; // TODO GameMain;
+  public game: GameMain; // TODO GameMain;
   public animationID: number;
 
   constructor(props: IGameEditorProps) {
@@ -959,6 +959,11 @@ export default class GameEditor extends Component {
       editorPanelElem = this.getEditorPanelElement();
     }
 
+    let timeOfDay = 0;
+    if (this.state.simulationStarted) {
+        timeOfDay = this.game.getTimeOfDayMins();
+    }
+
     return (
       <div className='game-editor-main-div'>
         <p className='text-primary'>
@@ -995,6 +1000,7 @@ export default class GameEditor extends Component {
           </div>
 
           <div className='col-md-10'>
+          Time: {timeOfDay}
             <div className='game-editor-board-div'>
               <EditorGameBoard
                 boardClassName={this.state.boardClassName}
@@ -1367,7 +1373,7 @@ export default class GameEditor extends Component {
     const fps = 1000 * frameCount /
       (new Date().getTime() - this.state.startTime);
     for (let n = 0; n < this.state.turnsPerFrame; n++) {
-      this.game.simulateGame();
+      this.game.simulateGame(1);
     }
     this.setState({frameCount: frameCount + 1, fps});
     this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
@@ -1376,7 +1382,7 @@ export default class GameEditor extends Component {
   /* Simulates the game for N turns, then renders once. */
   public mainLoopFast() {
     for (let i = 0; i < this.state.turnsPerSec; i++) {
-      this.game.simulateGame();
+      this.game.simulateGame(1);
     }
     this.setShownLevel({level: this.game.getLevels()[0]});
   }
@@ -1399,7 +1405,7 @@ export default class GameEditor extends Component {
 
   public stepSimulation() {
     if (this.state.simulationStarted) {
-      this.game.simulateGame();
+      this.game.simulateGame(1);
       this.setShownLevel({level: this.game.getLevels()[0]});
     }
     else {
