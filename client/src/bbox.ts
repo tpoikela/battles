@@ -1,6 +1,6 @@
 
 import RG from './rg';
-import {TCoord} from './interfaces';
+import {TCoord, IBBox} from './interfaces';
 import {Random} from './random';
 
 const RNG: Random = Random.getRNG();
@@ -11,13 +11,6 @@ const RNG: Random = Random.getRNG();
  * lower-right X: lrx (higher X)
  * lower-right Y: lry (higher Y)
  */
-
-interface IBBox {
-    ulx: number;
-    uly: number;
-    lrx: number;
-    lry: number;
-}
 
 export class BBox {
 
