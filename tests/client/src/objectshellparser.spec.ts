@@ -846,5 +846,12 @@ describe('Data query functions for objects', function() {
         const action = hunter.getBrain().decideNextAction();
     });
 
+    it('can create traveller', () => {
+        const traveller = parser.createActor('traveller');
+        RGUnitTests.wrapIntoLevel([traveller]);
+        const turnArgs = {timeOfDay: 12 * 60};
+        const action = traveller.getBrain().decideNextAction(turnArgs);
+    });
+
 });
 
