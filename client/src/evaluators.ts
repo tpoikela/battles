@@ -816,6 +816,7 @@ export class EvaluatorGeneric extends EvaluatorBase {
     constructor(actorBias: number, type: string) {
         super(actorBias);
         this.type = type;
+        // args not initialized to empty array, as it's not always needed
     }
 
     public calculateDesirability(/* actor */): number {
@@ -823,7 +824,13 @@ export class EvaluatorGeneric extends EvaluatorBase {
     }
 
     public setActorGoal(actor): void {
-        super.setActorGoal(actor, ...this.args);
+        // Without if, we can get 'this.args is not iterable' Error
+        if (this.args) {
+            super.setActorGoal(actor, ...this.args);
+        }
+        else {
+            super.setActorGoal(actor);
+        }
     }
 
 }
