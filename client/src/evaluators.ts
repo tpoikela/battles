@@ -789,6 +789,26 @@ export class EvaluatorFindAmmo extends EvaluatorBase {
 }
 Evaluator.FindAmmo = EvaluatorFindAmmo;
 
+export class EvaluatorFollowPath extends EvaluatorBase {
+
+    public xy: TCoord;
+
+    constructor(actorBias: number) {
+        super(actorBias);
+        this.type = 'FollowPath';
+    }
+
+    public calculateDesirability(/* actor */): number {
+        return this.actorBias;
+    }
+
+    public setActorGoal(actor) {
+        super.setActorGoal(actor, this.xy);
+    }
+
+}
+Evaluator.FollowPath = EvaluatorFollowPath;
+
 
 export class EvaluatorGeneric extends EvaluatorBase {
     public args: any[];
