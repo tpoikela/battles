@@ -154,10 +154,22 @@ export class BBox {
         return res;
     }
 
+    /* Creates a new BBox with given x,y offsets. */
     public withOffsetXY(x: number, y: number): BBox {
         return new BBox(this.ulx + x, this.uly + y,
                         this.lrx + x, this.lry + y
         );
+    }
+
+    /* Returns center for the bbox. If getSizeX/Y return odd numbers, the center
+     * will be exact for that coordinate. Otherwise, center will be rounded. */
+    public getCenter(): TCoord {
+        const xSize = this.getSizeX();
+        const ySize = this.getSizeY();
+        return [
+            this.ulx + Math.round(xSize / 2),
+            this.uly + Math.round(ySize / 2)
+        ];
     }
 
 }
