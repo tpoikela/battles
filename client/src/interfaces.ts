@@ -16,11 +16,13 @@ type ItemAmmo = import('./item').Ammo;
 type ItemMissile = import('./item').Missile;
 
 type BaseActor = import('./actor').BaseActor;
+type SentientActor = import('./actor').SentientActor;
 type Locatable = import('./mixin').Locatable;
 type ElemTemplate = import('./template').ElemTemplate;
 type WorldBase = import('./world').WorldBase;
 type Dice = import('./dice').Dice;
 type Parser = import('./objectshellparser').Parser;
+type BBox = import('./bbox').BBox;
 
 //---------------------------
 // GENERIC type definitions
@@ -635,3 +637,46 @@ export interface ILoreEntry {
 export type AnyJson =  boolean | number | string | null | JsonArray | JsonMap;
 export interface JsonMap {  [key: string]: AnyJson; }
 export interface JsonArray extends Array<AnyJson> {}
+
+//----------------------------
+// Actor needs and schedules
+//----------------------------
+
+/* Passed as props to Evaluator object. */
+export interface IEvaluatorArgs {
+    isOneShot?: boolean;
+    ammoType?: string;
+    xy?: TCoord;
+}
+
+export type EvaluatorTuple = [string, number, IEvaluatorArgs?];
+
+
+export type INeedEntry = {
+    last?: boolean;
+    only?: boolean;
+    // constr: IConstraint;
+    // func?: (args: any) => boolean;
+    // script?: (actor: SentientActor, timeOfDay: number) => EvaluatorTuple[];
+    evalName: string;
+    bias: number;
+} & (
+    | {
+        constr: IConstraint;
+        func?: (args: any) => boolean;
+        script?: never;
+    }
+    | {
+        constr?: never;
+        func?: never;
+        script: (actor: SentientActor, timeOfDay: number) => EvaluatorTuple[];
+    }
+)
+
+/* Defines one schedule entry between two different times. */
+export interface ISchedEntry {
+    from: number;
+    to: number;
+    in?: {bbox: BBox, levelID: number};
+    needs: INeedEntry[];
+};
