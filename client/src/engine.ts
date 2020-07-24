@@ -54,6 +54,8 @@ export class Engine {
 
     public hasNotify: boolean;
 
+    public timeOfDay: number;
+
     public visibleLevelID: number;
     public currPlayer: SentientActor;
     public playerCommandCallback: (player: SentientActor) => void;
@@ -75,6 +77,8 @@ export class Engine {
         this._eventPool = eventPool;
 
         this.visibleCells = [];
+
+        this.timeOfDay = 0;
 
         this._cache = {
             visibleCoord: {},
@@ -257,7 +261,7 @@ export class Engine {
 
         // Loop systems once per player action
         this.sysMan.updateLoopSystems();
-        const turnArgs = {timeOfDay: 0};
+        const turnArgs = {timeOfDay: this.timeOfDay};
 
         let watchdog = 10000;
         // Next/act until player found, then go back waiting for key...
@@ -318,12 +322,13 @@ export class Engine {
 
     /* Simulates the game without a player. Crashes if player is encountered. */
     public simulateGame(nTurns = 1): void {
+        const turnArgs = {timeOfDay: this.timeOfDay};
         for (let i = 0; i < nTurns; i++) {
             this.nextActor = this.getNextActor();
 
             if (!this.nextActor.isPlayer()) {
                 // TODO refactor R1
-                const action = this.nextActor.nextAction();
+                const action = this.nextActor.nextAction(turnArgs);
                 this.doAction(action);
                 this.sysMan.updateSystems();
                 this._scheduler.setAction(action);
