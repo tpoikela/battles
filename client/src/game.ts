@@ -133,6 +133,10 @@ export class GameMain {
 
     public getPool(): EventPool {return this._eventPool;}
 
+    public getTimeOfDayMins(): number {
+        return this._worldSim.getTimeOfDayMins();
+    }
+
     // GUI commands needed for some functions
     public setGUICallbacks(isGUICmd, doGUICmd: (code) => void) {
         this._engine.isGUICommand = isGUICmd;
@@ -499,16 +503,21 @@ export class GameMain {
     }
 
     public simulate(nTurns: number): void {
+        this._engine.timeOfDay = this.getTimeOfDayMins();
         this._engine.simulateGame(nTurns);
     }
 
     public simulateGame(nTurns: number): void {
+        this._engine.timeOfDay = this.getTimeOfDayMins();
         this._engine.simulateGame(nTurns);
     }
 
     /* Must be called to advance the game by one player action. Non-player
      * actions are executed after the player action.*/
-    public update(obj: IPlayerCmdInput) {this._engine.update(obj);}
+    public update(obj: IPlayerCmdInput) {
+        this._engine.timeOfDay = this.getTimeOfDayMins();
+        this._engine.update(obj);
+    }
 
     public getArea(index: number) {
         const world = this.getCurrentWorld();
