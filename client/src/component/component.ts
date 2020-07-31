@@ -13,7 +13,7 @@ const POOL = EventPool.getPool();
 
 const DataComponent = Component.DataComponent;
 const UniqueDataComponent = Component.UniqueDataComponent;
-const UniqueTransientDataComponent = Component.UniqueDataComponent;
+const UniqueTransientDataComponent = Component.UniqueTransientDataComponent;
 const TransientDataComponent = Component.TransientDataComponent;
 const TransientTagComponent = Component.TransientTagComponent;
 const TagComponent = Component.TagComponent;
@@ -54,6 +54,7 @@ Action.prototype.disable = function() {
         this.active = false;
     }
 };
+
 
 export const Location = UniqueDataComponent('Location', {
     x: -1, y: -1, level: null});

@@ -201,7 +201,8 @@ Quest.prototype.toString = function(): string {
             res += 'Talk to ' + obj.name;
         }
         else {
-            res += getQuestVerb(obj.targetType) + ' ' + obj.toString();
+            // res += getQuestVerb(obj.targetType) + ' ' + obj.toString();
+            res += getQuestVerb(obj.targetType) + ' ' + obj.name;
             // res += obj.targetType + ' ' + obj.name;
         }
     });
