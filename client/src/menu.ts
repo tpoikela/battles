@@ -37,11 +37,15 @@ Menu.NO_ACTION = 'NO_ACTION';
 Menu.NEXT_STATE = 'NEXT_STATE';
 
 type SelectionFunc = () => void;
+type VoidFunc = () => void;
+type MenuFunction = (args: any) => void;
 
 export interface IMenu {
     [key: string]: string | string[];
 }
 
+// Selection return value can be any of these. Returning function will terminate
+// selection, while returning null will keep the current menu.
 type TSelectRetVal = MenuItem | SelectionObject | SelectionFunc | MenuFunction
     | null;
 
@@ -49,11 +53,10 @@ export interface SelectionObject {
     showMenu: () => boolean;
     getMenu?: () => IMenu;
     select: (code: number) => TSelectRetVal;
-    showMsg?: () => void;
-    funcToCall?: () => void;
+    showMsg?: VoidFunc;
+    funcToCall?: VoidFunc;
 }
 
-type VoidFunc = () => void;
 interface MenuCallObj {
     funcToCall: VoidFunc;
 }
@@ -65,7 +68,6 @@ interface MenuTable {
     [key: string]: MenuItem;
 }
 
-type MenuFunction = (args: any) => void;
 
 interface MenuArgObj {
     key: number; // Key code to select this specific item
@@ -79,7 +81,7 @@ type MenuArgArray = [string, MenuFunction];
 export type MenuArg = MenuArgObj | MenuArgArray | MenuItem;
 
 const createMenuTable = function(args: MenuArg[]): MenuTable {
-    const table = {};
+    const table: {[key: string]: any} = {};
     args.forEach((item, i) => {
         const index = Keys.menuIndices[i];
         if ((item as MenuArgObj).key) {
@@ -261,7 +263,7 @@ export class MenuInfoOnly extends MenuBase {
     }
 }
 
-RG.extend2(MenuInfoOnly, MenuBase);
+// RG.extend2(MenuInfoOnly, MenuBase);
 Menu.InfoOnly = MenuInfoOnly;
 
 /* This menu can be used when quit option is required. You can add a callback by
@@ -384,6 +386,7 @@ export class MenuSelectTarget extends MenuSelectCell {
         return val;
     }
 }
+Menu.SelectTarget = MenuSelectTarget;
 
 /* This menu can be used when direction selection is required. */
 export class MenuSelectDir extends MenuBase {
