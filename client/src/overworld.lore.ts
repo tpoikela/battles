@@ -86,7 +86,8 @@ export class OWLore {
     /* Builds the config for adding Lore components based on zoneConfs, and
      * known relationships between the zones. */
     public buildLore(): void {
-        Object.keys(this.zonesByXY).forEach((key: string) => {
+        const zonesByXY = Object.keys(this.zonesByXY);
+        zonesByXY.forEach((key: string) => {
             const zones: ZoneConf[] = this.zonesByXY[key];
             const xy = this.toCoord(key);
             if (!this.hasInfoAboutXY(xy)) {return;}
