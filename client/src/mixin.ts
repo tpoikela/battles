@@ -202,11 +202,11 @@ export const DurationRoll = superclass => class extends superclass {
         super(args);
     }
 
-    public rollDuration() {
+    public rollDuration(): number {
         return this.duration.roll();
     }
 
-    public setDurationDie(strOrDie) {
+    public setDurationDie(strOrDie: string | Dice): void {
         if (typeof strOrDie === 'string') {
             this.duration = Dice.create(strOrDie);
         }
@@ -215,11 +215,11 @@ export const DurationRoll = superclass => class extends superclass {
         }
     }
 
-    public getDurationDie() {
+    public getDurationDie(): Dice {
         return this.duration;
     }
 
-    public copy(rhs) {
+    public copy(rhs): void {
         super.copy(rhs);
         this.duration = rhs.getDurationDie().clone();
     }
