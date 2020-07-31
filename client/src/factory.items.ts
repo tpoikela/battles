@@ -331,7 +331,9 @@ export class FactoryItem {
         }
         else { // Fallback, if no config
             shopItem = conf.parser.createRandomItem({
-                func: (item: IShell) => item.value <= 50 + n * 100
+                func: (item: IShell) => (
+                    item.value <= 50 + n * 100 && item.type !== 'goldcoin'
+                )
             });
         }
         if (shopItem) {
