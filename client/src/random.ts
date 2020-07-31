@@ -1,18 +1,18 @@
 
 import RG from './rg';
-import ROT from '../../lib/rot';
+import RotRNG, {RNG} from '../../lib/rot-js/rng';
 import {TCoord, RandWeights} from './interfaces';
 import {BBox} from './bbox';
 
 const DIRS = [-1, 0, 1];
 const DIRS_NO_ZERO = [-1, 1];
 
-/* A OO wrapper around ROT.RNG. Adds method for serialisation. */
+/* A OO wrapper around RotRNG. Adds method for serialisation. */
 export class Random {
 
     public static instance: Random;
 
-    public static setRNG(rng) {
+    public static setRNG(rng: Random): void {
         Random.instance = rng;
     }
 
@@ -23,18 +23,18 @@ export class Random {
         return Random.instance;
     }
 
-    public static reseed(seed) {
-        ROT.RNG.setSeed(seed);
-        const RNG = Random.getRNG();
-        RNG.setSeed(seed);
+    public static reseed(seed: number) {
+        RotRNG.setSeed(seed);
+        const rng = Random.getRNG();
+        rng.setSeed(seed);
     }
 
     public seed: number;
-    public rng: any;
+    public rng: RNG;
 
     constructor(seed = 0) {
         this.seed = seed;
-        this.rng = ROT.RNG.clone();
+        this.rng = RotRNG.clone();
         this.rng.setSeed(this.seed);
     }
 

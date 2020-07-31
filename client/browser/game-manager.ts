@@ -8,7 +8,7 @@
  */
 
 import RG from '../src/rg';
-import ROT from '../../lib/rot';
+import * as ROT from '../../lib/rot-js';
 
 import {Keys} from '../src/keymap';
 import {GameMain} from '../src/game';

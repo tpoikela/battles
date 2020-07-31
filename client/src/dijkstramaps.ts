@@ -2,7 +2,7 @@
  * https://gist.github.com/hyakugei/ace116bd9ce72f2bf92c
  */
 
-import ROT from '../../lib/rot';
+import * as ROT from '../../lib/rot-js';
 import {TCoord} from './interfaces';
 
 export interface Options {

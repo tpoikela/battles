@@ -24,6 +24,7 @@
         "prefer-function-over-method": false,
         "quotemark": [true, "single"],
         "one-line": false,
+        "jsdoc-format": false,
         "ordered-imports": [
           false,
           {

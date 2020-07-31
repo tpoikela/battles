@@ -1,6 +1,7 @@
 
 import RG from '../rg';
-import ROT from '../../../lib/rot';
+import * as ROT from '../../../lib/rot-js';
+import {Room} from '../../../lib/rot-js/map/features';
 
 import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {CellMap} from '../map';
@@ -19,10 +20,12 @@ import {BBox} from '../bbox';
 
 type Cell = import('../map.cell').Cell;
 
+type NumPair = [number, number];
+
 const WALL = 1;
 
-const MapDigger = (ROT as any).Map.Digger;
-const FeatRoom = (ROT as any).Map.Feature.Room;
+const MapDigger = ROT.Map.Digger;
+const FeatRoom = Room;
 const RNG = Random.getRNG();
 
 const shortestPath = Path.getShortestPath;
@@ -214,7 +217,7 @@ export class DungeonGenerator extends LevelGenerator {
         // Here we need to add special rooms etc
         const bigRooms = this.addBigRooms(mapGen, conf);
         if (bigRooms.length > 0) {
-            mapGen.bigRooms = bigRooms;
+            (mapGen as any).bigRooms = bigRooms;
         }
         return mapGen;
     }
@@ -329,9 +332,9 @@ export class DungeonGenerator extends LevelGenerator {
 
         const yDiv = RNG.getUniformInt(2, 5);
         const xDiv = RNG.getUniformInt(2, 6);
-        const roomWidth = [Math.floor(cols / (xDiv + 1 )),
+        const roomWidth: NumPair = [Math.floor(cols / (xDiv + 1 )),
             Math.floor(cols / xDiv)];
-        const roomHeight = [Math.floor(rows / yDiv), Math.floor(rows / yDiv)];
+        const roomHeight: NumPair = [Math.floor(rows / yDiv), Math.floor(rows / yDiv)];
 
         const opts = {roomWidth, roomHeight};
         const room = FeatRoom.createCenter(cx, cy, opts);
@@ -394,10 +397,12 @@ export class DungeonGenerator extends LevelGenerator {
         const width = Math.floor(cols / div);
         const height = Math.floor(rows / div);
         const horOpts = {
-            roomWidth: [cols - 2, cols - 2], roomHeight: [height, height]
+            roomWidth: [cols - 2, cols - 2] as NumPair,
+            roomHeight: [height, height] as NumPair
         };
         const verOpts = {
-            roomHeight: [rows - 2, rows - 2], roomWidth: [width, width]
+            roomHeight: [rows - 2, rows - 2] as NumPair,
+            roomWidth: [width, width] as NumPair
         };
         const roomHor = FeatRoom.createCenter(cx, cy, horOpts);
         const roomVer = FeatRoom.createCenter(cx, cy, verOpts);

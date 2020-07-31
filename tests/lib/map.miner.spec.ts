@@ -1,6 +1,6 @@
 
 const expect = require('chai').expect;
-const MapMiner = require('../../lib/map.miner');
+import {MapMiner} from '../../lib/map.miner';
 
 describe('Map.Miner', function() {
     it('can be created', () => {
@@ -14,7 +14,7 @@ describe('Map.Miner', function() {
         let numZeros = 0;
         gen.create((x, y, val) => {
             expect(val).to.exist;
-            expect(val).to.be.number;
+            expect(Number.isInteger(val)).to.equal(true);
             map[x][y] = val;
             if (val === 0) {
                 ++numZeros;
@@ -51,7 +51,7 @@ describe('Map.Miner', function() {
         const {startPoints, regions} = mapData;
 
         expect(startPoints).to.have.length(3);
-        expect(regions).to.be.an.array;
+        expect(Array.isArray(regions)).to.equal(true);
         // console.log('FINAL MAP:\n');
         // gen.printMap();
 

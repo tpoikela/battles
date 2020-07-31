@@ -4,7 +4,7 @@
  */
 
 import RG from '../rg';
-import ROT from '../../../lib/rot';
+import {Room} from '../../../lib/rot-js/map/features';
 
 import * as Element from '../element';
 import {LevelGenerator, ILevelGenOpts} from './level-generator';
@@ -21,7 +21,6 @@ import {Path} from '../path';
 import {ELEM} from '../../data/elem-constants';
 
 const RNG = Random.getRNG();
-const Room = ROT.Map.Feature.Room;
 
 import {TCoord, ICoordXY, ItemConf} from '../interfaces';
 type CellMap = import('../map').CellMap;
@@ -220,7 +219,7 @@ export class CastleGenerator extends LevelGenerator {
         });
     }
 
-    public addToExtras(level: Level, tile, name: string): void {
+    public addToExtras(level: Level, tile, name: MarkerKey): void {
         const bbox = Geometry.convertBbox(tile);
         const cells = level.getMap().getFreeInBbox(bbox);
         cells.forEach((cell: Cell) => {
@@ -231,7 +230,7 @@ export class CastleGenerator extends LevelGenerator {
         });
         const room = new Room(bbox.ulx, bbox.uly, bbox.lrx, bbox.lry);
         const extras = level.getExtras();
-        (extras[name] as LevelExtraType[]).push(room);
+        (extras[name] as LevelExtraType[]).push(room as any);
     }
 
     /* Links (and first creates) levers and lever doors based on markers. */
@@ -342,6 +341,8 @@ const markers = {
     storeroom: 'S',
     vault: 'V'
 };
+
+type MarkerKey = keyof (typeof markers);
 
 /* Returns the function to generate castle cased based on surrounding
  * cells. */

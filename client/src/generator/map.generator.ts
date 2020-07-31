@@ -3,7 +3,7 @@
  * not generated here. */
 
 import RG from '../rg';
-import ROT from '../../../lib/rot';
+import * as ROT from '../../../lib/rot-js';
 import {CellMap} from '../map';
 import {Path} from '../path';
 import {Builder} from '../builder';
@@ -312,8 +312,7 @@ export class MapGenerator {
 
     /* Creates a cellular type dungeon and makes all areas connected.*/
     public createCellular(cols: number, rows: number) {
-        const map = new ROT.Map.Cellular(cols, rows,
-            {connected: true});
+        const map = new ROT.Map.Cellular(cols, rows, {});
         map.randomize(0.52);
         for (let i = 0; i < 5; i++) {map.create();}
         map.connect(null, 1);
@@ -1015,23 +1014,23 @@ export class MapGenerator {
     }
 
     /* Sets the generator for room generation.*/
-    public setGen(type, cols, rows): void {
+    public setGen(type: string, cols: number, rows: number, conf={}): void {
         this.cols = cols;
         this.rows = rows;
         type = type.toLowerCase();
         this._mapType = type;
         switch (type) {
-            case 'arctic': this._mapGen = new ROT.Map.Dungeon(cols, rows); break;
+            case 'arctic': this._mapGen = this.createEmptyFunc('arctic', cols, rows); break;
             case 'arena': this._mapGen = new ROT.Map.Arena(cols, rows); break;
             case 'cave': this._mapGen = new MapMiner(cols, rows); break;
             case 'cellular': this._mapGen = this.createCellular(cols, rows); break;
             case 'castle': break;
-            case 'crypt': this._mapGen = new ROT.Map.Uniform(cols, rows); break;
+            case 'crypt': this._mapGen = new ROT.Map.Uniform(cols, rows, conf); break;
             case 'digger': this._mapGen = new ROT.Map.Digger(cols, rows); break;
             case 'divided':
                 this._mapGen = new ROT.Map.DividedMaze(cols, rows); break;
-            case 'dungeon': this._mapGen = new ROT.Map.Rogue(cols, rows); break;
-            case 'empty': this._mapGen = new ROT.Map.Dungeon(cols, rows); break;
+            case 'dungeon': this._mapGen = new ROT.Map.Rogue(cols, rows, conf); break;
+            case 'empty': this._mapGen = this.createEmptyFunc('empty', cols, rows); break;
             case 'eller': this._mapGen = new ROT.Map.EllerMaze(cols, rows); break;
             case 'forest': this._mapGen = new MapForest(cols, rows); break;
             case 'lakes': this._mapGen = new MapForest(cols, rows); break;
@@ -1040,8 +1039,8 @@ export class MapGenerator {
             case 'miner': this._mapGen = new MapMiner(cols, rows); break;
             case 'mountain': this._mapGen = new MapMountain(cols, rows); break;
             case 'icey': this._mapGen = new ROT.Map.IceyMaze(cols, rows); break;
-            case 'rogue': this._mapGen = new ROT.Map.Rogue(cols, rows); break;
-            case 'uniform': this._mapGen = new ROT.Map.Uniform(cols, rows); break;
+            case 'rogue': this._mapGen = new ROT.Map.Rogue(cols, rows, conf); break;
+            case 'uniform': this._mapGen = new ROT.Map.Uniform(cols, rows, conf); break;
             case 'ruins': this._mapGen = this.createRuins(cols, rows); break;
             case 'rooms': this._mapGen = this.createRooms(cols, rows); break;
             case 'town': this._mapGen = new ROT.Map.Arena(cols, rows); break;
@@ -1051,6 +1050,16 @@ export class MapGenerator {
             default: RG.err('MapGen',
                 'setGen', 'this._mapGen type ' + type + ' is unknown');
         }
+    }
+
+    public createEmptyFunc(type: string, cols: number, rows: number): () => void {
+        if (type === 'empty') {
+            this.defaultMapElem = ELEM.FLOOR;
+        }
+        return () => {
+            const obj = this.createEmptyMap();
+            return obj.map;
+        };
     }
 
 }

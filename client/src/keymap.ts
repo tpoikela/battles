@@ -2,7 +2,7 @@
  * functions between dir-vectors and direction keys. */
 
 import RG from './rg';
-import ROT from '../../lib/rot';
+import * as ROT from '../../lib/rot-js';
 import {TCoord} from './interfaces';
 
 /* Lookup table object for movement and actions keys.*/
@@ -24,14 +24,14 @@ class KeyMap {
         this.moveKeyMap[Keys.KEY.MOVE_W] = 6;
         this.moveKeyMap[Keys.KEY.MOVE_NW] = 7;
 
-        this.moveKeyMap[ROT.VK_8] = 0;
-        this.moveKeyMap[ROT.VK_9] = 1;
-        this.moveKeyMap[ROT.VK_6] = 2;
-        this.moveKeyMap[ROT.VK_3] = 3;
-        this.moveKeyMap[ROT.VK_2] = 4;
-        this.moveKeyMap[ROT.VK_1] = 5;
-        this.moveKeyMap[ROT.VK_4] = 6;
-        this.moveKeyMap[ROT.VK_7] = 7;
+        this.moveKeyMap[ROT.KEYS.VK_8] = 0;
+        this.moveKeyMap[ROT.KEYS.VK_9] = 1;
+        this.moveKeyMap[ROT.KEYS.VK_6] = 2;
+        this.moveKeyMap[ROT.KEYS.VK_3] = 3;
+        this.moveKeyMap[ROT.KEYS.VK_2] = 4;
+        this.moveKeyMap[ROT.KEYS.VK_1] = 5;
+        this.moveKeyMap[ROT.KEYS.VK_4] = 6;
+        this.moveKeyMap[ROT.KEYS.VK_7] = 7;
     }
 
     public inMoveCodeMap(code: number): boolean {
@@ -231,59 +231,59 @@ Keys.KeyMap = new KeyMap();
 
 Keys.VK = {};
 /* eslint-disable */
-Keys.VK.a = ROT.VK_A + 32;
-Keys.VK.b = ROT.VK_B + 32;
-Keys.VK.c = ROT.VK_C + 32;
-Keys.VK.d = ROT.VK_D + 32;
-Keys.VK.e = ROT.VK_E + 32;
-Keys.VK.f = ROT.VK_F + 32;
-Keys.VK.g = ROT.VK_G + 32;
-Keys.VK.h = ROT.VK_H + 32;
-Keys.VK.i = ROT.VK_I + 32;
-Keys.VK.j = ROT.VK_J + 32;
-Keys.VK.k = ROT.VK_K + 32;
-Keys.VK.l = ROT.VK_L + 32;
-Keys.VK.m = ROT.VK_M + 32;
-Keys.VK.n = ROT.VK_N + 32;
-Keys.VK.o = ROT.VK_O + 32;
-Keys.VK.p = ROT.VK_P + 32;
-Keys.VK.q = ROT.VK_Q + 32;
-Keys.VK.r = ROT.VK_R + 32;
-Keys.VK.s = ROT.VK_S + 32;
-Keys.VK.t = ROT.VK_T + 32;
-Keys.VK.u = ROT.VK_U + 32;
-Keys.VK.v = ROT.VK_V + 32;
-Keys.VK.w = ROT.VK_W + 32;
-Keys.VK.x = ROT.VK_X + 32;
-Keys.VK.y = ROT.VK_Y + 32;
-Keys.VK.z = ROT.VK_Z + 32;
+Keys.VK.a = ROT.KEYS.VK_A + 32;
+Keys.VK.b = ROT.KEYS.VK_B + 32;
+Keys.VK.c = ROT.KEYS.VK_C + 32;
+Keys.VK.d = ROT.KEYS.VK_D + 32;
+Keys.VK.e = ROT.KEYS.VK_E + 32;
+Keys.VK.f = ROT.KEYS.VK_F + 32;
+Keys.VK.g = ROT.KEYS.VK_G + 32;
+Keys.VK.h = ROT.KEYS.VK_H + 32;
+Keys.VK.i = ROT.KEYS.VK_I + 32;
+Keys.VK.j = ROT.KEYS.VK_J + 32;
+Keys.VK.k = ROT.KEYS.VK_K + 32;
+Keys.VK.l = ROT.KEYS.VK_L + 32;
+Keys.VK.m = ROT.KEYS.VK_M + 32;
+Keys.VK.n = ROT.KEYS.VK_N + 32;
+Keys.VK.o = ROT.KEYS.VK_O + 32;
+Keys.VK.p = ROT.KEYS.VK_P + 32;
+Keys.VK.q = ROT.KEYS.VK_Q + 32;
+Keys.VK.r = ROT.KEYS.VK_R + 32;
+Keys.VK.s = ROT.KEYS.VK_S + 32;
+Keys.VK.t = ROT.KEYS.VK_T + 32;
+Keys.VK.u = ROT.KEYS.VK_U + 32;
+Keys.VK.v = ROT.KEYS.VK_V + 32;
+Keys.VK.w = ROT.KEYS.VK_W + 32;
+Keys.VK.x = ROT.KEYS.VK_X + 32;
+Keys.VK.y = ROT.KEYS.VK_Y + 32;
+Keys.VK.z = ROT.KEYS.VK_Z + 32;
 
-Keys.VK.A = ROT.VK_A;
-Keys.VK.B = ROT.VK_B;
-Keys.VK.C = ROT.VK_C;
-Keys.VK.D = ROT.VK_D;
-Keys.VK.E = ROT.VK_E;
-Keys.VK.F = ROT.VK_F;
-Keys.VK.G = ROT.VK_G;
-Keys.VK.H = ROT.VK_H;
-Keys.VK.I = ROT.VK_I;
-Keys.VK.J = ROT.VK_J;
-Keys.VK.K = ROT.VK_K;
-Keys.VK.L = ROT.VK_L;
-Keys.VK.M = ROT.VK_M;
-Keys.VK.N = ROT.VK_N;
-Keys.VK.O = ROT.VK_O;
-Keys.VK.P = ROT.VK_P;
-Keys.VK.Q = ROT.VK_Q;
-Keys.VK.R = ROT.VK_R;
-Keys.VK.S = ROT.VK_S;
-Keys.VK.T = ROT.VK_T;
-Keys.VK.U = ROT.VK_U;
-Keys.VK.V = ROT.VK_V;
-Keys.VK.W = ROT.VK_W;
-Keys.VK.X = ROT.VK_X;
-Keys.VK.Y = ROT.VK_Y;
-Keys.VK.Z = ROT.VK_Z;
+Keys.VK.A = ROT.KEYS.VK_A;
+Keys.VK.B = ROT.KEYS.VK_B;
+Keys.VK.C = ROT.KEYS.VK_C;
+Keys.VK.D = ROT.KEYS.VK_D;
+Keys.VK.E = ROT.KEYS.VK_E;
+Keys.VK.F = ROT.KEYS.VK_F;
+Keys.VK.G = ROT.KEYS.VK_G;
+Keys.VK.H = ROT.KEYS.VK_H;
+Keys.VK.I = ROT.KEYS.VK_I;
+Keys.VK.J = ROT.KEYS.VK_J;
+Keys.VK.K = ROT.KEYS.VK_K;
+Keys.VK.L = ROT.KEYS.VK_L;
+Keys.VK.M = ROT.KEYS.VK_M;
+Keys.VK.N = ROT.KEYS.VK_N;
+Keys.VK.O = ROT.KEYS.VK_O;
+Keys.VK.P = ROT.KEYS.VK_P;
+Keys.VK.Q = ROT.KEYS.VK_Q;
+Keys.VK.R = ROT.KEYS.VK_R;
+Keys.VK.S = ROT.KEYS.VK_S;
+Keys.VK.T = ROT.KEYS.VK_T;
+Keys.VK.U = ROT.KEYS.VK_U;
+Keys.VK.V = ROT.KEYS.VK_V;
+Keys.VK.W = ROT.KEYS.VK_W;
+Keys.VK.X = ROT.KEYS.VK_X;
+Keys.VK.Y = ROT.KEYS.VK_Y;
+Keys.VK.Z = ROT.KEYS.VK_Z;
 /* eslint-enable */
 
 Keys.VK.COMMA = 44;
@@ -314,7 +314,7 @@ Keys.selectIndexToCode = (indexChar: string | number): number => {
     const arrayIndex = Keys.menuIndices.findIndex(val => val === indexChar);
     if (arrayIndex >= 0) {
         if (arrayIndex >= 0 && arrayIndex <= 9) {
-            return ROT.VK_0 + arrayIndex;
+            return ROT.KEYS.VK_0 + arrayIndex;
         }
         else if (reCharLC.test(indexChar as string)) {
             const addToCode = arrayIndex - Keys.menuIndices.indexOf('a');
@@ -322,7 +322,7 @@ Keys.selectIndexToCode = (indexChar: string | number): number => {
         }
         else if (reCharUC.test(indexChar as string)) {
             const addToCode = arrayIndex - Keys.menuIndices.indexOf('A');
-            return ROT.VK_A + addToCode;
+            return ROT.KEYS.VK_A + addToCode;
         }
     }
     RG.err('RG', 'selectIndexToCode',
@@ -333,58 +333,58 @@ Keys.selectIndexToCode = (indexChar: string | number): number => {
 
 /* Converts the keycode into a selection index starting from 0. */
 Keys.codeToIndex = (code: number): number => {
-    if (code >= ROT.VK_0 && code <= ROT.VK_9) {
-        return code - ROT.VK_0;
+    if (code >= ROT.KEYS.VK_0 && code <= ROT.KEYS.VK_9) {
+        return code - ROT.KEYS.VK_0;
     }
     else if (code >= Keys.VK.a && code <= Keys.VK.z) {
         return code - Keys.VK.a + Keys.menuIndices.indexOf('a');
     }
-    else if (code >= ROT.VK_A && code <= ROT.VK_Z) {
-        return code - ROT.VK_A + Keys.menuIndices.indexOf('A');
+    else if (code >= ROT.KEYS.VK_A && code <= ROT.KEYS.VK_Z) {
+        return code - ROT.KEYS.VK_A + Keys.menuIndices.indexOf('A');
     }
     return -1;
 };
 
 /* Returns true if keyCode corresponds to a numeric key. */
 Keys.isNumeric = (keyCode: number): boolean => {
-    return keyCode >= ROT.VK_0 && keyCode <= ROT.VK_9;
+    return keyCode >= ROT.KEYS.VK_0 && keyCode <= ROT.KEYS.VK_9;
 };
 
 Keys.KEY = {};
 
 // Assign ROT keys to meaningful constants
-Keys.KEY.MOVE_N = ROT.VK_W + 32;
-Keys.KEY.MOVE_NE = ROT.VK_E + 32;
-Keys.KEY.MOVE_E = ROT.VK_D + 32;
-Keys.KEY.MOVE_SE = ROT.VK_C + 32;
-Keys.KEY.MOVE_S = ROT.VK_X + 32;
-Keys.KEY.MOVE_SW = ROT.VK_Z + 32;
-Keys.KEY.MOVE_W = ROT.VK_A + 32;
-Keys.KEY.MOVE_NW = ROT.VK_Q + 32;
+Keys.KEY.MOVE_N = ROT.KEYS.VK_W + 32;
+Keys.KEY.MOVE_NE = ROT.KEYS.VK_E + 32;
+Keys.KEY.MOVE_E = ROT.KEYS.VK_D + 32;
+Keys.KEY.MOVE_SE = ROT.KEYS.VK_C + 32;
+Keys.KEY.MOVE_S = ROT.KEYS.VK_X + 32;
+Keys.KEY.MOVE_SW = ROT.KEYS.VK_Z + 32;
+Keys.KEY.MOVE_W = ROT.KEYS.VK_A + 32;
+Keys.KEY.MOVE_NW = ROT.KEYS.VK_Q + 32;
 
 Keys.KEY.ABILITY = Keys.VK.k;
-Keys.KEY.CHAT = ROT.VK_C;
-Keys.KEY.DELETE = ROT.VK_D;
-Keys.KEY.DOOR = ROT.VK_O + 32;
-Keys.KEY.FIGHT = ROT.VK_F + 32;
-Keys.KEY.GIVE = ROT.VK_G;
+Keys.KEY.CHAT = ROT.KEYS.VK_C;
+Keys.KEY.DELETE = ROT.KEYS.VK_D;
+Keys.KEY.DOOR = ROT.KEYS.VK_O + 32;
+Keys.KEY.FIGHT = ROT.KEYS.VK_F + 32;
+Keys.KEY.GIVE = ROT.KEYS.VK_G;
 Keys.KEY.GOTO = Keys.VK.g;
 Keys.KEY.JUMP = Keys.VK.j;
-Keys.KEY.LOOK = ROT.VK_L + 32;
+Keys.KEY.LOOK = ROT.KEYS.VK_L + 32;
 Keys.KEY.MARK = Keys.VK.b;
-Keys.KEY.MULTI = ROT.VK_SPACE;
+Keys.KEY.MULTI = ROT.KEYS.VK_SPACE;
 Keys.KEY.NEXT = Keys.VK.n;
-Keys.KEY.NEXT_ITEM = ROT.VK_H + 32;
-Keys.KEY.ORDER = ROT.VK_O;
+Keys.KEY.NEXT_ITEM = ROT.KEYS.VK_H + 32;
+Keys.KEY.ORDER = ROT.KEYS.VK_O;
 Keys.KEY.PICKUP = Keys.VK.COMMA;
-Keys.KEY.POWER = ROT.VK_P + 32;
-Keys.KEY.PREV = ROT.VK_P + 32;
+Keys.KEY.POWER = ROT.KEYS.VK_P + 32;
+Keys.KEY.PREV = ROT.KEYS.VK_P + 32;
 Keys.KEY.QUIT_MENU = Keys.VK.q;
-Keys.KEY.READ = ROT.VK_R;
-Keys.KEY.REST = ROT.VK_S + 32;
-Keys.KEY.RUN = ROT.VK_R + 32;
+Keys.KEY.READ = ROT.KEYS.VK_R;
+Keys.KEY.REST = ROT.KEYS.VK_S + 32;
+Keys.KEY.RUN = ROT.KEYS.VK_R + 32;
 Keys.KEY.SELECT = Keys.VK.s;
-Keys.KEY.SELECT_ALL = ROT.VK_A;
+Keys.KEY.SELECT_ALL = ROT.KEYS.VK_A;
 Keys.KEY.TARGET = Keys.VK.t;
 Keys.KEY.USE_ABILITY = Keys.VK.k;
 Keys.KEY.USE_STAIRS_DOWN = Keys.VK.GT;
@@ -393,18 +393,18 @@ Keys.KEY.YES = Keys.VK.y;
 Keys.KEY.NO = Keys.VK.n;
 Keys.KeyMap.initMap();
 
-Keys.KEY.NO_ACTION = ROT.VK_CAPS_LOCK;
+Keys.KEY.NO_ACTION = ROT.KEYS.VK_CAPS_LOCK;
 
 // Used in the GUI only
 Keys.GUI = {};
-Keys.GUI.CharInfo = ROT.VK_I;
+Keys.GUI.CharInfo = ROT.KEYS.VK_I;
 Keys.GUI.Goto = Keys.KEY.GOTO;
-Keys.GUI.Help = ROT.VK_H;
-Keys.GUI.Help2 = ROT.VK_QUESTION_MARK;
+Keys.GUI.Help = ROT.KEYS.VK_H;
+Keys.GUI.Help2 = ROT.KEYS.VK_QUESTION_MARK;
 Keys.GUI.Inv = Keys.VK.i;
 Keys.GUI.Look = Keys.VK.l;
 Keys.GUI.Map = Keys.VK.m;
-Keys.GUI.OwMap = ROT.VK_M;
+Keys.GUI.OwMap = ROT.KEYS.VK_M;
 Keys.GUI.Use = Keys.VK.u;
 
 Keys.isValidKey = (keyCode: number): boolean => {

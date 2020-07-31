@@ -11,7 +11,9 @@ import EditorContextMenu from './editor-context-menu';
 import EditorClickHandler from './editor-click-handler';
 
 import RG from '../src/rg';
-import ROT from '../../lib/rot';
+import * as ROT from '../../lib/rot-js';
+import {MapMiner} from '../../lib/map.miner';
+import {MapWall} from '../../lib/map.wall';
 import {AbandonedFort, abandonedFortConf} from '../data/abandoned-fort';
 import {Capital} from '../data/capital';
 import {CellMap} from '../src/map';
@@ -466,17 +468,17 @@ export default class GameEditor extends Component {
   /* Handles some quick keys for faster placement. */
   public handleKeyDown(evt) {
     const keyCode = this.nextCode = evt.keyCode;
-    if (keyCode === ROT.VK_PERIOD) {
+    if (keyCode === ROT.KEYS.VK_PERIOD) {
       this.setState({elementType: 'floor'});
       this.insertElement();
     }
-    else if (keyCode === ROT.VK_W) {
+    else if (keyCode === ROT.KEYS.VK_W) {
       this.setState({elementType: 'wall'});
       this.insertElement();
     }
     else if (KeyMap.inMoveCodeMap(keyCode)) {
       let mult = 1;
-      if (keyCode >= ROT.VK_1 && keyCode <= ROT.VK_9) {
+      if (keyCode >= ROT.KEYS.VK_1 && keyCode <= ROT.KEYS.VK_9) {
         mult = 10;
       }
 
@@ -1109,7 +1111,7 @@ export default class GameEditor extends Component {
       };
     }
     else if (value === 'wall') {
-      const wallGen = new ROT.Map.Wall();
+      const wallGen = new MapWall(0, 0);
       return wallGen._options;
     }
     else if (value === 'abandoned_fort') {
@@ -1137,7 +1139,7 @@ export default class GameEditor extends Component {
       return Gen.NestGenerator.getOptions();
     }
     else if (value === 'cave') {
-      const caveGen = new ROT.Map.Miner();
+      const caveGen = new MapMiner(0, 0);
       const conf = caveGen._options;
       delete conf.rng;
       return conf;
