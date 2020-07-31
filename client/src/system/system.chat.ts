@@ -3,10 +3,11 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {Chat, ChatBase} from '../chat';
 import {SystemQuest} from './system.quest';
-import {TCoord, ILoreOpt, ILoreEntry, TLoreMsg} from '../interfaces';
+import {TCoord, ILoreOpt, ILoreEntry, TLoreMsg, IQuestTarget} from '../interfaces';
 import {BaseActor} from '../actor';
 import {Lore, formatMsg} from '../../data/lore';
 import {Constraints} from '../constraints';
+import {Random} from '../random';
 
 import {ComponentLore} from '../component/component';
 
@@ -18,6 +19,7 @@ const NO_ACTORS_FOUND: BaseActor[] = [];
 const QUERY_LOC_FROM_MEM = 'queryLocationFromMemory';
 
 const ERROR_STR = '<ERROR: You should not see this. A bug found >';
+const RNG = Random.getRNG();
 
 /* This system handles all entity chat operations. */
 export class SystemChat extends SystemBase {
@@ -89,6 +91,7 @@ export class SystemChat extends SystemBase {
                 this.addGenericLoreItems(chatter, actor, chatObj);
                 this.addZoneLoreItems(ent, actor, chatObj);
             }
+
         }
 
         if (chatObj) {
@@ -276,12 +279,14 @@ export class SystemChat extends SystemBase {
 
     /* Checks if initiator of chat is on quest and needs to query for any
      * information. */
-    public addQuestTargetToChat(target, actor, chatObj: ChatBase): void {
+    public addQuestTargetToChat(target: IQuestTarget, actor, chatObj: ChatBase): void {
         const aName = actor.getName();
         const tName = target.name;
         let resp = null;
         let inMemory = false;
         [inMemory, resp] = this.actorHasInMemory(target, actor, chatObj);
+
+        const askedQuestions: {[key: string]: boolean} = {};
 
         if (!inMemory) {
             // Check if zone Lore has any info about this one
@@ -314,10 +319,14 @@ export class SystemChat extends SystemBase {
                     RG.gameInfo(msg);
                 };
             }
-            chatObj.add({
-                name: `Do you know where is ${tName}`,
-                option: resp
-            });
+            const question = `Do you know where is ${tName}?`;
+            if (!askedQuestions[question]) {
+                askedQuestions[question] = true;
+                chatObj.add({
+                    name: question,
+                    option: resp
+                });
+            }
         }
     }
 
@@ -331,9 +340,16 @@ export class SystemChat extends SystemBase {
             const topics: string[] = loreComp.getLoreTopics();
             topics.forEach((name: string) => {
 
+                const usedQuestions: {[key: string]: boolean} = {};
                 const entries: ILoreEntry[] = loreComp.getKey({topic: name});
+                RNG.shuffle(entries);
+
                 entries.forEach((entry: ILoreEntry) => {
                     const question = this.getTopicQuestion(actor, name, entry);
+                    if (usedQuestions[question]) {
+                        return;
+                    }
+                    usedQuestions[question] = true;
                     chatObj.add({
                         name: question,
                         option: () => {
@@ -459,6 +475,9 @@ export class SystemChat extends SystemBase {
                         return {xy: [x, y], name};
                     }
                     else {
+                        if (actor.getID() === id) {
+                            return `I am ${name}. What do you need?`;
+                        }
                         return `I haven't seen ${name} around here.`;
                     }
                 }
@@ -499,7 +518,7 @@ export class SystemChat extends SystemBase {
         return ERROR_STR;
     }
 
-    protected actorHasInMemory(target, actor, chatObj): [boolean, any] {
+    protected actorHasInMemory(target: IQuestTarget, actor, chatObj): [boolean, any] {
         const aName = actor.getName();
         const tName = target.name;
         let resp = null;
@@ -514,6 +533,14 @@ export class SystemChat extends SystemBase {
             msg += ` I saw ${tName} ${dir} from here.`;
             RG.gameInfo(msg);
             return [true, resp];
+        }
+        else if (target.targetType === 'location') {
+            if (id === actor.getLevel().getID()) {
+                resp = chatObj.getSelectionObject();
+                const msg = `This place is ${tName}.`;
+                RG.gameInfo(msg);
+                return [true, resp];
+            }
         }
         return [false, resp];
     }

@@ -30,6 +30,7 @@ type BBox = import('./bbox').BBox;
 
 export type Maybe<T> = T | null | undefined;
 
+/*
 export type TNoFuncVal =
     boolean
     | string
@@ -38,6 +39,9 @@ export type TNoFuncVal =
     | undefined
     | NoFunctionObject
     | NoFunctionArray;
+    */
+
+export type TNoFuncVal = Exclude<any, Function>;
 
 export interface NoFunctionObject {
     [key: string]: TNoFuncVal;
@@ -636,7 +640,7 @@ export interface ILoreEntry {
 
 export type AnyJson =  boolean | number | string | null | JsonArray | JsonMap;
 export interface JsonMap {  [key: string]: AnyJson; }
-export interface JsonArray extends Array<AnyJson> {}
+type JsonArray = AnyJson[];
 
 //----------------------------
 // Actor needs and schedules
@@ -680,3 +684,28 @@ export interface ISchedEntry {
     in?: {bbox: BBox, levelID: number};
     needs: INeedEntry[];
 };
+
+//----------------------
+// Quest-related items
+//----------------------
+
+export interface IQuestTarget {
+    isCompleted: boolean;
+    name: string;
+    id: number;
+    subQuestID: number;
+    targetType: string;
+}
+
+
+//------------------------------------
+// Map generation related interfaces
+//------------------------------------
+
+export interface IMiner {
+    x: number;
+    y: number;
+    dirWeights: {[key: string]: number};
+    dugCallback?: (x: number, y: number, miner: IMiner) => void;
+}
+

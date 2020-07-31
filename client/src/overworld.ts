@@ -370,7 +370,7 @@ OverWorld.CoordMap = CoordMap;
  */
 OverWorld.createOverWorld = (conf = {}) => {
     // 1st generate the high-level map
-    const overworld = OWMap.createOverWorld(conf);
+    const overworld: OWMap = OWMap.createOverWorld(conf);
     // Then use this to generate placement details
     return OverWorld.createOverWorldLevel(overworld, conf);
 };
@@ -379,7 +379,7 @@ OverWorld.createOverWorld = (conf = {}) => {
  * build the features using Factory.World.
  * @return [Map.Level, conf] - Generated level and Factory config
  * */
-OverWorld.createOverWorldLevel = (overworld, conf) => {
+OverWorld.createOverWorldLevel = (overworld: OWMap, conf) => {
     const coordMap = new CoordMap();
     coordMap.worldCols = conf.worldX || 400;
     coordMap.worldRows = conf.worldY || 400;
@@ -403,7 +403,7 @@ OverWorld.createOverWorldLevel = (overworld, conf) => {
 //---------------------------------------------------------------------------
 
 /* Creates the overworld level. Returns RG.Map.Level + conf object. */
-function buildMapLevel(ow, coordMap): [Level, WorldConf] {
+function buildMapLevel(ow: OWMap, coordMap): [Level, WorldConf] {
     const {worldCols, worldRows, xMap, yMap, nTilesX, nTilesY} = coordMap;
 
     const sizeX = ow.getSizeX();
@@ -1475,6 +1475,7 @@ function getMainQuestLoreComps(
     const comps: IF.IAddCompObj[] = [];
     const xy: TCoord = [x, y];
     const loreCoord: TCoord[] = Geometry.getBoxAround(x, y, loreRange);
+    let loreAdded = false;
 
     if (ow.hasPathAt(xy)) {
         const path: IF.ICoordXY[] = ow.getPathAtXY(xy);
@@ -1496,6 +1497,7 @@ function getMainQuestLoreComps(
             owLore.addXYKnownBy(xy, lXY);
             owLore.addXYKnownBy(lXY, xy);
         });
+        loreAdded = true;
     }
     else {
         // If we're not on main path, check if a surrounding cell is.
@@ -1509,6 +1511,14 @@ function getMainQuestLoreComps(
             owLore.addXYKnownBy(lXY, xy);
             owLore.addXYKnownBy(xy, lXY);
         });
+        loreAdded = true;
+    }
+
+    if (!loreAdded) {
+        debug(`${x},${y} NO lore was added`);
+    }
+    else {
+        debug(`${x},${y} lore was added`);
     }
     return comps;
 }

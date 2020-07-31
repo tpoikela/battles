@@ -263,7 +263,14 @@ export class NestGenerator extends LevelGenerator {
         const shells: IShell = [];
         const parser = ObjectShell.getParser();
         for (let i = 0; i < 5; i++) {
-            shells.push(ActorGen.genShell(actorConstr));
+            const newShell = ActorGen.genShell(actorConstr);
+            if (newShell) {
+                shells.push(newShell);
+            }
+            else {
+                RG.err('NestGenerator', 'getActorsForNest',
+                    'Failed to create shell with ' + JSON.stringify(actorConstr));
+            }
         }
         shells.forEach((shell: IShell) => {
             for (let i = 0; i < 5; i++) {

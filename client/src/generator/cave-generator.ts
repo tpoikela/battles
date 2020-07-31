@@ -14,12 +14,14 @@ import {Geometry} from '../geometry';
 import {Random} from '../random';
 import {ELEM} from '../../data/elem-constants';
 import * as Element from '../element';
-import {TCoord, ConstBaseElem, ICoordXY} from '../interfaces';
+import {TCoord, ConstBaseElem, ICoordXY, IMiner} from '../interfaces';
 
 type Cell = import('../map.cell').Cell;
 type CellMap = import('../map').CellMap;
 
 const RNG = Random.getRNG();
+
+const NEST_RACES = ['orc', 'naga', 'ratling', 'gnome', 'teradin', 'elf'];
 
 const ElementMarker = Element.ElementMarker;
 
@@ -27,15 +29,9 @@ interface FreeCellMap {
     [key: string]: Cell;
 }
 
-export interface Miner {
-    x: number;
-    y: number;
-    dirWeights: {[key: string]: number};
-    dugCallback?: (x: number, y: number, miner: Miner) => void;
-}
 
 export interface MinersMap {
-    [key: string]: Miner;
+    [key: string]: IMiner;
 }
 
 
@@ -45,7 +41,7 @@ interface MapOpts {
     startX?: number;
     startY?: number;
     dirWeights?: {[key: string]: number};
-    addMiners?: Miner[];
+    addMiners?: IMiner[];
 }
 
 interface CaveOpts extends ILevelGenOpts {
@@ -84,14 +80,14 @@ export class CaveGenerator extends LevelGenerator {
 
         this._addEncounters(level, conf);
 
-        this.removeMarkers(level, conf);
-
         this.embedNest(level, conf);
+
+        this.removeMarkers(level, conf);
         return level;
     }
 
     /* Creates the Map.Level object with walls/floor and cave-flavor. */
-    public _createLevel(cols, rows, conf): Level {
+    public _createLevel(cols: number, rows: number, conf): Level {
         const mapOpts: MapOpts = this._createMapOptions(cols, rows, conf);
         const mapgen = new MapGenerator();
         mapgen.setGen('cave', cols, rows);
@@ -386,11 +382,13 @@ export class CaveGenerator extends LevelGenerator {
             const nest = new NestGenerator();
             const nestConf: Partial<NestOpts> = {
                 actorConstr: {
-                    race: 'orc'
+                    race: RNG.arrayGetRand(NEST_RACES)
                 },
                 mapConf: {
                     tilesX, tilesY,
                     genParams: {x: [1, 1, 1], y: [1, 1, 1]},
+                    wallType: 'wallcave',
+                    floorType: 'floorcave'
                 },
                 embedOpts: {level}
             };
@@ -406,7 +404,7 @@ export class CaveGenerator extends LevelGenerator {
 export const Miners: any = {};
 
 /* Returns an object containing the base miners for different directions. */
-function getMiners(cols, rows, border = 1): MinersMap {
+function getMiners(cols: number, rows: number, border = 1): MinersMap {
     const midX = Math.round(cols / 2);
     const midY = Math.round(rows / 2);
 

@@ -14,7 +14,7 @@ import * as Component from './component';
 import * as World from './world';
 import {Dice} from './dice';
 import {CellMap} from './map';
-import {TCoord, IPlayerCmdInput} from './interfaces';
+import {TCoord, IPlayerCmdInput, JsonMap} from './interfaces';
 import {ObjectShell} from './objectshellparser';
 
 type Cell = import('./map.cell').Cell;
@@ -29,6 +29,7 @@ type AreaTile = World.AreaTile;
 type WorldBase = World.WorldBase;
 type ZoneBase = World.ZoneBase;
 type Frame = import('./animation').Frame;
+import {IMenu} from './menu';
 
 const POOL = EventPool.getPool();
 
@@ -672,7 +673,7 @@ export class GameMain {
     }
 
     /* Serializes the game object into JSON. */
-    public toJSON() {
+    public toJSON(): JsonMap {
         const parser = ObjectShell.getParser();
         const obj: any = { // TODO fix typings
             gameID: this.gameID,
@@ -701,10 +702,10 @@ export class GameMain {
             obj.places = {};
         }
         else {
-            const places = { };
+            const places: JsonMap = { };
             Object.keys(this._places).forEach((name) => {
                 const place = this._places[name];
-                places[name] = place.toJSON();
+                places[name] = place.toJSON() as any;
             });
             obj.places = places;
         }
@@ -727,12 +728,12 @@ export class GameMain {
     }
 
     /* Returns true if the menu is shown instead of the level. */
-    public isMenuShown() {
+    public isMenuShown(): boolean {
         return this._engine.isMenuShown();
     }
 
     /* Returns the current menu object. */
-    public getMenu() {
+    public getMenu(): IMenu | null {
         const player = this.getPlayer();
         if (player) {
             return (player.getBrain() as BrainPlayer).getMenu();
@@ -741,7 +742,7 @@ export class GameMain {
     }
 
     /* Sets the function to be called for animations. */
-    public setAnimationCallback(cb) {
+    public setAnimationCallback(cb): void {
         if (typeof cb === 'function') {
             this._engine.animationCallback = cb;
         }

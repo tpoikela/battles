@@ -30,7 +30,7 @@ const config = {
         port: 3030,
         // index.html will be server from here
         contentBase: path.join(__dirname, './'),
-        watchContentBase: true
+        watchContentBase: false
     },
 
     resolve: {

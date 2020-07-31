@@ -336,10 +336,11 @@ export class SystemQuest extends SystemBase {
         const level = targetComp.getTarget();
         const questTargets = questComp.getQuestTargets();
         const targetObj = questTargets.find(obj => obj.id === level.getID());
-        this.setTargetCompleted(targetObj, questComp);
-
-        const msg = `${ent.getName()} has arrived to a quest target location!`;
-        questMsg({cell: ent.getCell(), msg});
+        if (!targetObj.isCompleted) {
+            this.setTargetCompleted(targetObj, questComp);
+            const msg = `${ent.getName()} has arrived to a quest target location!`;
+            questMsg({cell: ent.getCell(), msg});
+        }
     }
 
     /* Called when quest event where an actor is killed happens. */

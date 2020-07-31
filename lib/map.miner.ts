@@ -3,7 +3,7 @@ import ROT from './rot';
 import RG from '../client/src/rg';
 import {Geometry as Geom} from '../client/src/geometry';
 import {Path} from '../client/src/path';
-import {TCoord} from '../client/src/interfaces';
+import {TCoord, IMiner} from '../client/src/interfaces';
 import '../client/src/utils';
 
 import dbg = require('debug');
@@ -118,7 +118,6 @@ export const MapMiner = function(width, height, options: MapOptions = {}) {
     this._verifyRngFunctions();
 
 };
-// MapMiner.extend(ROT.Map.Cellular);
 MapMiner.extend(ROT.Map);
 
 MapMiner.prototype.dbg = function(msg, ...args) {
@@ -494,7 +493,8 @@ MapMiner.prototype.connectFilledRegions = function(cellsByFill, cellLUT) {
 
 };
 
-/* Returns information about the map. */
+/* Returns information about the map. This can be used for placing other
+ * features to the generated map. */
 MapMiner.prototype.getMapData = function() {
     const addMiners = this._options.addMiners;
     const startPoints = addMiners.map(miner => [miner.x, miner.y]);
@@ -512,7 +512,7 @@ MapMiner.prototype._getPath = function(x0, y0, x1, y1) {
     return Path.getShortestPath(x0, y0, x1, y1);
 };
 
-MapMiner.prototype.smoothWalls = function(nRounds) {
+MapMiner.prototype.smoothWalls = function(nRounds): void {
     for (let i = 0; i < nRounds; i++) {
         for (let x = 1; x < this._width - 1; x++) {
             for (let y = 1; y < this._height - 1; y++) {
@@ -538,7 +538,7 @@ MapMiner.prototype.smoothWalls = function(nRounds) {
 };
 
 /* Marks the cell as dug, and records largest seen coordinates. */
-MapMiner.prototype._markAsDug = function(x, y, miner) {
+MapMiner.prototype._markAsDug = function(x: number, y: number, miner): void {
     if (x < this._minX) {this._minX = x;}
     if (x > this._maxX) {this._maxX = x;}
     if (y < this._minY) {this._minY = y;}
@@ -552,7 +552,7 @@ MapMiner.prototype._markAsDug = function(x, y, miner) {
     }
 };
 
-MapMiner.prototype._verifyRngFunctions = function() {
+MapMiner.prototype._verifyRngFunctions = function(): void {
     const {rng} = this._options;
     const funcs = ['getUniform', 'getUniformInt', 'getWeightedValue'];
     funcs.forEach(func => {

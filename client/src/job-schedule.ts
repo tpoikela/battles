@@ -58,7 +58,7 @@ export class JobSchedule {
         this.addEntry(testSched1);
         this.addEntry(testSched2);
         this._debug = debug.enabled;
-        this._debug = true;
+        // this._debug = true;
     }
 
     public setDebug(enable: boolean): void {

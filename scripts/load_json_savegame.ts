@@ -1,12 +1,20 @@
 #! /usr/bin/env node
 
-require('babel-register');
+import cmdLineArgs from 'command-line-args';
+import fs from 'fs';
+import RG from '../client/src/rg';
+import {FromJSON} from '../client/src/game.fromjson';
+import {GameMain} from '../client/src/game';
+import {Keys} from '../client/src/keymap';
 
-const cmdLineArgs = require('command-line-args');
-const fs = require('fs');
-const RG = require('../client/src/battles');
+interface Opt {
+    name: string;
+    type: any;
+    alias?: string;
+    descr: string;
+}
 
-const optDefs = [
+const optDefs: Opt[] = [
     {name: 'all', type: Boolean, descr: 'Loads each file in directory'},
     {name: 'delete', type: Boolean, descr: 'Deletes invalid save game'},
     {name: 'json', type: String, descr: 'JSON file to load'},
@@ -32,9 +40,9 @@ else {
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------
 
-function outputPrettyVersion(jsonFile) {
+function outputPrettyVersion(jsonFile: string) {
     const buf = fs.readFileSync(jsonFile);
-    const json = JSON.parse(buf);
+    const json = JSON.parse(buf.toString().trim());
 
     const baseName = (/^(.*)\.json/).exec(jsonFile)[1];
     if (baseName) {
@@ -50,9 +58,9 @@ function outputPrettyVersion(jsonFile) {
     }
 }
 
-function tryToLoadFile(jsonFile) {
+function tryToLoadFile(jsonFile: string) {
     const buf = fs.readFileSync(jsonFile);
-    const json = JSON.parse(buf);
+    const json = JSON.parse(buf.toString().trim());
 
     let allJSON = fs.readdirSync('save_dumps/');
     allJSON = allJSON.sort();
@@ -61,8 +69,9 @@ function tryToLoadFile(jsonFile) {
     let game = null;
 
     try {
-        const fromJSON = new RG.Game.FromJSON();
-        game = fromJSON.createGame(json);
+        const fromJSON = new FromJSON();
+        game = new GameMain();
+        game = fromJSON.createGame(json, game);
     }
     catch (e) {
         if (opts.delete) {
@@ -73,13 +82,13 @@ function tryToLoadFile(jsonFile) {
     }
 
     if (game) {
-        game.update({code: RG.VK_PERIOD});
+        game.update({code: Keys.VK.PERIOD});
     }
 }
 
 function usage() {
     console.log('Usage: load_json_savegame.js [opts]\n');
-    optDefs.forEach(opt => {
+    optDefs.forEach((opt: Opt) => {
         if (opt.alias) {
             console.log(`\t--${opt.name},-${opt.alias}\t- ${opt.descr}`);
         }

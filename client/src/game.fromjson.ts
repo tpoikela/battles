@@ -44,6 +44,7 @@ type Stairs = Element.ElementStairs;
 type ConnectionObj = Element.ConnectionObj;
 type ElementXY = Element.ElementXY;
 type WorldBase = World.WorldBase;
+type GameMain = import('./game').GameMain;
 
 const POOL = EventPool.getPool();
 
@@ -291,6 +292,9 @@ export class FromJSON {
             diceRng.setState(gameJSON.diceRng.state);
             Dice.RNG = diceRng;
         }
+
+        // We can restore scheduler/active levels here
+        this.restoreActiveLevels(game, gameJSON);
 
         this.IND = 0;
         return game;
@@ -1518,6 +1522,20 @@ export class FromJSON {
         msg += ` Available: ${Object.keys(this.id2level)}`;
         RG.err('Game.FromJSON', funcName, msg);
         return null;
+    }
+
+
+    public restoreActiveLevels(game: GameMain, gameJSON): void {
+        const engineJSON = gameJSON.engine;
+        engineJSON.activeLevels.forEach((levelID: number) => {
+            if (this.id2level[levelID]) {
+                game.addActiveLevel(this.id2level[levelID]);
+            }
+            else {
+                RG.warn('FromJSON', 'restoreActiveLevels',
+                    `Did not find active level ID ${levelID}`);
+            }
+        });
     }
 
 }

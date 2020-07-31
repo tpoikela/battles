@@ -71,4 +71,18 @@ describe('CaveGenerator', function() {
         expect(level).to.be.an.instanceof(Level);
         // level.debugPrintInASCII();
     });
+
+    it('can have embedded nests inside it', () => {
+        const caveGen = new CaveGenerator();
+        const conf = {
+            dungeonType: 'Lair', isCollapsed: false, maxDanger: 3
+        };
+        const level = caveGen.create(100, 50, conf);
+        level.debugPrintInASCII();
+
+        const elems = level.getElements();
+        elems.forEach(elem => {
+            console.log(elem);
+        });
+    });
 });

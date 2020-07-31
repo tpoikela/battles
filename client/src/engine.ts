@@ -584,7 +584,7 @@ export class Engine {
     public toJSON(): any {
         return {
             msgHandler: this._msg.toJSON(),
-            _activeLevels: this._activeLevels
+            activeLevels: this._activeLevels
         };
     }
 
