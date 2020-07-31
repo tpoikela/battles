@@ -425,6 +425,11 @@ export class Engine {
                 }
             }
         }
+        else {
+            // Level already in actives, move to the front only
+            this._activeLevels.splice(index, 1);
+            this._activeLevels.unshift(levelID);
+        }
     }
 
     public notify(evtName, args) {
@@ -578,7 +583,8 @@ export class Engine {
 
     public toJSON(): any {
         return {
-            msgHandler: this._msg.toJSON()
+            msgHandler: this._msg.toJSON(),
+            _activeLevels: this._activeLevels
         };
     }
 
