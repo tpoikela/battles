@@ -384,7 +384,7 @@ export class EvaluatorOrders extends EvaluatorBase {
     }
     */
 
-    public isOrder() {return true;}
+    public isOrder(): boolean {return true;}
 
 }
 Evaluator.Orders = EvaluatorOrders;
