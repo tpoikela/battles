@@ -24,6 +24,7 @@ export default class Uniform extends Dungeon {
     _unconnected: Room[];
     _map: number[][];
     _dug: number;
+    _startRoom: Room;
 
     constructor(width:number, height: number, options: Partial<Options>) {
         super(width, height);
@@ -49,6 +50,10 @@ export default class Uniform extends Dungeon {
         this._isWallCallback = this._isWallCallback.bind(this);
     }
 
+    startRoom(room: Room) {
+        this._startRoom = room;
+    }
+
     /**
 	 * Create a map. If the time limit has been hit, returns null.
 	 * @see ROT.Map#create
@@ -64,6 +69,11 @@ export default class Uniform extends Dungeon {
             this._rooms = [];
             this._unconnected = [];
             this._generateRooms();
+
+            if (this._startRoom) {
+                this._rooms.push(this._startRoom);
+                this._startRoom.create(this._digCallback);
+            }
             if (this._rooms.length < 2) { continue; }
             if (this._generateCorridors()) { break; }
         }

@@ -31,6 +31,8 @@ export default class Digger extends Dungeon {
     _walls: { [key:string]: number };
     _dug: number;
     _features: { [key:string]: number };
+    _startRoom: Room;
+    _extraRooms: Room[];
 
     constructor(width: number, height: number, options: Partial<Options> = {}) {
         super(width, height);
@@ -56,6 +58,20 @@ export default class Digger extends Dungeon {
         this._canBeDugCallback = this._canBeDugCallback.bind(this);
         this._isWallCallback = this._isWallCallback.bind(this);
         this._priorityWallCallback = this._priorityWallCallback.bind(this);
+    }
+
+    startRoom(room: Room) {
+        this._startRoom = room;
+    }
+
+    addRoom(room: Room) {
+        if (!this._startRoom) {
+            this._startRoom = room;
+        }
+        else {
+            if (!this._extraRooms) {this._extraRooms = [];}
+            this._extraRooms.push(room);
+        }
     }
 
     create(callback?: CreateCallback) {
@@ -144,11 +160,20 @@ export default class Digger extends Dungeon {
     _priorityWallCallback(x: number, y: number) { this._walls[x+','+y] = 2; };
 
     _firstRoom() {
-        const cx = Math.floor(this._width/2);
-        const cy = Math.floor(this._height/2);
-        const room = Room.createRandomCenter(cx, cy, this._options);
+        let room = this._startRoom;
+        if (!room) {
+            const cx = Math.floor(this._width/2);
+            const cy = Math.floor(this._height/2);
+            room = Room.createRandomCenter(cx, cy, this._options);
+        }
         this._rooms.push(room);
         room.create(this._digCallback);
+        if (this._extraRooms) {
+            this._extraRooms.forEach(extraRoom => {
+                this._rooms.push(extraRoom);
+                extraRoom.create(this._digCallback);
+            });
+        }
     }
 
     /**

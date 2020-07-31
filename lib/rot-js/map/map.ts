@@ -26,4 +26,19 @@ export default abstract class Map {
         }
         return map;
     }
+
+    getCols() {
+        return this._width;
+    }
+
+    getRows() {
+        return this._height;
+    }
+
+    getCenterXY() {
+        return [
+            Math.floor(this._width / 2),
+            Math.floor(this._height / 2)
+        ];
+    }
 }
