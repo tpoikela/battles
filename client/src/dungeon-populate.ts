@@ -350,105 +350,107 @@ export class DungeonPopulate {
         }
     }
 
+    /* Creates shops to the current level based on the config, and returns the
+     * House objects for these shops. */
     public createShops(level: Level, conf): House[] {
         const extras = level.getExtras();
         const shopHouses: House[] = [];
-        if (extras.hasOwnProperty('houses')) {
-            const houses = extras.houses;
-
-            const usedHouses: number[] = [];
-            let watchDog = 0;
-            extras.shops = [];
-            for (let n = 0; n < conf.nShops; n++) {
-                const shopObj = new WorldShop();
-
-                // Find the next (unused) index for a house
-                let index = RNG.randIndex(houses);
-                while (usedHouses.indexOf(index) >= 0) {
-                    index = RNG.randIndex(houses);
-                    ++watchDog;
-                    if (watchDog === (2 * houses.length)) {
-                        RG.err('DungeonPopulate', 'createShops',
-                            'WatchDog reached max houses');
-                    }
-                }
-                usedHouses.push(index);
-
-                const house = extras.houses[index];
-                shopHouses.push(house);
-                const floor = house.floor;
-                const [doorX, doorY] = house.door;
-                const doorCell = level.getMap().getCell(doorX, doorY);
-                if (!doorCell.hasDoor()) {
-                    const door = new Element.ElementDoor(true);
-                    level.addElement(door, doorX, doorY);
-                }
-
-                const keeper = this.createShopkeeper(conf);
-                const shopCoord = [];
-                let keeperAdded = false;
-                for (let i = 0; i < floor.length; i++) {
-                    const xy = floor[i];
-
-                    const shopElem = new Element.ElementShop();
-                    shopElem.setShopkeeper(keeper);
-                    level.addElement(shopElem, xy[0], xy[1]);
-
-                    if (i === 0) {
-                        keeperAdded = true;
-                        level.addActor(keeper, xy[0], xy[1]);
-                    }
-
-                    if (!conf.parser) {
-                        conf.parser = ObjectShell.getParser();
-                    }
-                    const item = this._itemFact.getShopItem(n, conf);
-                    if (!item) {
-                        const msg = 'item null. ' +
-                            `conf: ${JSON.stringify(conf)}`;
-                        RG.err('DungeonPopulate', 'createShop',
-                            `${msg} shopFunc/type${n} not well defined.`);
-                    }
-                    else {
-                        item.add(new Component.Unpaid());
-                        level.addItem(item, xy[0], xy[1]);
-                        shopCoord.push(xy);
-                    }
-                }
-
-                if (!keeperAdded) {
-                    const json = JSON.stringify(house);
-                    RG.err('DungeonPopulate', 'createShops',
-                        'Could not add keeper to ' + json);
-                }
-
-                if (keeper.has('Shopkeeper')) {
-                    const shopKeep = keeper.get('Shopkeeper');
-                    shopKeep.setCells(shopCoord);
-                    shopKeep.setLevelID(level.getID());
-                    shopKeep.setDoorXY(doorCell.getXY());
-                    const name = keeper.getType() + ' shopkeeper';
-                    keeper.setName(name);
-                    RG.addCellStyle(RG.TYPE_ACTOR, name,
-                        'cell-actor-shopkeeper');
-                    const randXY = RNG.arrayGetRand(shopCoord);
-                    if ((keeper.getBrain() as BrainGoalOriented).getGoal) {
-                        const evalShop = new Evaluator.Shopkeeper(1.5);
-                        evalShop.setArgs({xy: randXY});
-                        (keeper.getBrain() as BrainGoalOriented).getGoal().addEvaluator(evalShop);
-                    }
-                }
-
-                this.addShopLoreItem(level, keeper);
-
-                shopObj.setShopkeeper(keeper);
-                shopObj.setLevel(level);
-                shopObj.setCoord(shopCoord);
-                extras.shops.push(shopObj);
-            }
-        }
-        else {
+        if (!extras.hasOwnProperty('houses')) {
             RG.err('DungeonPopulate', 'createShops', 'No houses in extras.');
+            return shopHouses;
+        }
+
+        const houses = extras.houses!; // Has been checked already above
+
+        const usedHouses: number[] = [];
+        let watchDog = 0;
+        extras.shops = [];
+        for (let n = 0; n < conf.nShops; n++) {
+            const shopObj = new WorldShop();
+
+            // Find the next (unused) index for a house
+            let index = RNG.randIndex(houses);
+            while (usedHouses.indexOf(index) >= 0) {
+                index = RNG.randIndex(houses);
+                ++watchDog;
+                if (watchDog === (2 * houses.length)) {
+                    RG.err('DungeonPopulate', 'createShops',
+                        'WatchDog reached max houses');
+                }
+            }
+            usedHouses.push(index);
+
+            const house = extras.houses![index]; // Index is keyof houses
+            shopHouses.push(house);
+            const floor = house.floor;
+            const [doorX, doorY] = house.door;
+            const doorCell = level.getMap().getCell(doorX, doorY);
+            if (!doorCell.hasDoor()) {
+                const door = new Element.ElementDoor(true);
+                level.addElement(door, doorX, doorY);
+            }
+
+            const keeper = this.createShopkeeper(conf);
+            const shopCoord = [];
+            let keeperAdded = false;
+            for (let i = 0; i < floor.length; i++) {
+                const xy = floor[i];
+
+                const shopElem = new Element.ElementShop();
+                shopElem.setShopkeeper(keeper);
+                level.addElement(shopElem, xy[0], xy[1]);
+
+                if (i === 0) {
+                    keeperAdded = true;
+                    level.addActor(keeper, xy[0], xy[1]);
+                }
+
+                if (!conf.parser) {
+                    conf.parser = ObjectShell.getParser();
+                }
+                const item = this._itemFact.getShopItem(n, conf);
+                if (!item) {
+                    const msg = 'item null. ' +
+                        `conf: ${JSON.stringify(conf)}`;
+                    RG.err('DungeonPopulate', 'createShop',
+                        `${msg} shopFunc/type${n} not well defined.`);
+                }
+                else {
+                    item.add(new Component.Unpaid());
+                    level.addItem(item, xy[0], xy[1]);
+                    shopCoord.push(xy);
+                }
+            }
+
+            if (!keeperAdded) {
+                const json = JSON.stringify(house);
+                RG.err('DungeonPopulate', 'createShops',
+                    'Could not add keeper to ' + json);
+            }
+
+            if (keeper.has('Shopkeeper')) {
+                const shopKeep = keeper.get('Shopkeeper');
+                shopKeep.setCells(shopCoord);
+                shopKeep.setLevelID(level.getID());
+                shopKeep.setDoorXY(doorCell.getXY());
+                const name = keeper.getType() + ' shopkeeper';
+                keeper.setName(name);
+                RG.addCellStyle(RG.TYPE_ACTOR, name,
+                    'cell-actor-shopkeeper');
+                const randXY = RNG.arrayGetRand(shopCoord);
+                if ((keeper.getBrain() as BrainGoalOriented).getGoal) {
+                    const evalShop = new Evaluator.Shopkeeper(1.5);
+                    evalShop.setArgs({xy: randXY});
+                    (keeper.getBrain() as BrainGoalOriented).getGoal().addEvaluator(evalShop);
+                }
+            }
+
+            this.addShopLoreItem(level, keeper);
+
+            shopObj.setShopkeeper(keeper);
+            shopObj.setLevel(level);
+            shopObj.setCoord(shopCoord);
+            extras.shops.push(shopObj);
         }
         return shopHouses;
     }
