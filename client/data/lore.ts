@@ -88,6 +88,9 @@ const funcRe = new RegExp('[().]+');
 // Special variables which will be formatted:
 // <%= target.getXXX %> is replaced with value from func call target.getXXX()
 // <%= asker.getXXX.getYYY %> is replaced with value from call asker.getXXX().getYYY()
+// 'asker' is usually the player, 'target' the target of chat action. Use the
+// prep function, and don't use the template syntax <%=...%> directly for more
+// readable texts.
 
 Lore.generic = [
     {
@@ -137,7 +140,8 @@ Lore.mainQuest = [
     },
 ];
 
-
+// For these texts, 'name' and 'dir' will be replaced with location name and
+// textual dir.
 Lore.directions = [
     {text: [prep`There might be something interesting in ${'dir'} to explore`]},
     {text: [prep`Travel ${'dir'} if you are looking for adventures`]},
@@ -184,7 +188,7 @@ export function formatMsg(text: string, args: LoreFormatArgs): string {
 export function createDirNorthMsg(dir: string): string {
     const choices: ILoreEntry = RNG.arrayGetRand(Lore.northDirections);
     const templ: string = RNG.arrayGetRand(choices.text);
-    const msg =  formatMsg(templ, {dir});
+    const msg = formatMsg(templ, {dir});
     return msg;
 }
 
