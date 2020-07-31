@@ -1,0 +1,129 @@
+import Canvas from './canvas';
+import { DisplayOptions, DisplayData } from './types';
+
+/**
+ * @class Rectangular backend
+ * @private
+ */
+export default class Rect extends Canvas {
+    _spacingX: number;
+    _spacingY: number;
+    _canvasCache: {[key:string]: HTMLCanvasElement};
+    _options!: DisplayOptions;
+
+    static cache = false;
+
+    constructor() {
+        super();
+        this._spacingX = 0;
+        this._spacingY = 0;
+        this._canvasCache = {};
+    }
+
+    setOptions(options: DisplayOptions) {
+        super.setOptions(options);
+        this._canvasCache = {};
+    }
+
+    draw(data: DisplayData, clearBefore: boolean) {
+        if (Rect.cache) {
+            this._drawWithCache(data);
+        } else {
+            this._drawNoCache(data, clearBefore);
+        }
+    }
+
+    _drawWithCache(data: DisplayData) {
+        const [x, y, ch, fg, bg] = data;
+
+        const hash = ''+ch+fg+bg;
+        let canvas;
+        if (hash in this._canvasCache) {
+            canvas = this._canvasCache[hash];
+        } else {
+            const b = this._options.border;
+            canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+            canvas.width = this._spacingX;
+            canvas.height = this._spacingY;
+            ctx.fillStyle = bg;
+            ctx.fillRect(b, b, canvas.width-b, canvas.height-b);
+
+            if (ch) {
+                ctx.fillStyle = fg;
+                ctx.font = this._ctx.font;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const chars = ([] as string[]).concat(ch);
+                for (let i=0;i<chars.length;i++) {
+                    ctx.fillText(chars[i], this._spacingX/2, Math.ceil(this._spacingY/2));
+                }
+            }
+            this._canvasCache[hash] = canvas;
+        }
+
+        this._ctx.drawImage(canvas, x*this._spacingX, y*this._spacingY);
+    }
+
+    _drawNoCache(data: DisplayData, clearBefore: boolean) {
+        const [x, y, ch, fg, bg] = data;
+
+        if (clearBefore) {
+            const b = this._options.border;
+            this._ctx.fillStyle = bg;
+            this._ctx.fillRect(x*this._spacingX + b, y*this._spacingY + b, this._spacingX - b, this._spacingY - b);
+        }
+
+        if (!ch) { return; }
+
+        this._ctx.fillStyle = fg;
+
+        const chars = ([] as string[]).concat(ch);
+        for (let i=0;i<chars.length;i++) {
+            this._ctx.fillText(chars[i], (x+0.5) * this._spacingX, Math.ceil((y+0.5) * this._spacingY));
+        }
+    }
+
+    computeSize(availWidth: number, availHeight: number): [number, number] {
+        const width = Math.floor(availWidth / this._spacingX);
+        const height = Math.floor(availHeight / this._spacingY);
+        return [width, height];
+    }
+
+    computeFontSize(availWidth: number, availHeight: number) {
+        const boxWidth = Math.floor(availWidth / this._options.width);
+        let boxHeight = Math.floor(availHeight / this._options.height);
+
+        /* compute char ratio */
+        const oldFont = this._ctx.font;
+        this._ctx.font = '100px ' + this._options.fontFamily;
+        const width = Math.ceil(this._ctx.measureText('W').width);
+        this._ctx.font = oldFont;
+        const ratio = width / 100;
+
+        const widthFraction = ratio * boxHeight / boxWidth;
+        if (widthFraction > 1) { /* too wide with current aspect ratio */
+            boxHeight = Math.floor(boxHeight / widthFraction);
+        }
+        return Math.floor(boxHeight / this._options.spacing);
+    }
+
+    _normalizedEventToPosition(x:number, y:number): [number, number] {
+        return [Math.floor(x/this._spacingX), Math.floor(y/this._spacingY)];
+    }
+
+    _updateSize() {
+        const opts = this._options;
+        const charWidth = Math.ceil(this._ctx.measureText('W').width);
+        this._spacingX = Math.ceil(opts.spacing * charWidth);
+        this._spacingY = Math.ceil(opts.spacing * opts.fontSize);
+
+        if (opts.forceSquareRatio) {
+            this._spacingX = this._spacingY = Math.max(this._spacingX, this._spacingY);
+        }
+
+        this._ctx.canvas.width = opts.width * this._spacingX;
+        this._ctx.canvas.height = opts.height * this._spacingY;
+    }
+}
