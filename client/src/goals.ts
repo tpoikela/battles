@@ -189,7 +189,7 @@ export class GoalBase {
         else {
             const name = this.actor.getName();
             const msg = `Type: ${this.type}, actor: ${name}`;
-            throw new Error(`${msg} No subgoals in atomic goal`);
+            throw new Error(`${msg} No subgoals in non-terminal goal`);
         }
 
         --IND;
