@@ -59,6 +59,7 @@ export abstract class SystemBase {
     public compTypes: string[];
     public entities: {[key: string]: Entity};
     public enabled: boolean; // If set to false, system is disabled
+    public traceID: number;
 
     // If set to true, only one comp has to match the compTypes, otherwise all
     // components in compTypes must be present
@@ -107,7 +108,11 @@ export abstract class SystemBase {
             }
         }
 
-        this.debugEnabled = debug.enabled;
+        // For debugging particular actors
+        this.traceID = 107;
+
+        // this.debugEnabled = debug.enabled;
+        this.debugEnabled = true;
         this.rng = new Random(0);
     }
 
@@ -137,20 +142,30 @@ export abstract class SystemBase {
 
     public notify(evtName, obj) {
         if (obj.hasOwnProperty('add')) {
-            if (this.hasCompTypes(obj.entity)) {this.addEntity(obj.entity);}
+            if (this.hasCompTypes(obj.entity)) {
+                this.addEntity(obj.entity);
+
+                if (this.debugEnabled) {
+                    this._emitDbgMsg('Added', obj.entity);
+                }
+            }
         }
         else if (obj.hasOwnProperty('remove')) {
             // Must check if any needed comps are still present, before removing
             // the entity
             if (!this.hasCompTypes(obj.entity)) {
                 this.removeEntity(obj.entity);
+
+                if (this.debugEnabled) {
+                    this._emitDbgMsg('Removed', obj.entity);
+                }
             }
         }
     }
 
     /* Returns true if entity has all required component types, or if
      * compTypesAny if set, if entity has any required component. */
-    public hasCompTypes(entity): boolean {
+    public hasCompTypes(entity: Entity): boolean {
         const compTypes = this.compTypes;
         if (this.compTypesAny === false) { // All types must be present
             return entity.hasAll(compTypes);
@@ -180,17 +195,29 @@ export abstract class SystemBase {
     }
 
     /* For printing out debug information. */
-    public dbg(msg): void {
+    public dbg(msg: string): void {
         if (this.debugEnabled) {
-            const nEnt = Object.keys(this.entities).length;
+            const nEnt = this.numEntities();
             let descr = `[System ${this.type.toString()}]`;
-            descr += ` nEntities: ${nEnt}`;
+            descr += ` nEnt: ${nEnt}`;
             if (debug.enabled) {
                 debug(`${descr} ${msg}`);
             }
             else {
                 console.log(`${descr} ${msg}`);
             }
+        }
+    }
+
+    protected _emitDbgMsg(tag: string, ent: any): void {
+        let name = '<UNNAMED>';
+        if (ent.getName) {
+            name = ent.getName();
+        }
+        const id = ent.getID();
+        if (this.traceID === -1 || this.traceID === id) {
+            const msg = `|${tag}| Ent: ${name}, ID: ${id}`;
+            this.dbg(msg);
         }
     }
 }

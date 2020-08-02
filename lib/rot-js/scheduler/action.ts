@@ -30,8 +30,10 @@ export default class Action<T = any> extends Scheduler<T> {
         return super.clear();
     }
 
-    remove(item:T) {
-        if (item == this._current) { this._duration = this._defaultDuration; }
+    remove(item:T): boolean {
+        if (item === this._current) {
+            this._duration = this._defaultDuration;
+        }
         return super.remove(item);
     }
 
@@ -39,7 +41,11 @@ export default class Action<T = any> extends Scheduler<T> {
      * @see ROT.Scheduler#next
      */
     next() {
-        if (this._current !== null && this._repeat.indexOf(this._current) != -1) {
+        const curr = this._current;
+        if (this._current !== null && this._repeat.indexOf(this._current) !== -1) {
+            if (curr.getID && curr.getID() === 107) {
+                console.log('Schd.Action rescheduling actor 107 now');
+            }
             this._queue.add(this._current, this._duration || this._defaultDuration);
             this._duration = this._defaultDuration;
         }

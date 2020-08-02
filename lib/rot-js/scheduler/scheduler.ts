@@ -53,12 +53,20 @@ export default class Scheduler<T = any> {
 	 * @returns {bool} successful?
 	 */
     remove(item: any) {
+        console.log('BEFORE queue is now ', this._queue._events);
         const result = this._queue.remove(item);
 
         const index = this._repeat.indexOf(item);
-        if (index != -1) { this._repeat.splice(index, 1); }
+        if (index !== -1) {
+            console.log('Rot.Scheduler removing repeated action');
+            this._repeat.splice(index, 1);
+            console.log('AFTER queue is now ', this._queue._events);
+            // console.log('AFTER repeat is now ', this._repeat);
+        }
 
-        if (this._current == item) { this._current = null; }
+        if (this._current === item) {
+            this._current = null;
+        }
 
         return result;
     }

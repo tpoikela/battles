@@ -112,9 +112,9 @@ WorldConf.getBaseConf = type => {
 };
 
 /* Connects all city quarters together. */
-WorldConf.createQuarterConnections = feats => {
+WorldConf.createQuarterConnections = (feats): null | IF.LevelConnection[] => {
     if (feats.length === 1) {return null;}
-    const connections = [];
+    const connections: IF.LevelConnection[] = [];
     for (let i = 1; i < feats.length; i++) {
         const q0 = feats[i - 1];
         const q1 = feats[i];
@@ -125,16 +125,20 @@ WorldConf.createQuarterConnections = feats => {
         if (RG.isNullOrUndef([l0])) {
             l0 = q0.nLevels - 1;
         }
-        const connect = [q0.name, q1.name, l0, l1];
+        if (RG.isNullOrUndef([l0, l1])) {
+            RG.err('WorldConf', 'createQuarterConnections',
+                `l0 ${l0} or l1 ${l1} is undef`);
+        }
+        const connect: IF.LevelConnection = [q0.name, q1.name, l0, l1];
         connections.push(connect);
     }
     return connections;
 };
 
 /* Creates mountain face connections. */
-WorldConf.createFaceConnections = (type, feats) => {
+WorldConf.createFaceConnections = (type, feats): null | IF.LevelConnection[] => {
     if (feats.length === 1) {return null;}
-    const connections = [];
+    const connections: IF.LevelConnection[] = [];
     for (let i = 1; i < feats.length; i++) {
         const f0 = feats[i - 1];
         const f1 = feats[i];
@@ -146,7 +150,7 @@ WorldConf.createFaceConnections = (type, feats) => {
             l0 = f0.nLevels - 1;
         }
 
-        const connect = [f0.name, f1.name, l0, l1];
+        const connect: IF.LevelConnection = [f0.name, f1.name, l0, l1];
         connections.push(connect);
     }
     return connections;

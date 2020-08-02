@@ -13,6 +13,7 @@ import {IMessage, IPlayerCmdInput} from './interfaces';
 
 type BrainPlayer = import('./brain/brain.player').BrainPlayer;
 type Entity = import('./entity').Entity;
+type Random = import('./random').Random;
 
 export interface Action {
     doAction: () => void;
@@ -111,6 +112,10 @@ export class Engine {
     }
 
     public clearMessages(): void {this._msg.clear();}
+
+    public setRNG(rng: Random): void {
+        this.sysMan.setRNG(rng);
+    }
 
     /* Returns true if the menu is shown instead of the level. */
     public isMenuShown(): boolean {
@@ -325,6 +330,12 @@ export class Engine {
         const turnArgs = {timeOfDay: this.timeOfDay};
         for (let i = 0; i < nTurns; i++) {
             this.nextActor = this.getNextActor();
+
+            const ent = this.nextActor as BaseActor;
+            if (ent.has && ent.has('Dead')) {
+                RG.err('Engine', 'simulateGame',
+                   'Tried to schedule Dead actor ID: ' + ent.getID());
+            }
 
             if (!this.nextActor.isPlayer()) {
                 // TODO refactor R1

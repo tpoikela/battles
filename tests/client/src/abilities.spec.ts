@@ -1,7 +1,7 @@
 
 import chai, { expect } from 'chai';
 import RG from '../../../client/src/rg';
-import ROT from '../../../lib/rot';
+import * as ROT from '../../../lib/rot-js';
 import {Ability} from '../../../client/src/abilities';
 import * as Component from '../../../client/src/component';
 import * as Actor from '../../../client/src/actor';
@@ -48,7 +48,7 @@ describe('Abilities', () => {
         const menu = brain.getMenu();
         expect(menu).to.exist;
 
-        let action = brain.decideNextAction({code: ROT.VK_0});
+        let action = brain.decideNextAction({code: ROT.KEYS.VK_0});
         action();
         expect(actor).to.have.component('Camouflage');
         expect(brain.isMenuShown()).to.equal(false);
@@ -57,11 +57,11 @@ describe('Abilities', () => {
         brain.decideNextAction({code: KeyMap.KEY.ABILITY});
         expect(brain.isMenuShown()).to.equal(true);
         // Select ability at index 1
-        brain.decideNextAction({code: ROT.VK_1});
+        brain.decideNextAction({code: ROT.KEYS.VK_1});
         expect(brain.isMenuShown()).to.equal(true);
 
         // Finally select the sword for sharpening
-        action = brain.decideNextAction({code: ROT.VK_0});
+        action = brain.decideNextAction({code: ROT.KEYS.VK_0});
         action();
         expect(brain.isMenuShown()).to.equal(false);
         expect(sword).to.have.component('Sharpened');

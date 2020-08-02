@@ -179,7 +179,7 @@ const addShopConstraints = (qConf, conf) => {
 };
 
 /* Returns the configuration for city quarters. */
-const getQuarterConf = (nQuarters, conf) => {
+const getQuarterConf = (nQuarters: number, conf): IF.QuarterConf[] => {
     const quarters = [];
     for (let i = 0; i < nQuarters; i++) {
         const qName = Names.getGenericPlaceName('quarter');
@@ -199,7 +199,7 @@ const getQuarterConf = (nQuarters, conf) => {
     return quarters;
 };
 
-LevelGen.getCityConf = (cityName, conf) => {
+LevelGen.getCityConf = (cityName: string, conf): IF.CityConf => {
     let cityType = Names.getGenericPlaceName('city');
     if (conf.type === 'fort') {
         cityType = 'Fort';

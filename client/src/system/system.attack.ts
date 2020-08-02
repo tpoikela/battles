@@ -96,7 +96,7 @@ export class SystemAttack extends SystemBase {
         const totalDef = this.getEntityDefense(def);
         const hitChance = totalAtt / (totalAtt + totalDef);
         const hitThreshold = this.rng.getUniform();
-        this.dbg(`hitChance is ${hitChance}, threshold ${hitThreshold}`);
+        this._emitDbgMsg(`hitChance is ${hitChance}, threshold ${hitThreshold}`, att);
 
         if (hitChance >= hitThreshold) {
             const totalDamage = att.getDamage();
@@ -151,6 +151,7 @@ export class SystemAttack extends SystemBase {
         def.add(dmgComp);
         RG.gameWarn({cell: att.getCell(),
             msg: att.getName() + ' hits ' + def.getName()});
+        this._emitDbgMsg(`Dmg: ${dmg}, 'Melee' from ${att.getName()}`, def);
     }
 
     /* Gets an enemy target for bi-directional strike, if any. */

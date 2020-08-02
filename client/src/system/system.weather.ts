@@ -3,9 +3,6 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import {MapGenerator} from '../generator';
-import {Random} from '../random';
-
-const RNG = Random.getRNG();
 
 /* Handles WeatherEffect components and has handler functions for
  * different types of weather effects. */
@@ -45,7 +42,7 @@ export class SystemWeather extends SystemBase {
         const map = ent.getLevel().getMap();
         const snowCells = map.getFree().filter(c => c.getBaseElem().has('Snowy'));
         snowCells.forEach(cell => {
-            const meltSnow = RNG.getUniform();
+            const meltSnow = this.rng.getUniform();
             if (meltSnow < ratio) {
                 const baseType = cell.getBaseElem().getType();
                 const newElem = MapGenerator.snowMeltMap[baseType];

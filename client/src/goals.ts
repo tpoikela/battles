@@ -1056,7 +1056,7 @@ export class GoalFleeFromActor extends GoalBase {
         const actorCells = Brain.findCellsWithActors(this.actor, seenCells);
 
         let foundCell = null;
-        actorCells.forEach(cell => {
+        actorCells.forEach((cell: Cell) => {
             const actors = cell.getActors();
             if (actors) {
                 actors.forEach(actor => {
@@ -1071,21 +1071,21 @@ export class GoalFleeFromActor extends GoalBase {
             const thisX = this.actor.getX();
             const thisY = this.actor.getY();
             const dXdY = RG.dXdYUnit(this.actor, this.targetActor);
+            this.dbg(`Got dXdY ${dXdY}`);
             const newX = thisX + dXdY[0];
             const newY = thisY + dXdY[1];
-            const level = this.actor.getLevel();
 
-            const fleeOptions = [[newX, newY], [thisX, newY], [newX, thisY]];
-            RNG.shuffle(fleeOptions);
-            for (let i = 0; i < 3; i++) {
-                const [x, y] = fleeOptions[i];
-                if (level.getMap().isPassable(x, y)) {
-                    const movComp = new Component.Movement(x, y, level);
-                    this.dbg(`${this.getType()} movComp to ${x},${y}`);
-                    this.actor.add(movComp);
-                    this.status = GoalStatus.GOAL_COMPLETED;
-                    break;
-                }
+            // "Smart" flee options, to go away from enemy
+            const fleeOptions: TCoord[] = [[newX, newY], [thisX, newY], [newX, thisY]];
+            this.tryFleeOptions(fleeOptions);
+
+            // Could have a backup option/variation in fleeing here
+            // Get cells from 2 cells away, and check to flee on those
+            if (this.status !== GoalStatus.GOAL_COMPLETED) {
+
+                const freeCells = Brain.getBoxOfFreeCellsAround(this.actor, 1);
+                const fleeOptions2: TCoord[] = freeCells.map((c: Cell) => c.getXY());
+                this.tryFleeOptions(fleeOptions2);
             }
 
             if (this.status !== GoalStatus.GOAL_COMPLETED) {
@@ -1097,11 +1097,33 @@ export class GoalFleeFromActor extends GoalBase {
         else {
             this.status = GoalStatus.GOAL_FAILED;
         }
+
+        if (this.status === GoalStatus.GOAL_FAILED) {
+            this.dbg(`Goal failed. foundCell |${foundCell}|`);
+        }
     }
 
     public process(): GoalStatus {
         this.activateIfInactive();
         return this.status;
+    }
+
+    protected tryFleeOptions(fleeOptions: TCoord[]): void {
+        const level = this.actor.getLevel();
+        RNG.shuffle(fleeOptions);
+        for (let i = 0; i < fleeOptions.length; i++) {
+            const [x, y] = fleeOptions[i];
+            if (level.getMap().isPassable(x, y)) {
+                const movComp = new Component.Movement(x, y, level);
+                this.dbg(`${this.getType()} movComp to ${x},${y}`);
+                this.actor.add(movComp);
+                this.status = GoalStatus.GOAL_COMPLETED;
+                break;
+            }
+            else {
+                this.dbg(`Cell ${x},${y} not passable`);
+            }
+        }
     }
 
 }

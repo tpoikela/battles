@@ -282,6 +282,15 @@ export class Room extends Feature {
     getTop() { return this._y1; }
     getBottom() { return this._y2; }
 
+    // NOTE: These 2 functions have bug, and should have +1 in them
+    getWidth() {
+        return this._x2 - this._x1;
+    }
+
+    getHeight = function() {
+        return this._y2 - this._y1;
+    }
+
     getCorners() {
         return {
             nw: [this._x1, this._y1],

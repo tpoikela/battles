@@ -109,7 +109,7 @@ export class SystemManager {
         this._engine.addTimeSystem('TimeEffects', effects);
     }
 
-    public get(type: string): SystemBase {
+    public get(type: string): SystemBase | null {
         if (this.systems.hasOwnProperty(type)) {
             return this.systems[type];
 
@@ -117,14 +117,14 @@ export class SystemManager {
         return null;
     }
 
-    public updateSystems() {
+    public updateSystems(): void {
         for (let i = 0; i < this.systemOrder.length; i++) {
             const sysName = this.systemOrder[i];
             this.systems[sysName].update();
         }
     }
 
-    public updateLoopSystems() {
+    public updateLoopSystems(): void {
         for (let i = 0; i < this.loopSystemOrder.length; i++) {
             const sysName = this.loopSystemOrder[i];
             this.loopSystems[sysName].update();
@@ -145,6 +145,7 @@ export class SystemManager {
     }
 }
 
+// This defines the evaluation order of Systems.
 SystemManager.systemOrder = [
     'AreaEffects', 'Disability', 'SpiritBind', 'BaseAction',
     'Equip', 'Attack', 'AttackRanged', 'Chat', 'Shop',
@@ -159,8 +160,8 @@ SystemManager.systemOrder = [
 /* Defines which systems are created by the SystemManager. There are two ways
  * to add an entry:
  * 1) System object name in System, ie SystemDamage + list of components
- * 2) System name: {create: <factory func>, comps: ['Comp1'], ['Comp2']}
- *    in which factory func must return a System object.
+ * 2) System name: {create: <factory func>, comps: ['Comp1', 'Comp2']}
+ *    in which factory func must return the desired System object.
  */
 SystemManager.systems = {
     Disability: ['Stun', 'Entrapped', 'Paralysis'],

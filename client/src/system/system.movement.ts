@@ -275,6 +275,10 @@ export class SystemMovement extends SystemBase {
             RG.debug(this, 'Cell wasn\'t free at ' + x + ', ' + y);
         }
         ent.remove(movComp);
+        if (ent.has('Movement')) {
+            RG.err('SystemMovement', 'updateEntity',
+                `Ent ${ent.getName()} has still MoveComp after one move`);
+        }
     }
 
     /* Checks if cell type has changed, and if some penalties/bonuses must be
@@ -439,12 +443,15 @@ export class SystemMovement extends SystemBase {
         const level = ent.getLevel();
         const map = level.getMap();
         const coord = xOld + ', ' + yOld;
-        RG.diag('\n\nSystem.Movement list of actors:');
+        RG.diag('\n\nSystem.Movement. List of actors in level:');
         RG.printObjList(level.getActors(),
             ['getID', 'getName', 'getX', 'getY'], '');
         this._diagnoseRemovePropError(xOld, yOld, map, ent);
+        if (ent.has('Dead')) {
+            console.log('WoW! Trying to move dead entity!');
+        }
         RG.err('MovementSystem', 'moveActorTo',
-            'Couldn\'t remove ent |' + ent.getName() + '| @ ' + coord);
+            `Couldn't remove ent |${ent.getName()}, ID: ${ent.getID()}| @ ${coord}`);
     }
 
 

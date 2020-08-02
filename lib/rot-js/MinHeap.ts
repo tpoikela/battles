@@ -12,7 +12,7 @@ export class MinHeap<T> {
         this.timestamp=0;
     }
     lessThan(a:HeapWrapper<T>,b:HeapWrapper<T>){
-        return a.key==b.key?a.timestamp<b.timestamp:a.key<b.key;
+        return a.key === b.key ? a.timestamp<b.timestamp:a.key<b.key;
     }
     shift(v: number) {
         this.heap = this.heap.map(({ key, value,timestamp }) => ({ key: key + v, value,timestamp }));
@@ -27,7 +27,7 @@ export class MinHeap<T> {
         this.updateUp(loc);
     }
     pop(): HeapWrapper<T> {
-        if (this.len() == 0) {
+        if (this.len() === 0) {
             throw new Error('no element to pop');
         }
         const top = this.heap[0];
@@ -39,24 +39,28 @@ export class MinHeap<T> {
         }
         return top;
     }
+
     find(v: T): HeapWrapper<T> | null {
         for (let i = 0; i < this.len(); i++) {
-            if (v == this.heap[i].value) {
+            if (v === this.heap[i].value) {
                 return this.heap[i];
             }
         }
         return null;
     }
-    remove(v: T) {
+
+    remove(v: T): boolean {
         let index = null;
         for (let i = 0; i < this.len(); i++) {
-            if (v == this.heap[i].value) {
+            if (v === this.heap[i].value) {
                 index = i;
             }
         }
-        if (index!=null) {
+        if (index !== null) {
             if (this.len() > 1) {
-                this.heap[index] = this.heap.pop() as HeapWrapper<T>;
+                const hwrap = this.heap.pop() as HeapWrapper<T>;
+                // console.log('MinHeapp replace', this.heap[index], hwrap);
+                this.heap[index] = hwrap;
                 this.updateDown(index);
                 return true;
             } else {
@@ -66,6 +70,7 @@ export class MinHeap<T> {
         }
         return false;
     }
+
     private parentNode(x: number): number {
         return Math.floor((x - 1) / 2);
     }
@@ -94,7 +99,7 @@ export class MinHeap<T> {
         return minimal;
     }
     private updateUp(x: number) {
-        if (x == 0) {
+        if (x === 0) {
             return;
         }
         const parent = this.parentNode(x);

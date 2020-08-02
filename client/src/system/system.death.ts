@@ -26,6 +26,7 @@ export class SystemDeath extends SystemBase {
         this.enableRandomLootDrops = true;
         this.normalLootChance = 0.07;
         this.betterLootChance = 0.02;
+        this.traceID = -1;
     }
 
     public updateEntity(ent): void {
@@ -45,6 +46,12 @@ export class SystemDeath extends SystemBase {
         const level = actor.getLevel();
         const cell = actor.getCell();
         actor.add(new Component.Dead());
+
+        if (this.debugEnabled) {
+            let msg = 'Killing actor now';
+            msg += JSON.stringify(actor.getCompList());
+            this._emitDbgMsg(msg, actor);
+        }
 
         if (level.removeActor(actor)) {
             const nameKilled = actor.getName();
@@ -175,6 +182,7 @@ export class SystemDeath extends SystemBase {
                 actor.remove(comp);
             });
         });
+        // actor.get('Action').disable();
     }
 
     public _cloneComponentsToCorpse(actor, corpse): void {

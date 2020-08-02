@@ -330,20 +330,32 @@ function connectLevelToStairs(levels: Level[], nLevel, stairs): boolean {
     return false;
 }
 
-function getSubZoneArgs(subZones: SubZoneBase[], sz1Arg, sz2Arg): SubZonePair {
+function getSubZoneArgs(
+    subZones: SubZoneBase[], sz1Arg: SubZoneArg, sz2Arg: SubZoneArg
+): SubZonePair {
     let sz1 = sz1Arg;
     let sz2 = sz2Arg;
 
     // Lookup objects by name if they are string
     if (typeof sz1Arg === 'string' && typeof sz2Arg === 'string') {
-        sz1 = subZones.find(sz => sz.getName() === sz1Arg);
-        sz2 = subZones.find(sz => sz.getName() === sz2Arg);
+        const sz1Found = subZones.find(sz => sz.getName() === sz1Arg);
+        const sz2Found = subZones.find(sz => sz.getName() === sz2Arg);
+        if (sz1Found && sz2Found) {
+            sz1 = sz1Found;
+            sz2 = sz2Found;
+        }
+        else {
+            RG.err('world.ts', 'getSubZoneArgs',
+                `No sub-zones found for ${sz1Arg} and ${sz2Arg}`);
+        }
     }
-    return [sz1, sz2];
+    return [sz1 as SubZoneBase, sz2 as SubZoneBase];
 }
 
 /* Connects 2 sub-zones like dungeon branch or city quarter together.*/
-function connectSubZones(subZones: SubZoneBase[], sz1Arg, sz2Arg, l1, l2) {
+function connectSubZones(
+    subZones: SubZoneBase[], sz1Arg: SubZoneArg, sz2Arg: SubZoneArg, l1: number, l2: number
+) {
     if (RG.isNullOrUndef([l1, l2])) {
         RG.err('World', 'connectSubZones',
             `l1 (${l1}) and l2 (${l2}) must be non-null and integers.`);
@@ -374,13 +386,27 @@ function connectSubZones(subZones: SubZoneBase[], sz1Arg, sz2Arg, l1, l2) {
 }
 
 /* Connects a random (unconnected) edge of two levels together. */
-function connectSubZoneEdges(subZones: SubZoneBase[], sz1Arg, sz2Arg, l1, l2): boolean {
+function connectSubZoneEdges(subZones: SubZoneBase[], sz1Arg, sz2Arg, l1: number, l2: number): boolean {
     const edge1 = RNG.arrayGetRand(['north', 'south', 'east', 'west']);
     const edge2 = oppositeEdge[edge1];
     const [sz1, sz2] = getSubZoneArgs(subZones, sz1Arg, sz2Arg);
+    if (RG.isNullOrUndef([l1, l2])) {
+        RG.err('World', 'connectSubZonesEdges',
+            `l1 (${l1}) and l2 (${l2}) must be non-null and integers.`);
+    }
+
+    console.log('l1', l1, 'l2', l2);
 
     const sz1Level = sz1.getLevel(l1);
     const sz2Level = sz2.getLevel(l2);
+    if (!sz1Level) {
+        RG.err('world.ts', 'connectSubZoneEdges',
+           `No level |${l1}| in subzone ${JSON.stringify(sz1)}`);
+    }
+    if (!sz2Level) {
+        RG.err('world.ts', 'connectSubZoneEdges',
+           `No level |${l2}| in subzone ${JSON.stringify(sz2)}`);
+    }
 
     /* sz1Level.getMap().debugPrintInASCII();
     sz2Level.getMap().debugPrintInASCII();*/
@@ -1721,7 +1747,7 @@ export class City extends ZoneBase {
         return this._subZones as CityQuarter[];
     }
 
-    public abutQuarters(q1, q2, l1, l2) {
+    public abutQuarters(q1, q2, l1: number, l2: number): boolean {
         const res = connectSubZoneEdges(this._subZones, q1, q2, l1, l2);
         return res;
     }

@@ -3,7 +3,7 @@
  */
 
 import { expect } from 'chai';
-import RG from '../../../client/src/rg';
+// import RG from '../../../client/src/rg';
 import * as Time from '../../../client/src/time';
 import {SentientActor} from '../../../client/src/actor';
 
@@ -103,6 +103,33 @@ describe('Time.Scheduler', () => {
         next = sch.next();
         expect(next).to.equal(testActor);
         sch.setAction(act);
+    });
+
+    it('can remove actors from the scheduler', () => {
+        const sch = new Time.Scheduler();
+        const actor1 = new SentientActor('actor1');
+        const actor2 = new SentientActor('actor2');
+        const act1 = new MockAction(100);
+        const act2 = new MockAction(101);
+
+        sch.add(actor1, true, 0);
+        sch.add(actor2, true, 0);
+
+        console.log('actor1:', actor1.getID(), 'actor2:', actor2.getID());
+
+        let next = sch.next();
+        expect(next.getID()).to.equal(actor1.getID());
+        sch.setAction(act1);
+        next = sch.next();
+        expect(next.getID()).to.equal(actor2.getID());
+        sch.setAction(act2);
+        sch.remove(actor1);
+        for (let i = 0; i < 3; i++) {
+            next = sch.next();
+            sch.setAction(act2);
+            expect(next.getID()).to.equal(actor2.getID());
+        }
+
     });
 });
 

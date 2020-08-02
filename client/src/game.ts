@@ -151,6 +151,7 @@ export class GameMain {
     public setRNG(rng: Random): void {
         this._rng = rng;
         Random.setRNG(this._rng);
+        this._engine.setRNG(rng);
     }
 
     public playerCommandCallback(actor): void {

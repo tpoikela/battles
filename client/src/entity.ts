@@ -224,6 +224,10 @@ export class Entity extends GameObject {
         return this.comps;
     }
 
+    public getCompList(): string[] {
+        return Object.keys(this.compsByType);
+    }
+
     public copy(rhs: any): void {
         throw new Error('copy() not implemented in Entity');
     }

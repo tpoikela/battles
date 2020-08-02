@@ -7,9 +7,15 @@ import {FactoryLevel} from '../../../client/src/factory.level';
 import {Army, Battle} from '../../../client/src/game.battle';
 import {FactoryBattle} from '../../../client/src/factory.battle';
 import {EventPool} from '../../../client/src/eventpool';
+import {Dice} from '../../../client/src/dice';
 
 const POOL = EventPool.getPool();
 
+import {Random} from '../../../client/src/random';
+
+// Used for debugging, when test fails with certain seed
+
+/*
 describe('Game.Army', () => {
     it('it has actors', () => {
         const army = new Army('Puny army');
@@ -35,17 +41,29 @@ describe('Game.Army', () => {
         expect(army.isDefeated()).to.equal(true);
     });
 });
+*/
 
 describe('Game.Battle', function() {
+
     it('It is fought until end condition', () => {
         const levelFact = new FactoryLevel();
-        const areaLevel = levelFact.createLevel('arena', 40, 40);
+        const areaLevel = levelFact.createLevel('arena', 20, 20);
+
         const game = new GameMain();
+        const seed = Date.now();
+        // const seed = 1596354238527;
+        Random.getRNG().setSeed(seed);
+        game.setRNG(Random.getRNG());
+        console.log('Using seed', seed);
+        Dice.RNG.setSeed(1234);
+
         game.addLevel(areaLevel);
 
+        game._engine.sysMan.get('Movement').debugEnabled = true;
+
         const conf = {
-            cols: 20, rows: 10,
-            armySize: 10, centerX: true, centerY: true,
+            cols: 15, rows: 10,
+            armySize: 5, centerX: true, centerY: true,
             factions: ['undead', 'dwarf']
         };
         const battle = new FactoryBattle().createBattle(areaLevel, conf);
@@ -64,12 +82,13 @@ describe('Game.Battle', function() {
         let count = 0;
         const turnLimit = 10000;
         while (!battle.isOver() && count < turnLimit) {
-            game.simulateGame();
+            game.simulateGame(1);
             ++count;
+            // battle.getLevel().debugPrintInASCII();
         }
 
         for (let i = 0; i < 10; i++) {
-            game.simulateGame();
+            game.simulateGame(1);
         }
 
         const battleActors = battle.getLevel().getActors();
@@ -95,6 +114,9 @@ describe('Game.Battle', function() {
             expect(actor.has('InBattle'), msg).to.equal(false);
             expect(actor.has('BattleOver'), msg).to.equal(false);
         });
+
+        const state = Random.getRNG().toJSON();
+        console.log('RNG end state is ', state);
     });
 
 });

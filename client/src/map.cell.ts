@@ -44,11 +44,10 @@ export class Cell {
     // public _y: number;
     public _xy: number;
 
-    // private _baseElem: Maybe<ConstBaseElem>;
     private _baseElem: ConstBaseElem;
     private _p: CellProps;
-    // private _lightPasses: boolean;
-    // private _isPassable: boolean;
+
+    // State flags are cached here (up to 32 state bits possible)
     private _state: number;
 
     constructor(x: number, y: number, elem: ConstBaseElem) { // {{{2
@@ -62,8 +61,8 @@ export class Cell {
 
         // this._p = {}; // Cell properties are assigned here
 
-        this.setBit(IND_LIGHT_PASSES, elem.lightPasses());
-        this.setBit(IND_IS_PASSABLE, elem.isPassable());
+        this.setStateBit(IND_LIGHT_PASSES, elem.lightPasses());
+        this.setStateBit(IND_IS_PASSABLE, elem.isPassable());
     }
 
     public getX(): number {return this._xy & X_POS;}
@@ -85,8 +84,8 @@ export class Cell {
     /* Sets/gets the base element for this cell. There can be only one element.*/
     public setBaseElem(elem: ConstBaseElem): void {
         this._baseElem = elem;
-        this.setBit(IND_LIGHT_PASSES, elem.lightPasses());
-        this.setBit(IND_IS_PASSABLE, elem.isPassable());
+        this.setStateBit(IND_LIGHT_PASSES, elem.lightPasses());
+        this.setStateBit(IND_IS_PASSABLE, elem.isPassable());
     }
 
     public getBaseElem(): ConstBaseElem { return this._baseElem; } // TODO safe null
@@ -325,7 +324,7 @@ export class Cell {
     }
 
     // public setExplored(): void {this._explored = true;}
-    public setExplored(): void {this.setBit(IND_EXPLORED, true);}
+    public setExplored(): void {this.setStateBit(IND_EXPLORED, true);}
     public isExplored(): boolean {return this.getBit(IND_EXPLORED);}
 
     /* Returns true if it's possible to move to this cell.*/
@@ -554,7 +553,7 @@ export class Cell {
         return !!(this._state & (1 << ind));
     }
 
-    protected setBit(ind: number, val: boolean): void {
+    protected setStateBit(ind: number, val: boolean): void {
         if (val) {this._state = (1 << ind) | this._state;}
         else {
             this._state &= ~(1 << ind);

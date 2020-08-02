@@ -7,7 +7,6 @@ import {TCoord, ILoreOpt, ILoreEntry, TLoreMsg, IQuestTarget} from '../interface
 import {BaseActor} from '../actor';
 import {Lore, formatMsg} from '../../data/lore';
 import {Constraints} from '../constraints';
-import {Random} from '../random';
 
 import {ComponentLore} from '../component/component';
 
@@ -19,7 +18,6 @@ const NO_ACTORS_FOUND: BaseActor[] = [];
 const QUERY_LOC_FROM_MEM = 'queryLocationFromMemory';
 
 const ERROR_STR = '<ERROR: You should not see this. A bug found >';
-const RNG = Random.getRNG();
 
 /* This system handles all entity chat operations. */
 export class SystemChat extends SystemBase {
@@ -342,7 +340,7 @@ export class SystemChat extends SystemBase {
 
                 const usedQuestions: {[key: string]: boolean} = {};
                 const entries: ILoreEntry[] = loreComp.getKey({topic: name});
-                RNG.shuffle(entries);
+                this.rng.shuffle(entries);
 
                 entries.forEach((entry: ILoreEntry) => {
                     const question = this.getTopicQuestion(actor, name, entry);

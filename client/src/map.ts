@@ -81,6 +81,8 @@ export class CellMap {
         this.cols = cols;
         this.rows = rows;
 
+        this._isRowOptimized = false;
+
         if (typeof this.cols !== 'number' || typeof this.rows !== 'number') {
             RG.err('Map.CellList', 'constructor',
                 'Map.CellList(rows, cols) expects 2 integers.');

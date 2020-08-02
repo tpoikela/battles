@@ -4,10 +4,9 @@ import chai from 'chai';
 import RG from '../../../client/src/rg';
 import {chaiBattles} from '../../helpers/chai-battles';
 
-import ROT from '../../../lib/rot';
+import * as ROT from '../../../lib/rot-js';
 import {RGTest} from '../../roguetest';
 import {Keys} from '../../../client/src/keymap';
-import {Path} from '../../../client/src/path';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {SentientActor} from '../../../client/src/actor';
 import {Brain, BrainPlayer, BrainSentient} from '../../../client/src/brain';
@@ -21,15 +20,18 @@ import * as Component from '../../../client/src/component';
 import {RGUnitTests} from '../../rg.unit-tests';
 import {Spell} from '../../../client/src/spell';
 import {Evaluator} from '../../../client/src/evaluators';
-import {Entity} from '../../../client/src/entity';
-import {EventPool} from '../../../client/src/eventpool';
+import {Random} from '../../../client/src/random';
+
+// Used for debugging, when test fails with certain seed
+// const seed = Date.now();
+// const seed = 1596296381728;
+// Random.getRNG().setSeed(seed);
 
 const {KEY} = Keys;
 
 const expect = chai.expect;
 chai.use(chaiBattles);
 
-const ElementBase = Element.ElementBase;
 
 describe('BrainPlayer', () => {
     let level = null;
@@ -197,7 +199,7 @@ describe('BrainPlayer', () => {
     });
 
     it('can have GUI callbacks added to it', () => {
-        const cbCode = ROT.VK_ADD;
+        const cbCode = ROT.KEYS.VK_ADD;
         let called = false;
         const callback = code => {
             called = true;
@@ -222,7 +224,7 @@ describe('BrainPlayer', () => {
         expect(brain.isMenuShown()).to.equal(true);
 
         // Choose 1st shown spell (FrostBolt)
-        func = brain.decideNextAction({code: ROT.VK_0});
+        func = brain.decideNextAction({code: ROT.KEYS.VK_0});
         expect(func).to.equal(null);
         expect(brain.isMenuShown()).to.equal(false);
 
@@ -324,7 +326,6 @@ describe('BrainSentient', () => {
         expect(cellChanged, 'Actor cell changed').to.equal(true);
     });
 
-    /*
     it('flees when low on health', () => {
         const movSys = new SystemMovement(['Movement']);
         const arena = factLevel.createLevel('arena', 30, 30);
@@ -344,13 +345,20 @@ describe('BrainSentient', () => {
         expect(cellChanged, 'Explore even when low on health').to.equal(true);
 
         // Add player to provoke flee response in rogue
-        arena.addActor(player, 1, 1);
+        if (rogueX === 1 && rogueY === 1) {
+            arena.addActor(player, 1, 2);
+        }
+        else {
+            arena.addActor(player, 1, 1);
+        }
         player.setIsPlayer(true);
 
         let currDx = rogueX - 1;
         let currDY = rogueY - 1;
         let currDist = Math.abs(currDx + currDY);
         let prevDist = currDist;
+
+        // rogue.getBrain().getGoal()._debug = true;
 
         for (let i = 3; i < 9; i++) {
             const rAction = rogue.nextAction();
@@ -361,11 +369,15 @@ describe('BrainSentient', () => {
             currDx = rX - 1;
             currDY = rY - 1;
             currDist = Math.abs(currDx + currDY);
-            expect(currDist).to.be.above(prevDist);
+            if (!rogue.has('Attack')) {
+                expect(currDist).to.be.above(prevDist);
+            }
+            else {
+                rogue.remove('Attack');
+            }
             prevDist = currDist;
         }
     });
-    */
 
 });
 

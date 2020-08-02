@@ -1,5 +1,7 @@
 
-import * as ROT from '../../lib/rot-js';
+// import * as ROT from '../../lib/rot-js';
+//import RotScheduler from '../../lib/rot-js/scheduler/action';
+import ROT from '../../lib/rot';
 import RG from './rg';
 import {EventPool} from '../src/eventpool';
 
@@ -103,11 +105,14 @@ export class OneShotEvent extends GameEvent {
 
 type ActorOrEvent = BaseActor | GameEvent;
 
+const RotScheduler = ROT.Scheduler.Action;
+
 /* Scheduler for the game actions. Time-based scheduler where each actor/event
 * is scheduled based on speed.  */
 export class Scheduler {
 
     public hasNotify: boolean;
+    //protected _scheduler: RotScheduler;
     protected _scheduler: any;
     protected _events: GameEvent[];
     protected _actors: BaseActor[];
@@ -115,7 +120,7 @@ export class Scheduler {
     constructor() {
 
         // Internally use ROT scheduler
-        this._scheduler = new ROT.Scheduler.Action();
+        this._scheduler = new RotScheduler();
         this._scheduler._defaultDuration = 0;
         this._scheduler._duration = 0;
 
@@ -163,7 +168,14 @@ export class Scheduler {
                 this._actors.splice(index, 1);
             }
         }
-        return this._scheduler.remove(actOrEvent);
+        const res = this._scheduler.remove(actOrEvent);
+        if (!res) {
+            console.log('Scheduler.remove: Failed sub-scheduler remove()!!!');
+        }
+        else {
+            console.log('Scheduler.remove: Succeeded sub-scheduler remove()!!!');
+        }
+        return res;
     }
 
     /* Removes an event from the scheduler. Returns true on success.*/
@@ -185,6 +197,7 @@ export class Scheduler {
     public notify(evtName: string, args: any): void {
         if (evtName === RG.EVT_ACTOR_KILLED) {
             if (args.hasOwnProperty('actor')) {
+                console.log('Scheduler.notify: Removing actor from scheduler');
                 this.remove(args.actor);
             }
         }

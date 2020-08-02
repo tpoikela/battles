@@ -11,14 +11,24 @@ const DIRS_NO_ZERO = [-1, 1];
 export class Random {
 
     public static instance: Random;
+    public static rngMap: {[key: string]: Random};
 
     public static setRNG(rng: Random): void {
         Random.instance = rng;
     }
 
-    public static getRNG(): Random {
+    public static getRNG(key?: string): Random {
+        if (key) {
+            if (!Random.rngMap[key]) {
+                console.log(`Random.getRNG(): Creating new instance[${key}] now`);
+                Random.rngMap[key] = new Random(0);
+            }
+            return Random.rngMap[key];
+        }
+
         if (!Random.instance) {
-            Random.instance = new Random(666);
+            console.log('Random.getRNG(): Creating new instance now');
+            Random.instance = new Random(0);
         }
         return Random.instance;
     }
@@ -39,6 +49,7 @@ export class Random {
     }
 
     public setSeed(seed: number): void {
+        console.log('Random.setSeed() to ', seed);
         this.seed = seed;
         this.rng.setSeed(seed);
     }
@@ -110,10 +121,13 @@ export class Random {
      */
     public getWeightedLinear(N: number): number {
         const weights: RandWeights = {};
+        if (N === 0) {return 0;}
         for (let i = 0; i < N; i++) {
             weights[i] = i + 1; // Without + 1, 0 will never be chosen
         }
-        return this.rng.getWeightedValue(weights);
+
+        const res = parseInt(this.rng.getWeightedValue(weights), 10);
+        return res;
     }
 
     public toJSON(): any {
