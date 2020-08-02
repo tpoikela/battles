@@ -8,6 +8,8 @@ import {FactoryLevel} from '../client/src/factory.level';
 import * as Element from '../client/src/element';
 import {Random} from '../client/src/random';
 
+type Level = import('../client/src/level').Level;
+
 export const RGUnitTests: any = {};
 
 const RNG = Random.getRNG();
@@ -43,7 +45,7 @@ RGUnitTests.moveEntityTo = function(ent, x, y) {
 };
 
 /* Adds each entity into the level into a random location. */
-RGUnitTests.wrapIntoLevel = function(arr, cols = 20, rows = 20) {
+RGUnitTests.wrapIntoLevel = function(arr, cols = 20, rows = 20): Level {
     const factLevel = new FactoryLevel();
     const level = factLevel.createLevel('empty', cols, rows);
     arr.forEach(ent => {

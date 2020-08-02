@@ -15,6 +15,10 @@ import {FactoryActor} from '../../../client/src/factory.actors';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {FactoryBase as Factory} from '../../../client/src/factory';
 import {FromJSON} from '../../../client/src/game.fromjson';
+import {Random} from '../../../client/src/random';
+import {Dice} from '../../../client/src/dice';
+
+type Level = import('../../../client/src/level').Level;
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -31,6 +35,13 @@ const wolfShell = {
 };
 
 const factLevel = new FactoryLevel();
+
+const seed = Date.now();
+//const seed = 1596399820349;
+Random.getRNG().setSeed(seed);
+// game.setRNG(Random.getRNG());
+console.log('Using seed', seed);
+Dice.RNG.setSeed(seed);
 
 //---------------------------------------------------------------------------
 // PARSER TESTS
@@ -850,8 +861,9 @@ describe('Data query functions for objects', function() {
 
     it('can create traveller', () => {
         const traveller = parser.createActor('traveller');
-        RGUnitTests.wrapIntoLevel([traveller]);
+        const level: Level = RGUnitTests.wrapIntoLevel([traveller], 20, 20);
         const turnArgs = {timeOfDay: 12 * 60};
+        level.moveActorTo(traveller, 11, 11);
         const action = traveller.getBrain().decideNextAction(turnArgs);
     });
 
