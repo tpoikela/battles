@@ -440,43 +440,47 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'goblin slinger', base: 'goblin',
-        attack: 2, defense: 1, hp: 10,
+        attack: 2, defense: 1, hp: 10, damage: '1d6',
         equip: [{name: 'Rock', count: 10}]
     },
     {
         name: 'goblin fighter', base: 'goblin',
         attack: 2, defense: 3, protection: 1, hp: 12,
+        damage: '2d5',
         danger: 2
     },
     {
         name: 'goblin healer', base: 'goblin',
         attack: 2, defense: 4, protection: 2, hp: 15,
-        danger: 3,
+        danger: 3, damage: '1d6 + 2',
         brain: 'SpellCaster', pp: 18, maxPP: 18,
         spells: ['Heal']
     },
     {
         name: 'goblin sergeant', base: 'goblin',
-        damage: '1d7',
+        damage: '3d4+2',
         attack: 4, defense: 4, protection: 2, hp: 21,
         danger: 4
     },
     {
         name: 'goblin summoner', base: 'goblin',
         attack: 2, defense: 4, protection: 2, hp: 25,
-        maxPP: 20, pp: 20,
+        maxPP: 20, pp: 20, damage: '1d8',
         brain: 'SpellCaster', spells: ['SummonAnimal'],
         danger: 5
     },
     {
         name: 'goblin lord', base: 'goblin',
         attack: 5, defense: 4, protection: 3, hp: 30,
-        danger: 7
+        danger: 7, damage: '4d4',
+        colorfg: 'pink',
     },
     {
         name: 'goblin king', base: 'goblin',
         attack: 7, defense: 7, protection: 3, hp: 40,
-        danger: 10
+        danger: 10, damage: '4d4+6',
+        brain: 'SpellCaster', spells: ['SummonKin'],
+        colorfg: 'red',
     },
 
     {
@@ -484,12 +488,12 @@ export const ActorsData: ActorShell[] = [
         color: color('Black', 'Purple'), dontCreate: true,
         attack: 1, defense: 1, damage: '1d4', range: 1, hp: 10,
         danger: 2, brain: defaultBrain,
-        enemies: ['player']
+        enemies: RG.ACTOR_RACES
     },
     {
         name: 'hyrm warrior', base: 'HyrmBase',
-        attack: 3, defense: 3, damage: '1d8', hp: 15,
-        danger: 2,
+        attack: 3, defense: 3, damage: '2d6+2', hp: 20,
+        danger: 3,
     },
     {
         name: 'hyrm catapulter', base: 'HyrmBase',
@@ -499,6 +503,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'hyrm runemage', base: 'HyrmBase',
+        color: color('Black', 'Pink'),
         attack: 3, defense: 3, damage: '1d8', hp: 25,
         danger: 5, brain: 'SpellCaster',
         spells: ['SummonKin', 'StunningTouch'],
@@ -506,6 +511,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'hyrm hulk', base: 'HyrmBase',
+        color: color('Black', 'Pink'),
         attack: 6, defense: 3, damage: '2d8', hp: 40,
         strength: 15, speed: 90,
         danger: 7,
@@ -516,7 +522,7 @@ export const ActorsData: ActorShell[] = [
         name: 'humanoid', char: 'h', type: 'humanoid',
         attack: 1, defense: 1, damage: '1d4', range: 1, hp: 10,
         danger: 2, brain: defaultBrain,
-        enemies: ['human', 'player']
+        enemies: RG.ACTOR_RACES
     },
     {
         name: 'dark warrior', char: 'h', type: 'humanoid',
@@ -570,7 +576,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'AvianFolkBase', char: 'A', className: 'cell-actor-avianfolk',
         type: 'avianfolk', dontCreate: true,
-        enemies: ['player', 'human', 'catfolk', 'dogfolk', 'wolfclan'],
+        enemies: ['human', 'catfolk', 'dogfolk', 'wolfclan'],
         brain: defaultBrain, addComp: 'Flying',
         attack: 2, defense: 2, damage: '1d6', range: 1,
         protection: 1, hp: 15, danger: 2
@@ -1003,6 +1009,7 @@ export const ActorsData: ActorShell[] = [
             'SummonIceMinion'],
         pp: 50, maxPP: 50
     },
+
     // DWARVES
     {
         name: 'dwarf', char: 'h', type: 'dwarf',
@@ -1131,7 +1138,7 @@ export const ActorsData: ActorShell[] = [
         name: 'wildling', char: 'I', className: 'cell-actor-wildling',
         type: 'wildling', brain: defaultBrain,
         attack: 2, defense: 1, damage: '1d6', range: 1,
-        hp: 15, danger: 3, enemies: ['player', 'human']
+        hp: 15, danger: 3, enemies: ['human']
     },
     {
         name: 'wildling hunter', base: 'wildling', char: 'I',
@@ -1169,7 +1176,7 @@ export const ActorsData: ActorShell[] = [
         name: 'CatfolkBase', char: 'f', className: 'cell-actor-catfolk',
         type: 'catfolk', dontCreate: true,
         attack: 1, defense: 1, protection: 1, damage: '1d6', range: 1,
-        hp: 10, danger: 1, enemies: ['player', 'human', 'dogfolk', 'wolfclan'],
+        hp: 10, danger: 1, enemies: ['human', 'dogfolk', 'wolfclan'],
         brain: defaultBrain
     },
     {
@@ -1223,7 +1230,7 @@ export const ActorsData: ActorShell[] = [
         protection: 2,
         className: 'cell-actor-wolfclan', char: 'w',
         type: 'wolfclan',
-        enemies: ['player', 'human', 'catfolk', 'dogfolk', 'bearfolk'],
+        enemies: ['human', 'catfolk', 'dogfolk', 'bearfolk'],
         brain: defaultBrain
     },
     {
@@ -1273,7 +1280,7 @@ export const ActorsData: ActorShell[] = [
         name: 'DogfolkBase', dontCreate: true,
         className: 'cell-actor-dogfolk', char: 'd', type: 'dogfolk',
         protection: 1,
-        enemies: ['player', 'catfolk', 'wolfclan'],
+        enemies: ['catfolk', 'wolfclan'],
         brain: defaultBrain
     },
     {
