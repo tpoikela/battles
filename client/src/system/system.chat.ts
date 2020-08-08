@@ -441,6 +441,27 @@ export class SystemChat extends SystemBase {
                         `Expected msg to be string. Got ${JSON.stringify(opt)}`);
                     }
                 }
+
+                if (loreComp.hasTopic('location')) {
+                    const entries: any[] = loreComp.getKey({topic: 'location'});
+                    const entry = this.rng.arrayGetRand(entries);
+                    const msg = this.getRespMsgFromEntry(actor, entry);
+                    const opt = this.getFormattedReply(actor, 'location', msg as any);
+
+                    if (typeof opt === 'string') {
+                        chatObj.add({
+                            name: 'Are there any interesting places nearby?',
+                            option: () => {
+                                this.checkEntryForRevealed(loreComp, entry);
+                                RG.gameInfo({cell: ent.getCell(), msg: opt});
+                            }
+                        });
+                    }
+                    else {
+                        RG.err('SystemChat', 'addZoneLoreItems',
+                        `Expected msg to be string. Got ${JSON.stringify(opt)}`);
+                    }
+                }
             });
         }
     }
