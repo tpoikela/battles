@@ -79,7 +79,9 @@ export class Territory {
     // By default, use only 4 directions to advance rivals
     public dirs: TCoord[];
 
-    constructor(cols, rows, conf = {}) {
+    public infoTags: {[key: string]: string[]};
+
+    constructor(cols: number, rows: number, conf = {}) {
         this.map = new Array(cols);
         this.cols = cols;
         this.rows = rows;
@@ -122,6 +124,8 @@ export class Territory {
                 this._markEmpty(i, j);
             }
         }
+
+        this.infoTags = {};
     }
 
     public setRNG(rng) {
@@ -134,6 +138,14 @@ export class Territory {
 
     public getData(): TerrDataMap {
         return this.terrData;
+    }
+
+    public addTag(xy: TCoord, tag: string ): void {
+        const key = RG.toKey(xy);
+        if (!this.infoTags[key]) {
+            this.infoTags[key] = [];
+        }
+        this.infoTags[key].push(tag);
     }
 
     public getRivalData(name: string): TerrData | null {
@@ -157,6 +169,17 @@ export class Territory {
         const [x, y] = xy;
         const char = this.map[x][y];
         return this.getName(char);
+    }
+
+    public findTag(tag: string): TCoord[] {
+        const res: TCoord[] = [];
+        Object.keys(this.infoTags).forEach((xy: string) => {
+            const tags: string[] = this.infoTags[xy];
+            if (tags.indexOf(tag) >= 0) {
+                res.push(RG.fromKey(xy));
+            }
+        });
+        return res;
     }
 
     /* Given a 2d map, and cell info such as {'.': true, '#': false},
@@ -216,6 +239,8 @@ export class Territory {
                 }
             }
             ++numTurnsTaken;
+            console.log('TerrMap turn', numTurnsTaken, '\n');
+            // RG.printMap(this.map);
         }
         if (this.doPostProcess) {
             this.postProcessData();
@@ -279,7 +304,7 @@ export class Territory {
             contData.startY.push(xy[1]);
         }
 
-        const key = _key(xy);
+        const key = RG.toKey(xy);
         if (!this.empty.hasOwnProperty(key)) {
             if (this.map[xy[0]][xy[1]] !== FULL) {
                 RG.warn('Territory', '_getStartPosition',
@@ -293,8 +318,8 @@ export class Territory {
         return xy;
     }
 
-    public _addOccupied(name, xy) {
-        const key = _key(xy);
+    public _addOccupied(name: string, xy: TCoord): void {
+        const key = RG.toKey(xy);
         this.occupied[key] = xy;
         this.occupiedBy[name].push(xy);
         this.terrData[name].open[key] = xy;
@@ -309,7 +334,7 @@ export class Territory {
         }
     }
 
-    public _addStartPosition(name, xy) {
+    public _addStartPosition(name: string, xy: TCoord): void {
         const contData = this.getRivalData(name);
         const dSize = contData.startSize - 1;
         const startCoord = Geometry.getBoxAround(xy[0], xy[1], dSize, true);
@@ -325,7 +350,7 @@ export class Territory {
         }
     }
 
-    public getRandEmptyXY() {
+    public getRandEmptyXY(): TCoord {
         return this.rng.arrayGetRand(Object.values(this.empty));
     }
 
@@ -335,7 +360,7 @@ export class Territory {
     }
 
     public isEmpty(xy: TCoord): boolean {
-        const key = _key(xy);
+        const key = RG.toKey(xy);
         return this.empty.hasOwnProperty(key);
     }
 
@@ -365,7 +390,7 @@ export class Territory {
     }
 
     public _closeCell(name: string, xy: TCoord): void {
-        const key = _key(xy);
+        const key = RG.toKey(xy);
         this.terrData[name].closed[key] = xy;
         delete this.terrData[name].open[key];
     }
@@ -457,7 +482,8 @@ export class Territory {
                 const xy: TCoord = [x, startY[i]];
                 const lut = {};
                 const coordXY = Geometry.floodfill2D(this.map, xy, char, lut, diag);
-                contData.areas[_key(xy)] = coordXY;
+                // Can't be undef, created above
+                contData.areas![RG.toKey(xy)] = coordXY;
             });
 
         });
@@ -480,8 +506,3 @@ export class Territory {
         return json;
     }
 }
-
-function _key(xy) {
-    return xy[0] + ',' + xy[1];
-}
-
