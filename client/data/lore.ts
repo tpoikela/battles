@@ -210,6 +210,7 @@ export function createLoreObj(
         }
     };
     if (metaData) {
+        // On compObj, call compObj.addEntry({..., metaData})
         compObj.func.addEntry.metaData = metaData;
     }
     return compObj;
