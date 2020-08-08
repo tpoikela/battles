@@ -499,6 +499,7 @@ export interface WorldConf {
     playerStart?: PlayerStart;
 }
 
+/* Used a first step conf for overworld OWMap generation. */
 export interface OWMapConf {
     yFirst?: boolean;
     topToBottom?: boolean;
@@ -523,6 +524,15 @@ export interface OWMapConf {
     nCityCenter?: number;
     nCityNorth?: number;
     verify?: boolean;
+}
+
+/* Used as a 2nd step conf for overworld Level generation. */
+export interface OWLevelConf extends OWMapConf {
+    worldX?:  number;
+    worldY?:  number;
+    nTilesX?: number;
+    nTilesY?: number;
+    addMainRoads?: boolean;
 }
 
 export interface IFactoryGameConf {
