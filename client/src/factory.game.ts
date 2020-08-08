@@ -9,7 +9,7 @@ import {ActorClass} from './actor-class';
 import {ActorsData} from '../data/actors';
 import {ActorMods} from '../data/actor-mods';
 import {DebugGame} from '../data/debug-game';
-import {Disposition} from './disposition';
+import {Disposition, IDispTable} from './disposition';
 import {Entity} from './entity';
 import {EventPool} from '../src/eventpool';
 import {FactoryBase} from './factory';
@@ -29,9 +29,9 @@ import {Territory} from './territory';
 import {WorldConf} from './world.creator';
 import {Level} from './level';
 import {SentientActor} from './actor';
+import {Names} from '../data/name-gen';
 
 type Parser = import('./objectshellparser').Parser;
-// type Cell = import('./map.cell').Cell;
 
 import * as IF from './interfaces';
 
@@ -100,8 +100,12 @@ export class FactoryGame {
             loadedLevel: null,
             playerName: 'Player',
             world: WorldConf,
+            /*
             xMult: 2,
             yMult: 3
+            */
+            xMult: 1,
+            yMult: 1
         };
     }
 
@@ -413,7 +417,7 @@ export class FactoryGame {
         }
 
         const freeCells = level.getMap().getFree();
-        const freeLUT = {};
+        const freeLUT: {[key: string]: boolean} = {};
         freeCells.forEach(c => {
             freeLUT[c.getKeyXY()] = true;
         });
@@ -442,7 +446,7 @@ export class FactoryGame {
             }
         }
 
-        if (found) {
+        if (found && cell) {
             level.addActor(player, cell.getX(), cell.getY());
         }
         else {
@@ -457,7 +461,7 @@ export class FactoryGame {
     /* Matches each zone with territory map, and adds some generation
      * constraints.
      */
-    public mapZonesToTerritoryMap(terrMap, worldConf: IF.WorldConf) {
+    public mapZonesToTerritoryMap(terrMap, worldConf: IF.WorldConf): void {
         const uniqueActors = ActorsData.filter(shell => shell.base === 'UniqueBase');
         const uniqueCreated = {};
         let uniquesAdded = 0;
@@ -518,6 +522,7 @@ export class FactoryGame {
                     constrActor = {
                         op: 'eq', prop: 'base', value: ['WinterBeingBase']
                     };
+                    // TODO could add some enslaved actors
                 }
                 else if (types.length > 0) {
                     name = RNG.getWeighted(weights);
@@ -549,7 +554,7 @@ export class FactoryGame {
         });
     }
 
-    public getDisposition() {
+    public getDisposition(): IDispTable {
         const dispos = new Disposition(RG.ALL_RACES, {});
         dispos.randomize();
         return dispos.getTable();
@@ -579,8 +584,10 @@ export class FactoryGame {
         // Update cell if coord has changed
         cell = level.getMap().getCell(lX, lY);
 
+        const uniqName = Names.getUniqueName('city');
+
         const homeConf: IF.CityConf = {
-            name: 'Home town of ' + player.getName(),
+            name: uniqName + ', home town of ' + player.getName(),
             x: playerX, y: playerY,
             levelX: lX, levelY: lY,
             nQuarters: 1,
