@@ -11,7 +11,7 @@ import ROT from '../lib/rot';
 import {PlayerDriver} from '../tests/helpers/player-driver';
 import {UtilsSim} from './utils-sim';
 
-const fs = require('fs');
+import fs from 'fs';
 const cmdLineArgs = require('command-line-args');
 
 const RNG = Random.getRNG();
@@ -26,6 +26,7 @@ function main() {
         usage(optDefs);
     }
 
+    RNG.setSeed(opts.seed);
     ROT.RNG.setSeed(opts.seed);
 
     let newGame = null;
@@ -47,8 +48,8 @@ function main() {
             playerLevel: 'Medium',
             sqrPerItem: 100,
             sqrPerActor: 100,
-            xMult: 1.0,
-            yMult: 1.0,
+            xMult: 0.5,
+            yMult: 0.5,
             playerClass: 'Blademaster',
             playerRace: 'human',
             playerName: pName
@@ -195,7 +196,7 @@ function saveGameToFile(fname, nTurn, game, driver) {
 
 function restoreGameFromFile(fname: string) {
     const buf = fs.readFileSync(fname);
-    const jsonParsed = JSON.parse(buf);
+    const jsonParsed = JSON.parse(buf.toString().trim());
     const fromJSON = new RG.FromJSON();
 
     let game = new RG.GameMain();
