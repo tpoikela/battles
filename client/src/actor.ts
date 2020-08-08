@@ -179,8 +179,6 @@ export class SentientActor extends BaseActor {
         super.build();
 
         this._brain = new BrainGoalOriented(this);
-        this._brain.getMemory().addEnemyType('player');
-
         this._invEq = new Inventory(this);
         this._maxWeight = 17.0;
 
