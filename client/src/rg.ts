@@ -134,7 +134,6 @@ class RGClass {
 
     // 0.0 = uniform dist, higher number assigns more weight to median values
     public DANGER_ADJ_FACTOR: number;
-    public DAMAGE_ADJ_FACTOR: number;
     public PLAYER_HP_REGEN_PERIOD: number;
     public PLAYER_PP_REGEN_PERIOD: number;
     public MIN_VALUE: number;
@@ -480,7 +479,6 @@ class RGClass {
 
         // 0.0 = uniform dist, higher number assigns more weight to median values
         this.DANGER_ADJ_FACTOR = 1.4;
-        this.DAMAGE_ADJ_FACTOR = 2;
         this.PLAYER_HP_REGEN_PERIOD = 40;
         this.PLAYER_PP_REGEN_PERIOD = 40;
         this.MIN_VALUE = 30; // Min value for generated items.
@@ -1456,13 +1454,13 @@ class RGClass {
         return obj;
     }
 
-    public getMaxDanger(xDiff, yDiff) {
+    public getMaxDanger(xDiff: number, yDiff: number): number {
         let maxDanger = 2 * yDiff + xDiff;
         if (maxDanger < 2) {maxDanger = 2;}
         return maxDanger;
     }
 
-    public getMaxValue(xDiff, yDiff) {
+    public getMaxValue(xDiff: number, yDiff: number): number {
         let maxValue = 20 * yDiff + 10 * xDiff;
         if (maxValue <= this.MIN_VALUE) {
             maxValue = this.MIN_VALUE;
@@ -1482,7 +1480,7 @@ class RGClass {
         };
     }
 
-/* Returns the count distribution for gold coins. */
+    /* Returns the count distribution for gold coins. */
     public getGoldCoinCountDistr(nLevel: number): ProbDist {
         const maxVal = nLevel + 1;
         const dist: ProbDist = {};
@@ -1499,7 +1497,8 @@ class RGClass {
             2: 30,
             3: 10,
             4: 5,
-            5: 2
+            5: 2,
+            6: 1
         };
     }
 
@@ -1519,8 +1518,8 @@ class RGClass {
         return adjValue / 200;
     }
 
-/* Scales (up) the value of item if any extra bonuses or modifiers are added to
- * it. */
+    /* Scales (up) the value of item if any extra bonuses or modifiers are added to
+     * it. */
     public scaleItemValue(type: string, bonus: number, item: ItemBase) {
         const currValue = item.getValue();
         let mult = 1;
@@ -1533,7 +1532,7 @@ class RGClass {
         item.setValue(newValue);
     }
 
-/* Returns true if given actor has gold at least equal to given gold weight. */
+    /* Returns true if given actor has gold at least equal to given gold weight. */
     public hasEnoughGold(actor, goldWeight: number): boolean {
         const ncoins = this.getGoldInCoins(goldWeight);
         const items = actor.getInvEq().getInventory().getItems();
@@ -1710,7 +1709,6 @@ class RGClass {
         }
         else {
             this.err('RG', 'levelUpActor', 'No exp. component found.');
-
         }
     }
 
@@ -2270,6 +2268,15 @@ class RGClass {
             return ent.get('Location').getLevel();
         }
         return null;
+    }
+
+    public toKey(xy: TCoord): string {
+        return xy[0] + ',' + xy[1];
+    }
+
+    public fromKey(key: string): TCoord {
+        const [x, y] = key.split(',');
+        return [parseInt(x, 10), parseInt(y, 10)];
     }
 
 }
