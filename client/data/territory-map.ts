@@ -8,6 +8,7 @@ import {Territory} from '../src/territory';
 import {OW} from '../src/ow-constants';
 import {Random} from '../src/random';
 import {OverWorld} from '../src/overworld';
+import {TCoord} from '../src/interfaces';
 
 const RNG = Random.getRNG();
 
@@ -21,7 +22,9 @@ export const TerritoryMap = function() {
  * @param {array[]} playerXY - Tile x,y coordinates for player
  * @return {Territory} - Generated territory map
  */
-TerritoryMap.create = function(ow, playerRace, playerXY) {
+TerritoryMap.create = function(
+    ow, playerRace: string, playerXY: TCoord
+): Territory {
     const [playerX, playerY] = playerXY;
     const capXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
     const dwarves = ow.getFeaturesByType(OW.WTOWER)[0];
@@ -86,6 +89,8 @@ TerritoryMap.create = function(ow, playerRace, playerXY) {
     const playerOwY = RNG.getUniformInt(bbox.uly, bbox.lry);
     pData.startX.push(playerOwX);
     pData.startY.push(playerOwY);
+    console.log('TerritoryMap gen player owX:', playerOwX, 'owY:',  playerOwY);
+    terrMap.addTag([playerOwX, playerOwY], 'player');
 
     terrMap.generate();
     return terrMap;
