@@ -63,6 +63,7 @@ describe('Menu.PlayerMissileMenu', () => {
         const orc = new SentientActor('orc');
         const level = RGUnitTests.wrapIntoLevel([player, orc]);
         RGUnitTests.moveEntityTo(player, 1, 1);
+        orc.getBrain().addEnemy(player);
         RGUnitTests.moveEntityTo(orc, 3, 3);
         const brain = player.getBrain();
         const menuArgs: MenuArg[] = [
