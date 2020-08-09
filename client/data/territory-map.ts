@@ -25,7 +25,7 @@ export const TerritoryMap = function() {
 TerritoryMap.create = function(
     ow, playerRace: string, playerXY: TCoord
 ): Territory {
-    const [playerX, playerY] = playerXY;
+    const [playerOwX, playerOwY] = playerXY;
     const capXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
     const dwarves = ow.getFeaturesByType(OW.WTOWER)[0];
     const btower = ow.getFeaturesByType(OW.BTOWER)[0];
@@ -80,13 +80,16 @@ TerritoryMap.create = function(
     const coordMap = new OverWorld.CoordMap();
     coordMap.xMap = 10;
     coordMap.yMap = 10;
-    const bbox = coordMap.getOWTileBboxFromAreaTileXY(playerX, playerY);
+    // const bbox = coordMap.getOWTileBboxFromAreaTileXY(playerX, playerY);
 
     const pData = terrMap.getRivalData(playerRace);
+    if (!pData) {
+        RG.err('TerritoryMap', 'create',
+            'Unable to find rivalData for player race ' + playerRace);
+        return terrMap;
+    }
     pData.numPos += 1;
 
-    const playerOwX = RNG.getUniformInt(bbox.ulx, bbox.lrx);
-    const playerOwY = RNG.getUniformInt(bbox.uly, bbox.lry);
     pData.startX.push(playerOwX);
     pData.startY.push(playerOwY);
     console.log('TerritoryMap gen player owX:', playerOwX, 'owY:',  playerOwY);
