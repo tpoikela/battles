@@ -1436,7 +1436,8 @@ export class Area extends WorldBase {
             maxX: this._sizeX,
             maxY: this._sizeY,
             cols: this._cols,
-            rows: this._rows
+            rows: this._rows,
+            city: [], dungeon: [], mountain: []
         };
     }
 
@@ -1980,7 +1981,7 @@ export class WorldTop extends WorldBase {
     }
 
     /* Creates config for each area. This is mainly required for testing. */
-    public createAreaConfig() {
+    public createAreaConfig(): AreaConf[] {
         const areaConf: AreaConf[] = [];
         this._areas.forEach((area) => {
             areaConf.push(area.createAreaConfig());
