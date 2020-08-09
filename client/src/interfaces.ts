@@ -120,7 +120,7 @@ export interface ICoordObj {
     aY: number;
     subX: number;
     subY: number;
-    subLevel: Level;
+    // subLevel: Level;
 }
 
 export type DestOrSrc = TCoord | Locatable | Cell;
@@ -413,6 +413,7 @@ export interface ZoneConf {
     sqrPerItem?: number;
     x?: number; // Position in area (tile x)
     y?: number; // Position in area (tile y)
+    tags?: string[]; // Any extra data for proc generation
 }
 
 export interface SubZoneConf {
@@ -473,9 +474,9 @@ export interface AreaConf {
     cols: number; // Cols per each area tile level
     rows: number; // Rows per each area tile level
 
-    city?: CityConf[];
-    dungeon?: DungeonConf[];
-    mountain?: MountainConf[];
+    city: CityConf[];
+    dungeon: DungeonConf[];
+    mountain: MountainConf[];
     nCities?: number;
     nDungeons?: number;
     nMountains?: number;
