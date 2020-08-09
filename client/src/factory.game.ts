@@ -24,12 +24,12 @@ import {ObjectShell} from './objectshellparser';
 import {OverWorld, CoordMap} from './overworld';
 import {Random} from './random';
 import {TerritoryMap} from '../data/territory-map';
-import {Texts} from '../data/texts';
+//rm import {Texts} from '../data/texts';
 import {Territory} from './territory';
 import {WorldConf} from './world.creator';
 import {Level} from './level';
 import {SentientActor} from './actor';
-import {Names} from '../data/name-gen';
+//rm import {Names} from '../data/name-gen';
 
 type Parser = import('./objectshellparser').Parser;
 
@@ -310,6 +310,7 @@ export class FactoryGame {
         const midX = Math.floor(owConf.nLevelsX / 2);
         const playerX = midX;
         const playerY = owConf.nLevelsY - 1;
+
         owConf.playerX = playerX;
         owConf.playerY = playerY;
         owConf.playerRace = obj.playerRace;
@@ -359,8 +360,7 @@ export class FactoryGame {
         this.progress('Creating places and local zones...');
         const playerLevel = splitLevels[playerX][playerY];
 
-        this.createCityConfForPlayerHome(worldConf, player, playerLevel,
-            playerX, playerY);
+        this.modifyConfForHometown(worldConf, player, playerLevel);
         this.createAreaLevelConstraints(worldConf, overworld.getTerrMap());
         const world = factWorld.createWorld(worldConf);
         game.addPlace(world);
@@ -566,26 +566,46 @@ export class FactoryGame {
     }
 
 /* Creates the starting home village for the player. */
-    public createCityConfForPlayerHome(
-        worldConf: IF.WorldConf, player, level: Level, playerX, playerY
+    public modifyConfForHometown(
+        worldConf: IF.WorldConf, player, level: Level
     ): void {
         // Extract fee cell for home town, not adjacent to connection
-        let cell = level.getFreeRandCell();
-        while (cell && cell.hasConnection()) {
-            cell = level.getFreeRandCell();
+
+        const areaConf: IF.AreaConf = worldConf.area[0]!;
+        const homeConf: IF.CityConf = areaConf.city!.find((cityConf: IF.CityConf) => (
+            cityConf.tags && cityConf.tags.indexOf('hometown') >= 0
+        ));
+
+        if (!homeConf) {
+            RG.err('FactoryGame', 'modifyConfForHometown',
+                'Unable to find city conf with "hometown" tag.');
+            return;
         }
 
-        let [lX, lY] = cell.getXY();
-        const [pX, pY] = player.getXY();
-        if (pX >= 0 && pY >= 0) {
-            lX = pX;
-            lY = pY;
+        homeConf.friendly = true;
+        homeConf.quarter[0].create = {
+            actor: [
+                {name: 'chicken', num: 15, nLevel: 0}
+            ]
+        };
+        player.setXY(homeConf.levelX, homeConf.levelY);
+        if (!homeConf.constraint) {
+            RG.err('FactoryGame', 'modifyConfForHometown',
+                'No homeConf.constraint found. Something went wrong in ow generation');
+            return;
         }
-        // Update cell if coord has changed
-        cell = level.getMap().getCell(lX, lY);
+        homeConf.constraint.actor = [
+            {op: 'eq', prop: 'type', value: [player.getType()]},
+            {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
+        ];
+        homeConf.constraint.shop = [{op: '<=', prop: 'value', value: 50}];
 
-        const uniqName = Names.getUniqueName('city');
+        if (!homeConf.quarter[0].create) {homeConf.quarter[0].create = {};}
+        homeConf.quarter[0].create = Object.assign(homeConf.quarter[0].create,
+            {actor: [{name: 'chicken', num: 15, nLevel: 0}]});
 
+        homeConf.name += ', home town of ' + player.getName();
+        /*
         const homeConf: IF.CityConf = {
             name: uniqName + ', home town of ' + player.getName(),
             x: playerX, y: playerY,
@@ -620,9 +640,11 @@ export class FactoryGame {
                 }}
             ]
         };
+        */
 
-        player.setXY(lX, lY);
-        worldConf.area[0].city!.push(homeConf);
+        // player.setXY(lX, lY);
+        // areaConf.city!.push(homeConf);
+        console.log('Creating player hometown with conf', JSON.stringify(homeConf, null, 1));
     }
 
 /* Creates the procgen constraints for given area level. This is used in
