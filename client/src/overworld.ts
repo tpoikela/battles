@@ -43,6 +43,8 @@ import {BBox} from './bbox';
 import dbg = require('debug');
 const debug = dbg('bitn:overworld');
 
+debug.enabled = true;
+
 type TCoord = IF.TCoord;
 type Level = import('./level').Level;
 type Cell = import('./map.cell').Cell;
@@ -148,9 +150,9 @@ export class OWWall {
 export class OWSubFeature {
     public type: string;
     public coord: TCoord[];
-    // public cellsAround: {[key: string]: string};
     public cellsAround: IF.ICellDirMap;
     public alignment: string;
+    public tags: string[]
 
     constructor(type: string, coord: TCoord[]) {
         this.type = type;
@@ -171,6 +173,7 @@ export class OWSubFeature {
             RG.err('OWSubFeature', 'new',
                 'coord must be an array.');
         }
+        this.tags = [];
     }
 
     public getLastCoord(): TCoord {
@@ -180,9 +183,26 @@ export class OWSubFeature {
         return [-1, -1];
     }
 
+    public addTag(tag: string): void {
+        this.tags.push(tag);
+    }
+
+    public getTags(): string[] {
+        return this.tags;
+    }
+
+    public hasTag(tag: string): boolean {
+        return this.tags.indexOf(tag) >= 0;
+    }
+
+    public hasTags(): boolean {
+        return this.tags.length > 0;
+    }
+
 }
 
 interface OWFeatureMap {[key: string]: OWSubFeature[];}
+
 //---------------------------------------------------------------------------
 /* Data struct which is tied to 'Level'. Contains more high-level
  * information like positions of walls and other features. Essentially a wrapper
@@ -267,8 +287,13 @@ export class OWSubLevel {
 
 //---------------------------------------------------------------------------
 /* Object to translate coordinates between different maps and levels.
+ * Example of sizes:
+ *  worldCols: 1000, worldRows: 500
+ *  nTilesX:     10,     ntilesY: 5
+ *  xMap:        10,       yMap: 10
  */
 //---------------------------------------------------------------------------
+
 export class CoordMap {
     public worldCols: number;
     public worldRows: number;
@@ -296,17 +321,19 @@ export class CoordMap {
         this.yMap = yMap;
     }
 
+    /* How many cols are in one Level of AreaTile. */
     public getAreaLevelCols(): number {
         return this.worldCols / this.nTilesX;
     }
 
+    /* How many rows are in one Level of AreaTile. */
     public getAreaLevelRows(): number {
         return this.worldRows / this.nTilesY;
     }
 
     public toOwLevelXY(subTileXY: TCoord, subLevelXY: TCoord): TCoord {
         const x = subTileXY[0] * this.xMap + subLevelXY[0];
-        const y = subTileXY[1] * this.xMap + subLevelXY[1];
+        const y = subTileXY[1] * this.yMap + subLevelXY[1];
         return [x, y];
     }
 
@@ -368,7 +395,7 @@ OverWorld.CoordMap = CoordMap;
  * method.
  * @return RG.Map.Level.
  */
-OverWorld.createOverWorld = (conf = {}) => {
+OverWorld.createOverWorld = (conf: IF.OWMapConf = {}) => {
     // 1st generate the high-level map
     const overworld: OWMap = OWMap.createOverWorld(conf);
     // Then use this to generate placement details
@@ -379,7 +406,9 @@ OverWorld.createOverWorld = (conf = {}) => {
  * build the features using Factory.World.
  * @return [Map.Level, conf] - Generated level and Factory config
  * */
-OverWorld.createOverWorldLevel = (overworld: OWMap, conf) => {
+OverWorld.createOverWorldLevel = (
+    overworld: OWMap, conf: IF.OWLevelConf
+): [Level, WorldConf] => {
     const coordMap = new CoordMap();
     coordMap.worldCols = conf.worldX || 400;
     coordMap.worldRows = conf.worldY || 400;
@@ -394,7 +423,7 @@ OverWorld.createOverWorldLevel = (overworld: OWMap, conf) => {
 
     addMainRoads = conf.addMainRoads || addMainRoads;
 
-    const worldLevelAndConf = buildMapLevel(overworld, coordMap);
+    const worldLevelAndConf = buildMapLevel(overworld, coordMap, conf);
     return worldLevelAndConf;
 };
 
@@ -403,7 +432,9 @@ OverWorld.createOverWorldLevel = (overworld: OWMap, conf) => {
 //---------------------------------------------------------------------------
 
 /* Creates the overworld level. Returns RG.Map.Level + conf object. */
-function buildMapLevel(ow: OWMap, coordMap): [Level, WorldConf] {
+function buildMapLevel(
+    ow: OWMap, coordMap: CoordMap, owConf: IF.OWLevelConf
+): [Level, WorldConf] {
     const {worldCols, worldRows, xMap, yMap, nTilesX, nTilesY} = coordMap;
 
     const sizeX = ow.getSizeX();
@@ -424,7 +455,7 @@ function buildMapLevel(ow: OWMap, coordMap): [Level, WorldConf] {
     }
 
     const conf: WorldConf = OverWorld.createWorldConf(ow,
-        sizeX, sizeY, nTilesX, nTilesY);
+        sizeX, sizeY, nTilesX, nTilesY, owConf);
 
     // Some global features (like roads) need to be added
     addGlobalFeatures(ow, owLevel, conf, coordMap);
@@ -667,7 +698,7 @@ function getFiltered(samples: number[], i: number, filterW: number): number {
     return Math.floor(sum / num);
 }
 
-/* Monster of a function. Has to add all possible features. */
+/* Creates configs for all zones in the overworld. */
 function addSubLevelFeatures(
     ow: OWMap, owX: number, owY: number, subLevel: Level
 ): void {
@@ -675,6 +706,12 @@ function addSubLevelFeatures(
     const owSubLevel = ow.getSubLevel(xy);
     const features: string[] = ow.getFeaturesByXY(xy);
     const base: string = ow.getCell(xy);
+    // const featData: FeatData[] = ow.getFeatureData(xy);
+
+    let isHome = false;
+    if (ow.hasFeatureDataWith(xy, 'hometown')) {
+        isHome = true;
+    }
 
     if (!features) {return;}
 
@@ -694,6 +731,11 @@ function addSubLevelFeatures(
         }
         else if (feat === OW.WVILLAGE) {
             addVillageToSubLevel(feat, owSubLevel, subLevel);
+            if (isHome) {
+                const feats: OWSubFeature[] = owSubLevel.getFeaturesByType('village');
+                console.log('Adding hometown tag to feature at owXY:', xy);
+                feats[0].addTag('hometown');
+            }
         }
         else if (feat === OW.MOUNTAIN) {
             addMountainToSubLevel(owSubLevel, subLevel);
@@ -755,7 +797,7 @@ function addTowerToSubLevel(
     let placed = false;
     const freeCells = subLevel.getMap().getFree();
     const freeXY: TCoord[] = freeCells.map(cell => cell.getXY());
-    let coord = [];
+    let coord: TCoord[] = [];
 
     let watchdog = WATCHDOG_MAX;
     while (coord.length !== 9) {
@@ -921,7 +963,7 @@ function addMountainToSubLevel(owSubLevel: OWSubLevel, subLevel: Level) {
 
 /* This creates a tunnel through mountain wall. This cannot fail, otherwise game
  * is unplayable. */
-function addVertTunnelToSubLevel(owSubLevel, subLevel: Level) {
+function addVertTunnelToSubLevel(owSubLevel: OWSubLevel, subLevel: Level) {
     const map = subLevel.getMap();
     const cols = map.cols;
     const tunnelX = getRNG().getUniformInt(0, cols - 1);
@@ -960,7 +1002,12 @@ function addVillageToSubLevel(feat, owSubLevel: OWSubLevel, subLevel: Level) {
  * Both levels are Level objects.
  */
 OverWorld.createWorldConf = function(
-    ow, nSubLevelsX, nSubLevelsY, nTilesX, nTilesY
+    ow: OWMap,
+    nSubLevelsX: number,
+    nSubLevelsY: number,
+    nTilesX: number,
+    nTilesY: number,
+    owConf: IF.OWLevelConf
 ): IF.WorldConf {
     const worldConf: IF.WorldConf = {
         name: 'The North',
@@ -1031,8 +1078,9 @@ OverWorld.createWorldConf = function(
             const subY = subLevel.getSubY();
 
             const coordObj: IF.ICoordObj = {xMap, yMap, nSubLevelsX, nSubLevelsY,
-                x, y, slX, slY, aX, aY, subLevel, subX, subY};
+                x, y, slX, slY, aX, aY, subX, subY};
 
+            debug(`Processing subLevel[${x}][${y}] with ${JSON.stringify(coordObj)}`);
             processSubLevel(ow, x, y, coordObj, areaConf, owLore);
 
         }
@@ -1052,7 +1100,7 @@ function processSubLevel(
     ow: OWMap, x: number, y: number, coordObj: IF.ICoordObj,
     areaConf: IF.AreaConf, owLore: OWLore
 ): void {
-    const subLevel = ow.getSubLevel([x, y]);
+    const subLevel: OWSubLevel = ow.getSubLevel([x, y]);
     const features: OWFeatureMap = subLevel.getFeatures();
     if (Object.keys(features).length === 0) {
         owLore.addVisited([x, y]);
@@ -1071,7 +1119,7 @@ function processSubLevel(
                     `coord must exist. feat: ${JSON.stringify(feat)}`);
             }
 
-            let zoneConf: IF.ZoneConf = null;
+            let zoneConf: IF.ZoneConf | null = null;
             if (feat.type === 'capital') {
                 zoneConf = addCapitalConfToArea(feat, coordObj, areaConf);
             }
@@ -1097,13 +1145,21 @@ function processSubLevel(
                 debug('Adding final blacktower now');
                 zoneConf = addBlackTowerConfToArea(feat, coordObj, areaConf);
             }
-            addCompsToZone(zoneConf, mainComps);
-            owLore.addZone([x, y], zoneConf);
-            if (zoneConf.uniqueName) {
-                zoneConf.name = zoneConf.uniqueName;
+
+            if (!zoneConf) {
+                RG.err('overworld.ts', 'processSubLevel',
+                    `[${x}][${y}]: No feat.type ${feat.type} supported!`);
+            }
+            else {
+                addCompsToZone(zoneConf, mainComps);
+                owLore.addZone([x, y], zoneConf);
+                if (zoneConf.uniqueName) {
+                    zoneConf.name = zoneConf.uniqueName;
+                }
             }
         });
     });
+
 
 }
 
@@ -1324,6 +1380,10 @@ function addCityConfToArea(feat: OWSubFeature, coordObj, areaConf): IF.ZoneConf 
         cityConf.constraint.cellsAround = feat.cellsAround;
     }
 
+    if (feat.hasTags()) {
+        cityConf.tags = feat.getTags();
+    }
+
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);
     return cityConf;
@@ -1331,7 +1391,7 @@ function addCityConfToArea(feat: OWSubFeature, coordObj, areaConf): IF.ZoneConf 
 
 /* Adds location info the zone config. This info specifies where the zone is
  * located in the overworld map. */
-function addLocationToZoneConf(feat, coordObj, zoneConf, vert = true) {
+function addLocationToZoneConf(feat, coordObj, zoneConf, vert=true): void {
     const {slX, slY, aX, aY, subX, subY} = coordObj;
     const coord = feat.coord;
     const nLevels = coord.length;
@@ -1489,6 +1549,7 @@ function getMainQuestLoreComps(
                 // TODO placeholder for more intelligent msg
                 const msg = createDirNorthMsg(dir);
                 comps.push(createLoreObj(msg, 'mainQuest'));
+                loreAdded = true;
             }
         }
 
@@ -1497,7 +1558,6 @@ function getMainQuestLoreComps(
             owLore.addXYKnownBy(xy, lXY);
             owLore.addXYKnownBy(lXY, xy);
         });
-        loreAdded = true;
     }
     else {
         // If we're not on main path, check if a surrounding cell is.
@@ -1507,11 +1567,11 @@ function getMainQuestLoreComps(
                 const dir = RG.getTextualDir(lXY, xy);
                 const msg = createDirNorthMsg(dir);
                 comps.push(createLoreObj(msg, 'mainQuest'));
+                loreAdded = true;
             }
             owLore.addXYKnownBy(lXY, xy);
             owLore.addXYKnownBy(xy, lXY);
         });
-        loreAdded = true;
     }
 
     if (!loreAdded) {

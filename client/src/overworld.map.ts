@@ -29,7 +29,8 @@ const getRNG = Random.getRNG;
 //---------------------------------------------
 
 interface FeatData {
-    type: string;
+    type?: string;
+    tags?: string[];
 }
 
 interface OWWall {
@@ -189,14 +190,14 @@ export class OWMap {
         return this._vWalls.length;
     }
 
-    public getHWall(i: number): OWWall {
+    public getHWall(i: number): OWWall | null {
         if (i < this._hWalls.length) {
             return this._hWalls[i];
         }
         return null;
     }
 
-    public getVWall(i: number): OWWall {
+    public getVWall(i: number): OWWall | null {
         if (i < this._vWalls.length) {
             return this._vWalls[i];
         }
@@ -243,7 +244,7 @@ export class OWMap {
     }
 
     public hasFeatureAt(xy: TCoord): boolean {
-        const keyXY = xy[0] + ',' + xy[1];
+        const keyXY = RG.toKey(xy);
         return this._featuresByXY.hasOwnProperty(keyXY);
     }
 
@@ -259,13 +260,64 @@ export class OWMap {
         this._featuresByXY[keyXY].push(type);
     }
 
+    public getFeatureData(xy: TCoord): FeatData[] {
+        if (this.hasFeatureData(xy)) {
+            return this._featureData[RG.toKey(xy)];
+        }
+        return [];
+    }
+
     public addFeatureData(xy: TCoord, data: FeatData): void {
-        const keyXY = xy[0] + ',' + xy[1];
+        const keyXY = RG.toKey(xy);
         if (!this._featureData.hasOwnProperty(keyXY)) {
             this._featureData[keyXY] = [];
         }
         this._featureData[keyXY].push(data);
     }
+
+    public hasFeatureData(xy: TCoord): boolean {
+        const keyXY = RG.toKey(xy);
+        return !!this._featureData[keyXY];
+    }
+
+    public hasFeatureDataWith(xy: TCoord, tag: string): boolean {
+        if (this.hasFeatureData(xy)) {
+            const keyXY = RG.toKey(xy);
+            const fdList: FeatData[] = this._featureData[keyXY];
+            for (let i = 0; i < fdList.length; i++) {
+                if (fdList[i].tags) {
+                    const tags: string[] = fdList[i].tags!;
+                    if (tags.indexOf(tag) >= 0) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public getXYForFeatureDataWith(key: keyof FeatData, val: string): null | TCoord {
+        let res: null | TCoord = null;
+        Object.keys(this._featureData).forEach((keyXY: string) => {
+            const fdList: FeatData[] = this._featureData[keyXY];
+            fdList.forEach((fd: FeatData) => {
+                if (!res && fd[key]) {
+                    const dataVal = fd[key];
+                    // Value can directly match, or match in array
+                    if (dataVal === val) {
+                        res = RG.fromKey(keyXY);
+                    }
+                    else if (Array.isArray(dataVal)) {
+                        if (dataVal.indexOf(val) >= 0) {
+                            res = RG.fromKey(keyXY);
+                        }
+                    }
+                }
+            });
+        });
+        return res;
+    }
+
 
     public getFeaturesByType(type: string): TCoord[] {
         if (!this._features.hasOwnProperty(type)) {
@@ -274,8 +326,8 @@ export class OWMap {
         return this._features[type];
     }
 
-    public getFeaturesByXY(xy: TCoord): string[] {
-        const keyXY = xy[0] + ',' + xy[1];
+    public getFeaturesByXY(xy: TCoord): null | string[] {
+        const keyXY = RG.toKey(xy);
         return this._featuresByXY[keyXY];
     }
 
@@ -286,11 +338,10 @@ export class OWMap {
         });
     }
 
-    public getPathAtXY(xy: TCoord): ICoordXY[] {
+    public getPathAtXY(xy: TCoord): null | ICoordXY[] {
         if (this.hasPathAt(xy)) {
-            const [x, y] = xy;
-            const key = x + ',' + y;
-            return this._pathsXY[key];
+            const keyXY = RG.toKey(xy);
+            return this._pathsXY[keyXY];
         }
         return null;
     }
@@ -349,11 +400,11 @@ export class OWMap {
     }
 
     public setExplored(xy: TCoord): void {
-        this._explored[xy[0] + ',' + xy[1]] = true;
+        this._explored[RG.toKey(xy)] = true;
     }
 
     public isExplored(xy: TCoord): boolean {
-        return this._explored[xy[0] + ',' + xy[1]];
+        return this._explored[RG.toKey(xy)];
     }
 
     public toJSON(): any {
@@ -795,10 +846,49 @@ function getValidNeighbours(x, y, map) {
 }
 
 /* Creates the territories for settlements like cities. */
-function createOverWorldTerritories(ow, conf) {
-    const {playerRace, playerX, playerY} = conf;
-    const terr = TerritoryMap.create(ow, playerRace, [playerX, playerY]);
+function createOverWorldTerritories(ow: OWMap, conf) {
+    const {playerRace} = conf;
+    addHomeTownTag(ow, conf);
+    const owXY = ow.getXYForFeatureDataWith('tags', 'hometown');
+    if (!owXY) {
+        RG.err('overworld.map.ts', 'createOverWorldTerritories',
+            `Unable to find owX/Y for player hometown`);
+        return;
+    }
+    const terr = TerritoryMap.create(ow, playerRace, owXY);
     ow.setTerrMap(terr);
+}
+
+function addHomeTownTag(ow: OWMap, conf): void {
+    const {playerX, playerY} = conf;
+    const [xMap, yMap] = getMappingToOWXY(conf);
+    if (RG.isNullOrUndef([playerX, playerY, xMap, yMap])) {
+        RG.warn('OWMap', 'addHomeTownTag',
+            'playerX/Y not found in OWMapConf: ' + JSON.stringify(conf));
+        return;
+    }
+
+    const ulx = playerX! * xMap;
+    const uly = playerY! * yMap;
+    const lrx = ulx + xMap - 1;
+    const lry = uly + yMap - 1;
+    let chosen = false;
+    let maxTries = xMap * yMap * 2;
+    let coord: TCoord | null = null;
+
+    while (!chosen) {
+        coord = getRNG().getRandInBbox(new BBox(ulx, uly, lrx, lry));
+        if (!ow.isWallTile(coord[0], coord[1])) {
+            ow.addFeatureData(coord as TCoord, {tags: ['hometown']});
+            chosen = true;
+        }
+
+        if (--maxTries === 0) {
+            console.log('Generated OWMap\n:' + ow.mapToString().join('\n'));
+            RG.err('overworld.map.ts', 'addHomeTownTag',
+               'Failed to find owTileX/Y for player. Conf: ' + JSON.stringify(conf));
+        }
+    }
 }
 
 /* Adds features like water, cities etc into the world. This feature only
@@ -895,7 +985,7 @@ function addOverWorldPaths(ow: OWMap, conf: OWMapConf): void {
 
     const featsOnPath = ow.getFeaturesOnPath(path);
     const ratio = path.length / Object.keys(featsOnPath).length;
-    console.log('OW_CAP->BTOWER Path/feats ratio is ' + ratio);
+    // console.log('OW_CAP->BTOWER Path/feats ratio is ' + ratio);
 
     // const xyBegin: TCoord = [1, ow.getSizeY() - 2];
     const featsByXY = ow.filter((x, y, feats, isWall) => {
@@ -926,7 +1016,7 @@ function addOverWorldPaths(ow: OWMap, conf: OWMapConf): void {
     if (key) {
         const [xStr, yStr] = key.split(',');
         const xyBegin: TCoord = [parseInt(xStr, 10), parseInt(yStr, 10)];
-        console.log('OW.Path', xyBegin, ' -> ', xyWC[0]);
+        // console.log('OW.Path', xyBegin, ' -> ', xyWC[0]);
         const pathBegin = OWMap.getPath(ow, xyBegin, xyWC[0]);
         ow.addPath(OW.PATH_BEGIN_WCAP, pathBegin);
     }
@@ -1024,9 +1114,14 @@ function addCitiesBasedOnTerritories(ow: OWMap): void {
     RG.forEach2D(map, (x: number, y: number) => {
         const xy = [x, y] as TCoord;
         const name = terrObj.getRival(xy);
+        let isHome = false;
+
+        if (ow.hasFeatureDataWith(xy, 'hometown')) {
+            isHome = true;
+        }
 
         if (terrObj.hasRival(xy)) {
-            if (RG.isSuccess(cityProb)) {
+            if (RG.isSuccess(cityProb) || isHome) {
                 placeCityFeature(ow, xy);
                 const featName = name + '_city';
                 ow.addFeatureData(xy, {type: featName});
@@ -1339,4 +1434,10 @@ function verifyOverWorld(ow: OWMap): void {
         console.log(ow.mapToString());
         RG.err('overworld.map.ts', 'verifyOverWorld', errMsg);
     }
+}
+
+function getMappingToOWXY(conf: OWMapConf): [number, number] {
+    const xMap = conf.owTilesX! / conf.nLevelsX!;
+    const yMap = conf.owTilesY! / conf.nLevelsY!;
+    return [xMap, yMap];
 }
