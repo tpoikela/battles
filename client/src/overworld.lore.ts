@@ -19,7 +19,7 @@ export class OWLore {
     public hasInfoAbout: {[key: string]: TCoord[]};
 
     // Indicates that x,y is known to [[x0, y0] ... [xN, yN]]
-    public isKnownBy: {[key: string]: any[]};
+    public isKnownBy: {[key: string]: TCoord[]};
 
     // Keeps track of visited x,y locations for building
     public xyVisited: {[key: string]: boolean};
@@ -129,6 +129,47 @@ export class OWLore {
                     });
                 });
 
+            });
+
+            // Add info to cities about these zones (if they are non-cities)
+            zones.forEach((knownZone: ZoneConf) => {
+                let knowers = this.isKnownBy[key];
+                if (knowers.length > 2) {
+                    knowers = [RNG.arrayGetRand(knowers), RNG.arrayGetRand(knowers)];
+                }
+                console.log('knowers are now', knowers);
+                knowers.forEach((c: TCoord) => {
+                    const keyXY = this.getKey(c);
+                    const zoneList: ZoneConf[] = this.zonesByXY[keyXY];
+                    if (!zoneList) {return;}
+
+                    zoneList.forEach((sz: ZoneConf) => {
+                        const knowerZone: ZoneConf = sz;
+                        const dir = RG.getTextualDir(xy, c);
+                        const msg = this.formatRespMsg(dir, knownZone);
+                        const metaData = this.getZoneMeta(knownZone);
+                        const loreObj = createLoreObj(msg, 'location', metaData);
+
+                        console.log('Adding loreObj', loreObj, 'to ZoneConf ' + sz.name);
+
+                        if (knowerZone.addComp) {
+                            knowerZone.addComp.push(loreObj);
+                        }
+                        else {
+                            knowerZone.addComp = [loreObj];
+                        }
+
+                        ++this.nAddedCompsTo;
+
+                        // TODO something about
+                        if (debug.enabled) {
+                            this.dbg('knowerZone:', knowerZone.name,
+                                knowerZone.x, knowerZone.y,
+                                JSON.stringify(knowerZone.addComp));
+                        }
+                    });
+
+                });
             });
 
         });
