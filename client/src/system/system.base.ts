@@ -9,6 +9,8 @@ const dbg = require('debug');
 const debug = dbg('bitn:System');
 const POOL = EventPool.getPool();
 
+const MATCH_ANY_ID = -1;
+
 //---------------------------------------------------
 /** Base class for all systems in ECS framework.
  * @constructor SystemBase
@@ -108,11 +110,11 @@ export abstract class SystemBase {
             }
         }
 
-        // For debugging particular actors
-        this.traceID = 107;
+        // For debugging particular actors, works only when debugEnabled = true
+        this.traceID = 107; // -1 matches any ID
 
-        // this.debugEnabled = debug.enabled;
-        this.debugEnabled = true;
+        this.debugEnabled = debug.enabled;
+        // this.debugEnabled = true;
         this.rng = new Random(0);
     }
 
@@ -215,7 +217,7 @@ export abstract class SystemBase {
             name = ent.getName();
         }
         const id = ent.getID();
-        if (this.traceID === -1 || this.traceID === id) {
+        if (this.traceID === MATCH_ANY_ID || this.traceID === id) {
             const msg = `|${tag}| Ent: ${name}, ID: ${id}`;
             this.dbg(msg);
         }
