@@ -23,9 +23,10 @@ export class SystemDeath extends SystemBase {
     constructor(compTypes: string[], pool?: EventPool) {
         super(RG.SYS.DEATH, compTypes, pool);
 
+        // If set to true, generates random loot drops
         this.enableRandomLootDrops = true;
         this.normalLootChance = 0.07;
-        this.betterLootChance = 0.02;
+        this.betterLootChance = 0.03;
         this.traceID = -1;
     }
 
