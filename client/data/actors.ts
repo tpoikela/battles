@@ -422,7 +422,7 @@ export const ActorsData: ActorShell[] = [
         attack: 9, defense: 6, protection: 8,
         hp: 47, danger: 12, damage: '4d4',
         brain: 'SpellCaster', spells: ['FireBolt', 'RingOfFire'],
-        maxPP: 70, pp: 70
+        maxPP: 60, pp: 60
     },
     {
         name: 'void elemental', base: 'ConstructBase',
@@ -1038,6 +1038,13 @@ export const ActorsData: ActorShell[] = [
         attack: 4, defense: 4, protection: 3, damage: '1d8',
         range: 1, hp: 40, danger: 5,
         equip: ['Battle axe', 'Chain armour']
+    },
+    {
+        name: 'dwarven priest', base: 'dwarf',
+        attack: 7, defense: 3, damage: '1d8',
+        range: 1, hp: 40, danger: 7,
+        brain: 'SpellCaster', spells: ['Heal'],
+        pp: 50, maxPP: 50
     },
     {
         name: 'dwarven hammerer', base: 'dwarf',
