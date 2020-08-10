@@ -1021,6 +1021,7 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.EnergyArrow());
     book.addSpell(new Spell.Flying());
     book.addSpell(new Spell.ForceField());
+    book.addSpell(new Spell.FireBolt());
     book.addSpell(new Spell.FrostBolt());
     book.addSpell(new Spell.GraspOfWinter());
     book.addSpell(new Spell.Heal());
