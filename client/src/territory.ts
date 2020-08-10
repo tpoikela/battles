@@ -70,13 +70,13 @@ export class Territory {
     public terrData: TerrDataMap;
 
     // Config variables (can be set via conf)
-    public rng: any;
+    public rng: Random;
     public doPostProcess: boolean;
     public maxNumPos: number;
     public startSize: number;
     public maxFillRatio: number;
 
-    // By default, use only 4 directions to advance rivals
+    // By default, use 8 directions to advance rivals
     public dirs: TCoord[];
 
     public infoTags: {[key: string]: string[]};
@@ -105,7 +105,7 @@ export class Territory {
         this.startSize = 1; // How many squares each rival gets on 1st move
         this.maxFillRatio = 1.0;
 
-        // By default, use only 4 directions
+        // By default, use 8 directions for advancing on the map
         this.dirs = RG.DIR_NSEW.concat(RG.DIR_DIAG);
 
         // Set options passed in as a conf object
@@ -128,7 +128,7 @@ export class Territory {
         this.infoTags = {};
     }
 
-    public setRNG(rng) {
+    public setRNG(rng: Random): void {
         this.rng = rng;
     }
 
@@ -201,7 +201,7 @@ export class Territory {
         }
     }
 
-    public addRival(data: RivalData) {
+    public addRival(data: RivalData): void {
         this._initRival(data);
     }
 
@@ -239,7 +239,6 @@ export class Territory {
                 }
             }
             ++numTurnsTaken;
-            console.log('TerrMap turn', numTurnsTaken, '\n');
             // RG.printMap(this.map);
         }
         if (this.doPostProcess) {
@@ -267,17 +266,17 @@ export class Territory {
 
     /* Given char representing a rival name on the map, returns name for that
      * rival. */
-    public getName(char) {
+    public getName(char: string): string | null {
         const found = this.rivals.find(rival => rival.char === char);
         if (found) {return found.name;}
         return null;
     }
 
-    public getFillRatio() {
+    public getFillRatio(): number {
         return (this.numCells - this.numEmpty) / this.numCells;
     }
 
-    public _hasTurnsLeftToProcess(numTurns, maxTurns): boolean {
+    public _hasTurnsLeftToProcess(numTurns: number, maxTurns: number): boolean {
         return (this.hasEmpty()
             && (this.currRivals.length > 0)
             && (numTurns !== maxTurns)
@@ -286,7 +285,7 @@ export class Territory {
     }
 
     /* Returns the starting position for given rival name. */
-    public _getStartPosition(name) {
+    public _getStartPosition(name: string): TCoord {
         const contData: TerrData = this.terrData[name];
         const {currPos} = contData;
         const xy = this.getRandEmptyXY();
@@ -336,9 +335,14 @@ export class Territory {
 
     public _addStartPosition(name: string, xy: TCoord): void {
         const contData = this.getRivalData(name);
+        if (!contData) {
+            RG.err('Territory', '_addStartPosition',
+                `TerrData for name |${name}| is null`);
+            return;
+        }
         const dSize = contData.startSize - 1;
-        const startCoord = Geometry.getBoxAround(xy[0], xy[1], dSize, true);
-        startCoord.forEach(xyStart => {
+        const startCoord: TCoord[] = Geometry.getBoxAround(xy[0], xy[1], dSize, true);
+        startCoord.forEach((xyStart: TCoord) => {
             if (this.isEmpty(xyStart)) {
                 this._addOccupied(name, xyStart);
             }

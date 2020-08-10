@@ -1117,6 +1117,7 @@ function addCitiesBasedOnTerritories(ow: OWMap): void {
         let isHome = false;
 
         if (ow.hasFeatureDataWith(xy, 'hometown')) {
+            console.log('DBG addCitiesBasedOnTerritories found hometown at', xy);
             isHome = true;
         }
 
