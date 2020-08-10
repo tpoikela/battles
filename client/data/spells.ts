@@ -317,6 +317,15 @@ Spell.LightningBolt = function() {
 RG.extend2(Spell.LightningBolt, Spell.BoltBase);
 
 /* Class Frost bolt which shoots a ray to one direction from the caster. */
+Spell.FireBolt = function() {
+    Spell.BoltBase.call(this, 'Fire bolt', 8);
+    this.damageType = RG.DMG.FIRE;
+    this.setRange(6);
+    this.setDice('damage', Dice.create('5d3 + 5'));
+};
+RG.extend2(Spell.FireBolt, Spell.BoltBase);
+
+/* Class Frost bolt which shoots a ray to one direction from the caster. */
 Spell.ScorpionsTail = function() {
     Spell.BoltBase.call(this, 'Scorpions tail', 1);
     this.damageType = RG.DMG.MELEE;
