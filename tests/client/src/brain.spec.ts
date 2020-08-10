@@ -336,6 +336,7 @@ describe('BrainSentient', () => {
         // Check that flee action not triggered when not player seen
         rogue.get('Health').setHP(1);
         arena.addActor(rogue, 2, 2);
+        rogue.addEnemy(player);
         const action = rogue.nextAction();
         action.doAction();
         movSys.update();

@@ -15,7 +15,7 @@ import {Random} from '../../../client/src/random';
 
 // Used for debugging, when test fails with certain seed
 
-/*
+
 describe('Game.Army', () => {
     it('it has actors', () => {
         const army = new Army('Puny army');
@@ -41,7 +41,7 @@ describe('Game.Army', () => {
         expect(army.isDefeated()).to.equal(true);
     });
 });
-*/
+
 
 describe('Game.Battle', function() {
 
