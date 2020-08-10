@@ -416,6 +416,15 @@ export const ActorsData: ActorShell[] = [
         maxPP: 70, pp: 70
     },
     {
+        name: 'fire elemental', base: 'ConstructBase',
+        color: color('Red', 'Black'),
+        char: 'E',
+        attack: 9, defense: 6, protection: 8,
+        hp: 47, danger: 12, damage: '4d4',
+        brain: 'SpellCaster', spells: ['FireBolt', 'RingOfFire'],
+        maxPP: 70, pp: 70
+    },
+    {
         name: 'void elemental', base: 'ConstructBase',
         color: color('Purple', 'Black'),
         char: 'E', className: 'cell-actor-void',
