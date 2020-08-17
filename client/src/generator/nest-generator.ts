@@ -2,6 +2,8 @@
 import RG from '../rg';
 import {LevelGenerator, ILevelGenOpts} from './level-generator';
 // import {Nests} from '../../data/tiles.nests';
+import dbg from 'debug';
+
 import {TCoord, ShellConstr, IShell } from '../interfaces';
 import {MapGenerator, MapConf} from './map.generator';
 import {Level} from '../level';
@@ -23,6 +25,8 @@ type CellMap = import('../map').CellMap;
 
 const RNG = Random.getRNG();
 
+const debug = dbg('bitn:nest');
+
 export interface NestOpts extends ILevelGenOpts {
     actorConstr: ShellConstr;
     mapConf: MapConf;
@@ -31,6 +35,9 @@ export interface NestOpts extends ILevelGenOpts {
         level: Level; // Target level for embedding the nest
         bbox?: BBox; // Bbox for the nest
     };
+    removeBorderWall?: boolean; // Removes all wall elements
+    scanForDoors?: boolean; // Scans for border doors
+    borderElem?: any;
 }
 
 type PartialNestOpts = Partial<NestOpts>;
@@ -57,6 +64,13 @@ export class NestGenerator extends LevelGenerator {
         super();
         // this.addDoors = true;
         // this.shouldRemoveMarkers = true;
+        this._debug = debug.enabled || true;
+    }
+
+    public dbg(...args): void {
+        if (this._debug) {
+            debug(...args);
+        }
     }
 
     public create(cols: number, rows: number, conf: PartialNestOpts): Level {
@@ -75,6 +89,9 @@ export class NestGenerator extends LevelGenerator {
                 'No level in conf.embedOpts. Got: ' + JSON.stringify(conf));
         }
         const nestLevel: Level = this.create(cols, rows, conf);
+        if (conf.removeBorderWall) {
+            this.removeBorderWall(nestLevel, conf);
+        }
         return this.embedIntoLevel(nestLevel, conf);
     }
 
@@ -107,7 +124,7 @@ export class NestGenerator extends LevelGenerator {
             Geometry.mergeLevels(parentLevel, nestLevel, bbox.ulx, bbox.uly);
             // parentLevel.debugPrintInASCII();
             // 1. Should connect the nest to remaining level now
-            if (this.connectNestToParentLevel(parentLevel, bbox)) {
+            if (this.connectNestToParentLevel(parentLevel, bbox, conf)) {
 
                 this.addElemsToNestArea(parentLevel, bbox, conf);
                 // 2. Here we can populate the nest area now
@@ -130,7 +147,16 @@ export class NestGenerator extends LevelGenerator {
 
     /* Adds a connection between nest and parent. Returns false if unsuccesful.
      * */
-    public connectNestToParentLevel(parentLevel: Level, bbox: BBox): boolean {
+    public connectNestToParentLevel(
+        parentLevel: Level, bbox: BBox,
+        conf: PartialNestOpts
+    ): boolean {
+        if (conf.scanForDoors) {
+            const result = this.scanAndConnect(parentLevel, bbox, conf);
+            if (result) {
+                return result;
+            }
+        }
         const map: CellMap = parentLevel.getMap();
         let dir: string = '';
         const [sizeX, sizeY] = parentLevel.getSizeXY();
@@ -155,6 +181,8 @@ export class NestGenerator extends LevelGenerator {
             let coord: TCoord[] = [];
             let adjust = 0;
             const maxSearchDepth = 5; // How deep into bbox we search
+
+
             while (cells.length === 0) {
                 coord = bbox.getBorderXY(chosenDir, adjust++);
                 cells = map.getCellsWithCoord(coord);
@@ -166,6 +194,7 @@ export class NestGenerator extends LevelGenerator {
 
             if (cells.length > 0) {
                 const tunnelCoord: TCoord[] = [];
+                this.dbg('Tunneling to', chosenDir, 'using', tunnelCoord);
                 if (this.getCoordForTunnel(cells, map, chosenDir, tunnelCoord)) {
                     map.setBaseElems(tunnelCoord, ELEM.FLOOR);
                     return true;
@@ -197,6 +226,13 @@ export class NestGenerator extends LevelGenerator {
             const tunnelDxDy = RG.dirTodXdY(dir);
             if (tunnelDxDy) {
                 [cX, cY] = RG.newXYFromDir(tunnelDxDy, [cX, cY]);
+                console.log('tunnel cX,cY is now', cX, cY);
+
+                // We've reached edge of the level
+                if (!map.hasXY(cX, cY)) {
+                    return false;
+                }
+
                 chosenCell = map.getCell(cX, cY);
                 tunnelCoord.push([cX, cY]);
                 let numTries = 0;
@@ -303,6 +339,147 @@ export class NestGenerator extends LevelGenerator {
             const [x, y] = RNG.arrayGetRand(lootXY);
             level.addItem(mainLootItem, x, y);
         }
+    }
+
+
+    public removeBorderWall(nestLevel: Level, conf: PartialNestOpts): void {
+        const {cols, rows} = nestLevel.getMap();
+        let elem = ELEM.FLOOR;
+        if (conf.borderElem) {
+            elem = conf.borderElem;
+        }
+        // Row 0
+        for (let x = 0; x < cols; ++x) {
+            nestLevel.getMap().setBaseElemXY(x, 0, elem);
+        }
+        // Col 0
+        for (let y = 0; y < rows; ++y) {
+            nestLevel.getMap().setBaseElemXY(0, y, elem);
+        }
+        // Last row
+        for (let x = 0; x < cols; ++x) {
+            nestLevel.getMap().setBaseElemXY(x, rows - 1, elem);
+        }
+        // Last col
+        for (let y = 0; y < rows; ++y) {
+            nestLevel.getMap().setBaseElemXY(cols - 1, y, elem);
+        }
+    }
+
+    public scanAndConnect(
+        parentLevel: Level, bbox: BBox,
+        conf: PartialNestOpts
+    ): boolean {
+        // console.log('scanAndConnect bbox', bbox);
+        // parentLevel.debugPrintInASCII();
+        let result = false;
+
+        // East wall
+        for (let y = bbox.uly; y <= bbox.lry; y++) {
+            const x = bbox.lrx;
+            const map = parentLevel.getMap();
+            const coord = Geometry.getCrossAround(x, y, 1, true);
+            const dirMap = Geometry.coordToDirMap([x, y], coord);
+
+            if (dirMap.E) {
+                const [eX, eY] = dirMap.E[0];
+                const eastCell = map.getCell(eX, eY);
+                if (eastCell.isFree()) {
+                    // Need to tunnel west until floor found
+                    result = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.W);
+                }
+            }
+        }
+        // West wall
+        for (let y = bbox.uly; y <= bbox.lry; y++) {
+            const x = bbox.ulx;
+            const map = parentLevel.getMap();
+            const coord = Geometry.getCrossAround(x, y, 1, true);
+            const dirMap = Geometry.coordToDirMap([x, y], coord);
+
+            if (dirMap.W) {
+                const [wX, wY] = dirMap.W[0];
+                const westCell = map.getCell(wX, wY);
+                if (westCell.isFree()) {
+                    console.log('scanAndConnect free west cell at', wX, wY);
+                    // Need to tunnel west until floor found
+                    result = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.E);
+                }
+            }
+        }
+
+        // South wall
+        for (let x = bbox.ulx; x <= bbox.lrx; x++) {
+            const y = bbox.lry;
+            const map = parentLevel.getMap();
+            const coord = Geometry.getCrossAround(x, y, 1, true);
+            const dirMap = Geometry.coordToDirMap([x, y], coord);
+
+            if (dirMap.S) {
+                const [sX, sY] = dirMap.S[0];
+                const southCell = map.getCell(sX, sY);
+                if (southCell.isFree()) {
+                    console.log('scanAndConnect south cell at', sX, sY);
+                    // Need to tunnel west until floor found
+                    result = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.N);
+                }
+            }
+        }
+
+        // North wall
+        for (let x = bbox.ulx; x <= bbox.lrx; x++) {
+            const y = bbox.uly;
+            const map = parentLevel.getMap();
+            const coord = Geometry.getCrossAround(x, y, 1, true);
+            const dirMap = Geometry.coordToDirMap([x, y], coord);
+
+            if (dirMap.N) {
+                const [nX, nY] = dirMap.N[0];
+                const northCell = map.getCell(nX, nY);
+                if (northCell.isFree()) {
+                    console.log('scanAndConnect north cell at', nX, nY);
+                    // Need to tunnel west until floor found
+                    result = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.S);
+                }
+            }
+        }
+
+        // console.log('After TUNNELING bbox', bbox);
+        // parentLevel.debugPrintInASCII();
+        return result;
+    }
+
+    /* Given x,y and direction, tunnels from x,y until FLOOR is reached. */
+    public tunnelUntilFloor(level: Level, x, y, dXdY): boolean {
+        const [dX, dY] = dXdY;
+        let done = false;
+        const map = level.getMap();
+        let i = 0;
+        map.setBaseElems([[x, y]], ELEM.FLOOR);
+
+        let wallFound = false;
+        let floorFound = false;
+
+        while (!done) {
+            const [nX, nY] = [x + i * dX, y + i * dY];
+            if (!map.hasXY(nX, nY)) {
+                done = false;
+                break;
+            }
+            const cell = map.getCell(nX, nY);
+            if (!cell.isFree()) {
+                wallFound = true;
+                map.setBaseElemXY(nX, nY, ELEM.FLOOR);
+            }
+            else if (wallFound) {
+                floorFound = true;
+            }
+            ++i;
+
+            done = wallFound && floorFound;
+        }
+
+        return done;
     }
 
 }
