@@ -333,7 +333,7 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'Permaice staff', base: 'IceWeaponBase',
-        damage: '3d5', weaponType: 'staff',
+        damage: '3d5 + 6', weaponType: 'staff',
         defense: 7, weight: 3.8, value: value(300)
     },
     {
