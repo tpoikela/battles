@@ -1528,6 +1528,8 @@ function addBiomeLocations(ow: OWMap, areaConf: IF.AreaConf): void {
     }
 }
 
+/* Creates the Lore components for the Main quest to guide the player to
+ * right direction. */
 function getMainQuestLoreComps(
     ow: OWMap, x: number, y: number, owLore: OWLore
 ): IF.IAddCompObj[] {
