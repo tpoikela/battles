@@ -27,6 +27,8 @@ interface Diamond {
     coord: TCoord[];
 }
 
+type CoordDirMap = Partial<ICellDirMap<TCoord[]>>;
+
 interface ITileConf {
     x: number;
     y: number;
@@ -190,6 +192,22 @@ export class Geometry {
             RG.err('Geometry', 'dirToBbox', `Invalid dir ${dir} given.`);
         }
         return null;
+    }
+
+    public static coordToDirMap(xy: TCoord, coord: TCoord[]): CoordDirMap {
+        const res: CoordDirMap = {};
+        coord.forEach((c: TCoord) => {
+            if (c[0] === xy[0] && c[1] === xy[1]) {
+                return;
+            }
+            const dXdY = RG.dXdYUnit(c, xy);
+            const dir = RG.dXdYToDir(dXdY);
+            if (!res[dir]) {
+                res[dir] = [];
+            }
+            res[dir]!.push(c);
+        });
+        return res;
     }
 
     /* Given two cells, returns bounding box defined by upper-left
