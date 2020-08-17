@@ -1068,7 +1068,7 @@ export const ActorsData: ActorShell[] = [
         name: 'dwarven elite', base: 'dwarf',
         attack: 5, defense: 6, damage: '3d5 + 3',
         range: 1, hp: 50, danger: 9,
-        equip: ['Battle axe', 'Steel armour']
+        equip: ['Steel armour']
     },
     {
         name: 'dwarven commander', base: 'dwarf',
@@ -1157,33 +1157,37 @@ export const ActorsData: ActorShell[] = [
         hp: 15, danger: 3, enemies: ['human']
     },
     {
-        name: 'wildling hunter', base: 'wildling', char: 'I',
-        attack: 3, defense: 3, damage: '1d6', hp: 20, danger: 3,
+        name: 'wildling tribefolk', base: 'wildling',
+        attack: 2, defense: 1, damage: '1d6', hp: 10, danger: 1
+    },
+    {
+        name: 'wildling hunter', base: 'wildling',
+        attack: 3, defense: 3, damage: '1d6 + 2', hp: 20, danger: 3,
         equip: ['Tomahawk']
     },
     {
-        name: 'wildling archer', base: 'wildling', char: 'I',
-        attack: 3, defense: 3, damage: '1d6', hp: 20, danger: 4,
+        name: 'wildling archer', base: 'wildling',
+        attack: 3, defense: 3, damage: '1d6 + 2', hp: 20, danger: 4,
         equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}],
         colorfg: 'Yellow',
         brain: defaultBrain
     },
     {
-        name: 'wildling fighter', base: 'wildling', char: 'I',
-        attack: 4, defense: 3, damage: '1d9', hp: 25, danger: 5
+        name: 'wildling fighter', base: 'wildling',
+        attack: 4, defense: 3, damage: '1d9 + 3', hp: 25, danger: 5
     },
     {
-        name: 'wildling elite', base: 'wildling', char: 'I',
-        attack: 5, defense: 3, damage: '1d10', hp: 32, danger: 6
+        name: 'wildling elite', base: 'wildling',
+        attack: 5, defense: 3, damage: '1d10 + 4', hp: 32, danger: 6
     },
     {
-        name: 'wildling warlord', base: 'wildling', char: 'I',
-        attack: 6, defense: 3, damage: '1d12', hp: 40, danger: 7,
+        name: 'wildling warlord', base: 'wildling',
+        attack: 6, defense: 3, damage: '1d12 + 5', hp: 40, danger: 7,
         colorfg: 'YellowGreen'
     },
     {
-        name: 'wildling king', base: 'wildling', char: 'I',
-        attack: 8, defense: 5, damage: '1d15', hp: 50, danger: 10,
+        name: 'wildling king', base: 'wildling',
+        attack: 8, defense: 5, damage: '1d15 + 6', hp: 50, danger: 10,
         colorfg: 'Red'
     },
 
