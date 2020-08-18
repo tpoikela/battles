@@ -133,6 +133,7 @@ export class OWLore {
 
             // Add info to cities about these zones (if they are non-cities)
             zones.forEach((knownZone: ZoneConf) => {
+                const isEpic = knownZone.isEpic;
                 let knowers = this.isKnownBy[key];
                 if (knowers.length > 2) {
                     knowers = [RNG.arrayGetRand(knowers), RNG.arrayGetRand(knowers)];
@@ -146,7 +147,10 @@ export class OWLore {
                     zoneList.forEach((sz: ZoneConf) => {
                         const knowerZone: ZoneConf = sz;
                         const dir = RG.getTextualDir(xy, c);
-                        const msg = this.formatRespMsg(dir, knownZone);
+                        let msg = this.formatRespMsg(dir, knownZone);
+                        if (isEpic) {
+                            msg += ' They say a great adventure awaits there.';
+                        }
                         const metaData = this.getZoneMeta(knownZone);
                         const loreObj = createLoreObj(msg, 'location', metaData);
 
