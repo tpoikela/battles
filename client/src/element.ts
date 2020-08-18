@@ -25,7 +25,7 @@ export interface ElementJSON {
 export const Element: any = {};
 
 const wallRegexp = /wall/;
-const obstacleRegexp = /(?:highrock|water|chasm|wall)/;
+const obstacleRegexp = /(?:highrock|chasm|wall)/;
 
 interface StringMap {
     [key: string]: string;
