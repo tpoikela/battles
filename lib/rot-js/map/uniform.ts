@@ -1,14 +1,7 @@
 import { CreateCallback } from './map';
-import Dungeon from './dungeon';
+import Dungeon, {Options} from './dungeon';
 import { Room, Corridor } from './features';
 import RNG from '../rng';
-
-interface Options {
-    roomWidth: [number, number], /* room minimum and maximum width */
-    roomHeight: [number, number], /* room minimum and maximum height */
-    roomDugPercentage: number, /* we stop after this percentage of level area has been dug out by rooms */
-    timeLimit: number /* we stop after this much time has passed (msec) */
-};
 
 type Point = [number, number];
 
@@ -17,12 +10,10 @@ type Point = [number, number];
  * @augments ROT.Map.Dungeon
  */
 export default class Uniform extends Dungeon {
-    _options: Options;
     _roomAttempts: number;
     _corridorAttempts: number;
     _connected: Room[];
     _unconnected: Room[];
-    _map: number[][];
     _dug: number;
     _startRoom: Room;
 
@@ -33,7 +24,8 @@ export default class Uniform extends Dungeon {
             roomWidth: [3, 9], /* room minimum and maximum width */
             roomHeight: [3, 5], /* room minimum and maximum height */
             roomDugPercentage: 0.1, /* we stop after this percentage of level area has been dug out by rooms */
-            timeLimit: 1000 /* we stop after this much time has passed (msec) */
+            timeLimit: 1000, /* we stop after this much time has passed (msec) */
+            corridorLength: [3, 10], /* corridor minimum and maximum length */
         };
         Object.assign(this._options, options);
 
@@ -45,7 +37,7 @@ export default class Uniform extends Dungeon {
         this._connected = []; /* list of already connected rooms */
         this._unconnected = []; /* list of remaining unconnected rooms */
 
-        this._digCallback = this._digCallback.bind(this);
+        // this._digCallback = this._digCallback.bind(this);
         this._canBeDugCallback = this._canBeDugCallback.bind(this);
         this._isWallCallback = this._isWallCallback.bind(this);
     }
@@ -54,24 +46,29 @@ export default class Uniform extends Dungeon {
         this._startRoom = room;
     }
 
+
+
     /**
 	 * Create a map. If the time limit has been hit, returns null.
 	 * @see ROT.Map#create
 	 */
     create(callback?: CreateCallback) {
         const t1 = Date.now();
+
+
         while (1) {
             const t2 = Date.now();
             if (t2 - t1 > this._options.timeLimit) { return null; } /* time limit! */
 
             this._map = this._fillMap(1);
+            this._firstRoom();
             this._dug = 0;
             this._rooms = [];
             this._unconnected = [];
             this._generateRooms();
 
             if (this._startRoom) {
-                this._rooms.push(this._startRoom);
+                this._addRoom(this._startRoom);
                 this._startRoom.create(this._digCallback);
             }
             if (this._rooms.length < 2) { continue; }
@@ -86,6 +83,12 @@ export default class Uniform extends Dungeon {
             }
         }
 
+        /*
+        for (const i in this._ngraph) {
+            console.log(i, JSON.stringify(this._ngraph[i]));
+        }
+        console.log(JSON.stringify(this._ugraph));
+        */
         return this;
     }
 
@@ -117,7 +120,8 @@ export default class Uniform extends Dungeon {
             if (!room.isValid(this._isWallCallback, this._canBeDugCallback)) { continue; }
 
             room.create(this._digCallback);
-            this._rooms.push(room);
+            //rm this._rooms.push(room);
+            this._addRoom(room);
             return room;
         }
 
@@ -129,7 +133,7 @@ export default class Uniform extends Dungeon {
 	 * Generates connectors beween rooms
 	 * @returns {bool} success Was this attempt successfull?
 	 */
-    _generateCorridors() {
+    _generateCorridors(): boolean {
         let cnt = 0;
         while (cnt < this._corridorAttempts) {
             cnt++;
@@ -145,7 +149,9 @@ export default class Uniform extends Dungeon {
 
             this._unconnected = RNG.shuffle(this._rooms.slice());
             this._connected = [];
-            if (this._unconnected.length) { this._connected.push(this._unconnected.pop() as Room); } /* first one is always connected */
+            if (this._unconnected.length) {
+                this._connected.push(this._unconnected.pop() as Room);
+            } /* first one is always connected */
 
             while (1) {
                 /* 1. pick random connected room */
@@ -193,7 +199,7 @@ export default class Uniform extends Dungeon {
         return result;
     }
 
-    _connectRooms(room1: Room, room2: Room) {
+    _connectRooms(room1: Room, room2: Room): boolean {
         /*
 			room1.debug();
 			room2.debug();
@@ -278,16 +284,24 @@ export default class Uniform extends Dungeon {
         room2.addDoor(end[0], end[1]);
 
         index = this._unconnected.indexOf(room1);
-        if (index != -1) {
+        if (index !== -1) {
             this._unconnected.splice(index, 1);
             this._connected.push(room1);
         }
 
         index = this._unconnected.indexOf(room2);
-        if (index != -1) {
+        if (index !== -1) {
             this._unconnected.splice(index, 1);
             this._connected.push(room2);
         }
+
+        this._ngraph.addLink(room1.getName(), room2.getName(), {weight: 1});
+        const edgeName = room1.getName() + '->' + room2.getName();
+        this._ugraph.createEdge(edgeName).link(
+            this._ugraph.nodes(room1.getName()).query().first(),
+            this._ugraph.nodes(room2.getName()).query().first(),
+            {weight: 1}
+        );
 
         return true;
     }
@@ -328,9 +342,9 @@ export default class Uniform extends Dungeon {
             const y = start[1] + i*dir[1];
             avail.push(null);
 
-            const isWall = (this._map[x][y] == 1);
+            const isWall = (this._map[x][y] === 1);
             if (isWall) {
-                if (lastBadIndex != i-1) { avail[i] = [x, y]; }
+                if (lastBadIndex !== i-1) { avail[i] = [x, y]; }
             } else {
                 lastBadIndex = i;
                 if (i) { avail[i-1] = null; }
@@ -358,16 +372,16 @@ export default class Uniform extends Dungeon {
 
     _digCallback(x:number, y:number, value: number) {
         this._map[x][y] = value;
-        if (value == 0) { this._dug++; }
+        if (value === 0) { this._dug++; }
     }
 
     _isWallCallback(x: number, y: number) {
         if (x < 0 || y < 0 || x >= this._width || y >= this._height) { return false; }
-        return (this._map[x][y] == 1);
+        return (this._map[x][y] === 1);
     }
 
     _canBeDugCallback(x: number, y: number) {
         if (x < 1 || y < 1 || x+1 >= this._width || y+1 >= this._height) { return false; }
-        return (this._map[x][y] == 1);
+        return (this._map[x][y] === 1);
     }
 }

@@ -1,9 +1,10 @@
 import { CreateCallback } from './map';
-import Dungeon from './dungeon';
-import { Room, Corridor, FeatureConstructor } from './features';
+import Dungeon, {Options} from './dungeon';
+import { Room, Corridor, Feature, FeatureConstructor } from './features';
 
 import RNG from '../rng';
 import { DIRS } from '../constants';
+
 
 type FeatureType = 'room' | 'corridor';
 const FEATURES = {
@@ -11,6 +12,11 @@ const FEATURES = {
     'corridor': Corridor
 }
 
+type Feature = Room | Corridor;
+
+type TCoord = [number, number];
+
+/*
 interface Options {
     roomWidth: [number, number];
     roomHeight: [number, number];
@@ -18,6 +24,7 @@ interface Options {
     dugPercentage: number;
     timeLimit: number
 }
+*/
 
 /**
  * Random dungeon generator using human-like digging patterns.
@@ -25,14 +32,15 @@ interface Options {
  * http://www.roguebasin.roguelikedevelopment.org/index.php?title=Dungeon-Building_Algorithm.
  */
 export default class Digger extends Dungeon {
-    _options: Options;
+    // _options: Options;
     _featureAttempts: number;
-    _map: number[][];
+    // _map: number[][];
     _walls: { [key:string]: number };
     _dug: number;
     _features: { [key:string]: number };
-    _startRoom: Room;
-    _extraRooms: Room[];
+
+    _xyToFeat: { [key: string]: Feature[]};
+
 
     constructor(width: number, height: number, options: Partial<Options> = {}) {
         super(width, height);
@@ -54,25 +62,15 @@ export default class Digger extends Dungeon {
         this._walls = {}; /* these are available for digging */
         this._dug = 0;
 
-        this._digCallback = this._digCallback.bind(this);
+        // this._digCallback = this._digCallback.bind(this);
         this._canBeDugCallback = this._canBeDugCallback.bind(this);
         this._isWallCallback = this._isWallCallback.bind(this);
         this._priorityWallCallback = this._priorityWallCallback.bind(this);
+
+        this._xyToFeat = {};
     }
 
-    startRoom(room: Room) {
-        this._startRoom = room;
-    }
 
-    addRoom(room: Room) {
-        if (!this._startRoom) {
-            this._startRoom = room;
-        }
-        else {
-            if (!this._extraRooms) {this._extraRooms = [];}
-            this._extraRooms.push(room);
-        }
-    }
 
     create(callback?: CreateCallback) {
         this._rooms = [];
@@ -97,8 +95,8 @@ export default class Digger extends Dungeon {
             if (!wall) { break; } /* no more walls */
 
             const parts = wall.split(',');
-            const x = parseInt(parts[0]);
-            const y = parseInt(parts[1]);
+            const x = parseInt(parts[0], 10);
+            const y = parseInt(parts[1], 10);
             const dir = this._getDiggingDirection(x, y);
             if (!dir) { continue; } /* this wall is not suitable */
 
@@ -124,6 +122,8 @@ export default class Digger extends Dungeon {
 
         this._addDoors();
 
+        this._createEdgesForGraph();
+
         if (callback) {
             for (let i=0;i<this._width;i++) {
                 for (let j=0;j<this._height;j++) {
@@ -139,7 +139,7 @@ export default class Digger extends Dungeon {
     }
 
     _digCallback(x: number, y: number, value: number) {
-        if (value == 0 || value == 2) { /* empty */
+        if (value === 0 || value === 2) { /* empty */
             this._map[x][y] = 0;
             this._dug++;
         } else { /* wall */
@@ -149,45 +149,30 @@ export default class Digger extends Dungeon {
 
     _isWallCallback(x: number, y: number) {
         if (x < 0 || y < 0 || x >= this._width || y >= this._height) { return false; }
-        return (this._map[x][y] == 1);
+        return (this._map[x][y] === 1);
     }
 
     _canBeDugCallback(x: number, y: number) {
         if (x < 1 || y < 1 || x+1 >= this._width || y+1 >= this._height) { return false; }
-        return (this._map[x][y] == 1);
+        return (this._map[x][y] === 1);
     }
 
     _priorityWallCallback(x: number, y: number) { this._walls[x+','+y] = 2; };
 
-    _firstRoom() {
-        let room = this._startRoom;
-        if (!room) {
-            const cx = Math.floor(this._width/2);
-            const cy = Math.floor(this._height/2);
-            room = Room.createRandomCenter(cx, cy, this._options);
-        }
-        this._rooms.push(room);
-        room.create(this._digCallback);
-        if (this._extraRooms) {
-            this._extraRooms.forEach(extraRoom => {
-                this._rooms.push(extraRoom);
-                extraRoom.create(this._digCallback);
-            });
-        }
-    }
-
     /**
 	 * Get a suitable wall
 	 */
-    _findWall() {
+    _findWall(): null | string {
         const prio1 = [];
         const prio2 = [];
-        for (const id in this._walls) {
-            const prio = this._walls[id];
-            if (prio == 2) {
-                prio2.push(id);
-            } else {
-                prio1.push(id);
+        for (const _id in this._walls) {
+            if (this._walls.hasOwnProperty(_id)) {
+                const prio = this._walls[_id];
+                if (prio === 2) {
+                    prio2.push(_id);
+                } else {
+                    prio1.push(_id);
+                }
             }
         }
 
@@ -204,7 +189,7 @@ export default class Digger extends Dungeon {
 	 * Tries adding a feature
 	 * @returns {bool} was this a successful try?
 	 */
-    _tryFeature(x: number, y: number, dx: number, dy: number) {
+    _tryFeature(x: number, y: number, dx: number, dy: number): boolean {
         const featureName = RNG.getWeightedValue(this._features) as FeatureType;
         const ctor = FEATURES[featureName] as FeatureConstructor;
         const feature = ctor.createRandomAt(x, y, dx, dy, this._options);
@@ -216,9 +201,13 @@ export default class Digger extends Dungeon {
         }
 
         feature.create(this._digCallback);
+        this._markFeatureXY(feature);
     //	feature.debug();
 
-        if (feature instanceof Room) { this._rooms.push(feature); }
+        if (feature instanceof Room) {
+            //rm this._rooms.push(feature);
+            this._addRoom(feature);
+        }
         if (feature instanceof Corridor) {
             feature.createPriorityWalls(this._priorityWallCallback);
             this._corridors.push(feature);
@@ -227,7 +216,7 @@ export default class Digger extends Dungeon {
         return true;
     }
 
-    _removeSurroundingWalls(cx: number, cy: number) {
+    _removeSurroundingWalls(cx: number, cy: number): void {
         const deltas = DIRS[4];
 
         for (let i=0;i<deltas.length;i++) {
@@ -244,7 +233,7 @@ export default class Digger extends Dungeon {
     /**
 	 * Returns vector in "digging" direction, or false, if this does not exist (or is not unique)
 	 */
-    _getDiggingDirection(cx: number, cy: number) {
+    _getDiggingDirection(cx: number, cy: number): null | [number, number] {
         if (cx <= 0 || cy <= 0 || cx >= this._width - 1 || cy >= this._height - 1) { return null; }
 
         let result = null;
@@ -270,15 +259,74 @@ export default class Digger extends Dungeon {
     /**
 	 * Find empty spaces surrounding rooms, and apply doors.
 	 */
-    _addDoors() {
+    _addDoors(): void {
         const data = this._map;
         function isWallCallback(x: number, y: number) {
-            return (data[x][y] == 1);
+            return (data[x][y] === 1);
         };
         for (let i = 0; i < this._rooms.length; i++ ) {
             const room = this._rooms[i];
             room.clearDoors();
             room.addDoors(isWallCallback);
         }
+    }
+
+    public getCrossAround(x0: number, y0: number, d: number, incSelf = false): TCoord[] {
+        const res: TCoord[] = [];
+        for (let x = x0 - d; x <= x0 + d; x++) {
+            for (let y = y0 - d; y <= y0 + d; y++) {
+                if (x === x0 || y === y0) {
+                    if (x !== x0 || y !== y0) {
+                        // Push only coords within level bounds
+                        if (x >= 0 && y >= 0 && x < this._width && y < this._height) {
+                            res.push([x, y]);
+                        }
+                    }
+                }
+            }
+        }
+        if (incSelf) {res.push([x0, y0]);}
+        return res;
+
+    }
+
+    _markFeatureXY(feature: Feature): void {
+        const thisAdded: {[key: string]: boolean} = {};
+        const featXY = feature.getXY();
+
+        featXY.forEach((xy) => {
+            const [x, y] = xy;
+            const allXYs = this.getCrossAround(x, y, 1, true);
+
+            allXYs.forEach((newXY: TCoord) => {
+                const [x0, y0] = newXY;
+                const key = x0 + ',' + y0;
+
+                if (thisAdded[key]) {return;}
+
+                thisAdded[key] = true;
+                if (this._xyToFeat[key]) {
+                    // console.log('Overlap detected at', key, feature.getName(), this._xyToFeat[key]);
+                }
+                else {
+                    this._xyToFeat[key] = [];
+                }
+                this._xyToFeat[key].push(feature);
+                // console.log('Mark feature xy', key, 'ID:', feature.getName());
+            });
+        });
+    }
+
+    _createEdgesForGraph(): void {
+        Object.keys(this._xyToFeat).forEach((xyStr: string) => {
+            const [x, y] = xyStr.split(',');
+            const feats = this._xyToFeat[xyStr];
+            if (feats.length > 2) {
+                console.warn('More than 2 feats in ' + JSON.stringify(feats));
+            }
+            else if (feats.length === 2) {
+                this._ngraph.addLink(feats[0], feats[1], {x, y});
+            }
+        });
     }
 }

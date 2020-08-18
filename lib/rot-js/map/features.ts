@@ -1,5 +1,7 @@
 import RNG from '../rng';
 
+import {Graph} from 'graphlib';
+
 interface RoomOptions {
     roomWidth: [number, number];
     roomHeight: [number, number];
@@ -22,9 +24,13 @@ type TestPositionCallback = (x: number, y: number) => boolean;
  * @class Dungeon feature; has own .create() method
  */
 abstract class Feature {
-    abstract isValid(isWallCallback: TestPositionCallback, canBeDugCallback: TestPositionCallback): boolean;
+    abstract isValid(isWallCallback: TestPositionCallback,
+                     canBeDugCallback: TestPositionCallback): boolean;
     abstract create(digCallback: DigCallback): void;
     abstract debug(): void;
+
+    abstract getID(): number;
+    abstract getName(): string;
 }
 
 /**
@@ -38,6 +44,9 @@ abstract class Feature {
  * @param {int} [doorY]
  */
 export class Room extends Feature {
+
+    static id: number;
+
     _x1: number;
     _y1: number;
     _x2: number;
@@ -58,8 +67,10 @@ export class Room extends Feature {
         this._feats = {};
         this._stairs = {};
 
-        if (doorX !== undefined && doorY !== undefined) { this.addDoor(doorX, doorY); }
-        this._roomID = -1;
+        if (doorX !== undefined && doorY !== undefined) {
+            this.addDoor(doorX, doorY);
+        }
+        this._roomID = Room.id++;
     };
 
     /**
@@ -287,7 +298,7 @@ export class Room extends Feature {
         return this._x2 - this._x1;
     }
 
-    getHeight = function() {
+    getHeight(): number {
         return this._y2 - this._y1;
     }
 
@@ -302,6 +313,10 @@ export class Room extends Feature {
 
     isTerm(): boolean {
         return Object.keys(this._doors).length === 1;
+    }
+
+    getName(): string {
+        return 'room_' + this._roomID;
     }
 
     getID(): number {
@@ -338,6 +353,22 @@ export class Room extends Feature {
         return {ulx, uly, lrx, lry};
     }
 
+    getXY(): [number, number][] {
+        const res = [];
+        const {ulx, uly, lrx, lry} = this.getInnerBbox(1);
+        for (let x = ulx;  x <= lrx; ++x) {
+            for (let y = uly;  y <= lry; ++y) {
+                res.push([x, y]);
+            }
+        }
+        // Need to add also door tiles for better connectivity info
+        Object.keys(this._doors).forEach((xyStr: string) => {
+            const [x, y] = xyStr.split(',');
+            res.push([x, y]);
+        });
+        return res;
+    }
+
     getAreaSize(): number {
         return (this._x2 - this._x1) * (this._y2 - this._y1);
     }
@@ -352,11 +383,15 @@ export class Room extends Feature {
  * @param {int} endY
  */
 export class Corridor extends Feature {
+
+    static id: number;
+
     _startX: number;
     _startY: number;
     _endX: number;
     _endY: number;
     _endsWithAWall: boolean;
+    _corrID: number;
 
     constructor(startX: number, startY: number, endX: number, endY: number) {
         super();
@@ -365,6 +400,15 @@ export class Corridor extends Feature {
         this._endX = endX;
         this._endY = endY;
         this._endsWithAWall = true;
+        this._corrID = Corridor.id++;
+    }
+
+    getID(): number {
+        return this._corrID;
+    }
+
+    getName(): string {
+        return 'corr_' + this._corrID;
     }
 
     static createRandomAt(x: number, y: number, dx: number, dy: number, options: CorridorOptions) {
@@ -442,6 +486,7 @@ export class Corridor extends Feature {
 	 * @param {function} digCallback Dig callback with a signature (x, y, value). Values: 0 = empty.
 	 */
     create(digCallback: DigCallback) {
+        /*
         const sx = this._startX;
         const sy = this._startY;
         let dx = this._endX-sx;
@@ -456,8 +501,35 @@ export class Corridor extends Feature {
             const y = sy + i*dy;
             digCallback(x, y, 0);
         }
+        */
+
+        const xy: [number, number][] = this.getXY();
+        for (let i=0; i<xy.length; i++) {
+            const [x, y] = xy[i];
+            digCallback(x, y, 0);
+        }
 
         return true;
+    }
+
+    /* Returns x,y coordinates belonging into this corridor. */
+    getXY(): [number, number][] {
+        const res = [];
+        const sx = this._startX;
+        const sy = this._startY;
+        let dx = this._endX-sx;
+        let dy = this._endY-sy;
+        const length = 1+Math.max(Math.abs(dx), Math.abs(dy));
+
+        if (dx) { dx = dx/Math.abs(dx); }
+        if (dy) { dy = dy/Math.abs(dy); }
+
+        for (let i=0; i<length; i++) {
+            const x = sx + i*dx;
+            const y = sy + i*dy;
+            res.push([x, y]);
+        }
+        return res;
     }
 
     createPriorityWalls(priorityWallCallback: (x:number, y:number) => void) {
@@ -477,4 +549,34 @@ export class Corridor extends Feature {
         priorityWallCallback(this._endX + nx, this._endY + ny);
         priorityWallCallback(this._endX - nx, this._endY - ny);
     }
+}
+
+Room.id = 0;
+Corridor.id = 0;
+
+export class RoomGraph {
+
+    public graph: Graph;
+
+    constructor() {
+        // Rooms can be travelled to both directions
+        this.graph = new Graph({directed: false});
+    }
+
+    addRoom(room: Room): void {
+        this.graph.setNode(room.getName(), room);
+    }
+
+    connectRooms(r1: Room, r2: Room): void {
+        this.graph.setEdge(r1.getName(), r2.getName());
+    }
+
+    isTerm(room: Room): boolean {
+        const edges = this.graph.nodeEdges(room.getName());
+        if (edges) {
+            return edges.length === 1;
+        }
+        return false;
+    }
+
 }
