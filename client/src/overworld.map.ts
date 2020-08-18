@@ -797,7 +797,7 @@ function connectUnconnectedBottomTop(map, yFirst = true) {
     }
 }
 
-function connectEmptyCell(x, y, map) {
+function connectEmptyCell(x: number, y: number, map: string[][]): void {
     if (map[x][y] === OW.EMPTY) {
         const neighbours = getValidNeighbours(x, y, map);
         const validNeighbours = neighbours.filter(n =>
@@ -818,7 +818,7 @@ function connectEmptyCell(x, y, map) {
 }
 
 /* Returns valid neighbouring tiles for the given x,y. */
-function getValidNeighbours(x, y, map) {
+function getValidNeighbours(x: number, y: number, map: string[][]): any[] {
     const sizeY = map[0].length;
     const sizeX = map.length;
     const tiles = [];
