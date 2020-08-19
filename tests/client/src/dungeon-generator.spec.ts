@@ -12,7 +12,7 @@ describe('DungeonGenerator', function() {
     this.timeout(10000);
 
     it('generates dungeon levels', () => {
-        RNG.setSeed(new Date().getTime());
+        // RNG.setSeed(new Date().getTime());
         // RNG.setSeed(6);
         // Dice.RNG.setSeed(6);
         const dungGen = new DungeonGenerator();
