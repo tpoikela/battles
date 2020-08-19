@@ -46,6 +46,8 @@ export class Geometry {
     public static floodfill2D: (
         map: any[][], xy: TCoord, value: any, lut?, diag?: boolean) => TCoord[];
 
+    public static floodfillRegions: (map: CellMap, diag: boolean) => TCoord[][];
+
     public static getMassCenter: (arr: TCoord[]) => TCoord;
     public static squareFill: (map, cell, type, dXdY) => Cell[];
     public static histArrayVals: (array: number[] | string[]) => {[key: string]: number};
@@ -914,6 +916,31 @@ Geometry.floodfillPassable = function(
     return Geometry.floodfill(map, cell, filter, diag);
 };
 
+/* Given a map, returns each unconnected region as list of coordinates. */
+Geometry.floodfillRegions = function(
+    map: CellMap, diag: boolean = false
+): TCoord[][] {
+    const res: TCoord[][] = []
+    const filter = (c: Cell): boolean => !c.hasObstacle() || c.hasDoor();
+    const floorCells = map.getCells(filter);
+    const coordFloor: TCoord[] = floorCells.map(c => c.getXY());
+
+    // While we have remaining floorcells:
+    while (coordFloor.length > 0) {
+        //   1. Calculate floodfill for a cell in the list
+        const coord = coordFloor[0];
+        const [x, y] = coord;
+        //   2. Remove all cells in floodfill from the list
+        const filled: Cell[] = Geometry.floodfill(map, map.getCell(x, y), filter, true);
+        //   3. Store removed cells as one floodfilled region
+        const filledCoord = filled.map(c => c.getXY());
+        Geometry.removeMatching(coordFloor, filledCoord);
+        res.push(filledCoord);
+    }
+
+    return res;
+};
+
 /* Does a floodfill of map from point xy. Uses value as the filled value. BUT,
  * does not modify the map, only returns x,y coordinates which would be filled.
  * Optionally, creates a lookup table for fast lookup, and can fill diagonally,
@@ -1115,8 +1142,8 @@ Geometry.getCaveConnLine = function(x0, y0, x1, y1, conf?): TCoord[] {
 };
 
 /* Checks that all given args are ints. */
-function verifyInt(arr) {
-    arr.forEach(val => {
+function verifyInt(arr: any[]): void {
+    arr.forEach((val: any) => {
         if (!Number.isInteger(val)) {
             const json = JSON.stringify(arr);
             RG.err('Geometry', 'verifyInt',
