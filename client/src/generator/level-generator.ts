@@ -47,9 +47,11 @@ export abstract class LevelGenerator {
     }
 
     public shouldRemoveMarkers: boolean;
+    public _debug: boolean;
 
     constructor() {
         this.shouldRemoveMarkers = true;
+        this._debug = false;
     }
 
     public abstract create(cols: number, rows: number, conf: ILevelGenOpts): Level;

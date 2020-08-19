@@ -2,6 +2,7 @@
 import RG from '../rg';
 import * as ROT from '../../../lib/rot-js';
 import {Room} from '../../../lib/rot-js/map/features';
+import dbg from 'debug';
 
 import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {CellMap} from '../map';
@@ -14,7 +15,7 @@ import {Random} from '../random';
 import {ELEM} from '../../data/elem-constants';
 import {ObjectShell} from '../objectshellparser';
 import {ElementMarker, ElementDoor} from '../element';
-import {ICoordXY} from '../interfaces';
+import {ICoordXY, TCoord} from '../interfaces';
 import {NestGenerator, NestOpts} from './nest-generator';
 import {BBox} from '../bbox';
 
@@ -23,8 +24,11 @@ type Cell = import('../map.cell').Cell;
 type NumPair = [number, number];
 
 const WALL = 1;
+const debug = dbg('bitn:dungeon');
+// debug.enabled = true;
 
 const MapDigger = ROT.Map.Digger;
+const MapUniform = ROT.Map.Uniform;
 const FeatRoom = Room;
 const RNG = Random.getRNG();
 
@@ -32,12 +36,22 @@ const shortestPath = Path.getShortestPath;
 // Number of cells allowed to be unreachable
 const maxUnreachable = 10;
 
+const NEST_TILE_X = 7;
+const NEST_TILE_Y = 7;
+const NEST_GENPARAMS = {x: [1, 1, 1], y: [1, 1, 1]};
+
+// Used for testing connectivity with floodfill
+const FILL_FUNC = (c: Cell): boolean => !c.hasObstacle() || c.hasDoor();
+
 const SPLASH_THEMES = {
     chasm: {
         elem: ELEM.CHASM
     },
     water: {
         elem: ELEM.WATER
+    },
+    snow: {
+        elem: ELEM.SNOW
     },
     forest: {
         elem: ELEM.TREE
@@ -50,7 +64,8 @@ const SPLASH_THEMES = {
 const DUG_MAX = 0.75;
 const PROB = {
     BIG_VAULT: 0.07,
-    BIG_ROOM: 0.25,
+    // BIG_VAULT: 0.00,
+    BIG_ROOM: 0.5,
     bigRoomWeights: {
         cross: 1,
         corridor: 1,
@@ -130,13 +145,14 @@ export class DungeonGenerator extends LevelGenerator {
         super();
         this.addDoors = true;
         this.shouldRemoveMarkers = true;
+        this._debug = this._debug || debug.enabled;
     }
 
     /* Creates the actual Map.Level. User should call this function with desired
      * size (X * Y) and configuration. */
     public create(cols: number, rows: number, conf: PartialDungeonOpts): Level {
         // Creates the Map.Level with rooms, walls and floor
-        const level = this._createLevel(cols, rows, conf);
+        const level: Level = this._createLevel(cols, rows, conf);
 
         // Add things like water, chasms, bridges
         this.addSpecialFeatures(level);
@@ -148,9 +164,6 @@ export class DungeonGenerator extends LevelGenerator {
         // true as there are usually many paths from start to end
         this.addCriticalPath(level);
 
-        const populate = new DungeonPopulate({theme: ''});
-        // Finally, we could populate the level with items/actors here
-        populate.populateLevel(level);
 
         // Optional verification of connectivity etc.
         if (conf.rerunOnFailure || conf.errorOnFailure) {
@@ -160,6 +173,10 @@ export class DungeonGenerator extends LevelGenerator {
                 this.create(cols, rows, conf);
             }
         }
+
+        const populate = new DungeonPopulate({theme: ''});
+        // Finally, we could populate the level with items/actors here
+        populate.populateLevel(level);
 
         this.removeMarkers(level, conf);
         return level;
@@ -188,6 +205,13 @@ export class DungeonGenerator extends LevelGenerator {
             mapGen = this.getMapGen(cols, rows, conf);
             map = new CellMap(cols, rows);
             mapGen.create(createCb);
+
+            /*
+            mapGen._ngraph.forEachNode(node => {
+                console.log(node.id, node.data);
+            });
+            */
+
             if (--watchdog === 0) {
                 break;
             }
@@ -213,7 +237,11 @@ export class DungeonGenerator extends LevelGenerator {
         }
 
         const mapOpts = conf.options || mapOptions[levelType];
-        const mapGen = new MapDigger(cols, rows, mapOpts);
+        if (!mapOpts.roomDugPercentage) {
+            mapOpts.roomDugPercentage = mapOpts.dugPercentage;
+        }
+        // const mapGen = new MapDigger(cols, rows, mapOpts);
+        const mapGen = new MapUniform(cols, rows, mapOpts);
         // Here we need to add special rooms etc
         const bigRooms = this.addBigRooms(mapGen, conf);
         if (bigRooms.length > 0) {
@@ -460,9 +488,16 @@ export class DungeonGenerator extends LevelGenerator {
     public addRoomForNest(mapGen): BigRoom[] {
         const tilesX = RNG.getUniformInt(2, 5);
         const tilesY = RNG.getUniformInt(2, 5);
-        const width = 7 * tilesX;
-        const height = 7 * tilesY;
+        let width = NEST_TILE_X * tilesX;
+        let height = NEST_TILE_Y * tilesY;
+
         const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
+        while (width > (cols - 2)) {
+            width -= NEST_TILE_X;
+        }
+        while (height > (rows - 2)) {
+            height -= NEST_TILE_Y;
+        }
         const corners = ['NE', 'NW', 'SW', 'SE'];
         const [x0, y0] = this.getRandCorner(width, height, cols, rows, corners);
         const x1 = x0 + width - 1;
@@ -488,7 +523,7 @@ export class DungeonGenerator extends LevelGenerator {
     }
 
     /* Function adds features like chasms, bridges, rivers etc. */
-    public addSpecialFeatures(level) {
+    public addSpecialFeatures(level: Level): void {
         const extras = level.getExtras();
         const map = level.getMap();
 
@@ -523,7 +558,7 @@ export class DungeonGenerator extends LevelGenerator {
 
         if (extras.rooms) {
             const fireRoom = RNG.arrayGetRand(extras.rooms);
-            const terms = [];
+            const terms: Room[] = [];
             this.addFireToRoom(level, fireRoom);
 
             extras.rooms.forEach((room, id) => {
@@ -552,7 +587,7 @@ export class DungeonGenerator extends LevelGenerator {
                 }
             });
 
-            terms.forEach(room => {
+            terms.forEach((room: Room) => {
                 const bbox = room.getInnerBbox();
                 const coord = Geometry.getCoordBbox(bbox);
                 coord.forEach(xy => {
@@ -568,9 +603,9 @@ export class DungeonGenerator extends LevelGenerator {
 
     /* Adds a special feature to a big room. This can be obstructions or some
      * structures like temples etc. */
-    public addBigRoomSpecialFeat(level, randSpecial, bigRooms) {
+    public addBigRoomSpecialFeat(level: Level, randSpecial, bigRooms): void {
         bigRooms.forEach(bigRoom => {
-            const room = bigRoom.room; // Unwrap Feature.Room from BigRoom
+            const room: Room = bigRoom.room; // Unwrap Feature.Room from BigRoom
             if (!room) {
                 RG.err('DungeonGenerator', 'addBigRoomSpecialFeat',
                     'room is null for ' + JSON.stringify(bigRoom));
@@ -585,7 +620,7 @@ export class DungeonGenerator extends LevelGenerator {
     }
 
     /* Adds door elements for the given room. */
-    public addDoorsForRoom(level, room) {
+    public addDoorsForRoom(level: Level, room: Room) {
         if (this.addDoors) {
             room.getDoors((x, y) => {
                 const cell = level.getMap().getCell(x, y);
@@ -603,11 +638,12 @@ export class DungeonGenerator extends LevelGenerator {
      * 3. forest - animals
      * Make sure  this is same for all rooms.
      */
-    public addElemSplashes(level: Level, room) {
+    public addElemSplashes(level: Level, room: Room): void {
         const themeName = RNG.arrayGetRand(Object.keys(SPLASH_THEMES));
         const theme = SPLASH_THEMES[themeName];
         const elem = theme.elem;
         level.getExtras().theme = theme;
+        debug('Adding splashes with theme', themeName);
 
         const x0 = room.getLeft() + 1;
         const y0 = room.getTop() + 1;
@@ -619,7 +655,7 @@ export class DungeonGenerator extends LevelGenerator {
     }
 
     /* Decorates the room corners with fire. */
-    public addFireToRoom(level, room) {
+    public addFireToRoom(level: Level, room: Room): void {
         const parser = ObjectShell.getParser();
         const corners = Object.values(room.getCorners());
         corners.forEach(xy => {
@@ -628,7 +664,7 @@ export class DungeonGenerator extends LevelGenerator {
         });
     }
 
-    public addStairsLocations(level) {
+    public addStairsLocations(level: Level): void {
         // Default is to find rooms that are far away from each other
         const extras = level.getExtras();
         let watchdog = RG.WATCHDOG;
@@ -655,6 +691,8 @@ export class DungeonGenerator extends LevelGenerator {
             }
             room1 = chosenRoom1;
             room2 = chosenRoom2;
+
+            debug('Rooms for stairs locations', room1, room2);
 
             const [cx1, cy1] = room1.getCenter();
             const [cx2, cy2] = room2.getCenter();
@@ -693,8 +731,11 @@ export class DungeonGenerator extends LevelGenerator {
 
         const map = level.getMap();
         const pathFunc = (x: number, y: number): boolean => {
-            return map.isPassable(x, y) || map.getCell(x, y).hasDoor();
+            return map.isPassable(x, y) || map.hasXY(x, y) && map.getCell(x, y).hasDoor();
         };
+
+        debug('Critical path', cx2, cy2, '=>', cx1, cy1);
+        // level.debugPrintInASCII();
 
         let criticalPath: ICoordXY[] = Path.getShortestPath(cx2, cy2, cx1, cy1, pathFunc);
         if (criticalPath.length === 0) {
@@ -814,17 +855,27 @@ export class DungeonGenerator extends LevelGenerator {
         if (nestRoom) {
             const {room} = nestRoom;
             const bbox: BBox = BBox.fromBBox(room.getBbox());
+
+            debug('Adding nest to dungeon now using room bbox', bbox);
+            debug('level cols/rows', level.getMap().cols, level.getMap().rows);
+
             const nestGen = new NestGenerator();
+            const tilesX = room.getWidth() / NEST_TILE_X;
+            const tilesY = room.getHeight() / NEST_TILE_Y;
+
             const nestConf: Partial<NestOpts> = {
                 mapConf: {
-                    tilesX: room.getWidth() / 7,
-                    tilesY: room.getHeight() / 7,
-                    genParams: {x: [1, 1, 1], y: [1, 1, 1]},
+                    tilesX, tilesY,
+                    genParams: NEST_GENPARAMS
                 },
                 embedOpts: {
                     level, bbox
                 }
             };
+            // console.log('Level before the nest');
+            // level.debugPrintInASCII();
+            // nestConf.removeBorderWall = true;
+            nestConf.scanForDoors = true;
             nestGen.createAndEmbed(1, 1, nestConf);
         }
     }
@@ -834,29 +885,59 @@ export class DungeonGenerator extends LevelGenerator {
      * */
     public verifyLevel(level: Level, conf): boolean {
         const map = level.getMap();
-        const fillFilter = (c: Cell): boolean => !c.hasObstacle() || c.hasDoor();
-        const floorCells = map.getCells(fillFilter);
+        const floorCells = map.getCells(FILL_FUNC);
         // const cell = floorCells[0];
-        const floorCellsFilled = Geometry.floodfillPassable(map);
+        // Accept also diagonal connectivity
+        const floorCellsFilled = Geometry.floodfillPassable(map, true);
 
         const numTotal = floorCells.length;
         const numFilled = floorCellsFilled.length;
 
+        // TODO we can try connecting some unreachable cells
+
         if (numFilled !== numTotal) {
             const diff = numTotal - numFilled;
             if (diff > maxUnreachable) {
-                if (conf.errorOnFailure) {
+                this.tryToFillUnreachable(level);
+                const retry = this.verifyLevel(level, conf);
+                if (!retry && conf.errorOnFailure) {
                     level.debugPrintInASCII(); // DON'T REMOVE
                     const msg = `Max: ${maxUnreachable}, got: ${diff}`;
                     RG.err('DungeonGenerator', 'verifyLevel',
                         'Too many unreachable cells ' + msg);
                 }
-                level.debugPrintInASCII();
-                return false;
+                return retry;
             }
         }
 
+
         return true;
+    }
+
+
+    public tryToFillUnreachable(level: Level): void {
+        const map = level.getMap();
+        const regions = Geometry.floodfillRegions(map, true);
+        // const regLens = regions.map(rr => rr.length);
+
+        // Check that critical path is not on filled regions
+        const {startPoint, endPoint} = level.getExtras();
+        const startCell = map.getCell(startPoint[0], startPoint[1]);
+        const endCell = map.getCell(endPoint[0], endPoint[1]);
+        const startFill = Geometry.floodfill(map, startCell, FILL_FUNC, true);
+        const endFill = Geometry.floodfill(map, endCell, FILL_FUNC, true);
+
+        if (startFill.length === endFill.length) {
+            regions.forEach((region: TCoord[]) => {
+                if (region.length !== startFill.length) {
+                    map.setBaseElems(region, ELEM.WALL);
+                }
+            });
+        }
+        else {
+            RG.err('DungeonGenerator', 'tryToFillUnreachable',
+                'floodfill sizes for start/endFill differ. They are not connected!');
+        }
     }
 }
 
