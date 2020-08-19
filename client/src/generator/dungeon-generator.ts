@@ -237,7 +237,7 @@ export class DungeonGenerator extends LevelGenerator {
         }
 
         const mapOpts = conf.options || mapOptions[levelType];
-        if (!mapOpts.roomDugPercentage) {
+        if (mapOpts && !mapOpts.roomDugPercentage) {
             mapOpts.roomDugPercentage = mapOpts.dugPercentage;
         }
         // const mapGen = new MapDigger(cols, rows, mapOpts);
