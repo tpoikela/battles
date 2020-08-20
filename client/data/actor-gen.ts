@@ -233,6 +233,7 @@ shellProps.roleBases = {
 /* Contains a list specific roles for each role base type. */
 shellProps.roles = {
 
+    // TODO these need more flavor, as many are identical/similar
     melee: {
         axeman: {
             danger: 2, hp: 10
@@ -243,7 +244,8 @@ shellProps.roles = {
         },
         duelist: {
             danger: 3, hp: 13,
-            agility: 3, strength: 2
+            agility: 3, strength: 2,
+            addComp: ['RangedEvasion']
         },
         elite: {
             danger: 5, hp: 23,
@@ -287,7 +289,13 @@ shellProps.roles = {
         warrior: {
             danger: 2, hp: 10,
             attack: 3, defense: 3
-        }
+        },
+        berserker: {
+            danger: 5, hp: 20,
+            attack: 8, defense: 3,
+            strength: 6,
+            addComp: ['RangedEvasion', resistance('ICE', 'MEDIUM')]
+        },
     },
 
     magic: {
@@ -296,7 +304,7 @@ shellProps.roles = {
             spells: ['EnergyArrow']
         },
         archmage: {
-            danger: 15, pp: 40, maxPP: 40, hp: 30,
+            danger: 15, pp: 50, maxPP: 50, hp: 30,
             spells: [
                 'PowerDrain',
                 {random: ['WaterBolt', 'SlimeBolt', 'FrostBolt']},
