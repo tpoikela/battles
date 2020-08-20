@@ -205,16 +205,18 @@ export default class GameEditor extends Component {
     * freely changed when debugging. */
     const state: IGameEditorState = {
       debug: false,
-      boardClassName: 'game-board-player-view',
-      boardIndex: boardViews.indexOf('game-board-player-view'),
+      // boardClassName: 'game-board-player-view',
+      boardClassName: 'game-board-map-view-xxxs',
+      // boardIndex: boardViews.indexOf('game-board-player-view'),
+      boardIndex: boardViews.indexOf('game-board-map-view-xxxs'),
       lastTouchedConf: null,
 
       zoneType: 'city',
       zoneList: [],
       zoneConf: {shown: ''},
 
-      levelX: 80,
-      levelY: 28,
+      levelX: 500,
+      levelY: 400,
       levelType: 'arena',
 
       subLevelX: 20,
@@ -556,6 +558,7 @@ export default class GameEditor extends Component {
     const mult = 1;
     const scaleX = this.state.levelX / 100;
     const scaleY = this.state.levelY / 100;
+
     const owConf = {
       yFirst: false,
       topToBottom: false,
@@ -571,6 +574,12 @@ export default class GameEditor extends Component {
       areaX: xMult * scaleX,
       areaY: mult * scaleY
     };
+
+    if (!Number.isInteger(scaleX) || !Number.isInteger(scaleY)) {
+      const msg = 'levelX/Y must be multiples of 100';
+      this.setState({errorMsg: msg, lastTouchedConf: owConf});
+      return;
+    }
     const overworld = OWMap.createOverWorld(owConf);
     const worldAndConf = OverWorld.createOverWorldLevel(
       overworld, owConf);
