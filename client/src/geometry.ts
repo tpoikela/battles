@@ -145,12 +145,12 @@ export class Geometry {
         return BBox.fromBBox(bbox as IBBox);
     }
 
-    public static getCoordBbox(bbox: BBox): TCoord[] {
+    public static getCoordBbox(bbox: IBBox): TCoord[] {
         const {ulx, uly, lrx, lry} = bbox;
         return this.getBox(ulx, uly, lrx, lry);
     }
 
-    public static getBorderForBbox(bbox: BBox): TCoord[] {
+    public static getBorderForBbox(bbox: IBBox): TCoord[] {
         const {ulx, uly, lrx, lry} = bbox;
         return this.getHollowBox(ulx, uly, lrx, lry);
     }
