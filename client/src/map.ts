@@ -377,6 +377,7 @@ export class CellMap {
                 else if ((/highrock/).test(baseType)) {row += '^';}
                 else if ((/road/).test(baseType)) {row += 'R';}
                 else if ((/arctic/).test(baseType)) {row += '.';}
+                else if (cell.isFree()) {row += '.';}
                 else {row += '?';}
             }
             mapInASCII += row + '\n';
