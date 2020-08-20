@@ -23,7 +23,7 @@ type TestPositionCallback = (x: number, y: number) => boolean;
 /**
  * @class Dungeon feature; has own .create() method
  */
-abstract class Feature {
+export abstract class Feature {
     abstract isValid(isWallCallback: TestPositionCallback,
                      canBeDugCallback: TestPositionCallback): boolean;
     abstract create(digCallback: DigCallback): void;
@@ -346,10 +346,10 @@ export class Room extends Feature {
     getInnerBbox(halo = 1) {
         const ulx = this._x1 + halo;
         const lrx = this._x2 - halo;
-        if (ulx > lrx) {return {};}
+        if (ulx > lrx) {return null;}
         const uly = this._y1 + halo;
         const lry = this._y2 - halo;
-        if (uly > lry) {return {};}
+        if (uly > lry) {return null;}
         return {ulx, uly, lrx, lry};
     }
 

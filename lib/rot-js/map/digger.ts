@@ -1,6 +1,6 @@
 import { CreateCallback } from './map';
 import Dungeon, {Options} from './dungeon';
-import { Room, Corridor, Feature, FeatureConstructor } from './features';
+import { Room, Corridor, FeatureConstructor } from './features';
 
 import RNG from '../rng';
 import { DIRS } from '../constants';
@@ -201,7 +201,7 @@ export default class Digger extends Dungeon {
         }
 
         feature.create(this._digCallback);
-        this._markFeatureXY(feature);
+        this._markFeatureXY(feature as any);
     //	feature.debug();
 
         if (feature instanceof Room) {
