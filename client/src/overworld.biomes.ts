@@ -2,16 +2,19 @@
 /* Code to generate overworld biomes. */
 
 
-import * as ROT from '../../lib/rot-js';
 import {ELEM} from '../data/elem-constants';
+import {Noise} from './noise';
 
 type Level = import('./level').Level;
 type OWMap = import('./overworld.map').OWMap;
 
-const Simplex = ROT.Noise.Simplex;
-
 const TEMP_LOW = 0.85;
 const MOUNT_WALL = 5.0; // Elevation for huge mountain walls
+
+const WATER_LEVEL = 0.6;
+const GAP = 0.3;
+const TREE_LEVEL_MIN = WATER_LEVEL + 2 * GAP;
+const TREE_LEVEL_MAX = WATER_LEVEL + 4 * GAP;
 
 export class OWBiomes {
 
@@ -19,13 +22,19 @@ export class OWBiomes {
 
     public static addBiomes(ow: OWMap, level: Level): void {
         const debug = OWBiomes.debug;
-        const elevNoise = new Simplex();
-        const tempNoise = new Simplex();
-        const moistNoise = new Simplex();
+        const elevNoise = new Noise();
+        const tempNoise = new Noise();
+        const moistNoise = new Noise();
 
-        const elevMap: number[][] = [];
+        // const elevMap: number[][] = [];
         const _map = level.getMap()._map;
         const {cols, rows} = level.getMap();
+
+        const elemOctaves = [1, 2, 4];
+        let maxElev = 0;
+        elemOctaves.forEach((n: number) => {
+            maxElev += (1.0 / n);
+        });
 
         for (let x = 0; x < cols; x++) {
             // noiseMap.push([]);
@@ -33,21 +42,27 @@ export class OWBiomes {
                 let elev = _map[x][y].isFree() ? 0 : MOUNT_WALL;
                 let temp = getTemp(x, y, cols, rows);
 
-                const moist = (moistNoise.get(x / 10, y / 10) + 1.0
-                    + 0.5 * moistNoise.get(x / 20, y / 20) + 0.5) / 1.5;
-                elev += ((elevNoise.get(x / 20, y / 20) + 1.0)
-                    + (0.5 * elevNoise.get(x / 8, y / 8) + 0.5)) / 1.5;
+                const moist = (moistNoise.get(x / 10, y / 10)
+                    + 0.5 * moistNoise.get(x / 20, y / 20)) / 1.5;
+
                 /*
-                const elevHarm = (1.0 * elevNoise.get(x, y) + 1.0)
-                    + (0.5 * elevNoise.get(2 * x, 2 * y) + 0.5)
-                    + (0.25 * elevNoise.get(4 * x, 4 * y) + 0.25);
+                elev += ((elevNoise.get(x / 20, y / 20))
+                    + (0.5 * elevNoise.get(x / 8, y / 8))) / 1.5;
+                */
+                //elev = elevNoise.getOctaves(x, y, elemOctaves);
+                //elev = Math.pow(elev, 1.00);
+                elev += elevNoise.getOctavesDiv(x, y, [[1.0, 20], [0.5, 8], [0.25, 1]]);
+                /*
+                const elevHarm = (1.0 * elevNoise.get(x, y))
+                    + (0.5 * elevNoise.get(2 * x, 2 * y))
+                    + (0.25 * elevNoise.get(4 * x, 4 * y));
                 elev += Math.sqrt(Math.pow(elevHarm, 1.07));
                 */
 
                 if (debug) {
                     console.log(x, y, 'temp before:', temp);
                 }
-                temp += (tempNoise.get(x, y) + 1.0) * 0.1;
+                temp += (tempNoise.get(x, y)) * 0.1;
                 if (debug) {
                     console.log('temp after:', temp);
                 }
@@ -73,8 +88,7 @@ function getTemp(x: number, y: number, cols: number, rows: number): number {
 }
 
 function biome(elev: number, moist: number, temp: number): any {
-    elev -= 0.2;
-    if (elev < 0.3) {
+    if (elev < WATER_LEVEL) {
         if (temp < TEMP_LOW) {
             return ELEM.WATER_FROZEN;
         }
@@ -82,7 +96,7 @@ function biome(elev: number, moist: number, temp: number): any {
             return ELEM.WATER;
         }
     }
-    else if (elev <= 0.5) {
+    else if (elev <= (WATER_LEVEL + GAP)) {
         if (temp < TEMP_LOW) {
             return ELEM.SNOW;
         }
@@ -90,7 +104,8 @@ function biome(elev: number, moist: number, temp: number): any {
             return ELEM.FLOOR;
         }
     }
-    else if (elev > 0.5 && elev < 1.0) {
+    else if (elev > TREE_LEVEL_MIN && elev < TREE_LEVEL_MAX) {
+        /*
         if (moist < 1.0) {
             if (temp < TEMP_LOW) {
                 return ELEM.SNOW;
@@ -100,21 +115,25 @@ function biome(elev: number, moist: number, temp: number): any {
             }
         }
         else {
+        */
             if (temp < TEMP_LOW) {
                 return ELEM.TREE_SNOW;
             }
             else {
                 return ELEM.TREE;
             }
-        }
+        // }
     }
     else if (elev < MOUNT_WALL) {
+        return ELEM.HIGH_ROCK;
+        /*
         if (temp < TEMP_LOW) {
             return ELEM.SNOW;
         }
         else {
             return ELEM.FLOOR;
         }
+        */
     }
 
 }
