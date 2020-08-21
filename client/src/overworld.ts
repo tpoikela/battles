@@ -30,6 +30,7 @@ import {Builder} from './builder';
 import {MapGenerator} from './generator';
 import {OWMap} from './overworld.map';
 import {OWLore} from './overworld.lore';
+import {OWBiomes} from './overworld.biomes';
 import {OW} from './ow-constants';
 import {ELEM} from '../data/elem-constants';
 import {Random} from './random';
@@ -457,6 +458,9 @@ function buildMapLevel(
     const conf: WorldConf = OverWorld.createWorldConf(ow,
         sizeX, sizeY, nTilesX, nTilesY, owConf);
 
+
+    OWBiomes.addBiomes(ow, owLevel);
+
     // Some global features (like roads) need to be added
     addGlobalFeatures(ow, owLevel, conf, coordMap);
 
@@ -473,7 +477,7 @@ function createSubLevel(ow: OWMap, owX: number, owY: number, xMap, yMap): Level 
     const subY: number = yMap;
     const factLevel = new FactoryLevel();
     const subLevel: Level = factLevel.createLevel(RG.LEVEL_EMPTY, subX, subY);
-    addBiomeFeaturesSubLevel(biomeType, subLevel);
+    // addBiomeFeaturesSubLevel(biomeType, subLevel);
 
     const owSubLevel = new OWSubLevel(subLevel);
     ow.addSubLevel([owX, owY], owSubLevel);
