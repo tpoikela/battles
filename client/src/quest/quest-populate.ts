@@ -937,7 +937,6 @@ export class QuestPopulate {
             return (dX <= maxZoneRange && dY <= maxZoneRange);
         });
         if (zonesInRange.length > 1) {
-            console.log(`Found ${zonesInRange.length} zones in range`);
             zones = zonesInRange;
         }
 

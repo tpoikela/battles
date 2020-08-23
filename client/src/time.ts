@@ -169,12 +169,6 @@ export class Scheduler {
             }
         }
         const res = this._scheduler.remove(actOrEvent);
-        if (!res) {
-            console.log('Scheduler.remove: Failed sub-scheduler remove()!!!');
-        }
-        else {
-            console.log('Scheduler.remove: Succeeded sub-scheduler remove()!!!');
-        }
         return res;
     }
 
@@ -197,7 +191,6 @@ export class Scheduler {
     public notify(evtName: string, args: any): void {
         if (evtName === RG.EVT_ACTOR_KILLED) {
             if (args.hasOwnProperty('actor')) {
-                console.log('Scheduler.notify: Removing actor from scheduler');
                 this.remove(args.actor);
             }
         }

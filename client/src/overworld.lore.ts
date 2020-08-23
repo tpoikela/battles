@@ -138,7 +138,7 @@ export class OWLore {
                 if (knowers.length > 2) {
                     knowers = [RNG.arrayGetRand(knowers), RNG.arrayGetRand(knowers)];
                 }
-                console.log('knowers are now', knowers);
+
                 knowers.forEach((c: TCoord) => {
                     const keyXY = this.getKey(c);
                     const zoneList: ZoneConf[] = this.zonesByXY[keyXY];
@@ -154,7 +154,7 @@ export class OWLore {
                         const metaData = this.getZoneMeta(knownZone);
                         const loreObj = createLoreObj(msg, 'location', metaData);
 
-                        console.log('Adding loreObj', loreObj, 'to ZoneConf ' + sz.name);
+                        // console.log('Adding loreObj', loreObj, 'to ZoneConf ' + sz.name);
 
                         if (knowerZone.addComp) {
                             knowerZone.addComp.push(loreObj);

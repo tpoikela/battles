@@ -2,6 +2,10 @@
 
 /* eslint comma-dangle: 0 */
 // const RG = require('../src/rg');
+//
+import {
+    speedPenalty, statsPenalty, defensePenalty, attackPenalty
+} from './shell-utils';
 
 const Elements = [
     {
@@ -17,7 +21,12 @@ const Elements = [
         char: '=',
         msg: {
             onEnter: 'You are standing on a bridge.'
-        }
+        },
+        addComp: [{comp: 'Terrain',
+            func: {setMods: [
+                defensePenalty(0.5, ['Flying']),
+            ]}
+        }]
     },
     {
         name: 'chasm', className: 'cell-element-chasm',
@@ -28,14 +37,24 @@ const Elements = [
         char: '"',
         msg: {
             onEnter: 'You see some grass.'
-        }
+        },
+        addComp: [{comp: 'Terrain',
+            func: {setMods: [
+                speedPenalty(0.10, ['Flying']),
+            ]}
+        }]
     },
     {
         name: 'snowy grass', className: 'cell-element-snowy-grass',
-        char: '"', addComp: ['Snowy'],
+        char: '"',
         msg: {
             onEnter: 'You see some snow-covered grass.'
-        }
+        },
+        addComp: [{comp: 'Terrain',
+            func: {setMods: [
+                speedPenalty(0.15, ['Flying']),
+            ]}
+        }]
     },
     {
         name: 'highrock', className: 'cell-element-highrock',
@@ -110,10 +129,13 @@ const Elements = [
     },
     {
         name: 'snow', className: 'cell-element-snow',
-        char: '.', addComp: ['Snowy'],
+        char: '.',
         msg: {
             onEnter: 'Ground is covered with snow.'
-        }
+        },
+        addComp: ['Snowy', {comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.10, ['Flying', 'SnowWalk'])]}
+        }]
     },
     {
         name: 'snow with tracks', className: 'cell-element-snow-tracks',
@@ -124,22 +146,44 @@ const Elements = [
     },
     {
         name: 'deep snow', className: 'cell-element-deep-snow',
-        char: '.', addComp: ['Snowy'],
+        char: '.',
         msg: {
             onEnter: 'Snow is deep and difficult to traverse here'
-        }
+        },
+        addComp: ['Snowy', {comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.25, ['Flying', 'SnowWalk'])]}
+        }]
     },
     {
         name: 'deep snow with tracks',
         className: 'cell-element-deep-snow-tracks',
-        char: '.', addComp: ['Snowy'],
+        char: '.',
         msg: {
             onEnter: 'Snow is deep, but there are some tracks here'
-        }
+        },
+        addComp: ['Snowy', {comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.10, ['Flying', 'SnowWalk'])]}
+        }]
     },
     {
         name: 'stone', className: 'cell-element-stone',
-        char: '^'
+        char: '^',
+        msg: {
+            onEnter: 'Difficult rocky terrain slows you down.'
+        },
+        addComp: [{comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.25, ['Flying'])]}
+        }]
+    },
+    {
+        name: 'snow-covered stone', className: 'cell-element-snow-tree',
+        char: '^',
+        msg: {
+            onEnter: 'Difficult and slippery snowy terrain slows you down.'
+        },
+        addComp: ['Snowy', {comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.35, ['Flying'])]}
+        }]
     },
     {
         name: 'tree', className: 'cell-element-tree',
@@ -174,16 +218,24 @@ const Elements = [
         char: '~',
         msg: {
             onEnter: 'Water slows you down'
-        }
-        // addComp: {name: 'Terrain', setters: {setDifficulty: 5}}
+        },
+        addComp: [{comp: 'Terrain',
+            func: {setMods: [
+                speedPenalty(0.25, ['Flying', 'Amphibious']),
+                defensePenalty(0.25, ['Flying', 'Amphibious']),
+                attackPenalty(0.25, ['Flying', 'Amphibious']),
+            ]}
+        }]
     },
     {
         name: 'frozen water', className: 'cell-element-frozen-water',
-        char: '~', addComp: ['Snowy'],
+        char: '~',
         msg: {
             onEnter: 'There is some ice here'
-        }
-        // addComp: {name: 'Terrain', setters: {setDifficulty: 5}}
+        },
+        addComp: ['Snowy', {comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.15, ['Flying'])]}
+        }]
     },
     {
         name: 'closed window', className: 'cell-element-window',

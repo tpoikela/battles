@@ -67,7 +67,7 @@ export class NestGenerator extends LevelGenerator {
         this._debug = debug.enabled || true;
     }
 
-    public dbg(...args): void {
+    public dbg(...args: any[]): void {
         if (this._debug) {
             debug(...args);
         }
@@ -226,7 +226,6 @@ export class NestGenerator extends LevelGenerator {
             const tunnelDxDy = RG.dirTodXdY(dir);
             if (tunnelDxDy) {
                 [cX, cY] = RG.newXYFromDir(tunnelDxDy, [cX, cY]);
-                console.log('tunnel cX,cY is now', cX, cY);
 
                 // We've reached edge of the level
                 if (!map.hasXY(cX, cY)) {

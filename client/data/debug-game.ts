@@ -100,7 +100,8 @@ export class DebugGame {
         level.addItem(gem);
 
         const pickaxe = this._parser.createItem('Pick-axe');
-        level.addItem(pickaxe, 2, 2);
+        // level.addItem(pickaxe, 2, 2);
+        player.getInvEq().addItem(pickaxe);
 
         const poison = this._parser.createItem('Potion of frost poison');
         poison.setCount(5);
@@ -389,6 +390,7 @@ export class DebugGame {
             const chicken = parser.createActor('chicken');
             level.addActor(chicken, cell.getX(), cell.getY());
         }
+
 
         return game;
     }

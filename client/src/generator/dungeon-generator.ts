@@ -589,12 +589,14 @@ export class DungeonGenerator extends LevelGenerator {
 
             terms.forEach((room: Room) => {
                 const bbox = room.getInnerBbox();
-                const coord = Geometry.getCoordBbox(bbox);
-                coord.forEach(xy => {
-                    const marker = new ElementMarker('t');
-                    marker.setTag('term');
-                    level.addElement(marker, xy[0], xy[1]);
-                });
+                if (bbox !== null) {
+                    const coord = Geometry.getCoordBbox(bbox);
+                    coord.forEach(xy => {
+                        const marker = new ElementMarker('t');
+                        marker.setTag('term');
+                        level.addElement(marker, xy[0], xy[1]);
+                    });
+                }
             });
 
             extras.terms = terms;

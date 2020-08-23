@@ -21,7 +21,7 @@ UtilsSim.optDefs = [
     {name: 'quiet', alias: 'q', type: Boolean, descr: 'No output to STDOUT'},
     {name: 'race', alias: 'r', type: String, descr: 'Race of actor'},
     {name: 'save_period', type: Number, descr: 'Save internal in turns'},
-    {name: 'seed', type: Number, descr: 'Seed for the RNGs'},
+    {name: 'seed', type: String, descr: 'Seed for the RNGs'},
     {name: 'verbosity', alias: 'v', type: String, descr: 'Verbosity level' }
 ];
 
@@ -67,7 +67,12 @@ UtilsSim.getDefaults = function(opt: any) {
     obj.name = obj.name || 'Player';
     obj.maxturns = obj.maxturns || 1000;
     obj.framePeriod = obj.frame_period || 1;
-    obj.seed = obj.seed || 0;
+    if (obj.seed === 'random') {
+        obj.seed = Date.now();
+    }
+    else {
+        obj.seed = parseInt(obj.seed, 10) || 0;
+    }
     return obj;
 };
 

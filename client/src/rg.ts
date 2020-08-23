@@ -599,6 +599,9 @@ class RGClass {
             VOID: 'cell-damage-VOID'
         };
 
+        // You can add new stats for actors here. If you're lucky, adding will
+        // be smooth and it will be seen correctly everywhere. Then you need to
+        // implement System which exploits this stat
         this.STATS = [
             'Accuracy', 'Agility', 'Magic', 'Perception', 'Strength', 'Willpower',
             'Spirituality'

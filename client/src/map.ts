@@ -375,6 +375,7 @@ export class CellMap {
                 else if ((/tree/).test(baseType)) {row += 'T';}
                 else if ((/grass/).test(baseType)) {row += '"';}
                 else if ((/highrock/).test(baseType)) {row += '^';}
+                else if ((/stone/).test(baseType)) {row += '^';}
                 else if ((/road/).test(baseType)) {row += 'R';}
                 else if ((/arctic/).test(baseType)) {row += '.';}
                 else if (cell.isFree()) {row += '.';}

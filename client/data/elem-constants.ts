@@ -30,6 +30,7 @@ ELEM.SNOW_DEEP_TRACKS = frz(parser.createElement('deep snow with tracks'));
 ELEM.SNOW_LIGHT = frz(parser.createElement('light snow'));
 ELEM.SNOW_LIGHT_TRACKS = frz(parser.createElement('light snow with tracks'));
 ELEM.STONE = frz(parser.createElement('stone'));
+ELEM.STONE_SNOW = frz(parser.createElement('snow-covered stone'));
 ELEM.TREE = frz(parser.createElement('tree'));
 ELEM.TREE_LARGE = frz(parser.createElement('large tree'));
 ELEM.TREE_SNOW = frz(parser.createElement('snow-covered tree'));

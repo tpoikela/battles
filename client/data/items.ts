@@ -2,7 +2,7 @@
 /* eslint comma-dangle: 0 */
 import RG from '../src/rg';
 import {Colors} from './colors';
-import {meleeHitDamage, color} from './shell-utils';
+import {meleeHitDamage, color, resistance} from './shell-utils';
 import {IAddCompObj} from '../src/interfaces';
 
 const scaleAll = 1.0;
@@ -1032,6 +1032,16 @@ const Items: ObjectShell[] = [
         value: value(80)
     },
     {
+        name: 'Potion of eagle eye', base: 'PotionBase',
+        use: {addComp: {name: 'EagleEye', duration: '10d10 + 10'}},
+        value: value(80)
+    },
+    {
+        name: 'Potion of first strike', base: 'PotionBase',
+        use: {addComp: {name: 'FirstStrike', duration: '10d10 + 10'}},
+        value: value(80)
+    },
+    {
         name: 'Potion of paralysis', base: 'PotionBase',
         use: {addComp: {name: 'Paralysis', duration: '2d5'}},
         value: value(80)
@@ -1051,6 +1061,11 @@ const Items: ObjectShell[] = [
         value: value(100)
     },
     {
+        name: 'Potion of charm', base: 'PotionBase',
+        use: {addComp: {name: 'Charm', duration: '2d10'}},
+        value: value(120)
+    },
+    {
         name: 'Potion of mana', base: 'PotionBase',
         use: {modifyCompValue: {name: 'SpellPower', set: 'setPP',
             get: 'getPP', value: '6d5 + 5'}
@@ -1062,35 +1077,11 @@ const Items: ObjectShell[] = [
         value: value(150)
     },
     {
-        name: 'Potion of willpower', base: 'PotionBase',
-        use: {modifyStat: {value: 1, statName: 'willpower'}},
-        value: value(200)
+        name: 'Potion of greater quickness', base: 'PotionBase',
+        use: {modifyStat: {value: 4, statName: 'speed'}},
+        value: value(350)
     },
-    {
-        name: 'Potion of perception', base: 'PotionBase',
-        use: {modifyStat: {value: 1, statName: 'perception'}},
-        value: value(200)
-    },
-    {
-        name: 'Potion of strength', base: 'PotionBase',
-        use: {modifyStat: {value: 1, statName: 'strength'}},
-        value: value(200)
-    },
-    {
-        name: 'Potion of agility', base: 'PotionBase',
-        use: {modifyStat: {value: 1, statName: 'agility'}},
-        value: value(200)
-    },
-    {
-        name: 'Potion of accuracy', base: 'PotionBase',
-        use: {modifyStat: {value: 1, statName: 'accuracy'}},
-        value: value(200)
-    },
-    {
-        name: 'Potion of magic', base: 'PotionBase',
-        use: {modifyStat: {value: 1, statName: 'magic'}},
-        value: value(200)
-    },
+
     // FOOD
     // Note: Food has energy X kcal/100g * 10. Food items can have weight,
     // but if they don't, weight is then generated randomly. Value is also per
@@ -1139,6 +1130,9 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'Dried fruit', base: 'FoodBase', energy: 3500, value: value(50)
+    },
+    {
+        name: 'Cloudberries', base: 'FoodBase', energy: 1500, value: value(50)
     },
     {
         name: 'Ghost pepper', base: 'FoodBase', energy: 100, value: value(50),
@@ -1425,6 +1419,57 @@ Items.forEach((item: ObjectShell) => {
         }
     }
 });
+
+addResistancePotions(Items);
+addStatsPotions(Items);
+
+
+function addResistancePotions(arr: any[]): void {
+    Object.values(RG.DMG).forEach((dmg: string) => {
+        if (dmg === 'EFFECT') {return;}
+        Object.entries(RG.RESISTANCE).forEach((pair: [string, number]) => {
+            const level = pair[0];
+            const resComp: any = resistance(dmg, level);
+            const itemVal = 10 * pair[1];
+
+            resComp.name = 'Resistance';
+            resComp.duration = '5d10 + 10';
+            let name = 'Potion of ' + level.toLowerCase() + ' ' + dmg.toLowerCase();
+            if (pair[1] === RG.RESISTANCE.IMMUNITY) {
+                name = 'Potion of ' + dmg.toLowerCase() + ' ' + level.toLowerCase();
+            }
+            else if (pair[1] !== RG.RESISTANCE.ABSORB) {
+                name += ' resistance';
+            }
+
+            const shell = {
+                name, base: 'PotionBase',
+                use: {addComp: resComp}, value: value('potion', itemVal)
+            };
+
+            arr.push(shell);
+        });
+    });
+}
+
+function addStatsPotions(arr: any[]): void {
+    const pairs: [string, number][] = [['', 1], [' greater', 2]];
+
+    RG.STATS.forEach((stat: string) => {
+
+        const statLc = stat.toLowerCase();
+        pairs.forEach((pair: [string, number]) => {
+            const [prefix, incr] = pair;
+            const name = 'Potion of' + prefix + ' ' + statLc;
+            const shell = {
+                name, base: 'PotionBase',
+                use: {modifyStat: {value: incr, statName: statLc}},
+                value: value('potion', incr * 200)
+            };
+            arr.push(shell);
+        });
+    });
+}
 
 
 export default Items;

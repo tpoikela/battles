@@ -68,9 +68,6 @@ export class OWBiomes {
                 }
 
                 if (elev < MOUNT_WALL) {
-                    if (x === (cols - 1)) {
-                        console.log('Found border x @', x, y, 'elev is', elev);
-                    }
                     _map[x][y].setBaseElem(biome(elev, moist, temp));
                 }
 
@@ -105,8 +102,7 @@ function biome(elev: number, moist: number, temp: number): any {
         }
     }
     else if (elev > TREE_LEVEL_MIN && elev < TREE_LEVEL_MAX) {
-        /*
-        if (moist < 1.0) {
+        if (moist < 0.1) {
             if (temp < TEMP_LOW) {
                 return ELEM.SNOW;
             }
@@ -115,25 +111,21 @@ function biome(elev: number, moist: number, temp: number): any {
             }
         }
         else {
-        */
             if (temp < TEMP_LOW) {
                 return ELEM.TREE_SNOW;
             }
             else {
                 return ELEM.TREE;
             }
-        // }
+        }
     }
     else if (elev < MOUNT_WALL) {
-        return ELEM.HIGH_ROCK;
-        /*
         if (temp < TEMP_LOW) {
-            return ELEM.SNOW;
+            return ELEM.STONE_SNOW;
         }
         else {
-            return ELEM.FLOOR;
+            return ELEM.STONE;
         }
-        */
     }
 
 }

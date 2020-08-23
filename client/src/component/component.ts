@@ -259,7 +259,7 @@ export const Damaged = UniqueDataComponent('Damaged',
 /* Added to broken items/elements. Prevents their use. */
 export const Broken = UniqueTagComponent('Broken');
 
-/* Component to tag entities that block light from passing through. */
+/* Component to tag entities that cannot be traversed through. */
 export const Impassable = UniqueDataComponent('Impassable', {
     canFlyOver: true, canJumpOver: true, spellPasses: true
 });
@@ -271,6 +271,14 @@ Impassable.prototype.setAllImpassable = function() {
 
 /* Component to tag entities that block light from passing through. */
 export const Opaque = UniqueTagComponent('Opaque');
+
+
+export const Terrain = UniqueDataComponent('Terrain', {
+    mods: null});
+
+Terrain.prototype._init = function() {
+    this.mods = [];
+};
 
 /* Component used in entities gaining experience.*/
 export const Experience = UniqueDataComponent('Experience',

@@ -5,7 +5,7 @@ import RG from '../src/rg';
 import {Dice} from '../src/dice';
 import {
     IAddCompObj, ICompSetterObj, IColor, IDiceInputArg,
-    IShell
+    IShell, IPenaltyObj
 } from '../src/interfaces';
 
 export const meleeHitDamage = (
@@ -57,6 +57,47 @@ export function resistance(type: string, level: string): IAddCompObj {
             setLevel: RG.RESISTANCE[levelUpper]
         }
     };
+}
+
+export function statsPenalty(stat: string, scale: number, dontApply?: string[]): IPenaltyObj {
+    const getFunc = RG.formatGetterName(stat.toLowerCase());
+    const setFunc = RG.formatSetterName(stat.toLowerCase());
+    const obj: IPenaltyObj = {
+        value: -scale, srcComp: 'Stats', srcFunc: getFunc,
+        targetComp: 'StatsMods', targetFunc: setFunc
+    };
+    if (dontApply) {
+        obj.dontApplyTo = dontApply.slice();
+    }
+    return obj;
+}
+
+
+export function speedPenalty(scale: number, dontApply?: string[]): IPenaltyObj {
+    return statsPenalty('speed', scale, dontApply);
+}
+
+export function combatPenalty(
+    name: string, scale: number,  dontApply?: string[]
+): IPenaltyObj {
+    const getFunc = RG.formatGetterName(name.toLowerCase());
+    const setFunc = RG.formatSetterName(name.toLowerCase());
+    const obj: IPenaltyObj = {
+        value: -scale, srcComp: 'Combat', srcFunc: getFunc,
+        targetComp: 'CombatMods', targetFunc: setFunc
+    };
+    if (dontApply) {
+        obj.dontApplyTo = dontApply.slice();
+    }
+    return obj;
+}
+
+export function defensePenalty(scale: number, dontApply?: string[]): IPenaltyObj {
+    return combatPenalty('defense', scale, dontApply);
+}
+
+export function attackPenalty(scale: number, dontApply?: string[]): IPenaltyObj {
+    return combatPenalty('attack', scale, dontApply);
 }
 
 export const color = function(fg: string, bg: string): IColor {

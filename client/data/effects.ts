@@ -221,6 +221,7 @@ export const Effects = {
             name: 'digger',
             func(obj) {
                 const owner = getTopOwnerActor(this);
+                console.log('owner is ', owner);
                 const name = owner.getName();
                 const msg = `${name} digs through stone with ${this.getName()}`;
                 const effArgs = {

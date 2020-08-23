@@ -44,7 +44,7 @@ import {BBox} from './bbox';
 import dbg = require('debug');
 const debug = dbg('bitn:overworld');
 
-debug.enabled = true;
+// debug.enabled = true;
 
 type TCoord = IF.TCoord;
 type Level = import('./level').Level;
@@ -715,9 +715,16 @@ function addSubLevelFeatures(
     let isHome = false;
     if (ow.hasFeatureDataWith(xy, 'hometown')) {
         isHome = true;
+        console.log('addSubLevelFeatures found xy with hometown:', xy);
     }
 
-    if (!features) {return;}
+    if (!features) {
+        if (isHome) {
+            RG.err('overworld.ts', 'addSubLevelFeatures',
+                `isHome=true but no features found at ${xy}`);
+        }
+        return;
+    }
 
     let numSkipped = 0;
     features.forEach((feat: string) => {
@@ -733,7 +740,7 @@ function addSubLevelFeatures(
         else if (feat === OW.WDUNGEON) {
             addDungeonToSubLevel(owSubLevel, subLevel);
         }
-        else if (feat === OW.WVILLAGE) {
+        else if (feat === OW.WVILLAGE || feat === OW.BVILLAGE) {
             addVillageToSubLevel(feat, owSubLevel, subLevel);
             if (isHome) {
                 const feats: OWSubFeature[] = owSubLevel.getFeaturesByType('village');

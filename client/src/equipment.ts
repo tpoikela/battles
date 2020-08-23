@@ -50,10 +50,13 @@ export class EquipSlot {
     }
 
     /* Equips given item to first available place in slot.*/
-    public equipItem(item): boolean {
+    public equipItem(item, owner?: any): boolean {
         if (this.canEquip(item)) {
             if (!this._stacked || !this._hasItem) {
                 item.setOwner(this);
+                if (owner) {
+                    item.setOwner(owner);
+                }
                 this._item = item;
                 this._hasItem = true;
             }
@@ -254,35 +257,37 @@ export class Equipment {
     /* Equips given item. Slot is chosen automatically from suitable available
      * ones.*/
     public equipItem(item): boolean {
+        let res = false;
         if (item.getArmourType) {
-            return this._equipToSlotType(item.getArmourType(), item);
+            res = this._equipToSlotType(item.getArmourType(), item);
         }
         // No equip property, can only equip to hand
         else if (/^(missile|ammo)$/.test(item.getType())) {
             const missileSlot = this._slots.missile as EquipSlot;
             if (missileSlot.equipItem(item)) {
-                return true;
+                res = true;
             }
         }
         else if (item.getType() === 'missileweapon') {
-            return this._equipToSlotType('missileweapon', item);
+            res = this._equipToSlotType('missileweapon', item);
         }
         else {
-            return this._equipToSlotType('hand', item);
+            res = this._equipToSlotType('hand', item);
         }
-        return false;
+        return res;
     }
 
     public _equipToSlotType(slotType, item) {
         const slot = this._slots[slotType];
         if (Array.isArray(slot)) {
             for (let i = 0; i < slot.length; i++) {
-                if (slot[i].equipItem(item)) {
+                // 2nd arg is set as item owner
+                if (slot[i].equipItem(item, this._actor)) {
                     return true;
                 }
             }
         }
-        else if (slot.equipItem(item)) {
+        else if (slot.equipItem(item, this._actor)) {
             return true;
         }
         return false;

@@ -720,3 +720,17 @@ export interface IMiner {
     dugCallback?: (x: number, y: number, miner: IMiner) => void;
 }
 
+//-----------------------------
+// Terrain-related interfaces
+//-----------------------------
+
+export interface IPenaltyObj {
+    value: number;
+    srcComp: string;
+    srcFunc: string;
+    targetComp: string;
+    targetFunc: string;
+    dontApplyTo?: string[];
+}
+
+

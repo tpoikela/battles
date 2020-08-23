@@ -577,6 +577,7 @@ export class FactoryGame {
         ));
 
         if (!homeConf) {
+            console.log(JSON.stringify(areaConf.city, null, 1));
             RG.err('FactoryGame', 'modifyConfForHometown',
                 'Unable to find city conf with "hometown" tag.');
             return;

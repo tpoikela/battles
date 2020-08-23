@@ -8,6 +8,8 @@ import * as Component from '../component';
 import * as Element from '../element';
 import {ELEM} from '../../data/elem-constants';
 import {emitZoneEvent} from './system.utils';
+import {speedPenalty, defensePenalty} from '../../data/shell-utils';
+import {IPenaltyObj} from '../interfaces';
 
 type BrainPlayer = import('../brain/brain.player').BrainPlayer;
 type Level = import('../level').Level;
@@ -20,17 +22,9 @@ type ElementExploration = Element.ElementExploration;
 const {addSkillsExp} = SystemBase;
 
 
-interface PenaltyObj {
-    value: number;
-    srcComp: string;
-    srcFunc: string;
-    targetComp: string;
-    targetFunc: string;
-}
-
 interface ElementMoveData {
     dontApplyTo?: string[];
-    mods: PenaltyObj[];
+    mods: IPenaltyObj[];
 }
 
 interface MoveBonuses {
@@ -67,52 +61,50 @@ export class SystemMovement extends SystemBase {
         /* These are applied when an actor enters a cell with given type of base
          * element.
          * If the value is float, it is used to scale from base value in
-         * Stats/Combat, if it's integer it's added directly. */
+         * Stats/Combat, if it's integer it's added directly.
+         * TODO: Remove these hardcoded penalties, add them to elements data
+         * directly.
+         */
         this._bonuses = {
+            /*
             water: {
                 dontApplyTo: ['Flying', 'Amphibious'],
                 mods: [
-                    this.speedPenalty(0.5),
-                    this.defensePenalty(0.5),
+                    speedPenalty(0.5),
+                    defensePenalty(0.5),
                     {
                         value: -5, srcComp: 'Combat', srcFunc: 'getAttack',
                         targetComp: 'CombatMods', targetFunc: 'setAttack'
                     }
                 ]
             },
+            */
+           /*
             grass: {
                 mods: [
-                    this.speedPenalty(0.10)
+                    speedPenalty(0.10)
                 ]
             },
+            */
+            /*
             bridge: {mods: [
-                this.defensePenalty(0.5)
+                defensePenalty(0.5)
             ]},
-            stone: {mods: [
-                this.speedPenalty(0.25)
-            ]},
+            */
+            /*stone: {mods: [
+                speedPenalty(0.25)
+            ]},*/
+            /*
             snow: {
                 dontApplyTo: ['Flying', 'SnowWalk'],
                 mods: [
-                    this.speedPenalty(0.25)
+                    speedPenalty(0.25)
                 ]
             }
+            */
         };
     }
 
-    public speedPenalty(scale: number): PenaltyObj {
-        return {
-            value: -scale, srcComp: 'Stats', srcFunc: 'getSpeed',
-            targetComp: 'StatsMods', targetFunc: 'setSpeed'
-        };
-    }
-
-    public defensePenalty(scale: number): PenaltyObj {
-        return {
-            value: -scale, srcComp: 'Combat', srcFunc: 'getDefense',
-            targetComp: 'CombatMods', targetFunc: 'setDefense'
-        };
-    }
 
     /* If player moved to the square, checks if any messages must
      * be emitted. */
@@ -283,10 +275,11 @@ export class SystemMovement extends SystemBase {
 
     /* Checks if cell type has changed, and if some penalties/bonuses must be
      * applied to the moved entity. */
-    public checkForStatsMods(ent, prevCell, newCell): void {
-        let [prevType, newType] = [prevCell.getBaseElem().getType(),
-            newCell.getBaseElem().getType()
-        ];
+    public checkForStatsMods(ent, prevCell: Cell, newCell: Cell): void {
+        const newElem = newCell.getBaseElem();
+        const prevElem = prevCell.getBaseElem();
+        let [prevType, newType] = [prevElem.getType(), newElem.getType()];
+
         if (elemTypeMap[prevType]) {
             prevType = elemTypeMap[prevType];
         }
@@ -295,16 +288,25 @@ export class SystemMovement extends SystemBase {
         }
 
         // No cell type change, no need to check the modifiers
+        // TODO: May change with accumulating penalties
         if (prevType === newType) {return;}
 
-        // Add bonus/penalty upon entering a new cell type
+        let bonuses = null;
         if (this._bonuses.hasOwnProperty(newType)) {
-            const bonuses = this._bonuses[newType];
+            bonuses = this._bonuses[newType];
+        }
+        else if (newElem.has('Terrain')) {
+            bonuses = newElem.get('Terrain').getMods();
+            bonuses.mods = bonuses;
+        }
+
+        // Add bonus/penalty upon entering a new cell type
+        if (bonuses) {
 
             // Check here if we can ignore the bonus/penalty for this entity
             let applyBonus = true;
             if (bonuses.dontApplyTo) {
-                bonuses.dontApplyTo.forEach(dontApplyComp => {
+                bonuses.dontApplyTo.forEach((dontApplyComp: string) => {
                     if (ent.has(dontApplyComp)) {
                         applyBonus = false;
                     }
@@ -312,7 +314,23 @@ export class SystemMovement extends SystemBase {
             }
 
             if (applyBonus) {
-                bonuses.mods.forEach(mod => {
+                bonuses.mods.forEach((mod: IPenaltyObj) => {
+                    let applyThisMod = true;
+
+                    // Check also local dontApplyTo per single mod (used in
+                    // Terrain)
+                    if (mod.dontApplyTo) {
+                        mod.dontApplyTo.forEach((dontApplyComp: string) => {
+                            if (ent.has(dontApplyComp)) {
+                                applyThisMod = false;
+                            }
+                        });
+                    }
+
+                    if (!applyThisMod) {
+                        return;
+                    }
+
                     if (Number.isInteger(mod.value)) {
                         const targetComp = Component.create(mod.targetComp);
                         targetComp[mod.targetFunc](mod.value);
@@ -335,19 +353,28 @@ export class SystemMovement extends SystemBase {
             }
         }
 
-        // Remove the bonus/penalty here because cell type was left
+        bonuses = null;
         if (this._bonuses.hasOwnProperty(prevType)) {
+            bonuses = this._bonuses[prevType];
+        }
+        else if (prevElem.has('Terrain')) {
+            bonuses = prevElem.get('Terrain').getMods();
+            bonuses.mods = bonuses;
+        }
+
+        // Remove the bonus/penalty here because cell type was left
+        if (bonuses) {
             const statsList = ent.getList('StatsMods');
             const combatList = ent.getList('CombatMods');
             // TODO add a list of comps to check to this._bonuses
-            statsList.forEach(mod => {
-                if (mod.getTag() === prevType) {
-                    ent.remove(mod);
+            statsList.forEach(modComp => {
+                if (modComp.getTag() === prevType) {
+                    ent.remove(modComp);
                 }
             });
-            combatList.forEach(mod => {
-                if (mod.getTag() === prevType) {
-                    ent.remove(mod);
+            combatList.forEach(modComp => {
+                if (modComp.getTag() === prevType) {
+                    ent.remove(modComp);
                 }
             });
         }
@@ -407,7 +434,7 @@ export class SystemMovement extends SystemBase {
     }
 
     /* Checks if entity gets entrapped into the cell. */
-    private _checkEntrapment(ent, cell): void {
+    private _checkEntrapment(ent, cell: Cell): void {
         // Need to re-check this, if exploreElem was removed, very subtle
         const elems = cell.getElements();
         if (!elems) {return;}

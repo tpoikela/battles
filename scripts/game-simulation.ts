@@ -6,6 +6,7 @@ import * as RG from '../client/src/battles';
 import {RGTest} from '../tests/roguetest';
 import {FactoryGame} from '../client/src/factory.game';
 import {Random} from '../client/src/random';
+import {Dice} from '../client/src/dice';
 
 import ROT from '../lib/rot';
 import {PlayerDriver} from '../tests/helpers/player-driver';
@@ -21,13 +22,16 @@ function main() {
     // Parse command line args
     const optDefs = UtilsSim.optDefs;
     let opts = cmdLineArgs(optDefs);
-    opts = getDefaults(opts);
+    opts = UtilsSim.getDefaults(opts);
     if (opts.help) {
         usage(optDefs);
     }
 
+    // opts.seed comes from defaults
+    console.log('Start simulation with Seed: ', opts.seed);
     RNG.setSeed(opts.seed);
     ROT.RNG.setSeed(opts.seed);
+    Dice.RNG.setSeed(opts.seed);
 
     let newGame = null;
     let driver = null;
@@ -56,12 +60,22 @@ function main() {
         };
 
         const gameFact = new FactoryGame();
-        newGame = gameFact.createNewGame(conf);
-        driver = new PlayerDriver();
-        const player = newGame.getPlayer();
-        player.setName(pName);
-        player.remove('Hunger'); // AI not smart enough yet to deal with this
-        driver.setPlayer(player);
+        try {
+            newGame = gameFact.createNewGame(conf);
+            driver = new PlayerDriver();
+            const player = newGame.getPlayer();
+            player.setName(pName);
+            player.remove('Hunger'); // AI not smart enough yet to deal with this
+            driver.setPlayer(player);
+        }
+        catch (e) {
+            const err = e as Error;
+            console.log('Creating game failed with:', err.message);
+        }
+
+        if (!newGame) {
+            return;
+        }
     }
     else { // Otherwise just restore
         let fname = getFilename(pName, loadTurn);
@@ -81,8 +95,11 @@ function main() {
 
     // To load previous stage quickly
     const saveGameEnabled = !opts.nosave;
+
     // Does not depend on save game
-    driver.screenPeriod = opts.framePeriod;
+    if (driver) {
+        driver.screenPeriod = opts.framePeriod;
+    }
 
     console.log('===== Begin Game simulation =====');
     let catcher = null;
@@ -90,8 +107,12 @@ function main() {
         catcher = new RGTest.MsgCatcher();
     }
 
-    const maxTurns = driver.nTurns + parseInt(opts.maxturns, 10);
+    let maxTurns = parseInt(opts.maxturns, 10);
     const savePeriod = opts.save_period ? opts.save_period : 2000;
+
+    if (driver) {
+        maxTurns += driver.nTurns;
+    }
 
     // Execute game in try-catch so we can dump save data on failure
     try {
@@ -142,6 +163,7 @@ function main() {
     const nTiles = Object.keys(driver.state.tilesVisited).length;
     console.log(`Player visited ${nTiles} different tiles`);
     console.log('Simulation OK. Saving final state');
+    console.log('Seed: ', opts.seed);
 
     const nTurns = driver.nTurns;
     const finalFname = `save_dumps/${pName}_game_final_${nTurns}.json`;
@@ -164,6 +186,7 @@ main();
 // END OF SCRIPT, HELPER FUNCTIONS
 //---------------------------------------------------------------------------
 
+/*
 function getDefaults(opt) {
     const obj = Object.assign({}, opt);
     obj.name = obj.name || 'Xanthur';
@@ -172,6 +195,7 @@ function getDefaults(opt) {
     obj.seed = obj.seed || 0;
     return obj;
 }
+*/
 
 function getFilename(pName, nTurn) {
     const fname = `save_dumps/${pName}_temp_${nTurn}.json`;

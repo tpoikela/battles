@@ -846,7 +846,7 @@ function getValidNeighbours(x: number, y: number, map: string[][]): any[] {
 }
 
 /* Creates the territories for settlements like cities. */
-function createOverWorldTerritories(ow: OWMap, conf) {
+function createOverWorldTerritories(ow: OWMap, conf): void {
     const {playerRace} = conf;
     addHomeTownTag(ow, conf);
     const owXY = ow.getXYForFeatureDataWith('tags', 'hometown');
@@ -878,6 +878,7 @@ function addHomeTownTag(ow: OWMap, conf): void {
 
     while (!chosen) {
         coord = getRNG().getRandInBbox(new BBox(ulx, uly, lrx, lry));
+
         if (!ow.isWallTile(coord[0], coord[1])) {
             ow.addFeatureData(coord as TCoord, {tags: ['hometown']});
             chosen = true;
@@ -1099,7 +1100,7 @@ function addVillagesToOverWorld(ow: OWMap, nVillages, cmd): void {
     const bbox = getBoundingBox(ow, cmd);
     for (let i = 0; i < nVillages; i++) {
         const xy = findCellRandXYInBox(ow.getMap(), bbox, [OW.TERM]);
-        placeCityFeature(ow, xy);
+        placeCityFeature(ow, xy, false);
     }
 }
 
@@ -1123,7 +1124,7 @@ function addCitiesBasedOnTerritories(ow: OWMap): void {
 
         if (terrObj.hasRival(xy)) {
             if (RG.isSuccess(cityProb) || isHome) {
-                placeCityFeature(ow, xy);
+                placeCityFeature(ow, xy, isHome);
                 const featName = name + '_city';
                 ow.addFeatureData(xy, {type: featName});
             }
@@ -1142,11 +1143,17 @@ function addCitiesBasedOnTerritories(ow: OWMap): void {
                 });
             }
         }
+        else {
+            if (isHome) {
+                RG.err('overworld.map.ts', 'addCitiesBasedOnTerritories',
+                    `isHome=true but no rival found at ${xy}`);
+            }
+        }
     });
 }
 
-function placeCityFeature(ow: OWMap, xy: TCoord): void {
-    if (RG.isSuccess(OW.PROB_BVILLAGE)) {
+function placeCityFeature(ow: OWMap, xy: TCoord, isHome: boolean): void {
+    if (!isHome && RG.isSuccess(OW.PROB_BVILLAGE)) {
         ow.addFeature(xy, OW.BVILLAGE);
     }
     else {
