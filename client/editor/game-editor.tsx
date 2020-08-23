@@ -164,6 +164,7 @@ export interface IGameEditorState {
       idCount: number;
       updateMap: boolean;
       enablePathfind: boolean;
+      enableBresenham: boolean;
       startTime?: number;
 
       useRLE: boolean;
@@ -261,6 +262,7 @@ export default class GameEditor extends Component {
       idCount: 0,
       updateMap: true,
       enablePathfind: false,
+      enableBresenham: false,
 
       useRLE: true,
       savedLevelName: 'saved_level_from_editor.json'
@@ -402,6 +404,23 @@ export default class GameEditor extends Component {
     }
   }
 
+  public setCellsForBresenham(cell: Cell): void {
+    const firstCell = this.getFirstSelectedCell();
+    if (firstCell) {
+      const map = this.getCurrMap();
+      const [x0, y0] = firstCell.getXY();
+      const [x1, y1] = cell.getXY();
+      const coord: TCoord[] = Geometry.getBresenham(x0, y0, x1, y1);
+      const pathCells = coord.map(xy => map!.getCell(xy[0], xy[1]));
+      this.setState({selectedCell: pathCells,
+        mouseOverCell: cell});
+    }
+    else {
+      this.setState({mouseOverCell: cell});
+    }
+  }
+
+
   public onMouseDown(x: number, y: number): void {
     if (!this.state.selectMode) {
       const cell = this.getCellCurrMap(x, y);
@@ -444,6 +463,11 @@ export default class GameEditor extends Component {
     else if (this.state.enablePathfind) {
       if (cell) {
         this.setCellsForPathfinding(cell);
+      }
+    }
+    else if (this.state.enableBresenham) {
+      if (cell) {
+        this.setCellsForBresenham(cell);
       }
     }
   }
@@ -1611,6 +1635,15 @@ export default class GameEditor extends Component {
                     type='checkbox'
                 />
                 Pathfinding
+                </label>
+                <label>
+                <input
+                    checked={this.state.enableBresenham}
+                    name='checkbox-enableBresenham'
+                    onChange={this.onInputChange}
+                    type='checkbox'
+                />
+                Bresenham
                 </label>
               </span>
             </div>
