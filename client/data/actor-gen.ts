@@ -123,7 +123,8 @@ const raceNames = Object.keys(shellProps.races);
 /* One rank is chosen for each actor. This has a big impact on HP. */
 shellProps.ranks = {
     commoner: {
-        danger: 1, hp: 5
+        danger: 1, hp: 5,
+        colorfg: 'brown'
     },
     thrall: {
         danger: 1, hp: 7
@@ -133,16 +134,19 @@ shellProps.ranks = {
     },
     sergeant: {
         danger: 3,
-        strength: 1, hp: 15
+        strength: 1, hp: 15,
+        colorfg: 'light blue'
     },
     lieutenant: {
         danger: 4,
-        strength: 3, hp: 20
+        strength: 3, hp: 20,
+        colorfg: 'blue'
     },
     commander: {
         danger: 5,
         strength: 5, hp: 20,
         equip: ['Great battle axe', 'Steel armour', 'Steel helmet'],
+        colorfg: 'orange'
     },
     steward: {
         colorfg: 'steelblue',
@@ -160,11 +164,13 @@ shellProps.ranks = {
         hp: 25,
     },
     warlord: {
-        danger: 7, hp: 25
+        danger: 7, hp: 25,
+        colorfg: 'black'
     },
     captain: {
         danger: 7, hp: 25,
-        strength: 7, agility: 3, accuracy: 3
+        strength: 7, agility: 3, accuracy: 3,
+        colorfg: 'salmon'
     },
     prince: {
         colorfg: 'MediumPurple',
