@@ -138,6 +138,7 @@ class RGClass {
     public PLAYER_HP_REGEN_PERIOD: number;
     public PLAYER_PP_REGEN_PERIOD: number;
     public MIN_VALUE: number;
+    public MIN_DANGER: number;
 
     public TRAINER_PROB: number;
     public EPIC_PROB: number;
@@ -483,6 +484,7 @@ class RGClass {
         this.PLAYER_HP_REGEN_PERIOD = 40;
         this.PLAYER_PP_REGEN_PERIOD = 40;
         this.MIN_VALUE = 30; // Min value for generated items.
+        this.MIN_DANGER = 4; // Min danger for generated actors
 
         this.TRAINER_PROB = 0.2;
         this.EPIC_PROB = 0.05;
@@ -1428,7 +1430,7 @@ class RGClass {
     }
 
 
-/* Returns danger probabilites for given level.*/
+    /* Returns danger probabilites for given level.*/
     public getDangerProb(min: number, max: number): ProbDist {
         if (min > max) {
             console.error('this.getDangerProb param order is min < max');
@@ -1445,9 +1447,9 @@ class RGClass {
         const maxArr = arr[last];
 
         const highPoint = (maxArr % 2 === 0) ? maxArr / 2 : (maxArr + 1) / 2;
-        const obj = {};
+        const obj: ProbDist = {};
 
-        arr.forEach( val => {
+        arr.forEach((val: number) => {
             const absDiff = Math.abs(val - highPoint);
             let prob = maxArr - Math.floor(this.DANGER_ADJ_FACTOR * absDiff);
             prob = (prob === 0) ? prob + 1 : prob;
@@ -1459,13 +1461,13 @@ class RGClass {
     }
 
     public getMaxDanger(xDiff: number, yDiff: number): number {
-        let maxDanger = 2 * yDiff + xDiff;
-        if (maxDanger < 2) {maxDanger = 2;}
+        let maxDanger = Math.round(2.5 * yDiff) + xDiff + 3;
+        if (maxDanger < this.MIN_DANGER) {maxDanger = this.MIN_DANGER;}
         return maxDanger;
     }
 
     public getMaxValue(xDiff: number, yDiff: number): number {
-        let maxValue = 20 * yDiff + 10 * xDiff;
+        let maxValue = 25 * yDiff + 10 * xDiff;
         if (maxValue <= this.MIN_VALUE) {
             maxValue = this.MIN_VALUE;
         }
