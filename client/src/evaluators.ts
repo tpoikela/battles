@@ -195,13 +195,13 @@ export class EvaluatorPatrol extends EvaluatorBase {
 
     public coords: TCoord[];
 
-    constructor(actorBias, coord = []) {
+    constructor(actorBias: number, coord: TCoord[] = []) {
         super(actorBias);
         this.type = 'Patrol';
         this.coords = coord;
     }
 
-    public setCoords(coords) {
+    public setCoords(coords: TCoord[]): void {
         this.coords = coords;
     }
 
@@ -223,7 +223,7 @@ export class EvaluatorPatrol extends EvaluatorBase {
         }
     }
 
-    public setArgs(args) {
+    public setArgs(args: EvalArgs) {
         this.coords = args.coords;
     }
 
