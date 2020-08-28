@@ -7,6 +7,10 @@ import {Cell} from '../map.cell';
 // Missile has
 // srcX/Y, targetX/X, path, currX/Y, shooter + all damage components, item ref
 // SourceComponent, TargetComponent, LocationComponent, OwnerComponent
+//
+
+// Probability to hit friendly actor, maybe bias by distance
+const FRIEND_HIT_PROP = 0.15;
 
 /* Processes all missiles launched by actors/traps/etc.*/
 export class SystemMissile extends SystemBase {
@@ -69,7 +73,7 @@ export class SystemMissile extends SystemBase {
                 shownMsg = firedMsg + ' thuds to an obstacle';
             }
             else if (currCell.hasProp('actors')) {
-                const actor = currCell.getActors()[0];
+                const actor = currCell.getActors()![0];
                 // Check hit and miss
                 if (this.targetWasHit(ent, actor, mComp)) {
                     this.finishMissileFlight(ent, mComp, currCell);
@@ -253,7 +257,19 @@ export class SystemMissile extends SystemBase {
         if (target.has('Skills')) {
             defense += target.get('Skills').getLevel('Dodge');
         }
-        const hitProp = attack / (attack + defense);
+
+        const isEnemy = attacker.isEnemy(target);
+        let hitProp = attack / (attack + defense);
+        if (!isEnemy && !mComp.inTarget()) {
+            hitProp = FRIEND_HIT_PROP;
+
+            // If friend is next to shooter, it won't hit ever
+            const [dX, dY] = RG.dXdYAbs(attacker, target);
+            if (dX <= 1 && dY <= 1) {
+                hitProp = 0;
+            }
+        }
+
         if (RG.isSuccess(hitProp)) {
             // Using RangedEvasion does not improve Dodge
             if (target.has('RangedEvasion')) {
