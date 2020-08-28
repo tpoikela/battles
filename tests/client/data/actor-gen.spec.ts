@@ -1,6 +1,6 @@
 
 import { expect } from 'chai';
-import {ActorGen} from '../../../client/data/actor-gen';
+import {ActorGen, shellProps} from '../../../client/data/actor-gen';
 import {ObjectShell} from '../../../client/src/objectshellparser';
 import {Constraints} from '../../../client/src/constraints';
 
@@ -46,5 +46,22 @@ describe('ActorGen', () => {
         const sh3 = ActorGen.genShell({race: 'orc'});
         expect(sh3.race).to.equal('orc');
     });
+
+    it('adds the danger value of shells together', function() {
+        const actorConstr = {race: 'elf'};
+        // console.log(shellProps);
+        const hist = {};
+        for (let i = 0; i < 1000; i++) {
+            const shell = ActorGen.genShell(actorConstr);
+            if (!hist[shell.danger]) {
+                hist[shell.danger] = 1;
+            }
+            hist[shell.danger] += 1;
+            // console.log(shell);
+        }
+        // console.log(shellProps);
+        console.log('hist danger:', hist);
+    });
+
 
 });

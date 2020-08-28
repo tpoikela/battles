@@ -382,7 +382,8 @@ export class CaveGenerator extends LevelGenerator {
             const nest = new NestGenerator();
             const nestConf: Partial<NestOpts> = {
                 actorConstr: {
-                    race: RNG.arrayGetRand(NEST_RACES)
+                    race: RNG.arrayGetRand(NEST_RACES),
+                    maxDanger: conf.maxDanger
                 },
                 mapConf: {
                     tilesX, tilesY,
@@ -392,6 +393,7 @@ export class CaveGenerator extends LevelGenerator {
                 },
                 embedOpts: {level}
             };
+            console.log('NestConf will be', nestConf);
             if (nest.createAndEmbed(tilesX * 7, tilesY * 7, nestConf)) {
                 return true;
             }

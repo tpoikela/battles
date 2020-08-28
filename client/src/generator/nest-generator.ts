@@ -16,7 +16,7 @@ import {ELEM} from '../../data/elem-constants';
 import {ActorGen} from '../../data/actor-gen';
 import {ObjectShell} from '../objectshellparser';
 import {SentientActor} from '../actor';
-import {EvaluatorGuardArea} from '../evaluators';
+import {EvaluatorGuardArea, EvaluatorPatrol} from '../evaluators';
 import {BrainGoalOriented} from '../brain';
 import {ItemGen} from '../../data/item-gen';
 
@@ -60,11 +60,15 @@ export class NestGenerator extends LevelGenerator {
         return opts;
     }
 
+    public squaresPerActor: number;
+
+
     constructor() {
         super();
         // this.addDoors = true;
         // this.shouldRemoveMarkers = true;
         this._debug = debug.enabled || true;
+        this.squaresPerActor = 9;
     }
 
     public dbg(...args: any[]): void {
@@ -103,6 +107,10 @@ export class NestGenerator extends LevelGenerator {
             return false;
         }
 
+        if (!conf.maxDanger) {
+            conf.maxDanger = 5;
+        }
+
         const parentLevel: Level = conf.embedOpts.level;
         const map: CellMap = parentLevel.getMap();
         const cellFunc = (c: Cell) => !c.isFree();
@@ -124,7 +132,8 @@ export class NestGenerator extends LevelGenerator {
             Geometry.mergeLevels(parentLevel, nestLevel, bbox.ulx, bbox.uly);
             // parentLevel.debugPrintInASCII();
             // 1. Should connect the nest to remaining level now
-            if (this.connectNestToParentLevel(parentLevel, bbox, conf)) {
+            const tunnelCoord = this.connectNestToParentLevel(parentLevel, bbox, conf);
+            if (tunnelCoord.length > 0) {
 
                 this.addElemsToNestArea(parentLevel, bbox, conf);
                 // 2. Here we can populate the nest area now
@@ -132,6 +141,9 @@ export class NestGenerator extends LevelGenerator {
 
                 // 3. Add items/loot to the area
                 this.addLootToNestArea(parentLevel, bbox, conf);
+
+                // 4. Add some interesting elements to tunnel as well
+                this.populateTunnel(parentLevel, conf, tunnelCoord);
                 return true;
             }
             else {
@@ -145,18 +157,23 @@ export class NestGenerator extends LevelGenerator {
         return false;
     }
 
-    /* Adds a connection between nest and parent. Returns false if unsuccesful.
+    /* Adds a connection between nest and parent. Returns all coordinates in the
+     * connection as a list. List is empty when connection was not done.
      * */
     public connectNestToParentLevel(
         parentLevel: Level, bbox: BBox,
         conf: PartialNestOpts
-    ): boolean {
+    ): TCoord[] {
+
+        // Scanning used for Dungeons where we want to connect to a door
         if (conf.scanForDoors) {
             const result = this.scanAndConnect(parentLevel, bbox, conf);
-            if (result) {
+            if (result.length > 0) {
                 return result;
             }
         }
+
+        // This section creates a tunnel through walls
         const map: CellMap = parentLevel.getMap();
         let dir: string = '';
         const [sizeX, sizeY] = parentLevel.getSizeXY();
@@ -193,15 +210,21 @@ export class NestGenerator extends LevelGenerator {
             }
 
             if (cells.length > 0) {
-                const tunnelCoord: TCoord[] = [];
+                let tunnelCoord: TCoord[] = [];
                 this.dbg('Tunneling to', chosenDir, 'using', tunnelCoord);
                 if (this.getCoordForTunnel(cells, map, chosenDir, tunnelCoord)) {
+                    tunnelCoord = tunnelCoord.filter((c: TCoord) => {
+                        const [x, y] = c;
+                        if (x < 1 || y < 1) {return false;}
+                        if (x >= map.cols-1 || y >= map.rows-1) {return false;}
+                        return true;
+                    });
                     map.setBaseElems(tunnelCoord, ELEM.FLOOR);
-                    return true;
+                    return tunnelCoord;
                 }
             }
         }
-        return false;
+        return [];
     }
 
 
@@ -241,10 +264,14 @@ export class NestGenerator extends LevelGenerator {
                     if (map.hasXY(cX, cY)) {
                         chosenCell = map.getCell(cX, cY);
                         tunnelCoord.push([cX, cY]);
+                        let crossCoord = Geometry.getCrossCaveConn(cX, cY, 1);
+                        crossCoord = crossCoord.map(c => RNG.shiftCoord(c));
+                        // Append all crossCoord to tunneling coordinates
+                        tunnelCoord.push(...crossCoord);
                     }
                     else {
                         // Run out ouf bounds from map, select new cell
-                        tunnelCoord = [];
+                        tunnelCoord.length = 0; // Need to clear the array
                         if (freeCells.length > 0) {
                             chosenCell = RNG.arrayGetRand(freeCells);
                             freeCells.splice(freeCells.indexOf(chosenCell), 1);
@@ -253,6 +280,10 @@ export class NestGenerator extends LevelGenerator {
                             chosenCell = map.getCell(cX, cY);
                             tunnelCoord.push([cX, cY]);
                             numTries = 0;
+                            let crossCoord = Geometry.getCrossCaveConn(cX, cY, 1);
+                            crossCoord = crossCoord.map(c => RNG.shiftCoord(c));
+                            // Append all crossCoord to tunneling coordinates
+                            tunnelCoord.push(...crossCoord);
                         }
                     }
                     if (++numTries === 250) {return false;}
@@ -281,7 +312,8 @@ export class NestGenerator extends LevelGenerator {
         const {actorConstr} = conf;
         if (actorConstr) {
             // const dungPopul = new DungeonPopulate();
-            const actors: SentientActor[] = this.getActorsForNest(actorConstr);
+            const area = bbox.getArea();
+            const actors: SentientActor[] = this.getActorsForNest(actorConstr, area);
             //const actorConf = {actors};
             if (Placer.addActorsToBbox(level, bbox, actors)) {
                 actors.forEach(actor => {
@@ -293,25 +325,42 @@ export class NestGenerator extends LevelGenerator {
         }
     }
 
-    public getActorsForNest(actorConstr: ShellConstr): SentientActor[] {
+    public getActorsForNest(actorConstr: ShellConstr, size: number): SentientActor[] {
         const actors: SentientActor[] = [];
-        const shells: IShell = [];
+        const shells: IShell[] = [];
         const parser = ObjectShell.getParser();
-        for (let i = 0; i < 5; i++) {
-            const newShell = ActorGen.genShell(actorConstr);
+        const numShells = RNG.getUniformInt(3, 8);
+        let nCreated = 0;
+        const nToCreate = Math.round(size / this.squaresPerActor);
+
+        for (let i = 0; i < numShells; i++) {
+            let newShell = ActorGen.genShell(actorConstr);
+            let watchdog = 35;
+
+            while (newShell.danger > (actorConstr.maxDanger + 2)) {
+                console.log('newShell danger is', newShell.danger, newShell.name);
+                newShell = ActorGen.genShell(actorConstr);
+                --watchdog;
+                if (watchdog === 0) {
+                    newShell = null; // Avoid placing too dangerous actors
+                    break;
+                }
+            }
+
             if (newShell) {
                 shells.push(newShell);
             }
             else {
-                RG.err('NestGenerator', 'getActorsForNest',
+                RG.warn('NestGenerator', 'getActorsForNest',
                     'Failed to create shell with ' + JSON.stringify(actorConstr));
             }
         }
-        shells.forEach((shell: IShell) => {
-            for (let i = 0; i < 5; i++) {
-                actors.push(parser.createFromShell(RG.TYPE_ACTOR, shell));
-            }
-        });
+
+        while (nCreated < nToCreate) {
+            const shell = RNG.arrayGetRand(shells);
+            actors.push(parser.createFromShell(RG.TYPE_ACTOR, shell));
+            ++nCreated;
+        }
         return actors;
     }
 
@@ -368,10 +417,10 @@ export class NestGenerator extends LevelGenerator {
     public scanAndConnect(
         parentLevel: Level, bbox: BBox,
         conf: PartialNestOpts
-    ): boolean {
+    ): TCoord[] {
         // console.log('scanAndConnect bbox', bbox);
         // parentLevel.debugPrintInASCII();
-        let result = false;
+        const result: TCoord[] = [];
 
         // East wall
         for (let y = bbox.uly; y <= bbox.lry; y++) {
@@ -385,7 +434,8 @@ export class NestGenerator extends LevelGenerator {
                 const eastCell = map.getCell(eX, eY);
                 if (eastCell.isFree()) {
                     // Need to tunnel west until floor found
-                    result = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.W);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.W);
+                    result.push(...tunnel);
                 }
             }
         }
@@ -402,7 +452,8 @@ export class NestGenerator extends LevelGenerator {
                 if (westCell.isFree()) {
                     console.log('scanAndConnect free west cell at', wX, wY);
                     // Need to tunnel west until floor found
-                    result = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.E);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.E);
+                    result.push(...tunnel);
                 }
             }
         }
@@ -420,7 +471,8 @@ export class NestGenerator extends LevelGenerator {
                 if (southCell.isFree()) {
                     console.log('scanAndConnect south cell at', sX, sY);
                     // Need to tunnel west until floor found
-                    result = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.N);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.N);
+                    result.push(...tunnel);
                 }
             }
         }
@@ -438,7 +490,8 @@ export class NestGenerator extends LevelGenerator {
                 if (northCell.isFree()) {
                     console.log('scanAndConnect north cell at', nX, nY);
                     // Need to tunnel west until floor found
-                    result = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.S);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.S);
+                    result.push(...tunnel);
                 }
             }
         }
@@ -449,8 +502,9 @@ export class NestGenerator extends LevelGenerator {
     }
 
     /* Given x,y and direction, tunnels from x,y until FLOOR is reached. */
-    public tunnelUntilFloor(level: Level, x, y, dXdY): boolean {
+    public tunnelUntilFloor(level: Level, x, y, dXdY): TCoord[] {
         const [dX, dY] = dXdY;
+        const res: TCoord[] = [];
         let done = false;
         const map = level.getMap();
         let i = 0;
@@ -468,6 +522,7 @@ export class NestGenerator extends LevelGenerator {
             const cell = map.getCell(nX, nY);
             if (!cell.isFree()) {
                 wallFound = true;
+                res.push([nX, nY]);
                 map.setBaseElemXY(nX, nY, ELEM.FLOOR);
             }
             else if (wallFound) {
@@ -478,7 +533,27 @@ export class NestGenerator extends LevelGenerator {
             done = wallFound && floorFound;
         }
 
-        return done;
+        if (!done) {return [];}
+        return res;
+    }
+
+    public populateTunnel(level: Level, conf, tunnelCoord: TCoord[]): void {
+        const firstCoord = tunnelCoord[0];
+        const lastCoord = tunnelCoord[tunnelCoord.length - 1];
+        const patrolCoord: TCoord[] = [firstCoord, lastCoord];
+        const {actorConstr} = conf;
+        if (actorConstr) {
+            // Tunnel has less actor density than the nest
+            const size = Math.round(tunnelCoord.length / 5);
+            const actors: SentientActor[] = this.getActorsForNest(actorConstr, size);
+            if (Placer.addActorsToCoord(level, tunnelCoord, actors)) {
+                actors.forEach(actor => {
+                    const evalGuard = new EvaluatorPatrol(0.7, patrolCoord);
+                    const brain = actor.getBrain() as BrainGoalOriented;
+                    brain.getGoal().addEvaluator(evalGuard);
+                });
+            }
+        }
     }
 
 }

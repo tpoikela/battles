@@ -82,6 +82,17 @@ export class Placer {
         return Placer.addPropsToCells(level, freeCells, actors);
     }
 
+    public static addActorsToCoord(level: Level, coord: TCoord[], actors: BaseActor[]): boolean {
+        let nActors = actors.length;
+        const freeCells = level.getMap().getCellsWithCoord(coord);
+        if (freeCells.length < nActors) {
+            RG.warn('Placer', 'addActorsToBbox',
+                `No ${nActors} free cells. Placing only ${freeCells.length} actors`);
+        }
+        nActors = freeCells.length;
+        return Placer.addPropsToCells(level, freeCells, actors);
+    }
+
 
     public static addItemsToBbox(level: Level, bbox: BBox, items: ItemBase[]): boolean {
         const freeCells = level.getMap().getFreeInBbox(bbox);

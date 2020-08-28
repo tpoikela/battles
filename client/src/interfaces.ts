@@ -587,6 +587,7 @@ export interface ShellConstr {
     roles?: string[];
     rank?: string;
     race?: string;
+    maxDanger?: number;
 }
 
 export interface StringMap<T> {

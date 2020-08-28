@@ -1239,7 +1239,8 @@ export const getParser = function(): Parser {
         parser.parseShellData(objectsNew);
         ObjectShell.parserInstance = parser;
 
-        const randActors = ActorGen.genActors(100);
+        const randActors = ActorGen.genActors(500);
+        // console.log(JSON.stringify(randActors, null, 1));
         parser.parseShellData({actors: randActors});
     }
     return ObjectShell.parserInstance;
