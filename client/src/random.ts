@@ -166,6 +166,12 @@ export class Random {
         ];
     }
 
+    public shiftCoord(coord: TCoord): TCoord {
+        const dX = this.arrayGetRand(DIRS);
+        const dY = this.arrayGetRand(DIRS);
+        return [coord[0] + dX, coord[1] + dY];
+    }
+
     /*
      * From http://stackoverflow.com/questions/2450954/
      * how-to-randomize-shuffle-a-javascript-array
