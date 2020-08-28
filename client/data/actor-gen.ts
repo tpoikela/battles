@@ -51,7 +51,7 @@ interface ShellProps {
     roles: StringMap<StringMap<IShell> >;
 }
 
-const shellProps: ShellProps = {
+export const shellProps: ShellProps = {
     races: {},
     ranks: {},
     roles: {},
@@ -124,82 +124,104 @@ const raceNames = Object.keys(shellProps.races);
 shellProps.ranks = {
     commoner: {
         danger: 1, hp: 5,
-        colorfg: 'brown'
+        colorfg: 'brown',
+        damage: 1
+    },
+    peon: {
+        danger: 1, hp: 5,
+        colorfg: 'brown',
+        damage: 1
     },
     thrall: {
-        danger: 1, hp: 7
+        danger: 1, hp: 7,
+        damage: 1
     },
     adventurer: {
-        danger: 2, hp: 10
+        danger: 2, hp: 10,
+        damage: 2
     },
     sergeant: {
         danger: 3,
         strength: 1, hp: 15,
+        damage: 3,
         colorfg: 'light blue'
     },
     lieutenant: {
         danger: 4,
+        damage: 4,
         strength: 3, hp: 20,
         colorfg: 'blue'
     },
     commander: {
         danger: 5,
+        damage: 5,
         strength: 5, hp: 20,
         equip: ['Great battle axe', 'Steel armour', 'Steel helmet'],
         colorfg: 'orange'
     },
     steward: {
         colorfg: 'steelblue',
-        danger: 5, hp: 20
+        danger: 5, hp: 20,
+        damage: 5,
     },
     lord: {
         colorfg: 'LightGoldenRodYellow',
         danger: 5,
+        damage: 5,
         strength: 7, hp: 20,
     },
     hero: {
         colorfg: 'green',
         danger: 6,
+        damage: 6,
         strength: 4, accuracy: 4, agility: 4, speed: 7,
         hp: 25,
     },
     warlord: {
         danger: 7, hp: 25,
-        colorfg: 'black'
+        colorfg: 'black',
+        damage: 7
     },
     captain: {
         danger: 7, hp: 25,
         strength: 7, agility: 3, accuracy: 3,
-        colorfg: 'salmon'
+        colorfg: 'salmon',
+        damage: 7
     },
     prince: {
         colorfg: 'MediumPurple',
-        danger: 5, hp: 20
+        danger: 5, hp: 20,
+        damage: 5,
     },
     princess: {
         colorfg: 'pink',
-        danger: 5, agility: 5, magic: 5, hp: 20
+        danger: 5, agility: 5, magic: 5, hp: 20,
+        damage: 5,
     },
     queen: {
         colorfg: 'yellow',
         danger: 10, hp: 30,
         addComp: ['FirstStrike'],
+        damage: 10,
     },
     king: {
         colorfg: 'red',
         strength: 7, attack: 7, defense: 7,
         danger: 12, hp: 40,
+        damage: 12,
     },
     emperor: {
         colorfg: 'purple',
         danger: 15,
         strength: 10, attack: 10, defense: 10,
         hp: 50,
-        addComp: [BypassComp(0.15)]
+        addComp: [BypassComp(0.15)],
+        damage: 15,
     },
     empress: {
         colorfg: 'palevioletred',
         danger: 17,
+        damage: 17,
         accuracy: 10, agility: 10, attack: 10, defense: 10,
         hp: 45,
         addComp: [BypassComp(0.25), 'Charm']
@@ -207,6 +229,7 @@ shellProps.ranks = {
     overlord: {
         colorfg: 'orangered',
         danger: 10, hp: 35,
+        damage: 10,
         addComp: [BypassComp(0.10)]
     },
 };
@@ -214,12 +237,14 @@ const rankNames = Object.keys(shellProps.ranks);
 
 shellProps.roleBases = {
     melee: {
-        attack: 2, defense: 2, protection: 2, danger: 1
+        attack: 2, defense: 2, protection: 2, danger: 1,
+        damage: '1d8'
     },
     magic: {
         magic: 3, willpower: 2, danger: 2,
         brain: 'SpellCaster', maxPP: 10, PP: 10,
-        addComp: ['RegenEffect']
+        addComp: ['RegenEffect'],
+        damage: '1d4'
     },
     ranged: {
         accuracy: 3, agility: 1, danger: 2,
@@ -228,11 +253,13 @@ shellProps.roleBases = {
                 'EagleEye', 'StrongShot', 'ThroughShot', 'LongRangeShot',
                 'RangedEvasion', 'CriticalShot'
             ]
-        }]
+        }],
+        damage: '1d6'
     },
     stealth: {
         defense: 2,
-        agility: 3, perception: 2, danger: 1
+        agility: 3, perception: 2, danger: 0,
+        damage: '1d5'
     }
 };
 
@@ -241,22 +268,28 @@ shellProps.roles = {
 
     // TODO these need more flavor, as many are identical/similar
     melee: {
+        soldier: {
+            danger: 1, hp: 5, attack: 1, defense: 1,
+            damage: '1d4',
+        },
         axeman: {
-            danger: 2, hp: 10
+            danger: 2, hp: 10, damage: '1d6',
         },
         brave: {
             danger: 2, hp: 7,
-            strength: 2
+            strength: 2,  damage: '1d6',
         },
         duelist: {
             danger: 3, hp: 13,
             agility: 3, strength: 2,
-            addComp: ['RangedEvasion']
+            addComp: ['RangedEvasion'],
+            damage: '1d8',
         },
         elite: {
             danger: 5, hp: 23,
             strength: 4,
-            addComp: ['CounterAttack']
+            addComp: ['CounterAttack'],
+            damage: '2d6',
         },
         fighter: {
             danger: 2, hp: 12,
@@ -264,6 +297,7 @@ shellProps.roles = {
         },
         footman: {
             danger: 1,
+            damage: '1d4',
             equip: ['Longsword']
         },
         knight: {
@@ -273,7 +307,8 @@ shellProps.roles = {
         phalanx: {
             danger: 1, hp: 10,
             defense: 4,
-            equip: ['Spear']
+            equip: ['Spear'],
+            damage: '1d4',
         },
         scourger: {
             danger: 4, hp: 20,
@@ -282,25 +317,30 @@ shellProps.roles = {
         judicator: {
             danger: 5, hp: 30,
             attack: 5, defense: 5, strength: 7,
-            addComp: ['FirstStrike']
+            addComp: ['FirstStrike'],
+            damage: '2d6',
         },
         skirmisher: {
             danger: 3, hp: 15,
-            attack: 3, defense: 3
+            attack: 3, defense: 3,
+            damage: '2d3',
         },
         hunter: {
             danger: 2, hp: 10,
-            attack: 3, defense: 3
+            attack: 3, defense: 3,
+            damage: '1d6',
         },
         warrior: {
             danger: 2, hp: 10,
-            attack: 3, defense: 3
+            attack: 3, defense: 3,
+            damage: '1d6',
         },
         berserker: {
             danger: 5, hp: 20,
             attack: 8, defense: 3,
             strength: 6,
-            addComp: ['RangedEvasion', resistance('ICE', 'MEDIUM')]
+            addComp: ['RangedEvasion', resistance('ICE', 'MEDIUM')],
+            damage: '2d6',
         },
     },
 
@@ -441,6 +481,11 @@ const allRoleShells = roleTypes.reduce((acc, rType: string, i: number, arr: stri
     return Object.assign(acc, shellProps.roles[rType]);
 }, {});
 
+const allRolenames = Object.keys(allRoleShells).reduce((acc, key, i, arr) => {
+    acc.push(key);
+    return acc;
+}, [] as string[]);
+
 /* Generates a random actor shell using the following formula:
  * 1. Pick a race from shellProps.races
  * 2. Pick a rank from shellProps.ranks
@@ -539,7 +584,8 @@ ActorGen.genShell = function(conf: ShellConstr): IShell {
         rankShell = shellProps.ranks[conf.rank];
     }
     else {
-        rankShell = RNG.arrayGetRand(rankNames);
+        rankName = RNG.arrayGetRand(rankNames);
+        rankShell = shellProps.ranks[rankName];
     }
 
     let raceName = conf.race;
@@ -581,9 +627,11 @@ ActorGen.genShell = function(conf: ShellConstr): IShell {
     newShell.roles = roleNames;
     newShell.rank = rankName;
     newShell.race = raceName;
+    if (!newShell.color && !newShell.colorfg) {
+        newShell.colorfg = getColorFg(roleNames);
+    }
     return newShell;
 };
-
 
 //---------------------------------------------------------------------------
 // Non-exported (for now) HELPERS
@@ -605,4 +653,19 @@ function formatShellName(raceShell: IShell, roleNames: string[], rankName: strin
 
 function getRandomRace(): string {
     return RNG.arrayGetRand(raceNames);
+}
+
+function getColorFg(roleNames: string[]): string {
+    if (roleNames.length > 1) {
+        let idx0 = allRolenames.indexOf(roleNames[0]);
+        let idx1 = allRolenames.indexOf(roleNames[1]);
+        idx0 = idx0 % RG.COLORS.length;
+        idx1 = idx1 % RG.COLORS.length;
+        const color0 = RG.COLORS[idx0];
+        const color1 = RG.COLORS[idx1];
+        return color0;
+    }
+    let idx = allRolenames.indexOf(roleNames[0]);
+    idx = idx % RG.COLORS.length;
+    return RG.COLORS[idx];
 }
