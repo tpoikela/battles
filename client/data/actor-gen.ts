@@ -116,6 +116,11 @@ shellProps.races = {
         type: 'valkyr', prefix: 'valkyr', char: 'V', colorbg: 'darkblue',
         addComp: [resistance('ICE', 'MEDIUM')]
     },
+    viking: {
+        strength: 4, agility: 3,
+        type: 'viking', prefix: 'viking', char: 'K', colorbg: 'Azure',
+        addComp: [resistance('ICE', 'MEDIUM')]
+    },
 };
 
 const raceNames = Object.keys(shellProps.races);
