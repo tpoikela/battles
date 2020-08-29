@@ -24,6 +24,7 @@ const pileOfWood = {
 const WoodcutSystem = RG.System.defineSystem('Woodcut');
 
 WoodcutSystem.prototype.updateEntity = function(ent) {
+    // UseItem component is attached to an entity using an item
     if (ent.has('UseItem')) {
         const useComp = ent.get('UseItem');
         const item = useComp.getItem();

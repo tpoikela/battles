@@ -18,10 +18,12 @@ VoidBolt.prototype.onHit = function(actor, src) {
     RG.Component.addToExpirationComp(actor, dmgComp, dur);
 };
 
-/* Required for each plugin. */
+/* Required for each plugin. Dont' use const/let/var. */
 pluginData = {
     type: 'spell',
     name: 'VoidBolt spell',
+
+    // For cleanup, optional, but highly recommended
     onRemove: () => {
         RG.Spell.undefineSpell('VoidBolt');
     }
