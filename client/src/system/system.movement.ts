@@ -65,44 +65,7 @@ export class SystemMovement extends SystemBase {
          * TODO: Remove these hardcoded penalties, add them to elements data
          * directly.
          */
-        this._bonuses = {
-            /*
-            water: {
-                dontApplyTo: ['Flying', 'Amphibious'],
-                mods: [
-                    speedPenalty(0.5),
-                    defensePenalty(0.5),
-                    {
-                        value: -5, srcComp: 'Combat', srcFunc: 'getAttack',
-                        targetComp: 'CombatMods', targetFunc: 'setAttack'
-                    }
-                ]
-            },
-            */
-           /*
-            grass: {
-                mods: [
-                    speedPenalty(0.10)
-                ]
-            },
-            */
-            /*
-            bridge: {mods: [
-                defensePenalty(0.5)
-            ]},
-            */
-            /*stone: {mods: [
-                speedPenalty(0.25)
-            ]},*/
-            /*
-            snow: {
-                dontApplyTo: ['Flying', 'SnowWalk'],
-                mods: [
-                    speedPenalty(0.25)
-                ]
-            }
-            */
-        };
+        this._bonuses = {};
     }
 
 
@@ -221,6 +184,16 @@ export class SystemMovement extends SystemBase {
         const cell = map.getCell(x, y);
         const prevCell = ent.getCell();
         let canMoveThere = cell.isFree(ent.has('Flying'));
+
+        const prevElem = prevCell.getBaseElem();
+        const currElem = cell.getBaseElem();
+
+        if (Math.abs(currElem.getZ() - prevElem.getZ()) > 1) {
+            if (!ent.has('Flying')) {
+                canMoveThere = false;
+            }
+        }
+
         if (!canMoveThere) {
             canMoveThere = this._checkSpecialMovement(ent, cell);
         }

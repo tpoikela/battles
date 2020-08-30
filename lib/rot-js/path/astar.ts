@@ -42,7 +42,7 @@ export default class AStar extends Path {
             const id = item.x+','+item.y;
             if (id in this._done) { continue; }
             this._done[id] = item;
-            if (item.x == fromX && item.y == fromY) { break; }
+            if (item.x === fromX && item.y === fromY) { break; }
 
             const neighbors = this._getNeighbors(item.x, item.y);
 
@@ -60,7 +60,7 @@ export default class AStar extends Path {
         if (!item) { return; }
 
         while (item) {
-            callback(item.x, item.y);
+            callback(item.x, item.y, item.prev);
             item = item.prev;
         }
     }
@@ -81,7 +81,7 @@ export default class AStar extends Path {
         for (let i=0;i<this._todo.length;i++) {
             const item = this._todo[i];
             const itemF = item.g + item.h;
-            if (f < itemF || (f == itemF && h < item.h)) {
+            if (f < itemF || (f === itemF && h < item.h)) {
                 this._todo.splice(i, 0, obj);
                 return;
             }

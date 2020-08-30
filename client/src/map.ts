@@ -240,11 +240,24 @@ export class CellMap {
         return false;
     }
 
-    public isPassable(x: number, y: number): boolean {
+    public isPassable(x: number, y: number, cx: number, cy: number): boolean {
         if (this.hasXY(x, y)) {
-            return this._map[x][y].isPassable();
+            if (this._map[x][y].isPassable()) {
+                if (typeof cx !== 'undefined' && typeof cy !== 'undefined') {
+                    if (this.hasXY(cx, cy)) {
+                        return this.getElemDzAbs(x, y, cx, cy) <= 1;
+                    }
+                    return true;
+                }
+            }
         }
         return false;
+    }
+
+    public getElemDzAbs(x: number, y: number, cx: number, cy: number): number {
+        const z0 = this._map[x][y].getBaseElem().getZ();
+        const z1 = this._map[cx][cy].getBaseElem().getZ();
+        return Math.abs(z0 - z1);
     }
 
     public isPassableByAir(x: number, y: number): boolean {
@@ -532,14 +545,14 @@ export class CellMap {
     }
 
 
-    public getShortestPathTo(actor, toX, toY): Cell[] {
+    public getShortestPathTo(actor, toX: number, toY: number): Cell[] {
         const [sX, sY] = actor.getXY();
         let passCb = this.passableCallback.bind(null, sX, sY);
         if (actor.has('Flying')) {
             passCb = this.passableCallbackFlying.bind(null, sX, sY);
         }
         const pathFinder = new ROT.Path.AStar(toX, toY, passCb);
-        const path = [];
+        const path: Cell[] = [];
         pathFinder.compute(sX, sY, (x, y) => {
             if (this.hasXY(x, y)) {
                 path.push(this._map[x][y]);
@@ -553,8 +566,8 @@ export class CellMap {
         return [];
     }
 
-    public passableCallback(sX, sY, x, y): boolean {
-        let res = this.isPassable(x, y);
+    public passableCallback(sX, sY, x, y, cx, cy): boolean {
+        let res = this.isPassable(x, y, cx, cy);
         if (!res) {
             res = (x === sX) && (y === sY);
         }

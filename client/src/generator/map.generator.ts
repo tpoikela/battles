@@ -581,6 +581,8 @@ export class MapGenerator {
             conf = MapGenerator.getOptions('mountain');
         }
 
+        const highToStone = conf.highRockThr - conf.stoneThr;
+        const gap = highToStone / 3;
         const rng = MapGenerator.getAndSetRNG(conf);
         this._mapGen = new MapMountain(this.cols, this.rows, conf);
         this._mapGen.create((x, y, val) => {
@@ -588,10 +590,26 @@ export class MapGenerator {
                 map.setBaseElemXY(x, y, ELEM.HIGH_ROCK);
             }
             else if (val > conf.stoneThr) {
-                map.setBaseElemXY(x, y, ELEM.STONE);
+                if (val < (conf.stoneThr + gap)) {
+                    map.setBaseElemXY(x, y, ELEM.CLIFF);
+                }
+                else if (val < (conf.stoneThr + 2* gap)) {
+                    map.setBaseElemXY(x, y, ELEM.STONE);
+                }
+                else {
+                    map.setBaseElemXY(x, y, ELEM.STEEP_CLIFF);
+                }
             }
             else if (val < conf.chasmThr) {
-                map.setBaseElemXY(x, y, ELEM.CHASM);
+                if (val < (conf.chasmThr - 0.4)) {
+                    map.setBaseElemXY(x, y, ELEM.DEEP_CHASM);
+                }
+                else if (val < (conf.chasmThr - 0.2)) {
+                    map.setBaseElemXY(x, y, ELEM.CHASM);
+                }
+                else {
+                    map.setBaseElemXY(x, y, ELEM.SHALLOW_CHASM);
+                }
             }
             else {
                 const addSnow = rng.getUniform();
@@ -632,7 +650,7 @@ export class MapGenerator {
             (x, y) => map.hasXY(x, y) && map.getCell(x, y).isFree(),
             (x, y) => (
                 map.hasXY(x, y) &&
-                map.getCell(x, y).getBaseElem().getType() !== 'highrock'
+                map.getCell(x, y).getBaseElem().getZ() <= 1
             )
         ];
 

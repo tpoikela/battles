@@ -7,6 +7,38 @@ import {
     speedPenalty, statsPenalty, defensePenalty, attackPenalty
 } from './shell-utils';
 
+// Elevations
+const ELEV = [
+    //'\u1390', //
+    '.',
+    ':',
+    '\u22EE',
+    // '\u2026',
+    /*
+    '\u1393',
+    '\u1392',
+    '\u2D42',
+    '\u2D58',
+    */
+    /*'\u1686',
+    // '\u168B',
+    '\u205A',
+    '\u1687',
+    '\u1688',
+    '\u1689',
+    '\u168A',
+    */
+];
+
+const DEPTH = [
+    //'\u2CBA',
+    //'\u2CB6',
+    //'\u2630',
+    '\u223C',
+    '\u2248',
+    '\u224B',
+];
+
 const Elements = [
     {
         name: 'bed', className: 'cell-element-bed',
@@ -29,8 +61,19 @@ const Elements = [
         }]
     },
     {
+        name: 'shallow chasm', className: 'cell-element-chasm',
+        char: DEPTH[0], addComp: ['Impassable'],
+        z: -1
+    },
+    {
         name: 'chasm', className: 'cell-element-chasm',
-        char: '~', addComp: ['Impassable']
+        char: DEPTH[1], addComp: ['Impassable'],
+        z: -2,
+    },
+    {
+        name: 'deep chasm', className: 'cell-element-chasm',
+        char: DEPTH[2], addComp: ['Impassable'],
+        z: -10,
     },
     {
         name: 'grass', className: 'cell-element-grass',
@@ -99,7 +142,7 @@ const Elements = [
     },
     {
         name: 'path', className: 'cell-element-path',
-        char: '.',
+        char: '.', z: 1
     },
     {
         name: 'road', className: 'cell-element-road',
@@ -166,8 +209,8 @@ const Elements = [
         }]
     },
     {
-        name: 'stone', className: 'cell-element-stone',
-        char: '^',
+        name: 'cliff', className: 'cell-element-stone',
+        char: ELEV[0], z: 1,
         msg: {
             onEnter: 'Difficult rocky terrain slows you down.'
         },
@@ -176,8 +219,28 @@ const Elements = [
         }]
     },
     {
-        name: 'snow-covered stone', className: 'cell-element-snow-tree',
-        char: '^',
+        name: 'stone', className: 'cell-element-stone',
+        char: ELEV[1], z: 2,
+        msg: {
+            onEnter: 'Difficult rocky terrain slows you down.'
+        },
+        addComp: [{comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.25, ['Flying'])]}
+        }]
+    },
+    {
+        name: 'steep cliff', className: 'cell-element-stone',
+        char: ELEV[2], z: 3,
+        msg: {
+            onEnter: 'Difficult rocky terrain slows you down.'
+        },
+        addComp: [{comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.25, ['Flying'])]}
+        }]
+    },
+    {
+        name: 'snowy cliff', className: 'cell-element-snow-tree',
+        char: ELEV[0], z: 1,
         msg: {
             onEnter: 'Difficult and slippery snowy terrain slows you down.'
         },
@@ -185,6 +248,27 @@ const Elements = [
             func: {setMods: [speedPenalty(0.35, ['Flying'])]}
         }]
     },
+    {
+        name: 'snow-covered stone', className: 'cell-element-snow-tree',
+        char: ELEV[1], z: 2,
+        msg: {
+            onEnter: 'Difficult and slippery snowy terrain slows you down.'
+        },
+        addComp: ['Snowy', {comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.35, ['Flying'])]}
+        }]
+    },
+    {
+        name: 'frozen steep cliff', className: 'cell-element-snow-tree',
+        char: ELEV[2], z: 3,
+        msg: {
+            onEnter: 'Difficult and slippery snowy terrain slows you down.'
+        },
+        addComp: ['Snowy', {comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.35, ['Flying'])]}
+        }]
+    },
+
     {
         name: 'tree', className: 'cell-element-tree',
         char: 'T', addComp: ['Opaque'],
@@ -214,8 +298,24 @@ const Elements = [
         }
     },
     {
+        name: 'shallow water', className: 'cell-element-water',
+        //char: '~',
+        char: DEPTH[0],
+        msg: {
+            onEnter: 'Shallow water slows you down slightly'
+        },
+        addComp: [{comp: 'Terrain',
+            func: {setMods: [
+                speedPenalty(0.10, ['Flying', 'Amphibious']),
+                defensePenalty(0.10, ['Flying', 'Amphibious']),
+                attackPenalty(0.10, ['Flying', 'Amphibious']),
+            ]}
+        }]
+    },
+    {
         name: 'water', className: 'cell-element-water',
-        char: '~',
+        //char: '~',
+        char: DEPTH[1],
         msg: {
             onEnter: 'Water slows you down'
         },
@@ -224,6 +324,21 @@ const Elements = [
                 speedPenalty(0.25, ['Flying', 'Amphibious']),
                 defensePenalty(0.25, ['Flying', 'Amphibious']),
                 attackPenalty(0.25, ['Flying', 'Amphibious']),
+            ]}
+        }]
+    },
+    {
+        name: 'deep water', className: 'cell-element-water',
+        //char: '~',
+        char: DEPTH[2],
+        msg: {
+            onEnter: 'Deep water makes moving extremely difficult'
+        },
+        addComp: [{comp: 'Terrain',
+            func: {setMods: [
+                speedPenalty(0.50, ['Flying', 'Amphibious']),
+                defensePenalty(0.50, ['Flying', 'Amphibious']),
+                attackPenalty(0.50, ['Flying', 'Amphibious']),
             ]}
         }]
     },

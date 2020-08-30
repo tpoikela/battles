@@ -1,7 +1,13 @@
 import { DIRS } from '../constants';
 
-export type ComputeCallback = (x: number, y: number) => any;
-export type PassableCallback = (x: number, y: number) => boolean;
+export type ComputeCallback = (x: number, y: number, prev?: any) => any;
+
+export type PassableCallback = (
+    x: number,
+    y: number,
+    cx?: number,
+    cy?: number
+) => boolean;
 
 export interface Options {
     topology: 4 | 6 | 8;
@@ -31,7 +37,7 @@ export default abstract class Path {
         }, options);
 
         this._dirs = DIRS[this._options.topology];
-        if (this._options.topology == 8) { /* reorder dirs for more aesthetic result (vertical/horizontal first) */
+        if (this._options.topology === 8) { /* reorder dirs for more aesthetic result (vertical/horizontal first) */
             this._dirs = [
                 this._dirs[0],
                 this._dirs[2],
@@ -53,14 +59,16 @@ export default abstract class Path {
 	 */
     abstract compute(fromX: number, fromY: number, callback: ComputeCallback): void;
 
-    _getNeighbors(cx: number, cy: number) {
+    _getNeighbors(cx: number, cy: number): number[][] {
         const result = [];
         for (let i=0;i<this._dirs.length;i++) {
             const dir = this._dirs[i];
             const x = cx + dir[0];
             const y = cy + dir[1];
 
-            if (!this._passableCallback(x, y)) { continue; }
+            if (!this._passableCallback(x, y, cx, cy)) {
+                continue;
+            }
             result.push([x, y]);
         }
 

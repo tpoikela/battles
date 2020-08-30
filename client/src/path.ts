@@ -13,9 +13,9 @@ const NO_PATH = Object.freeze([]);
 
 export type PathFunc = (map: CellMap, x0: number, y0: number, x1: number, y1: number) => ICoordXY[];
 
-type PassableCb = (x: number, y: number) => boolean;
+type PassableCb = (x: number, y: number, cx: number, cy: number) => boolean;
 
-const DEFAULT_CB: PassableCb = (x, y) => true;
+const DEFAULT_CB: PassableCb = (x, y, cx, cy) => true;
 
 /* Algorithm to calculate passable path without smart pathfinding. Simply tries
  * to progress towards target, and if cannot then fails.
@@ -39,8 +39,8 @@ export class PathAlgoXY {
             if (cx === this.tx) {
                 if (cy === this.ty) {break;}
                 if (Math.abs(dy) !== 1) {
-                    cx += this.passCb(cx + 1, cy) && RG.isSuccess(0.33) ? 1
-                    : this.passCb(cx - 1, cy) && RG.isSuccess(0.33) ? -1 : 0;
+                    cx += this.passCb(cx + 1, cy, cx, cy) && RG.isSuccess(0.33) ? 1
+                    : this.passCb(cx - 1, cy, cx, cy) && RG.isSuccess(0.33) ? -1 : 0;
                 }
                 cy += uy;
             }
@@ -48,8 +48,8 @@ export class PathAlgoXY {
                 if (cx === this.tx) {break;} // Redundant?
                 cx += ux;
                 if (Math.abs(dx) !== 1) {
-                    cy += this.passCb(cx, cy + 1) && RG.isSuccess(0.33) ? 1
-                    : this.passCb(cx, cy - 1) && RG.isSuccess(0.33) ? -1 : 0;
+                    cy += this.passCb(cx, cy + 1, cx, cy) && RG.isSuccess(0.33) ? 1
+                    : this.passCb(cx, cy - 1, cx, cy) && RG.isSuccess(0.33) ? -1 : 0;
                 }
             }
             else {
@@ -58,7 +58,7 @@ export class PathAlgoXY {
             }
 
             // Add coordinate to the list or fail
-            if (this.passCb(cx, cy)) {
+            if (this.passCb(cx, cy, cx - ux, cy - uy)) {
                 res.push([cx, cy]);
             }
             else {
@@ -71,6 +71,7 @@ export class PathAlgoXY {
     }
 }
 
+/* Namespace for pathfinding algorithms. */
 export class Path {
     public static getPossiblePath: (x0, y0, x1, y1, cb?: PassableCb) => ICoordXY[];
     public static getShortestPath: (x0, y0, x1, y1, cb?: PassableCb) => ICoordXY[];
@@ -127,11 +128,11 @@ Path.getShortestSeenPath = function(actor, map: CellMap, x1, y1): ICoordXY[] {
         lut[cell.getKeyXY()] = cell;
     });
 
-    const passableCb = (x, y): boolean => {
+    const passableCb = (x, y, cx, cy): boolean => {
         // Assume that each seen cell is within map boundaries
         if (lut.hasOwnProperty(x + ',' + y)) {
             return (
-                map.isPassable(x, y) || (x === x0 && y === y0)
+                map.isPassable(x, y, cx, cy) || (x === x0 && y === y0)
                 || (x === x1 && y === y1)
             );
         }
@@ -157,8 +158,8 @@ Path.getShortestSeenPath = function(actor, map: CellMap, x1, y1): ICoordXY[] {
 /* NOTE: This has problem that if x0,y0 or x1,y1 have actors, returns no path at
  * all. */
 Path.getShortestPassablePath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
-    const coords = [];
-    const passableCallback = (x, y) => map.isPassable(x, y);
+    const coords: ICoordXY[] = [];
+    const passableCallback = (x, y, cx, cy) => map.isPassable(x, y, cx, cy);
     const finder = new ROT.Path.AStar(x1, y1, passableCallback);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
@@ -170,10 +171,10 @@ Path.getShortestPassablePath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[
  * actors excluding the source and destination points. */
 Path.getActorToActorPath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
     const coords = [];
-    const passableCb = (x, y) => {
+    const passableCb = (x, y, cx, cy) => {
         if (map.hasXY(x, y)) {
             return (
-                map.isPassable(x, y) || (x === x0 && y === y0)
+                map.isPassable(x, y, cx, cy) || (x === x0 && y === y0)
                 || (x === x1 && y === y1)
             );
         }
@@ -197,14 +198,14 @@ Path.getActorToActorPath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
 /* Returns shortest path for actor in x0,y0, excluding the source point. If
  * destination point is impassable, returns an empty array. */
 Path.getShortestActorPath = function(map: CellMap, x0, y0, x1, y1, cb?: PassableCb): ICoordXY[] {
-    const coords = [];
-    const passableCb = (x, y) => {
+    const coords: ICoordXY[] = [];
+    const passableCb = (x, y, cx, cy) => {
         if (map.hasXY(x, y)) {
             if (cb) {
-                return cb(x, y) || (x === x0 && y === y0);
+                return cb(x, y, cx, cy) || (x === x0 && y === y0);
             }
             return (
-                map.isPassable(x, y) || (x === x0 && y === y0)
+                map.isPassable(x, y, cx, cy) || (x === x0 && y === y0)
             );
         }
         return false;
@@ -224,9 +225,9 @@ Path.getShortestActorPath = function(map: CellMap, x0, y0, x1, y1, cb?: Passable
 
 Path.getShortestPassablePathWithDoors = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
     const coords: ICoordXY[] = [];
-    const passableCbDoor = (x, y) => {
+    const passableCbDoor = (x, y, cx, cy) => {
         if (map.hasXY(x, y)) {
-            return map.isPassable(x, y) || map.getCell(x, y).hasDoor();
+            return map.isPassable(x, y, cx, cy) || map.getCell(x, y).hasDoor();
         }
         return false;
     };
@@ -378,7 +379,7 @@ function isSourceBlocked(x0, y0, map: CellMap, passableCb: PassableCb): boolean 
     for (let x = x0 - 1; x <= x0 + 1; x++) {
         for (let y = y0 - 1; y <= y0 + 1; y++) {
             if (map.hasXY(x, y)) {
-                if (passableCb(x, y)) {return false;}
+                if (passableCb(x, y, x0, y0)) {return false;}
             }
         }
     }

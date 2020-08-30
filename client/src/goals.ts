@@ -343,7 +343,7 @@ export class GoalFollowPath extends GoalBase {
         const n = this.path.length;
 
         this.dbg(`followPath() test move ${aX},${aY} -> ${x},${y}, path ${n} `);
-        if (level.getMap().isPassable(nextX, nextY)) {
+        if (level.getMap().isPassable(nextX, nextY, aX, aY)) {
             const dX = Math.abs(aX - x);
             const dY = Math.abs(aY - y);
 
@@ -409,6 +409,7 @@ export class GoalMoveUntilEnemy extends GoalBase {
         const brain = this.actor.getBrain();
         const seenCells = brain.getSeenCells();
         const enemyCell = brain.findEnemyCell(seenCells);
+        const [aX, aY] = this.actor.getXY();
 
         const [nextX, nextY] = getNextCoord(this.actor, this.dir);
         const map = this.actor.getLevel().getMap();
@@ -428,7 +429,7 @@ export class GoalMoveUntilEnemy extends GoalBase {
             this.status = GoalStatus.GOAL_FAILED;
             if (debug.enabled) {this.dbg('TIMEOUT REACHED');}
         }
-        else if (map.isPassable(nextX, nextY)) {
+        else if (map.isPassable(nextX, nextY, aX, aY)) {
             const level = this.actor.getLevel();
             const movComp = new Component.Movement(nextX, nextY, level);
             this.actor.add(movComp);
@@ -946,12 +947,17 @@ export class GoalExplore extends GoalBase {
         const [aX, aY] = this.actor.getXY();
         const newX = aX + dX;
         const newY = aY + dY;
-        return this.actor.getLevel().getMap().isPassable(newX, newY);
+        return this.actor.getLevel().getMap().isPassable(newX, newY, aX, aY);
     }
 
     public shouldMoveTo(map, x: number, y: number): boolean {
-        const cell = map.getCell(x, y);
-        if (cell.isPassable()) {
+        const [aX, aY] = this.actor.getXY();
+        let isPassable = map.isPassable(x, y, aX, aY);
+        if (this.actor.has('Flying')) {
+            isPassable = map.isPassableByAir(x, y);
+        }
+        if (isPassable) {
+            const cell = map.getCell(x, y);
             return !cell.isDangerous();
         }
         return false;
@@ -1110,10 +1116,11 @@ export class GoalFleeFromActor extends GoalBase {
 
     protected tryFleeOptions(fleeOptions: TCoord[]): void {
         const level = this.actor.getLevel();
+        const [aX, aY] = this.actor.getXY();
         RNG.shuffle(fleeOptions);
         for (let i = 0; i < fleeOptions.length; i++) {
             const [x, y] = fleeOptions[i];
-            if (level.getMap().isPassable(x, y)) {
+            if (level.getMap().isPassable(x, y, aX, aY)) {
                 const movComp = new Component.Movement(x, y, level);
                 this.dbg(`${this.getType()} movComp to ${x},${y}`);
                 this.actor.add(movComp);
@@ -1191,7 +1198,7 @@ export class GoalFollow extends GoalBase {
                 // Goal OK, already very close
                 this.status = GoalStatus.GOAL_ACTIVE;
             } // Simple dXdY movement
-            else if (map.isPassable(newX, newY)) {
+            else if (map.isPassable(newX, newY, x, y)) {
                 const movComp = new Component.Movement(newX, newY, level);
                 this.actor.add(movComp);
             }
@@ -1200,7 +1207,7 @@ export class GoalFollow extends GoalBase {
                 const path = Path.getActorToActorPath(map, x, y, tX, tY);
                 if (path.length > 0) {
                     [newX, newY] = [path[0].x, path[0].y];
-                    if (map.isPassable(newX, newY)) {
+                    if (map.isPassable(newX, newY, x, y)) {
                         const movComp = new Component.Movement(
                             newX, newY, level);
                         this.actor.add(movComp);
@@ -1568,9 +1575,10 @@ function moveToRandomDir(actor: SentientActor): void {
 Goal.moveToRandomDir = moveToRandomDir;
 
 function moveActorTo(actor: SentientActor, cell: Cell): void {
+    const [aX, aY] = actor.getXY();
     const xy = cell.getXY();
     const level = actor.getLevel();
-    if (level.getMap().isPassable(xy[0], xy[1])) {
+    if (level.getMap().isPassable(xy[0], xy[1], aX, aY)) {
         const movComp = new Component.Movement(xy[0], xy[1], level);
         actor.add(movComp);
     }

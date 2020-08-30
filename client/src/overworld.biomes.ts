@@ -13,8 +13,8 @@ const MOUNT_WALL = 5.0; // Elevation for huge mountain walls
 
 const WATER_LEVEL = 0.6;
 const GAP = 0.3;
-const TREE_LEVEL_MIN = WATER_LEVEL + 2 * GAP;
-const TREE_LEVEL_MAX = WATER_LEVEL + 4 * GAP;
+const TREE_LEVEL_MIN = WATER_LEVEL + 1 * GAP;
+const TREE_LEVEL_MAX = WATER_LEVEL + 2 * GAP;
 
 export class OWBiomes {
 
@@ -35,6 +35,8 @@ export class OWBiomes {
         elemOctaves.forEach((n: number) => {
             maxElev += (1.0 / n);
         });
+
+        console.log('maxElev can be', maxElev);
 
         for (let x = 0; x < cols; x++) {
             // noiseMap.push([]);
@@ -90,7 +92,13 @@ function biome(elev: number, moist: number, temp: number): any {
             return ELEM.WATER_FROZEN;
         }
         else {
-            return ELEM.WATER;
+            if (elev < (WATER_LEVEL - 0.2)) {
+                return ELEM.DEEP_WATER;
+            }
+            else if (elev < (WATER_LEVEL - 0.1)) {
+                return ELEM.WATER;
+            }
+            return ELEM.SHALLOW_WATER;
         }
     }
     else if (elev <= (WATER_LEVEL + GAP)) {
@@ -121,10 +129,26 @@ function biome(elev: number, moist: number, temp: number): any {
     }
     else if (elev < MOUNT_WALL) {
         if (temp < TEMP_LOW) {
-            return ELEM.STONE_SNOW;
+            if (elev < (TREE_LEVEL_MAX + 0.15)) {
+                return ELEM.SNOWY_CLIFF;
+            }
+            else if (elev < (TREE_LEVEL_MAX + 0.25)) {
+                return ELEM.STONE_SNOW;
+            }
+            else {
+                return ELEM.FROZEN_STEEP_CLIFF;
+            }
         }
         else {
-            return ELEM.STONE;
+            if (elev < (TREE_LEVEL_MAX + 0.15)) {
+                return ELEM.CLIFF;
+            }
+            else if (elev < (TREE_LEVEL_MAX + 0.25)) {
+                return ELEM.STONE;
+            }
+            else {
+                return ELEM.STEEP_CLIFF;
+            }
         }
     }
 

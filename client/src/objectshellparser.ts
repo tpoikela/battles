@@ -151,6 +151,7 @@ export class Creator {
                 }
             },
             elements: {
+                z: 'setZ',
                 type: 'setType',
                 msg: 'setMsg'
             },

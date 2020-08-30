@@ -732,8 +732,8 @@ export class DungeonGenerator extends LevelGenerator {
         const [cx1, cy1] = extras.endPoint;
 
         const map = level.getMap();
-        const pathFunc = (x: number, y: number): boolean => {
-            return map.isPassable(x, y) || map.hasXY(x, y) && map.getCell(x, y).hasDoor();
+        const pathFunc = (x: number, y: number, cx, cy): boolean => {
+            return map.isPassable(x, y, cx, cy) || map.hasXY(x, y) && map.getCell(x, y).hasDoor();
         };
 
         debug('Critical path', cx2, cy2, '=>', cx1, cy1);
@@ -751,17 +751,26 @@ export class DungeonGenerator extends LevelGenerator {
             }
             else {
                 // Need to traverse, and add bridges/passages on obstacles
+                for (let i = 1; i < criticalPath.length; i++) {
+                    const cXY = criticalPath[i - 1];
+                    const {x, y} = criticalPath[i];
+                    if (!map.isPassable(x, y, cXY.x, cXY.y)) {
+                        map.setBaseElemXY(x, y, ELEM.BRIDGE);
+                    }
+                }
+                /*
                 criticalPath.forEach((xy: ICoordXY) => {
                     const {x, y} = xy;
                     if (!map.isPassable(x, y)) {
                         map.setBaseElemXY(x, y, ELEM.BRIDGE);
                     }
                 });
+                */
             }
         }
 
-        const pathBrokenFunc = (x: number, y: number) => {
-            return pathFunc(x, y) &&
+        const pathBrokenFunc = (x: number, y: number, cx, cy) => {
+            return pathFunc(x, y, cx, cy) &&
                 !map.getCell(x, y).hasMarker('path broken');
 
         };

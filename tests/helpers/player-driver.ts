@@ -748,7 +748,7 @@ export class PlayerDriver extends DriverBase {
                 const newX = pX + -dX;
                 const newY = pY + -dY;
 
-                if (map.isPassable(newX, newY)) {
+                if (map.isPassable(newX, newY, pX, pY)) {
                     const code = KeyMap.dirToKeyCode(-dX, -dY);
                     this.debug(`flee to dx,dy ${-dX},${-dY}`);
                     keycodeOrCmd = {code};
@@ -761,14 +761,14 @@ export class PlayerDriver extends DriverBase {
                     const maxTries = 20;
                     let tries = 0;
 
-                    while (!map.isPassable(pX + randX, pY + randY)) {
+                    while (!map.isPassable(pX + randX, pY + randY, pX, pY)) {
                         randX = RNG.arrayGetRand(MOVE_DIRS);
                         randY = RNG.arrayGetRand(MOVE_DIRS);
                         ++tries;
                         if (tries >= maxTries) {break;}
                     }
 
-                    if (map.isPassable(randX, randY)) {
+                    if (map.isPassable(randX, randY, pX, pY)) {
                         this.debug(`flee rand dir to dx,dy ${randX},${randY}`);
                         const code = KeyMap.dirToKeyCode(randX, randY);
                         keycodeOrCmd = {code};
@@ -1002,7 +1002,8 @@ export class PlayerDriver extends DriverBase {
     /* Used by the path-finding algorith. */
     private _passableCallback(x: number, y: number): boolean {
         const map = this.player.getLevel().getMap();
-        let res = map.isPassable(x, y);
+        const [aX, aY] = this.player.getXY();
+        let res = map.isPassable(x, y, aX, aY);
 
         // Actor cell must be always passable, otherwise no path found
         if (!res) {

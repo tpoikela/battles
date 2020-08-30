@@ -4,6 +4,7 @@
  *   1. The climb part or Mountain
  *   2. The summit part
  */
+import RG from '../rg';
 import {MapGenerator} from './map.generator';
 import {Level} from '../level';
 import {Geometry} from '../geometry';
@@ -165,9 +166,15 @@ export class MountainGenerator {
                 const [x, y] = bXY;
                 if (map.hasXY(x, y)) {
                     result.push(bXY);
-                    map.setBaseElemXY(x, y, ELEM.STONE);
+                    if (RG.isSuccess(0.25)) {
+                        map.setBaseElemXY(x, y, ELEM.STEEP_CLIFF);
+                    }
+                    else {
+                        map.setBaseElemXY(x, y, ELEM.STONE);
+                    }
                 }
             });
+            map.setBaseElemXY(xy.x, xy.y, ELEM.CLIFF);
         });
         return result;
     }

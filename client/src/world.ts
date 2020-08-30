@@ -84,7 +84,7 @@ export const addExitsToEdge = (
 
     for (let row = 1; row < rows - 1; row++) {
         if (edge === 'any' || edge === 'west') {
-            if (map.isPassable(0, row) || overwrite) {
+            if (map.isPassable(0, row, 1, row) || overwrite) {
                 const exitWest = new ElementStairs(exitType, level);
                 removeExistingConnection(level, 0, row);
                 if (!overwrite) {level.addElement(exitWest, 0, row);}
@@ -93,7 +93,7 @@ export const addExitsToEdge = (
             }
         }
         if (edge === 'any' || edge === 'east') {
-            if (map.isPassable(cols - 1, row) || overwrite) {
+            if (map.isPassable(cols - 1, row, cols - 2, row) || overwrite) {
                 const exitEast = new ElementStairs(exitType, level);
                 removeExistingConnection(level, cols - 1, row);
                 if (!overwrite) {level.addElement(exitEast, cols - 1, row);}
@@ -105,7 +105,7 @@ export const addExitsToEdge = (
 
     for (let col = 1; col < cols - 1; col++) {
         if (edge === 'any' || edge === 'north') {
-            if (map.isPassable(col, 0) || overwrite) {
+            if (map.isPassable(col, 0, col, 1) || overwrite) {
                 const exitNorth = new ElementStairs(exitType, level);
                 removeExistingConnection(level, col, 0);
                 if (!overwrite) {level.addElement(exitNorth, col, 0);}
@@ -114,7 +114,7 @@ export const addExitsToEdge = (
             }
         }
         if (edge === 'any' || edge === 'south') {
-            if (map.isPassable(col, rows - 1) || overwrite) {
+            if (map.isPassable(col, rows - 1, col, rows - 2) || overwrite) {
                 const exitSouth = new ElementStairs(exitType, level);
                 removeExistingConnection(level, col, rows - 1);
                 if (!overwrite) {level.addElement(exitSouth, col, rows - 1);}

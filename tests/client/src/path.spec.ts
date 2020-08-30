@@ -6,7 +6,7 @@ import {Path} from '../../../client/src/path';
 import {FactoryLevel} from '../../../client/src/factory.level';
 
 describe('Path', () => {
-    it('it computes passable paths', () => {
+    it('it computes shortest passable paths', () => {
         const factLevel = new FactoryLevel();
         const level = factLevel.createLevel('arena', 10, 10);
         const map = level.getMap();
