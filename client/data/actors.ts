@@ -390,10 +390,47 @@ export const ActorsData: ActorShell[] = [
         enemies: RG.ACTOR_RACES
     },
     {
+        name: 'water golem', base: 'ConstructBase',
+        char: 'Y',  className: 'cell-actor-water',
+        addComp: 'Amphibious',
+        attack: 3, defense: 6, protection: 6,
+        hp: 25, danger: 6, damage: '3d4',
+        brain: 'SpellCaster', spells: ['WaterBolt'],
+        maxPP: 10, pp: 10
+    },
+    {
+        name: 'earth golem', base: 'ConstructBase',
+        char: 'Y',  className: 'cell-actor-earth',
+        equip: [{name: 'Large rock', count: 6}],
+        attack: 6, defense: 3, protection: 8,
+        hp: 25, danger: 7, damage: '3d4'
+    },
+    {
+        name: 'fire golem', base: 'ConstructBase',
+        color: color('Red', 'Black'),
+        char: 'Y',
+        attack: 7, defense: 4, protection: 4,
+        hp: 35, danger: 8, damage: '4d4',
+        addComp: [resistance('FIRE', 'MEDIUM')],
+        brain: 'SpellCaster', spells: ['RingOfFire'],
+        maxPP: 20, pp: 20
+    },
+    {
+        name: 'void golem', base: 'ConstructBase',
+        color: color('Purple', 'Black'),
+        char: 'Y', className: 'cell-actor-void',
+        attack: 7, defense: 7, protection: 7,
+        hp: 30, danger: 8, damage: '3d4+4',
+        addComp: ['SpellStop',
+            resistance('MAGIC', 'IMMUNITY'),
+            resistance('VOID', 'MEDIUM')
+        ]
+    },
+    {
         name: 'water elemental', base: 'ConstructBase',
         char: 'E', className: 'cell-actor-water',
         attack: 5, defense: 5, protection: 3,
-        hp: 38, danger: 9, damage: '4d4',
+        hp: 45, danger: 10, damage: '4d4',
         addComp: 'Amphibious',
         brain: 'SpellCaster', spells: ['WaterBolt'],
         maxPP: 40, pp: 40
@@ -402,7 +439,7 @@ export const ActorsData: ActorShell[] = [
         name: 'air elemental', base: 'ConstructBase',
         char: 'E', className: 'cell-actor-air',
         attack: 5, defense: 5, protection: 3,
-        hp: 38, danger: 9, damage: '4d4',
+        hp: 45, danger: 10, damage: '4d4',
         addComp: 'Flying',
         brain: 'SpellCaster', spells: ['LightningBolt'],
         maxPP: 40, pp: 40
@@ -411,8 +448,9 @@ export const ActorsData: ActorShell[] = [
         name: 'earth elemental', base: 'ConstructBase',
         char: 'E', className: 'cell-actor-earth',
         attack: 6, defense: 3, protection: 12,
-        hp: 47, danger: 11, damage: '4d4',
+        hp: 60, danger: 12, damage: '4d4',
         brain: 'SpellCaster', spells: ['RockStorm'],
+        equip: [{name: 'Huge rock', count: 6}],
         maxPP: 70, pp: 70
     },
     {
@@ -420,8 +458,9 @@ export const ActorsData: ActorShell[] = [
         color: color('Red', 'Black'),
         char: 'E',
         attack: 9, defense: 6, protection: 8,
-        hp: 47, danger: 12, damage: '4d4',
+        hp: 55, danger: 14, damage: '4d4',
         brain: 'SpellCaster', spells: ['FireBolt', 'RingOfFire'],
+        addComp: [resistance('FIRE', 'IMMUNITY')],
         maxPP: 60, pp: 60
     },
     {
@@ -429,13 +468,26 @@ export const ActorsData: ActorShell[] = [
         color: color('Purple', 'Black'),
         char: 'E', className: 'cell-actor-void',
         attack: 7, defense: 7, protection: 7,
-        hp: 60, danger: 13, damage: '5d4',
+        hp: 70, danger: 15, damage: '5d4',
         brain: 'SpellCaster', spells: ['PowerDrain'],
         addComp: ['SpellStop',
             resistance('MAGIC', 'ABSORB'),
             resistance('VOID', 'IMMUNITY')
         ],
         maxPP: 70, pp: 70
+    },
+    {
+        name: 'ancient void elemental', base: 'ConstructBase',
+        color: color('Purple', 'Black'),
+        char: 'E', className: 'cell-actor-void',
+        attack: 20, defense: 20, protection: 20,
+        hp: 100, danger: 25, damage: '7d4',
+        brain: 'SpellCaster', spells: ['VoidBolt', 'PowerDrain'],
+        addComp: ['SpellStop',
+            resistance('MAGIC', 'ABSORB'),
+            resistance('VOID', 'IMMUNITY')
+        ],
+        maxPP: 100, pp: 100
     },
 
     // GOBLINS
