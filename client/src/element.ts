@@ -56,6 +56,7 @@ export class ElementBase extends Mixin.Typed(Entity) {
 
     public msg: StringMap;
     protected _name: string;
+    public z: number;
 
     constructor(elemName: string | NameArgs, elemType?: string) {
         let name = null;
@@ -73,10 +74,14 @@ export class ElementBase extends Mixin.Typed(Entity) {
         super({propType: RG.TYPE_ELEM, type});
         this._name = name;
         this.msg = {};
+        this.z = 0;
     }
 
     public getName(): string {return this._name;}
     public setName(name: string) {this._name = name;}
+
+    public getZ(): number {return this.z;}
+    public setZ(z: number) {this.z = z;}
 
     public isWall(): boolean {
         return wallRegexp.test(this.getType());
