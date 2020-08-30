@@ -275,6 +275,11 @@ export class SystemMissile extends SystemBase {
             if (target.has('RangedEvasion')) {
                 return RG.isSuccess(0.5);
             }
+            else if (target.has('Deflection')) {
+                const msg = `${target.getName()} deflects ${ent.getName()}!`;
+                RG.gameMsg({cell: target.getCell(), msg});
+                return false;
+            }
             return true;
         }
         else {

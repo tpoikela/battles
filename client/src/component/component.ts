@@ -876,6 +876,10 @@ export const RangedEvasion = TagComponent('RangedEvasion', {
 export const CriticalShot = TagComponent('CriticalShot');
 export const DoubleShot = TagComponent('DoubleShot');
 
+export const Deflection = TagComponent('Deflection', {
+    description: 'Grants ability to deflect missile attacks'
+});
+
 //--------------------------------------------
 // Spellcasting related components
 //--------------------------------------------
