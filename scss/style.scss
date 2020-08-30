@@ -17,7 +17,7 @@ $success-color-on-gray: #066;
 //----------------------------
 
 @mixin fonts {
-    font-family: monospace;
+    font-family: $font-family;
 }
 
 // Control panel theme
@@ -116,7 +116,7 @@ body {
     background-color: $black;
     border: 1px solid $black;
     color: $white;
-    font-family: monospace;
+    font-family: $font-family;
     font-size: 16px;
     height: 60px;
     overflow: auto;
@@ -172,7 +172,7 @@ ul {
 };
 
 .game-overworld-map-pre {
-    font-family: monospace;
+    font-family: $font-family;
     line-height: 1.1;
 }
 

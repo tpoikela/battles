@@ -1,4 +1,6 @@
 
+@import 'fonts';
+
 $font-sizes: (
     xl: 24px,
     m: 16px,
@@ -10,12 +12,12 @@ $font-sizes: (
 );
 
 @mixin cell-font($size) {
-    font-family: monospace;
+    font-family: $font-family;
     font-size: $size;
 }
 
 @mixin cell-font-map {
-    font-family: monospace;
+    font-family: $font-family;
     font-size: 8px;
 }
 
@@ -65,7 +67,7 @@ $font-sizes: (
 */
 
 .game-board {
-    font-family: monospace;
+    font-family: $font-family;
     line-height: 1.15;
     margin-left: 0;
     margin-right: 10px;

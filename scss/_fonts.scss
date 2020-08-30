@@ -1,5 +1,60 @@
+
+$font-family: 'EversonMonoBold';
+// $font-family: 'unifont';
+
+/*
 @font-face {
-    font-family: monospace;
+    // font-family: monospace;
+    font-family: 'mononoki-Regular';
+    src: url('../public/fonts/mononoki-Regular.ttf');
     font-style: normal;
     font-weight: 400;
 }
+*/
+
+/*
+@font-face {
+    font-family: 'SourceCodePro-Regular';
+    src: url('../public/fonts/SourceCodePro-Regular.ttf');
+    font-style: normal;
+    font-weight: 400;
+}
+*/
+
+@font-face {
+    font-family: 'unifont';
+    src: url('../public/fonts/unifont.ttf');
+    font-style: normal;
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: 'EversonMonoBold';
+    src: url('../public/fonts/EversonMonoBold.ttf');
+    font-style: normal;
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: 'AppleGothic';
+    src: url('../public/fonts/AppleGothic.ttf');
+    font-style: normal;
+    font-weight: 400;
+
+}
+
+@font-face {
+    font-family: 'AndaleMono';
+    src: url('../public/fonts/AndaleMono.ttf');
+    font-style: normal;
+    font-weight: 400;
+}
+
+/*
+@font-face {
+    font-family: 'Courier';
+    src: url('../public/fonts/Courier.ttf');
+    font-style: normal;
+    font-weight: 400;
+}
+*/
