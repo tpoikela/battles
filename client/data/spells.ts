@@ -411,6 +411,14 @@ Spell.WaterBolt = function() {
 };
 RG.extend2(Spell.WaterBolt, Spell.BoltBase);
 
+Spell.VoidBolt = function() {
+    Spell.BoltBase.call(this, 'VoidBolt', 12);
+    this.setDice('damage', Dice.create('5d4 + 4'));
+    this.setRange(5);
+    this.damageType = RG.DMG.VOID;
+};
+RG.extend2(Spell.VoidBolt, Spell.BoltBase);
+
 
 Spell.SlimeBolt = function() {
     Spell.BoltBase.call(this, 'SlimeBolt', 10);
