@@ -6,6 +6,8 @@ import {ElementBase, ElementWall} from '../src/element';
 
 export const ELEM: {[key: string]: Readonly<ElementBase>} = {};
 
+export const ELEMS: {[key: string]: Readonly<ElementBase>[]} = {};
+
 const frz = Object.freeze;
 
 const parser = ObjectShell.getParser();
@@ -14,7 +16,11 @@ const parser = ObjectShell.getParser();
 // in them should not be shared (unless state is common for all)
 ELEM.BED = frz(parser.createElement('bed'));
 ELEM.BRIDGE = frz(parser.createElement('bridge'));
+
+ELEM.SHALLOW_CHASM = frz(parser.createElement('shallow chasm'));
 ELEM.CHASM = frz(parser.createElement('chasm'));
+ELEM.DEEP_CHASM = frz(parser.createElement('deep chasm'));
+ELEMS.CHASMS = [ELEM.SHALLOW_CHASM, ELEM.CHASM, ELEM.DEEP_CHASM];
 
 ELEM.GRASS = frz(parser.createElement('grass'));
 ELEM.GRASS_SNOW = frz(parser.createElement('snowy grass'));
@@ -23,14 +29,22 @@ ELEM.LAVA = frz(parser.createElement('lava'));
 ELEM.PATH = frz(parser.createElement('path'));
 ELEM.ROAD = frz(parser.createElement('road'));
 ELEM.SKY = frz(parser.createElement('sky'));
+
 ELEM.SNOW = frz(parser.createElement('snow'));
 ELEM.SNOW_TRACKS = frz(parser.createElement('snow with tracks'));
 ELEM.SNOW_DEEP = frz(parser.createElement('deep snow'));
 ELEM.SNOW_DEEP_TRACKS = frz(parser.createElement('deep snow with tracks'));
 ELEM.SNOW_LIGHT = frz(parser.createElement('light snow'));
 ELEM.SNOW_LIGHT_TRACKS = frz(parser.createElement('light snow with tracks'));
+
+ELEM.CLIFF = frz(parser.createElement('cliff'));
 ELEM.STONE = frz(parser.createElement('stone'));
+ELEM.STEEP_CLIFF = frz(parser.createElement('steep cliff'));
+
+ELEM.SNOWY_CLIFF = frz(parser.createElement('snowy cliff'));
 ELEM.STONE_SNOW = frz(parser.createElement('snow-covered stone'));
+ELEM.FROZEN_STEEP_CLIFF = frz(parser.createElement('frozen steep cliff'));
+
 ELEM.TREE = frz(parser.createElement('tree'));
 ELEM.TREE_LARGE = frz(parser.createElement('large tree'));
 ELEM.TREE_SNOW = frz(parser.createElement('snow-covered tree'));
@@ -53,8 +67,11 @@ ELEM.WALL_ICE = frz(new ElementWall('wallice'));
 ELEM.WALL_WOODEN = frz(new ElementWall('wallwooden'));
 ELEM.WALL_MOUNT = frz(new ElementWall('wallmount'));
 
-// ELEM.WATER = frz(new Element.Water());
+ELEM.SHALLOW_WATER = frz(parser.createElement('shallow water'));
 ELEM.WATER = frz(parser.createElement('water'));
+ELEM.DEEP_WATER = frz(parser.createElement('deep water'));
+ELEMS.WATER = [ELEM.SHALLOW_WATER, ELEM.WATER, ELEM.DEEP_WATER];
+
 ELEM.WATER_FROZEN = frz(parser.createElement('frozen water'));
 ELEM.FORT = frz(parser.createElement('fort'));
 
