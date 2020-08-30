@@ -1032,6 +1032,11 @@ const Items: ObjectShell[] = [
         value: value(80)
     },
     {
+        name: 'Potion of deflection', base: 'PotionBase',
+        use: {addComp: {name: 'Deflection', duration: '10d10 + 10'}},
+        value: value(80)
+    },
+    {
         name: 'Potion of eagle eye', base: 'PotionBase',
         use: {addComp: {name: 'EagleEye', duration: '10d10 + 10'}},
         value: value(80)
