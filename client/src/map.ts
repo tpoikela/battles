@@ -245,7 +245,8 @@ export class CellMap {
             if (this._map[x][y].isPassable()) {
                 if (typeof cx !== 'undefined' && typeof cy !== 'undefined') {
                     if (this.hasXY(cx, cy)) {
-                        return this.getElemDzAbs(x, y, cx, cy) <= 1;
+                        const res = this.getElemDzAbs(x, y, cx, cy) <= 1;
+                        return res;
                     }
                     return true;
                 }
@@ -254,10 +255,15 @@ export class CellMap {
         return false;
     }
 
+    public getZ(x: number, y: number): number {
+        return this._map[x][y].getBaseElem().getZ();
+    }
+
     public getElemDzAbs(x: number, y: number, cx: number, cy: number): number {
-        const z0 = this._map[x][y].getBaseElem().getZ();
-        const z1 = this._map[cx][cy].getBaseElem().getZ();
-        return Math.abs(z0 - z1);
+        const z0 = this.getZ(x, y);
+        const z1 = this.getZ(cx, cy);
+        const dz = Math.abs(z0 - z1);
+        return dz;
     }
 
     public isPassableByAir(x: number, y: number): boolean {
@@ -388,7 +394,9 @@ export class CellMap {
                 else if ((/tree/).test(baseType)) {row += 'T';}
                 else if ((/grass/).test(baseType)) {row += '"';}
                 else if ((/highrock/).test(baseType)) {row += '^';}
-                else if ((/stone/).test(baseType)) {row += '^';}
+                else if ((/stone/).test(baseType)) {row += ':';}
+                else if ((/steep cliff/).test(baseType)) {row += '\u22EE';}
+                else if ((/cliff/).test(baseType)) {row += '\u2981';}
                 else if ((/road/).test(baseType)) {row += 'R';}
                 else if ((/arctic/).test(baseType)) {row += '.';}
                 else if (cell.isFree()) {row += '.';}
