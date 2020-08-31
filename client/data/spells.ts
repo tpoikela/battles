@@ -12,6 +12,7 @@ import {Corpse} from '../src/item';
 import {TCoord} from '../src/interfaces';
 
 type Cell = import('../src/map.cell').Cell;
+type CellMap = import('../src/map').CellMap;
 type ItemBase = import('../src/item').ItemBase;
 
 const RNG = Random.getRNG();
@@ -29,7 +30,7 @@ Spell.DispelMagic = function() {
 RG.extend2(Spell.DispelMagic, Spell.RemoveComponent);
 
 Spell.Charm = function() {
-    SpellBase.call(this, 'Charm');
+    SpellBase.call(this, 'Charm', 10);
     this._dice.duration = Dice.create('10d6 + 5');
 };
 RG.extend2(Spell.Charm, SpellBase);
@@ -411,6 +412,7 @@ Spell.WaterBolt = function() {
 };
 RG.extend2(Spell.WaterBolt, Spell.BoltBase);
 
+/*
 Spell.VoidBolt = function() {
     Spell.BoltBase.call(this, 'VoidBolt', 12);
     this.setDice('damage', Dice.create('5d4 + 4'));
@@ -418,6 +420,7 @@ Spell.VoidBolt = function() {
     this.damageType = RG.DMG.VOID;
 };
 RG.extend2(Spell.VoidBolt, Spell.BoltBase);
+*/
 
 
 Spell.SlimeBolt = function() {
@@ -1061,13 +1064,14 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.SummonKin());
     book.addSpell(new Spell.SummonUndeadUnicorns());
     book.addSpell(new Spell.Telepathy());
+    // book.addSpell(new Spell.VoidBolt());
 };
 
 export {Spell};
 
 /* Returns three adjacent cells based on direction. */
 function getThreeCells(
-    map, dir: TCoord, tX: number, tY: number): Cell[]
+    map: CellMap, dir: TCoord, tX: number, tY: number): Cell[]
 {
     if (dir[0] === 0) { // up or down
         return [

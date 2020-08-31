@@ -401,6 +401,25 @@ export const SpellBase = function(name: string, power: number) {
     this.setName(name);
 };
 
+/*
+export class SpellBase {
+    protected _name: string;
+    protected _power: number;
+    protected _dice: {[key: string]: Dice};
+    protected _range: number;
+    protected _caster: SentientActor | null;
+
+    constructor(name: string, power: number) {
+        this._name = name;
+        this._power = power || 5;
+        this._caster = null;
+        this._dice = {};
+        this._range = 0;
+        this.setName(name);
+    };
+}
+*/
+
 SpellBase.prototype.setCaster = function(caster: SentientActor): void {
    this._caster = caster;
 };
