@@ -25,7 +25,8 @@
   ],
   "exclude": [
     "node_modules/**/*",
-    "build"
+    "build",
+    "plugin-examples"
   ],
   "awesomeTypescriptLoaderOptions": {
       "useCache": true
