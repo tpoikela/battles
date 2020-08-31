@@ -20,7 +20,7 @@ interface TargetObj {
     target: boolean;
 }
 
-type PassableCb = (x: number, y: number) => boolean;
+type PassableCb = (x: number, y: number, cx: number, cy: number) => boolean;
 
 export class DijkstraMap {
 
@@ -107,7 +107,7 @@ export class DijkstraMap {
             const x = cx + dir[0];
             const y = cy + dir[1];
 
-            if (!this._passableCallback(x, y)) { continue; }
+            if (!this._passableCallback(x, y, cx, cy)) { continue; }
             result.push([x, y]);
         }
         return result;

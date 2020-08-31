@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import RG from '../../../client/src/rg';
 import {Path} from '../../../client/src/path';
 import {FactoryLevel} from '../../../client/src/factory.level';
+import {ELEM} from '../../../client/data/elem-constants';
 
 describe('Path', () => {
     it('it computes shortest passable paths', () => {
@@ -45,5 +46,45 @@ describe('Path', () => {
         }
 
     });
+
+    it('works also with 3d terrain with gradients', function() {
+        const factLevel = new FactoryLevel();
+        const level = factLevel.createLevel('arena', 10, 10);
+        const map = level.getMap();
+        const elems = [
+            ELEM.FLOOR, ELEM.CLIFF, ELEM.STONE, ELEM.STEEP_CLIFF, ELEM.STONE,
+            ELEM.CLIFF, ELEM.FLOOR, ELEM.STEEP_CLIFF, ELEM.STONE, ELEM.CLIFF];
+        for (let x = 1; x < 9; x++) {
+            for (let y = 1; y < 8; y++) {
+                if (x < 8) {
+                    map.setBaseElemXY(x, y, elems[y]);
+                }
+            }
+        }
+        level.debugPrintInASCII();
+
+        let path = [];
+
+        path = Path.getShortestPassablePath(map, 1, 1, 9, 9);
+        expect(path.length).to.be.above(5);
+
+        path = Path.getShortestPassablePath(map, 1, 1, 1, 8);
+        // console.log(path);
+        expect(path.length).to.equal(15);
+
+        const x0 = 7;
+        const y0 = 3;
+        const x1 = x0 + 1;
+        path = Path.getShortestPassablePath(map, x0, y0, x1, y0);
+        expect(path.length).to.equal(5);
+
+        path = Path.getShortestActorPath(map, x0-1, y0, x1, y0);
+        expect(path.length).to.equal(4);
+
+        path = Path.getShortestActorPath(map, x0, y0, x1, y0);
+        expect(path.length).to.equal(4);
+
+    });
+
 
 });

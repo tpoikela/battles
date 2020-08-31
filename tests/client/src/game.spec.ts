@@ -225,7 +225,7 @@ describe('How AI brain works', () => {
         expect(level.addActor(mons1, 3, 5)).to.equal(true);
 
         const map = level.getMap();
-        expect(map.isPassable(2, 3)).to.equal(true);
+        expect(map.isPassable(2, 3, 2, 2)).to.equal(true);
 
         const brain = mons1.getBrain();
         const seenCells = level.getMap().getCellsInFOV(mons1);

@@ -1,6 +1,7 @@
 
 import * as ROT from '../../lib/rot-js';
 import RG from './rg';
+import {AStar3D} from './path3d';
 
 import {ICoordXY, TCoord} from './interfaces';
 type Cell = import('./map.cell').Cell;
@@ -145,7 +146,7 @@ Path.getShortestSeenPath = function(actor, map: CellMap, x1, y1): ICoordXY[] {
     }
 
     const coords: ICoordXY[] = [];
-    const finder = new ROT.Path.AStar(x1, y1, passableCb);
+    const finder = new AStar3D(x1, y1, map, passableCb);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
     });
@@ -160,7 +161,7 @@ Path.getShortestSeenPath = function(actor, map: CellMap, x1, y1): ICoordXY[] {
 Path.getShortestPassablePath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
     const coords: ICoordXY[] = [];
     const passableCallback = (x, y, cx, cy) => map.isPassable(x, y, cx, cy);
-    const finder = new ROT.Path.AStar(x1, y1, passableCallback);
+    const finder = new AStar3D(x1, y1, map, passableCallback);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
     });
@@ -170,12 +171,13 @@ Path.getShortestPassablePath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[
 /* Returns shortest actor to actor path. Returns shortest path between two
  * actors excluding the source and destination points. */
 Path.getActorToActorPath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
-    const coords = [];
+    const coords: ICoordXY[] = [];
     const passableCb = (x, y, cx, cy) => {
         if (map.hasXY(x, y)) {
             return (
-                map.isPassable(x, y, cx, cy) || (x === x0 && y === y0)
-                || (x === x1 && y === y1)
+                map.isPassable(x, y, cx, cy)
+                || ((x === x0 && y === y0) && map.getElemDzAbs(x, y, cx, cy) <= 1)
+                || ((x === x1 && y === y1) && map.getElemDzAbs(x, y, cx, cy) <= 1)
             );
         }
         return false;
@@ -186,7 +188,7 @@ Path.getActorToActorPath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
         return NO_PATH as ICoordXY[];
     }
 
-    const finder = new ROT.Path.AStar(x1, y1, passableCb);
+    const finder = new AStar3D(x1, y1, map, passableCb);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
     });
@@ -197,16 +199,22 @@ Path.getActorToActorPath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
 
 /* Returns shortest path for actor in x0,y0, excluding the source point. If
  * destination point is impassable, returns an empty array. */
-Path.getShortestActorPath = function(map: CellMap, x0, y0, x1, y1, cb?: PassableCb): ICoordXY[] {
+Path.getShortestActorPath = function(
+    map: CellMap, x0, y0, x1, y1, cb?: PassableCb
+): ICoordXY[] {
     const coords: ICoordXY[] = [];
     const passableCb = (x, y, cx, cy) => {
         if (map.hasXY(x, y)) {
             if (cb) {
-                return cb(x, y, cx, cy) || (x === x0 && y === y0);
+                return cb(x, y, cx, cy)
+                    || (x === x0 && y === y0) && (map.getElemDzAbs(x, y, cx, cy) <= 1);
             }
-            return (
-                map.isPassable(x, y, cx, cy) || (x === x0 && y === y0)
-            );
+            let res = map.isPassable(x, y, cx, cy);
+            if (!res) {
+                const dz = map.getElemDzAbs(x, y, cx, cy);
+                res = (x === x0 && y === y0) && dz <= 1;
+            }
+            return res;
         }
         return false;
     };
@@ -214,7 +222,7 @@ Path.getShortestActorPath = function(map: CellMap, x0, y0, x1, y1, cb?: Passable
         return NO_PATH as ICoordXY[];
     }
 
-    const finder = new ROT.Path.AStar(x1, y1, passableCb);
+    const finder = new AStar3D(x1, y1, map, passableCb);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
     });
@@ -231,7 +239,8 @@ Path.getShortestPassablePathWithDoors = function(map: CellMap, x0, y0, x1, y1): 
         }
         return false;
     };
-    const finder = new ROT.Path.AStar(x1, y1, passableCbDoor);
+
+    const finder = new AStar3D(x1, y1, map, passableCbDoor);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
     });

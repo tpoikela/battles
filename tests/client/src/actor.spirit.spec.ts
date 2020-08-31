@@ -9,6 +9,7 @@ import {FactoryLevel} from '../../../client/src/factory.level';
 const Spirit = Actor.SentientActor;
 
 describe('RG.Actor.Spirit', () => {
+
     it('Is an ethereal being, doesnt block passage', () => {
         const levelFact = new FactoryLevel();
         const level = levelFact.createLevel('arena', 10, 10);
@@ -20,16 +21,16 @@ describe('RG.Actor.Spirit', () => {
         const spiritY = 3;
 
         const map = level.getMap();
-        expect(map.isPassable(spiritX, spiritY)).to.equal(true);
+        expect(map.isPassable(spiritX, spiritY, 0, 0)).to.equal(true);
         level.addActor(spirit, spiritX, spiritY);
         level.addActor(actor, 3, 4);
-        expect(map.isPassable(3, 4)).to.equal(false);
+        expect(map.isPassable(3, 4, 2, 3)).to.equal(false);
 
-        expect(map.isPassable(spiritX, spiritY)).to.equal(true);
+        expect(map.isPassable(spiritX, spiritY, 0, 0)).to.equal(true);
 
         const anotherBeing = new Actor.SentientActor('Being2');
         level.addActor(anotherBeing, spiritX, spiritY);
-        expect(map.isPassable(spiritX, spiritY)).to.equal(false);
+        expect(map.isPassable(spiritX, spiritY, 0, 0)).to.equal(false);
 
         const spiritGem = new Item.SpiritGem('Lesser gem');
         const spiritCell = map.getCell(spiritX, spiritY);

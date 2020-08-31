@@ -1,7 +1,7 @@
 
 import RG from './rg';
 import {Entity} from './entity';
-import {TCoord, TPropType} from './interfaces';
+import {TCoord, TCoord3D, TPropType} from './interfaces';
 
 import * as Component from './component/component';
 import {compsToJSON} from './component/component.base';
@@ -80,6 +80,13 @@ export class BaseActor extends Entity {
     public getXY(): TCoord {return this.get('Location').getXY();}
     public setXY(x: number, y: number): void {
         this.get('Location').setXY(x, y);
+    }
+
+
+    public getXYZ(): TCoord3D {
+        const [x, y] = this.getXY();
+        const z = this.getCell().getBaseElem().getZ();
+        return [x, y, z];
     }
 
     /* Returns true if actor is a player.*/

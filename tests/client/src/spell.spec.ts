@@ -10,7 +10,7 @@ import {SentientActor} from '../../../client/src/actor';
 import {Spell} from '../../../client/data/spells';
 import {System} from '../../../client/src/system';
 import {ObjectShell} from '../../../client/src/objectshellparser';
-import { RGUnitTests } from '../../rg.unit-tests';
+import {RGUnitTests} from '../../rg.unit-tests';
 
 const expect = chai.expect;
 chai.use(chaiBattles);

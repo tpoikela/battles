@@ -8,6 +8,8 @@ import {DriverBase} from '../../tests/helpers/player-driver';
 
 import {IGameMain} from '../src/game';
 
+type SentientActor = import('../src/actor').SentientActor;
+
 const dirToKeyCode = Keys.KeyMap.dirToKeyCode;
 
 /* This class handles various actions when player clicks a cell.
@@ -109,9 +111,10 @@ export class CellClickHandler extends DriverBase {
     }
 
     /* Tries to compute a path to given coordinate. Uses 2 different methods. */
-    public moveTo(player, toX: number, toY: number): void {
+    public moveTo(player: SentientActor, toX: number, toY: number): void {
         let keyBuf = [];
         let [pX, pY] = [player.getX(), player.getY()];
+        const [aX, aY] = [pX, pY]; // Keep original position
         let pathPossible = true;
         const map = player.getLevel().getMap();
 
@@ -128,7 +131,7 @@ export class CellClickHandler extends DriverBase {
             keyBuf.push(dirToKeyCode(dx, dy));
             pX += dx / Math.abs(dx);
             pY += dy / Math.abs(dy);
-            if (!map.isPassable(pX, pY)) {
+            if (!map.isPassable(pX, pY, aX, aY)) {
                 pathPossible = false;
                 break;
             }
@@ -140,7 +143,7 @@ export class CellClickHandler extends DriverBase {
                 const dx = toX - pX;
                 keyBuf.push(dirToKeyCode(dx, 0));
                 pX += dx / Math.abs(dx);
-                if (!map.isPassable(pX, pY)) {
+                if (!map.isPassable(pX, pY, aX, aY)) {
                     pathPossible = false;
                     break;
                 }
@@ -151,7 +154,7 @@ export class CellClickHandler extends DriverBase {
                 const dy = toY - pY;
                 keyBuf.push(dirToKeyCode(0, dy));
                 pY += dy / Math.abs(dy);
-                if (!map.isPassable(pX, pY)) {
+                if (!map.isPassable(pX, pY, aX, aY)) {
                     pathPossible = false;
                     break;
                 }
@@ -166,6 +169,7 @@ export class CellClickHandler extends DriverBase {
             path.forEach(xy => {
                 const dx = xy.x - pX;
                 const dy = xy.y - pY;
+                console.log('Next in path is', xy);
                 keyBuf.push(dirToKeyCode(dx, dy));
                 if (dx !== 0) {pX += dx / Math.abs(dx);}
                 if (dy !== 0) {pY += dy / Math.abs(dy);}

@@ -20,6 +20,9 @@ type BrainGoalOriented = import('./brain.goaloriented').BrainGoalOriented;
 type ItemBase = import('../item').ItemBase;
 type Cell = import('../map.cell').Cell;
 type Level = import('../level').Level;
+type CellMap = import('../map').CellMap;
+
+type TVoidFunc = () => void;
 
 const RNG = Random.getRNG();
 const KeyMap = Keys.KeyMap;
@@ -832,7 +835,7 @@ export class BrainPlayer extends BrainSentient {
         return this.handleCommand(obj);
       }
 
-      const code = obj.code;
+      const code = obj.code!;
       if (RG.isNullOrUndef([code])) {
         RG.err('Brain.Player', 'decideNextAction',
           `obj.code or obj.cmd must exist. Got obj: ${JSON.stringify(obj)}`);
@@ -1064,7 +1067,7 @@ export class BrainPlayer extends BrainSentient {
     }
 
     /* Executes the move command/attack command for the player. */
-    public moveCmd(level, currMap, x, y) {
+    public moveCmd(level: Level, currMap: CellMap, x: number, y: number) {
         if (!currMap.hasXY(x, y)) {
           if (this._actor.getCell().hasPassage()) {
               const cb = () => {
@@ -1081,9 +1084,11 @@ export class BrainPlayer extends BrainSentient {
           }
         }
 
+        const [aX, aY] = this._actor.getXY();
+
         // Cell exists in map, check if we can enter it, or if there's
         // something blocking the way
-        if (currMap.isPassable(x, y)) {
+        if (currMap.isPassable(x, y, aX, aY)) {
           return this.moveToCell(x, y, level);
         }
         else if (currMap.getCell(x, y).hasClosedDoor()) {
@@ -1125,7 +1130,7 @@ export class BrainPlayer extends BrainSentient {
         }
     }
 
-    public moveToCell(x, y, level) {
+    public moveToCell(x: number, y: number, level: Level): TVoidFunc {
         if (this._runModeEnabled) {this.energy = RG.energy.RUN;}
         else {
           this.resetBoosts();

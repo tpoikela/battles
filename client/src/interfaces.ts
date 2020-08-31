@@ -98,6 +98,7 @@ export type TPrim = number | string | boolean;
 export type TPrimArr = TPrim[];
 
 export type TCoord = [number, number];
+export type TCoord3D = [number, number, number];
 export interface ICoordMap {[key: string]: any;}
 
 export interface ICoordXY {
