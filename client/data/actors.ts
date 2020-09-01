@@ -482,7 +482,7 @@ export const ActorsData: ActorShell[] = [
         char: 'E', className: 'cell-actor-void',
         attack: 20, defense: 20, protection: 20,
         hp: 100, danger: 25, damage: '7d4',
-        brain: 'SpellCaster', spells: ['LightningBolt', 'PowerDrain'],
+        brain: 'SpellCaster', spells: ['VoidBolt', 'PowerDrain'],
         addComp: ['SpellStop',
             resistance('MAGIC', 'ABSORB'),
             resistance('VOID', 'IMMUNITY')

@@ -32,7 +32,7 @@ describe('PluginManager', () => {
         expect(bigSword.getType()).to.equal('weapon');
     });
 
-    it('an load external plugins from script', () => {
+    it('can load external plugins from script', () => {
         const allFiles = fs.readdirSync('plugin-examples');
         const jsPlugins = allFiles.filter(fname => /\.js$/.test(fname));
 

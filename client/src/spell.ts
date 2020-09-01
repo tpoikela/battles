@@ -1103,6 +1103,8 @@ Spell.MultiSpell.prototype.setCaster = function(caster: SentientActor): void {
     });
 };
 
+Spell.override = false;
+
 /* Used for testing the spells. Adds all spells to given SpellBook. */
 Spell.defineSpell = function(name: string, superclass: any) {
     const SpellDecl = class extends superclass {
@@ -1114,6 +1116,10 @@ Spell.defineSpell = function(name: string, superclass: any) {
         }
         private _init?(...args: any[]): void;
     };
+    if (Spell.hasOwnProperty(name) && !Spell.override) {
+        RG.err('Spell', 'defineSpell',
+            `Tried to override spell |${name}|. Use Spell.override = true`);
+    }
     Spell[name] = SpellDecl;
     return SpellDecl;
 };

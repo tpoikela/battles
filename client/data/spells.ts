@@ -412,7 +412,6 @@ Spell.WaterBolt = function() {
 };
 RG.extend2(Spell.WaterBolt, Spell.BoltBase);
 
-/*
 Spell.VoidBolt = function() {
     Spell.BoltBase.call(this, 'VoidBolt', 12);
     this.setDice('damage', Dice.create('5d4 + 4'));
@@ -420,7 +419,6 @@ Spell.VoidBolt = function() {
     this.damageType = RG.DMG.VOID;
 };
 RG.extend2(Spell.VoidBolt, Spell.BoltBase);
-*/
 
 
 Spell.SlimeBolt = function() {
@@ -1064,7 +1062,7 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.SummonKin());
     book.addSpell(new Spell.SummonUndeadUnicorns());
     book.addSpell(new Spell.Telepathy());
-    // book.addSpell(new Spell.VoidBolt());
+    book.addSpell(new Spell.VoidBolt());
 };
 
 export {Spell};
