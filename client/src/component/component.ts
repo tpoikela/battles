@@ -7,7 +7,7 @@ import {EventPool} from '../eventpool';
 import {Entity} from '../entity';
 import {Dice} from '../dice';
 import {Geometry} from '../geometry';
-import {TCoord, ILoreEntry, TLoreMsg} from '../interfaces';
+import {TCoord, ILoreEntry, TLoreMsg, TCoord3D} from '../interfaces';
 
 const POOL = EventPool.getPool();
 
@@ -432,7 +432,7 @@ export const Chat = TransientDataComponent('Chat', {args: null});
 /* Missile component is added to entities such as arrows and rocks
  * when they have been launched. */
 export const Missile = TransientDataComponent('Missile', {
-    x: null, y: null, source: null, level: null,
+    x: null, y: null, z: null, source: null, level: null,
     flying: true,
     targetX: null, targetY: null,
     range: 0, attack: 0, damage: 0, path: null
@@ -442,6 +442,7 @@ Missile.prototype._init = function(source) {
     this.source = source;
     this.x = source.getX();
     this.y = source.getY();
+    this.z = source.getZ();
     this.level = source.getLevel();
     this.path = [];
     this.pathIter = -1;
@@ -459,16 +460,20 @@ Missile.prototype.stopMissile = function() {
     this.flying = false;
 };
 
-Missile.prototype.setTargetXY = function(x, y) {
-    this.path = Geometry.getBresenham(this.x, this.y, x, y);
+Missile.prototype.setTargetXYZ = function(x, y, z) {
+    const src: TCoord3D = [this.x, this.y, this.z];
+    const dest: TCoord3D = [x, y, z];
+    this.path = Geometry.getBresenham3D(src, dest);
+    console.log('MissComp path is', this.path);
     this.targetX = x;
     this.targetY = y;
+    this.targetZ = z;
     if (this.path.length > 0) {this.pathIter = 0;}
 };
 
 /* Returns true if missile has reached its target map cell.*/
 Missile.prototype.inTarget = function() {
-    return this.x === this.targetX && this.y === this.targetY;
+    return this.x === this.targetX && this.y === this.targetY && this.z === this.targetZ;
 };
 
 Missile.prototype.iteratorValid = function() {
@@ -479,13 +484,14 @@ Missile.prototype.setValuesFromIterator = function() {
     const coord = this.path[this.pathIter];
     this.x = coord[0];
     this.y = coord[1];
+    this.z = coord[2];
 };
 
 /* Resets the path iterator to the first x,y. */
 Missile.prototype.first = function() {
     this.pathIter = 0;
     this.setValuesFromIterator();
-    return [this.x, this.y];
+    return [this.x, this.y, this.z];
 };
 
 /* Moves to next cell in missile's path. Returns null if path is finished.

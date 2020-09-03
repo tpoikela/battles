@@ -57,9 +57,9 @@ export class SystemAttackRanged extends SystemBase {
                 }
 
                 if (!RG.isNullOrUndef([target])) {
-                    const [x, y] = target.getXY();
+                    const [x, y, z] = target.getXYZ();
                     const mComp = new Component.Missile(actor);
-                    mComp.setTargetXY(x, y);
+                    mComp.setTargetXYZ(x, y, z);
                     mComp.setDamage(RG.getMissileDamage(actor, missile));
                     mComp.setAttack(RG.getMissileAttack(actor));
                     mComp.setRange(RG.getMissileRange(actor, missile));

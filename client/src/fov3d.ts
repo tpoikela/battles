@@ -8,7 +8,7 @@ type CellMap = import('./map').CellMap;
 type LightPassesCb = (x: number, y: number, z: number) => boolean;
 
 const MIN_Z = 0;
-const MAX_Z = 1;
+const MAX_Z = 3;
 
 export class Fov3D {
 
@@ -29,7 +29,8 @@ export class Fov3D {
         const rr = r + 1;
         this._seen = {};
 
-        // Z-dim is limited to what's actually used in the game
+        // Z-dim is limited to what's actually used in the game, maxZ could be
+        // same as 'rr' in fully 3D world
         for (let zz = MIN_Z; zz < this._maxZ;  ++zz) {
             for (let i = -rr; i <= rr; i++) {
                 this.internalViewTo(pos, rr, i, rr, zz, compCb);

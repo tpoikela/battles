@@ -280,7 +280,7 @@ export class SystemSpellEffect extends SystemBase {
 
         const spellArrow = parser.createItem(ammoName);
         const mComp = new Component.Missile(args.src);
-        mComp.setTargetXY(args.to[0], args.to[1]);
+        mComp.setTargetXYZ(args.to[0], args.to[1], args.to[2]);
         mComp.destroyItem = true;
         if (args.hasOwnProperty('destroyItem')) {
             mComp.destroyItem = args.destroyItem;

@@ -46,7 +46,9 @@ export class SystemMissile extends SystemBase {
             mComp.next();
             const currX = mComp.getX();
             const currY = mComp.getY();
+            const currZ = mComp.getZ();
             let currCell: Cell = null;
+
             if (map.hasXY(currX, currY)) {
                 currCell = map.getCell(currX, currY);
             }
@@ -62,7 +64,7 @@ export class SystemMissile extends SystemBase {
                 shownMsg = firedMsg + ' disappears';
             }
             // Non-actor obstacle was hit, stop missile
-            else if (!currCell.hasActors() && !currCell.isPassableByAir()) {
+            else if (!currCell.hasActors() && !currCell.isPassableByAir(currZ)) {
                 mComp.prev();
                 const prevX = mComp.getX();
                 const prevY = mComp.getY();
@@ -72,7 +74,7 @@ export class SystemMissile extends SystemBase {
                 RG.debug(this, 'Stopped missile to wall');
                 shownMsg = firedMsg + ' thuds to an obstacle';
             }
-            else if (currCell.hasProp('actors')) {
+            else if (currCell.hasProp('actors') && currCell.getZ() === currZ) {
                 const actor = currCell.getActors()![0];
                 // Check hit and miss
                 if (this.targetWasHit(ent, actor, mComp)) {
@@ -123,6 +125,10 @@ export class SystemMissile extends SystemBase {
                 this.finishMissileFlight(ent, mComp, currCell);
                 RG.debug(this, 'Missile out of range. Hit nothing.');
                 shownMsg = ent.getName() + ' doesn\'t hit anything';
+            }
+            else if (currCell.hasProp('actors') && currCell.getZ() < currZ) {
+                const actor = currCell.getActors()![0];
+                shownMsg = ent.getName() + ' flies over ' + actor.getName();
             }
             if (shownMsg.length > 0) {
                 RG.gameMsg({cell: currCell, msg: shownMsg});

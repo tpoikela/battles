@@ -30,7 +30,7 @@ const createMissile = obj => {
     const mComp = new Component.Missile(obj.src);
     mComp.setDamage(obj.d);
     mEnt.add(mComp);
-    mComp.setTargetXY(obj.x, obj.y);
+    mComp.setTargetXYZ(obj.x, obj.y, 0);
     mComp.setRange(obj.r);
     return mComp;
 };
@@ -58,7 +58,7 @@ describe('How missile is fired and hits a wall', () => {
 
         expect(mComp.getX()).to.equal(1);
         expect(mComp.getY()).to.equal(1);
-        mComp.setTargetXY(1, 4);
+        mComp.setTargetXYZ(1, 4, 0);
         mComp.setRange(3);
 
         updateSystems(systems);
@@ -82,7 +82,7 @@ describe('How missile is fired and hits a wall', () => {
         mEnt.add(new Component.Indestructible());
         const mComp = new Component.Missile(srcEnt);
         mEnt.add(mComp);
-        mComp.setTargetXY(1, 4);
+        mComp.setTargetXYZ(1, 4, 0);
         mComp.setRange(3);
 
         updateSystems(systems);

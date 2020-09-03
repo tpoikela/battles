@@ -4,7 +4,7 @@ import * as Element from './element';
 import {BaseActor} from './actor';
 import * as Item from './item';
 import {ELEM_MAP} from '../data/elem-constants';
-import {TCoord, ConstBaseElem, TCellProp, CellProps, TPropType} from './interfaces';
+import {TCoord, TCoord3D, ConstBaseElem, TCellProp, CellProps, TPropType} from './interfaces';
 
 const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 
@@ -70,6 +70,9 @@ export class Cell {
     public getXY(): TCoord {return [this._xy & X_POS, (this._xy & Y_POS) >>> Y_SHIFT];}
     public setX(x: number) {this._xy = x & X_POS;}
     public setY(y: number) {this._xy = (y << Y_SHIFT) & Y_POS;}
+
+    public getZ(): number {return this._baseElem.getZ();}
+    public getXYZ(): TCoord3D {return [this.getX(), this.getY(), this._baseElem.getZ()];}
     public setXY(xy: TCoord) {
         this._xy = xy[0] & X_POS | (xy[1] << Y_SHIFT) & Y_POS;}
 
@@ -301,8 +304,12 @@ export class Cell {
 
     public isPassable(): boolean {return this.isFree();}
 
-    public isPassableByAir(): boolean {
-        return this._baseElem.isPassableByAir();
+    public isPassableByAir(z=10): boolean {
+        const elevZ = this._baseElem.getZ();
+        if (z >= elevZ) {
+            return this._baseElem.isPassableByAir();
+        }
+        return false;
     }
 
     public isDangerous(): boolean {

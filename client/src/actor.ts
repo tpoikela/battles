@@ -82,6 +82,7 @@ export class BaseActor extends Entity {
         this.get('Location').setXY(x, y);
     }
 
+    public getZ(): number {return this.getCell().getZ();}
 
     public getXYZ(): TCoord3D {
         const [x, y] = this.getXY();

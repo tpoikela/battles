@@ -882,6 +882,15 @@ export class Geometry {
         Geometry.lineFunc3D(src, dest, wrapFunc, incSrcDest);
     }
 
+    public static getBresenham3D(src: TCoord3D, dest: TCoord3D): TCoord3D[] {
+        const res: TCoord3D[] = [];
+        const func = (x, y, z) => {
+            res.push([x, y, z]);
+        };
+        Geometry.lineFuncUnique3D(src, dest, func);
+        return res;
+    }
+
 }
 
 

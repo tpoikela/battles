@@ -230,9 +230,12 @@ export class CellMap {
     }
 
     /* Returns true if light passes through this cell.*/
-    public lightPasses(x: number, y: number): boolean {
+    public lightPasses(x: number, y: number, z: number): boolean {
         if (this.hasXY(x, y)) {
-            return this._map[x][y].lightPasses(); // delegate to cell
+            const elevZ = this.getZ(x, y);
+            if (z >= elevZ) {
+                return this._map[x][y].lightPasses(); // delegate to cell
+            }
         }
         return false;
     }
@@ -281,11 +284,11 @@ export class CellMap {
     public getCellsInFOV(actor: SentientActor): Cell[] {
         const cells: Cell[] = [];
         // const [xA, yA] = actor.getXY();
-        const [xA, yA, zA] = actor.getXYZ();
-        const range = actor.getFOVRange();
 
         if (actor.isLocated()) {
             if (actor.getLevel().getMap() === this) {
+                const [xA, yA, zA] = actor.getXYZ();
+                const range = actor.getFOVRange();
 
                 this.fov.compute(xA, yA, zA, range, (x, y, r, visibility) => {
                     if (visibility) {

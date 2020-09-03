@@ -891,13 +891,15 @@ Spell.Missile.prototype.getAmmoName = function() {
 };
 
 Spell.Missile.prototype.cast = function(args) {
-    const [x, y] = [args.src.getX(), args.src.getY()];
+    // const [x, y] = [args.src.getX(), args.src.getY()];
     const obj: SpellArgs = {
-        from: [x, y],
+        // from: [x, y],
+        from: args.src.getXYZ(),
         target: args.target,
         spell: this,
         src: args.src,
-        to: [args.target.getX(), args.target.getY()]
+        // to: [args.target.getX(), args.target.getY()]
+        to: args.target.getXYZ()
     };
     obj.damageType = this.damageType;
     obj.damage = this.getDamage();
