@@ -1,0 +1,42 @@
+
+import {expect} from 'chai';
+
+// import RG from '../../../client/src/rg';
+// import {Fov3D} from '../../../client/src/fov3d';
+import {SentientActor} from '../../../client/src/actor';
+import {FactoryLevel} from '../../../client/src/factory.level';
+// import {ELEM} from '../../../client/data/elem-constants';
+
+describe('Fov3D', () => {
+
+    it('it computes 3D FOV', () => {
+        const factLevel = new FactoryLevel();
+        const level = factLevel.createLevel('arena', 10, 10);
+        const map = level.getMap();
+        const actor = new SentientActor('actor');
+        level.addActor(actor, 5, 5);
+        actor.setFOVRange(1);
+
+        let cells = map.getCellsInFOV(actor);
+        console.log('Seen cells are:', cells.map(c => c.getXY()));
+        expect(cells).to.have.length(9);
+
+        const cells2 = map.getCellsInFOV(actor);
+        console.log('Seen cells2 are:', cells2.map(c => c.getXY()));
+        expect(cells2).to.have.length(cells.length);
+
+        level.moveActorTo(actor, 1, 1);
+        cells = map.getCellsInFOV(actor);
+        console.log('Seen cells are:', cells.map(c => c.getXY()));
+        expect(cells).to.have.length(9);
+
+
+        actor.setFOVRange(2);
+        level.moveActorTo(actor, 2, 2);
+        cells = map.getCellsInFOV(actor);
+        console.log('Seen cells are:', cells.map(c => c.getXY()));
+        expect(cells).to.have.length(9);
+
+    });
+
+});
