@@ -391,6 +391,7 @@ export class DebugGame {
             level.addActor(chicken, cell.getX(), cell.getY());
         }
 
+        player.setFOVRange(5);
 
         return game;
     }
