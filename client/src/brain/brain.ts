@@ -5,7 +5,8 @@ import {Geometry} from '../geometry';
 import {BrainBase} from './brain.base';
 import {Memory} from './brain.memory';
 import {Random} from '../random';
-import {TCoord} from '../interfaces';
+import {TCoord, ICoordXY} from '../interfaces';
+import {Path} from '../path';
 
 type BaseActor = import('../actor').BaseActor;
 type SentientActor = import('../actor').SentientActor;
@@ -487,10 +488,13 @@ export class BrainSentient extends BrainBase {
     /* Returns shortest path from actor to the given cell. Resulting cells are
      * returned in order: closest to the actor first. Thus moving to the
      * next cell can be done by taking the first returned cell.*/
-    public getShortestPathTo(cell: Cell) {
+    public getShortestPathTo(cell: Cell): Cell[] {
         const [toX, toY] = cell.getXY();
+        const [fromX, fromY] = this._actor.getXY();
         const map = this._actor.getLevel().getMap();
-        return map.getShortestPathTo(this._actor, toX, toY);
+        // return map.getShortestPathTo(this._actor, toX, toY);
+        const path: ICoordXY[] = Path.getShortestActorPath(map, fromX, fromY, toX, toY);
+        return path.map((xy: ICoordXY) => map.getCell(xy.x, xy.y));
     }
 
     /* Flees from the given cell or explores randomly if cannot. */

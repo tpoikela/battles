@@ -1,7 +1,7 @@
 
 import RG from './rg';
 import {Random} from './random';
-import {TCardinalDir, ICoordMap, TCoord, ICellDirMap, IBBox} from './interfaces';
+import {TCardinalDir, ICoordMap, TCoord, TCoord3D, ICellDirMap, IBBox} from './interfaces';
 import {BBox} from './bbox';
 
 const RNG = Random.getRNG();
@@ -37,9 +37,15 @@ interface ITileConf {
     centerY?: boolean;
 }
 
+interface GeomCache {
+    lineFuncUnique3D: {[key: string]: TCoord3D[]};
+}
+
 /* Contains generic 2D geometric functions for square/rectangle/triangle
  * generation and level manipulation. */
 export class Geometry {
+
+    public static _cache: GeomCache;
 
     public static floodfill: (map: CellMap, cell: Cell, type: StrOrFunc, diag?: boolean) => Cell[];
     public static floodfillPassable: (map: CellMap, diag?: boolean) => Cell[];
@@ -811,6 +817,71 @@ export class Geometry {
         return res;
     }
 
+    public static distance3D(src: TCoord3D, dest: TCoord3D): number {
+        const dX = dest[0] - src[0];
+        const dY = dest[1] - src[1];
+        const dZ = dest[2] - src[2];
+        return Math.sqrt(dX**2 + dY**2 + dZ**2);
+    }
+
+    public static distance3DSquared(src: TCoord3D, dest: TCoord3D): number {
+        const dX = dest[0] - src[0];
+        const dY = dest[1] - src[1];
+        const dZ = dest[2] - src[2];
+        return dX**2 + dY**2 + dZ**2;
+    }
+
+    /* Calculates 3D bresenham, then calls the callbacks for each value. Note
+     * that same line maybe called multiple times. */
+    public static lineFunc3D(src: TCoord3D, dest: TCoord3D, func, incSrcDest=true): void {
+        let [x, y, z] = src.map(c => c + 0.5);
+        const len = Geometry.distance3D(src, dest);
+        const steps = Math.floor(len);
+        const xStep = (dest[0] - x) / len;
+        const yStep = (dest[1] - y) / len;
+        const zStep = (dest[2] - z) / len;
+        if (incSrcDest) {
+            func(Math.floor(x), Math.floor(y), Math.floor(z));
+        }
+        for (let i = 0; i < steps; i++) {
+            x += xStep;
+            y += yStep;
+            z += zStep;
+            func(Math.floor(x), Math.floor(y), Math.floor(z));
+        }
+        if (incSrcDest) {
+            func(dest[0], dest[1], dest[2]);
+        }
+    }
+
+    /* Same as lineFunc3D but calls func only once for each integer point. */
+    public static lineFuncUnique3D(src: TCoord3D, dest: TCoord3D, func, incSrcDest=true): void {
+        const key = RG.toKey(src) + ',' + RG.toKey(dest) + incSrcDest;
+        const isCached = Geometry._cache.lineFuncUnique3D.hasOwnProperty(key);
+        if (isCached) {
+            const cached = Geometry._cache.lineFuncUnique3D[key];
+            cached.forEach((xyz) => {
+                func(xyz[0], xyz[1], xyz[2]);
+            });
+            return;
+        }
+        else {
+            Geometry._cache.lineFuncUnique3D[key] = [];
+        }
+
+        const seen: {[key: string]: boolean} = {};
+        // This func used to filter out non-unique coords
+        const wrapFunc = (x, y, z) => {
+            const keySeen = RG.toKey([x, y, z]);
+            if (!seen[keySeen]) {
+                func(x, y, z);
+                seen[keySeen] = true;
+                Geometry._cache.lineFuncUnique3D[key].push([x, y, z]);
+            }
+        };
+        Geometry.lineFunc3D(src, dest, wrapFunc, incSrcDest);
+    }
+
 }
 
 
@@ -1151,3 +1222,7 @@ function verifyInt(arr: any[]): void {
         }
     });
 }
+
+Geometry._cache = {
+    lineFuncUnique3D: {}
+};

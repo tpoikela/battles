@@ -10,7 +10,7 @@ import {
 // Elevations
 const ELEV = [
     //'\u1390', //
-    '\u2981',
+    '\u22C5',
     ':',
     '\u22EE',
     // '\u2026',

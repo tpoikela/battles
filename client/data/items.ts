@@ -1411,8 +1411,11 @@ export const dmgTypes = {
     rifle: RG.DMG.PIERCE
 };
 
-/* Set damage types for weapons. */
+/* Set damage types for weapons. Skips, if already set. */
 Items.forEach((item: ObjectShell) => {
+    if (item.damageType) {
+        return;
+    }
     if (item.weaponType) {
         if (dmgTypes.hasOwnProperty(item.weaponType)) {
             item.damageType = dmgTypes[item.weaponType];

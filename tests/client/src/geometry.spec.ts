@@ -200,4 +200,16 @@ describe('Geometry', () => {
         expect(superLevel2.getMap().rows).to.equal(70);
     });
 
+    it.only('has function to iterate 3D lines', () => {
+        const res = [];
+        const cb = (x, y, z) => {res.push([x, y, z]);}
+        const c0 = [0, 0, 0];
+        const c1 = [3, 3, 3];
+        Geometry.lineFuncUnique3D(c0, c1, cb);
+        console.log(res);
+        expect(res).to.have.length(4);
+        
+    });
+    
+
 });

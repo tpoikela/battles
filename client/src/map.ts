@@ -6,6 +6,7 @@ import {ElementBase, ElementWall, ElementMarker, ElementXY} from './element';
 import {TCoord, ConstBaseElem, TCellProp, TPropType} from './interfaces';
 import {BBox} from './bbox';
 import {ELEM_MAP} from '../data/elem-constants';
+import {Fov3D} from './fov3d';
 
 const FLOOR = new ElementBase('floor');
 const WALL = new ElementWall('wall');
@@ -96,8 +97,11 @@ export class CellMap {
             }
         }
 
+        /*
         this.fov = new ROT.FOV.RecursiveShadowcasting(
             this.lightPasses.bind(this));
+        */
+        this.fov = new Fov3D(this, this.lightPasses.bind(this));
 
         this.passableCallback = this.passableCallback.bind(this);
         this.passableCallbackFlying = this.passableCallbackFlying.bind(this);
@@ -276,13 +280,14 @@ export class CellMap {
     /* Returns visible cells for given actor.*/
     public getCellsInFOV(actor: SentientActor): Cell[] {
         const cells: Cell[] = [];
-        const [xA, yA] = actor.getXY();
+        // const [xA, yA] = actor.getXY();
+        const [xA, yA, zA] = actor.getXYZ();
         const range = actor.getFOVRange();
 
         if (actor.isLocated()) {
             if (actor.getLevel().getMap() === this) {
 
-                this.fov.compute(xA, yA, range, (x, y, r, visibility) => {
+                this.fov.compute(xA, yA, zA, range, (x, y, r, visibility) => {
                     if (visibility) {
                         if (this.hasXY(x, y)) {
                             cells.push(this._map[x][y]);
@@ -297,14 +302,16 @@ export class CellMap {
     public getCellsInFOVPlus(actor: SentientActor, addRange: number): [Cell[], Cell[]] {
         const cells: Cell[] = [];
         const cellsPlus: Cell[] = [];
-        const [xA, yA] = actor.getXY();
+        // const [xA, yA] = actor.getXY();
+        const [xA, yA, zA] = actor.getXYZ();
         const fovRange = actor.getFOVRange();
         const range = fovRange + addRange;
 
         if (actor.isLocated()) {
             if (actor.getLevel().getMap() === this) {
 
-                this.fov.compute(xA, yA, range, (x, y, r, visibility) => {
+                // this.fov.compute(xA, yA, range, (x, y, r, visibility) => {
+                this.fov.compute(xA, yA, zA, range, (x, y, r, visibility) => {
                     if (visibility) {
                         if (this.hasXY(x, y)) {
                             if (r <= fovRange) {
@@ -553,6 +560,7 @@ export class CellMap {
     }
 
 
+    /*
     public getShortestPathTo(actor, toX: number, toY: number): Cell[] {
         const [sX, sY] = actor.getXY();
         let passCb = this.passableCallback.bind(null, sX, sY);
@@ -568,11 +576,7 @@ export class CellMap {
         });
         return path;
     }
-
-    public getShortestPathCached(actor, toX, toY): Cell[] {
-        // TODO
-        return [];
-    }
+    */
 
     public passableCallback(sX, sY, x, y, cx, cy): boolean {
         let res = this.isPassable(x, y, cx, cy);

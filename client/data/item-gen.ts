@@ -34,7 +34,7 @@ const weaponTypes = {
     melee: [
         'dagger', 'sword', 'staff', 'whip', 'axe', 'mace', 'saber',
         'spear', 'morningstar', 'battle axe', 'warhammer', 'pick-axe',
-        'hammer', 'katana', 'falchion', 'scimitar'
+        'hammer', 'katana', 'falchion', 'scimitar', 'war scythe'
     ],
     ranged: [
         'sling', 'short bow', 'crossbow', 'matchlock', 'musket',
@@ -243,33 +243,44 @@ shellProps.weapon = {
     dagger: {
         damage: '1d6', attack: 1, weight: 0.2, rarity: 1,
         value: 10,
+        weaponType: 'dagger',
     },
     sword: {
         damage: '1d8 + 2', attack: 2, defense: 1, weight: 0.8,
         rarity: 2,
         value: 20,
+        weaponType: 'sword',
     },
     spear: {
         damage: '1d9 + 1', attack: 1, defense: 3, weight: 1.0,
         rarity: 3,
         value: 25,
+        weaponType: 'spear',
     },
     mace: {
         damage: '1d10', attack: 2, weight: 1.3,
         rarity: 3,
         value: 25,
+        weaponType: 'mace',
     },
     axe: {
         damage: '2d6', attack: 2, weight: 1.1, rarity: 3,
         value: 35,
+        weaponType: 'axe',
     },
     warhammer: {
         damage: '1d10', attack: 2, weight: 1.1, rarity: 2,
         value: 30,
+        weaponType: 'hammer',
     },
     staff: {
         damage: '1d8', attack: 2, defense: 2, weight: 0.9,
         rarity: 4, value: 30,
+    },
+    'war scythe': {
+        damage: '1d10+2', attack: 4, weight: 1.5, rarity: 4,
+        value: 50,
+        weaponType: 'polearm', damageType: RG.DMG.SLASH
     }
 };
 names.weapon = Object.keys(shellProps.weapon);
@@ -289,6 +300,11 @@ shellProps.armour = {
         armourType: 'chest', weight: 1.7,
         protection: 3, defense: 1, attack: 0,
         value: 30
+    },
+    brigandine: {
+        armourType: 'chest', weight: 1.5,
+        protection: 5, defense: 1, attack: 0,
+        value: 50
     },
     boots: {
         armourType: 'feet', weight: 0.5,
@@ -373,7 +389,7 @@ shellProps.material = {
     },
     mithril: {
         className: 'cell-item-mithril',
-        weight: 0.9, value: 3.0, rarity: 2.0,
+        weight: 0.75, value: 3.0, rarity: 2.3,
         weapon: {
             damage: '2d3 + 3'
         },
@@ -399,7 +415,7 @@ shellProps.material = {
         },
         armour: {
             protection: '* 3.0',
-            defense: -1, attack: -1
+            defense: -2, attack: -2
         }
     },
     forium: {
@@ -411,6 +427,18 @@ shellProps.material = {
         armour: {
             protection: '* 2.2',
             defense: 1
+        }
+    },
+    netherium: {
+        className: 'cell-item-nether',
+        weight: 2.0, value: 7.0, rarity: 5.0,
+        weapon: {
+            damage: '2d4 + 2',
+            attack: 5
+        },
+        armour: {
+            protection: '* 2.2',
+            defense: -1, attack: -1
         }
     },
     void: { // No one knows the material really, not even dev

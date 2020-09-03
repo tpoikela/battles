@@ -5,7 +5,8 @@ const $DEBUG = 0;
 
 import './utils';
 import {TCardinalDir, TCoord, DestOrSrc, IPlayerCmdInput, ICellDirMap,
-    TPropType, AmmoOrMissile, TObjRefArray, IObjRef, CellPropMap} from './interfaces';
+    TPropType, AmmoOrMissile, TObjRefArray, IObjRef, CellPropMap, TCoord3D
+} from './interfaces';
 import {Random} from './random';
 import {EventPool} from './eventpool';
 
@@ -2276,13 +2277,22 @@ class RGClass {
         return null;
     }
 
-    public toKey(xy: TCoord): string {
-        return xy[0] + ',' + xy[1];
+    public toKey(xy: TCoord | TCoord3D): string {
+        let res = xy[0] + ',' + xy[1];
+        if (xy.length > 2) {res += ',' + xy[2];}
+        return res;
+    }
+
+    public fromKey3D(key: string): TCoord3D {
+        const arr = key.split(',');
+        return [
+            parseInt(arr[0], 10), parseInt(arr[1], 10), parseInt(arr[2], 10)
+        ];
     }
 
     public fromKey(key: string): TCoord {
-        const [x, y] = key.split(',');
-        return [parseInt(x, 10), parseInt(y, 10)];
+        const arr = key.split(',');
+        return [parseInt(arr[0], 10), parseInt(arr[1], 10)];
     }
 
 }
