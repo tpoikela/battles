@@ -15,10 +15,12 @@ export class Fov3D {
     protected _passCb: LightPassesCb;
     protected _map: CellMap;
     protected _seen: {[key: string]: boolean};
+    protected _maxZ: number;
 
     constructor(map: CellMap, cb: (x, y, z) => boolean) {
         this._passCb = cb;
         this._map = map;
+        this._maxZ = MAX_Z; // TODO get from map
     }
 
 
@@ -28,7 +30,7 @@ export class Fov3D {
         this._seen = {};
 
         // Z-dim is limited to what's actually used in the game
-        for (let zz = MIN_Z; zz < MAX_Z;  ++zz) {
+        for (let zz = MIN_Z; zz < this._maxZ;  ++zz) {
             for (let i = -rr; i <= rr; i++) {
                 this.internalViewTo(pos, rr, i, rr, zz, compCb);
                 this.internalViewTo(pos, rr, i, -rr, zz, compCb);
@@ -38,12 +40,10 @@ export class Fov3D {
         }
     }
 
+    // Ported from https://github.com/thebracket/bgame
+    // File: bgame/src/systems/physics/visibility_system.cpp
     protected internalViewTo(pos: TCoord3D, r, x, y, z, compCb): void {
         const distSquare = r * r;
-
-
-        //reveal(mapidx(pos), view); // Always reveal where we are standing
-
         let blocked = false
         const [x0, y0, z0] = pos;
         const src: TCoord3D = [x0, y0, z0];
@@ -67,8 +67,10 @@ export class Fov3D {
                     }
 
                     if (!this._passCb(atX, atY, atZ)) {
-                        // console.log('Oh no!', atX, atY, atZ, 'is blocked!');
                         blocked = true;
+                        if (pos[0] === atX && pos[1] === atY && pos[2] === atZ) {
+                            blocked = false;
+                        }
                     }
                 }
             }
