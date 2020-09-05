@@ -284,7 +284,7 @@ class RGClass {
                 }
             },
             actors: {
-                default: 'X'
+                default: '@'
             },
             items: {
                 default: '?',
