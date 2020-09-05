@@ -858,6 +858,15 @@ export class Geometry {
     public static lineFuncUnique3D(src: TCoord3D, dest: TCoord3D, func, incSrcDest=true): void {
         const key = RG.toKey(src) + ',' + RG.toKey(dest) + incSrcDest;
         const isCached = Geometry._cache.lineFuncUnique3D.hasOwnProperty(key);
+        if (!isCached) {
+            Geometry._cache.lineFuncUnique3D[key] = Geometry.bresenham3D(...src, ...dest);
+        }
+        const cached = Geometry._cache.lineFuncUnique3D[key];
+        cached.forEach((xyz) => {
+            func(xyz[0], xyz[1], xyz[2]);
+        });
+
+       /* Sol2:
         if (isCached) {
             const cached = Geometry._cache.lineFuncUnique3D[key];
             cached.forEach((xyz) => {
@@ -880,16 +889,99 @@ export class Geometry {
             }
         };
         Geometry.lineFunc3D(src, dest, wrapFunc, incSrcDest);
+        */
     }
 
     public static getBresenham3D(src: TCoord3D, dest: TCoord3D): TCoord3D[] {
+        return Geometry.bresenham3D(...src, ...dest);
+    }
+
+
+    /* Source: https://gist.github.com/yamamushi/5823518 */
+    public static bresenham3D(x1, y1, z1, x2, y2, z2): TCoord3D[] {
+        let i = 0;
+        let err1 = 0;
+        let err2 = 0;
+        const point = [-1, -1 , -1];
+
+        point[0] = x1;
+        point[1] = y1;
+        point[2] = z1;
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const dz = z2 - z1;
+        const xInc = (dx < 0) ? -1 : 1;
+        const l = Math.abs(dx);
+        const yInc = (dy < 0) ? -1 : 1;
+        const m = Math.abs(dy);
+        const zInc = (dz < 0) ? -1 : 1;
+        const n = Math.abs(dz);
+        const dx2 = l << 1;
+        const dy2 = m << 1;
+        const dz2 = n << 1;
+
         const res: TCoord3D[] = [];
-        const func = (x, y, z) => {
-            res.push([x, y, z]);
-        };
-        Geometry.lineFuncUnique3D(src, dest, func);
+
+        if ((l >= m) && (l >= n)) {
+            err1 = dy2 - l;
+            err2 = dz2 - l;
+            for (i = 0; i < l; i++) {
+                // output->getTileAt(point[0], point[1], point[2])->setSymbol(symbol);
+                res.push([point[0], point[1], point[2]]);
+                if (err1 > 0) {
+                    point[1] += yInc;
+                    err1 -= dx2;
+                }
+                if (err2 > 0) {
+                    point[2] += zInc;
+                    err2 -= dx2;
+                }
+                err1 += dy2;
+                err2 += dz2;
+                point[0] += xInc;
+            }
+        } else if ((m >= l) && (m >= n)) {
+            err1 = dx2 - m;
+            err2 = dz2 - m;
+            for (i = 0; i < m; i++) {
+                // output->getTileAt(point[0], point[1], point[2])->setSymbol(symbol);
+                res.push([point[0], point[1], point[2]]);
+                if (err1 > 0) {
+                    point[0] += xInc;
+                    err1 -= dy2;
+                }
+                if (err2 > 0) {
+                    point[2] += zInc;
+                    err2 -= dy2;
+                }
+                err1 += dx2;
+                err2 += dz2;
+                point[1] += yInc;
+            }
+        } else {
+            err1 = dy2 - n;
+            err2 = dx2 - n;
+            for (i = 0; i < n; i++) {
+                // output->getTileAt(point[0], point[1], point[2])->setSymbol(symbol);
+                res.push([point[0], point[1], point[2]]);
+                if (err1 > 0) {
+                    point[1] += yInc;
+                    err1 -= dz2;
+                }
+                if (err2 > 0) {
+                    point[0] += xInc;
+                    err2 -= dz2;
+                }
+                err1 += dy2;
+                err2 += dx2;
+                point[2] += zInc;
+            }
+        }
+        res.push([point[0], point[1], point[2]]);
+        // output->getTileAt(point[0], point[1], point[2])->setSymbol(symbol);
         return res;
     }
+
 
 }
 
