@@ -464,7 +464,6 @@ Missile.prototype.setTargetXYZ = function(x, y, z) {
     const src: TCoord3D = [this.x, this.y, this.z];
     const dest: TCoord3D = [x, y, z];
     this.path = Geometry.getBresenham3D(src, dest);
-    console.log('MissComp path is', this.path);
     this.targetX = x;
     this.targetY = y;
     this.targetZ = z;
@@ -642,6 +641,19 @@ Paralysis.prototype.toJSON = function() {
     }
     return obj;
 };
+
+/*
+export const Blindness = DataComponent('Blindness', {source: null});
+Blindness.description = 'Blinded actors cannot see their surroundings';
+
+Blindness.prototype.toJSON = function() {
+    const obj = ComponentBase.prototype.toJSON.call(this);
+    if (RG.isActorActive(this.source)) {
+        obj.setSource = RG.getObjRef('entity', this.source);
+    }
+    return obj;
+};
+*/
 
 /* Component added to summoned/created actors. */
 export const Created = UniqueDataComponent('Created', {creator: null});
