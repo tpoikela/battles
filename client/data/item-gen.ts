@@ -15,15 +15,20 @@ export const ItemGen: any = {};
 interface ItemProps {
     weapon: StringMap<IShell>;
     armour: StringMap<IShell>;
+    missile: StringMap<IShell>;
+    missileweapon: StringMap<IShell>;
 }
 
 interface Names {
     armour: string[];
+    ammo: string[];
     materials: string[];
     weapon: string[];
     weaponTypes: string[];
     prefix: StringMap<string[]>;
     suffix: StringMap<string[]>;
+    missile: string[];
+    missileweapon: string[];
 }
 
 const shellProps: any = {};
@@ -36,8 +41,8 @@ const weaponTypes = {
         'spear', 'morningstar', 'battle axe', 'warhammer', 'pick-axe',
         'hammer', 'katana', 'falchion', 'scimitar', 'war scythe'
     ],
-    ranged: [
-        'sling', 'short bow', 'crossbow', 'matchlock', 'musket',
+    missileweapon: [
+        'sling', 'short bow', 'warbow', 'crossbow', 'musket',
         'rifle'
     ],
     ammo: [
@@ -74,8 +79,14 @@ const prefix: any = {
             value: 2.0, rarity: 2.0,
             onAttackHit: [meleeHitDamage(1, '1d4 + 2', 'PIERCE')],
         }
-    }
+    },
+    missileweapon: {},
+    ammo: {},
+    missile: {},
 };
+
+prefix.ammo = Object.assign(prefix.ammo, prefix.weapon);
+prefix.missile = Object.assign(prefix.missile, prefix.weapon);
 
 prefix.armour = {
     light: prefix.weapon.light,
@@ -87,7 +98,10 @@ prefix.armour = {
 ItemGen.prefix = prefix;
 names.prefix = {
     weapon: Object.keys(prefix.weapon),
-    armour: Object.keys(prefix.armour)
+    armour: Object.keys(prefix.armour),
+    missileweapon: Object.keys(prefix.missileweapon),
+    missile: Object.keys(prefix.missile),
+    ammo: Object.keys(prefix.ammo),
 };
 
 const suffix: any = {
@@ -150,7 +164,7 @@ const suffix: any = {
             rarity: 2, value: 2
         },
         ofHoly: {
-            name: 'of Serpent', addComp: [resistance('NECRO', 'MEDIUM')],
+            name: 'of Holy', addComp: [resistance('NECRO', 'MEDIUM')],
             rarity: 2, value: 2
         },
         ofMagic: {
@@ -216,10 +230,32 @@ suffix.armour = {
     ofSpirituality: suffix.weapon.ofSpirit,
     ofWillpower: suffix.weapon.ofWillpower
 };
+
+suffix.missile = {
+    ofParalysis: {
+        name: 'of paralysis', rarity: 3, value: 2,
+        onAttackHit: [{addComp: 'Paralysis', duration: '1'}]
+    },
+    ofStunning: {
+        name: 'of stunning', rarity: 3, value: 2,
+        onAttackHit: [{addComp: 'Stun', duration: '1'}]
+    },
+    ofSlowness: {
+        name: 'of slowness', rarity: 3, value: 3,
+        onAttackHit: [{addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -10}],
+            duration: '3d10'}]
+    }
+};
+suffix.missileweapon = {};
+suffix.ammo = suffix.missile;
+
 ItemGen.suffix = suffix;
 names.suffix = {
     weapon: Object.keys(suffix.weapon),
-    armour: Object.keys(suffix.armour)
+    armour: Object.keys(suffix.armour),
+    missileweapon: Object.keys(suffix.missileweapon),
+    missile: Object.keys(suffix.missile),
+    ammo: Object.keys(suffix.ammo),
 };
 
 // These are not added to ObjectShellParser, but mixed immediately
@@ -236,6 +272,14 @@ const baseShells: StringMap<IShell> = {
     missile: {
         type: 'missile', value: 1, attack: 0, defense: 0,
         char: '/'
+    },
+    missileweapon: {
+        type: 'missileweapon', value: 1, attack: 0, defense: 0,
+        char: '{', fireRate: 1
+    },
+    ammo: {
+        type: 'ammo', value: 1, attack: 0, defense: 0,
+        char: '/',
     }
 };
 
@@ -281,6 +325,11 @@ shellProps.weapon = {
         damage: '1d10+2', attack: 4, weight: 1.5, rarity: 4,
         value: 50,
         weaponType: 'polearm', damageType: RG.DMG.SLASH
+    },
+    halberd: {
+        damage: '1d12+3', attack: 5, weight: 1.9, rarity: 5,
+        value: 55,
+        weaponType: 'polearm', damageType: RG.DMG.SLASH
     }
 };
 names.weapon = Object.keys(shellProps.weapon);
@@ -294,27 +343,32 @@ shellProps.armour = {
     cuirass: {
         armourType: 'chest', weight: 2.0,
         protection: 4, defense: -1, attack: -1,
-        value: 40
+        value: 40, no: {material: ['wooden']}
     },
     mail: {
         armourType: 'chest', weight: 1.7,
         protection: 3, defense: 1, attack: 0,
-        value: 30
+        value: 30, no: {material: ['leather', 'wooden']}
     },
     brigandine: {
         armourType: 'chest', weight: 1.5,
         protection: 5, defense: 1, attack: 0,
-        value: 50
+        value: 50, no: {material: ['leather', 'wooden']}
+    },
+    'full plate': {
+        armourType: 'chest', weight: 2.5,
+        protection: 8, defense: 0, attack: -2,
+        value: 80, no: {material: ['leather', 'wooden', 'cloth']}
     },
     boots: {
         armourType: 'feet', weight: 0.5,
         protection: 1, defense: 0, attack: 0,
-        value: 15
+        value: 15, no: {material: 'wooden'}
     },
     greaves: {
         armourType: 'legs', weight: 1.0,
         protection: 2, defense: 0, attack: 1,
-        value: 20
+        value: 20, no: {material: 'wooden'}
     },
     helmet: {
         armourType: 'head', weight: 0.3,
@@ -324,17 +378,17 @@ shellProps.armour = {
     collar: {
         armourType: 'neck', weight: 0.2,
         protection: 1, defense: 0, attack: 0,
-        value: 15
+        value: 15, no: {material: 'wooden'}
     },
     shield: {
         armourType: 'shield', weight: 0.8,
         protection: 2, defense: 1, attack: 0,
-        value: 15
+        value: 15, no: {material: ['cloth', 'leather']}
     },
     buckler: {
         armourType: 'shield', weight: 0.4,
         protection: 0, defense: 3, attack: 1,
-        value: 20
+        value: 20, no: {material: ['cloth', 'leather']}
     }
 };
 names.armour = Object.keys(shellProps.armour);
@@ -342,16 +396,87 @@ names.armour = Object.keys(shellProps.armour);
 
 shellProps.missile = {
     'shuriken': {
+        char: '*', damage: '1d6', range: 3,
+        value: 10, weaponType: 'shuriken', weight: 0.1
     },
     'dart': {
+        char: '/', damage: '1d6 + 1', range: 3,
+        value: 13, weaponType: 'dart', weight: 0.1
     },
     'throwing knife': {
+        char: '/', damage: '1d6', range: 3, weight: 0.2,
+        value: 13, attack: 1, weaponType: 'dagger'
     },
     'throwing spear': {
+        attack: 2, damage: '1d7 + 1', range: 3, value: 30, weight: 0.4,
+        weaponType: 'spear'
     },
     'throwing axe': {
+        attack: 2, damage: '1d8 + 1', range: 3, value: 35, weight: 0.3,
     },
 };
+names.missile = Object.keys(shellProps.missile);
+
+shellProps.missileweapon = {
+    sling: {
+        weaponType: 'sling', value: 15,
+        damage: '1d4', range: 3,
+        weight: 0.3,
+    },
+    'short bow': {
+        weaponType: 'bow', value: 25,
+        damage: '1d6', range: 4,
+        weight: 0.6,
+    },
+    warbow: {
+        weaponType: 'bow', value: 35,
+        damage: '1d9', range: 6,
+        weight: 0.9,
+    },
+    'light crossbow': {
+        weaponType: 'crossbow', value: 30,
+        damage: '1d8', range: 5,
+        weight: 1.0,
+    },
+    crossbow: {
+        weaponType: 'crossbow', value: 40,
+        damage: '2d6', range: 6,
+        weight: 1.5,
+    },
+    musket: {
+        weaponType: 'rifle', value: 50,
+        damage: '2d6', range: 6,
+        no: {material: ['wooden']},
+        weight: 2.5
+    },
+    rifle: {
+        weaponType: 'rifle', value: 75,
+        damage: '3d6', range: 7,
+        no: {material: ['wooden']},
+        weight: 3.5
+    }
+};
+names.missileweapon = Object.keys(shellProps.missileweapon);
+
+shellProps.ammo = {
+    arrow: {
+        ammoType: 'bow',
+        damage: '1d6', value: 5, range: 1,
+        weight: 0.1
+    },
+    bolt: {
+        ammoType: 'crossbow',
+        damage: '1d8', value: 8, range: 1,
+        weight: 0.1
+    },
+    bullet: {
+        ammoType: 'rifle',
+        damage: '1d8', value: 15,
+        no: {material: ['wooden']}, range: 1,
+        weight: 0.1
+    },
+};
+names.ammo = Object.keys(shellProps.ammo);
 
 shellProps.material = {
     cloth: {
@@ -449,19 +574,26 @@ shellProps.material = {
             onAttackHit: [meleeHitDamage(2, '1d6 + 1', 'VOID')],
         },
         armour: {
-            protection: '* 2.0'
+            protection: '* 2.0',
+            addComp: [resistance('VOID', 'MEDIUM')],
         }
     }
 };
+copyValues(shellProps.material, 'weapon', 'missileweapon');
+copyValues(shellProps.material, 'weapon', 'missile');
+copyValues(shellProps.material, 'weapon', 'ammo');
 
 names.materials = Object.keys(shellProps.material);
 
 const materialForTypes: {[key: string]: string[]} = {
     weapon: names.materials.filter(name => !/(wooden|leather|cloth)/.test(name)),
     armour: names.materials.slice(),
+    missileweapon: names.materials.filter(name => !/(leather|cloth)/.test(name)),
+    missile: names.materials.filter(name => !/(leather|cloth)/.test(name)),
+    ammo: names.materials.filter(name => !/(leather|cloth)/.test(name)),
 };
 
-const itemTypes = ['armour', 'weapon'];
+const itemTypes = ['armour', 'weapon', 'ammo', 'missile', 'missileweapon'];
 
 /* Generates a random item shell according to the following rules:
  * 1.
@@ -482,7 +614,10 @@ ItemGen.genRandShell = function(type: string): IShell {
         materialItemShell = materialShell[type];
     }
 
-    const chosenName = RNG.arrayGetRand(names[type] as string[]);
+    const namesFiltered = filterMaterial(type, material, names[type]);
+
+    // const chosenName = RNG.arrayGetRand(names[type] as string[]);
+    const chosenName = RNG.arrayGetRand(namesFiltered);
     const itemShell = shellProps[type][chosenName];
 
     const allShells = [baseShells[type], itemShell, materialShell];
@@ -492,16 +627,20 @@ ItemGen.genRandShell = function(type: string): IShell {
 
     let fullName = material + ' ' + chosenName;
     if (hasPrefix) {
-        prefixName = RNG.arrayGetRand(names.prefix[type]);
-        const prefixShell = prefix[type][prefixName];
-        allShells.push(prefixShell);
-        fullName = addNamePrefix(fullName, prefixName, prefixShell);
+        if (names.prefix[type].length > 0) {
+            prefixName = RNG.arrayGetRand(names.prefix[type]);
+            const prefixShell = prefix[type][prefixName];
+            allShells.push(prefixShell);
+            fullName = addNamePrefix(fullName, prefixName, prefixShell);
+        }
     }
     if (hasSuffix) {
-        suffixName = RNG.arrayGetRand(names.suffix[type]);
-        const suffixShell = suffix[type][suffixName];
-        allShells.push(suffixShell);
-        fullName = addNameSuffix(fullName, suffixName, suffixShell);
+        if (names.suffix[type].length > 0) {
+            suffixName = RNG.arrayGetRand(names.suffix[type]);
+            const suffixShell = suffix[type][suffixName];
+            allShells.push(suffixShell);
+            fullName = addNameSuffix(fullName, suffixName, suffixShell);
+        }
     }
 
     const newShell = mixNewShell(allShells);
@@ -597,4 +736,44 @@ function addNameSuffix(fullName: string, suffixName: string, suffixShell: IShell
         name = fullName + ' ' + suffixName;
     }
     return name;
+}
+
+function filterMaterial(
+    type: string, material: string, items: string[]
+): string[] {
+    return items.filter((itemName: string) => {
+        const itemShell = shellProps[type][itemName];
+        // Apply no/negative filter
+        if (itemShell.no) {
+            const noFilter = itemShell.no;
+            if (noFilter.material === material) {
+                return false;
+            }
+            if (noFilter.material.indexOf(material) >= 0) {
+                return false;
+            }
+        }
+        // Apply only filter
+        if (itemShell.only) {
+            const onlyFilter = itemShell.only;
+            if (Array.isArray(onlyFilter.material)) {
+                if (onlyFilter.material.indexOf(material) < 0) {
+                    return false;
+                }
+            }
+            else if (onlyFilter.material !== material) {
+                return false;
+            }
+        }
+        return true;
+    });
+}
+
+function copyValues(obj: StringMap<IShell>, from, to): void {
+    Object.keys(obj).forEach((key: string) => {
+        const shell: IShell = obj[key];
+        if (shell[from]) {
+            shell[to] = shell[from];
+        }
+    });
 }
