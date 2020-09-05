@@ -33,6 +33,8 @@ describe('GUI.Screen', () => {
         const visibleCells = level.exploreCells(actor);
         screen.render(1, 1, map, visibleCells);
 
+        screen.printRenderedChars();
+
         const chars = screen.getCharRows();
         const classes = screen.getClassRows();
 
