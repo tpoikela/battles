@@ -392,6 +392,11 @@ export class DebugGame {
         }
 
         player.setFOVRange(4);
+        /*
+        const blindness = new Component.Blindness();
+        blindness.setSource(player);
+        player.add(player);
+        */
 
         return game;
     }
