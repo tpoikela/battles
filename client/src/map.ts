@@ -283,7 +283,7 @@ export class CellMap {
     /* Returns visible cells for given actor.*/
     public getCellsInFOV(actor: SentientActor): Cell[] {
         const cells: Cell[] = [];
-        // const [xA, yA] = actor.getXY();
+        if (actor.has('Blindness')) {return cells;}
 
         if (actor.isLocated()) {
             if (actor.getLevel().getMap() === this) {
