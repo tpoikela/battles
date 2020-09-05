@@ -31,6 +31,7 @@ export class Fov3D {
 
         // Z-dim is limited to what's actually used in the game, maxZ could be
         // same as 'rr' in fully 3D world
+        compCb(x, y, z, true);
         for (let zz = MIN_Z; zz < this._maxZ;  ++zz) {
             for (let i = -rr; i <= rr; i++) {
                 this.internalViewTo(pos, rr, i, rr, zz, compCb);
