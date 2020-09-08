@@ -14,25 +14,33 @@ export class Fov3D {
 
     protected _passCb: LightPassesCb;
     protected _map: CellMap;
-    protected _seen: {[key: string]: boolean};
     protected _maxZ: number;
+
+    protected _distSquare: number;
+    protected _seen: {[key: string]: boolean};
 
     constructor(map: CellMap, cb: (x, y, z) => boolean) {
         this._passCb = cb;
         this._map = map;
         this._maxZ = MAX_Z; // TODO get from map
+        this._distSquare = 0;
+        this._maxZ = this.calcMapMaxZ(map);
     }
 
 
     public compute(x: number, y: number, z: number, r: number, compCb): void {
         const pos: TCoord3D = [x, y, z];
         const rr = r + 1;
+        this._distSquare = rr * rr;
         this._seen = {};
 
         // Z-dim is limited to what's actually used in the game, maxZ could be
         // same as 'rr' in fully 3D world
         compCb(x, y, z, true);
-        for (let zz = MIN_Z; zz < this._maxZ;  ++zz) {
+        const key = RG.toKey([x, y, z]);
+        this._seen[key] = true;
+
+        for (let zz = MIN_Z; zz <= this._maxZ;  ++zz) {
             for (let i = -rr; i <= rr; i++) {
                 this.internalViewTo(pos, rr, i, rr, zz, compCb);
                 this.internalViewTo(pos, rr, i, -rr, zz, compCb);
@@ -45,24 +53,19 @@ export class Fov3D {
     // Ported from https://github.com/thebracket/bgame
     // File: bgame/src/systems/physics/visibility_system.cpp
     protected internalViewTo(pos: TCoord3D, r, x, y, z, compCb): void {
-        const distSquare = r * r;
         let blocked = false
         const [x0, y0, z0] = pos;
         const src: TCoord3D = [x0, y0, z0];
         const dest: TCoord3D = [x0 + x, y0 + y, z0 + z];
-        // console.log('Starting at ', src);
-        // console.log('Ending at ', dest);
 
         Geometry.lineFuncUnique3D(src, dest, (atX, atY, atZ) => {
             if (blocked) {return;}
             if (this._map.hasXY(atX, atY)) {
-                const distance = Geometry.distance3DSquared(pos, [atX, atY, atZ]);
-                if (distance < distSquare) {
-                    //std::cout << " - Visit " << atX << ", " << atY << ", " << atZ << "\n";
-                    // const auto idx = mapidx(atX, atY, atZ);
-                    // if (!blocked) {reveal(idx, view);}
-                    // if (region::flag(idx, SOLID)) blocked = true;
-                    const key = RG.toKey([atX, atY, atZ]);
+                const atXYZ: TCoord3D = [atX, atY, atZ];
+                const distance = Geometry.distance3DSquared(pos, atXYZ);
+
+                if (distance < this._distSquare) {
+                    const key = RG.toKey(atXYZ);
                     if (!this._seen[key]) {
                         compCb(atX, atY, atZ, !blocked);
                         this._seen[key] = true;
@@ -77,6 +80,18 @@ export class Fov3D {
                 }
             }
         });
+    }
+
+    public calcMapMaxZ(map: CellMap): number {
+        let maxZ = 0;
+        RG.forEach2D(map._map, (x, y, cell) => {
+            if (cell) {
+                if (cell.getZ() > maxZ) {
+                    maxZ = cell.getZ();
+                }
+            }
+        });
+        return maxZ;
     }
 
 };

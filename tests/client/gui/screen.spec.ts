@@ -12,8 +12,10 @@ import {ElementWall} from '../../../client/src/element';
 import {CellMap} from '../../../client/src/map';
 
 
+const floorChar = '.';
 const wallChar = '#';
 const wallClass = 'cell-element-wall';
+const floorClass = 'cell-element-floor';
 
 describe('GUI.Screen', () => {
     let factLevel = null;
@@ -33,17 +35,31 @@ describe('GUI.Screen', () => {
         const visibleCells = level.exploreCells(actor);
         screen.render(1, 1, map, visibleCells);
 
-        screen.printRenderedChars();
+        // screen.printRenderedChars();
 
         const chars = screen.getCharRows();
         const classes = screen.getClassRows();
 
-        chars[0].forEach((cell, index) => {
-            expect(cell, `Cell ${index} is wall`).to.equal(wallChar);
+        chars[1].forEach((cell, y) => {
+            if (y > 1 && y < 9) {
+                expect(cell, `Cell [0]${y} is floor`).to.equal(floorChar);
+            }
+        });
+        chars[9].forEach((cell, y) => {
+            if (y > 0 && y < 9) {
+                expect(cell, `Cell [9]${y} is wall`).to.equal(wallChar);
+            }
         });
 
-        classes[0].forEach(cell => {
-            expect(cell).to.equal(wallClass);
+        classes[1].forEach((cell, y) => {
+            if (y > 1 && y < 9) {
+                expect(cell).to.equal(floorClass);
+            }
+        });
+        classes[9].forEach((cell, y) => {
+            if (y > 1 && y < 9) {
+                expect(cell).to.equal(wallClass);
+            }
         });
     });
 
@@ -81,14 +97,17 @@ describe('GUI.Screen', () => {
         level.addActor(actor, 1, 1);
         const visibleCells = level.exploreCells(actor);
         screen.renderWithRLE(1, 1, map, visibleCells);
+        screen.printRenderedChars();
 
         const chars = screen.getCharRows();
         const classes = screen.getClassRows();
 
         const charRow1 = [[1, '#'], [1, '@'], [5, '.'], [14, 'X']];
 
-        expect(chars[0]).to.have.length(2);
-        expect(classes[0]).to.have.length(2);
+        const firstRowLen = 4; // was 2
+        expect(chars[0]).to.have.length(firstRowLen);
+        expect(classes[0]).to.have.length(firstRowLen);
+
         expect(chars[1]).to.have.length(4);
         expect(chars[1]).to.deep.equal(charRow1);
         expect(classes[1]).to.have.length(4);

@@ -828,15 +828,15 @@ Spell.RockStorm = function() {
     this.ammoName = 'Huge rock';
 
     this.cast = function(args) {
-        const [x, y] = [args.src.getX(), args.src.getY()];
+        const [x, y, z] = args.src.getXYZ();
         Object.values(RG.DIR).forEach(dXdY => {
             const tX = x + this.getRange() * dXdY[0];
             const tY = y + this.getRange() * dXdY[1];
             const obj: SpellArgs = {
-                from: [x, y],
+                from: [x, y, z],
                 spell: this,
                 src: args.src,
-                to: [tX, tY]
+                to: [tX, tY, z]
             };
             obj.damageType = this.damageType;
             obj.damage = this.getDamage();

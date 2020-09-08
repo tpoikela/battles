@@ -34,7 +34,7 @@ import {Geometry} from './geometry';
 import {Path} from './path';
 
 import {IMenu, SelectionObject, PlayerMissileMenu} from './menu';
-import {TCoord} from './interfaces';
+import {TCoord, TCoord3D} from './interfaces';
 type Cell = import('./map.cell').Cell;
 type SentientActor = import('./actor').SentientActor;
 
@@ -265,8 +265,8 @@ export interface SpellArgs {
     damageType?: string;
     destroyItem?: boolean;
     dir?: TCoord;
-    from?: TCoord;
-    to?: TCoord;
+    from?: TCoord3D;
+    to?: TCoord3D;
     postCallback?: () => void;
     range?: number;
     removeComp?: SpellRemoveComp;

@@ -463,6 +463,10 @@ Missile.prototype.stopMissile = function() {
 Missile.prototype.setTargetXYZ = function(x, y, z) {
     const src: TCoord3D = [this.x, this.y, this.z];
     const dest: TCoord3D = [x, y, z];
+    if (RG.isNullOrUndef([z])) {
+        RG.err('Component.Missile', 'setTargetXYZ',
+            'z is undefined');
+    }
     this.path = Geometry.getBresenham3D(src, dest);
     this.targetX = x;
     this.targetY = y;

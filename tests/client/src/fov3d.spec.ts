@@ -18,7 +18,7 @@ describe('Fov3D', () => {
         actor.setFOVRange(1);
 
         let cells = map.getCellsInFOV(actor);
-        // console.log('Seen cells are:', cells.map(c => c.getXY()));
+        console.log('Seen cells are:', cells.map(c => c.getXY()));
         expect(cells).to.have.length(9);
 
         const cells2 = map.getCellsInFOV(actor);
@@ -41,7 +41,7 @@ describe('Fov3D', () => {
         cells = map.getCellsInFOV(actor);
         cells = cells.sort((a, b) => a.getX() < b.getX() ? -1 : 1);
         console.log('Seen cells are:', cells.map(c => c.getXY()));
-        expect(cells).to.have.length(49);
+        expect(cells).to.have.length(45);
 
         actor.setFOVRange(4);
         level.moveActorTo(actor, 4, 4);

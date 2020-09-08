@@ -81,7 +81,8 @@ describe('Game.Main', () => {
         expect(actor.getY()).to.equal(13);
 
         const explCells = level.exploreCells(actor);
-        expect(explCells.length).to.equal(145);
+        // expect(explCells.length).to.equal(145);
+        expect(explCells.length).to.equal(230);
 
         const dmgComp = new Component.Damage(100, 'slash');
         dmgComp.setSource(npc);
