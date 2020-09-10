@@ -46,7 +46,7 @@ describe('Fov3D', () => {
         actor.setFOVRange(4);
         level.moveActorTo(actor, 4, 4);
         cells = map.getCellsInFOV(actor);
-        expect(cells).to.have.length(81);
+        expect(cells).to.have.length(69);
 
     });
 
