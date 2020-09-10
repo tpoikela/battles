@@ -19,7 +19,6 @@ import GamePlugins from './game-plugins';
 import GameStats from './game-stats';
 
 import GameContextMenu from './context-menu';
-import HoverBox from './hover-box';
 import {ContextMenuTrigger} from 'react-contextmenu';
 
 import dbg = require('debug');
