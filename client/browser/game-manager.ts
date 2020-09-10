@@ -54,6 +54,15 @@ export interface GameStateTop {
     enemyCells: Cell[];
 }
 
+const boardViews: string[] = [
+  'game-board-player-view',
+  'game-board-player-view-l',
+  'game-board-player-view-xl',
+  'game-board-player-view-xxl',
+  'game-board-player-view-xxxl',
+  'game-board-map-view'
+];
+
 export const VIEW_MAP = 0;
 export const VIEW_PLAYER = 1;
 
@@ -190,6 +199,8 @@ export class GameManager {
         this.doGUICommand = this.doGUICommand.bind(this);
         this.isGUICommand = this.isGUICommand.bind(this);
         this.mainLoop = this.mainLoop.bind(this);
+
+        this.boardClassName = boardViews[0];
 
         // For listening to game events
         this.notify = this.notify.bind(this);
@@ -1079,6 +1090,28 @@ export class GameManager {
                 this.nextCode = keyCode;
             }
         }
+    }
+
+    public increaseFont(incr: string): void {
+        const boardName = this.boardClassName;
+        let idx = boardViews.indexOf(boardName);
+        console.log('increaseFont with |' + incr + '|, idx', idx);
+        if (incr === '+') {
+            console.log('Went here with plus sign');
+            idx += 1;
+            if (idx >= boardViews.length) {
+                idx = boardViews.length - 1;
+            }
+        }
+        else if (incr === '-') {
+            idx -= 1;
+            if (idx < 0) {
+                idx = 0;
+            }
+        }
+        console.log('idx is still', idx);
+        this.boardClassName = boardViews[idx];
+        console.log('Chosen name was', this.boardClassName);
     }
 
 
