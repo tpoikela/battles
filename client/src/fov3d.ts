@@ -71,7 +71,8 @@ export class Fov3D {
                         this._seen[key] = true;
                     }
 
-                    if (!this._passCb(atX, atY, atZ)) {
+                    // if (!this._passCb(atX, atY, atZ)) {
+                    if (!this._map.lightPasses(atX, atY, atZ)) {
                         blocked = true;
                         if (pos[0] === atX && pos[1] === atY && pos[2] === atZ) {
                             blocked = false;
