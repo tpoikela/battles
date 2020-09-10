@@ -9,15 +9,34 @@ export interface IGameContextMenuProps {
   handleRightClick(evt: React.SyntheticEvent, data: any, cell: Cell): void;
 }
 
+interface MenuObj {
+    text: string;
+    type: string;
+}
+
+interface QueryObj {
+    cellQuery: string;
+    index?: number;
+    objectQuery: string;
+}
+
+type MenuOrQueryObj = MenuObj | QueryObj;
+
+interface CallMenu {
+    [key: string]: MenuOrQueryObj[] | CallMenu;
+}
+
+
 /* Menu items are defined as follows:
  *   The first key defines a getter/query function for a cell. If that function
  *   returns true, all items inside the corresponding array are shown.
  */
-const allMenuItems = {
+const allMenuItems: CallMenu = {
   isPassable: [
     {text: 'Move', type: 'move'},
   ],
   hasActors: [
+    {cellQuery: 'getFirstActor', objectQuery: 'getName', type: 'info'},
     {text: 'Attack', type: 'attack'},
     {text: 'Chat', type: 'chat'},
     {text: 'Order', type: 'order'},
@@ -27,6 +46,7 @@ const allMenuItems = {
     {text: 'Open/close', type: 'door'},
   ],
   hasItems: [
+    {cellQuery: 'getItems', index: 0, objectQuery: 'getName'},
     {text: 'Pick up', type: 'pickup'},
   ],
   hasUsable: [

@@ -3,8 +3,10 @@ import * as React from 'react';
 import {ContextMenu, MenuItem} from 'react-contextmenu';
 import {Cell} from '../src/map.cell';
 
+type AnyMap = {[key: string]: any[]};
+
 export interface IContextMenuItemsProps {
-  menuItems: any;
+  menuItems: any; // {[key: string]: any[] | AnyMap};
   mouseOverCell: null | Cell;
   handleRightClick(evt: React.SyntheticEvent, data: any, cell: Cell): void;
 }
@@ -55,16 +57,22 @@ export default class ContextMenuItems extends React.Component {
       if (this.isCorrectContext(queryFunc)) {
         const menuItems = this.getMenuItems(this.props.menuItems[queryFunc]);
         menuItems.forEach((item, index) => {
-          items.push(
-            <MenuItem
-              data={{type: item.type}}
-              key={index + '-' + item.text}
-              onClick={this.handleClick}
-            >
-              {item.text}
-            </MenuItem>
-          );
+          if (item.cellQuery) {
+            items.push(this.getQueryMenuItem(index, item));
+          }
+          else {
+            items.push(
+              <MenuItem
+                data={{type: item.type}}
+                key={index + '-' + item.text}
+                onClick={this.handleClick}
+              >
+                {item.text}
+              </MenuItem>
+            );
+          }
         });
+
 
         items.push(
           <MenuItem
@@ -90,7 +98,7 @@ export default class ContextMenuItems extends React.Component {
     return result;
   }
 
-  private isCorrectContext(queryFunc): boolean {
+  private isCorrectContext(queryFunc: string): boolean {
     const cell = this.props.mouseOverCell;
     if (cell) {
       if (typeof cell[queryFunc] === 'function') {
@@ -101,6 +109,22 @@ export default class ContextMenuItems extends React.Component {
       }
     }
     return false;
+  }
+
+  private getQueryMenuItem(index: number, item): any {
+      let obj = this.props.mouseOverCell[item.cellQuery]();
+      if (Number.isInteger(item.index)) {
+          obj = obj[item.index];
+      }
+      const text = obj[item.objectQuery]();
+      return (
+        <MenuItem
+          data={{type: item.type}}
+          key={index + '-' + text}
+        >
+          {text}
+        </MenuItem>
+      )
   }
 }
 

@@ -47,6 +47,8 @@ export default class GameTopMenu extends React.Component {
             <MenuItem eventKey='setViewSize#-#X'>Viewport -X</MenuItem>
             <MenuItem eventKey='setViewSize#+#Y'>Viewport +Y</MenuItem>
             <MenuItem eventKey='setViewSize#-#Y'>Viewport -Y</MenuItem>
+            <MenuItem eventKey='increaseFont#+'>Increase Font</MenuItem>
+            <MenuItem eventKey='increaseFont#-'>Decrease Font</MenuItem>
           </NavDropdown>
           <NavDropdown eventKey='help' id='dropdown-help' title='Help' >
             <MenuItem eventKey='showScreen#HelpScreen'>Help</MenuItem>

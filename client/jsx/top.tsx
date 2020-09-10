@@ -19,6 +19,7 @@ import GamePlugins from './game-plugins';
 import GameStats from './game-stats';
 
 import GameContextMenu from './context-menu';
+import HoverBox from './hover-box';
 import {ContextMenuTrigger} from 'react-contextmenu';
 
 import dbg = require('debug');
@@ -43,6 +44,7 @@ export interface EditorData {
     [key: string]: any;
 }
 
+
 export interface IBattlesTopState {
     animation: Animation | null;
     boardClassName: string;
@@ -53,6 +55,7 @@ export interface IBattlesTopState {
     levelSize: string;
     loadFromEditor: boolean;
     mouseOverCell: Cell | null;
+    hoverCell: Cell | null;
     playerClass: string;
     playerRace: string;
     playerLevel: string;
@@ -109,6 +112,7 @@ export class BattlesTop extends React.Component {
             levelSize: 'Medium',
             loadFromEditor: false,
             mouseOverCell: null,
+            hoverCell: null,
             playMode: 'OverWorld',
             playerClass: '',
             playerRace: '',
@@ -260,6 +264,16 @@ export class BattlesTop extends React.Component {
         console.log('onMouseOverCell', x, y);
         if (cell) {
             this.setState({mouseOverCell: cell});
+        }
+    }
+
+    public onMouseOver(x, y): void {
+        const cell = this.gameManager.getCellCurrMap(x, y);
+        // console.log('onMouseOver HOVER', x, y);
+        if (cell && cell.hasActors()) {
+            // RG.gameMsg('You see ' + cell.getFirstActor()!.getName());
+            this.setState({hoverCell: cell});
+            // this.setState({mouseOverCell: cell});
         }
     }
 
@@ -482,6 +496,7 @@ export class BattlesTop extends React.Component {
                                     endY={screen!.endY}
                                     onCellClick={this.onCellClick}
                                     onMouseOverCell={this.onMouseOverCell}
+                                    onMouseOver={this.onMouseOver}
                                     rowClass={rowClass}
                                     sizeX={2 * screen!.viewportX + 1}
                                     startX={startX!}
@@ -529,11 +544,14 @@ export class BattlesTop extends React.Component {
                   />
                   </React.Fragment>
                 }
+
                 {!this.state.showEditor &&
-                <GameContextMenu
-                    handleRightClick={this.handleRightClick}
-                    mouseOverCell={this.state.mouseOverCell}
-                />
+                  <React.Fragment>
+                  <GameContextMenu
+                      handleRightClick={this.handleRightClick}
+                      mouseOverCell={this.state.mouseOverCell}
+                  />
+                  </React.Fragment>
                 }
 
                 {this.state.showEditor &&
@@ -761,6 +779,14 @@ export class BattlesTop extends React.Component {
       }
     }
 
+    public increaseFont(incr: string[]): void {
+        this.gameManager.increaseFont(incr[0]);
+        this.setState({
+            render: true,
+            boardClassName: this.gameManager.boardClassName,
+        });
+    }
+
     public showMsg(msg: any): void {
         let msgText = msg;
         if (msg.errorMsg) {
@@ -797,6 +823,7 @@ export class BattlesTop extends React.Component {
         this.onCellClick = this.onCellClick.bind(this);
         this.handleRightClick = this.handleRightClick.bind(this);
         this.onMouseOverCell = this.onMouseOverCell.bind(this);
+        this.onMouseOver = this.onMouseOver.bind(this);
 
         this.GUIHelp = this.GUIHelp.bind(this);
         this.GUIInventory = this.GUIInventory.bind(this);
@@ -833,6 +860,8 @@ export class BattlesTop extends React.Component {
         this.onLoadFromScript = this.onLoadFromScript.bind(this);
         this.loadScript = this.loadScript.bind(this);
         this.updatePluginList = this.updatePluginList.bind(this);
+
+        this.increaseFont = this.increaseFont.bind(this);
     }
 
 }
