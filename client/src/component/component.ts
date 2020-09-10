@@ -629,6 +629,9 @@ Stun.prototype.toJSON = function() {
     if (RG.isActorActive(this.source)) {
         obj.setSource = RG.getObjRef('entity', this.source);
     }
+    else {
+        delete obj.setSource;
+    }
     return obj;
 };
 Stun.description = 'Stunning prevents some actions to be done';
@@ -642,6 +645,9 @@ Paralysis.prototype.toJSON = function() {
     const obj = ComponentBase.prototype.toJSON.call(this);
     if (RG.isActorActive(this.source)) {
         obj.setSource = RG.getObjRef('entity', this.source);
+    }
+    else {
+        delete obj.setSource;
     }
     return obj;
 };
