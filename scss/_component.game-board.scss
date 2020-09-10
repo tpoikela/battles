@@ -2,7 +2,10 @@
 @import 'fonts';
 
 $font-sizes: (
+    xxxl: 32px,
+    xxl: 28px,
     xl: 24px,
+    l: 20px,
     m: 16px,
     s: 12px,
     map: 8px,
@@ -25,8 +28,20 @@ $font-sizes: (
 // FONTSIZES for different board sizes
 // -----------------------------------
 
+.game-board-player-view-xxxl  {
+    font-size: map-get($font-sizes, 'xxl');
+};
+
+.game-board-player-view-xxl  {
+    font-size: map-get($font-sizes, 'xxl');
+};
+
 .game-board-player-view-xl  {
     font-size: map-get($font-sizes, 'xl');
+};
+
+.game-board-player-view-l  {
+    font-size: map-get($font-sizes, 'l');
 };
 
 .game-board-player-view {
