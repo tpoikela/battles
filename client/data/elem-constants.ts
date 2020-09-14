@@ -72,7 +72,9 @@ ELEM.WATER = frz(parser.createElement('water'));
 ELEM.DEEP_WATER = frz(parser.createElement('deep water'));
 ELEMS.WATER = [ELEM.SHALLOW_WATER, ELEM.WATER, ELEM.DEEP_WATER];
 
+ELEM.SHALLOW_FROZEN_WATER = frz(parser.createElement('frozen shallow water'));
 ELEM.WATER_FROZEN = frz(parser.createElement('frozen water'));
+ELEM.DEEP_FROZEN_WATER = frz(parser.createElement('frozen deep water'));
 ELEM.FORT = frz(parser.createElement('fort'));
 
 export const ELEM_MAP: any = {};
