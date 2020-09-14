@@ -57,7 +57,7 @@ export class Engine {
 
     public timeOfDay: number;
 
-    public visibleLevelID: number;
+    public visibleLevelID: number; // Used for anim tracking
     public currPlayer: SentientActor;
     public playerCommandCallback: (player: SentientActor) => void;
 
