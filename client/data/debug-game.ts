@@ -391,7 +391,7 @@ export class DebugGame {
             level.addActor(chicken, cell.getX(), cell.getY());
         }
 
-        player.setFOVRange(4);
+        player.setFOVRange(5);
         /*
         const blindness = new Component.Blindness();
         blindness.setSource(player);
