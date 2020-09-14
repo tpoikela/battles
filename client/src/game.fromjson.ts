@@ -248,7 +248,7 @@ export class FromJSON {
         }
 
         if (gameJSON.worldSim) {
-            game.setWorldSim(this.restoreWorldSim(gameJSON.worldSim));
+            const ws = this.restoreWorldSim(game._worldSim, gameJSON.worldSim);
         }
 
         // Connect levels using this.id2level + this.stairsInfo
@@ -297,6 +297,7 @@ export class FromJSON {
         this.restoreActiveLevels(game, gameJSON);
 
         this.IND = 0;
+        game.updateEventPoolRefs();
         return game;
     }
 
@@ -1229,8 +1230,12 @@ export class FromJSON {
     }
 
 
-    public restoreWorldSim(json): WorldSimulation {
-        return WorldSimulation.fromJSON(json);
+    public restoreWorldSim(worldSim: WorldSimulation, json): WorldSimulation {
+        const newWs = WorldSimulation.fromJSON(json);
+        worldSim.updateCount = newWs.updateCount;
+        worldSim.seasonMan = newWs.seasonMan;
+        worldSim.dayMan = newWs.dayMan;
+        return worldSim;
     }
 
 
