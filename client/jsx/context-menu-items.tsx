@@ -3,7 +3,22 @@ import * as React from 'react';
 import {ContextMenu, MenuItem} from 'react-contextmenu';
 import {Cell} from '../src/map.cell';
 
-type AnyMap = {[key: string]: any[]};
+interface MenuObj {
+    text: string;
+    type: string;
+}
+
+interface QueryObj {
+    cellQuery: string;
+    index?: number;
+    objectQuery: string;
+}
+
+type MenuOrQueryObj = MenuObj | QueryObj;
+
+export interface CallMenuConf {
+    [key: string]: MenuOrQueryObj[] | CallMenuConf;
+}
 
 export interface IContextMenuItemsProps {
   menuItems: any; // {[key: string]: any[] | AnyMap};
@@ -11,7 +26,7 @@ export interface IContextMenuItemsProps {
   handleRightClick(evt: React.SyntheticEvent, data: any, cell: Cell): void;
 }
 
-export default class ContextMenuItems extends React.Component {
+export class ContextMenuItems extends React.Component {
 
   public props: IContextMenuItemsProps;
 

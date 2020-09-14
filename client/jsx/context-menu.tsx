@@ -1,7 +1,7 @@
 /* eslint comma-dangle: 0 */
 import React from 'react';
 
-import ContextMenuItems from './context-menu-items';
+import {ContextMenuItems, CallMenuConf} from './context-menu-items';
 import {Cell} from '../src/map.cell';
 
 export interface IGameContextMenuProps {
@@ -9,32 +9,12 @@ export interface IGameContextMenuProps {
   handleRightClick(evt: React.SyntheticEvent, data: any, cell: Cell): void;
 }
 
-interface MenuObj {
-    text: string;
-    type: string;
-}
-
-interface QueryObj {
-    cellQuery: string;
-    index?: number;
-    objectQuery: string;
-}
-
-type MenuOrQueryObj = MenuObj | QueryObj;
-
-interface CallMenu {
-    [key: string]: MenuOrQueryObj[] | CallMenu;
-}
-
 
 /* Menu items are defined as follows:
  *   The first key defines a getter/query function for a cell. If that function
  *   returns true, all items inside the corresponding array are shown.
  */
-const allMenuItems: CallMenu = {
-  isPassable: [
-    {text: 'Move', type: 'move'},
-  ],
+const allMenuItems: CallMenuConf = {
   hasActors: [
     {cellQuery: 'getFirstActor', objectQuery: 'getName', type: 'info'},
     {text: 'Attack', type: 'attack'},
@@ -72,7 +52,10 @@ const allMenuItems: CallMenu = {
     hasMountain: [
       {text: 'Goto mountain', type: 'usestairs'},
     ],
-  }
+  },
+  isPassable: [
+    {text: 'Move', type: 'move'},
+  ],
 };
 
 export default class GameContextMenu extends React.Component {

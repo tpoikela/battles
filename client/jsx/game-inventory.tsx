@@ -346,22 +346,21 @@ export default class GameInventory extends React.Component {
   }
 
 
-  public toggleScreen(type) {
+  public toggleScreen(type: string): void {
       this.props.toggleScreen(type);
   }
 
-  public filterItems(type) {
+  public filterItems(type: string): void {
       this.setState({filter: type});
   }
 
-  public getUseButtonText() {
+  public getUseButtonText(): string {
     if (this.props.selectedItem) {
       const type = this.props.selectedItem.getType();
       if (type === 'food') {return 'Eat';}
       if (type === 'potion') {return 'Drink';}
     }
     return 'Use';
-
   }
 
 }
