@@ -645,7 +645,7 @@ export class FactoryGame {
 
         // player.setXY(lX, lY);
         // areaConf.city!.push(homeConf);
-        console.log('Creating player hometown with conf', JSON.stringify(homeConf, null, 1));
+        // console.log('Creating player hometown with conf', JSON.stringify(homeConf, null, 1));
     }
 
 /* Creates the procgen constraints for given area level. This is used in
