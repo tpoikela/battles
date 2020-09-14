@@ -8,17 +8,19 @@ interface DayEntry {
     visibility: number;
 }
 
+const MINS = 10;
+
 const phasesOfDay: {[key: string]: DayEntry} = {
-    NIGHT: {from: 22 * 60, to: 5 * 60, visibility: -3},
-    DAWN: {from: 5 * 60, to: 7 * 60, visibility: -1},
-    MORNING: {from: 7 * 60, to: 11 * 60, visibility: 0},
-    NOON: {from: 11 * 60, to: 13 * 60, visibility: 0},
-    AFTERNOON: {from: 13 * 60, to: 18 * 60, visibility: 0},
-    EVENING: {from: 18 * 60, to: 20 * 60, visibility: -1},
-    DUSK: {from: 20 * 60, to: 22 * 60, visibility: -2},
+    NIGHT: {from: 22 * MINS, to: 5 * MINS, visibility: -3},
+    DAWN: {from: 5 * MINS, to: 7 * MINS, visibility: -1},
+    MORNING: {from: 7 * MINS, to: 11 * MINS, visibility: 0},
+    NOON: {from: 11 * MINS, to: 13 * MINS, visibility: 0},
+    AFTERNOON: {from: 13 * MINS, to: 18 * MINS, visibility: 0},
+    EVENING: {from: 18 * MINS, to: 20 * MINS, visibility: -1},
+    DUSK: {from: 20 * MINS, to: 22 * MINS, visibility: -2},
 };
 
-const MAX_TIME_OF_DAY: number = 24 * 60;
+const MAX_TIME_OF_DAY: number = 24 * MINS;
 
 /* Simple day manager to keep track of time of day and phases of the day. */
 export class DayManager {
@@ -43,7 +45,7 @@ export class DayManager {
     constructor(pool?: EventPool) {
         this._currPhase = RG.DAY.MORNING;
         this._updateRate = 5; // This affects how quickly time goes
-        this._timeOfDayMins = 12 * 60;
+        this._timeOfDayMins = 12 * MINS;
         this._dayChanged = false;
         this._phaseChanged = false;
         if (pool) {
