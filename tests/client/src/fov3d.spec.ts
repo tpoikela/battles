@@ -5,9 +5,11 @@ import {expect} from 'chai';
 // import {Fov3D} from '../../../client/src/fov3d';
 import {SentientActor} from '../../../client/src/actor';
 import {FactoryLevel} from '../../../client/src/factory.level';
+// import {Random} from '../../../client/src/random';
 // import {ELEM} from '../../../client/data/elem-constants';
 
-describe('Fov3D', () => {
+describe('Fov3D', function() {
+    // this.timeout(5000);
 
     it('it computes 3D FOV', () => {
         const factLevel = new FactoryLevel();
@@ -20,6 +22,8 @@ describe('Fov3D', () => {
         let cells = map.getCellsInFOV(actor);
         console.log('Seen cells are:', cells.map(c => c.getXY()));
         expect(cells).to.have.length(9);
+
+        // return;
 
         const cells2 = map.getCellsInFOV(actor);
         // console.log('Seen cells2 are:', cells2.map(c => c.getXY()));
@@ -49,5 +53,7 @@ describe('Fov3D', () => {
         expect(cells).to.have.length(69);
 
     });
+
+
 
 });
