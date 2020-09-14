@@ -132,6 +132,9 @@ export class GoalTop extends GoalBase {
         for (let i = 0; i < numEvals; i++) {
             const evaluator = this.evaluators[i];
             const desirability = evaluator.calculateDesirability(this.actor);
+            // Clear value, it can still be used by evaluator in
+            // calculateDesirability
+            evaluator.wasLastChosen = false;
             if (bestRated < desirability || chosenEval === null) {
                 chosenEval = evaluator;
                 bestRated = desirability;
@@ -141,6 +144,7 @@ export class GoalTop extends GoalBase {
         if (chosenEval) {
             if (bestRated !== Evaluator.NOT_POSSIBLE) {
                 chosenEval.setActorGoal(this.actor);
+                chosenEval.wasLastChosen = true;
                 if (chosenEval.isOneShot) {
                     this.removeEvaluator(chosenEval);
                 }
