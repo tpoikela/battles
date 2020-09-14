@@ -18,7 +18,7 @@ import {BBox} from '../bbox';
 import {Crypt} from '../../data/tiles.crypt';
 import {Castle} from '../../data/tiles.castle';
 import {Nests} from '../../data/tiles.nests';
-import {ELEM} from '../../data/elem-constants';
+import {ELEM, snowElemMap} from '../../data/elem-constants';
 
 import {BSP, MapForest, MapMiner, MapMountain, MapWall} from '../../../lib';
 
@@ -26,7 +26,6 @@ const ElementMarker = Element.ElementMarker;
 type ElementBase = Element.ElementBase;
 type ElementWall = Element.ElementWall;
 type ElementXY = Element.ElementXY;
-type Level = import('../level').Level;
 
 const RNG = Random.getRNG();
 
@@ -117,10 +116,6 @@ export class MapGenerator {
 
     public static options: {[key: string]: any};
 
-    // Maps snow fall to different elements
-    public static snowElemMap: {[key: string]: ConstBaseElem};
-    public static snowMeltMap: {[key: string]: ConstBaseElem};
-
     public static getAndSetRNG(conf?: MapConf): Random {
         if (conf) {
             if (conf.rng) {return conf.rng;}
@@ -140,11 +135,11 @@ export class MapGenerator {
             const cell = freeCells[i];
             if (addSnow <= ratio) {
                 const baseType = cell.getBaseElem().getType();
-                let snowElem = MapGenerator.snowElemMap.default;
-                if (MapGenerator.snowElemMap[baseType]) {
-                    snowElem = MapGenerator.snowElemMap[baseType];
+                // let snowElem = MapGenerator.snowElemMap.default;
+                if (snowElemMap[baseType]) {
+                    const snowElem = snowElemMap[baseType];
+                    freeCells[i].setBaseElem(snowElem);
                 }
-                freeCells[i].setBaseElem(snowElem);
             }
         }
     }
@@ -1092,32 +1087,4 @@ MapGenerator.options.mountain = Object.freeze({
     nRoadTurns: 8,
     snowRatio: 0.0
 });
-
-MapGenerator.snowElemMap = {
-    'floor': ELEM.SNOW_LIGHT,
-    'light snow': ELEM.SNOW,
-    'light snow with tracks': ELEM.SNOW,
-    'snow': ELEM.SNOW_DEEP,
-    'snow with tracks': ELEM.SNOW,
-    'tree': ELEM.TREE_SNOW,
-    'snow-covered tree': ELEM.TREE_SNOW,
-    'water': ELEM.WATER_FROZEN,
-    'frozen water': ELEM.WATER_FROZEN,
-    'grass': ELEM.GRASS_SNOW,
-    'snowy grass': ELEM.GRASS_SNOW,
-    'deep snow': ELEM.SNOW_DEEP,
-    'deep snow with tracks': ELEM.SNOW_DEEP,
-};
-
-MapGenerator.snowMeltMap = {
-    'light snow': ELEM.FLOOR,
-    'light snow with tracks': ELEM.FLOOR,
-    'snow': ELEM.SNOW_LIGHT,
-    'snow with tracks': ELEM.SNOW_LIGHT,
-    'snow-covered tree': ELEM.TREE,
-    'frozen water': ELEM.WATER,
-    'snowy grass': ELEM.GRASS,
-    'deep snow': ELEM.SNOW,
-    'deep snow with tracks': ELEM.SNOW,
-};
 

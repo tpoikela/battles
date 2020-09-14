@@ -2,11 +2,12 @@
  * in which each map element points to these constants only. */
 
 import {ObjectShell} from '../src/objectshellparser';
-import {ElementBase, ElementWall} from '../src/element';
+import {ElementWall} from '../src/element';
+import {ConstBaseElem} from '../src/interfaces';
 
-export const ELEM: {[key: string]: Readonly<ElementBase>} = {};
+export const ELEM: {[key: string]: ConstBaseElem} = {};
 
-export const ELEMS: {[key: string]: Readonly<ElementBase>[]} = {};
+export const ELEMS: {[key: string]: ConstBaseElem[]} = {};
 
 const frz = Object.freeze;
 
@@ -93,3 +94,43 @@ Object.keys(ELEM).forEach(key => {
     ELEM_MAP.elemIndexToElemObj[elemIndex] = ELEM[key];
     ++elemIndex;
 });
+
+type TElemMap = {[key: string]: ConstBaseElem};
+
+// These tables are used for managing melting/snowing
+
+export const snowElemMap: TElemMap = {
+    'floor': ELEM.SNOW_LIGHT,
+    'light snow': ELEM.SNOW,
+    'light snow with tracks': ELEM.SNOW,
+    'snow': ELEM.SNOW_DEEP,
+    'snow with tracks': ELEM.SNOW,
+    'tree': ELEM.TREE_SNOW,
+    'snow-covered tree': ELEM.TREE_SNOW,
+    'shallow water': ELEM.SHALLOW_FROZEN_WATER,
+    'water': ELEM.WATER_FROZEN,
+    'deep water': ELEM.DEEP_FROZEN_WATER,
+    'grass': ELEM.GRASS_SNOW,
+    'snowy grass': ELEM.GRASS_SNOW,
+    'deep snow with tracks': ELEM.SNOW_DEEP,
+    'cliff': ELEM.SNOWY_CLIFF,
+    'stone': ELEM.STONE_SNOW,
+    'steep cliff': ELEM.FROZEN_STEEP_CLIFF,
+};
+
+export const snowMeltMap: TElemMap = {
+    'light snow': ELEM.FLOOR,
+    'light snow with tracks': ELEM.FLOOR,
+    'snow': ELEM.SNOW_LIGHT,
+    'snow with tracks': ELEM.SNOW_LIGHT,
+    'snow-covered tree': ELEM.TREE,
+    'frozen shallow water': ELEM.SHALLOW_WATER,
+    'frozen water': ELEM.WATER,
+    'frozen deep water': ELEM.DEEP_WATER,
+    'snowy grass': ELEM.GRASS,
+    'deep snow': ELEM.SNOW,
+    'deep snow with tracks': ELEM.SNOW,
+    'snowy cliff': ELEM.CLIFF,
+    'snow-covered stone': ELEM.STONE,
+    'frozen steep cliff': ELEM.STEEP_CLIFF
+};

@@ -343,8 +343,28 @@ const Elements = [
         }]
     },
     {
+        name: 'frozen shallow water', className: 'cell-element-frozen-water',
+        char: DEPTH[0],
+        msg: {
+            onEnter: 'There is some ice here'
+        },
+        addComp: ['Snowy', {comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.15, ['Flying'])]}
+        }]
+    },
+    {
         name: 'frozen water', className: 'cell-element-frozen-water',
-        char: '~',
+        char: DEPTH[1],
+        msg: {
+            onEnter: 'There is some ice here'
+        },
+        addComp: ['Snowy', {comp: 'Terrain',
+            func: {setMods: [speedPenalty(0.15, ['Flying'])]}
+        }]
+    },
+    {
+        name: 'frozen deep water', className: 'cell-element-frozen-water',
+        char: DEPTH[2],
         msg: {
             onEnter: 'There is some ice here'
         },
