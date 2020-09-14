@@ -83,6 +83,7 @@ export class SeasonManager {
     protected _currWeather: string;
     protected _monthLeft: number;
     protected _seasonLeft: number;
+    protected _daysPerMonth: number;
 
     protected _seasonChanged: boolean;
     protected _weatherChanged: boolean;
@@ -94,6 +95,7 @@ export class SeasonManager {
 
     constructor(pool?: EventPool) {
         this._currSeason = RG.SEASON.AUTUMN;
+        this._daysPerMonth = daysInMonth;
         this._monthLeft = daysInMonth;
         this._seasonLeft = seasonConfig[this._currSeason].dur;
         this._currWeather = 'sunny';
@@ -103,6 +105,12 @@ export class SeasonManager {
         this._monthChanged = false;
         this._yearChanged = false;
         this.pool = pool;
+    }
+
+    /* Sets days per month. Also changes monthLeft variable. */
+    public setDaysInMonth(nDays: number): void {
+        this._monthLeft = daysInMonth;
+        this._daysPerMonth = nDays;
     }
 
     /* Sets the player position in overworld map to find the correct biomes etc. */
@@ -167,7 +175,6 @@ export class SeasonManager {
             nextSeason: seasons[nextIndex]
         });
         this._currSeason = seasons[nextIndex];
-        // TODO emit event SEASON_CHANGED
     }
 
     /* Returns the current weather. */
