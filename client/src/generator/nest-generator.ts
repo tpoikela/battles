@@ -338,7 +338,6 @@ export class NestGenerator extends LevelGenerator {
             let watchdog = 35;
 
             while (newShell.danger > (actorConstr.maxDanger + 2)) {
-                console.log('newShell danger is', newShell.danger, newShell.name);
                 newShell = ActorGen.genShell(actorConstr);
                 --watchdog;
                 if (watchdog === 0) {
