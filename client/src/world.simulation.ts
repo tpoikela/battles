@@ -5,6 +5,9 @@
  *   3.
  */
 
+import dbg from 'debug';
+const debug = dbg('bitn:WorldSimulation');
+
 import {SeasonManager} from './season-manager';
 import {DayManager} from './day-manager';
 import * as Component from './component/component';
@@ -14,6 +17,8 @@ import {TCoord} from './interfaces';
 
 type OWMap = import('./overworld.map').OWMap;
 type Level = import('./level').Level;
+
+const WORLD_ENTITY = 'WorldEntity';
 
 export enum WS_EVENT {
     'PHASE_CHANGED',
@@ -26,6 +31,8 @@ export class WorldSimulation {
 
     public seasonMan: SeasonManager;
     public dayMan: DayManager;
+    public updateCount: number;
+
     protected currLevel: Level;
     protected pool: EventPool;
     protected worldEntity: BaseActor;
@@ -33,11 +40,17 @@ export class WorldSimulation {
     constructor(pool?: EventPool) {
         this.dayMan = new DayManager(pool);
         this.seasonMan = new SeasonManager(pool);
-        this.worldEntity = new BaseActor('WorldEntity');
+        this.worldEntity = new BaseActor(WORLD_ENTITY);
+        this.worldEntity.add(new Component.Location());
+        this.updateCount = 0;
     }
 
     public setLevel(level: Level): void {
-        this.currLevel = level;
+        if (!level) {
+            throw new Error('WorldSim: Tried to set null level');
+        }
+        // this.currLevel = level;
+        this.worldEntity.get('Location').setLevel(level);
     }
 
     /* Sets the current OW position of interest. Usually where player is. */
@@ -50,6 +63,7 @@ export class WorldSimulation {
         this.dayMan.update();
 
         if (this.dayMan.phaseChanged()) {
+            debug(this.updateCount, 'phaseChange detected');
             const wsEvent = new Component.WorldSimEvent();
             wsEvent.setEventType(WS_EVENT.PHASE_CHANGED);
             wsEvent.setEventData({currPhase: this.dayMan.getCurrPhase()});
@@ -58,9 +72,15 @@ export class WorldSimulation {
         }
 
         if (this.dayMan.dayChanged()) {
+            debug(this.updateCount, 'dayChange detected');
             this.seasonMan.update();
 
+            const wsEvent = new Component.WorldSimEvent();
+            wsEvent.setEventType(WS_EVENT.DAY_CHANGED);
+            this.worldEntity.add(wsEvent);
+
             if (this.seasonMan.monthChanged()) {
+                debug(this.updateCount, 'monthChange detected');
                 // TODO update world situation, ie do some battles
                 // Progress the territory situations
                 if (this.seasonMan.seasonChanged()) {
@@ -78,6 +98,7 @@ export class WorldSimulation {
             const weather = this.seasonMan.getWeather();
             // Level might not be set before update() is called
             if (this.currLevel) {
+                debug(this.updateCount, 'weather change detected');
                 this.currLevel.removeAll('Weather');
                 const weatherComp = new Component.Weather();
                 weatherComp.setWeatherType(weather);
@@ -85,6 +106,7 @@ export class WorldSimulation {
             }
         }
 
+        ++this.updateCount;
     }
 
     /* Returns time of day in minutes. */
@@ -116,7 +138,8 @@ export class WorldSimulation {
     public toJSON(): any {
         return {
             dayManager: this.dayMan.toJSON(),
-            seasonManager: this.seasonMan.toJSON()
+            seasonManager: this.seasonMan.toJSON(),
+            updateCount: this.updateCount,
         };
     }
 
@@ -146,5 +169,6 @@ WorldSimulation.fromJSON = function(json: any): WorldSimulation {
     const ws = new WorldSimulation();
     ws.dayMan = DayManager.fromJSON(json.dayManager);
     ws.seasonMan = SeasonManager.fromJSON(json.seasonManager);
+    ws.updateCount = json.updateCount;
     return ws;
 };
