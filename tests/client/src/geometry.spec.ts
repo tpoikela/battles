@@ -201,12 +201,11 @@ describe('Geometry', () => {
     });
 
     it('has function to iterate 3D lines', () => {
-        const res = [];
+        let res = [];
         const cb = (x, y, z) => {res.push([x, y, z]);}
         const c0 = [0, 0, 0];
         const c1 = [3, 3, 3];
-        Geometry.lineFuncUnique3D(c0, c1, cb);
-        console.log(res);
+        res = Geometry.lineFuncUnique3D(c0, c1, cb);
         expect(res).to.have.length(4);
         
     });
@@ -218,8 +217,7 @@ describe('Geometry', () => {
         const c1 = [3, 3, 0];
         const coord0 = Geometry.getBresenham3D(c0, c1);
         const coord1 = Geometry.getBresenham3D(c1, c0);
-        console.log(coord0);
-        console.log(coord1);
+
         expect(coord0).to.have.length(4);
         expect(coord1).to.have.length(4);
         expect(coord0[3]).to.deep.equal([3, 3, 0]);
@@ -228,7 +226,6 @@ describe('Geometry', () => {
         const c2 = [1, 1, 0];
         const c3 = [1, 4, 0];
         const coord3 = Geometry.getBresenham3D(c2, c3);
-        console.log(coord3);
         expect(coord3).to.have.length(4);
         
     });
