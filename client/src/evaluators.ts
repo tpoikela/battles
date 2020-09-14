@@ -44,6 +44,7 @@ export class EvaluatorBase {
     public evalCount: number;
     public evalMaxCount: number;
     public isOneShot: boolean;
+    public wasLastChosen: boolean;
 
     constructor(actorBias: number) {
         this.actorBias = actorBias;
@@ -51,6 +52,7 @@ export class EvaluatorBase {
         this.evalCount = 0;
         this.evalMaxCount = 1;
         this.isOneShot = false;
+        this.wasLastChosen = false;
     }
 
     public calculateDesirability(actor): number {
