@@ -855,16 +855,19 @@ export class Geometry {
     }
 
     /* Same as lineFunc3D but calls func only once for each integer point. */
-    public static lineFuncUnique3D(src: TCoord3D, dest: TCoord3D, func, incSrcDest=true): void {
+    public static lineFuncUnique3D(src: TCoord3D, dest: TCoord3D, incSrcDest=true): TCoord3D[] {
         const key = RG.toKey(src) + ',' + RG.toKey(dest) + incSrcDest;
         const isCached = Geometry._cache.lineFuncUnique3D.hasOwnProperty(key);
         if (!isCached) {
             Geometry._cache.lineFuncUnique3D[key] = Geometry.bresenham3D(...src, ...dest);
         }
+        return Geometry._cache.lineFuncUnique3D[key];
+        /*
         const cached = Geometry._cache.lineFuncUnique3D[key];
         cached.forEach((xyz) => {
             func(xyz[0], xyz[1], xyz[2]);
         });
+        */
 
        /* Sol2:
         if (isCached) {
