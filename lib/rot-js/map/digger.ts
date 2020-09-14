@@ -13,18 +13,7 @@ const FEATURES = {
 }
 
 type Feature = Room | Corridor;
-
 type TCoord = [number, number];
-
-/*
-interface Options {
-    roomWidth: [number, number];
-    roomHeight: [number, number];
-    corridorLength: [number, number];
-    dugPercentage: number;
-    timeLimit: number
-}
-*/
 
 /**
  * Random dungeon generator using human-like digging patterns.
@@ -71,7 +60,6 @@ export default class Digger extends Dungeon {
     }
 
 
-
     create(callback?: CreateCallback) {
         this._rooms = [];
         this._corridors = [];
@@ -84,7 +72,7 @@ export default class Digger extends Dungeon {
 
         const t1 = Date.now();
 
-        let priorityWalls;
+        let priorityWalls = 0;
         do {
             priorityWalls = 0;
             const t2 = Date.now();
@@ -312,7 +300,6 @@ export default class Digger extends Dungeon {
                     this._xyToFeat[key] = [];
                 }
                 this._xyToFeat[key].push(feature);
-                // console.log('Mark feature xy', key, 'ID:', feature.getName());
             });
         });
     }
