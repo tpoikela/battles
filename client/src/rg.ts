@@ -249,6 +249,8 @@ class RGClass {
     public CLICKED_ACTOR: any;
     public debugZoneEvents: boolean = false;
 
+    public WORLD_ENTITY: string;
+
 
     constructor() {
         this.POOL = EventPool.getPool();
@@ -688,6 +690,7 @@ class RGClass {
         this.cellRenderArray = this.cellRenderVisible;
 
         this.ONE_SHOT_ITEMS = ['potion'];
+        this.WORLD_ENTITY = 'WorldEntity';
 
     }
 
