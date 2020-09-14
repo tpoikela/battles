@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-import ContextMenuItems from '../jsx/context-menu-items';
+import {ContextMenuItems} from '../jsx/context-menu-items';
 
 interface IEditorContextMenuProps {
   mouseOverCell: any;
