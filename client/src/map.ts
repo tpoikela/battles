@@ -305,7 +305,6 @@ export class CellMap {
     public getCellsInFOVPlus(actor: SentientActor, addRange: number): [Cell[], Cell[]] {
         const cells: Cell[] = [];
         const cellsPlus: Cell[] = [];
-        // const [xA, yA] = actor.getXY();
         const [xA, yA, zA] = actor.getXYZ();
         const fovRange = actor.getFOVRange();
         const range = fovRange + addRange;
