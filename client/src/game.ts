@@ -130,7 +130,11 @@ export class GameMain {
     public getGlobalConf() {return this.globalConf;}
 
     public shownLevel(): Level {return this._shownLevel;}
-    public setShownLevel(level: Level) {this._shownLevel = level;}
+    public setShownLevel(level: Level) {
+        console.log('Game: Setting shownLevel now (for WorldSim as well)');
+        this._shownLevel = level;
+        this._worldSim.setLevel(level);
+    }
 
     public getPool(): EventPool {return this._eventPool;}
 
@@ -209,7 +213,7 @@ export class GameMain {
             this._engine.setPlayer(player);
 
             if (this._shownLevel === null) {
-                this._shownLevel = player.getLevel();
+                this.setShownLevel(player.getLevel());
             }
             this._players.push(player);
             this._engine.addActiveLevel(player.getLevel());
@@ -518,6 +522,7 @@ export class GameMain {
      * actions are executed after the player action.*/
     public update(obj: IPlayerCmdInput) {
         this._engine.timeOfDay = this.getTimeOfDayMins();
+        this._worldSim.setLevel(this.getPlayer().getLevel());
         this._engine.update(obj);
     }
 
@@ -555,9 +560,8 @@ export class GameMain {
         else if (evtName === RG.EVT_LEVEL_CHANGED) {
             const {actor} = args;
             if (actor.isPlayer()) {
-                this._shownLevel = actor.getLevel();
+                this.setShownLevel(actor.getLevel());
 
-                this._worldSim.setLevel(this._shownLevel);
                 if (this._overworld) {
                     this._worldSim.setOwPos(this.getPlayerOwPos());
                 }
@@ -669,8 +673,13 @@ export class GameMain {
 
     public setWorldSim(ws: WorldSimulation) {
         ws.setPool(this._eventPool);
+        this._engine.addRegularUpdate(this._worldSim);
         this._worldSim = ws;
         this._engine.setSystemArgs({worldSim: this._worldSim});
+    }
+
+    public updateEventPoolRefs(): void {
+        this._worldSim.setPool(this._eventPool);
     }
 
     /* Serializes the game object into JSON. */
