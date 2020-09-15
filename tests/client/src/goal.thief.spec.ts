@@ -14,6 +14,7 @@ import {Goal} from '../../../client/src/goals';
 
 describe('Goal.Thief', () => {
     it('manages the thief behaviour', () => {
+        const game = new GameMain();
 
         const thief = new SentientActor('thief');
         const thiefBrain = new Brain.Thief(thief);
@@ -27,6 +28,7 @@ describe('Goal.Thief', () => {
         shopkeeper.getInvEq().addItem(coins);
 
         const level = RGUnitTests.wrapIntoLevel([thief, shopkeeper], 5, 5);
+        game.setShownLevel(level);
 
         const shopElem = new Element.ElementShop();
         shopElem.setShopkeeper(shopkeeper);
@@ -38,7 +40,6 @@ describe('Goal.Thief', () => {
         const sword = new Item.Weapon('sword');
         level.addItem(sword, 1, 1);
 
-        const game = new GameMain();
         game.addActiveLevel(level);
         const catcher = new RGTest.MsgCatcher();
         catcher.enabled = true;
@@ -46,7 +47,7 @@ describe('Goal.Thief', () => {
 
         let maxTries = 100;
         while (level.getItems().length === 2) {
-            game.simulate();
+            game.simulate(1);
             if (--maxTries === 0) {
                 break;
             }
@@ -56,7 +57,7 @@ describe('Goal.Thief', () => {
         expect(thiefInv.getItems()).to.deep.equal([sword]);
 
         for (let i = 0; i < 100; i++) {
-            game.simulate();
+            game.simulate(1);
         }
 
         expect(catcher.numCaught).to.be.above(0);
