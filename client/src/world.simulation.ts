@@ -22,7 +22,10 @@ const WORLD_ENTITY = 'WorldEntity';
 
 export enum WS_EVENT {
     'PHASE_CHANGED',
-    'DAY_CHANGED'
+    'DAY_CHANGED',
+    'MONTH_CHANGED',
+    'SEASON_CHANGED',
+    'YEAR_CHANGED',
 }
 
 export class WorldSimulation {
@@ -80,12 +83,15 @@ export class WorldSimulation {
             this.worldEntity.add(wsEvent);
 
             if (this.seasonMan.monthChanged()) {
+                this.emitMonthChanged();
                 debug(this.updateCount, 'monthChange detected');
                 // TODO update world situation, ie do some battles
                 // Progress the territory situations
                 if (this.seasonMan.seasonChanged()) {
+                    this.emitSeasonChanged();
                     // Simulate one bigger event in the world
                     if (this.seasonMan.yearChanged()) {
+                        this.emitYearChanged();
                         // Simulate huge event happening, although it's somewhat
                         // predictable that it happens at year change
                     }
@@ -148,6 +154,27 @@ export class WorldSimulation {
             'Day:    ' + this.dayMan.toString() + '\n' +
             'Season: ' + this.seasonMan.toString()
         );
+    }
+
+    protected emitMonthChanged(): void {
+        const wsEvent = new Component.WorldSimEvent();
+        wsEvent.setEventType(WS_EVENT.MONTH_CHANGED);
+        wsEvent.setEventData({season: this.seasonMan.getSeason()});
+        this.worldEntity.add(wsEvent);
+    }
+
+    protected emitSeasonChanged(): void {
+        const wsEvent = new Component.WorldSimEvent();
+        wsEvent.setEventType(WS_EVENT.SEASON_CHANGED);
+        wsEvent.setEventData({season: this.seasonMan.getSeason()});
+        this.worldEntity.add(wsEvent);
+    }
+
+    protected emitYearChanged(): void {
+        const wsEvent = new Component.WorldSimEvent();
+        wsEvent.setEventType(WS_EVENT.YEAR_CHANGED);
+        wsEvent.setEventData({season: this.seasonMan.getSeason()});
+        this.worldEntity.add(wsEvent);
     }
 
     /* Returns true if any changes were in the world simulation */

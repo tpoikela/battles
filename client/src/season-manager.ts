@@ -20,11 +20,11 @@ export interface SeasonEntry {
 //
 const defaultWeather = ['sunny', 'cloudy'];
 const specialThr = 0.1;
-const sameWeatherProb = 0.5;
-const daysInMonth = 32;
+const sameWeatherProb = 0.75;
+const daysInMonth = 2;
 
 export const seasonConfig: {[key: string]: SeasonEntry} = {
-    AUTUMN: {dur: 2.0, temp: [0, 15], weather: [], index: 0},
+    AUTUMN: {dur: 2.0, temp: [0, 15], weather: ['rain', 'heavy rain'], index: 0},
     AUTUMN_WINTER: {
         dur: 1.0, temp: [-10, 10], weather: ['snowFall', 'coldRain'], index: 1
     },
@@ -33,10 +33,11 @@ export const seasonConfig: {[key: string]: SeasonEntry} = {
         index: 2
     },
     WINTER_SPRING: {dur: 1.0, temp: [-10, 10], weather: ['snowFall'], index: 3},
-    SPRING: {dur: 1.0, temp: [7, 15], weather: [], index: 4},
-    SPRING_SUMMER: {dur: 1.0, temp: [10, 20], weather: [], index: 5},
-    SUMMER: {dur: 1.0, temp: [15, 25], weather: [], index: 6},
-    SUMMER_AUTUMN: {dur: 1.0, temp: [10, 20], weather: ['rain'], index: 7},
+    SPRING: {dur: 1.0, temp: [7, 15], weather: ['rain'], index: 4},
+    SPRING_SUMMER: {dur: 1.0, temp: [10, 20], weather: ['rain'], index: 5},
+    SUMMER: {dur: 1.0, temp: [15, 25], weather: ['rain'], index: 6},
+    SUMMER_AUTUMN: {dur: 1.0, temp: [10, 20], weather:
+        ['heavy rain', 'rain'], index: 7},
 };
 
 /* Stores possible weathers for each biome. */
@@ -165,15 +166,7 @@ export class SeasonManager {
         if (nextIndex >= seasons.length) {
             nextIndex = 0;
             this._yearChanged = true;
-            this.pool.emitEvent(RG.EVT_YEAR_CHANGED, {
-                prevSeason: this._currSeason,
-                nextSeason: seasons[nextIndex]
-            });
         }
-        this.pool.emitEvent(RG.EVT_SEASON_CHANGED, {
-            prevSeason: this._currSeason,
-            nextSeason: seasons[nextIndex]
-        });
         this._currSeason = seasons[nextIndex];
     }
 
@@ -189,7 +182,7 @@ export class SeasonManager {
             return this._currWeather;
         }
 
-        const seasonModified = this.getSeasonModified();
+        const seasonModified = this.filterSeasonForBiome();
 
         let weather = this._currWeather;
         if (RG.isSuccess(specialThr)) {
@@ -201,14 +194,11 @@ export class SeasonManager {
         else {
             weather = RNG.arrayGetRand(defaultWeather);
         }
+
         if (weather !== this._currWeather) {
             this._weatherChanged = true;
         }
 
-        this.pool.emitEvent(RG.EVT_WEATHER_CHANGED, {
-            prevWeather: this._currWeather,
-            nextWeather: weather
-        });
         this._currWeather = weather;
         return this._currWeather;
     }
@@ -218,14 +208,14 @@ export class SeasonManager {
         return this._currSeason;
     }
 
-    public getSeasonModified(): string {
+    public filterSeasonForBiome(): string {
         if (!this._biomeMap) {return this._currSeason;}
         if (!this._owPos) {return this._currSeason;}
 
-        const key = this._owPos[0] + ',' + this._owPos[1];
+        const key = RG.toKey(this._owPos);
         const currBiome = this._biomeMap[key];
+
         if (currBiome) {
-            // console.log('currBiome found was ' + currBiome);
             const possibleSeason = biomePossibleSeasons[currBiome];
 
             if (possibleSeason[0] === 'all') {return this._currSeason;}
@@ -237,13 +227,13 @@ export class SeasonManager {
             }
         }
         else {
-            RG.err('SeasonManager', 'getSeasonModified',
+            RG.err('SeasonManager', 'filterSeasonForBiome',
                 `currBiome not found with key ${key}`);
+            return ''; // Impossible to hit
         }
-        return '';
     }
 
-    public setPool(pool?: EventPool): void {
+    public setPool(pool: EventPool): void {
         this.pool = pool;
     }
 

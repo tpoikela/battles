@@ -24,6 +24,7 @@ export class SystemWorldSim extends SystemBase {
     protected worldTop: WorldTop;
     protected territory: Territory;
 
+    // Dispatch table for event processing functions
     protected _dtable: {[key: string]: (ent, wsEvent) => void};
 
     public dayCount: number;
@@ -34,6 +35,9 @@ export class SystemWorldSim extends SystemBase {
         this._dtable = {};
         this._dtable[WS_EVENT.PHASE_CHANGED] = this._processPhaseChanged.bind(this);
         this._dtable[WS_EVENT.DAY_CHANGED] = this._processDayChanged.bind(this);
+        this._dtable[WS_EVENT.MONTH_CHANGED] = this._processMonthChanged.bind(this);
+        this._dtable[WS_EVENT.SEASON_CHANGED] = this._processSeasonChanged.bind(this);
+        this._dtable[WS_EVENT.YEAR_CHANGED] = this._processYearChanged.bind(this);
         this.dayCount = 0;
     }
 
@@ -93,6 +97,16 @@ export class SystemWorldSim extends SystemBase {
         if (this.dayCount > 3) {
             this.dayCount = 0;
         }
+    }
+
+
+    protected _processMonthChanged(ent: Entity, wsEvent): void {
+    }
+
+    protected _processSeasonChanged(ent: Entity, wsEvent): void {
+    }
+
+    protected _processYearChanged(ent: Entity, wsEvent): void {
     }
 
 }
