@@ -338,6 +338,39 @@ export class BrainSentient extends BrainBase {
         return null;
     }
 
+    /* Finds enemy cell by first checking a box of r x r around the actor. Does
+     * full FoV lookup only, if box contains an enemy.
+     */
+    public findEnemyCellFast(): null | Cell {
+        const [x0, y0] = this._actor.getXY();
+        const r = (this._actor as SentientActor).getFOVRange();
+        const coord: TCoord[] = Geometry.getBoxAround(x0, y0, r);
+        let cell = null;
+        const cellMap = this._actor.getLevel().getMap();
+
+        for (let i = 0; i < coord.length; i++) {
+            const [x, y] = coord[i];
+            if (cell === null) {
+                if (cellMap.hasXY(x, y)) {
+                    const c0 = cellMap.getCell(x, y);
+                    if (c0.hasActors()) {
+                        const actor = c0.getFirstActor()!;
+                        if (this._actor.isEnemy(actor)) {
+                            cell = c0;
+                        }
+                    }
+                }
+            }
+            else {
+                break;
+            }
+        }
+        if (cell === null) {return cell;}
+        // Do a proper search with full FOV if one enemy was found
+        const seenCells = this.getSeenCells();
+        return this.findEnemyCell(seenCells);
+    }
+
     /* Finds a friend cell among seen cells.*/
     public findFriendCell(seenCells: Cell[]): null | Cell {
         const memory = this.getMemory();
@@ -373,6 +406,7 @@ export class BrainSentient extends BrainBase {
     }
 
     /* Takes action towards given enemy cell.*/
+    /*
     public actionTowardsEnemy(enemyCell: Cell): () => void {
         const level = this._actor.getLevel();
         const playX = enemyCell.getX();
@@ -380,7 +414,7 @@ export class BrainSentient extends BrainBase {
         if (this.canMeleeAttack(playX, playY)) {
             return () => {
                 const cell = level.getMap().getCell(playX, playY);
-                const target = cell.getProp('actors')[0];
+                const target = cell.getFirstActor();
                 const attackComp = new Component.Attack({target});
                 this._actor.add(attackComp);
             };
@@ -389,6 +423,8 @@ export class BrainSentient extends BrainBase {
             return this.tryToMoveTowardsCell(enemyCell);
         }
     }
+    TODO rm
+    */
 
     public tryToMoveTowardsCell(cell: Cell): () => void {
         // Simple dX,dY computation as first option
@@ -449,6 +485,7 @@ export class BrainSentient extends BrainBase {
 
     /* Based on seenCells, AI explores the unexplored free cells, or picks on
      * cell randomly, if everything's explored.*/
+    /*
     public exploreLevel(seenCells) {
         // Wander around exploring
         let index = -1;
@@ -484,6 +521,8 @@ export class BrainSentient extends BrainBase {
         return this.tryToMoveTowardsCell(seenCells[index]);
 
     }
+    TODO rm
+    */
 
     /* Returns shortest path from actor to the given cell. Resulting cells are
      * returned in order: closest to the actor first. Thus moving to the
@@ -498,6 +537,7 @@ export class BrainSentient extends BrainBase {
     }
 
     /* Flees from the given cell or explores randomly if cannot. */
+    /*
     public fleeFromCell(cell: Cell, seenCells: Cell[]): () => void {
         const x = cell.getX();
         const y = cell.getY();
@@ -519,6 +559,8 @@ export class BrainSentient extends BrainBase {
         }
         return this.exploreLevel(seenCells);
     }
+    TODO rm
+    */
 
     /* Returns all free cells around the actor owning the brain.*/
     public getFreeCellsAround(): Cell[] {
