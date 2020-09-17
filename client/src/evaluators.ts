@@ -107,8 +107,9 @@ export class EvaluatorAttackActor extends EvaluatorBase {
 
     public calculateDesirability(actor): number {
         const brain = actor.getBrain();
-        const seenCells = brain.getSeenCells();
-        const enemyCell = brain.findEnemyCell(seenCells);
+        // const seenCells = brain.getSeenCells();
+        // const enemyCell = brain.findEnemyCell(seenCells);
+        const enemyCell = brain.findEnemyCellFast();
         if (enemyCell) {
             const result = 1;
             this.enemyActor = enemyCell.getActors()[0];
