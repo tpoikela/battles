@@ -442,6 +442,8 @@ describe('Brain.GoalOriented', () => {
         const action = archer.nextAction();
         action.doAction();
 
+        expect(archer).to.have.component('AttackRanged');
+
         attRangedSystem.update();
         missSystem.update();
         expect(level.getItems().length, '1 arrow was shot').to.equal(1);
