@@ -789,15 +789,20 @@ export class GameMain {
         const area: World.Area = world.getAreas()[0];
         let xy = area.findTileXYById(player.getLevel().getID());
 
+        let [x, y] = player.getXY();
+
         if (!xy) {
           xy = this.tryToGetTileXY();
           if (!xy) {return null;}
+          // TODO compute based on connection loc to area level
+          x = 50;
+          y = 50;
         }
 
         const {xMap, yMap} = overworld.coordMap;
 
-        const coordX = xy[0] * 100 + player.getX();
-        const coordY = xy[1] * 100 + player.getY();
+        const coordX = xy[0] * 100 + x;
+        const coordY = xy[1] * 100 + y;
 
         const pX = Math.floor(coordX / xMap);
         const pY = Math.floor(coordY / yMap);
