@@ -193,9 +193,12 @@ export class DungeonGenerator extends LevelGenerator {
         const minNumRooms = conf.minNumRooms || 3;
         let mapGen = null;
         let map: null | CellMap = null;
-        const createCb = (x, y, val) => {
+        const createCb = (x: number, y: number, val: number): void => {
             if (val === WALL) {
-                map!.setBaseElemXY(x, y, ELEM.WALL);
+                map!.setBaseElemXY(x, y, conf.wallType || ELEM.WALL);
+            }
+            else {
+                map!.setBaseElemXY(x, y, conf.floorType || ELEM.FLOOR_CAVE);
             }
         };
 
@@ -205,13 +208,6 @@ export class DungeonGenerator extends LevelGenerator {
             mapGen = this.getMapGen(cols, rows, conf);
             map = new CellMap(cols, rows);
             mapGen.create(createCb);
-
-            /*
-            mapGen._ngraph.forEachNode(node => {
-                console.log(node.id, node.data);
-            });
-            */
-
             if (--watchdog === 0) {
                 break;
             }
