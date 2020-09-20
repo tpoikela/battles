@@ -10,6 +10,7 @@ import {FactoryLevel} from '../../../client/src/factory.level';
 import {FactoryActor} from '../../../client/src/factory.actors';
 import {Level} from '../../../client/src/level';
 import {MapGenerator} from '../../../client/src/generator';
+import {ELEM} from '../../../client/data/elem-constants';
 import * as Element from '../../../client/src/element';
 import * as Component from '../../../client/src/component';
 
@@ -146,4 +147,40 @@ describe('System.Movement', () => {
             level2.useStairs(player);
         }
     });
+
+    it('can apply penalties based on terrain', () => {
+        const movSystem = new System.Movement(['Movement']);
+        const level1 = Factory.createLevel('arena', 20, 20);
+        const actor = new SentientActor('TestActor');
+        level1.addActor(actor, 1, 1);
+        level1.getMap().setBaseElemXY(2, 1, ELEM.SNOW_DEEP);
+        level1.getMap().setBaseElemXY(3, 1, ELEM.SNOW);
+
+        let movComp = new Component.Movement(2, 1, level1);
+        actor.add(movComp);
+        movSystem.update();
+        const speed1 = actor.getSpeed();
+        expect(speed1).to.be.below(100);
+
+        movComp = new Component.Movement(3, 1, level1);
+        actor.add(movComp);
+        movSystem.update();
+        const speed2 = actor.getSpeed();
+        expect(speed2).to.be.above(speed1);
+
+        movComp = new Component.Movement(4, 1, level1);
+        actor.add(movComp);
+        movSystem.update();
+        expect(actor.getSpeed()).to.equal(100);
+
+        movComp = new Component.Movement(3, 1, level1);
+        actor.add(movComp);
+        movSystem.update();
+
+        movComp = new Component.Movement(2, 1, level1);
+        actor.add(movComp);
+        movSystem.update();
+        expect(actor.getSpeed()).to.equal(90);
+    });
+
 });
