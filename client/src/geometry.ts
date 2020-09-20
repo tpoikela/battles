@@ -464,6 +464,23 @@ export class Geometry {
         }
     }
 
+    /* Links the cells of l1 to l2. */
+    public static copyBaseElems(
+        l1: Level, l2: Level, startX: number, startY: number
+    ): void {
+        const m1: CellMap = l1.getMap();
+        const m2: CellMap = l2.getMap();
+        const endX = startX + m2.cols - 1;
+        const endY = startY + m2.rows - 1;
+
+        for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+                const elem = m1._map[x][y].getBaseElem();
+                m2._map[x - startX][y - startY].setBaseElem(elem);
+            }
+        }
+    }
+
     public static mergeMapCellsUnsafe(m1, m2, startX, startY): void {
         const endX = startX + m2.cols - 1;
         const endY = startY + m2.rows - 1;
