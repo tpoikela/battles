@@ -224,11 +224,12 @@ export class SystemMovement extends SystemBase {
                     this._checkEntrapment(ent, cell);
                 }
 
-                const baseElem = cell.getBaseElem();
+                // Check if we need to leave some tracks into the snow
+                const baseElem = prevCell.getBaseElem();
                 if (baseElem.has('Snowy')) {
                     const baseType = baseElem.getType();
                     if (snowTracksMap[baseType]) {
-                        cell.setBaseElem(snowTracksMap[baseType]);
+                        prevCell.setBaseElem(snowTracksMap[baseType]);
                     }
                 }
             }
@@ -260,11 +261,42 @@ export class SystemMovement extends SystemBase {
             newType = elemTypeMap[newType];
         }
 
+        const newName = newElem.getName();
+        const prevName = prevElem.getName();
         // No cell type change, no need to check the modifiers
         // TODO: May change with accumulating penalties
-        if (prevType === newType) {return;}
+        if (prevName === newName) {
+            return;
+        }
 
+        // Check previous elemType for removal first
         let bonuses = null;
+        if (this._bonuses.hasOwnProperty(prevType)) {
+            bonuses = this._bonuses[prevType];
+        }
+        else if (prevElem.has('Terrain')) {
+            bonuses = prevElem.get('Terrain').getMods();
+            bonuses.mods = bonuses;
+        }
+
+        // Remove the bonus/penalty here because cell type was left
+        if (bonuses) {
+            const statsList = ent.getList('StatsMods');
+            const combatList = ent.getList('CombatMods');
+            // TODO add a list of comps to check to this._bonuses
+            statsList.forEach(modComp => {
+                if (modComp.getTag() === prevType) {
+                    ent.remove(modComp);
+                }
+            });
+            combatList.forEach(modComp => {
+                if (modComp.getTag() === prevType) {
+                    ent.remove(modComp);
+                }
+            });
+        }
+
+        bonuses = null;
         if (this._bonuses.hasOwnProperty(newType)) {
             bonuses = this._bonuses[newType];
         }
@@ -326,31 +358,6 @@ export class SystemMovement extends SystemBase {
             }
         }
 
-        bonuses = null;
-        if (this._bonuses.hasOwnProperty(prevType)) {
-            bonuses = this._bonuses[prevType];
-        }
-        else if (prevElem.has('Terrain')) {
-            bonuses = prevElem.get('Terrain').getMods();
-            bonuses.mods = bonuses;
-        }
-
-        // Remove the bonus/penalty here because cell type was left
-        if (bonuses) {
-            const statsList = ent.getList('StatsMods');
-            const combatList = ent.getList('CombatMods');
-            // TODO add a list of comps to check to this._bonuses
-            statsList.forEach(modComp => {
-                if (modComp.getTag() === prevType) {
-                    ent.remove(modComp);
-                }
-            });
-            combatList.forEach(modComp => {
-                if (modComp.getTag() === prevType) {
-                    ent.remove(modComp);
-                }
-            });
-        }
     }
 
     /* Checks movements like climbing. */
@@ -448,7 +455,7 @@ export class SystemMovement extends SystemBase {
             ['getID', 'getName', 'getX', 'getY'], '');
         this._diagnoseRemovePropError(xOld, yOld, map, ent);
         if (ent.has('Dead')) {
-            console.log('WoW! Trying to move dead entity!');
+            console.log('WoW! Trying to move a Dead entity!');
         }
         RG.err('MovementSystem', 'moveActorTo',
             `Couldn't remove ent |${ent.getName()}, ID: ${ent.getID()}| @ ${coord}`);
