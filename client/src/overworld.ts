@@ -443,6 +443,8 @@ function buildMapLevel(
     const factLevel = new FactoryLevel();
     const owLevel = factLevel.createLevel(RG.LEVEL_EMPTY, worldCols, worldRows);
 
+    const subLevels: {[key: string]: Level} = {};
+
     // Build the overworld level in smaller pieces, and then insert the
     // small levels into the large level.
     // Each overworld tile is mapped to map sub Map.Level
@@ -452,14 +454,25 @@ function buildMapLevel(
             const x0 = x * xMap;
             const y0 = y * yMap;
             Geometry.mergeLevels(owLevel, subLevel, x0, y0);
+            subLevels[RG.toKey([x, y])] = subLevel;
+        }
+    }
+    OWBiomes.addBiomes(ow, owLevel);
+
+    for (let x = 0; x < sizeX; x++) {
+        for (let y = 0; y < sizeY; y++) {
+            const subLevel = subLevels[RG.toKey([x, y])];
+            const x0 = x * xMap;
+            const y0 = y * yMap;
+            Geometry.copyBaseElems(owLevel, subLevel, x0, y0);
+            // TODO Add other features such as cities, dungeons etc to the level.
+            addSubLevelFeatures(ow, x, y, subLevel);
         }
     }
 
+
     const conf: WorldConf = OverWorld.createWorldConf(ow,
         sizeX, sizeY, nTilesX, nTilesY, owConf);
-
-
-    OWBiomes.addBiomes(ow, owLevel);
 
     // Some global features (like roads) need to be added
     addGlobalFeatures(ow, owLevel, conf, coordMap);
@@ -484,8 +497,6 @@ function createSubLevel(ow: OWMap, owX: number, owY: number, xMap, yMap): Level 
 
     addSubLevelWalls(ow, owX, owY, type, owSubLevel, subLevel);
 
-    // TODO Add other features such as cities, dungeons etc to the level.
-    addSubLevelFeatures(ow, owX, owY, subLevel);
     return subLevel;
 }
 
@@ -943,18 +954,21 @@ function getAccessibleMountainCoord(subLevel: Level, edges = true): TCoord[] {
 
 /* Adds a mountain to the given sub-level. Each mountain is placed on free map
  * cell. */
-function addMountainToSubLevel(owSubLevel: OWSubLevel, subLevel: Level) {
+function addMountainToSubLevel(owSubLevel: OWSubLevel, subLevel: Level): void {
     let placed = false;
     const map = subLevel.getMap();
     const freeCells = map.getFreeNotOnEdge();
-    const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
+    const highCells = freeCells.filter(c => c.getZ() >= 2);
+    const freeXY: TCoord[] = highCells.map(cell => [cell.getX(), cell.getY()]);
 
     // Sometimes no free cells are found, just skip this
     if (freeXY.length === 0) {
+        console.log('No free cells for mountain found with level:\n');
+        subLevel.debugPrintInASCII();
         return;
     }
 
-    let coord = [];
+    let coord: TCoord[] = [];
     let watchdog = 10 * WATCHDOG_MAX;
     while (!placed) {
         const xy = getRNG().arrayGetRand(freeXY);
@@ -999,6 +1013,7 @@ function addVillageToSubLevel(feat, owSubLevel: OWSubLevel, subLevel: Level) {
         owSubLevel.addFeature(village);
     }
     else {
+        subLevel.debugPrintInASCII();
         RG.err('overworld.js', 'addVillageToSubLevel',
             'No free cells found in the level.');
     }
