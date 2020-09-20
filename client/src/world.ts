@@ -395,8 +395,6 @@ function connectSubZoneEdges(subZones: SubZoneBase[], sz1Arg, sz2Arg, l1: number
             `l1 (${l1}) and l2 (${l2}) must be non-null and integers.`);
     }
 
-    console.log('l1', l1, 'l2', l2);
-
     const sz1Level = sz1.getLevel(l1);
     const sz2Level = sz2.getLevel(l2);
     if (!sz1Level) {
@@ -1532,7 +1530,6 @@ export class Area extends WorldBase {
         msg += `\t\nTiles LOADED: ${loadedTiles.join(' | ')}`;
         msg += `\t\nTiles OTHER: ${tilesOther.join(' | ')}`;
         this.printLevelIDs();
-        console.log('Tile[0][2]: ', this._tiles[0][2]);
         console.log(msg);
     }
 
