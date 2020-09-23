@@ -112,10 +112,10 @@ export class CellClickHandler extends DriverBase {
 
     /* Tries to compute a path to given coordinate. Uses 2 different methods. */
     public moveTo(player: SentientActor, toX: number, toY: number): void {
-        let keyBuf = [];
+        // let keyBuf = [];
         let [pX, pY] = [player.getX(), player.getY()];
-        const [aX, aY] = [pX, pY]; // Keep original position
-        let pathPossible = true;
+        // const [aX, aY] = [pX, pY]; // Keep original position
+        // let pathPossible = true;
         const map = player.getLevel().getMap();
 
         if (!map.isExplored(toX, toY)) {
@@ -124,6 +124,7 @@ export class CellClickHandler extends DriverBase {
             return;
         }
 
+        /*
         // Try to move diagonals first
         while (pX !== toX && pY !== toY) {
             const dx = toX - pX;
@@ -160,21 +161,26 @@ export class CellClickHandler extends DriverBase {
                 }
             }
         }
+        */
 
         // Use path finder, if more difficult path to follow
-        if (!pathPossible) {
+        // if (!pathPossible) {
+            console.log('Using pathfinder to find the fastest path!');
             [pX, pY] = [player.getX(), player.getY()];
-            keyBuf = [];
-            const path = Path.getShortestActorPath(map, pX, pY, toX, toY);
+            const keyBuf: number[] = [];
+            const cb = (x: number, y: number) => (
+                map.isExplored(x, y) && map.isPassable(x, y, pX, pY)
+            );
+            // const cb = () => true;
+            const path = Path.getShortestActorPath(map, pX, pY, toX, toY, cb);
             path.forEach(xy => {
                 const dx = xy.x - pX;
                 const dy = xy.y - pY;
-                console.log('Next in path is', xy);
                 keyBuf.push(dirToKeyCode(dx, dy));
                 if (dx !== 0) {pX += dx / Math.abs(dx);}
                 if (dy !== 0) {pY += dy / Math.abs(dy);}
             });
-        }
+        //}
 
         this._keyBuffer = keyBuf;
     }
