@@ -95,6 +95,13 @@ Object.keys(ELEM).forEach(key => {
     ++elemIndex;
 });
 
+export function getElem(type: string|ConstBaseElem): ConstBaseElem {
+    if (typeof type === 'string') {
+        return ELEM_MAP.elemTypeToObj[type];
+    }
+    return type;
+}
+
 type TElemMap = {[key: string]: ConstBaseElem};
 
 // These tables are used for managing melting/snowing

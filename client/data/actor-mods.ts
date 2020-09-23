@@ -8,8 +8,9 @@ export const ActorMods: {[key: string]: IActorMods} = {};
 ActorMods.bearfolk = {
     description: '',
     stats: {
-        agility: -2,
-        strength: 3
+        magic: -2,
+        agility: -3,
+        strength: 5,
     },
     player: { // Player only section
         startingItems: [
@@ -22,9 +23,9 @@ ActorMods.bearfolk = {
 
 ActorMods.catfolk = {
     stats: {
-        agility: 3,
-        perception: 2,
-        strength: -2
+        agility: 6,
+        perception: 4,
+        strength: -3
     },
     player: { // Player only section
         startingItems: [
@@ -36,8 +37,8 @@ ActorMods.catfolk = {
 
 ActorMods.dogfolk = {
     stats: {
-        agility: 2,
-        perception: 3
+        agility: 4,
+        perception: 5
     },
     player: { // Player only section
         Spellsinger: {
@@ -54,9 +55,9 @@ ActorMods.dogfolk = {
 
 ActorMods.dwarf = {
     stats: {
-        agility: -1,
-        strength: 2,
-        willpower: 1
+        agility: -2,
+        strength: 3,
+        willpower: 3
     },
     player: { // Player only section
         Adventurer: {
@@ -75,8 +76,10 @@ ActorMods.dwarf = {
 
 ActorMods.goblin = {
     stats: {
-        accuracy: 1,
-        agility: 2
+        magic: -3,
+        accuracy: 3,
+        agility: 4,
+        spirituality: -3
     },
     player: { // Player only section
         startingItems: [
@@ -90,9 +93,10 @@ ActorMods.goblin = {
 
 ActorMods.human = {
     stats: {
-        accuracy: 3,
-        magic: 1,
-        willpower: 1
+        accuracy: 6,
+        magic: 2,
+        willpower: 2,
+        spirituality: 2
     },
     player: { // Player only section
         startingItems: [
@@ -104,8 +108,9 @@ ActorMods.human = {
 
 ActorMods.hyrkhian = {
     stats: {
-        magic: 2,
-        willpower: 2
+        magic: 5,
+        willpower: 5,
+        spirituality: 3
     },
     player: { // Player only section
         Cryomancer: {
@@ -123,9 +128,9 @@ ActorMods.hyrkhian = {
 
 ActorMods.wildling = {
     stats: {
-        accuracy: 1,
-        agility: 1,
-        perception: 4
+        accuracy: 2,
+        agility: 2,
+        perception: 6
     },
     player: { // Player only section
         startingItems: [
@@ -137,9 +142,9 @@ ActorMods.wildling = {
 
 ActorMods.wolfclan = {
     stats: {
-        strength: 1,
-        magic: 2,
-        willpower: 2
+        strength: 3,
+        magic: 4,
+        willpower: 4
     },
     player: { // Player only section
         startingItems: [

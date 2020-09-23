@@ -122,6 +122,7 @@ shellProps.races = {
         addComp: [resistance('ICE', 'MEDIUM')]
     },
 };
+scaleStats(shellProps.races, 1.5, 1);
 
 const raceNames = Object.keys(shellProps.races);
 
@@ -239,6 +240,7 @@ shellProps.ranks = {
     },
 };
 const rankNames = Object.keys(shellProps.ranks);
+scaleStats(shellProps.ranks, 1.5, 1);
 
 shellProps.roleBases = {
     melee: {
@@ -267,6 +269,7 @@ shellProps.roleBases = {
         damage: '1d5'
     }
 };
+scaleStats(shellProps.roleBases, 1.5, 1);
 
 /* Contains a list specific roles for each role base type. */
 shellProps.roles = {
@@ -481,6 +484,10 @@ shellProps.roles = {
     },
 };
 const roleTypes: string[] = Object.keys(shellProps.roles);
+roleTypes.forEach((roleType: string) => {
+    scaleStats(shellProps.roles[roleType], 1.5, 1);
+});
+
 
 const allRoleShells = roleTypes.reduce((acc, rType: string, i: number, arr: string[]) => {
     return Object.assign(acc, shellProps.roles[rType]);
@@ -673,4 +680,16 @@ function getColorFg(roleNames: string[]): string {
     let idx = allRolenames.indexOf(roleNames[0]);
     idx = idx % RG.COLORS.length;
     return RG.COLORS[idx];
+}
+
+
+function scaleStats(map: StringMap<IShell>, mult: number, add: number): void {
+    Object.keys(map).forEach((key: string) => {
+        const shell: IShell = map[key];
+        RG.STATS_LC.forEach((val: string) => {
+            if (shell.hasOwnProperty(val)) {
+                shell[val] = Math.round(mult * shell[val]) + add;
+            }
+        });
+    });
 }

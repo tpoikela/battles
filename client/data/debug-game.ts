@@ -335,11 +335,13 @@ export class DebugGame {
         });
 
         // Test the weather system here
+        /*
         const weatherComp = new Component.Weather();
         weatherComp.setWeatherType('snowStorm');
         level.add(weatherComp);
         const weatherActor = new WeatherActor('Weather actor');
         level.addVirtualProp(RG.TYPE_ACTOR, weatherActor);
+        */
 
         // Testing the trap elements such as web
         const freeCells: Cell[] = level.getMap().getCells(c => c.isFree());
