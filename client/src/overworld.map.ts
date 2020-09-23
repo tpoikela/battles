@@ -910,7 +910,7 @@ function addOverWorldFeatures(ow: OWMap, conf: OWMapConf): void {
 
     const nMountainsNorth = conf.nMountainsNorth || Math.floor(area / 40);
     const nMountainsMiddle = conf.nMountainsMiddle || Math.floor(area / 60);
-    const nMountainsSouth = conf.nMountainsSouth || Math.floor(area / 80);
+    const nMountainsSouth = conf.nMountainsSouth || Math.floor(area / 60);
 
     // Add final tower
     addFeatureToAreaByDir(ow, 'NE', 0.5, OW.BTOWER);
