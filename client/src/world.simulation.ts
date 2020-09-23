@@ -8,12 +8,14 @@
 import dbg from 'debug';
 const debug = dbg('bitn:WorldSimulation');
 
+import RG from './rg';
 import {SeasonManager} from './season-manager';
 import {DayManager} from './day-manager';
 import * as Component from './component/component';
 import {EventPool} from './eventpool';
 import {BaseActor} from './actor';
 import {TCoord} from './interfaces';
+import {WeatherActor} from './actor.virtual';
 
 type OWMap = import('./overworld.map').OWMap;
 type Level = import('./level').Level;
@@ -27,6 +29,8 @@ export enum WS_EVENT {
     'SEASON_CHANGED',
     'YEAR_CHANGED',
 }
+
+debug.enabled = true;
 
 export class WorldSimulation {
 
@@ -43,6 +47,7 @@ export class WorldSimulation {
     constructor(pool?: EventPool) {
         this.dayMan = new DayManager(pool);
         this.seasonMan = new SeasonManager(pool);
+        this.seasonMan._debug = debug.enabled;
         this.worldEntity = new BaseActor(WORLD_ENTITY);
         this.worldEntity.add(new Component.Location());
         this.updateCount = 0;
@@ -66,7 +71,7 @@ export class WorldSimulation {
         this.dayMan.update();
 
         if (this.dayMan.phaseChanged()) {
-            debug(this.updateCount, 'phaseChange detected');
+            debug('updateCount:', this.updateCount, 'phaseChange detected');
             const wsEvent = new Component.WorldSimEvent();
             wsEvent.setEventType(WS_EVENT.PHASE_CHANGED);
             wsEvent.setEventData({currPhase: this.dayMan.getCurrPhase()});
@@ -101,15 +106,7 @@ export class WorldSimulation {
         }
 
         if (this.changed('weather')) {
-            const weather = this.seasonMan.getWeather();
-            // Level might not be set before update() is called
-            if (this.currLevel) {
-                debug(this.updateCount, 'weather change detected');
-                this.currLevel.removeAll('Weather');
-                const weatherComp = new Component.Weather();
-                weatherComp.setWeatherType(weather);
-                this.currLevel.add(weatherComp);
-            }
+            this.processWeatherChanged();
         }
 
         ++this.updateCount;
@@ -126,6 +123,10 @@ export class WorldSimulation {
 
     public getWeather(): string {
         return this.seasonMan.getWeather();
+    }
+
+    public getTemperature(): number {
+        return this.seasonMan.getTemperature();
     }
 
     public setUpdateRates(rate: number): void {
@@ -188,6 +189,31 @@ export class WorldSimulation {
             default: throw new Error('No change for ' + prop);
         }
         return false;
+    }
+
+    /* Changes the Weather comp on the current level. Adds WeatherActor if
+     * needed. */
+    protected processWeatherChanged(): void {
+        const weather = this.getWeather();
+        // Level might not be set before update() is called
+        if (this.currLevel) {
+            const level = this.currLevel;
+            const season = this.getSeason();
+            console.log('Changin weather from inside worldsim to |||', weather, 'season is', season);
+            debug(this.updateCount, 'weather change detected');
+            this.currLevel.removeAll('Weather');
+
+            const weatherComp = new Component.Weather();
+            weatherComp.setWeatherType(weather);
+            weatherComp.setTemperature(this.getTemperature());
+
+            if (level.getActors().findIndex(a => a.getName() === 'WeatherActor') < 0) {
+                const weatherActor = new WeatherActor('WeatherActor');
+                level.addVirtualProp(RG.TYPE_ACTOR, weatherActor);
+            }
+
+            this.currLevel.add(weatherComp);
+        }
     }
 
 }
