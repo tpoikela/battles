@@ -303,6 +303,10 @@ export class Engine {
             this.nextActorNotPlayerError();
         }
         const player = this.nextActor as SentientActor;
+        const actionComp = player.get('Action');
+
+        // Will be set to RG.ACTION_FAILED in case of failure
+        actionComp.setStatus(RG.ACTION_OK);
 
         // TODO refactor R1
         const action = player.nextAction(obj);
@@ -316,7 +320,8 @@ export class Engine {
         else {
             player.remove('ImpossibleCmd');
         }
-        const msg = player.get('Action').getMsg();
+
+        const msg = actionComp.getMsg();
         if (msg !== '') {
             RG.gameDanger({cell: player.getCell(), msg});
             player.get('Action').setMsg('');
@@ -580,7 +585,7 @@ export class Engine {
     }
 
     /* Performs one game action.*/
-    public doAction(action) {
+    public doAction(action): void {
         action.doAction();
         if (action.hasOwnProperty('energy')) {
             if (action.hasOwnProperty('actor')) {
