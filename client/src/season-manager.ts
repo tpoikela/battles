@@ -25,7 +25,7 @@ debug.enabled = true;
 const defaultWeather = ['sunny', 'cloudy'];
 const specialWeatherProb = 0.2; // Prob of other weather than default
 const sameWeatherProb = 0.75; // Best forecast is based on previous weather
-const daysInMonth = 1;
+const daysInMonth = 2;
 
 export const seasonConfig: {[key: string]: SeasonEntry} = {
     AUTUMN: {dur: 2.0, temp: [0, 15], weather: ['rain', 'heavy rain'], index: 0},
@@ -126,7 +126,7 @@ export class SeasonManager {
 
     /* Sets days per month. Also changes monthLeft variable. */
     public setDaysInMonth(nDays: number): void {
-        this._monthLeft = daysInMonth;
+        this._monthLeft = nDays;
         this._daysPerMonth = nDays;
     }
 
@@ -164,7 +164,7 @@ export class SeasonManager {
         return this._currSeason;
     }
 
-    /* Updates season progress. */
+    /* Updates season progress. Should be called once per day. */
     public update(): void {
         --this._monthLeft;
         this._seasonChanged = false;

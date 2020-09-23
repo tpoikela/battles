@@ -74,7 +74,10 @@ export class WorldSimulation {
             debug('updateCount:', this.updateCount, 'phaseChange detected');
             const wsEvent = new Component.WorldSimEvent();
             wsEvent.setEventType(WS_EVENT.PHASE_CHANGED);
-            wsEvent.setEventData({currPhase: this.dayMan.getCurrPhase()});
+            wsEvent.setEventData({
+                currPhase: this.dayMan.getCurrPhase(),
+                entry: this.dayMan.getPhaseEntry()
+            });
             this.worldEntity.add(wsEvent);
             this.seasonMan.changeWeather();
         }
