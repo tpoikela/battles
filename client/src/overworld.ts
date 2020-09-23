@@ -963,8 +963,6 @@ function addMountainToSubLevel(owSubLevel: OWSubLevel, subLevel: Level): void {
 
     // Sometimes no free cells are found, just skip this
     if (freeXY.length === 0) {
-        console.log('No free cells for mountain found with level:\n');
-        subLevel.debugPrintInASCII();
         return;
     }
 
