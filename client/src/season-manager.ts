@@ -2,6 +2,9 @@
  * also manages internal game time/calender + time of day.
  */
 
+import dbg from 'debug';
+const debug = dbg('bitn:WorldSimulation');
+
 import RG from './rg';
 import {Random} from './random';
 import {TCoord} from './interfaces';
@@ -16,12 +19,13 @@ export interface SeasonEntry {
     index: number; // Determines order of season in 'seasonal wheel'
 }
 
+debug.enabled = true;
+
 // Default weathers on any season are sunny, cloudy
-//
 const defaultWeather = ['sunny', 'cloudy'];
-const specialThr = 0.1;
-const sameWeatherProb = 0.75;
-const daysInMonth = 2;
+const specialWeatherProb = 0.2; // Prob of other weather than default
+const sameWeatherProb = 0.75; // Best forecast is based on previous weather
+const daysInMonth = 1;
 
 export const seasonConfig: {[key: string]: SeasonEntry} = {
     AUTUMN: {dur: 2.0, temp: [0, 15], weather: ['rain', 'heavy rain'], index: 0},
@@ -33,7 +37,7 @@ export const seasonConfig: {[key: string]: SeasonEntry} = {
         index: 2
     },
     WINTER_SPRING: {dur: 1.0, temp: [-10, 10], weather: ['snowFall'], index: 3},
-    SPRING: {dur: 1.0, temp: [7, 15], weather: ['rain'], index: 4},
+    SPRING: {dur: 1.0, temp: [5, 15], weather: ['rain'], index: 4},
     SPRING_SUMMER: {dur: 1.0, temp: [10, 20], weather: ['rain'], index: 5},
     SUMMER: {dur: 1.0, temp: [15, 25], weather: ['rain'], index: 6},
     SUMMER_AUTUMN: {dur: 1.0, temp: [10, 20], weather:
@@ -73,7 +77,7 @@ export class SeasonManager {
         seasonMan._weatherChanged = json.weatherChanged;
         seasonMan._monthChanged = json.monthChanged;
         seasonMan._yearChanged = json.yearChanged;
-        seasonMan._owPos = json.owPos;
+        //seasonMan._owPos = json.owPos;
         seasonMan._biomeMap = json.biomeMap;
         return seasonMan;
     }
@@ -82,6 +86,7 @@ export class SeasonManager {
 
     protected _currSeason: string;
     protected _currWeather: string;
+    protected _currTemp: number;
     protected _monthLeft: number;
     protected _seasonLeft: number;
     protected _daysPerMonth: number;
@@ -90,9 +95,10 @@ export class SeasonManager {
     protected _weatherChanged: boolean;
     protected _monthChanged: boolean;
     protected _yearChanged: boolean;
-
     protected _owPos: TCoord;
     protected _biomeMap: StringMap;
+
+    public _debug: boolean;
 
     constructor(pool?: EventPool) {
         this._currSeason = RG.SEASON.AUTUMN;
@@ -106,12 +112,27 @@ export class SeasonManager {
         this._monthChanged = false;
         this._yearChanged = false;
         this.pool = pool;
+
+        this._currTemp = this.getNewTemperature(this._currSeason);
+
+        this._debug = debug.enabled;
+    }
+
+    public dbg(...args): void {
+        if (this._debug) {
+            debug(...args);
+        }
     }
 
     /* Sets days per month. Also changes monthLeft variable. */
     public setDaysInMonth(nDays: number): void {
         this._monthLeft = daysInMonth;
         this._daysPerMonth = nDays;
+    }
+
+    public getNewTemperature(season: string): number {
+        const [tLow, tHigh] = seasonConfig[season].temp;
+        return RNG.getUniformRange(tLow, tHigh);
     }
 
     /* Sets the player position in overworld map to find the correct biomes etc. */
@@ -139,6 +160,10 @@ export class SeasonManager {
         return this._weatherChanged;
     }
 
+    public getSeason(): string {
+        return this._currSeason;
+    }
+
     /* Updates season progress. */
     public update(): void {
         --this._monthLeft;
@@ -161,12 +186,13 @@ export class SeasonManager {
 
     public nextSeason(): void {
         const seasons = Object.keys(seasonConfig);
-        const currIndex= seasons.indexOf(this._currSeason);
+        const currIndex = seasons.indexOf(this._currSeason);
         let nextIndex = currIndex + 1;
         if (nextIndex >= seasons.length) {
             nextIndex = 0;
             this._yearChanged = true;
         }
+        this.dbg('SeasonMan currSeason is now', this._currSeason);
         this._currSeason = seasons[nextIndex];
     }
 
@@ -175,25 +201,42 @@ export class SeasonManager {
         return this._currWeather;
     }
 
+    public getTemperature(): number {
+        return this._currTemp;
+    }
+
     /* Changes the weather (possibly), and returns the new (or old) weather. */
     public changeWeather(): string {
         this._weatherChanged = false;
-        if (RG.isSuccess(sameWeatherProb)) {
+        const isSpecial = RG.isSuccess(specialWeatherProb);
+        const isSame = RG.isSuccess(sameWeatherProb);
+        this.dbg('changeWeather() called. Checking to change weather'
+             + 'isSpecial: ' + isSpecial + ', isSame: ' + isSame);
+        if (!isSpecial && isSame) {
             return this._currWeather;
         }
 
         const seasonModified = this.filterSeasonForBiome();
+        this._currTemp = this.getNewTemperature(seasonModified);
+
+        // TODO If we're already at special weather, and isSame, don't change it
 
         let weather = this._currWeather;
-        if (RG.isSuccess(specialThr)) {
+        if (isSpecial) {
             const specialWeathers = seasonConfig[seasonModified].weather;
-            if (specialWeathers.length > 0) {
+            const isAlreadySpecial = specialWeathers.indexOf(weather) >= 0;
+            if (isSame && isAlreadySpecial) {
+                this.dbg('Keeping existing special weather: ' + weather);
+            }
+            else if (specialWeathers.length > 0) {
                 weather = RNG.arrayGetRand(specialWeathers);
             }
         }
         else {
             weather = RNG.arrayGetRand(defaultWeather);
         }
+
+        this.dbg('changeWeather() called. New weather will be |', weather);
 
         if (weather !== this._currWeather) {
             this._weatherChanged = true;
@@ -203,10 +246,6 @@ export class SeasonManager {
         return this._currWeather;
     }
 
-    /* Updates all seasons. */
-    public getSeason(): string {
-        return this._currSeason;
-    }
 
     public filterSeasonForBiome(): string {
         if (!this._biomeMap) {return this._currSeason;}
