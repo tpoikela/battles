@@ -39,6 +39,7 @@ type Entity = import('./entity').Entity;
 type SentientActor = import('./actor').SentientActor;
 type Random = import('./random').Random;
 type Stairs = Element.ElementStairs;
+type StairsOrList = Stairs | Stairs[];
 type WorldBase = World.WorldBase;
 type WorldTop = World.WorldTop;
 type ZoneBase = World.ZoneBase;
@@ -1146,7 +1147,9 @@ export class FactoryWorld {
 
     /* Returns the name for connection elem based on zoneType and
      * zone configuration. */
-    public getConnectionName(conf, zoneType, stairs): string {
+    public getConnectionName(
+        conf, zoneType: string, stairs: StairsOrList
+    ): string {
         let name = '';
         if (zoneType === 'city') {
             name = 'town';
@@ -1169,21 +1172,25 @@ export class FactoryWorld {
     }
 
     /* Returns x,y coord for stairs placed on the tile level. */
-    public getTileStairsXY(level, conf) {
+    public getTileStairsXY(level: Level, conf): IF.TCoord {
         let [tsX, tsY] = [conf.levelX, conf.levelY];
         const isNull = RG.isNullOrUndef([tsX, tsY]);
         if (isNull) {
             const freeAreaCell = level.getEmptyRandCell();
-            tsX = freeAreaCell.getX();
-            tsY = freeAreaCell.getY();
+            if (freeAreaCell) {
+                tsX = freeAreaCell.getX();
+                tsY = freeAreaCell.getY();
+            }
         }
 
         let cell = level.getMap().getCell(tsX, tsY);
         let watchdog = RG.WATCHDOG;
         while (cell.hasConnection()) {
             const freeAreaCell = level.getEmptyRandCell();
-            tsX = freeAreaCell.getX();
-            tsY = freeAreaCell.getY();
+            if (freeAreaCell) {
+                tsX = freeAreaCell.getX();
+                tsY = freeAreaCell.getY();
+            }
             cell = level.getMap().getCell(tsX, tsY);
             if (--watchdog <= 0) {break;}
         }
@@ -1191,10 +1198,12 @@ export class FactoryWorld {
         return [tsX, tsY];
     }
 
-    public getEntryStairs(entryLevel, entryStairs, zoneStairs) {
+    public getEntryStairs(
+        entryLevel: Level, entryStairs: Stairs, zoneStairs: StairsOrList
+    ): Stairs|Stairs[] {
         // Connection OK, remove the stairs, otherwise use the
         // existing entrance
-        if (zoneStairs.length > 0) {
+        if ((zoneStairs as Stairs[]).length > 0) {
             const sX = entryStairs.getX();
             const sY = entryStairs.getY();
 
@@ -1213,7 +1222,7 @@ export class FactoryWorld {
     /* Processes each 'connectToAreaXY' object. Requires current zone and tile
      * level we are connecting to. Connection type depends on the type of zone.
      */
-    public processConnObject(conn, zone, tileLevel) {
+    public processConnObject(conn, zone: ZoneBase, tileLevel: Level) {
         const nLevel = conn.nLevel;
         const x = conn.levelX;
         const y = conn.levelY;
@@ -1379,14 +1388,14 @@ export class FactoryWorld {
         questPopul.createQuests(world, area, x, y);
     }
 
-/* Creates a connection between an area and a zone such as city, mountain
- * or dungeon. Unless configured, connects the zone entrance to a random
- * location in the area.
- * @param {World.Area} area - Area where zone is located in
- * @param {World.Zone} zone - Zone which is connected to area
- * @param {object} conf - Config for the zone
- * @return {void}
- * */
+    /* Creates a connection between an area and a zone such as city, mountain
+     * or dungeon. Unless configured, connects the zone entrance to a random
+     * location in the area.
+     * @param {World.Area} area - Area where zone is located in
+     * @param {World.Zone} zone - Zone which is connected to area
+     * @param {object} conf - Config for the zone
+     * @return {void}
+     * */
     public createAreaZoneConnection(
         area, zone, conf: IF.ZoneConf
     ): void {
@@ -1406,7 +1415,8 @@ export class FactoryWorld {
 
         const entrances = zone.getEntrances();
         if (entrances.length > 0) {
-            let entryStairs: Stairs = entrances[0];
+            const entryStairs: Stairs = entrances[0];
+            let entryConn: StairsOrList = entryStairs;
             const entryLevel: Level = entryStairs.getSrcLevel();
             const zoneType: string = zone.getType();
 
@@ -1420,20 +1430,20 @@ export class FactoryWorld {
                     this.debug(`conn length before: ${conns.length}`);
                 }
 
-                const zoneStairs: Stairs | Stairs[] = this.createNewZoneConnects(zone,
+                const zoneStairs: StairsOrList = this.createNewZoneConnects(zone,
                     entryLevel);
-                entryStairs = this.getEntryStairs(entryLevel, entryStairs,
+                entryConn = this.getEntryStairs(entryLevel, entryStairs,
                     zoneStairs);
             }
 
-            const connName = this.getConnectionName(conf, zoneType, entryStairs);
+            const connName = this.getConnectionName(conf, zoneType, entryConn);
 
             debugPrintConfAndTile(conf, tileLevel, ' CALL 2');
             const tileStairs = new Stairs(connName, tileLevel, entryLevel);
             const [tileSX, tileSY] = this.getTileStairsXY(tileLevel, conf);
             try {
                 tileLevel.addStairs(tileStairs, tileSX, tileSY);
-                tileStairs.connect(entryStairs);
+                tileStairs.connect(entryConn);
             }
             catch (e) {
                 RG.log('Given conf: ' + JSON.stringify(conf));
