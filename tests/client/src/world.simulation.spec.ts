@@ -37,6 +37,9 @@ describe('DayManager', () => {
     it('keeps track of phases of day', () => {
         pool.listenEvent(RG.EVT_DAY_PHASE_CHANGED, listener);
         const dayMan = new DayManager(pool);
+        const updateRate = 5;
+        dayMan.setUpdateRate(updateRate);
+
         const startPhase = dayMan.getCurrPhase();
         while (!dayMan.phaseChanged()) {
             dayMan.update();
@@ -59,6 +62,17 @@ describe('DayManager', () => {
         const firstPhase = dayMan.getCurrPhase();
         expect(firstPhase).to.equal(RG.DAY.NIGHT);
         expect(listener2.notified).to.equal(true);
+
+        let count = 0;
+        let numUpdates = 0;
+        while (count < 10) {
+            dayMan.update();
+            ++numUpdates;
+            if (dayMan.phaseChanged()) {
+                ++count;
+            }
+        }
+        expect(numUpdates).to.be.above((2 + 4 + 1 + 24) * 60 / updateRate);
     });
 
 });
@@ -72,12 +86,22 @@ describe('SeasonManager', () => {
     it('it keeps track of season, weather and month', () => {
         const seasonMan = new SeasonManager(pool);
         const startSeason = seasonMan.getSeason();
+        let count = 0;
+
+        seasonMan.setDaysInMonth(4);
         while (!seasonMan.monthChanged()) {
             seasonMan.update();
+            ++count;
         }
+        expect(count).to.equal(4);
+
+        count = 0;
         while (!seasonMan.seasonChanged()) {
             seasonMan.update();
+            ++count;
         }
+        // expect(count).to.equal(100);
+
         const newSeason = seasonMan.getSeason();
         expect(startSeason).to.not.equal(newSeason);
 
