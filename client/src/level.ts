@@ -273,7 +273,10 @@ export class Level extends Entity {
             if (this._map.hasXY(x, y)) {
               stairs.setSrcLevel(this);
               // Prevents stairs on impassable squares
-              this._map.setBaseElemXY(x, y, ELEM.FLOOR);
+              const baseElem = this._map.getBaseElemXY(x, y);
+              if (baseElem.has('Impassable') || baseElem.getZ() === 0) {
+                  this._map.setBaseElemXY(x, y, ELEM.FLOOR);
+              }
               return this._addPropToLevelXY(RG.TYPE_ELEM, stairs, x, y);
             }
             else {
