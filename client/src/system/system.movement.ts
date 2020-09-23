@@ -188,6 +188,7 @@ export class SystemMovement extends SystemBase {
         const prevElem = prevCell.getBaseElem();
         const currElem = cell.getBaseElem();
 
+        // Cannot traverse more than dZ of 1
         if (Math.abs(currElem.getZ() - prevElem.getZ()) > 1) {
             if (!ent.has('Flying')) {
                 canMoveThere = false;
@@ -234,12 +235,14 @@ export class SystemMovement extends SystemBase {
                 }
             }
             else {
-                this._moveError(ent);
+                this._fatalMoveError(ent);
             }
         }
         else {
+            ent.get('Action').setStatus(RG.ACTION_FAILED);
             RG.debug(this, 'Cell wasn\'t free at ' + x + ', ' + y);
         }
+
         ent.remove(movComp);
         if (ent.has('Movement')) {
             RG.err('SystemMovement', 'updateEntity',
@@ -445,7 +448,7 @@ export class SystemMovement extends SystemBase {
     }
 
     /* Reports an error if an entity could not be removed. */
-    private _moveError(ent): void {
+    private _fatalMoveError(ent): void {
         const [xOld, yOld] = ent.getXY();
         const level = ent.getLevel();
         const map = level.getMap();
