@@ -74,8 +74,9 @@ export class SystemWorldSim extends SystemBase {
     }
 
     protected _processDayChanged(ent: Entity, wsEvent): void {
+        /*
         const level: Level = ent.get('Location').getLevel();
-        const summerDays = 4;
+        const summerDays = 8;
         if (!level.has('Weather')) {
             level.add(new Component.Weather());
         }
@@ -88,6 +89,7 @@ export class SystemWorldSim extends SystemBase {
         const weatherComp = level.get('Weather');
         if (this.dayCount < summerDays) {
             RG.gameMsg('It is summer time now');
+            const weather = RNG.
             weatherComp.setWeatherType('warm');
         }
         else {
@@ -98,6 +100,7 @@ export class SystemWorldSim extends SystemBase {
         if (this.dayCount === (2*summerDays)) {
             this.dayCount = 0;
         }
+        */
     }
 
 

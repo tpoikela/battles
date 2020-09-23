@@ -4,10 +4,17 @@ import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import {MapGenerator} from '../generator';
 import {snowMeltMap} from '../../data/elem-constants';
+import * as Component from '../component/component';
 
 type CellMap = import('../map').CellMap;
 type Cell = import('../map.cell').Cell;
+type Level = import('../level').Level;
 type Entity = import('../entity').Entity;
+type BaseActor = import('../actor').BaseActor;
+
+const tempFreezing = -15;
+const tempCold = 0;
+const tempWarming = 15;
 
 /* Handles WeatherEffect components and has handler functions for
  * different types of weather effects. */
@@ -22,10 +29,18 @@ export class SystemWeather extends SystemBase {
         this._effTable = {
             // Winter
             snowStorm: this.handleSnowStorm = this.handleSnowStorm.bind(this),
+            hailStorm: this.handleSnowStorm = this.handleSnowStorm.bind(this),
+            snowFall: this.handleSnowFall = this.handleSnowFall.bind(this),
             // Summer/Spring
-            warm: this.handleMeltSnow = this.handleMeltSnow.bind(this),
+            warm: this.handleWarm = this.handleWarm.bind(this),
             // Autumn
-            rain: this.handleRain = this.handleRain.bind(this)
+            rain: this.handleRain = this.handleRain.bind(this),
+            coldRain: this.handleRain = this.handleRain.bind(this),
+            'heavy rain': this.handleRain = this.handleRain.bind(this),
+            // Any
+            clear: this.handleClear = this.handleClear.bind(this),
+            sunny: this.handleClear = this.handleClear.bind(this),
+            cloudy: this.handleClear = this.handleClear.bind(this)
         };
     }
 
@@ -33,21 +48,76 @@ export class SystemWeather extends SystemBase {
         if (ent.has('WeatherEffect')) {
             const eff = ent.get('WeatherEffect');
             const effName = eff.getEffectType();
+            console.log('SystemWeather effName is:', effName);
             if (this._effTable[effName]) {
                 this._effTable[effName](ent, eff);
+                this.handleTemperature(ent, eff);
             }
             ent.removeAll('WeatherEffect');
         }
     }
 
+    protected handleTemperature(ent: Entity, eff): void {
+        const level: Level = RG.getLevel(ent);
+        const tempOutdoor = eff.getTemperature();
+        console.log('SystemWeather: Outdoor temperature is ', tempOutdoor);
+        // 1st step, we apply temp only to outdoors, this will be expanded to
+        // make houses warmer than dungeons etc. Best would be to have some temp
+        // in each baseElement.
+        const actors = level.getActors();
+        actors.forEach((actor: BaseActor): void => {
+            if (actor.has('Location') && actor.get('Location').isValid()) {
+                let currTemp = tempOutdoor;
+                const elem = actor.getCell()!.getBaseElem();
+                if (elem.has('Indoor')) {
+                    currTemp += 10;
+                    if (elem.getName() === 'floorhouse') {
+                        currTemp += 15;
+                    }
+                    // Set indoor temp based on outdoor temp
+                    if (tempOutdoor >= 15) {
+                        currTemp = tempOutdoor;
+                    }
+                    else if (currTemp > 15) {
+                        currTemp = 15;
+                    }
+                }
+
+                if (currTemp < tempFreezing) {
+                    const coldList = actor.getList('Coldness');
+                    if (coldList.length < 2) {
+                        actor.add(new Component.Coldness());
+                    }
+                }
+                else if (currTemp < tempCold && !actor.has('Coldness')) {
+                    actor.add(new Component.Coldness());
+                }
+                else if (currTemp >= tempWarming && actor.has('Coldness')) {
+                    actor.removeAll('Coldness');
+                }
+            }
+        });
+    }
+
+    /* In snowfall, apply small visibility penalty. */
+    protected handleSnowFall(ent: Entity, comp): void {
+    }
+
+    /* In clear weather, check only if temp has changed. */
+    protected handleClear(ent: Entity, comp): void {
+    }
+
+    /* In storm, apply extra visibility penalty and coldness factor. */
     protected handleSnowStorm(ent: Entity, comp): void {
         const level = RG.getLevel(ent);
         if (level) {
             const map = level.getMap();
             const nonSnowCells = map.getFree().filter(
                 c => !c.getBaseElem().has('Snowy'));
-            MapGenerator.addRandomSnow(map, 0.1, nonSnowCells);
-            RG.gameMsg('It is snowing heavily!');
+            const numSnow = MapGenerator.addRandomSnow(map, 0.1, nonSnowCells);
+            if (numSnow > 5) {
+                RG.gameMsg('It is snowing heavily!');
+            }
         }
         else {
             RG.err('SystemWeather', 'handleSnowStorm',
@@ -55,10 +125,15 @@ export class SystemWeather extends SystemBase {
         }
     }
 
+    /* Here we need to add some Wet components to actors. */
     protected handleRain(ent: Entity, comp): void {
         const level = RG.getLevel(ent);
         const map = level.getMap();
         // MapGenerator.addRandomSnow(map, 0.1);
+    }
+
+    protected handleWarm(ent, comp): void {
+        this.handleMeltSnow(ent, comp);
     }
 
     /* Melts down the snow located in the level with the entity. */
@@ -75,7 +150,9 @@ export class SystemWeather extends SystemBase {
                 cell.setBaseElem(newElem);
             }
         });
-        RG.gameMsg('It is getting warmer. Snow and ice are melting');
+        if (snowCells.length > 0) {
+            RG.gameMsg('It is getting warmer. Snow and ice are melting');
+        }
     }
 
 }
