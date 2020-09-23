@@ -102,6 +102,8 @@ class RGClass {
     public PLAYER_FOV_RANGE: number;
     public NPC_FOV_RANGE: number;
     public ACTION_DUR: number;
+    public ACTION_OK: number;
+    public ACTION_FAILED: number;
     public BASE_SPEED: number;
     public DEFAULT_HP: number;
     public MAX_ACTIVE_LEVELS: number;
@@ -346,6 +348,9 @@ class RGClass {
         this.ACTION_DUR = 100; // Base duration of action
         this.BASE_SPEED = 100; // Base speed of actors
         this.DEFAULT_HP = 50;
+
+        this.ACTION_OK = 1; // Action succeeded
+        this.ACTION_FAILED = -1; // Action failed
 
         // How many levels are simulated at once, having more adds realism
         // but slows down the game, affects Game.Engine
