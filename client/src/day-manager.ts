@@ -8,7 +8,7 @@ interface DayEntry {
     visibility: number;
 }
 
-const MINS = 10;
+const MINS = 60;
 
 const phasesOfDay: {[key: string]: DayEntry} = {
     NIGHT: {from: 22 * MINS, to: 5 * MINS, visibility: -3},
@@ -19,6 +19,8 @@ const phasesOfDay: {[key: string]: DayEntry} = {
     EVENING: {from: 18 * MINS, to: 20 * MINS, visibility: -1},
     DUSK: {from: 20 * MINS, to: 22 * MINS, visibility: -2},
 };
+
+type PhaseOfDay = keyof (typeof phasesOfDay);
 
 const MAX_TIME_OF_DAY: number = 24 * MINS;
 
@@ -45,7 +47,7 @@ export class DayManager {
     constructor(pool?: EventPool) {
         this._currPhase = RG.DAY.MORNING;
         this._updateRate = 5; // This affects how quickly time goes
-        this._timeOfDayMins = 12 * MINS;
+        this._timeOfDayMins = 12 * MINS; // Start from noon
         this._dayChanged = false;
         this._phaseChanged = false;
         if (pool) {
@@ -78,8 +80,16 @@ export class DayManager {
         }
 
         if (this._timeOfDayMins >= dayEntry.to) {
-            this.nextPhase();
-            this._phaseChanged = true;
+            if (dayEntry.to < dayEntry.from) {
+                if (this._timeOfDayMins < dayEntry.from) {
+                    this.nextPhase();
+                    this._phaseChanged = true;
+                }
+            }
+            else {
+                this.nextPhase();
+                this._phaseChanged = true;
+            }
         }
     }
 
@@ -94,8 +104,12 @@ export class DayManager {
     }
 
     /* Returns current phase (ie NIGHT/DAY etc). */
-    public getCurrPhase(): string {
+    public getCurrPhase(): PhaseOfDay {
         return this._currPhase;
+    }
+
+    public getPhaseEntry(): DayEntry {
+        return phasesOfDay[this._currPhase];
     }
 
 
