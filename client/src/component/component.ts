@@ -56,6 +56,11 @@ Action.prototype.disable = function() {
 };
 
 
+Action.prototype.statusOk = function(): boolean {
+    return this.getStatus() !== RG.ACTION_FAILED;
+}
+
+
 export const Location = UniqueDataComponent('Location', {
     x: -1, y: -1, level: null});
 
@@ -1585,7 +1590,7 @@ export const Weather = DataComponent('Weather', {
 });
 
 export const WeatherEffect = TransientDataComponent('WeatherEffect', {
-    effectType: 'clear'
+    effectType: 'clear', temperature: 0
 });
 
 export const WorldSimEvent = TransientDataComponent('WorldSimEvent', {
