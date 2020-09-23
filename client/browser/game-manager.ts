@@ -544,8 +544,6 @@ export class GameManager {
     /* Sets the event listeners, GUI callbacks and debugging refs before
      * starting the game. */
     public initBeforeNewGame(): void {
-        console.log('initBeforeNewGame starting also mainLoop');
-
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         this.game.setAnimationCallback(this.playAnimation.bind(this));
         this.setDebugRefsToWindow();
@@ -620,12 +618,20 @@ export class GameManager {
      * seen. */
     public checkIfAutoModeDone() {
         if (this.playerDriver) {
-            if (!this.playerDriver.hasKeys()) {
+            const player = this.game.getPlayer();
+            const actionComp = player.get('Action');
+            const statusOk = actionComp.statusOk();
+
+            if (!statusOk) {
+                this.ctrlMode = 'MANUAL';
+                this.playerDriver.reset();
+            }
+            else if (!this.playerDriver.hasKeys()) {
                 this.ctrlMode = 'MANUAL';
             }
             else if (this.finishAutoOnSight) {
                 const [pX, pY] = this.game.getPlayer().getXY();
-                const enemies = RG.findEnemyCellForActor(this.game.getPlayer(),
+                const enemies = RG.findEnemyCellForActor(player,
                     this.gameGUIState.visibleCells);
                 if (enemies.length > 0) {
                     let enemyTooClose = false;
@@ -853,7 +859,7 @@ export class GameManager {
         this.initBeforeNewGame();
     }
 
-    public useClickHandler(x, y, cell, cmd): void {
+    public useClickHandler(x: number, y: number, cell: Cell, cmd): void {
         this.playerDriver = new CellClickHandler(null, this.game);
         this.playerDriver.handleClick(x, y, cell, cmd);
 
@@ -1055,10 +1061,11 @@ export class GameManager {
                 this.useClickHandler(x, y, cell, 'pickup');
             }
             else {
+                console.log('Using click handler to move: ', x, y);
                 this.useClickHandler(x, y, cell, 'move');
             }
         }
-        console.log(`Cell: ${JSON.stringify(cell)}`);
+        console.log(`${x},${y} Cell: ${JSON.stringify(cell)}`);
         if (cell.hasActors()) {
             const actors = cell.getActors()!;
             console.log(`window.ACTOR set. Actors: ${JSON.stringify(actors)}`);
