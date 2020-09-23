@@ -126,9 +126,10 @@ export class MapGenerator {
 
     /* Decorates the given map with snow. ratio is used to control how much
      * snow to put. */
-    public static addRandomSnow(map: CellMap, ratio: number, conf?): void {
+    public static addRandomSnow(map: CellMap, ratio: number, conf?): number {
         const freeCells = map.getFree().filter(c => c.isOutdoors());
         const rng = MapGenerator.getAndSetRNG(conf);
+        let numSnowCells = 0;
 
         for (let i = 0; i < freeCells.length; i++) {
             const addSnow = rng.getUniform();
@@ -138,10 +139,12 @@ export class MapGenerator {
                 // let snowElem = MapGenerator.snowElemMap.default;
                 if (snowElemMap[baseType]) {
                     const snowElem = snowElemMap[baseType];
+                    ++numSnowCells;
                     freeCells[i].setBaseElem(snowElem);
                 }
             }
         }
+        return numSnowCells;
     }
 
     /* Given 2-d ascii map, and mapping from ascii to Element, constructs the

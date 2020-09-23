@@ -4,7 +4,7 @@ import RG from '../rg';
 import {ElementMarker, ElementDoor} from '../element';
 import {Level} from '../level';
 
-import {TCoord, TShellFunc} from '../interfaces';
+import {ConstBaseElem, TCoord, TShellFunc} from '../interfaces';
 type CellMap = import('../map').CellMap;
 type Cell = import('../map.cell').Cell;
 type ElementXY = import('../element').ElementXY;
@@ -20,6 +20,8 @@ export interface ILevelGenOpts {
     maxDanger: number;
     shouldRemoveMarkers: boolean;
     preserveMarkers: boolean;
+    wallType?: string;
+    floorType?: string;
 }
 
 export abstract class LevelGenerator {

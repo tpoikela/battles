@@ -12,7 +12,7 @@ import {MapGenerator} from './map.generator';
 import {Path} from '../path';
 import {DungeonPopulate} from '../dungeon-populate';
 import {Random} from '../random';
-import {ELEM} from '../../data/elem-constants';
+import {ELEM, getElem} from '../../data/elem-constants';
 import {ObjectShell} from '../objectshellparser';
 import {ElementMarker, ElementDoor} from '../element';
 import {ICoordXY, TCoord} from '../interfaces';
@@ -195,10 +195,10 @@ export class DungeonGenerator extends LevelGenerator {
         let map: null | CellMap = null;
         const createCb = (x: number, y: number, val: number): void => {
             if (val === WALL) {
-                map!.setBaseElemXY(x, y, conf.wallType || ELEM.WALL);
+                map!.setBaseElemXY(x, y, getElem(conf.wallType) || ELEM.WALL);
             }
             else {
-                map!.setBaseElemXY(x, y, conf.floorType || ELEM.FLOOR_CAVE);
+                map!.setBaseElemXY(x, y, getElem(conf.floorType) || ELEM.FLOOR_CAVE);
             }
         };
 
