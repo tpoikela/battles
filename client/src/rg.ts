@@ -97,6 +97,8 @@ class RGClass {
     public SET_STATS: string[];
     public STATS_ABBR2STAT: {[key: string]: string};
 
+    public MAX_DRENCHED: number;
+
     public VERB: {[key: string]: number};
 
     public PLAYER_FOV_RANGE: number;
@@ -697,6 +699,7 @@ class RGClass {
         this.ONE_SHOT_ITEMS = ['potion'];
         this.WORLD_ENTITY = 'WorldEntity';
 
+        this.MAX_DRENCHED = 10;
     }
 
 /* Given Map.Cell, returns CSS classname used for styling that cell. */
