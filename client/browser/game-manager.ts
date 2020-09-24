@@ -73,6 +73,7 @@ export const STATUS_COMPS_GUI: TPlayerStatusGUI[] = [
     // Comp name, style   , text  , react-key
     ['Charm', 'success', 'Charming', 'stat-charm'],
     ['Coldness', 'primary', 'Cold', 'stat-coldness'],
+    ['Drenched', 'primary', 'Drenched', 'stat-drenched'],
     ['Ethereal', 'info', 'Ethereal', 'stat-ethereal'],
     ['Entrapped', 'danger', 'Trapped', 'stat-trapped'],
     ['Fear', 'danger', 'Afraid', 'stat-fear'],
