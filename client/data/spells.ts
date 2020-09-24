@@ -4,7 +4,7 @@ import RG from '../src/rg';
 import {Spell, SpellBase, SpellArgs} from '../src/spell';
 import * as Component from '../src/component';
 import {Dice} from '../src/dice';
-import {ObjectShell} from '../src/objectshellparser';
+import {getParser} from '../src/objectshellparser';
 import {Brain} from '../src/brain';
 import {Random} from '../src/random';
 import * as Element from '../src/element';
@@ -14,6 +14,7 @@ import {TCoord} from '../src/interfaces';
 type Cell = import('../src/map.cell').Cell;
 type CellMap = import('../src/map').CellMap;
 type ItemBase = import('../src/item').ItemBase;
+type SentientActor = import('../src/actor').SentientActor;
 
 const RNG = Random.getRNG();
 
@@ -125,7 +126,7 @@ Spell.AnimateDead.prototype.animateCallback = function(cell: Cell) {
 
     const items: ItemBase[] = cell.getItems()!;
     const corpseItem = items.find((i: ItemBase) => /corpse/.test(i.getName()));
-    if (!corpseItem) {
+    if (!corpseItem && !caster.isPlayer()) {
         RG.warn('AnimateDead', 'animateCallback',
             `No corpses found. Should not have cast the spell at all`);
         return;
@@ -139,8 +140,16 @@ Spell.AnimateDead.prototype.animateCallback = function(cell: Cell) {
     }
 
     if (corpse) {
-        const parser = ObjectShell.getParser();
-        const actor = parser.createActor(corpse.getActorName());
+        const parser = getParser();
+
+        const actorName = corpse.getActorName();
+        if (!parser.hasObj(RG.TYPE_ACTOR, actorName)) {
+            const msg = `${caster.getName()} fails to reanimate corpse of ${actorName}`;
+            RG.gameWarn({cell: caster.getCell(), msg});
+            return;
+        }
+
+        const actor = parser.createActor(actorName);
         actor.add(new Component.Undead());
         compTypes.forEach(compType => {
             const comp = corpse.get(compType);
@@ -162,7 +171,9 @@ Spell.AnimateDead.prototype.animateCallback = function(cell: Cell) {
 
         if (level.removeItem(corpse, x, y)) {
             level.addActor(actor, x, y);
-            actor.addFriend(caster);
+            if (!actor.has('NonSentient')) {
+                (actor as SentientActor).addFriend(caster);
+            }
         }
     }
 };
@@ -390,7 +401,7 @@ RG.extend2(Spell.PoisonBreath, Spell.BoltBase);
 
 Spell.PoisonBreath.prototype.onHit = function(actor, src) {
     addPoisonEffect(actor, src);
-    const parser = ObjectShell.getParser();
+    const parser = getParser();
     const cells: Cell[] = Brain.getCellsAroundActor(actor, 1);
 
     for (let i = 0; i < this.nActors; i++) {
@@ -981,7 +992,7 @@ Spell.ForceField = function() {
     };
 
     this.castCallback = (args) => {
-        const parser = ObjectShell.getParser();
+        const parser = getParser();
         const caster = this._caster;
         const level = caster.getLevel();
         const {dir} = args;
