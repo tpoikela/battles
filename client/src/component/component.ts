@@ -738,6 +738,22 @@ export class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(ComponentBase)) 
 Poison.description = 'Poison causes damage periodically until it stop';
 Component.Poison = Poison;
 
+export const Drenched = UniqueDataComponent('Drenched',
+  {level: 0},
+  {description: 'Indicates the soakness of entity'}
+);
+
+Drenched.prototype.incrLevel = function(n=1): void {
+    if (this.level < RG.MAX_DRENCHED) {
+        this.level += n;
+    }
+};
+Drenched.prototype.decrLevel = function(n=1): void {
+    if (this.level > 0) {
+        this.level -= n;
+    }
+}
+
 export const Coldness = TagComponent('Coldness',
   {description: 'Coldness will gradually freeze a non-resistant beings'});
 
@@ -746,15 +762,15 @@ export const Heat = TagComponent('Heat');
 export const BodyTemp = UniqueDataComponent('BodyTemp',
     {temp: 100, maxTemp: 100, minTemp: -100});
 
-BodyTemp.prototype.incr = function() {
+BodyTemp.prototype.incr = function(n=1) {
     if (this.temp < this.maxTemp) {
-        this.temp += 1;
+        this.temp += n;
     }
 };
 
-BodyTemp.prototype.decr = function() {
+BodyTemp.prototype.decr = function(n=1) {
     if (this.temp > this.minTemp) {
-        this.temp -= 1;
+        this.temp -= n;
     }
 };
 
