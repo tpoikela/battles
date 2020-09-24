@@ -163,6 +163,17 @@ export class SystemTimeEffects extends SystemBase {
             const cell = ent.getCell();
             ent.removeAll('Coldness');
             const msg = `Thanks to heat, ${ent.getName()} stops shivering`;
+            if (ent.has('BodyTemp')) {
+                const tempComp = ent.get('BodyTemp');
+                tempComp.incr();
+            }
+            if (ent.has('Drenched')) {
+                const drenched = ent.get('Drenched');
+                drenched.decrLevel();
+                if (drenched.isDry()) {
+                    ent.remove(drenched);
+                }
+            }
             RG.gameMsg({cell, msg});
         }
         ent.removeAll('Heat');
@@ -172,7 +183,19 @@ export class SystemTimeEffects extends SystemBase {
     public _applyColdness(ent: Entity): void {
         if (ent.has('BodyTemp')) {
             const tempComp = ent.get('BodyTemp');
-            tempComp.decr();
+            let freezeFactor = 1;
+            if (ent.has('Drenched')) {
+                freezeFactor = Math.min(1, ent.get('Drenched').getLevel());
+            }
+            tempComp.decr(freezeFactor);
+
+            if (tempComp.isFreezing()) {
+                if (RG.isSuccess(0.1)) {
+                    const dmgComp = new Component.Damage(1, RG.DMG.COLD);
+                    ent.add(dmgComp);
+                }
+            }
+
             if (tempComp.isFrozen()) {
                 const dmgComp = new Component.Damage(1, RG.DMG.COLD);
                 ent.add(dmgComp);
