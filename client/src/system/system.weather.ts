@@ -15,6 +15,7 @@ type BaseActor = import('../actor').BaseActor;
 const tempFreezing = -15;
 const tempCold = 0;
 const tempWarming = 15;
+const tempDrying = 15;
 
 /* Handles WeatherEffect components and has handler functions for
  * different types of weather effects. */
@@ -95,12 +96,22 @@ export class SystemWeather extends SystemBase {
                 else if (currTemp >= tempWarming && actor.has('Coldness')) {
                     actor.removeAll('Coldness');
                 }
+
+                // Check if drenched actor is drying up
+                if (currTemp >= tempDrying && actor.has('Drenched')) {
+                    const drenched = actor.get('Drenched');
+                    drenched.decrLevel();
+                    if (drenched.isDry()) {
+                        actor.remove(drenched);
+                    }
+                }
             }
         });
     }
 
     /* In snowfall, apply small visibility penalty. */
     protected handleSnowFall(ent: Entity, comp): void {
+        this.handleSnowStorm(ent, comp);
     }
 
     /* In clear weather, check only if temp has changed. */
@@ -130,6 +141,19 @@ export class SystemWeather extends SystemBase {
         const level = RG.getLevel(ent);
         const map = level.getMap();
         // MapGenerator.addRandomSnow(map, 0.1);
+        const actors = level.getActors();
+        actors.forEach((actor: BaseActor): void => {
+            if (actor.has('Location') && actor.get('Location').isValid()) {
+                const baseElem = actor.getCell()!.getBaseElem();
+                if (!baseElem.has('Indoor')) {
+                    if (!actor.has('Drenched')) {
+                        actor.add(new Component.Drenched());
+                    }
+                    actor.get('Drenched').incrLevel();
+                }
+            }
+        });
+        RG.gameMsg('It is raining heavily outdoors');
     }
 
     protected handleWarm(ent, comp): void {
