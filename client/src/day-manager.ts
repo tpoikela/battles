@@ -8,21 +8,21 @@ interface DayEntry {
     visibility: number;
 }
 
-const MINS = 60;
+const MINS_HOUR = 10;
+const MAX_TIME_OF_DAY: number = 24 * MINS_HOUR;
 
 const phasesOfDay: {[key: string]: DayEntry} = {
-    NIGHT: {from: 22 * MINS, to: 5 * MINS, visibility: -3},
-    DAWN: {from: 5 * MINS, to: 7 * MINS, visibility: -1},
-    MORNING: {from: 7 * MINS, to: 11 * MINS, visibility: 0},
-    NOON: {from: 11 * MINS, to: 13 * MINS, visibility: 0},
-    AFTERNOON: {from: 13 * MINS, to: 18 * MINS, visibility: 0},
-    EVENING: {from: 18 * MINS, to: 20 * MINS, visibility: -1},
-    DUSK: {from: 20 * MINS, to: 22 * MINS, visibility: -2},
+    NIGHT: {from: 22 * MINS_HOUR, to: 5 * MINS_HOUR, visibility: -3},
+    DAWN: {from: 5 * MINS_HOUR, to: 7 * MINS_HOUR, visibility: -1},
+    MORNING: {from: 7 * MINS_HOUR, to: 11 * MINS_HOUR, visibility: 0},
+    NOON: {from: 11 * MINS_HOUR, to: 13 * MINS_HOUR, visibility: 0},
+    AFTERNOON: {from: 13 * MINS_HOUR, to: 18 * MINS_HOUR, visibility: 0},
+    EVENING: {from: 18 * MINS_HOUR, to: 20 * MINS_HOUR, visibility: -1},
+    DUSK: {from: 20 * MINS_HOUR, to: 22 * MINS_HOUR, visibility: -2},
 };
 
 type PhaseOfDay = keyof (typeof phasesOfDay);
 
-const MAX_TIME_OF_DAY: number = 24 * MINS;
 
 /* Simple day manager to keep track of time of day and phases of the day. */
 export class DayManager {
@@ -30,7 +30,7 @@ export class DayManager {
     public static fromJSON(json: any): DayManager {
         const dayMan = new DayManager();
         dayMan._currPhase = json.currPhase;
-        dayMan._timeOfDayMins = json.timeOfDayMins;
+        dayMan._currTimeMins = json.timeOfDayMins;
         dayMan._updateRate = json.updateRate;
         dayMan._dayChanged = json.dayChanged;
         dayMan._phaseChanged = json.phaseChanged;
@@ -42,12 +42,12 @@ export class DayManager {
     protected _updateRate: number;
     protected _dayChanged: boolean;
     protected _phaseChanged: boolean;
-    protected _timeOfDayMins: number;
+    protected _currTimeMins: number;
 
     constructor(pool?: EventPool) {
         this._currPhase = RG.DAY.MORNING;
         this._updateRate = 5; // This affects how quickly time goes
-        this._timeOfDayMins = 12 * MINS; // Start from noon
+        this._currTimeMins = 12 * MINS_HOUR; // Start from noon
         this._dayChanged = false;
         this._phaseChanged = false;
         if (pool) {
@@ -66,22 +66,22 @@ export class DayManager {
     }
 
     public getTimeMins(): number {
-        return this._timeOfDayMins;
+        return this._currTimeMins;
     }
 
     public update(): void {
         const dayEntry: DayEntry = phasesOfDay[this._currPhase];
         this._dayChanged = false;
         this._phaseChanged = false;
-        this._timeOfDayMins += this._updateRate;
+        this._currTimeMins += this._updateRate;
 
-        if (this._timeOfDayMins > MAX_TIME_OF_DAY) {
-            this._timeOfDayMins = 0;
+        if (this._currTimeMins > MAX_TIME_OF_DAY) {
+            this._currTimeMins = 0;
         }
 
-        if (this._timeOfDayMins >= dayEntry.to) {
+        if (this._currTimeMins >= dayEntry.to) {
             if (dayEntry.to < dayEntry.from) {
-                if (this._timeOfDayMins < dayEntry.from) {
+                if (this._currTimeMins < dayEntry.from) {
                     this.nextPhase();
                     this._phaseChanged = true;
                 }
@@ -116,7 +116,7 @@ export class DayManager {
     public toJSON(): any {
         return {
             currPhase: this._currPhase,
-            timeOfDayMins: this._timeOfDayMins,
+            timeOfDayMins: this._currTimeMins,
             updateRate: this._updateRate,
             dayChanged: this._dayChanged,
             phaseChanged: this._phaseChanged
@@ -128,7 +128,7 @@ export class DayManager {
     }
 
     public toString(): string {
-        return (`Curr phase: ${this._currPhase}, timeOfDay: ${this._timeOfDayMins},`
+        return (`Curr phase: ${this._currPhase}, timeOfDay: ${this._currTimeMins},`
             + (this._phaseChanged ? ' *PHASE CHANGED*' : '')
             + (this._dayChanged ? ' *DAY CHANGED*' : '')
         );
