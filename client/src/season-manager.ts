@@ -120,7 +120,7 @@ export class SeasonManager {
 
     public dbg(...args): void {
         if (this._debug) {
-            debug(...args);
+            debug('', ...args);
         }
     }
 
@@ -132,7 +132,7 @@ export class SeasonManager {
 
     public getNewTemperature(season: string): number {
         const [tLow, tHigh] = seasonConfig[season].temp;
-        return RNG.getUniformRange(tLow, tHigh);
+        return RNG.getUniformInt(tLow, tHigh);
     }
 
     /* Sets the player position in overworld map to find the correct biomes etc. */
@@ -158,6 +158,10 @@ export class SeasonManager {
 
     public weatherChanged(): boolean {
         return this._weatherChanged;
+    }
+
+    public resetWeatherChanged(): void {
+        this._weatherChanged = false;
     }
 
     public getSeason(): string {
