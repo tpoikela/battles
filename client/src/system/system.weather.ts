@@ -75,6 +75,7 @@ export class SystemWeather extends SystemBase {
                     if (elem.getName() === 'floorhouse') {
                         currTemp += 15;
                     }
+
                     // Set indoor temp based on outdoor temp
                     if (tempOutdoor >= 15) {
                         currTemp = tempOutdoor;

@@ -754,6 +754,10 @@ Drenched.prototype.decrLevel = function(n=1): void {
     }
 }
 
+Drenched.prototype.isDry = function(): boolean {
+    return this.level === 0;
+}
+
 export const Coldness = TagComponent('Coldness',
   {description: 'Coldness will gradually freeze a non-resistant beings'});
 
@@ -1602,7 +1606,7 @@ Component.Duration = Duration;
 // Weather components
 //---------------------
 export const Weather = DataComponent('Weather', {
-    weatherType: 'clear', temperature: 0
+    weatherType: 'clear', temperature: 0, visibility: 0
 });
 
 export const WeatherEffect = TransientDataComponent('WeatherEffect', {

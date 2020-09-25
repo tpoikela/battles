@@ -288,7 +288,7 @@ export class CellMap {
         if (actor.isLocated()) {
             if (actor.getLevel().getMap() === this) {
                 const [xA, yA, zA] = actor.getXYZ();
-                const range = actor.getFOVRange();
+                const range = RG.getFOVRange(actor);
 
                 this.fov.compute(xA, yA, zA, range, (x, y, r, visibility) => {
                     if (visibility) {

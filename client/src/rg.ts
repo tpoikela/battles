@@ -702,7 +702,7 @@ class RGClass {
         this.MAX_DRENCHED = 10;
     }
 
-/* Given Map.Cell, returns CSS classname used for styling that cell. */
+    /* Given Map.Cell, returns CSS classname used for styling that cell. */
     public getCssClassForCell(cell: Cell, isVisible: boolean): string {
         if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
         else {this.cellRenderArray = this.cellRenderAlways;}
@@ -711,7 +711,7 @@ class RGClass {
         return className;
     }
 
-/* Same as getClassName, but optimized for viewing the full map. */
+    /* Same as getClassName, but optimized for viewing the full map. */
     public getCssClassFullMap(cell: Cell): string | null {
         this.cellRenderArray = this.cellRenderVisible;
 
@@ -731,7 +731,7 @@ class RGClass {
         return null;
     }
 
-/* Given Map.Cell, returns a char that is rendered for the cell. */
+    /* Given Map.Cell, returns a char that is rendered for the cell. */
     public getCharForCell(cell: Cell, isVisible: boolean): string {
         if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
         else {this.cellRenderArray = this.cellRenderAlways;}
@@ -759,8 +759,8 @@ class RGClass {
         return null;
     }
 
-/* Maps a cell to specific object in stylesheet. For rendering purposes
- * only.*/
+    /* Maps a cell to specific object in stylesheet. For rendering purposes
+     * only.*/
     public getStyleClassForCell(cell: Cell): string {
         if (!cell.isExplored()) { return 'cell-not-explored';}
 
@@ -948,8 +948,8 @@ class RGClass {
         }
     }
 
-/* Checks that object has given type using getType() function. Throws error if
- * type does not match. */
+    /* Checks that object has given type using getType() function. Throws error if
+     * type does not match. */
     public assertType(obj: any, typeStr: string): void {
         if (obj.getType) {
             if (obj.getType() !== typeStr) {
@@ -962,8 +962,8 @@ class RGClass {
         }
     }
 
-/* Used to inherit from a prototype. Supports multiple inheritance but
- * sacrifices instanceof.*/
+    /* Used to inherit from a prototype. Supports multiple inheritance but
+     * sacrifices instanceof.*/
     public extend2(Child: any, Parent: any): void {
         if (this.isNullOrUndef([Child])) {
             this.err('RG', 'extend2',
@@ -992,7 +992,7 @@ class RGClass {
         }
     }
 
-/* Prints an error into console if 'val' is null or undefined.*/
+    /* Prints an error into console if 'val' is null or undefined.*/
     public nullOrUndefError(name: string, msg: string, val: any): void {
         if (this.isNullOrUndef([val])) {
             const formattedMsg = `nullOrUndef ${name} ${msg}`;
@@ -1001,7 +1001,7 @@ class RGClass {
         }
     }
 
-/* Returns true if anything in the list is null or undefined.*/
+    /* Returns true if anything in the list is null or undefined.*/
     public isNullOrUndef(list: any[]): boolean {
         for (let i = 0; i < list.length; i++) {
             if (list[i] === null || typeof list[i] === 'undefined' ||
@@ -1012,7 +1012,7 @@ class RGClass {
         return false;
     }
 
-/* Tries to add item2 to item1 stack. Returns true on success.*/
+    /* Tries to add item2 to item1 stack. Returns true on success.*/
     public addStackedItems(item1: ItemBase, item2: ItemBase): boolean {
         if (item1.equals(item2)) {
             const countToAdd = item2.getCount();
@@ -1022,8 +1022,8 @@ class RGClass {
         return false;
     }
 
-/* Removes N items from the stack and returns them. Returns null if the
- * stack is not changed.*/
+    /* Removes N items from the stack and returns them. Returns null if the
+     * stack is not changed.*/
     public removeStackedItems(itemStack: ItemBase, n): ItemBase | null {
         if (n > 0) {
         let rmvItem = null;
@@ -1041,6 +1041,24 @@ class RGClass {
             }
         }
         return null;
+    }
+
+    /* Returns the FoV range for actor taking into account environment
+     * effects etc. */
+    public getFOVRange(actor: SentientActor): number {
+        let range = actor.getFOVRange();
+        if (actor.has('Location')) {
+            const level = actor.get('Location').getLevel();
+            if (level && level.has('Weather')) {
+                const visib = level.get('Weather').getVisibility();
+                range += visib;
+            }
+            // TODO other effects
+        }
+
+        // TODO light sources etc
+        if (range < 1) {range = 1;}
+        return range;
     }
 
 //--------------------------------------------------------------

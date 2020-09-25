@@ -69,6 +69,11 @@ export class DayManager {
         return this._currTimeMins;
     }
 
+    public getVisibility(): number {
+        const entry: DayEntry = this.getPhaseEntry();
+        return entry.visibility;
+    }
+
     public update(): void {
         const dayEntry: DayEntry = phasesOfDay[this._currPhase];
         this._dayChanged = false;

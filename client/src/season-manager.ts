@@ -205,6 +205,7 @@ export class SeasonManager {
         return this._currWeather;
     }
 
+    /* Returns the current temperature. */
     public getTemperature(): number {
         return this._currTemp;
     }

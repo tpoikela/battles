@@ -75,17 +75,7 @@ export class WorldSimulation {
         this.dayMan.update();
 
         if (this.dayMan.phaseChanged()) {
-            const wsEvent = new Component.WorldSimEvent();
-            wsEvent.setEventType(WS_EVENT.PHASE_CHANGED);
-
-            const entry = this.dayMan.getPhaseEntry();
-            wsEvent.setEventData({
-                currPhase: this.dayMan.getCurrPhase(),
-                entry
-            });
-            this.dbg('updateCount:', this.updateCount, 'phaseChange detected', entry);
-            this.worldEntity.add(wsEvent);
-            this.seasonMan.changeWeather();
+            this.processPhaseChanged();
         }
 
         if (this.dayMan.dayChanged()) {
@@ -137,6 +127,10 @@ export class WorldSimulation {
 
     public getTemperature(): number {
         return this.seasonMan.getTemperature();
+    }
+
+    public getVisibility(): number {
+        return this.dayMan.getVisibility();
     }
 
     public setUpdateRates(rate: number): void {
@@ -210,6 +204,24 @@ export class WorldSimulation {
         return false;
     }
 
+    protected processPhaseChanged(): void {
+        const wsEvent = new Component.WorldSimEvent();
+        wsEvent.setEventType(WS_EVENT.PHASE_CHANGED);
+
+        const entry = this.dayMan.getPhaseEntry();
+        wsEvent.setEventData({
+            currPhase: this.dayMan.getCurrPhase(),
+            entry
+        });
+        this.dbg('updateCount:', this.updateCount, 'phaseChange detected', entry);
+        this.worldEntity.add(wsEvent);
+        this.seasonMan.changeWeather();
+        const currLevel = this.getLevel();
+        if (currLevel && currLevel.has('Weather')) {
+            currLevel.get('Weather').setVisibility(this.getVisibility());
+        }
+    }
+
     /* Changes the Weather comp on the current level. Adds WeatherActor if
      * needed. */
     protected processWeatherChanged(): void {
@@ -223,6 +235,7 @@ export class WorldSimulation {
             const weatherComp = new Component.Weather();
             weatherComp.setWeatherType(weather);
             weatherComp.setTemperature(this.getTemperature());
+            weatherComp.setVisibility(this.getVisibility());
 
             if (currLevel.getActors().findIndex(a => a.getName() === 'WeatherActor') < 0) {
                 const weatherActor = new WeatherActor('WeatherActor');

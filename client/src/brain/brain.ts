@@ -343,7 +343,7 @@ export class BrainSentient extends BrainBase {
      */
     public findEnemyCellFast(): null | Cell {
         const [x0, y0] = this._actor.getXY();
-        const r = (this._actor as SentientActor).getFOVRange();
+        const r = RG.getFOVRange((this._actor as SentientActor));
         const coord: TCoord[] = Geometry.getBoxAround(x0, y0, r);
         let cell = null;
         const cellMap = this._actor.getLevel().getMap();
