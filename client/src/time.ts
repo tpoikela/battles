@@ -1,12 +1,11 @@
 
-// import * as ROT from '../../lib/rot-js';
-//import RotScheduler from '../../lib/rot-js/scheduler/action';
-import ROT from '../../lib/rot';
+import {default as RotSched} from '../../lib/rot-js/scheduler';
 import RG from './rg';
 import {EventPool} from '../src/eventpool';
 
 const POOL = EventPool.getPool();
 
+const RotScheduler = RotSched.Action;
 type BaseActor = import('./actor').BaseActor;
 type Level = import('./level').Level;
 
@@ -105,7 +104,6 @@ export class OneShotEvent extends GameEvent {
 
 type ActorOrEvent = BaseActor | GameEvent;
 
-const RotScheduler = ROT.Scheduler.Action;
 
 /* Scheduler for the game actions. Time-based scheduler where each actor/event
 * is scheduled based on speed.  */
@@ -119,7 +117,7 @@ export class Scheduler {
 
     constructor() {
 
-        // Internally use ROT scheduler
+        // Internally use scheduler
         this._scheduler = new RotScheduler();
         this._scheduler._defaultDuration = 0;
         this._scheduler._duration = 0;

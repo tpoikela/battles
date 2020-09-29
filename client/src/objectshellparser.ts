@@ -313,6 +313,10 @@ export class Creator {
             this.addAbilityEffects(shell, newObj);
         }
 
+        if (shell.hasOwnProperty('callbacks')) {
+            this._compGen.addCallbacks(shell, newObj);
+        }
+
         return newObj;
     }
 

@@ -2,7 +2,7 @@
  * https://gist.github.com/hyakugei/ace116bd9ce72f2bf92c
  */
 
-import * as ROT from '../../lib/rot-js';
+import {DIRS} from '../../lib/rot-js/constants';
 import {TCoord} from './interfaces';
 
 export interface Options {
@@ -44,7 +44,7 @@ export class DijkstraMap {
             }
         }
 
-        this._dirs = ROT.DIRS[this._options.topology];
+        this._dirs = DIRS[this._options.topology];
          /* reorder dirs for more aesthetic result (vertical/horizontal first) */
         if (this._options.topology === 8) {
             this._dirs = [

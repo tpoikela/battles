@@ -17,6 +17,8 @@ const tempCold = 0;
 const tempWarming = 15;
 const tempDrying = 15;
 
+const compsForHeat = ['Coldness', 'Drenched'];
+
 /* Handles WeatherEffect components and has handler functions for
  * different types of weather effects. */
 export class SystemWeather extends SystemBase {
@@ -70,6 +72,11 @@ export class SystemWeather extends SystemBase {
             if (actor.has('Location') && actor.get('Location').isValid()) {
                 let currTemp = tempOutdoor;
                 const elem = actor.getCell()!.getBaseElem();
+
+                if (actor.isPlayer && actor.isPlayer()) {
+                    console.log('PPP Processing player with temp', currTemp);
+                }
+
                 if (elem.has('Indoor')) {
                     currTemp += 10;
                     if (elem.getName() === 'floorhouse') {
@@ -83,28 +90,32 @@ export class SystemWeather extends SystemBase {
                     else if (currTemp > 15) {
                         currTemp = 15;
                     }
+                    if (actor.isPlayer && actor.isPlayer()) {
+                        console.log('Player in Heat temp indoors: ', currTemp);
+                    }
                 }
 
                 if (currTemp < tempFreezing) {
                     const coldList = actor.getList('Coldness');
+                    if (actor.isPlayer && actor.isPlayer()) {
+                        console.log('Player in Freezing temp outdoors: ', currTemp);
+                    }
                     if (coldList.length < 2) {
                         actor.add(new Component.Coldness());
                     }
                 }
                 else if (currTemp < tempCold && !actor.has('Coldness')) {
+                    if (actor.isPlayer && actor.isPlayer()) {
+                        console.log('Player in Cold temp outdoors: ', currTemp);
+                    }
                     actor.add(new Component.Coldness());
                 }
-                else if (currTemp >= tempWarming && actor.has('Coldness')) {
-                    actor.removeAll('Coldness');
-                }
 
-                // Check if drenched actor is drying up
-                if (currTemp >= tempDrying && actor.has('Drenched')) {
-                    const drenched = actor.get('Drenched');
-                    drenched.decrLevel();
-                    if (drenched.isDry()) {
-                        actor.remove(drenched);
+                if (currTemp >= tempWarming && actor.hasAny(compsForHeat)) {
+                    if (actor.isPlayer && actor.isPlayer()) {
+                        console.log('Player in getting Heat comp now: ', currTemp);
                     }
+                    actor.add(new Component.Heat());
                 }
             }
         });

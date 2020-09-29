@@ -1,5 +1,5 @@
 
-import * as ROT from '../../lib/rot-js';
+import AStar from '../../lib/rot-js/path/astar';
 import RG from './rg';
 import {AStar3D} from './path3d';
 
@@ -113,7 +113,7 @@ Path.getPossiblePath = function(x0, y0, x1, y1, cb: PassableCb = DEFAULT_CB): IC
 Path.getShortestPath = function(x0, y0, x1, y1, cb: PassableCb = DEFAULT_CB): ICoordXY[] {
     const coords: ICoordXY[] = [];
     const passableCallback: PassableCb = cb;
-    const finder = new ROT.Path.AStar(x1, y1, passableCallback);
+    const finder = new AStar(x1, y1, passableCallback);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
     });

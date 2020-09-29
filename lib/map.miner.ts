@@ -2,7 +2,7 @@
 import Map from './rot-js/map/map';
 import RotRNG from './rot-js/rng';
 import {RNG} from './rot-js/rng';
-import * as ROT from './rot-js';
+import {DIRS} from './rot-js/constants';
 
 import RG from '../client/src/rg';
 import {Geometry as Geom} from '../client/src/geometry';
@@ -284,7 +284,7 @@ export class MapMiner extends RotMap {
         }
         else { // Handle non-progressing loop here
             const index = rng.getUniformInt(0, 7);
-            const dir = ROT.DIRS['8'][index];
+            const dir = DIRS['8'][index];
             newX += dir[0];
             newY += dir[1];
             if (this.inBounds(newX, newY)) {

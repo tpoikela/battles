@@ -181,6 +181,20 @@ describe('System.Movement', () => {
         actor.add(movComp);
         movSystem.update();
         expect(actor.getSpeed()).to.equal(90);
+
+        // Test water onEnter callbacks
+        level1.getMap().setBaseElemXY(5, 5, ELEM.WATER);
+        level1.getMap().setBaseElemXY(5, 6, ELEM.DEEP_WATER);
+        movComp = new Component.Movement(5, 5, level1);
+        actor.add(movComp);
+        movSystem.update();
+        expect(actor).to.have.component('Drenched');
+
+        movComp = new Component.Movement(5, 6, level1);
+        actor.add(movComp);
+        movSystem.update();
+        const drenched = actor.get('Drenched');
+        expect(drenched.getLevel()).to.equal(2 + 4);
     });
 
 });

@@ -3,7 +3,7 @@
  * not generated here. */
 
 import RG from '../rg';
-import * as ROT from '../../../lib/rot-js';
+import * as Map from '../../../lib/rot-js/map';
 import {CellMap} from '../map';
 import {Path} from '../path';
 import {Builder} from '../builder';
@@ -21,6 +21,8 @@ import {Nests} from '../../data/tiles.nests';
 import {ELEM, snowElemMap} from '../../data/elem-constants';
 
 import {BSP, MapForest, MapMiner, MapMountain, MapWall} from '../../../lib';
+
+const ROT: any = {Map};
 
 const ElementMarker = Element.ElementMarker;
 type ElementBase = Element.ElementBase;
@@ -726,7 +728,7 @@ export class MapGenerator {
 
         const rng = MapGenerator.getAndSetRNG(conf);
         let watchdog = 10000;
-        while (placedCells / totalCells < ratio) {
+        while ((placedCells / totalCells) < ratio) {
             [cX, cY] = rng.arrayGetRand(placedCoord);
             const [dX, dY] = rng.getRandDir();
             cX += dX;
@@ -740,6 +742,22 @@ export class MapGenerator {
             }
             --watchdog;
             if (watchdog <= 0) {break;}
+        }
+
+        const mountConf = MapGenerator.getOptions('mountain');
+        mountConf.nRoadTurns = 0;
+        mountConf.chasmThr = -10
+        mountConf.stoneThr = 0.35;
+        mountConf.snowRatio = RNG.getUniformRange(0.1, 0.4);
+
+        const mountBase = this.createMountain(cols, rows, mountConf);
+
+        for (let x = 0; x < cols; x++) {
+            for (let y = 0; y < rows; y++) {
+                if (map._map[x][y].getBaseElem() !== ELEM.SKY) {
+                    map._map[x][y].setBaseElem(mountBase.map._map[x][y].getBaseElem());
+                }
+            }
         }
 
         return {map};

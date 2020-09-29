@@ -6,10 +6,7 @@
  */
 
 import Map from './rot-js/map/map';
-// import * as ROT from './rot';
-//import {RNG} from './rot-js/rng';
 import RotRNG from './rot-js/rng';
-//import {Random} from '../client/src/random';
 
 const RotMap = Map;
 

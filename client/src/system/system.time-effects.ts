@@ -158,24 +158,32 @@ export class SystemTimeEffects extends SystemBase {
         }
     }
 
+    /* Processes any Heat source and applies the effect to the Entity. */
     public _applyHeat(ent): void {
-        if (ent.has('Coldness')) {
-            const cell = ent.getCell();
-            ent.removeAll('Coldness');
-            const msg = `Thanks to heat, ${ent.getName()} stops shivering`;
-            if (ent.has('BodyTemp')) {
-                const tempComp = ent.get('BodyTemp');
-                tempComp.incr();
+        const heatComps = ent.getList('Heat');
+        heatComps.forEach(heat => {
+            const heatLevel = heat.getLevel();
+            if (ent.has('Coldness')) {
+                const cell = ent.getCell();
+                ent.removeAll('Coldness');
+                const msg = `Thanks to heat, ${ent.getName()} stops shivering`;
+                if (ent.has('BodyTemp')) {
+                    const tempComp = ent.get('BodyTemp');
+                    tempComp.incr();
+                }
+                RG.gameMsg({cell, msg});
             }
             if (ent.has('Drenched')) {
+                const cell = ent.getCell();
                 const drenched = ent.get('Drenched');
-                drenched.decrLevel();
+                drenched.decrLevel(heatLevel);
+                const msg = `${ent.getName()} feels a bit drier due to warmth!`;
+                RG.gameMsg({cell, msg});
                 if (drenched.isDry()) {
                     ent.remove(drenched);
                 }
             }
-            RG.gameMsg({cell, msg});
-        }
+        });
         ent.removeAll('Heat');
     }
 

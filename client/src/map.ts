@@ -1,5 +1,4 @@
 
-import * as ROT from '../../lib/rot-js';
 import RG from './rg';
 import {Cell, CellJSON} from './map.cell';
 import {ElementBase, ElementWall, ElementMarker, ElementXY} from './element';

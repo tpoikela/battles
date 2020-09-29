@@ -8,13 +8,12 @@ type Level = import('./level').Level;
 
 export const Mixin: any = {};
 
-// Dummy Base class to be used with mixins.
-//export class Base {}
-//Mixin.Base = Base;
-
+/*
 interface MixinArgs {
     [key: string]: any;
 }
+*/
+type MixinArgs = any;
 
 /* Used in the mixins. */
 type Constructor<T = BaseObject> = new (...args: any[]) => T;
@@ -238,7 +237,7 @@ export const Defense = superclass => class extends superclass {
     private _defense: number;
     private _protection: number;
 
-    constructor(args?: MixinArgs) {
+    constructor(args?: any) {
         super(args);
         this._attack = 1;
         this._defense = 1;
@@ -305,7 +304,7 @@ export interface Defense {
 }
 
 /* Mixin for damage objects. */
-export const Damage =superclass => class extends Defense(superclass) {
+export const Damage = superclass => class extends Defense(superclass) {
 
     protected _damageDie: Dice;
     protected _range: number;

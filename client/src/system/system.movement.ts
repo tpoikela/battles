@@ -10,6 +10,7 @@ import {ELEM} from '../../data/elem-constants';
 import {emitZoneEvent} from './system.utils';
 import {speedPenalty, defensePenalty} from '../../data/shell-utils';
 import {IPenaltyObj} from '../interfaces';
+import {ObjectShellComps} from '../objectshellcomps';
 
 type BrainPlayer = import('../brain/brain.player').BrainPlayer;
 type Level = import('../level').Level;
@@ -233,6 +234,8 @@ export class SystemMovement extends SystemBase {
                         prevCell.setBaseElem(snowTracksMap[baseType]);
                     }
                 }
+
+                // Execute callbacks here for onEnter, onLeave
             }
             else {
                 this._fatalMoveError(ent);
@@ -266,6 +269,15 @@ export class SystemMovement extends SystemBase {
 
         const newName = newElem.getName();
         const prevName = prevElem.getName();
+
+        // Apply callbacks before checking if elems are same
+        if (prevElem.has('Callbacks')) {
+            processCompCb('onLeave', prevElem, ent);
+        }
+        if (newElem.has('Callbacks')) {
+            processCompCb('onEnter', newElem, ent);
+        }
+
         // No cell type change, no need to check the modifiers
         // TODO: May change with accumulating penalties
         if (prevName === newName) {
@@ -360,6 +372,7 @@ export class SystemMovement extends SystemBase {
                 });
             }
         }
+
 
     }
 
@@ -510,3 +523,12 @@ export class SystemMovement extends SystemBase {
 
 }
 
+const _compGen: ObjectShellComps = new ObjectShellComps({debug: false});
+
+function processCompCb(cbName, cbEnt, ent): void {
+    const cbObj = cbEnt.get('Callbacks').cb(cbName);
+    if (!cbObj) {return;} // No cb found
+    if (cbObj.addComp) {
+        _compGen.addComponents(cbObj, ent);
+    }
+}

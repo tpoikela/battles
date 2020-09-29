@@ -8,7 +8,7 @@ interface DayEntry {
     visibility: number;
 }
 
-const MINS_HOUR = 10;
+const MINS_HOUR = 60;
 const MAX_TIME_OF_DAY: number = 24 * MINS_HOUR;
 
 const phasesOfDay: {[key: string]: DayEntry} = {

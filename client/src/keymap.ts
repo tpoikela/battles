@@ -2,8 +2,10 @@
  * functions between dir-vectors and direction keys. */
 
 import RG from './rg';
-import * as ROT from '../../lib/rot-js';
+import {DIRS, KEYS} from '../../lib/rot-js/constants';
 import {TCoord} from './interfaces';
+
+const ROT: any = {KEYS, DIRS};
 
 /* Lookup table object for movement and actions keys.*/
 class KeyMap {
@@ -214,7 +216,7 @@ export class Keys {
     public static VK: {[key: string]: number};
     public static KEY: {[key: string]: number};
     public static GUI: {[key: string]: number};
-    public static menuIndices: Array<string | number>;
+    public static menuIndices: (string | number)[];
     public static EXIT_INDEX: number;
     //[key: string]: any;
 

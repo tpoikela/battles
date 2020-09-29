@@ -210,6 +210,7 @@ export class Entity extends GameObject {
     }
 
     /* Replaces ALL components of the given type. */
+    /*
     public replace(nameOrComp, comp): void {
         this.removeAll(nameOrComp);
         if (comp) {
@@ -219,6 +220,7 @@ export class Entity extends GameObject {
             this.add(nameOrComp);
         }
     }
+    */
 
     public getComponents(): IComponents {
         return this.comps;

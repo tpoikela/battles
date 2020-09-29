@@ -1,6 +1,7 @@
 
 import RG from '../rg';
-import * as ROT from '../../../lib/rot-js';
+import Digger from '../../../lib/rot-js/map/digger';
+import Uniform from '../../../lib/rot-js/map/uniform';
 import {Room} from '../../../lib/rot-js/map/features';
 import dbg from 'debug';
 
@@ -27,8 +28,8 @@ const WALL = 1;
 const debug = dbg('bitn:dungeon');
 // debug.enabled = true;
 
-const MapDigger = ROT.Map.Digger;
-const MapUniform = ROT.Map.Uniform;
+const MapDigger = Digger;
+const MapUniform = Uniform;
 const FeatRoom = Room;
 const RNG = Random.getRNG();
 

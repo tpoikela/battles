@@ -25,7 +25,7 @@ debug.enabled = true;
 const defaultWeather = ['sunny', 'cloudy'];
 const specialWeatherProb = 0.2; // Prob of other weather than default
 const sameWeatherProb = 0.75; // Best forecast is based on previous weather
-const daysInMonth = 2;
+const daysInMonth = 5;
 
 export const seasonConfig: {[key: string]: SeasonEntry} = {
     AUTUMN: {dur: 2.0, temp: [0, 15], weather: ['rain', 'heavy rain'], index: 0},

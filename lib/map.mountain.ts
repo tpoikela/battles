@@ -1,6 +1,7 @@
 
-import * as ROT from './rot-js';
+import Simplex from './rot-js/noise/simplex';
 import Map from './rot-js/map/map';
+import RNG from './rot-js/rng';
 
 const noiseGradients: [number, number][] = [
     [ 0, -1],
@@ -34,7 +35,7 @@ export class MapMountain extends RotMap {
             gradients: noiseGradients,
             noiseMult: 1,
             noiseDivider: 20,
-            rng: ROT.RNG
+            rng: RNG
         };
 
         if (options) {
@@ -48,7 +49,7 @@ export class MapMountain extends RotMap {
             }
         }
 
-        this.noise = new ROT.Noise.Simplex();
+        this.noise = new Simplex();
     }
 
     create(callback) {

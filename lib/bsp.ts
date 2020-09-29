@@ -5,11 +5,15 @@
  *
  * Original code can be found from: https://eskerda.com/bsp-dungeon-generation/
  */
-import ROT from './rot';
+// import * as ROT from './rot-js';
+
+import {Random} from '../client/src/random';
+
+const RNG = Random.getRNG();
 
 export const BSP: any = {};
 
-type ArrayCoord = Array<[number, number]>;
+type ArrayCoord = ([number, number])[];
 
 const OPTS = {
     discardByRatio: true,
@@ -119,7 +123,7 @@ export class Room {
 
     /* Returns all x,y coordinates occupied by the room. */
     public getCoord(): ArrayCoord {
-        const coord: Array<[number, number]> = [];
+        const coord: ([number, number])[] = [];
         const startX = this.x;
         const endX = startX + (this.w - 1);
         const startY = this.y;
@@ -146,7 +150,7 @@ export class Room {
         return getHollowBox(x0, y0, maxX, maxY);
     }
 }
-Room.rng = ROT.RNG;
+Room.rng = RNG;
 
 BSP.Room = Room;
 
@@ -176,7 +180,7 @@ export class BSPGen {
                 this._opts[key] = opts;
             }
         });
-        this.rng = this._opts.rng || ROT.RNG;
+        this.rng = this._opts.rng || RNG;
     }
 
     /* Creates and returns coordinates for path between containers c1 and c2. */

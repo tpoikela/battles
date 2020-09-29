@@ -67,7 +67,13 @@ export class ObjectShellComps {
     /* Adds a component to the newly created object, or updates existing
      * component if it exists already.*/
     public addCompToObj(newObj: Entity, compData: ICompData, val: any): void {
+        if (this.debug) {
+            console.log((newObj as any).getName(), ': compData with val', compData, val);
+        }
         if (compData.hasOwnProperty('func')) {
+            if (this.debug) {
+                console.log('KKK111 here now');
+            }
 
             // This 1st branch is used by Health only (needed?)
             if (Array.isArray(compData.func)) {
@@ -98,10 +104,13 @@ export class ObjectShellComps {
                 const fname = compData.func;
                 const compName = compData.comp;
                 if (newObj.has(compName) && typeof fname === 'string') {
+                    if (this.debug) {
+                        console.log('hasComp already KKK222 here now:', fname);
+                    }
                     // 1. Call existing comp with setter (fname)
                     const comp = newObj.get(compName);
                     if (typeof comp[fname] === 'function') {
-                        newObj.get(compName)[fname](val);
+                        comp[fname](val);
                     }
                     else {
                         RG.err('ObjectShellComps', 'addCompToObj',
@@ -109,19 +118,35 @@ export class ObjectShellComps {
                     }
                 }
                 else { // 2. Or create a new component
-                    const comp = this.createComponent(compName);
-                    newObj.add(comp);
+                    let comp = null;
+                    if (!newObj.has(compName) || !compData.useOld) {
+                        comp = this.createComponent(compName);
+                        newObj.add(comp);
+                    }
+                    comp = newObj.get(compName);
+
                     if (typeof comp[fname] === 'function') {
                         comp[fname](val); // Then call comp setter
+                        if (this.debug) {
+                            console.log('KKK333 new comp created and called', fname, val);
+                        }
                     }
                     else if (typeof fname === 'object') {
                         const funcNames = Object.keys(compData.func);
                         funcNames.forEach(funcName => {
-                            const newCompData = {
+
+                            const newCompData: ICompData = {
                                 func: funcName,
                                 comp: compName
                             };
+                            if (compData.useOld) {
+                                newCompData.useOld = compData.useOld;
+                            }
+
                             const newVal = compData.func[funcName];
+                            if (this.debug) {
+                                console.log('KKK444 Calling addCompToObj recursively', newCompData, newVal);
+                            }
                             this.addCompToObj(newObj, newCompData, newVal);
                         });
                     }
@@ -260,6 +285,16 @@ export class ObjectShellComps {
             return addOnHit;
         }
         return null;
+    }
+
+    public addCallbacks(shell: IShell, obj: Entity): void {
+        const cbs = shell.callbacks;
+        if (!obj.has('Callbacks')) {
+            obj.add(new Component.Callbacks());
+        }
+        Object.keys(cbs).forEach((cbName: string) => {
+            obj.get('Callbacks').addCb(cbName, cbs[cbName]);
+        });
     }
 
     protected noFuncError(compName: string, fname: string, compData): void {

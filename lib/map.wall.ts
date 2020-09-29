@@ -1,5 +1,4 @@
 
-import * as ROT from './rot-js';
 import Map from './rot-js/map/map';
 import '../client/src/utils';
 import RotRNG from './rot-js/rng';

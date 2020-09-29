@@ -7,7 +7,7 @@ const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
 const smp = new SpeedMeasurePlugin();
 
 const isProduction = process.env.NODE_ENV === 'production';
-const isDevel = !isProduction;
+// const isDevel = !isProduction;
 
 //----------------------
 // BASE SETTINGS
@@ -53,7 +53,7 @@ const config = {
                     path.resolve(__dirname, 'client'),
                 ],
                 options: {
-                    publicPath: path.resolve(__dirname, 'build')
+                    publicPath: path.resolve(__dirname, 'build'),
                 }
             },
             /*{test: /\.json$/, loader: 'json-loader',

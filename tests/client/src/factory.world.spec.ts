@@ -397,7 +397,7 @@ describe('FactoryWorld', function() {
                 createPresetLevels: {
                     stub: false,
                     new: 'BlackTower',
-                    args: [180, 90, {nLevels}]
+                    args: [144, 90, {nLevels}]
                 },
                 create: {
                     actor: [
@@ -413,10 +413,10 @@ describe('FactoryWorld', function() {
             createAllZones: true,
             area: [
                 {name: 'area for black tower', maxX: 2, maxY: 2, nDungeons: 1,
-                    cols: 100, rows: 100,
+                    cols: 50, rows: 50,
                     dungeon: [
                         towerConf
-                    ]
+                    ], city:[], mountain: []
                 }
             ]
         };
@@ -434,9 +434,9 @@ describe('FactoryWorld', function() {
 
         const l0 = levels[0];
         const l1 = levels[1];
-        expect(l0.getMap().cols, 'L0 Cols correct').to.be.above(180);
+        expect(l0.getMap().cols, 'L0 Cols correct').to.be.above(144);
         expect(l0.getMap().rows, 'L0 Rows correct').to.be.above(90);
-        expect(l1.getMap().cols, 'L1 Cols correct').to.be.equal(180);
+        expect(l1.getMap().cols, 'L1 Cols correct').to.be.equal(144);
         expect(l1.getMap().rows, 'L1 Rows correct').to.be.equal(90);
 
         const stairs = l0.getElements().filter(elem => (
