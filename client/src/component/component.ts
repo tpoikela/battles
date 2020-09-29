@@ -744,14 +744,15 @@ export const Drenched = UniqueDataComponent('Drenched',
 );
 
 Drenched.prototype.incrLevel = function(n=1): void {
-    if (this.level < RG.MAX_DRENCHED) {
-        this.level += n;
+    this.level += n;
+    if (this.level > RG.MAX_DRENCHED) {
+        this.level = RG.MAX_DRENCHED;
     }
 };
+
 Drenched.prototype.decrLevel = function(n=1): void {
-    if (this.level > 0) {
-        this.level -= n;
-    }
+    this.level -= n;
+    if (this.level < 0) {this.level = 0;}
 }
 
 Drenched.prototype.isDry = function(): boolean {
@@ -761,7 +762,7 @@ Drenched.prototype.isDry = function(): boolean {
 export const Coldness = TagComponent('Coldness',
   {description: 'Coldness will gradually freeze a non-resistant beings'});
 
-export const Heat = TagComponent('Heat');
+export const Heat = DataComponent('Heat', {level: 1});
 
 export const BodyTemp = UniqueDataComponent('BodyTemp',
     {temp: 100, maxTemp: 100, minTemp: -100});
@@ -1366,6 +1367,33 @@ export const UseItem = TransientDataComponent('UseItem',
 
 /* Added to entity when it's using stairs to move to another level. */
 export const UseStairs = TransientTagComponent('UseStairs');
+
+
+/* Contains callbacks related to an Entity. Different systems can execute these
+ * when they are present. */
+export const Callbacks = DataComponent('Callbacks', {
+    cbs: null
+});
+
+Callbacks.prototype._init = function() {
+    this.cbs = {};
+};
+
+Callbacks.prototype.addCb = function(name, obj): void {
+    if (typeof obj === 'function') {
+        RG.err('Component.Callbacks', 'addCb',
+            'Callback must be object, not func.');
+    }
+    this.cbs[name] = obj;
+};
+
+Callbacks.prototype.hasCb = function(name: string):  boolean {
+    return this.cbs.hasOwnProperty(name);
+}
+
+Callbacks.prototype.cb = function(name: string): any {
+    return this.cbs[name];
+}
 
 //---------------------------------------------------------------------------
 // PLAYER-related data components
