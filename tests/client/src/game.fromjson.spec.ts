@@ -298,7 +298,7 @@ describe('Game.FromJSON', function() {
 
 
     it('can serialize/de-serialize Capital', () => {
-        const capitalLevel = new Capital(200, 400).getLevel();
+        const capitalLevel = new Capital(140, 220).getLevel();
         const allActors = capitalLevel.getActors();
         const shopKeepers = allActors.filter(ent =>
             (/shopkeeper/).test(ent.getName()));
@@ -316,7 +316,7 @@ describe('Game.FromJSON', function() {
         const game = new GameMain();
         game.addActiveLevel(newLevel);
         for (let i = 0; i < 50; i++) {
-            game.simulateGame();
+            game.simulateGame(1);
         }
     });
 
