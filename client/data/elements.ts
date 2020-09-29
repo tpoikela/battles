@@ -45,12 +45,36 @@ const Elements = [
     {
         name: 'shallow chasm', className: 'cell-element-chasm',
         char: DEPTH[0], addComp: ['Impassable'],
-        z: -1
+        z: -1,
+        callbacks: {
+            onRemoveFlyingEntity: {
+                addComp: [
+                    {comp: 'Paralysis'}
+                ]
+            },
+            onAddFlyingEntity: {
+                removeComp: [
+                    {comp: 'Paralysis'}
+                ]
+            },
+        }
     },
     {
         name: 'chasm', className: 'cell-element-chasm',
         char: DEPTH[1], addComp: ['Impassable'],
         z: -2,
+        callbacks: {
+            onRemoveFlyingEntity: {
+                addComp: [
+                    {comp: 'Paralysis'}
+                ]
+            },
+            onAddFlyingEntity: {
+                removeComp: [
+                    {comp: 'Paralysis'}
+                ]
+            },
+        }
     },
     {
         name: 'deep chasm', className: 'cell-element-chasm',

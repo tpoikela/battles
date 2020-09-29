@@ -153,7 +153,8 @@ SystemManager.systemOrder = [
     'Missile', 'Movement', 'Effects', 'Animation', 'DrainStats', 'Damage', 'Death',
     'Battle',
     'Skills', 'Quest', 'ExpPoints', 'Communication', 'Events',
-    'ZoneEvents', 'Weather', 'WorldSim'
+    'ZoneEvents', 'Weather', 'WorldSim',
+    'OnCbs'
 ];
 
 
@@ -179,6 +180,7 @@ SystemManager.systems = {
         'SpellSelf'],
     Missile: ['Missile'],
     Movement: ['Movement'],
+    OnCbs: ['OnAddCb', 'OnRemoveCb']
     Effects: ['Effects'],
     Animation: ['Animation'],
     DrainStats: ['DrainStat'],
@@ -192,5 +194,5 @@ SystemManager.systems = {
     Communication: ['Communication'],
     ZoneEvents: ['ZoneEvent'],
     Weather: ['WeatherEffect'],
-    WorldSim: ['WorldSimEvent']
+    WorldSim: ['WorldSimEvent'],
 };

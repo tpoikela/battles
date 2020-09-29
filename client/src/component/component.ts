@@ -4,7 +4,6 @@ import RG from '../rg';
 import * as Mixin from '../mixin';
 import {ComponentBase, Component, NO_SERIALISATION} from './component.base';
 import {EventPool} from '../eventpool';
-import {Entity} from '../entity';
 import {Dice} from '../dice';
 import {Geometry} from '../geometry';
 import {TCoord, ILoreEntry, TLoreMsg, TCoord3D} from '../interfaces';
@@ -24,6 +23,7 @@ const BaseProto = ComponentBase.prototype;
 const NO_TYPE = Object.freeze('');
 
 type Cell = import('../map.cell').Cell;
+type Entity = import('../entity').Entity;
 
 /* Placed on player if any system sees an impossible cmd being done. */
 export const ImpossibleCmd = UniqueTagComponent('ImpossibleCmd');
@@ -102,7 +102,6 @@ Location.prototype.getCell = function(): Cell | null {
     return null;
 };
 
-// Location.prototype.toJSON = NO_SERIALISATION;
 Location.prototype.toJSON = function() {
     const obj: any = {
         setType: this.getType(), setID: this.getID(),

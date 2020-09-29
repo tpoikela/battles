@@ -17,13 +17,13 @@ export default class Scheduler<T = any> {
     /**
 	 * @see ROT.EventQueue#getTime
 	 */
-    getTime() { return this._queue.getTime(); }
+    getTime(): number { return this._queue.getTime(); }
 
     /**
 	 * @param {?} item
 	 * @param {bool} repeat
 	 */
-    add(item:T, repeat:boolean) {
+    add(item:T, repeat:boolean): Scheduler<T> {
         if (repeat) { this._repeat.push(item); }
         return this;
     }
@@ -33,14 +33,14 @@ export default class Scheduler<T = any> {
 	 * @param {?} item
 	 * @returns {number} time
 	 */
-    getTimeOf(item: T) {
+    getTimeOf(item: T): number {
         return this._queue.getEventTime(item);
     }
 
     /**
 	 * Clear all items
 	 */
-    clear() {
+    clear(): Scheduler<T> {
         this._queue.clear();
         this._repeat = [];
         this._current = null;
@@ -53,15 +53,11 @@ export default class Scheduler<T = any> {
 	 * @returns {bool} successful?
 	 */
     remove(item: any) {
-        console.log('BEFORE queue is now ', this._queue._events);
         const result = this._queue.remove(item);
 
         const index = this._repeat.indexOf(item);
         if (index !== -1) {
-            console.log('Rot.Scheduler removing repeated action');
             this._repeat.splice(index, 1);
-            console.log('AFTER queue is now ', this._queue._events);
-            // console.log('AFTER repeat is now ', this._repeat);
         }
 
         if (this._current === item) {
@@ -75,7 +71,7 @@ export default class Scheduler<T = any> {
 	 * Schedule next item
 	 * @returns {?}
 	 */
-    next() {
+    next(): T {
         this._current = this._queue.get();
         return this._current;
     }

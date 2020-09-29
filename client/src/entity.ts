@@ -6,7 +6,8 @@
 
 import RG from './rg';
 import {GameObject} from './game-object';
-import {EventPool} from '../src/eventpool';
+import {EventPool} from './eventpool';
+import {OnAddCb, OnRemoveCb} from './component/component.onadd';
 
 
 // Helper function for faster splice
@@ -70,12 +71,22 @@ export class Entity extends GameObject {
      */
     public remove(nameOrCompOrId): void {
         ++Entity.num.remove;
+        // 1st branch has the actual logic to remove comp, others just call
+        // remove( ) recursively
         if (typeof nameOrCompOrId === 'object') {
             const id = nameOrCompOrId.getID();
             if (this.comps.hasOwnProperty(id)) {
                 const comp = this.comps[id];
                 const compName = comp.getType();
                 comp.entityRemoveCallback(this);
+
+                if (compName !== 'OnAddCb' && compName !== 'OnRemoveCb') {
+                    const onRemove = new OnRemoveCb();
+                    onRemove.setCompName(compName);
+                    onRemove.setComp(comp);
+                    this.add(onRemove);
+                }
+
                 delete this.comps[id];
 
                 const index = this.compsByType[compName].indexOf(comp);
@@ -84,6 +95,7 @@ export class Entity extends GameObject {
                     delete this.compsByType[compName];
                 }
                 Entity.POOL.emitEvent(compName, {entity: this, remove: true});
+
             }
         }
         else if (Number.isInteger(nameOrCompOrId)) {
@@ -159,6 +171,12 @@ export class Entity extends GameObject {
         }
         compObj.entityAddCallback(this);
         Entity.POOL.emitEvent(compName, {entity: this, add: true});
+        if (compName !== 'OnAddCb' && compName !== 'OnRemoveCb') {
+            const onAdd = new OnAddCb();
+            onAdd.setCompName(compName);
+            onAdd.setComp(compObj);
+            this.add(onAdd);
+        }
     }
 
     /* Returns true if entity has given component. Lookup by ID is much faster

@@ -202,6 +202,8 @@ class RGClass {
     public EVT_ACT_COMP_REMOVED: string;
     public EVT_ACT_COMP_ENABLED: string;
     public EVT_ACT_COMP_DISABLED: string;
+    public EVT_ON_ADD_COMP: string;
+    public EVT_ON_REMOVE_COMP: string;
 
     public EVT_WIN_COND_TRUE: string;
 
@@ -382,6 +384,8 @@ class RGClass {
         this.EVT_ACT_COMP_REMOVED = 'EVT_ACT_COMP_REMOVED';
         this.EVT_ACT_COMP_ENABLED = 'EVT_ACT_COMP_ENABLED';
         this.EVT_ACT_COMP_DISABLED = 'EVT_ACT_COMP_DISABLED';
+        this.EVT_ON_ADD_COMP = 'OnAddComponent';
+        this.EVT_ON_REMOVE_COMP = 'OnRemoveComponent';
 
         this.EVT_WIN_COND_TRUE = 'EVT_WIN_COND_TRUE';
 
@@ -677,6 +681,7 @@ class RGClass {
         this.SYS.TIME_EFFECTS = Symbol('TIME_EFFECTS');
         this.SYS.ZONE_EVENTS = Symbol('ZONE_EVENTS');
         this.SYS.WEATHER = Symbol('WEATHER');
+        this.SYS.ON_CBS = Symbol('ON_CBS');
 
         this.NO_DAMAGE_SRC = null;
 

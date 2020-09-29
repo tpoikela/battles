@@ -125,6 +125,10 @@ import {SystemWeather} from './system.weather';
 export {SystemWeather} from './system.weather';
 System.Weather = SystemWeather;
 
+import {SystemOnCbs} from './system.on-cb';
+export {SystemOnCbs} from './system.on-cb';
+System.OnCbs = SystemOnCbs;
+
 /* Defines a new system declaration. Can be used in plugins to define new
  * systems easily without boilerplate code. */
 System.defineSystem = function(sysName: string): any {
