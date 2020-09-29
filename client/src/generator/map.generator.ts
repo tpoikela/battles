@@ -3,7 +3,7 @@
  * not generated here. */
 
 import RG from '../rg';
-import * as Map from '../../../lib/rot-js/map';
+import {default as Map} from '../../../lib/rot-js/map';
 import {CellMap} from '../map';
 import {Path} from '../path';
 import {Builder} from '../builder';
@@ -256,7 +256,7 @@ export class MapGenerator {
     constructor() { // {{{2
         this.cols = RG.LEVEL_MEDIUM_X;
         this.rows = RG.LEVEL_MEDIUM_Y;
-        this._mapGen = new ROT.Map.Arena(this.cols, this.rows);
+        this._mapGen = new Map.Arena(this.cols, this.rows);
         this._mapType = null;
         this._wallID = 1;
         this.defaultMapElem = ELEM.FLOOR;
@@ -302,7 +302,7 @@ export class MapGenerator {
         let ruinsConf = {born: [4, 5, 6, 7, 8],
             survive: [2, 3, 4, 5], connected: true};
         ruinsConf = Object.assign(ruinsConf, conf);
-        const map = new ROT.Map.Cellular(cols, rows, ruinsConf);
+        const map = new Map.Cellular(cols, rows, ruinsConf);
         map.randomize(0.9);
         for (let i = 0; i < 5; i++) {map.create();}
         map.connect(null, 1);
@@ -312,7 +312,7 @@ export class MapGenerator {
 
     /* Creates a cellular type dungeon and makes all areas connected.*/
     public createCellular(cols: number, rows: number) {
-        const map = new ROT.Map.Cellular(cols, rows, {});
+        const map = new Map.Cellular(cols, rows, {});
         map.randomize(0.52);
         for (let i = 0; i < 5; i++) {map.create();}
         map.connect(null, 1);
@@ -321,7 +321,7 @@ export class MapGenerator {
     }
 
     public createRooms(cols: number, rows: number) {
-        const map = new ROT.Map.Digger(cols, rows,
+        const map = new Map.Digger(cols, rows,
             {roomWidth: [5, 20], dugPercentage: 0.7});
         return map;
     }
@@ -1055,29 +1055,29 @@ export class MapGenerator {
         this._mapType = type;
         switch (type) {
             case 'arctic': this._mapGen = this.createEmptyFunc('arctic', cols, rows); break;
-            case 'arena': this._mapGen = new ROT.Map.Arena(cols, rows); break;
+            case 'arena': this._mapGen = new Map.Arena(cols, rows); break;
             case 'cave': this._mapGen = new MapMiner(cols, rows); break;
             case 'cellular': this._mapGen = this.createCellular(cols, rows); break;
             case 'castle': break;
-            case 'crypt': this._mapGen = new ROT.Map.Uniform(cols, rows, conf); break;
-            case 'digger': this._mapGen = new ROT.Map.Digger(cols, rows); break;
+            case 'crypt': this._mapGen = new Map.Uniform(cols, rows, conf); break;
+            case 'digger': this._mapGen = new Map.Digger(cols, rows); break;
             case 'divided':
-                this._mapGen = new ROT.Map.DividedMaze(cols, rows); break;
-            case 'dungeon': this._mapGen = new ROT.Map.Rogue(cols, rows, conf); break;
+                this._mapGen = new Map.DividedMaze(cols, rows); break;
+            case 'dungeon': this._mapGen = new Map.Rogue(cols, rows, conf); break;
             case 'empty': this._mapGen = this.createEmptyFunc('empty', cols, rows); break;
-            case 'eller': this._mapGen = new ROT.Map.EllerMaze(cols, rows); break;
+            case 'eller': this._mapGen = new Map.EllerMaze(cols, rows); break;
             case 'forest': this._mapGen = new MapForest(cols, rows); break;
             case 'lakes': this._mapGen = new MapForest(cols, rows); break;
             case 'labyrinth':
-                this._mapGen = new ROT.Map.DividedMaze(cols, rows); break;
+                this._mapGen = new Map.DividedMaze(cols, rows); break;
             case 'miner': this._mapGen = new MapMiner(cols, rows); break;
             case 'mountain': this._mapGen = new MapMountain(cols, rows); break;
-            case 'icey': this._mapGen = new ROT.Map.IceyMaze(cols, rows); break;
-            case 'rogue': this._mapGen = new ROT.Map.Rogue(cols, rows, conf); break;
-            case 'uniform': this._mapGen = new ROT.Map.Uniform(cols, rows, conf); break;
+            case 'icey': this._mapGen = new Map.IceyMaze(cols, rows); break;
+            case 'rogue': this._mapGen = new Map.Rogue(cols, rows, conf); break;
+            case 'uniform': this._mapGen = new Map.Uniform(cols, rows, conf); break;
             case 'ruins': this._mapGen = this.createRuins(cols, rows); break;
             case 'rooms': this._mapGen = this.createRooms(cols, rows); break;
-            case 'town': this._mapGen = new ROT.Map.Arena(cols, rows); break;
+            case 'town': this._mapGen = new Map.Arena(cols, rows); break;
             case 'townwithwall': break;
             case 'summit': break;
             case 'wall': this._mapGen = new MapWall(cols, rows); break;
