@@ -144,7 +144,7 @@ export default class GameBoard extends React.Component {
                     rowClass={this.props.rowClass}
                     rowClasses={this.props.classRows[yIndex]}
                     startX={this.props.startX}
-                    useRLE={this.props.useRLE}
+                    useRLE={!!this.props.useRLE}
                     y={y}
                 />);
         }
