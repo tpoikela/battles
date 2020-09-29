@@ -10,8 +10,6 @@ import {Constraints} from './constraints';
 import {JobSchedule} from './job-schedule';
 import {NEED_BIAS, Needs} from '../data/needs';
 
-debug.enabled = true;
-
 type SentientActor = import('./actor').SentientActor;
 type Inventory = import('./inv').Inventory;
 type GoalTop = import('./goals-top').GoalTop;

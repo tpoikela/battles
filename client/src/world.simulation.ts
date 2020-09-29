@@ -30,7 +30,6 @@ export enum WS_EVENT {
     'YEAR_CHANGED',
 }
 
-debug.enabled = true;
 
 export class WorldSimulation {
 

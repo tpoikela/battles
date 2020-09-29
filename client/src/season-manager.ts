@@ -19,8 +19,6 @@ export interface SeasonEntry {
     index: number; // Determines order of season in 'seasonal wheel'
 }
 
-debug.enabled = true;
-
 // Default weathers on any season are sunny, cloudy
 const defaultWeather = ['sunny', 'cloudy'];
 const specialWeatherProb = 0.2; // Prob of other weather than default

@@ -199,9 +199,9 @@ export class OWLore {
     }
 
     public debugPrint(): void {
-        debug.enabled = true;
+        debug.enabled = true; // Don't remove
         debug(this.zonesByXY);
-        debug.enabled = false;
+        debug.enabled = false; // Don't remove
     }
 
     public getZoneMeta(zone: ZoneConf): object {
