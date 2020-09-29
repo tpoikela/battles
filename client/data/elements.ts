@@ -279,6 +279,8 @@ const Elements = [
             onEnter: 'There is a large frozen tree here.'
         }
     },
+
+    // WATER BASE ELEMENTS
     {
         name: 'shallow water', className: 'cell-element-water',
         //char: '~',
@@ -286,13 +288,21 @@ const Elements = [
         msg: {
             onEnter: 'Shallow water slows you down slightly'
         },
-        addComp: [{comp: 'Terrain',
-            func: {setMods: [
-                speedPenalty(0.10, ['Flying', 'Amphibious']),
-                defensePenalty(0.10, ['Flying', 'Amphibious']),
-                attackPenalty(0.10, ['Flying', 'Amphibious']),
-            ]}
-        }]
+        addComp: [
+            {
+                comp: 'Terrain',
+                func: {
+                    setMods: [
+                        speedPenalty(0.10, ['Flying', 'Amphibious']),
+                        defensePenalty(0.10, ['Flying', 'Amphibious']),
+                        attackPenalty(0.10, ['Flying', 'Amphibious']),
+                    ]
+                }
+            },
+        ],
+        callbacks: {
+            onEnter: {addComp: [{comp: 'Drenched', useOld: true, func: {incrLevel: 1}}]}
+        }
     },
     {
         name: 'water', className: 'cell-element-water',
@@ -301,17 +311,21 @@ const Elements = [
         msg: {
             onEnter: 'Water slows you down'
         },
-        addComp: [{comp: 'Terrain',
+        addComp: [
+            {comp: 'Terrain',
             func: {setMods: [
                 speedPenalty(0.25, ['Flying', 'Amphibious']),
                 defensePenalty(0.25, ['Flying', 'Amphibious']),
                 attackPenalty(0.25, ['Flying', 'Amphibious']),
             ]}
-        }]
+            },
+        ],
+        callbacks: {
+            onEnter: {addComp: [{comp: 'Drenched', useOld: true, func: {incrLevel: 2}}]}
+        }
     },
     {
         name: 'deep water', className: 'cell-element-water',
-        //char: '~',
         char: DEPTH[2],
         msg: {
             onEnter: 'Deep water makes moving extremely difficult'
@@ -322,7 +336,10 @@ const Elements = [
                 defensePenalty(0.50, ['Flying', 'Amphibious']),
                 attackPenalty(0.50, ['Flying', 'Amphibious']),
             ]}
-        }]
+        }],
+        callbacks: {
+            onEnter: {addComp: [{comp: 'Drenched', useOld: true, func: {incrLevel: 4}}]}
+        }
     },
     {
         name: 'frozen shallow water', className: 'cell-element-frozen-water',
@@ -354,6 +371,8 @@ const Elements = [
             func: {setMods: [speedPenalty(0.15, ['Flying'])]}
         }]
     },
+
+    // MISCELLANEOUS
     {
         name: 'closed window', className: 'cell-element-window',
         char: '+', addComp: ['Impassable']
