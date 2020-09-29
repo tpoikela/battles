@@ -102,10 +102,10 @@ const updateLevelAndErrorMsg = (level: Level, msg: string) => (
   })
 );
 
-interface ZoneConf {
-    shown: string;
-    [key: string]: {[key: string]: any};
-}
+interface ZoneConfMap {
+    [key: string]: {[key: string]: any} | string;
+};
+type TZoneConf = ZoneConfMap;
 
 type ZoneFeat = ZoneBase | SubZoneBase;
 
@@ -116,7 +116,7 @@ export interface IGameEditorState {
       lastTouchedConf: null | {[key: string]: any};
       zoneType: string;
       zoneList: ZoneBase[];
-      zoneConf: ZoneConf;
+      zoneConf: TZoneConf;
 
       levelX: number;
       levelY: number;
@@ -147,8 +147,8 @@ export interface IGameEditorState {
       insertXWidth: number;
       insertYWidth: number;
 
-      levelConf: ZoneConf;
-      subLevelConf: ZoneConf;
+      levelConf: TZoneConf;
+      subLevelConf: TZoneConf;
 
       level: Level | null;
       levelList: Level[];
@@ -757,7 +757,7 @@ export default class GameEditor extends Component {
     let conf: {[key: string]: any} = {};
 
     if (this.state.subLevelConf.hasOwnProperty(levelType)) {
-      conf = this.state.subLevelConf[levelType];
+      conf = this.state.subLevelConf[levelType] as any;
     }
     const subWidth = this.state.subLevelX;
     const subHeight = this.state.subLevelY;
@@ -1238,11 +1238,11 @@ export default class GameEditor extends Component {
       }
   }
 
-  public onChangeLevelConf(confType, key, idHead) {
+  public onChangeLevelConf(confType, key: string, idHead): void {
     const id = `#${idHead}--${confType}--${key}`;
     const inputElem = document.querySelector(id) as HTMLInputElement;
     const value = parseInt(inputElem.value, 10);
-    let conf: null | ZoneConf = null;
+    let conf: null | TZoneConf = null;
 
     if (idHead === 'main') {conf = this.state.levelConf;}
     else if (idHead === 'zone') {conf = this.state.zoneConf;}
@@ -1252,10 +1252,14 @@ export default class GameEditor extends Component {
       // TODO how to handle functions
     }
     else if (isNaN(value)) {
-      conf[confType][key] = inputElem.value;
+      if (typeof conf[confType] !== 'string') {
+        conf[confType][key] = inputElem.value;
+      }
     }
     else {
-      conf[confType][key] = value;
+      if (typeof conf[confType] !== 'string') {
+        conf[confType][key] = value;
+      }
     }
 
     if (idHead === 'main') {
