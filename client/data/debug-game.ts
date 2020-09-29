@@ -19,7 +19,7 @@ import {Cell} from '../src/map.cell';
 import {Random} from '../src/random';
 import {Spell} from '../src/spell';
 import {Texts} from '../data/texts';
-import {VirtualActor, WeatherActor} from '../src/actor.virtual';
+import {VirtualActor} from '../src/actor.virtual';
 import {ELEM} from '../data/elem-constants';
 import {ItemGen} from '../data/item-gen';
 import * as IF from '../src/interfaces';
@@ -333,15 +333,6 @@ export class DebugGame {
             level.moveActorTo(target, pX, pY + 1 + i);
             target.get('Stats').setSpeed(10);
         });
-
-        // Test the weather system here
-        /*
-        const weatherComp = new Component.Weather();
-        weatherComp.setWeatherType('snowStorm');
-        level.add(weatherComp);
-        const weatherActor = new WeatherActor('Weather actor');
-        level.addVirtualProp(RG.TYPE_ACTOR, weatherActor);
-        */
 
         // Testing the trap elements such as web
         const freeCells: Cell[] = level.getMap().getCells(c => c.isFree());
