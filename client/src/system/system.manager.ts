@@ -102,7 +102,7 @@ export class SystemManager {
 
         const effects = new System.TimeEffects(
             ['Expiration', 'Poison', 'Fading', 'Heat', 'Coldness', 'DirectDamage',
-                'RegenEffect'], pool
+                'RegenEffect', 'Drowning'], pool
         );
 
         this.timeSystems.TimeEffects = effects;
@@ -180,7 +180,7 @@ SystemManager.systems = {
         'SpellSelf'],
     Missile: ['Missile'],
     Movement: ['Movement'],
-    OnCbs: ['OnAddCb', 'OnRemoveCb']
+    OnCbs: ['OnAddCb', 'OnRemoveCb'], // Is this correct place?
     Effects: ['Effects'],
     Animation: ['Animation'],
     DrainStats: ['DrainStat'],
