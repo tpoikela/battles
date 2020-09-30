@@ -74,6 +74,7 @@ export const STATUS_COMPS_GUI: TPlayerStatusGUI[] = [
     ['Charm', 'success', 'Charming', 'stat-charm'],
     ['Coldness', 'primary', 'Cold', 'stat-coldness'],
     ['Drenched', 'primary', 'Drenched', 'stat-drenched'],
+    ['Drowning', 'primary', 'Drowning', 'stat-drowning'],
     ['Ethereal', 'info', 'Ethereal', 'stat-ethereal'],
     ['Entrapped', 'danger', 'Trapped', 'stat-trapped'],
     ['Fear', 'danger', 'Afraid', 'stat-fear'],

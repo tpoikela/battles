@@ -665,6 +665,9 @@ Blindness.prototype.toJSON = function() {
     if (RG.isActorActive(this.source)) {
         obj.setSource = RG.getObjRef('entity', this.source);
     }
+    else {
+        delete obj.setSource;
+    }
     return obj;
 };
 */
@@ -794,6 +797,8 @@ export const Stolen = TagComponent('Stolen');
 
 /* Added to unpaid items in shops. Removed once the purchase is done.*/
 export const Unpaid = TagComponent('Unpaid');
+
+export const Drowning = UniqueTagComponent('Drowning');
 
 export const Breakable = UniqueTagComponent('Breakable');
 export const Indestructible = UniqueTagComponent('Indestructible');
@@ -1378,7 +1383,7 @@ Callbacks.prototype._init = function() {
     this.cbs = {};
 };
 
-Callbacks.prototype.addCb = function(name, obj): void {
+Callbacks.prototype.addCb = function(name: string, obj): void {
     if (typeof obj === 'function') {
         RG.err('Component.Callbacks', 'addCb',
             'Callback must be object, not func.');
