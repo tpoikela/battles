@@ -330,7 +330,6 @@ const Elements = [
     },
     {
         name: 'water', className: 'cell-element-water',
-        //char: '~',
         char: DEPTH[1],
         msg: {
             onEnter: 'Water slows you down'
@@ -345,7 +344,17 @@ const Elements = [
             },
         ],
         callbacks: {
-            onEnter: {addComp: [{comp: 'Drenched', useOld: true, func: {incrLevel: 2}}]}
+            onEnter: {addComp: [{comp: 'Drenched', useOld: true, func: {incrLevel: 2}}]},
+            onRemoveParalysisEntity: {
+                removeComp: [
+                    {comp: 'Drowning'}
+                ]
+            },
+            onAddParalysisEntity: {
+                addComp: [
+                    {comp: 'Drowning'}
+                ]
+            },
         }
     },
     {
@@ -362,9 +371,21 @@ const Elements = [
             ]}
         }],
         callbacks: {
-            onEnter: {addComp: [{comp: 'Drenched', useOld: true, func: {incrLevel: 4}}]}
+            onEnter: {addComp: [{comp: 'Drenched', useOld: true, func: {incrLevel: 4}}]},
+            onRemoveParalysisEntity: {
+                removeComp: [
+                    {comp: 'Drowning'}
+                ]
+            },
+            onAddParalysisEntity: {
+                addComp: [
+                    {comp: 'Drowning'}
+                ]
+            },
         }
     },
+
+    // FROZEN WATER
     {
         name: 'frozen shallow water', className: 'cell-element-frozen-water',
         char: DEPTH[0],
