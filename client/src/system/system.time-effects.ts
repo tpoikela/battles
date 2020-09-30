@@ -29,6 +29,7 @@ export class SystemTimeEffects extends SystemBase {
         this._dtable.Coldness = this._applyColdness.bind(this);
         this._dtable.DirectDamage = this._applyDirectDamage.bind(this);
         this._dtable.RegenEffect = this._applyRegenEffect.bind(this);
+        this._dtable.Drowning = this._applyDrowningEffect.bind(this);
     }
 
     // Dispatch table used to call a handler function for each component
@@ -253,6 +254,14 @@ export class SystemTimeEffects extends SystemBase {
         });
     }
 
+    public _applyDrowningEffect(ent: Entity): void {
+        const drowning = ent.get('Drowning');
+        if (ent.has('Health')) {
+            const dmg = 5;
+            const dmgComp = new Component.Damage(dmg, RG.DMG.WATER);
+            ent.add(dmgComp);
+        }
+    }
 
     /* Used for debug printing.*/
     public printMatchedType(ent: Entity): void {
