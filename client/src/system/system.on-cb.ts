@@ -1,9 +1,9 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
-import * as Component from '../component';
+import {executeCompCb} from './system.utils';
 
-import {ObjectShellComps} from '../objectshellcomps';
+type Entity = import('../entity').Entity;
 
 export class SystemOnCbs extends SystemBase {
 
@@ -12,7 +12,7 @@ export class SystemOnCbs extends SystemBase {
         this.compTypesAny = true; // Triggered on at least one component
     }
 
-    public updateEntity(ent) {
+    public updateEntity(ent: Entity) {
         if (ent.has('OnAddCb')) {
             const compList = ent.getList('OnAddCb');
             compList.forEach(addComp => {
@@ -39,20 +39,20 @@ export class SystemOnCbs extends SystemBase {
     }
 
 
-    protected processAddComp(ent, comp): void {
+    protected processAddComp(ent: Entity, comp): void {
         if (ent.has('Callbacks')) {
             const compName = comp.getCompName();
             const cbs = ent.get('Callbacks');
             const cbName = 'onAdd' + compName;
             if (cbs.hasCb(cbName)) {
                 const cbData = cbs.cb(cbName);
-                executeCb(ent, cbData);
+                executeCompCb(ent, cbData);
             }
         }
         if (ent.has('Location')) {
             const location = ent.get('Location');
             if (location.isValid()) {
-                const cell = ent.getCell();
+                const cell = location.getCell();
                 const baseElem = cell.getBaseElem();
                 if (baseElem.has('Callbacks')) {
                     const cbs = baseElem.get('Callbacks');
@@ -61,27 +61,27 @@ export class SystemOnCbs extends SystemBase {
                     if (cbs.hasCb(cbName)) {
                         console.log('addComp Processing ' + cbName + 'for ' + baseElem.getName());
                         const cbData = cbs.cb(cbName);
-                        executeCb(ent, cbData);
+                        executeCompCb(ent, cbData);
                     }
                 }
             }
         }
     }
 
-    protected processRemoveComp(ent, comp): void {
+    protected processRemoveComp(ent: Entity, comp): void {
         if (ent.has('Callbacks')) {
             const compName = comp.getCompName();
             const cbs = ent.get('Callbacks');
             const cbName = 'onRemove' + compName;
             if (cbs.hasCb(cbName)) {
                 const cbData = cbs.cb(cbName);
-                executeCb(ent, cbData);
+                executeCompCb(ent, cbData);
             }
         }
         if (ent.has('Location')) {
             const location = ent.get('Location');
             if (location.isValid()) {
-                const cell = ent.getCell();
+                const cell = location.getCell();
                 const baseElem = cell.getBaseElem();
                 if (baseElem.has('Callbacks')) {
                     const cbs = baseElem.get('Callbacks');
@@ -90,7 +90,7 @@ export class SystemOnCbs extends SystemBase {
                     if (cbs.hasCb(cbName)) {
                         console.log('removeComp Processing ' + cbName + 'for ' + baseElem.getName());
                         const cbData = cbs.cb(cbName);
-                        executeCb(ent, cbData);
+                        executeCompCb(ent, cbData);
                     }
                 }
             }
@@ -99,65 +99,3 @@ export class SystemOnCbs extends SystemBase {
 
 }
 
-const _compGen: ObjectShellComps = new ObjectShellComps({debug: false});
-
-function executeCb(ent, cbObj): void {
-    // Adding a new component
-    if (cbObj.addComp) {
-        if (cbObj.addComp.duration) {
-            const effArgs: any = {
-                name: cbObj.addComp.comp,
-                target: ent,
-                duration: cbObj.addComp.duration
-            };
-            if (cbObj.addComp.func) {
-                effArgs.setters = cbObj.modifyComp.func;
-            }
-            if (cbObj.addComp.expireMsg) {
-                effArgs.expireMsg = cbObj.addComp.expireMsg;
-            }
-            const effComp = new Component.Effects(effArgs);
-            ent.add(effComp);
-        }
-        else {
-            _compGen.addComponents(cbObj, ent);
-        }
-    }
-
-    if (cbObj.removeComp) {
-        cbObj.removeComp.forEach(obj => {
-            if (ent.has(obj.comp)) {
-                ent.remove(obj.comp);
-            }
-        });
-    }
-    if (cbObj.modifyComp) {
-        const effArgs = {
-            name: cbObj.modifyComp.comp,
-            target: ent,
-            get: cbObj.modifyComp.get,
-            set: cbObj.modifyComp.set,
-            value: cbObj.modifyComp.value,
-        };
-        const effComp = new Component.Effects(effArgs);
-        ent.add(effComp);
-    }
-    if (cbObj.changeElement) {
-    }
-    if (cbObj.addEntity) {
-        const effArgs: any = {
-            name: cbObj.modifyComp.comp,
-            target: {target: ent.getCell()},
-            entityName: cbObj.addEntity.entityName,
-        };
-        if (cbObj.addEntity.duration) {
-            effArgs.duration = cbObj.addEntity.duration;
-        }
-        const effComp = new Component.Effects(effArgs);
-        ent.add(effComp);
-    }
-    if (cbObj.addElement) {
-    }
-    if (cbObj.removeElement) {
-    }
-}
