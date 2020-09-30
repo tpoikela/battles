@@ -22,6 +22,7 @@ describe('System.OnCbs', () => {
         cbsSystem.update();
         const level = factLevel.createLevel('arena', 20, 20);
         level.getCell(1, 1).setBaseElem(ELEM.CHASM);
+        level.getCell(2, 2).setBaseElem(ELEM.WATER);
 
         level.addActor(flyer, 1, 1);
         flyer.remove('Flying');
@@ -42,5 +43,13 @@ describe('System.OnCbs', () => {
         cbsSystem.update();
         expect(flyer).to.not.have.component('Paralysis');
         expect(flyer).to.not.have.component('OnAddCb');
+
+        level.moveActorTo(flyer, 2, 2);
+        flyer.add(new Component.Paralysis());
+        cbsSystem.update();
+        expect(flyer).to.have.component('Drowning');
+        flyer.remove('Paralysis');
+        cbsSystem.update();
+        expect(flyer).to.not.have.component('Drowning');
     });
 });
