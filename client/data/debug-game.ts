@@ -67,7 +67,6 @@ export class DebugGame {
         obj.rows = 100;
         const [pX, pY] = [50, 50];
         const level = this.createLastBattle(game, obj);
-        // game.addLevel(level);
         level.addActor(player, pX, pY);
 
         const cityQuarter = new World.CityQuarter('Debug quarter');
@@ -163,7 +162,6 @@ export class DebugGame {
         const winCond = new WinCondition('Kill a keeper', game.getPool());
         winCond.addActorKilled(keeper);
 
-        game.addPlayer(player);
 
         const eq = player.getInvEq().getEquipment();
         eq.addSlot('spiritgem', new EquipSlot('spiritgem'));
@@ -270,6 +268,7 @@ export class DebugGame {
 
         const thief = parser.createActor('bearfolk thief');
         level.addActor(thief, pX + 1, pY + 1);
+        console.log('XYZ created thief: ', thief.getID(), thief.getName());
 
         player.getInvEq().addItem(parser.createItem('Boots of flying'));
 
@@ -390,6 +389,7 @@ export class DebugGame {
         blindness.setSource(player);
         player.add(player);
         */
+        game.addPlayer(player);
 
         return game;
     }
