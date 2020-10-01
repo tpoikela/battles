@@ -50,6 +50,9 @@ export class Engine {
 
     public visibleCells: Cell[];
 
+    public debugEnabled: boolean;
+    public traceIDs: {[key: string]: boolean};
+
     public _cache: EngineCache;
     public sysMan: SystemManager;
 
@@ -90,13 +93,15 @@ export class Engine {
 
         this.hasNotify = true;
         this._eventPool.listenEvent(RG.EVT_DESTROY_ITEM, this);
-        this._eventPool.listenEvent(RG.EVT_ACT_COMP_ADDED, this);
-        this._eventPool.listenEvent(RG.EVT_ACT_COMP_REMOVED, this);
         this._eventPool.listenEvent(RG.EVT_ACT_COMP_ENABLED, this);
         this._eventPool.listenEvent(RG.EVT_ACT_COMP_DISABLED, this);
         this._eventPool.listenEvent(RG.EVT_LEVEL_PROP_ADDED, this);
         this._eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
         this._eventPool.listenEvent(RG.EVT_ANIMATION, this);
+        this._eventPool.listenEvent(RG.EVT_ACTOR_KILLED, this);
+
+        this.debugEnabled = true;
+        this.traceIDs = {};
     }
 
     public setSystemArgs(args: {[key: string]: any}): void {
@@ -262,15 +267,26 @@ export class Engine {
     public updateGameLoop(obj: IPlayerCmdInput): void {
         this.playerCommand(obj);
         this.currPlayer = this.nextActor as SentientActor;
-        this.nextActor = this.getNextActor();
 
         // Loop systems once per player action
         this.sysMan.updateLoopSystems();
         const turnArgs = {timeOfDay: this.timeOfDay};
 
+        this.nextActor = this.getNextActor();
+        let act = this.nextActor as any;
+        if (act.getID && this.traceIDs[act.getID()]) {
+            console.log('updateGameLoop out-of-while ID:', act.getID());
+        }
+
         let watchdog = 10000;
         // Next/act until player found, then go back waiting for key...
+        let count = 0;
         while (!this.nextActor.isPlayer() && !this.isGameOver()) {
+
+            act = this.nextActor as any;
+            if (act.getID && this.traceIDs[act.getID()]) {
+                console.log(count, 'updateGameLoop start, ID:', act.getID());
+            }
 
             // TODO refactor R1
             const action = this.nextActor.nextAction(turnArgs);
@@ -278,8 +294,25 @@ export class Engine {
             this.sysMan.updateSystems(); // All systems for each actor
             this._scheduler.setAction(action);
 
+            act = this.nextActor as any;
+            if (act.getID && this.traceIDs[act.getID()]) {
+                console.log(count, 'updateGameLoop loop end, ID:', act.getID());
+            }
+
             this.nextActor = this.getNextActor();
-            if (RG.isNullOrUndef([this.nextActor])) {
+
+            act = this.nextActor as any;
+            if (act.getID && this.traceIDs[act.getID()]) {
+                console.log(count, 'updateGameLoop next will be, ID:', act.getID());
+            }
+
+            if (act.has && act.has('Dead')) {
+                RG.err('Engine', 'simulateGame',
+                   'Tried to schedule Dead actor ID: ' + act.getID());
+            }
+
+
+            if (!this.nextActor) {
                 RG.err('Game.Engine', 'updateGameLoop',
                     'Game loop out of events! Fatal!');
                 break; // if errors suppressed (testing), breaks the loop
@@ -291,7 +324,10 @@ export class Engine {
                      'GameLoop stuck. 10K events taken, no player');
                 break;
             }
+            ++count;
         }
+
+        console.log('updateGameLoop final count is', count);
         if (!this.isGameOver()) {
             this.setPlayer(this.nextActor as SentientActor);
         }
@@ -459,24 +495,6 @@ export class Engine {
                     'Failed to remove item from inventory.');
             }
         }
-        else if (evtName === RG.EVT_ACT_COMP_ADDED) {
-            if (args.hasOwnProperty('actor')) {
-                this.addActor(args.actor);
-            }
-            else {
-                RG.err('Game.Engine', 'notify - ACT_COMP_ADDED',
-                    'No actor specified for the event.');
-            }
-        }
-        else if (evtName === RG.EVT_ACT_COMP_REMOVED) {
-            if (args.hasOwnProperty('actor')) {
-                this.removeActor(args.actor);
-            }
-            else {
-                RG.err('Game.Engine', 'notify - ACT_COMP_REMOVED',
-                    'No actor specified for the event.');
-            }
-        }
         else if (evtName === RG.EVT_ACT_COMP_ENABLED) {
             if (args.hasOwnProperty('actor')) {
                 this.addActor(args.actor);
@@ -511,6 +529,11 @@ export class Engine {
                 args.src.onFirstExit();
                 args.target.onEnter();
                 args.target.onFirstEnter();
+            }
+        }
+        else if (evtName === RG.EVT_ACTOR_KILLED) {
+            if (args.hasOwnProperty('actor')) {
+                this.removeActor(args.actor);
             }
         }
         else if (evtName === RG.EVT_ANIMATION) {
@@ -569,12 +592,24 @@ export class Engine {
 
     /* Adds an actor to the scheduler. */
     public addActor(actor) {
+        // const msg = `ID: ${actor.getID()}, ${actor.getName()}`;
         this._scheduler.add(actor, true, 0);
     }
 
     /* Removes an actor from a scheduler.*/
-    public removeActor(actor) {
-        this._scheduler.remove(actor);
+    public removeActor(actor): void {
+        const ok = this._scheduler.remove(actor);
+        if (this.debugEnabled) {
+            if (this.traceIDs[actor.getID()]) {
+                console.debug('Engine rm from scheduler: ', JSON.stringify(actor));
+
+            }
+        }
+        if (!ok) {
+            const msg = `ID: ${actor.getID()}, ${actor.getName()}`;
+            RG.err('Engine', 'removeActor',
+               'Failed to remove actor from scheduler: ' + msg);
+        }
     }
 
     /* Adds an event to the scheduler.*/
