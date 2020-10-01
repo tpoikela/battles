@@ -1,11 +1,11 @@
 
-import {expect} from 'chai';
 import fs = require('fs');
 
 import * as RG from '../client/src/battles';
-import ROT from '../lib/rot';
+import {default as RotRNG} from '../lib/rot-js/rng';
 import {UtilsSim} from './utils-sim';
 import {PlayerDriver} from '../tests/helpers/player-driver';
+import {Dice} from '../client/src/dice';
 
 type CmdInput = import('../client/src/interfaces').CmdInput;
 
@@ -21,19 +21,24 @@ UtilsSim.addArg({
 });
 const opts = UtilsSim.getOpts();
 
+console.log('Start simulation with Seed: ', opts.seed);
+RNG.setSeed(opts.seed);
+RotRNG.setSeed(opts.seed);
+Dice.RNG.setSeed(opts.seed);
+
 if (UtilsSim.useBrowser()) {
     opts.nosave = true;
     opts.maxturns = 10000;
 }
 
 RNG.setSeed(opts.seed);
-ROT.RNG.setSeed(opts.seed);
+RotRNG.setSeed(opts.seed);
 
 const logger = new UtilsSim.Log(opts);
 const {info, log} = logger;
 
 log('RNG uniform: ' + RNG.getUniform());
-log('ROT.RNG uniform: ' + ROT.RNG.getUniform());
+log('ROT.RNG uniform: ' + RotRNG.getUniform());
 
 const gameConf = {
     playerLevel: 'Medium',
@@ -84,7 +89,7 @@ const timeId: number = UtilsSim.getTimeStamp();
 const fpsArray: number[] = [];
 
 // Used with expect() later
-const saveFunc = (nTurns) => {
+const saveFunc = (nTurns: number): void => {
     const saveDur = UtilsSim.time(() => {
         gameJSON = game.toJSON();
     });
@@ -133,7 +138,7 @@ const updateFunc = () => {
 
 const simulSpellOn1stTurn = () => {
     game.update({code: Keys.KEY.POWER});
-    game.update({code: Keys.VK_h});
+    game.update({code: Keys.VK.h});
 };
 // expect(simulSpellOn1stTurn).not.to.throw(Error);
 
@@ -148,9 +153,16 @@ const POOL = RG.EventPool.getPool();
 log(`Start RG.POOL listeners: ${POOL.getNumListeners()}`);
 
 
+let crashed = false;
+
 for (let i = 1; i <= numTurns; i++) {
-    // expect(updateFunc).not.to.throw(Error);
-    updateFunc();
+    try {
+        updateFunc();
+    } catch (e) {
+        crashed = true;
+        console.log('Caught error:', e.message);
+        break;
+    }
 
     /* if (i === 10) {
         expect(simulSpellOn1stTurn).not.to.throw(Error);
@@ -175,7 +187,9 @@ for (let i = 1; i <= numTurns; i++) {
 }
 const timeEnd = new Date().getTime();
 const durGame = timeEnd - timeStart - durTimes.total;
-log('Execution took ' + durGame + ' ms');
+log('Actual Game Execution took ' + durGame + ' ms');
+log('Used seed number: ' + opts.seed);
+log('Did game crash: ' + crashed);
 
 const fpsAvg = fpsArray.reduce((acc, val) => acc + val, 0) / fpsArray.length;
 
