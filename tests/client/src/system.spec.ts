@@ -32,7 +32,8 @@ const factLevel = new FactoryLevel();
 
 describe('System.Hunger', () => {
     it('Subtracts energy from actors with hunger', () => {
-        const system = new System.Hunger(['Hunger', 'Action']);
+        const pool = Entity.getPool();
+        const system = new System.Hunger(['Hunger', 'Action'], pool);
 
         const hunger = new Component.Hunger();
         hunger.setEnergy(2000);
@@ -64,7 +65,7 @@ describe('System.Attack', () => {
     let beast = null;
 
     beforeEach(() => {
-        attackSystem = new System.Attack(['Attack']);
+        attackSystem = new System.Attack(['Attack'], Entity.getPool());
         systems = [attackSystem];
         human = new SentientActor('Human');
         beast = new SentientActor('Beast');
@@ -92,7 +93,7 @@ describe('System.Attack', () => {
     });
 
     it('takes into account hits bypassing protection', () => {
-        const damageSystem = new System.Damage(['Damage']);
+        const damageSystem = new System.Damage(['Damage'], Entity.getPool());
         systems.push(damageSystem);
 
         const bypassComp = new Component.BypassProtection();
@@ -114,11 +115,13 @@ describe('System.Attack', () => {
     });
 
     it('can apply AddOnHit components', function() {
-        const damageSystem = new System.Damage(['Damage']);
-        const deathSystem = new System.Death(['DeathEvent']);
+        const pool = Entity.getPool();
+        const damageSystem = new System.Damage(['Damage'], pool);
+        const deathSystem = new System.Death(['DeathEvent'], pool);
+        deathSystem.disableEventEmit = true;
         systems.push(damageSystem);
         systems.push(deathSystem);
-        const timeSys = new System.TimeEffects(['DirectDamage']);
+        const timeSys = new System.TimeEffects(['DirectDamage'], pool);
         systems.push(timeSys);
 
         const parser = ObjectShell.getParser();
@@ -153,8 +156,9 @@ describe('System.Attack', () => {
 
 describe('System.Damage', () => {
     it('handles adding components on hit', () => {
-        const dSystem = new System.Damage(['Damage']);
-        const timeSys = new System.TimeEffects(['Expiration', 'Poison']);
+        const pool = Entity.getPool();
+        const dSystem = new System.Damage(['Damage'], pool);
+        const timeSys = new System.TimeEffects(['Expiration', 'Poison'], pool);
         const systems = [dSystem];
 
         const poisonSword = new Item.Weapon('Sword of Poison');
@@ -223,8 +227,10 @@ describe('System.Damage', () => {
         const humanStats = {hp: 5, att: 1, def: 1, prot: 1};
         const human = factActor.createActor('Human', humanStats);
 
-        const dSystem = new System.Damage(['Damage']);
-        const deathSystem = new System.Death(['DeathEvent']);
+        const pool = Entity.getPool();
+        const dSystem = new System.Damage(['Damage'], pool);
+        const deathSystem = new System.Death(['DeathEvent'], pool);
+        deathSystem.disableEventEmit = true;
         const systems = [dSystem, deathSystem];
 
         const lootItem = new Item.ItemBase('Loot item');
@@ -262,9 +268,10 @@ describe('System.Damage', () => {
 
 describe('System.SpellCast', () => {
     it('handles spellcasting of actors', () => {
-        const dSystem = new System.Damage(['Damage']);
-        const effectSystem = new System.SpellEffect(['SpellRay']);
-        const spellSystem = new System.SpellCast(['SpellCast']);
+        const pool = Entity.getPool();
+        const dSystem = new System.Damage(['Damage'], pool);
+        const effectSystem = new System.SpellEffect(['SpellRay'], pool);
+        const spellSystem = new System.SpellCast(['SpellCast'], pool);
         const systems = [spellSystem, effectSystem, dSystem];
 
         const mage = new SentientActor('mage');
@@ -297,8 +304,9 @@ describe('System.SpellCast', () => {
 
 describe('System.Disability', () => {
     it('stops actors from acting', () => {
-        const disSystem = new System.Disability(['Stun', 'Paralysis']);
-        const movSystem = new System.Movement(['Movement']);
+        const pool = Entity.getPool();
+        const disSystem = new System.Disability(['Stun', 'Paralysis'], pool);
+        const movSystem = new System.Movement(['Movement'], pool);
 
         const walker = new SentientActor('walker');
         const level = RGUnitTests.wrapIntoLevel([walker]);
@@ -334,7 +342,8 @@ describe('System.Disability', () => {
 
 describe('System.SpiritBind', () => {
     it('is used to bind spirits into spirit gems', () => {
-        const spiritSys = new System.SpiritBind(['SpiritBind']);
+        const pool = Entity.getPool();
+        const spiritSys = new System.SpiritBind(['SpiritBind'], pool);
 
         const binder = new SentientActor('shaman');
         const spirit = new SentientActor('Evil spirit');
@@ -356,7 +365,8 @@ describe('System.SpiritBind', () => {
     });
 
     it('is used to bind gems into items', () => {
-        const spiritSys = new System.SpiritBind(['SpiritBind']);
+        const pool = Entity.getPool();
+        const spiritSys = new System.SpiritBind(['SpiritBind'], pool);
         const binder = new SentientActor('shaman');
 
         const spirit = new SentientActor('Evil spirit');
@@ -416,7 +426,8 @@ describe('System.SpiritBind', () => {
 describe('System.TimeEffects', () => {
 
     it('removes components from entities', () => {
-        const expirSys = new System.TimeEffects(['Expiration']);
+        const pool = Entity.getPool();
+        const expirSys = new System.TimeEffects(['Expiration'], pool);
         const entity = new Entity();
         const expComp = new Component.Expiration();
         expect(entity).not.to.have.component('StatsMods');
@@ -473,9 +484,11 @@ describe('System.TimeEffects', () => {
     });
 
     it('processes Coldness effects into damage', () => {
-        const timeSys = new System.TimeEffects(['Expiration', 'Coldness']);
-        const damageSystem = new System.Damage(['Damage']);
-        const deathSystem = new System.Death(['DeathEvent']);
+        const pool = Entity.getPool();
+        const timeSys = new System.TimeEffects(['Expiration', 'Coldness'], pool);
+        const damageSystem = new System.Damage(['Damage'], pool);
+        const deathSystem = new System.Death(['DeathEvent'], pool);
+        deathSystem.disableEventEmit = true;
 
         const ghoul = new SentientActor('ghoul');
         const actor = new SentientActor('frozen');
@@ -512,7 +525,8 @@ describe('System.TimeEffects', () => {
 
 describe('System.Experience', () => {
     it('checks gained exp points and gives exp levels', () => {
-        const expSys = new System.ExpPoints(['ExpPoints']);
+        const pool = Entity.getPool();
+        const expSys = new System.ExpPoints(['ExpPoints'], pool);
         const actor = new SentientActor('rogue');
         RGUnitTests.wrapIntoLevel([actor]);
 
@@ -530,7 +544,8 @@ describe('System.Experience', () => {
 
 describe('System.Skills', () => {
     it('it handles skill progression of actors', () => {
-        const skillsSys = new System.Skills(['SkillsExp']);
+        const pool = Entity.getPool();
+        const skillsSys = new System.Skills(['SkillsExp'], pool);
         const entity = new SentientActor('rogue');
         RGUnitTests.wrapIntoLevel([entity]);
 
@@ -567,7 +582,8 @@ describe('System.Shop', () => {
     let level = null;
 
     beforeEach(() => {
-        shopSys = new System.Shop(['Transaction']);
+        const pool = Entity.getPool();
+        shopSys = new System.Shop(['Transaction'], pool);
         shopkeeper = new SentientActor('shopkeeper');
         actor = new SentientActor('buyer');
 
@@ -676,7 +692,8 @@ describe('System.Shop', () => {
 
 describe('System.Event', () => {
     it('It responds to entities with Component.Event', () => {
-        const eventSys = new System.Events(['Event']);
+        const pool = Entity.getPool();
+        const eventSys = new System.Events(['Event'], pool);
         const actor = new SentientActor('killed one');
         const killer = new SentientActor('killer');
         const clueless = new SentientActor('clueless');
@@ -708,8 +725,9 @@ describe('System.Event', () => {
 
 describe('System.AreaEffects', () => {
     it('handles Fire components in cells', () => {
-        const areaSys = new System.AreaEffects(['Flame']);
-        const damageSystem = new System.Damage(['Damage']);
+        const pool = Entity.getPool();
+        const areaSys = new System.AreaEffects(['Flame'], pool);
+        const damageSystem = new System.Damage(['Damage'], pool);
         const systems = [areaSys, damageSystem];
 
         const burntActor = new SentientActor('victim');
@@ -737,7 +755,8 @@ describe('System.AreaEffects', () => {
 
 describe('System.BaseAction', () => {
     it('handles logic to pickup items', () => {
-        const sysBaseAction = new System.BaseAction(['Pickup']);
+        const pool = Entity.getPool();
+        const sysBaseAction = new System.BaseAction(['Pickup'], pool);
         const level = Factory.createLevel('arena', 20, 20);
 
         const factActor = new FactoryActor();
@@ -765,10 +784,11 @@ describe('System.BaseAction', () => {
 
 describe('System.Equip', () => {
     it('it handles onEquip hooks on items', () => {
+        const pool = Entity.getPool();
         const parser = new ObjectShell.Parser();
-        const sysEquip = new System.Equip(['Equip']);
-        const sysAttack = new System.Attack(['Attack']);
-        const sysDamage = new System.Damage(['Damage']);
+        const sysEquip = new System.Equip(['Equip'], pool);
+        const sysAttack = new System.Attack(['Attack'], pool);
+        const sysDamage = new System.Damage(['Damage'], pool);
         const equipper = new SentientActor('equipper');
 
         // Create the sword and check creation is OK

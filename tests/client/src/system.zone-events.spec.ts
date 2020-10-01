@@ -6,6 +6,7 @@ import {SystemZoneEvents} from '../../../client/src/system/system.zone-events';
 import * as Component from '../../../client/src/component';
 import {emitZoneEvent} from '../../../client/src/system/system.utils';
 import {ZoneBase, WorldTop} from '../../../client/src/world';
+import {Entity} from '../../../client/src/entity';
 
 import {RGTest} from '../../roguetest';
 // import {RGUnitTests} from '../../rg.unit-tests';
@@ -22,7 +23,7 @@ describe('SystemZoneEvents', () => {
     let world: WorldTop = null;
 
     beforeEach(() => {
-        sysZone = new SystemZoneEvents(['ZoneEvent']);
+        sysZone = new SystemZoneEvents(['ZoneEvent'], Entity.getPool());
         world = RGTest.createTestWorld();
         sysZone.setArgs({worldTop: world});
     });

@@ -9,6 +9,7 @@ import {System} from '../../../client/src/system';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {FactoryActor} from '../../../client/src/factory.actors';
 import {Level} from '../../../client/src/level';
+import {Entity} from '../../../client/src/entity';
 import {MapGenerator} from '../../../client/src/generator';
 import {ELEM} from '../../../client/data/elem-constants';
 import * as Element from '../../../client/src/element';
@@ -25,8 +26,16 @@ chai.use(chaiBattles);
 const updateSystems = RGTest.updateSystems;
 
 describe('System.Movement', () => {
+
+    let movSystem = null;
+
+    beforeEach(() => {
+        const pool = Entity.getPool();
+        movSystem = new System.Movement(['Movement'], pool);
+    });
+
+
     it('handles actor movement', () => {
-        const movSystem = new System.Movement(['Movement']);
         const player = new SentientActor('player name');
         player.setIsPlayer(true);
         const level = factLevel.createLevel('arena', 20, 20);
@@ -46,7 +55,6 @@ describe('System.Movement', () => {
     });
 
     it('Moves but is blocked by walls.', () => {
-        const movSystem = new System.Movement(['Movement']);
         const actor = new SentientActor('TestActor');
         const level = new Level();
         const mapgen = new MapGenerator();
@@ -74,7 +82,6 @@ describe('System.Movement', () => {
     });
 
     it('Moves actors between levels using stairs', () => {
-        const movSystem = new System.Movement(['Movement']);
         const level1 = Factory.createLevel('arena', 20, 20);
         const level2 = Factory.createLevel('arena', 20, 20);
 
@@ -149,7 +156,6 @@ describe('System.Movement', () => {
     });
 
     it('can apply penalties based on terrain', () => {
-        const movSystem = new System.Movement(['Movement']);
         const level1 = Factory.createLevel('arena', 20, 20);
         const actor = new SentientActor('TestActor');
         level1.addActor(actor, 1, 1);

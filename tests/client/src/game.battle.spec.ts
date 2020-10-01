@@ -34,10 +34,10 @@ describe('Game.Army', () => {
         army.addActor(a1);
         army.setBattle(MockBattle as any);
 
-        POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: a2});
+        army.notify(RG.EVT_ACTOR_KILLED, {actor: a2});
         expect(army.isDefeated()).to.equal(false);
 
-        POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: a1});
+        army.notify(RG.EVT_ACTOR_KILLED, {actor: a1});
         expect(army.isDefeated()).to.equal(true);
     });
 });
@@ -57,9 +57,9 @@ describe('Game.Battle', function() {
         console.log('Using seed', seed);
         Dice.RNG.setSeed(1234);
 
-        game.addLevel(areaLevel);
+        game.addActiveLevel(areaLevel);
 
-        game._engine.sysMan.get('Movement').debugEnabled = true;
+        // game._engine.sysMan.get('Movement').debugEnabled = true;
 
         const conf = {
             cols: 15, rows: 10,
@@ -104,7 +104,7 @@ describe('Game.Battle', function() {
 
         // Check that event listeners are properly cleaned up
         const func = () => {
-            POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: survivors[0]});
+            game.getPool().emitEvent(RG.EVT_ACTOR_KILLED, {actor: survivors[0]});
         };
         expect(func).not.to.throw();
 

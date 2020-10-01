@@ -8,6 +8,7 @@ import * as Item from '../../../client/src/item';
 import * as Component from '../../../client/src/component';
 import * as Element from '../../../client/src/element';
 import {FactoryLevel} from '../../../client/src/factory.level';
+import {Entity} from '../../../client/src/entity';
 
 const Actor = SentientActor;
 
@@ -19,8 +20,9 @@ const updateSystems = systems => {
 
 
 const createSystems = () => {
-    const mSystem = new System.Missile(['Missile']);
-    const dSystem = new System.Damage(['Damage']);
+    const pool = Entity.getPool();
+    const mSystem = new System.Missile(['Missile'], pool);
+    const dSystem = new System.Damage(['Damage'], pool);
     return [mSystem, dSystem];
 };
 

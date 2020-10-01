@@ -4,12 +4,10 @@ import RG from '../../../client/src/rg';
 
 import {BaseActor, SentientActor} from '../../../client/src/actor';
 import * as Component from '../../../client/src/component';
-import {EventPool} from '../../../client/src/eventpool';
 import {System, SystemQuest} from '../../../client/src/system';
 import {Quest, QuestPopulate} from '../../../client/src/quest';
 import {Entity} from '../../../client/src/entity';
 import {ItemBase} from '../../../client/src/item';
-import {Random} from '../../../client/src/random';
 
 import {RGTest} from '../../roguetest';
 import {chaiBattles} from '../../helpers/chai-battles';
@@ -34,7 +32,7 @@ describe('System.Quest', () => {
 
     beforeEach(() => {
         const rng = RGTest.createRNG(1);
-        pool = EventPool.getPool();
+        pool = Entity.getPool();
         questPopul = new QuestPopulate({rng});
         sysQuest = new SystemQuest(['GiveQuest', 'QuestCompleted',
             'QuestTargetEvent'], pool);
@@ -42,6 +40,7 @@ describe('System.Quest', () => {
         sysBaseAction = new System.BaseAction(['Pickup', 'Read', 'Give'], pool);
         sysDamage = new System.Damage(['Damage'], pool);
         sysDeath = new System.Death(['DeathEvent'], pool);
+        sysDeath.disableEventEmit = true;
         systems = [];
         systems.push(sysBaseAction);
         systems.push(sysQuest);

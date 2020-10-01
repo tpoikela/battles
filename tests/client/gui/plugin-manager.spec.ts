@@ -85,6 +85,7 @@ describe('PluginManager', () => {
 
         const plugins = newPm.getPlugins();
         expect(plugins).to.have.length(2);
+        newPm.disableAll();
     });
 
 });

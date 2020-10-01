@@ -21,6 +21,7 @@ import {RGUnitTests} from '../../rg.unit-tests';
 import {Spell} from '../../../client/src/spell';
 import {Evaluator} from '../../../client/src/evaluators';
 import {Random} from '../../../client/src/random';
+import {Entity} from '../../../client/src/entity';
 
 // Used for debugging, when test fails with certain seed
 // const seed = Date.now();
@@ -180,7 +181,8 @@ describe('BrainPlayer', () => {
     });
 
     it('handles picking up of items', () => {
-        const baseSys = new SystemBaseAction(['Pickup']);
+        const pool = Entity.getPool();
+        const baseSys = new SystemBaseAction(['Pickup'], pool);
         const brain = new BrainPlayer(player);
         const food = new Item.Food('food');
         const weapon = new Item.Weapon('weapon');
@@ -309,7 +311,8 @@ describe('BrainSentient', () => {
     });
 
     it('explores randomly when no enemies', () => {
-        const movSys = new SystemMovement(['Movement']);
+        const pool = Entity.getPool();
+        const movSys = new SystemMovement(['Movement'], pool);
         const arena = factLevel.createLevel('arena', 10, 10);
         const rogue = new SentientActor('rogue');
         arena.addActor(rogue, 3, 3);
@@ -327,7 +330,8 @@ describe('BrainSentient', () => {
     });
 
     it('flees when low on health', () => {
-        const movSys = new SystemMovement(['Movement']);
+        const pool = Entity.getPool();
+        const movSys = new SystemMovement(['Movement'], pool);
         const arena = factLevel.createLevel('arena', 30, 30);
         const rogue = new SentientActor('rogue');
         rogue.setFOVRange(20);
@@ -384,8 +388,9 @@ describe('BrainSentient', () => {
 
 describe('Brain.Human', () => {
     it('communicates enemies to friend actors', () => {
+        const pool = Entity.getPool();
         const commSystem = new System.Communication(
-            ['Communication']
+            ['Communication'], pool
         );
         const human = new SentientActor('human');
         const brain = new Brain.GoalOriented(human);
@@ -421,8 +426,9 @@ describe('Brain.Human', () => {
 
 describe('Brain.GoalOriented', () => {
     it('can do ranged attacks on enemies', () => {
-        const attRangedSystem = new System.AttackRanged(['AttackRanged']);
-        const missSystem = new System.Missile(['Missile']);
+        const pool = Entity.getPool();
+        const attRangedSystem = new System.AttackRanged(['AttackRanged'], pool);
+        const missSystem = new System.Missile(['Missile'], pool);
         const player = new SentientActor('player');
         player.setIsPlayer(true);
 
@@ -457,8 +463,9 @@ describe('Brain.SpellCaster', () => {
     let systems = null;
 
     beforeEach(() => {
-        spellSystem = new System.SpellCast(['SpellCast']);
-        effectSystem = new System.SpellEffect(['SpellRay']);
+        const pool = Entity.getPool();
+        spellSystem = new System.SpellCast(['SpellCast'], pool);
+        effectSystem = new System.SpellEffect(['SpellRay'], pool);
         systems = [spellSystem, effectSystem];
     });
 

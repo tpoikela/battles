@@ -13,6 +13,7 @@ import {SentientActor} from '../../../client/src/actor';
 import {ELEM} from '../../../client/data/elem-constants';
 import * as Component from '../../../client/src/component';
 import * as Time from '../../../client/src/time';
+import {Entity} from '../../../client/src/entity';
 
 chai.use(chaiBattles);
 const expect = chai.expect;
@@ -25,9 +26,10 @@ describe('Actor Goal', () => {
     let systems = null;
 
     beforeEach(() => {
-        movSys = new System.Movement(['Movement']);
-        attSys = new System.Attack(['Attack']);
-        dmgSys = new System.Damage(['Damage']);
+        const pool = Entity.getPool();
+        movSys = new System.Movement(['Movement'], pool);
+        attSys = new System.Attack(['Attack'], pool);
+        dmgSys = new System.Damage(['Damage'], pool);
         systems = [movSys, attSys, dmgSys];
     });
 

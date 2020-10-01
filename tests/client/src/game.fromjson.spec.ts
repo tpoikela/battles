@@ -431,11 +431,16 @@ describe('Game.FromJSON', function() {
         const parser = ObjectShell.getParser();
         const pickaxe = parser.createItem('Pick-axe');
         expect(typeof pickaxe.useItem).to.equal('function');
+
+        pickaxe.removeAll('OnAddCb');
+        pickaxe.removeAll('OnRemoveCb');
         const json = pickaxe.toJSON();
 
         const restPickaxe = fromJSON.createItem(json);
         expect(typeof restPickaxe.useItem).to.equal('function');
 
+        restPickaxe.removeAll('OnAddCb');
+        restPickaxe.removeAll('OnRemoveCb');
         const oldComps = pickaxe.getComponents();
         const newComps = restPickaxe.getComponents();
         const oldCompNames = Object.keys(oldComps);

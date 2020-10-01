@@ -18,6 +18,7 @@ import {System} from '../../../client/src/system';
 import {EventPool} from '../../../client/src/eventpool';
 import * as Component from '../../../client/src/component';
 import * as Brain from '../../../client/src/brain';
+import {Entity} from '../../../client/src/entity';
 
 const checkXY = RGTest.checkActorXY;
 const Actor = SentientActor;
@@ -54,7 +55,8 @@ describe('Game.Main', () => {
     });
 
     it('Initializes the game and adds player', () => {
-        const movSystem = new System.Movement(['Movement']);
+        const pool = Entity.getPool();
+        const movSystem = new System.Movement(['Movement'], pool);
         const cols = 50;
         const rows = 30;
         const level = getNewLevel(cols, rows);
@@ -132,8 +134,9 @@ describe('How combat should evolve', () => {
 
 
     it('Deals damage from attacker to defender', () => {
-        const comSystem = new System.Attack(['Attack']);
-        const dmgSystem = new System.Damage(['Damage']);
+        const pool = Entity.getPool();
+        const comSystem = new System.Attack(['Attack'], pool);
+        const dmgSystem = new System.Damage(['Damage'], pool);
 
         const cols = 50;
         const rows = 30;
@@ -240,7 +243,8 @@ describe('How AI brain works', () => {
 
 
     it('Moves towards player when seen.', () => {
-        const movSystem = new System.Movement(['Movement']);
+        const pool = Entity.getPool();
+        const movSystem = new System.Movement(['Movement'], pool);
         expect(level.addActor(player, 2, 2)).to.equal(true);
         expect(level.addActor(mons1, 2, 4)).to.equal(true);
         const action = mons1.nextAction();
@@ -269,11 +273,12 @@ describe('How poison item is used, and experience propagates', () => {
         level.addActor(assassin, 3, 5);
         level.addActor(victim, 6, 6);
         poison.useItem({target: level.getMap().getCell(6, 6)});
+        game.addActiveLevel(level);
 
         const startExp = assassin.get('Experience').getExp();
         let count = 0;
         while (victim.get('Health').isAlive() && count < 100) {
-            game.simulateGame();
+            game.simulateGame(1);
             ++count;
         }
         expect(count, 'Victim dies in 100 turns').to.be.below(100);
@@ -296,18 +301,20 @@ describe('How poison item is used, and experience propagates', () => {
 
         const poisonTarget = level.getMap().getCell(4, 4);
         expect(frostPoison.useItem({target: poisonTarget})).to.equal(true);
-        game.simulateGame();
+        game.simulateGame(1);
         expect(curedVictim.has('Expiration')).to.equal(true);
         expect(curedVictim.has('Poison')).to.equal(true);
 
         curedVictim.getInvEq().addItem(curePoison);
-        game.simulateGame();
+        game.simulateGame(1);
 
         const cureTarget = level.getMap().getCell(4, 4);
         expect(curePoison.useItem({target: cureTarget})).to.equal(true);
         expect(curedVictim.has('Poison')).to.equal(false);
         expect(curedVictim.get('Health').isAlive()).to.equal(true);
-        for (let i = 0; i < 20; i++) {game.simulateGame();}
+        for (let i = 0; i < 20; i++) {
+            game.simulateGame(1);
+        }
         expect(curedVictim.has('Expiration')).to.equal(false);
 
 

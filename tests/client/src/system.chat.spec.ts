@@ -10,6 +10,7 @@ import * as World from '../../../client/src/world';
 import {RGTest} from '../../roguetest';
 import {SystemChat} from '../../../client/src/system/system.chat';
 import {Keys} from '../../../client/src/keymap';
+import {Entity} from '../../../client/src/entity';
 
 import {BrainPlayer} from '../../../client/src/brain/brain.player';
 const updateSystems = RGTest.updateSystems;
@@ -25,7 +26,8 @@ describe('System.Chat', () => {
     let chatter = null;
 
     beforeEach(() => {
-        chatSys = new SystemChat(['Chat']);
+        const pool = Entity.getPool();
+        chatSys = new SystemChat(['Chat'], pool);
         chatter = new SentientActor('chatter');
         chatter.setIsPlayer(true);
     });

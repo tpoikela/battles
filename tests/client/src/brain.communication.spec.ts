@@ -6,6 +6,7 @@ import * as Component from '../../../client/src/component';
 import {FactoryActor} from '../../../client/src/factory.actors';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {SystemCommunication} from '../../../client/src/system/system.communication';
+import {Entity} from '../../../client/src/entity';
 
 const BrainSentient = Brain.BrainSentient;
 
@@ -53,10 +54,11 @@ describe('How AI brain memory performs basic functions', () => {
 describe('How actors communicate with each other', () => {
 
     it('Passes info between actors via comm components', () => {
+        const pool = Entity.getPool();
         const factLevel = new FactoryLevel();
         const factActor = new FactoryActor();
         const level = factLevel.createLevel('arena', 10, 10);
-        const comSys = new SystemCommunication(['Communication']);
+        const comSys = new SystemCommunication(['Communication'], pool);
         const systems = [comSys];
 
         const hunter1 = factActor.createActor('hunter1');

@@ -7,6 +7,7 @@ import {System} from '../../../client/src/system';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {ELEM} from '../../../client/data/elem-constants';
 import * as Component from '../../../client/src/component';
+import {Entity} from '../../../client/src/entity';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -16,7 +17,8 @@ const factLevel = new FactoryLevel();
 describe('System.OnCbs', () => {
 
     it('handles cbs on component add/remove', () => {
-        const cbsSystem = new System.OnCbs(['OnAddCb', 'OnRemoveCb']);
+        const pool = Entity.getPool();
+        const cbsSystem = new System.OnCbs(['OnAddCb', 'OnRemoveCb'], pool);
         const flyer = new SentientActor('flyer name');
         flyer.add(new Component.Flying());
         cbsSystem.update();

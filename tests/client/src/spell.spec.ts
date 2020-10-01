@@ -11,6 +11,7 @@ import {Spell} from '../../../client/data/spells';
 import {System} from '../../../client/src/system';
 import {ObjectShell} from '../../../client/src/objectshellparser';
 import {RGUnitTests} from '../../rg.unit-tests';
+import {Entity} from '../../../client/src/entity';
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -26,13 +27,14 @@ describe('Spell.SpellBook', () => {
     let spellPower = null;
 
     beforeEach(() => {
+        const pool = Entity.getPool();
         systems = [
-            new System.SpellCast(['SpellCast']),
+            new System.SpellCast(['SpellCast'], pool),
             new System.SpellEffect(
-            ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea', 'SpellSelf']
-            ),
-            new System.Missile(['Missile']),
-            new System.Damage(['Damage'])
+            ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea', 'SpellSelf'],
+            pool),
+            new System.Missile(['Missile'], pool),
+            new System.Damage(['Damage'], pool)
         ];
         wizard = new SentientActor('wizard');
         book = new Spell.SpellBook(wizard);
@@ -136,7 +138,8 @@ describe('Spell.SpellBook', () => {
 describe('Spell.IcyPrison', () => {
 
     it('adds paralysis for an actor', () => {
-        const effSystem = new System.SpellEffect(['SpellCell']);
+        const pool = Entity.getPool();
+        const effSystem = new System.SpellEffect(['SpellCell'], pool);
 
         const caster = new SentientActor('caster');
         const icyPrison = new Spell.IcyPrison();
@@ -160,8 +163,9 @@ describe('Spell.IcyPrison', () => {
 
 describe('Spell.LightningArrow', () => {
     it('can be cast by AI', () => {
-        const castSystem = new System.SpellCast(['SpellCast']);
-        const effSystem = new System.SpellEffect(['SpellMissile']);
+        const pool = Entity.getPool();
+        const castSystem = new System.SpellCast(['SpellCast'], pool);
+        const effSystem = new System.SpellEffect(['SpellMissile'], pool);
         const systems = [castSystem, effSystem];
 
         const parser = ObjectShell.getParser();
@@ -183,8 +187,9 @@ describe('Spell.LightningArrow', () => {
 
 describe('Spell.SummonIceMinion', () => {
     it('can be cast by AI', () => {
-        const castSystem = new System.SpellCast(['SpellCast']);
-        const effSystem = new System.SpellEffect(spellComps);
+        const pool = Entity.getPool();
+        const castSystem = new System.SpellCast(['SpellCast'], pool);
+        const effSystem = new System.SpellEffect(spellComps, pool);
         const systems = [castSystem, effSystem];
 
         const parser = ObjectShell.getParser();
@@ -205,10 +210,11 @@ describe('Spell.SummonIceMinion', () => {
 
 describe('Spell.Blizzard', () => {
     it('affects an area around caster', () => {
-        const castSystem = new System.SpellCast(['SpellCast']);
-        const effSystem = new System.SpellEffect(spellComps);
-        const dmgSystem = new System.Damage(['Damage']);
-        const animSystem = new System.Animation(['Animation']);
+        const pool = Entity.getPool();
+        const castSystem = new System.SpellCast(['SpellCast'], pool);
+        const effSystem = new System.SpellEffect(spellComps, pool);
+        const dmgSystem = new System.Damage(['Damage'], pool);
+        const animSystem = new System.Animation(['Animation'], pool);
         const systems = [castSystem, effSystem];
 
         const caster = new SentientActor('caster');

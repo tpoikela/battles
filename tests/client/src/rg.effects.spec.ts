@@ -1,7 +1,6 @@
 
 import chai from 'chai';
 
-import RG from '../../../client/src/rg';
 import {Effects} from '../../../client/data/effects';
 import {Cell} from '../../../client/src/map.cell';
 import {System} from '../../../client/src/system';
@@ -9,8 +8,8 @@ import {chaiBattles} from '../../helpers/chai-battles';
 import * as Item from '../../../client/src/item';
 import {SentientActor} from '../../../client/src/actor';
 import {ELEM} from '../../../client/data/elem-constants';
+import {Entity} from '../../../client/src/entity';
 
-import {RGTest} from '../../roguetest';
 import {RGUnitTests} from '../../rg.unit-tests';
 
 chai.use(chaiBattles);
@@ -31,9 +30,10 @@ describe('Effects', () => {
     let cell = null;
 
     beforeEach(() => {
+        const pool = Entity.getPool();
         useEffect = getEffectByName(Effects, 'use');
-        useSystem = new System.BaseAction(['UseItem']);
-        effSystem = new System.Effects(['Effects']);
+        useSystem = new System.BaseAction(['UseItem'], pool);
+        effSystem = new System.Effects(['Effects'], pool);
         sword = new Item.Weapon('Add comp');
         sword.useArgs = { };
         sword.use = useEffect.func.bind(sword);
