@@ -131,7 +131,6 @@ export class GameMain {
 
     public shownLevel(): Level {return this._shownLevel;}
     public setShownLevel(level: Level) {
-        console.log('Game: Setting shownLevel now (for WorldSim as well)');
         this._shownLevel = level;
         this._worldSim.setLevel(level);
     }
