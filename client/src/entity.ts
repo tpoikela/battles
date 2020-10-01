@@ -9,6 +9,7 @@ import {GameObject} from './game-object';
 import {EventPool} from './eventpool';
 import {OnAddCb, OnRemoveCb} from './component/component.onadd';
 
+// const enableOnAddRemove = true;
 
 // Helper function for faster splice
 const spliceOne = function(arr: any[], index: number): void {
@@ -29,6 +30,18 @@ interface ICompsByType {
     [key: string]: any[];
 }
 
+const disableOnAddRemoveCbsFor: any = {
+    OnAddCb: true,
+    OnRemoveCb: true,
+    Movement: true
+};
+
+const enableOnAddRemoveCbsFor: any = {
+    Paralysis: true,
+    Flying: true
+};
+
+
 /* Entity is used to represent actors, items and elements. It can have any
  * arbitrary properties by attaching components to it. See the basic
  * methods add(), get(), has() and remove() particularly.
@@ -37,9 +50,14 @@ export class Entity extends GameObject {
 
     public static POOL: EventPool;
     public static num: {[key: string]: number};
+    public static enableOnAddRemoveCbsFor: {[key: string]: boolean};
 
     public static createEntityID(): number {
         return GameObject.createObjectID();
+    }
+
+    public static getPool(): EventPool {
+        return Entity.POOL;
     }
 
     public static setPool(pool: EventPool): void {
@@ -80,7 +98,8 @@ export class Entity extends GameObject {
                 const compName = comp.getType();
                 comp.entityRemoveCallback(this);
 
-                if (compName !== 'OnAddCb' && compName !== 'OnRemoveCb') {
+                // if (!disableOnAddRemoveCbsFor[compName]) {
+                if (Entity.enableOnAddRemoveCbsFor[compName]) {
                     const onRemove = new OnRemoveCb();
                     onRemove.setCompName(compName);
                     onRemove.setComp(comp);
@@ -92,7 +111,9 @@ export class Entity extends GameObject {
                 const index = this.compsByType[compName].indexOf(comp);
                 spliceOne(this.compsByType[compName], index);
                 if (this.compsByType[compName].length === 0) {
-                    delete this.compsByType[compName];
+                    if (!disableOnAddRemoveCbsFor[compName]) {
+                        delete this.compsByType[compName];
+                    }
                 }
                 Entity.POOL.emitEvent(compName, {entity: this, remove: true});
 
@@ -153,9 +174,6 @@ export class Entity extends GameObject {
 
     /* Adds a new component into the entity. */
     public add(compObj: any): void {
-        if (typeof compObj === 'string') {
-            RG.err('Entity', 'add', 'No string support anymore');
-        }
         ++Entity.num.add;
         const compName = compObj.getType();
         if (compObj.isUnique() && this.has(compName)) {
@@ -171,7 +189,8 @@ export class Entity extends GameObject {
         }
         compObj.entityAddCallback(this);
         Entity.POOL.emitEvent(compName, {entity: this, add: true});
-        if (compName !== 'OnAddCb' && compName !== 'OnRemoveCb') {
+        // if (!disableOnAddRemoveCbsFor[compName]) {
+        if (Entity.enableOnAddRemoveCbsFor[compName]) {
             const onAdd = new OnAddCb();
             onAdd.setCompName(compName);
             onAdd.setComp(compObj);
@@ -184,7 +203,7 @@ export class Entity extends GameObject {
     public has(nameOrId): boolean {
         ++Entity.num.has;
         if (this.compsByType.hasOwnProperty(nameOrId)) {
-            return true;
+            return this.compsByType[nameOrId].length > 0;
         }
         return this.comps.hasOwnProperty(nameOrId);
     }
@@ -194,7 +213,9 @@ export class Entity extends GameObject {
         ++Entity.num.hasAny;
         for (const compName of compNames) {
             if (this.compsByType.hasOwnProperty(compName)) {
-                return true;
+                if (this.compsByType[compName].length > 0) {
+                    return true;
+                }
             }
         }
         return false;
@@ -208,6 +229,9 @@ export class Entity extends GameObject {
     public hasAll(compNames: string[]): boolean {
         for (const compName of compNames) {
             if (!this.compsByType.hasOwnProperty(compName)) {
+                return false;
+            }
+            else if (this.compsByType[compName].length === 0) {
                 return false;
             }
         }
@@ -262,6 +286,7 @@ export class Entity extends GameObject {
 
 }
 Entity.setPool(EventPool.getPool());
+Entity.enableOnAddRemoveCbsFor = enableOnAddRemoveCbsFor;
 
 /* For histogramming purposes, to see how many calls are done per function. */
 Entity.num = {};
