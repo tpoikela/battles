@@ -464,8 +464,9 @@ export class EvaluatorCastSpell extends EvaluatorBase {
     /* Returns true if spellcaster should cast the spell. */
     public shouldCastSpell(actor) {
         const brain = actor.getBrain();
-        const seenCells = brain.getSeenCells();
-        const enemyCell = brain.findEnemyCell(seenCells);
+        // const seenCells = brain.getSeenCells();
+        // const enemyCell = brain.findEnemyCell(seenCells);
+        const enemyCell = brain.findEnemyCellFast();
         const actorCellsAround = Brain.getActorCellsAround(actor);
         const args: any = {actor, actorCellsAround};
         if (enemyCell) {
@@ -633,8 +634,12 @@ export class EvaluatorCommunicate extends EvaluatorBase {
 
     /* Returns true if actor will communicate something. */
     public willCommunicate(actor): boolean {
-        const brain = actor.getBrain();
         const communicateOrAttack = RNG.getUniform();
+        if (communicateOrAttack < (1.0 - this.actorBias)) {
+            return false;
+        }
+
+        const brain = actor.getBrain();
         const seenCells = brain.getSeenCells();
         const friendCell = brain.findFriendCell(seenCells);
         const memory = brain.getMemory();
@@ -653,9 +658,6 @@ export class EvaluatorCommunicate extends EvaluatorBase {
             }
         }
 
-        if (communicateOrAttack < (1.0 - this.actorBias)) {
-            return false;
-        }
         return true;
     }
 }
