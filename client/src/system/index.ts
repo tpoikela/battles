@@ -137,8 +137,8 @@ System.defineSystem = function(sysName: string): any {
 
     const SystemDecl = class extends SystemBase {
 
-        constructor(compTypes, ...argsList) {
-            super(RG.SYS[nameCaps], compTypes);
+        constructor(compTypes, argsList: any[], pool) {
+            super(RG.SYS[nameCaps], compTypes, pool);
             if (this._init && typeof this._init === 'function') {
                 this._init(compTypes, ...argsList);
             }

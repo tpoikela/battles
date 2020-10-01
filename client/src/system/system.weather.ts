@@ -25,7 +25,7 @@ export class SystemWeather extends SystemBase {
 
     private _effTable: {[key: string]: (ent: Entity, comp) => void};
 
-    constructor(compTypes: string[], pool?: EventPool) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.WEATHER, compTypes, pool);
 
         // TODO: Proper weather. Just a simplified model here.
@@ -73,10 +73,6 @@ export class SystemWeather extends SystemBase {
                 let currTemp = tempOutdoor;
                 const elem = actor.getCell()!.getBaseElem();
 
-                if (actor.isPlayer && actor.isPlayer()) {
-                    console.log('PPP Processing player with temp', currTemp);
-                }
-
                 if (elem.has('Indoor')) {
                     currTemp += 10;
                     if (elem.getName() === 'floorhouse') {
@@ -90,31 +86,19 @@ export class SystemWeather extends SystemBase {
                     else if (currTemp > 15) {
                         currTemp = 15;
                     }
-                    if (actor.isPlayer && actor.isPlayer()) {
-                        console.log('Player in Heat temp indoors: ', currTemp);
-                    }
                 }
 
                 if (currTemp < tempFreezing) {
                     const coldList = actor.getList('Coldness');
-                    if (actor.isPlayer && actor.isPlayer()) {
-                        console.log('Player in Freezing temp outdoors: ', currTemp);
-                    }
                     if (coldList.length < 2) {
                         actor.add(new Component.Coldness());
                     }
                 }
                 else if (currTemp < tempCold && !actor.has('Coldness')) {
-                    if (actor.isPlayer && actor.isPlayer()) {
-                        console.log('Player in Cold temp outdoors: ', currTemp);
-                    }
                     actor.add(new Component.Coldness());
                 }
 
                 if (currTemp >= tempWarming && actor.hasAny(compsForHeat)) {
-                    if (actor.isPlayer && actor.isPlayer()) {
-                        console.log('Player in getting Heat comp now: ', currTemp);
-                    }
                     actor.add(new Component.Heat());
                 }
             }

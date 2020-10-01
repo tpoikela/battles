@@ -4,10 +4,12 @@ import {SystemBase} from './system.base';
 import * as Component from '../component';
 import { Geometry } from '../geometry';
 
+type EventPool = import('../eventpool').EventPool;
+
 export class SystemAreaEffects extends SystemBase {
     public radRange: number;
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes, pool: EventPool) {
         super(RG.SYS.AREA_EFFECTS, compTypes, pool);
         this.radRange = 1;
     }

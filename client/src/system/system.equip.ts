@@ -4,8 +4,11 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import * as Component from '../component/component';
 
+type EventPool = import('../eventpool').EventPool;
+
 export class SystemEquip extends SystemBase {
-    constructor(compTypes, pool?) {
+
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.EQUIP, compTypes, pool);
     }
 

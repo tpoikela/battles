@@ -3,10 +3,10 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {Geometry} from '../geometry';
 import {Level} from '../level';
-import * as Component from '../component/component';
 
 type Cell = import('../map.cell').Cell;
 type SentientActor = import('../actor').SentientActor;
+type EventPool = import('../eventpool').EventPool;
 
 interface EventArgs {
     type: string;
@@ -26,7 +26,7 @@ export class SystemEvents extends SystemBase {
     public eventRadiusPerID: {[key: number]: number};
     private _dtable: {[key: string]: (ent, evt, actor) => void};
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.EVENTS, compTypes, pool);
 
         /* Stores event radius per level ID. Can be used to fine-tune/reduce event

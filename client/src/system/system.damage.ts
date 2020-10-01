@@ -3,14 +3,13 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import * as Component from '../component';
-import * as Item from '../item';
 
 type Cell = import('../map.cell').Cell;
 
 /* Processes entities with damage component.*/
 export class SystemDamage extends SystemBase {
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.DAMAGE, compTypes, pool);
     }
 

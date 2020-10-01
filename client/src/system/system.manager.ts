@@ -4,6 +4,8 @@ import RG from '../rg';
 import {System, SystemBase} from './index';
 import {Random} from '../random';
 
+type EventPool = import('../eventpool').EventPool;
+
 interface SystemCreate {
     create: (comps: string[], pool: any) => SystemBase;
     comps: string[];
@@ -62,7 +64,7 @@ export class SystemManager {
     private loopSystems: {[key: string]: SystemBase};
     private timeSystems: {[key: string]: SystemBase};
 
-    constructor(engine, pool) {
+    constructor(engine, pool: EventPool) {
         this._engine = engine;
 
         // These systems updated after each actor action. The Order is important,

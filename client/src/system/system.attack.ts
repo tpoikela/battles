@@ -4,10 +4,12 @@ import {SystemBase} from './system.base';
 import * as Component from '../component';
 import {Brain} from '../brain';
 
+type EventPool = import('../eventpool').EventPool;
+
 /* Processes entities with attack-related components.*/
 export class SystemAttack extends SystemBase {
 
-    constructor(compTypes: string[], pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.ATTACK, compTypes, pool);
     }
 
@@ -151,7 +153,10 @@ export class SystemAttack extends SystemBase {
         def.add(dmgComp);
         RG.gameWarn({cell: att.getCell(),
             msg: att.getName() + ' hits ' + def.getName()});
-        this._emitDbgMsg(`Dmg: ${dmg}, 'Melee' from ${att.getName()}`, def);
+        if (this.debugEnabled) {
+            const attStr = `${att.getName()}, ID: ${att.getID()}`;
+            this._emitDbgMsg(`Dmg: ${dmg}, 'Melee' from ${attStr}`, def);
+        }
     }
 
     /* Gets an enemy target for bi-directional strike, if any. */

@@ -10,9 +10,6 @@ import {IShell} from '../interfaces';
 const NO_DAMAGE_SRC = RG.NO_DAMAGE_SRC;
 type Cell = import('../map.cell').Cell;
 type Level = import('../level').Level;
-type BaseActor = import('../actor').BaseActor;
-
-const POOL = EventPool.getPool();
 
 export class SystemDeath extends SystemBase {
 
@@ -20,14 +17,20 @@ export class SystemDeath extends SystemBase {
     public normalLootChance: number;
     public betterLootChance: number;
 
-    constructor(compTypes: string[], pool?: EventPool) {
+    // Can be used to disable event emit in unit testing
+    public disableEventEmit: boolean;
+
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.DEATH, compTypes, pool);
 
         // If set to true, generates random loot drops
         this.enableRandomLootDrops = true;
         this.normalLootChance = 0.07;
         this.betterLootChance = 0.03;
-        this.traceID = -1;
+        this.traceID = 686;
+        this.debugEnabled = true;
+
+        this.disableEventEmit = false;
     }
 
     public updateEntity(ent): void {
@@ -75,9 +78,12 @@ export class SystemDeath extends SystemBase {
             if (src !== NO_DAMAGE_SRC) {killMsg += ' by ' + src.getName();}
 
             RG.gameDanger({cell, msg: killMsg});
-            POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor});
-            if (actor.isPlayer()) {
-                POOL.emitEvent(RG.EVT_PLAYER_KILLED, {actor});
+
+            if (!this.disableEventEmit) {
+                this.pool.emitEvent(RG.EVT_ACTOR_KILLED, {actor});
+                if (actor.isPlayer()) {
+                    this.pool.emitEvent(RG.EVT_PLAYER_KILLED, {actor});
+                }
             }
 
             const evtComp = new Component.Event();

@@ -2,7 +2,6 @@
 import RG from '../rg';
 import {Entity} from '../entity';
 import {SystemBase} from './system.base';
-import {Communication} from '../component';
 import {EventPool} from '../eventpool';
 
 /* Processes entities with communication component.*/
@@ -10,7 +9,7 @@ export class SystemCommunication extends SystemBase {
 
     private _msgFunc: {[key: string]: (ent, msg) => void};
 
-    constructor(compTypes: string[], pool?: EventPool) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.COMMUNICATION, compTypes, pool);
 
         // Dispatch table for different messages

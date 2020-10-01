@@ -5,8 +5,6 @@ import {EventPool} from '../eventpool';
 import {Entity} from '../entity';
 import * as Component from '../component';
 
-const POOL = EventPool.getPool();
-
 type CompEntry = [number, Entity];
 
 /* System which handles time-based effects like poisoning etc. It also handles
@@ -17,7 +15,7 @@ export class SystemTimeEffects extends SystemBase {
     private _dtable: {[key: string]: (ent) => void};
     private _expiredEffects: CompEntry[];
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.TIME_EFFECTS, compTypes, pool);
         this.compTypesAny = true;
         this._dtable = {};
@@ -141,7 +139,7 @@ export class SystemTimeEffects extends SystemBase {
                 const cell = ent.getCell();
                 const level = ent.getLevel();
                 if (level.removeActor(ent)) {
-                    POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
+                    this.pool.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
                     const msg = `${ent.getName()} disappears.`;
                     RG.gameMsg({cell, msg});
                 }

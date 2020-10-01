@@ -5,15 +5,13 @@ import {Geometry} from '../geometry';
 import {EventPool} from '../eventpool';
 import {Animation, Frame} from '../animation';
 
-const POOL = EventPool.getPool();
-
 /* System which constructs the animations to play. */
 export class SystemAnimation extends SystemBase {
 
     public currAnim: Animation;
     private _enabled: boolean;
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes, pool: EventPool) {
         super(RG.SYS.ANIMATION, compTypes, pool);
         this._enabled = true;
         this.currAnim = null;
@@ -152,7 +150,7 @@ export class SystemAnimation extends SystemBase {
         // After processing all animation for all entitities, emit an event
         // to notify the Game Engine about animation
         if (!this.hasEntities()) {
-            POOL.emitEvent(RG.EVT_ANIMATION, {animation: this.currAnim});
+            this.pool.emitEvent(RG.EVT_ANIMATION, {animation: this.currAnim});
             this.currAnim = null;
         }
     }

@@ -62,6 +62,7 @@ export abstract class SystemBase {
     public entities: {[key: string]: Entity};
     public enabled: boolean; // If set to false, system is disabled
     public traceID: number;
+    public traceIDs: {[key: string]: boolean};
 
     // If set to true, only one comp has to match the compTypes, otherwise all
     // components in compTypes must be present
@@ -72,10 +73,11 @@ export abstract class SystemBase {
 
     public debugEnabled: boolean;
     public rng: Random;
+    public pool: EventPool;
 
     protected legalArgs: string[];
 
-    constructor(type: symbol, compTypes: string[], pool?: EventPool) {
+    constructor(type: symbol, compTypes: string[], pool: EventPool) {
         if (!Array.isArray(compTypes)) {
             RG.err('System.Base', 'new',
                 '2nd arg must be an array of component types');
@@ -95,6 +97,8 @@ export abstract class SystemBase {
 
         this.legalArgs = [];
 
+        this.pool = pool;
+
         // Add a listener for each specified component type
         for (let i = 0; i < this.compTypes.length; i++) {
             if (!Component.hasOwnProperty(this.compTypes[i])) {
@@ -102,19 +106,17 @@ export abstract class SystemBase {
                     `Comp type |${this.compTypes[i]}| not in Component`);
             }
 
-            if (pool) {
-                pool.listenEvent(this.compTypes[i], this);
-            }
-            else {
-                POOL.listenEvent(this.compTypes[i], this);
-            }
+            this.pool.listenEvent(this.compTypes[i], this);
         }
 
         // For debugging particular actors, works only when debugEnabled = true
-        this.traceID = 107; // -1 matches any ID
+        this.traceID = 686; // -1 matches any ID
+        this.traceIDs = {
+            686: true
+        };
 
-        this.debugEnabled = debug.enabled;
-        // this.debugEnabled = true;
+        // this.debugEnabled = debug.enabled;
+        this.debugEnabled = true;
         this.rng = new Random(0);
     }
 
@@ -148,7 +150,7 @@ export abstract class SystemBase {
                 this.addEntity(obj.entity);
 
                 if (this.debugEnabled) {
-                    this._emitDbgMsg('Added', obj.entity);
+                    this._emitDbgMsg('ADD', obj.entity);
                 }
             }
         }
@@ -159,7 +161,7 @@ export abstract class SystemBase {
                 this.removeEntity(obj.entity);
 
                 if (this.debugEnabled) {
-                    this._emitDbgMsg('Removed', obj.entity);
+                    this._emitDbgMsg('RMV', obj.entity);
                 }
             }
         }
@@ -217,7 +219,7 @@ export abstract class SystemBase {
             name = ent.getName();
         }
         const id = ent.getID();
-        if (this.traceID === MATCH_ANY_ID || this.traceID === id) {
+        if (this.traceID === MATCH_ANY_ID || this.traceIDs[id]) {
             const msg = `|${tag}| Ent: ${name}, ID: ${id}`;
             this.dbg(msg);
         }

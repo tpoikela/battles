@@ -3,9 +3,13 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {ActorClass} from '../actor-class';
 
+type EventPool = import('../eventpool').EventPool;
+
 /* Called for entities which gained experience points recently.*/
 export class SystemExpPoints extends SystemBase {
-    constructor(compTypes, pool?) {
+
+
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.EXP_POINTS, compTypes, pool);
     }
 

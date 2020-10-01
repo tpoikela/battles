@@ -29,7 +29,7 @@ export class SystemWorldSim extends SystemBase {
 
     public dayCount: number;
 
-    constructor(compTypes: string[], pool?: EventPool) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.WORLD_SIM, compTypes, pool);
         this.legalArgs = ['owMap', 'worldSim', 'worldTop', 'territory'];
         this._dtable = {};

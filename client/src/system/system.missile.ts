@@ -4,6 +4,8 @@ import {SystemBase} from './system.base';
 import * as Component from '../component';
 import {Cell} from '../map.cell';
 
+type EventPool = import('../eventpool').EventPool;
+
 // Missile has
 // srcX/Y, targetX/X, path, currX/Y, shooter + all damage components, item ref
 // SourceComponent, TargetComponent, LocationComponent, OwnerComponent
@@ -16,7 +18,7 @@ const FRIEND_HIT_PROP = 0.15;
 export class SystemMissile extends SystemBase {
     public criticalShot: number;
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.MISSILE, compTypes, pool);
         this.criticalShot = RG.MISSILE_CRITICAL_SHOT;
     }

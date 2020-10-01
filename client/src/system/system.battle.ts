@@ -7,12 +7,13 @@ import {emitZoneEvent} from './system.utils';
 
 type Entity = import('../entity').Entity;
 type Level = import('../level').Level;
+type EventPool = import('../eventpool').EventPool;
 
 /* Battle system handles battle-related components such as badges from battle
  * survivors etc. */
 export class SystemBattle extends SystemBase {
 
-    constructor(compTypes: string[], pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.BATTLE, compTypes, pool);
         this.compTypesAny = true; // Triggered on at least one component
     }

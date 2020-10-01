@@ -27,7 +27,7 @@ export class SystemQuest extends SystemBase {
 
     private _eventTable: {[key: string]: HandleFunc};
 
-    constructor(compTypes, pool?: EventPool) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.QUEST, compTypes, pool);
         this.compTypesAny = true; // Triggered on at least one component
 

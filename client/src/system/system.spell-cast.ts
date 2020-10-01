@@ -4,6 +4,8 @@ import {SystemBase} from './system.base';
 import * as Component from '../component';
 import {Path} from '../path';
 
+type EventPool = import('../eventpool').EventPool;
+
 const {addSkillsExp} = SystemBase;
 
 /* System which processes the spell casting components. This system checks if
@@ -13,7 +15,7 @@ export class SystemSpellCast extends SystemBase {
 
     private _drainerName: string;
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.SPELL_CAST, compTypes, pool);
         this.compTypesAny = true;
     }

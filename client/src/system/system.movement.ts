@@ -1,6 +1,5 @@
 
 import RG from '../rg';
-import {Entity} from '../entity';
 import {SystemBase} from './system.base';
 import {SentientActor} from '../actor';
 import {Cell} from '../map.cell';
@@ -8,12 +7,12 @@ import * as Component from '../component';
 import * as Element from '../element';
 import {ELEM} from '../../data/elem-constants';
 import {emitZoneEvent} from './system.utils';
-import {speedPenalty, defensePenalty} from '../../data/shell-utils';
 import {IPenaltyObj} from '../interfaces';
 import {ObjectShellComps} from '../objectshellcomps';
 
 type BrainPlayer = import('../brain/brain.player').BrainPlayer;
 type Level = import('../level').Level;
+type EventPool = import('../eventpool').EventPool;
 
 import dbg = require('debug');
 const debug = dbg('bitn:System.Movement');
@@ -54,7 +53,7 @@ export class SystemMovement extends SystemBase {
     public somethingSpecial: string[];
     private _bonuses: MoveBonuses;
 
-    constructor(compTypes: string[], pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.MOVEMENT, compTypes, pool);
         this.somethingSpecial = ['QuestTarget'];
         this.climbRe = /highrock/;
@@ -466,9 +465,9 @@ export class SystemMovement extends SystemBase {
         const level = ent.getLevel();
         const map = level.getMap();
         const coord = xOld + ', ' + yOld;
-        RG.diag('\n\nSystem.Movement. List of actors in level:');
-        RG.printObjList(level.getActors(),
-            ['getID', 'getName', 'getX', 'getY'], '');
+        // RG.diag('\n\nSystem.Movement. List of actors in level:');
+        // RG.printObjList(level.getActors(),
+        //     ['getID', 'getName', 'getX', 'getY'], '');
         this._diagnoseRemovePropError(xOld, yOld, map, ent);
         if (ent.has('Dead')) {
             console.log('WoW! Trying to move a Dead entity!');
@@ -513,11 +512,13 @@ export class SystemMovement extends SystemBase {
         }
 
         // Last resort, try find.
+        /*
         RG.diag('map.Find list of objects: ');
         const objects = map.findObj(obj => {
             return obj.getName && obj.getName().match(/keeper/);
         });
         RG.diag(objects);
+        */
 
     }
 

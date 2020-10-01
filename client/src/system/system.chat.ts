@@ -12,6 +12,7 @@ import {ComponentLore} from '../component/component';
 
 type Entity = import('../entity').Entity;
 type Memory = import('../brain').Memory;
+type EventPool = import('../eventpool').EventPool;
 
 const NO_ACTORS_FOUND: BaseActor[] = [];
 
@@ -25,7 +26,7 @@ export class SystemChat extends SystemBase {
     protected factFuncs: {[key: string]: () => any};
     protected registeredObjs: {[key: string]: boolean};
 
-    constructor(compTypes: string[], pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.CHAT, compTypes, pool);
         this.factFuncs = {};
         this.registeredObjs = {

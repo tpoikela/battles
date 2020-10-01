@@ -23,7 +23,7 @@ const spellEffects = ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea',
 export class SystemSpellEffect extends SystemBase {
     private _dtable: {[key: string]: (ent: Entity, comp: object) => void};
 
-    constructor(compTypes: string[], pool?: EventPool) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.SPELL_EFFECT, compTypes, pool);
         this.compTypesAny = true; // Process with any relavant Spell comp
 

@@ -5,10 +5,11 @@ import * as Component from '../component';
 // import {Cell} from '../map.cell';
 type ItemAmmo = import('../item').Ammo;
 type MissileWeapon = import('../item').MissileWeapon;
+type EventPool = import('../eventpool').EventPool;
 
 export class SystemAttackRanged extends SystemBase {
 
-    constructor(compTypes: string[], pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.ATTACK_RANGED, compTypes, pool);
     }
 

@@ -6,6 +6,8 @@ import * as Component from '../component';
 import {ElementShop} from '../element';
 import {SentientActor} from '../actor';
 
+type EventPool = import('../eventpool').EventPool;
+
 const {addSkillsExp} = SystemBase;
 
 interface TransArgs {
@@ -19,7 +21,7 @@ interface TransArgs {
 
 /* Processes entities with transaction-related components.*/
 export class SystemShop extends SystemBase {
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.SHOP, compTypes, pool);
     }
 

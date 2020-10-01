@@ -41,7 +41,7 @@ export class SystemZoneEvents extends SystemBase {
     // Contains dispatch table for functions to call for different events
     protected _dtable: {[key: string]: EventFunc};
 
-    constructor(compTypes: string[], pool?: EventPool) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.ZONE_EVENTS, compTypes, pool);
         this.legalArgs = ['owMap', 'worldTop'];
         this._dtable = {};

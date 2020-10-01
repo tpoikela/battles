@@ -3,9 +3,11 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import * as Component from '../component';
 
+type EventPool = import('../eventpool').EventPool;
+
 /* Processes entities with hunger component.*/
 export class SystemHunger extends SystemBase {
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.HUNGER, compTypes, pool);
     }
 

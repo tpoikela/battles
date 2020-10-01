@@ -3,11 +3,13 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import * as Component from '../component';
 
+type EventPool = import('../eventpool').EventPool;
+
 /* System for spirit binding actions. Note: SpiritBind component is added to the
  * gem always. The action performer (binder) and target entity (item/actor) are
  * added to the component. */
 export class SystemSpiritBind extends SystemBase {
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.SPIRIT, compTypes, pool);
         this.compTypesAny = true;
     }

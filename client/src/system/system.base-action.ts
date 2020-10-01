@@ -11,8 +11,6 @@ import * as Component from '../component';
 import {Brain} from '../brain';
 import {Element} from '../element';
 
-const POOL = EventPool.getPool();
-
 const handledComps = [
     'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
     'Jump', 'Read', 'Rest', 'Give'
@@ -25,7 +23,7 @@ export class SystemBaseAction extends SystemBase {
 
     public _dtable: {[key: string]: HandleFunc};
 
-    constructor(compTypes, pool?: EventPool) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.BASE_ACTION, compTypes, pool);
         this.compTypesAny = true;
 
@@ -165,9 +163,9 @@ export class SystemBaseAction extends SystemBase {
                 ent.add(qEvent);
             }
 
-            POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
+            this.pool.emitEvent(RG.EVT_LEVEL_CHANGED,
                 {target: newLevel, src: level, actor: ent});
-            POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
+            this.pool.emitEvent(RG.EVT_LEVEL_ENTERED,
                 {actor: ent, target: newLevel});
 
             // Moves the surrounding actors to new location as well
@@ -248,7 +246,7 @@ export class SystemBaseAction extends SystemBase {
         if (item.has('OneShot')) {
             if (item.getCount() === 1) {
                 const msg = {item};
-                POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+                this.pool.emitEvent(RG.EVT_DESTROY_ITEM, msg);
             }
             else {
                 item.decrCount(1);

@@ -6,6 +6,7 @@ import * as Component from '../component';
 import {Cell} from '../map.cell';
 
 type ElementTrap = import('../element').ElementTrap;
+type EventPool = import('../eventpool').EventPool;
 
 // Messages emitted for each disability
 const _msg = {
@@ -44,7 +45,7 @@ export class SystemDisability extends SystemBase {
     private _actComp: string[];
     private _dispatchTable: {[key: string]: FuncTable};
 
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.DISABILITY, compTypes, pool);
         this.compTypesAny = true; // Triggered on at least one component
 

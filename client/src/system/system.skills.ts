@@ -3,9 +3,11 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import * as Component from '../component';
 
+type EventPool = import('../eventpool').EventPool;
+
 /* System which handles the skill advancement. */
 export class SystemSkills extends SystemBase {
-    constructor(compTypes, pool?) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.SKILLS, compTypes, pool);
     }
 

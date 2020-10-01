@@ -1,12 +1,13 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
-import {EventPool} from '../eventpool';
 import * as Component from '../component';
+
+type EventPool = import('../eventpool').EventPool;
 
 export class SystemDrainStats extends SystemBase {
 
-    constructor(compTypes: string[], pool?: EventPool) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.DRAIN_STATS, compTypes, pool);
     }
 

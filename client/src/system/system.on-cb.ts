@@ -4,15 +4,24 @@ import {SystemBase} from './system.base';
 import {executeCompCb} from './system.utils';
 
 type Entity = import('../entity').Entity;
+type EventPool = import('../eventpool').EventPool;
 
 export class SystemOnCbs extends SystemBase {
 
-    constructor(compTypes: string[], pool?) {
+    public numRemoveComp: {[key: string]: any};
+    public numAddComp: {[key: string]: any};
+
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.ON_CBS, compTypes, pool);
         this.compTypesAny = true; // Triggered on at least one component
+
+        this.numRemoveComp = {};
+        this.numAddComp = {};
     }
 
     public updateEntity(ent: Entity) {
+        let watchdog = 100;
+        /*
         if (ent.has('OnAddCb')) {
             const compList = ent.getList('OnAddCb');
             compList.forEach(addComp => {
@@ -20,11 +29,25 @@ export class SystemOnCbs extends SystemBase {
                 ent.remove(addComp);
             });
         }
-
-        if (ent.has('OnAddCb')) {
-            console.log('WARN! Ent still has OnAddCb:', ent.getList('OnAddCb'));
+        */
+        while (ent.has('OnAddCb')) {
+            const comp = ent.get('OnAddCb');
+            this.processAddComp(ent, comp);
+            ent.remove(comp);
+            --watchdog;
+            if (watchdog === 0) {break;}
         }
 
+        watchdog = 100;
+        while (ent.has('OnRemoveCb')) {
+            const comp = ent.get('OnRemoveCb');
+            this.processRemoveComp(ent, comp);
+            ent.remove(comp);
+            --watchdog;
+            if (watchdog === 0) {break;}
+        }
+
+        /*
         if (ent.has('OnRemoveCb')) {
             const compList = ent.getList('OnRemoveCb');
             compList.forEach(removeComp => {
@@ -36,12 +59,13 @@ export class SystemOnCbs extends SystemBase {
         if (ent.has('OnRemoveCb')) {
             console.log('WARN! Ent still has OnAddCb:', ent.getList('OnAddCb'));
         }
+        */
     }
 
 
     protected processAddComp(ent: Entity, comp): void {
+        const compName = comp.getCompName();
         if (ent.has('Callbacks')) {
-            const compName = comp.getCompName();
             const cbs = ent.get('Callbacks');
             const cbName = 'onAdd' + compName;
             if (cbs.hasCb(cbName)) {
@@ -56,7 +80,7 @@ export class SystemOnCbs extends SystemBase {
                 const baseElem = cell.getBaseElem();
                 if (baseElem.has('Callbacks')) {
                     const cbs = baseElem.get('Callbacks');
-                    const compName = comp.getCompName();
+                    // const compName = comp.getCompName();
                     const cbName = 'onAdd' + compName + 'Entity';
                     if (cbs.hasCb(cbName)) {
                         console.log('addComp Processing ' + cbName + 'for ' + baseElem.getName());
@@ -66,11 +90,15 @@ export class SystemOnCbs extends SystemBase {
                 }
             }
         }
+        if (!this.numAddComp[compName]) {
+            this.numAddComp[compName] = 0;
+        }
+        this.numAddComp[compName] += 1;
     }
 
     protected processRemoveComp(ent: Entity, comp): void {
+        const compName = comp.getCompName();
         if (ent.has('Callbacks')) {
-            const compName = comp.getCompName();
             const cbs = ent.get('Callbacks');
             const cbName = 'onRemove' + compName;
             if (cbs.hasCb(cbName)) {
@@ -85,7 +113,6 @@ export class SystemOnCbs extends SystemBase {
                 const baseElem = cell.getBaseElem();
                 if (baseElem.has('Callbacks')) {
                     const cbs = baseElem.get('Callbacks');
-                    const compName = comp.getCompName();
                     const cbName = 'onRemove' + compName + 'Entity';
                     if (cbs.hasCb(cbName)) {
                         console.log('removeComp Processing ' + cbName + 'for ' + baseElem.getName());
@@ -95,6 +122,10 @@ export class SystemOnCbs extends SystemBase {
                 }
             }
         }
+        if (!this.numRemoveComp[compName]) {
+            this.numRemoveComp[compName] = 0;
+        }
+        this.numRemoveComp[compName] += 1;
     }
 
 }
