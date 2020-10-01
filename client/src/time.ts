@@ -1,9 +1,9 @@
 
 import {default as RotSched} from '../../lib/rot-js/scheduler';
 import RG from './rg';
-import {EventPool} from '../src/eventpool';
+// import {EventPool} from '../src/eventpool';
 
-const POOL = EventPool.getPool();
+// const POOL = EventPool.getPool();
 
 const RotScheduler = RotSched.Action;
 type BaseActor = import('./actor').BaseActor;
@@ -109,7 +109,7 @@ type ActorOrEvent = BaseActor | GameEvent;
 * is scheduled based on speed.  */
 export class Scheduler {
 
-    public hasNotify: boolean;
+    // public hasNotify: boolean;
     //protected _scheduler: RotScheduler;
     protected _scheduler: any;
     protected _events: GameEvent[];
@@ -126,10 +126,10 @@ export class Scheduler {
         this._events = [];
         this._actors = [];
 
-        this.hasNotify = true;
+        // this.hasNotify = true;
 
         // When an actor is killed, removes it from the scheduler.*/
-        POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
+        // POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
     }
 
@@ -140,7 +140,14 @@ export class Scheduler {
             this._events.push(actOrEvent as GameEvent);
         }
         else {
-            this._actors.push(actOrEvent as BaseActor);
+            const index = this._actors.indexOf(actOrEvent as BaseActor);
+            if (index < 0) {
+                this._actors.push(actOrEvent as BaseActor);
+            }
+            else {
+                RG.err('Scheduler', 'add',
+                   'Tried to add actor second time: ' + JSON.stringify(actOrEvent));
+            }
         }
     }
 
@@ -186,12 +193,21 @@ export class Scheduler {
         return this._scheduler.getTime();
     }
 
+    /*
     public notify(evtName: string, args: any): void {
         if (evtName === RG.EVT_ACTOR_KILLED) {
             if (args.hasOwnProperty('actor')) {
-                this.remove(args.actor);
+                if (this.remove(args.actor)) {
+                    if (args.actor.getID() === 686) {
+                        console.log('Removing from scheduler actor ID: ', args.actor.getID());
+                    }
+                }
+                else {
+                    RG.err('Scheduler', 'notify', 'Failed to remove actor');
+                }
             }
         }
     }
+    */
 
 }
