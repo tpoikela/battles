@@ -198,8 +198,6 @@ class RGClass {
     public EVT_LEVEL_PROP_ADDED: string;
     public EVT_LEVEL_PROP_REMOVED: string;
 
-    public EVT_ACT_COMP_ADDED: string;
-    public EVT_ACT_COMP_REMOVED: string;
     public EVT_ACT_COMP_ENABLED: string;
     public EVT_ACT_COMP_DISABLED: string;
     public EVT_ON_ADD_COMP: string;
@@ -380,8 +378,6 @@ class RGClass {
         this.EVT_LEVEL_PROP_ADDED = 'EVT_LEVEL_PROP_ADDED';
         this.EVT_LEVEL_PROP_REMOVED = 'EVT_LEVEL_PROP_REMOVED';
 
-        this.EVT_ACT_COMP_ADDED = 'EVT_ACT_COMP_ADDED';
-        this.EVT_ACT_COMP_REMOVED = 'EVT_ACT_COMP_REMOVED';
         this.EVT_ACT_COMP_ENABLED = 'EVT_ACT_COMP_ENABLED';
         this.EVT_ACT_COMP_DISABLED = 'EVT_ACT_COMP_DISABLED';
         this.EVT_ON_ADD_COMP = 'OnAddComponent';
@@ -1791,11 +1787,11 @@ class RGClass {
 
         const printVal = (value, func) => {
             if (typeof value === 'object') {
-                this.diag('\t## ' + func + linfo);
-                this.diag(value + linfo);
+                console.debug('\t## ' + func + linfo);
+                console.debug(value + linfo);
             }
             else {
-                this.diag('\t## ' + func + ' -> ' + value + linfo);
+                console.debug('\t## ' + func + ' -> ' + value + linfo);
             }
         };
 
@@ -1826,7 +1822,7 @@ class RGClass {
             }
         }
         else {
-            this.diag(obj + linfo);
+            console.debug(obj + linfo);
         }
     }
 
@@ -2187,7 +2183,8 @@ class RGClass {
         return null;
     }
 
-    public comp(compID, entID = -1): null | ComponentBase {
+    /* Returns comp with given ID, from given entity. */
+    public comp(compID: number, entID = -1): null | ComponentBase {
         let entity = null;
         if (entID >= 0) {
             entity = this.ent(entID);
