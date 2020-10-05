@@ -983,6 +983,13 @@ export class Parser {
             bg = obj.colorbg;
         }
 
+        if (fg === 'random') {
+            fg = RNG.arrayGetRand(RG.COLORS);
+        }
+        if (bg === 'random') {
+            bg = RNG.arrayGetRand(RG.COLORS);
+        }
+
         if (this.adjustColorsWhenNeeded) {
             if (fg !== '' && bg !== '' && colorsTooClose(fg, bg)) {
                 fg = getNewFgColor(fg, bg);

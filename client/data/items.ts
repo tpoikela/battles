@@ -992,9 +992,11 @@ const Items: ObjectShell[] = [
     // POTIONS
     // Note: Each potion should define useItem method. See examples below.
     {
-        name: 'PotionBase', className: 'cell-item-potion', char: '!',
+        name: 'PotionBase', char: '!',
+        // className: 'cell-item-potion',
         type: 'potion', dontCreate: true, weight: 0.1,
-        addComp: 'OneShot' // Item is destroyed after use
+        addComp: 'OneShot', // Item is destroyed after use,
+        color: color('random', 'black')
     },
     {
         name: 'Healing potion', base: 'PotionBase',
@@ -1217,8 +1219,10 @@ const Items: ObjectShell[] = [
     // RUNESTONES
     {
         name: 'RuneBase', dontCreate: true,
-        type: 'rune', char: '*',
-        className: 'cell-item-rune', weight: 1.0
+        type: 'rune', char: '\u2D45',
+        // className: 'cell-item-rune',
+        color: color('random', 'black'),
+        weight: 1.0
     },
     {
         name: 'rune of healing', base: 'RuneBase',

@@ -10,9 +10,9 @@ export class ColorTestScreen {
 
     public static getConf(): any {
         return {
-            colorMode: true,
+            colorMode: false,
             char: '#',
-            propType: RG.TYPE_ACTOR,
+            propType: RG.TYPE_ITEM,
         };
     }
 
@@ -66,7 +66,7 @@ export class ColorTestScreen {
                 }
                 else {
                     const obj = parser.createRandomItem({func: () => true});
-                    this.level.addActor(obj, x, y);
+                    this.level.addItem(obj, x, y);
                 }
             }
         }
