@@ -1099,27 +1099,39 @@ const Items: ObjectShell[] = [
         addComp: 'OneShot' // Item is destroyed after use
     },
     {
-        name: 'Carrots', base: 'FoodBase', energy: 500, value: value(10)
+        name: 'Carrots', base: 'FoodBase', energy: 500, value: value(10),
+        color: color('ForestGreen', 'Coral')
     },
     {
         name: 'Cabbage', base: 'FoodBase', energy: 700, value: value(10),
-        color: color('green', 'black')
+        color: color('ForestGreen', 'Chartreuse')
     },
     {
-        name: 'Berries', base: 'FoodBase', energy: 1700, value: value(30),
-        color: color('white', 'blue')
+        name: 'Turnips', base: 'FoodBase', energy: 700, value: value(10),
+        color: color('ForestGreen', 'Khaki')
+    },
+    {
+        name: 'Blueberries', base: 'FoodBase', energy: 1700, value: value(30),
+        color: color('FloralWhite', 'DarkBlue')
+    },
+    {
+        name: 'Lingonberries', base: 'FoodBase', energy: 1700, value: value(30),
+        color: color('FloralWhite', 'DarkRed')
     },
     {
         name: 'Chicken egg', base: 'FoodBase', energy: 1300, value: value(25)
     },
     {
-        name: 'Potatoes', base: 'FoodBase', energy: 1200, value: value(20)
+        name: 'Potatoes', base: 'FoodBase', energy: 1200, value: value(20),
+        color: color('DarkGray', 'Sienna')
     },
     {
-        name: 'Dried meat', base: 'FoodBase', energy: 1300, value: value(20)
+        name: 'Dried meat', base: 'FoodBase', energy: 1300, value: value(20),
+        color: color('white', 'red')
     },
     {
-        name: 'Corn', base: 'FoodBase', energy: 1600, value: value(30)
+        name: 'Corn', base: 'FoodBase', energy: 1600, value: value(30),
+        color: color('ForestGreen', 'Yellow')
     },
     {
         name: 'Chunk of meat', base: 'FoodBase', energy: 1000, value: value(20),
@@ -1139,14 +1151,21 @@ const Items: ObjectShell[] = [
         name: 'Dried fruit', base: 'FoodBase', energy: 3500, value: value(50)
     },
     {
-        name: 'Cloudberries', base: 'FoodBase', energy: 1500, value: value(50)
+        name: 'Cloudberries', base: 'FoodBase', energy: 1500, value: value(50),
+        color: color('Orange', 'DarkGreen')
+    },
+    {
+        name: 'Seeds and nuts', base: 'FoodBase', energy: 5000, value: value(50),
+        color: color('GoldenRod', 'Sienna')
     },
     {
         name: 'Ghost pepper', base: 'FoodBase', energy: 100, value: value(50),
-        use: {stun: {duration: '3d3'}}
+        use: {stun: {duration: '3d3'}},
+        color: color('OrangeRed', 'DarkGreen')
+
     },
     {
-      name: 'Whale fat', base: 'FoodBase', energy: 8000, value: value(100)
+        name: 'Whale fat', base: 'FoodBase', energy: 8000, value: value(100)
     },
 
     // TOOLS
@@ -1161,7 +1180,8 @@ const Items: ObjectShell[] = [
             elementName: 'Hole', numAllowed: 1,
             successMsg: 'You dig a hole to the ground',
             failureMsg: 'You fail to dig a hole there',
-        }}
+        }},
+        value: 100
     },
     {
         name: 'machete', base: 'tool', char: '(',
@@ -1169,14 +1189,15 @@ const Items: ObjectShell[] = [
             elementName: 'web',
             successMsg: 'You remove the webs using machete',
             failureMsg: 'You do not manage to remove any webs',
-        }}
+        }}, noRandom: true
     },
     {
         name: 'trapmaking kit', base: 'tool'
     },
     {
         name: 'firemaking kit', base: 'tool',
-        use: {addEntity: {entityName: 'Fire', duration: 20}}
+        use: {addEntity: {entityName: 'Fire', duration: 20}},
+        value: 100
     },
     {
         name: 'repair tool kit', base: 'tool',
@@ -1186,8 +1207,16 @@ const Items: ObjectShell[] = [
         name: 'rope', base: 'tool'
     },
     {
-        name: 'piece of wood', base: 'tool',
-        className: 'cell-item-wooden',
+        name: 'piece of wood', base: 'tool', value: 5,
+        className: 'cell-item-wooden', weight: 0.2
+    },
+    {
+        name: 'piece of grass', base: 'tool', value: 2,
+        className: 'cell-item-wooden', char: ']', weight: 0.1
+    },
+    {
+        name: 'piece of stone', base: 'tool', value: 3,
+        className: 'cell-item-stone', char: ']', weight: 0.25
     },
 
     // SPIRIT GEMS
@@ -1321,6 +1350,21 @@ const Items: ObjectShell[] = [
         className: 'cell-item-iron'
     },
     {
+        name: 'lapis lazuli', base: 'MineralBase',
+        weight: 0.35, value: value('mineral', 40),
+        char: '*', color: {fg: 'LightSkyBlue', bg: 'DarkSlateGrey'}
+    },
+    {
+        name: 'amethyst', base: 'MineralBase',
+        weight: 0.25, value: value('mineral', 50),
+        char: '*', color: {fg: 'Orchid', bg: 'DarkSlateGrey'}
+    },
+    {
+        name: 'topaz', base: 'MineralBase',
+        weight: 0.15, value: value('mineral', 75),
+        char: '*', color: {fg: 'Pink', bg: 'White'}
+    },
+    {
         name: 'mithril ore', base: 'MineralBase',
         weight: 0.2, value: value('mineral', 60),
         className: 'cell-item-mithril'
@@ -1331,6 +1375,11 @@ const Items: ObjectShell[] = [
         className: 'cell-item-adamantium'
     },
     {
+        name: 'snowshard', base: 'MineralBase',
+        weight: 0.20, value: value('mineral', 50),
+        char: '*', color: {fg: 'DarkBlue', bg: 'White'}
+    },
+    {
         name: 'ruby glass ore', base: 'MineralBase',
         weight: 0.1, value: value('mineral', 100),
         className: 'cell-item-ruby-glass'
@@ -1339,6 +1388,11 @@ const Items: ObjectShell[] = [
         name: 'emerald', base: 'MineralBase',
         weight: 0.15, value: value('mineral', 150),
         char: '*', color: {fg: 'Green', bg: 'Black'}
+    },
+    {
+        name: 'froststone', base: 'MineralBase',
+        weight: 0.25, value: value('mineral', 150),
+        char: '*', color: {fg: 'LightCyan', bg: 'Gray'}
     },
     {
         name: 'permaice ore', base: 'MineralBase',
@@ -1366,9 +1420,19 @@ const Items: ObjectShell[] = [
         char: '*', className: 'cell-item-ruby-glass'
     },
     {
+        name: 'diamond', base: 'MineralBase',
+        weight: 0.3, value: value('mineral', 300),
+        char: '*', color: color('white', 'blue')
+    },
+    {
         name: 'ice diamond', base: 'MineralBase',
         weight: 0.3, value: value('mineral', 400),
         char: '*', className: 'cell-item-ice'
+    },
+    {
+        name: 'Blizzard Star', base: 'MineralBase',
+        weight: 1.0, value: value('mineral', 600),
+        char: '*', color: color('cyan', 'darkblue')
     },
 
 

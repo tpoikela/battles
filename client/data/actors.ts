@@ -81,6 +81,8 @@ export interface ActorShell {
 
 }
 
+const charFlame = '\u27C1';
+
 /* Instructions:
  *   base: 'baseName' inherits all properties from the base object (expect
  *   the special property dontCreate). You can chain as many base objects and
@@ -1486,14 +1488,14 @@ export const ActorsData: ActorShell[] = [
     },
     {
       name: 'Fire', className: 'cell-actor-fire', base: 'SpecialBase',
-      char: '*', type: 'flame', brain: 'Flame',
+      char: charFlame, type: 'flame', brain: 'Flame',
       addComp: ['Ethereal', 'NonSentient',
           {comp: 'Damaging', func: {setDamageType: RG.DMG.FIRE}}
       ]
     },
     {
       name: 'Ice flame', className: 'cell-actor-winter', base: 'SpecialBase',
-      char: '*', type: 'flame', brain: 'Flame',
+      char: charFlame, type: 'flame', brain: 'Flame',
       addComp: ['Ethereal', 'NonSentient',
           {comp: 'Damaging', func: {setDamageType: RG.DMG.ICE}}
       ],
@@ -1501,7 +1503,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
       name: 'Poison gas', className: 'cell-actor-poison', base: 'SpecialBase',
-      char: '*', type: 'flame', brain: 'Cloud',
+      char: charFlame, type: 'flame', brain: 'Cloud',
       color: color('Green', 'Gray'),
       addComp: ['Ethereal', 'NonSentient',
           {comp: 'Damaging', func: {setDamageType: RG.DMG.POISON}}
@@ -1511,7 +1513,7 @@ export const ActorsData: ActorShell[] = [
     {
       name: 'Forcefield', className: 'cell-actor-forcefield',
       base: 'SpecialBase',
-      char: '*', type: 'forcefield', brain: 'NonSentient',
+      char: charFlame, type: 'forcefield', brain: 'NonSentient',
       speed: 1, hp: 25, defense: 0,
       addComp: ['Health', 'NonSentient', 'Combat', 'SpellStop', 'Breakable',
         {comp: 'Weakness', func: {
