@@ -114,7 +114,7 @@ const Items: ObjectShell[] = [
     {
         name: 'Gold coin', className: 'cell-item-gold-coin',
         char: '$', material: 'gold',
-        type: 'goldcoin', value: value(10), weight: 0.03
+        type: 'goldcoin', value: 1, weight: RG.GOLD_COIN_WEIGHT
     },
     //------------------------------------------------------------
     // MELEE WEAPONS

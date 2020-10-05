@@ -819,7 +819,7 @@ export class GoldCoin extends Gold {
         super(_name);
         this.setType(RG.ITEM.GOLD_COIN);
         this._purity = 1.0;
-        this.setWeight(0.03);
+        this.setWeight(RG.GOLD_COIN_WEIGHT);
     }
 }
 Item.GoldCoin = GoldCoin;

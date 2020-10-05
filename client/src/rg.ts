@@ -150,6 +150,7 @@ class RGClass {
 
     public GOLD_COIN_WEIGHT: number;
     public GOLD_COIN_NAME: string;
+    public GOLD_WEIGHT_ADJUST: number;
 
     public HUNGER_PROB: number;
     public HUNGER_DMG: number;
@@ -499,8 +500,9 @@ class RGClass {
         this.TRAINER_PROB = 0.2;
         this.EPIC_PROB = 0.05;
 
-        this.GOLD_COIN_WEIGHT = 0.03; // kg
+        this.GOLD_COIN_WEIGHT = 0.001; // kg
         this.GOLD_COIN_NAME = 'Gold coin';
+        this.GOLD_WEIGHT_ADJUST = 600;
 
         this.HUNGER_PROB = 0.10; // Prob. of starvation to cause damage every turn
         this.HUNGER_DMG = 1; // Damage caused by starvation kicking in
@@ -1545,6 +1547,8 @@ class RGClass {
 
     /* Converts abstract value into gold weight. */
     public valueToGoldWeight(value: number): number {
+        if (value === 1) {return RG.GOLD_COIN_WEIGHT;}
+        /*
         let currVal = value;
         let slope = 1;
         while (currVal >= 100) {
@@ -1553,6 +1557,8 @@ class RGClass {
         }
         const adjValue = slope * value + 10;
         return adjValue / 200;
+        */
+       return value / RG.GOLD_WEIGHT_ADJUST;
     }
 
     /* Scales (up) the value of item if any extra bonuses or modifiers are added to
