@@ -442,7 +442,7 @@ const Elements = [
     },
     {
         dontCreate: true, name: 'mountain',
-        char: '^', className: 'cell-element-mountain'
+        char: '\u26F0', className: 'cell-element-mountain'
     },
     {
         dontCreate: true, name: 'town',

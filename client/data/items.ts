@@ -106,6 +106,9 @@ interface ObjectShell {
     weight?: number;
 }
 
+const charArrow = '\u27B9';
+const charRune = '\u2D45';
+
 //----------------------------
 // ITEM LIST
 //----------------------------
@@ -584,6 +587,7 @@ const Items: ObjectShell[] = [
         value: value(75),
         onEquip: [{addComp: 'SnowWalk'}], noRandom: true
     },
+
     // ARMOUR LEATHER
     {
         name: 'LeatherArmourBase', base: 'ArmourBase', dontCreate: true,
@@ -602,8 +606,13 @@ const Items: ObjectShell[] = [
         weight: 0.5, defense: 1, armourType: 'feet', value: value(15)
     },
     {
+        name: 'Leather leggings', base: 'LeatherArmourBase',
+        weight: 1.0, defense: 1, protection: 2,
+        armourType: 'legs', value: value(30)
+    },
+    {
         name: 'Leather armour', base: 'LeatherArmourBase',
-        weight: 2.0, defense: 2, protection: 2,
+        weight: 2.0, defense: 2, protection: 3,
         armourType: 'chest', value: value(30)
     },
     {
@@ -633,8 +642,13 @@ const Items: ObjectShell[] = [
         armourType: 'feet', value: value(45)
     },
     {
+        name: 'Chain leggings', base: 'ChainArmourBase',
+        weight: 2.0, defense: 1, protection: 3,
+        armourType: 'legs', value: value(75)
+    },
+    {
         name: 'Chain armour', base: 'ChainArmourBase',
-        weight: 4.0, defense: 1, protection: 3,
+        weight: 4.0, defense: 1, protection: 4,
         armourType: 'chest', value: value(90)
     },
     {
@@ -663,8 +677,13 @@ const Items: ObjectShell[] = [
         armourType: 'feet', value: value(75)
     },
     {
+        name: 'Steel leggings', base: 'SteelArmourBase',
+        weight: 4.0, defense: 0, protection: 3,
+        armourType: 'legs', value: value(100)
+    },
+    {
         name: 'Steel armour', base: 'SteelArmourBase',
-        weight: 8.0, defense: 0, protection: 5,
+        weight: 8.0, defense: 0, protection: 6,
         armourType: 'chest', value: value(150)
     },
     {
@@ -692,6 +711,11 @@ const Items: ObjectShell[] = [
         name: 'Mithril boots', base: 'MithrilArmourBase',
         weight: 1.6, defense: 1, protection: 2,
         armourType: 'feet', value: value(120)
+    },
+    {
+        name: 'Mithril leggings', base: 'MithrilArmourBase',
+        weight: 3.0, defense: 0, protection: 4,
+        armourType: 'legs', value: value(150)
     },
     {
         name: 'Mithril armour', base: 'MithrilArmourBase',
@@ -725,6 +749,11 @@ const Items: ObjectShell[] = [
         armourType: 'feet', value: value(200)
     },
     {
+        name: 'Permaice leggings', base: 'IceArmourBase',
+        weight: 6.0, defense: 0, protection: 8,
+        armourType: 'legs', value: value(300)
+    },
+    {
         name: 'Permaice armour', base: 'IceArmourBase',
         weight: 12.0, defense: 0, protection: 12,
         armourType: 'chest', value: value(400)
@@ -756,8 +785,13 @@ const Items: ObjectShell[] = [
         armourType: 'feet', value: value('ruby', 200)
     },
     {
+        name: 'Ruby glass leggings', base: 'RubyArmourBase',
+        weight: 1.0, defense: 6, protection: 5,
+        armourType: 'legs', value: value('ruby', 350)
+    },
+    {
         name: 'Ruby glass armour', base: 'RubyArmourBase',
-        weight: 1.0, defense: 6, protection: 6,
+        weight: 1.0, defense: 7, protection: 8,
         armourType: 'chest', value: value('ruby', 500)
     },
     {
@@ -787,8 +821,13 @@ const Items: ObjectShell[] = [
         armourType: 'feet', value: value('magic', 200)
     },
     {
+        name: 'Runed leggings', base: 'RunedArmourBase',
+        weight: 2.5, defense: 6, protection: 6,
+        armourType: 'chest', value: value('magic', 400)
+    },
+    {
         name: 'Runed armour', base: 'RunedArmourBase',
-        weight: 4.0, defense: 10, protection: 7,
+        weight: 4.0, defense: 12, protection: 8,
         armourType: 'chest', value: value('magic', 500)
     },
     {
@@ -799,7 +838,7 @@ const Items: ObjectShell[] = [
 
     // MISSILES
     {
-        name: 'MissileBase', className: 'cell-item-missile', char: '/',
+        name: 'MissileBase', className: 'cell-item-missile', char: charArrow,
         type: 'missile', dontCreate: true,
         attack: 1, damage: '1d1', range: 2, weight: 0.1
     },
@@ -1221,8 +1260,10 @@ const Items: ObjectShell[] = [
 
     // SPIRIT GEMS
     {
-        name: 'SpiritGemBase', className: 'cell-item-spiritgem', char: '*',
-        weight: 0.1, type: 'spiritgem', dontCreate: true
+        name: 'SpiritGemBase', char: ',',
+        weight: 0.1, type: 'spiritgem', dontCreate: true,
+        color: color('random', 'MediumPurple'),
+        //className: 'cell-item-spiritgem',
     },
     {
         name: 'Lesser spirit gem', base: 'SpiritGemBase',
@@ -1237,6 +1278,10 @@ const Items: ObjectShell[] = [
         value: value('gem', 100), weight: 1.5
     },
     {
+        name: 'Glowing spirit gem', base: 'SpiritGemBase',
+        value: value('gem', 200), weight: 1.0
+    },
+    {
         name: 'Mystical spirit gem', base: 'SpiritGemBase',
         value: value('gem', 300), weight: 0.5
     },
@@ -1248,8 +1293,7 @@ const Items: ObjectShell[] = [
     // RUNESTONES
     {
         name: 'RuneBase', dontCreate: true,
-        type: 'rune', char: '\u2D45',
-        // className: 'cell-item-rune',
+        type: 'rune', char: charRune,
         color: color('random', 'black'),
         weight: 1.0
     },
@@ -1447,7 +1491,7 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'MagicalArrowBase', noRandom: true,
-        type: 'ammo', char: '/', addComp: 'Magical'
+        type: 'ammo', char: charArrow, addComp: 'Magical'
     },
     {
         name: 'Ice arrow', base: 'MagicalArrowBase',
