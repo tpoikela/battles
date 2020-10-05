@@ -34,6 +34,11 @@ describe('Fov3D', function() {
         // console.log('Seen cells are:', cells.map(c => c.getXY()));
         expect(cells).to.have.length(9);
 
+        cells.forEach((c) => {
+            const res = map.canSeeCell(actor, c);
+            expect(res, 'Can see cell with range 1').to.equal(true);
+        });
+
         actor.setFOVRange(2);
         level.moveActorTo(actor, 2, 2);
         cells = map.getCellsInFOV(actor);
@@ -51,9 +56,12 @@ describe('Fov3D', function() {
         level.moveActorTo(actor, 4, 4);
         cells = map.getCellsInFOV(actor);
         expect(cells).to.have.length(69);
+        cells.forEach((c) => {
+            const res = map.canSeeCell(actor, c);
+            expect(res, 'Can see cell with range 4').to.equal(true);
+        });
 
     });
-
 
 
 });

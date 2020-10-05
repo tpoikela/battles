@@ -150,13 +150,13 @@ export class SystemAttack extends SystemBase {
     public doDamage(att, def, dmg) {
         const dmgComp = new Component.Damage(dmg, RG.DMG.MELEE);
         dmgComp.setSource(att);
-        def.add(dmgComp);
-        RG.gameWarn({cell: att.getCell(),
-            msg: att.getName() + ' hits ' + def.getName()});
         if (this.debugEnabled) {
             const attStr = `${att.getName()}, ID: ${att.getID()}`;
             this._emitDbgMsg(`Dmg: ${dmg}, 'Melee' from ${attStr}`, def);
         }
+        def.add(dmgComp);
+        RG.gameWarn({cell: att.getCell(),
+            msg: att.getName() + ' hits ' + def.getName()});
     }
 
     /* Gets an enemy target for bi-directional strike, if any. */

@@ -193,6 +193,12 @@ export class Scheduler {
         return this._scheduler.getTime();
     }
 
+    public printIDs(): void {
+        this._actors.forEach((act: BaseActor) => {
+            // TODO
+        });
+    }
+
     /*
     public notify(evtName: string, args: any): void {
         if (evtName === RG.EVT_ACTOR_KILLED) {

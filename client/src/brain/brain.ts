@@ -268,7 +268,7 @@ export class BrainSentient extends BrainBase {
         }
         const map = this._actor.getLevel().getMap();
         if (RG.isSentient(this._actor)) {
-            this._cache.seen = map.getCellsInFOV(this._actor as SentientActor);
+            this._cache.seen = map.getCellsInFOV(this._actor);
             if (this._actor.has('Telepathy')) {
                 const otherSeen = Brain.getTelepathyCells(this._actor);
                 this._cache.seen = this._cache.seen.concat(otherSeen);
@@ -278,6 +278,18 @@ export class BrainSentient extends BrainBase {
         RG.warn('Brain', 'Sentient',
             `Called with non-sentient actor ${this._actor.getName()}`);
         return [] as Cell[];
+    }
+
+
+    public canSeeCell(cell: Cell): boolean {
+        if (this._cache.seen) {
+            return this._cache.seen.indexOf(cell) >= 0;
+        }
+        const map = this._actor.getLevel().getMap();
+        if (RG.isSentient(this._actor)) {
+            return map.canSeeCell(this._actor, cell);
+        }
+        return false;
     }
 
     /* Checks if the actor can melee attack given x,y coordinate.*/
@@ -311,7 +323,8 @@ export class BrainSentient extends BrainBase {
         return canSee;
     }
 
-    /* Given a list of cells, returns a cell with an enemy in it or null.*/
+    /* Given a list of cells, returns a cell with an enemy in it or null.
+    * Returns the most recently attacked, or random actor found. */
     public findEnemyCell(seenCells: Cell[]): null | Cell {
         const enemyCells = [];
         const cells = Brain.findCellsWithActors(this._actor, seenCells);
@@ -357,6 +370,9 @@ export class BrainSentient extends BrainBase {
                         const actor = c0.getFirstActor()!;
                         if (this._actor.isEnemy(actor)) {
                             cell = c0;
+                            if (this._memory.wasLastAttacked(actor)) {
+                                return cell;
+                            }
                         }
                     }
                 }

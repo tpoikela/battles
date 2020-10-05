@@ -301,6 +301,11 @@ export class CellMap {
         return cells;
     }
 
+    public canSeeCell(actor: SentientActor, cell: Cell): boolean {
+        const range = RG.getFOVRange(actor);
+        return this.fov.canSeeCell(actor.getXYZ(), range, cell.getXYZ());
+    }
+
     public getCellsInFOVPlus(actor: SentientActor, addRange: number): [Cell[], Cell[]] {
         const cells: Cell[] = [];
         const cellsPlus: Cell[] = [];
@@ -311,7 +316,6 @@ export class CellMap {
         if (actor.isLocated()) {
             if (actor.getLevel().getMap() === this) {
 
-                // this.fov.compute(xA, yA, range, (x, y, r, visibility) => {
                 this.fov.compute(xA, yA, zA, range, (x, y, r, visibility) => {
                     if (visibility) {
                         if (this.hasXY(x, y)) {

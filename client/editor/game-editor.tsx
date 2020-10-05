@@ -28,6 +28,7 @@ import {GameMain} from '../src/game';
 import {Geometry} from '../src/geometry';
 import {Keys} from '../src/keymap';
 import {Level} from '../src/level';
+import {ColorTestScreen} from './color-test-screen';
 
 import {OWMap} from '../src/overworld.map';
 import {ObjectShell} from '../src/objectshellparser';
@@ -48,6 +49,7 @@ const NO_VISIBLE_CELLS: Cell[] = [];
 
 const editorLevelTypes: string[] = [
   'FullGame',
+  'ColorTest',
   'Castle', 'Cave', 'CaveBr', 'City', 'Dungeon', 'MountainFace', 'MountainSummit',
   'Nest',
   '------------',
@@ -709,6 +711,10 @@ export default class GameEditor extends Component {
         this.generateGame();
         level = this.game.shownLevel();
     }
+    else if (levelType === 'ColorTest') {
+        const colorTest = new ColorTestScreen(conf);
+        level = colorTest.level;
+    }
     else {
       const factLevel = new FactoryLevel();
       level = factLevel.createLevel(
@@ -1116,7 +1122,7 @@ export default class GameEditor extends Component {
 
   /* Modifes the given level configuration object based on the value
    * (level type) after level (sub) type is changed in the editor. */
-  public modifyLevelConf(value, levelConf) {
+  public modifyLevelConf(value: string, levelConf) {
     levelConf.shown = value;
     if (!levelConf[value]) {
       levelConf[value] = this.getLevelConf(value);
@@ -1188,6 +1194,9 @@ export default class GameEditor extends Component {
       const gameConf = FactoryGame.getGameConf();
       gameConf.world = owConf;
       return gameConf;
+    }
+    else if (value === 'ColorTest') {
+      return ColorTestScreen.getConf();
     }
     else {
       return {};

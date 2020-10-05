@@ -72,11 +72,14 @@ export class SystemEvents extends SystemBase {
                 if (actors) {
                     actors.forEach(actor => {
                         if (!actor.isPlayer() && actor.has('Perception')) {
+                            /*
                             const seenCells = actor.getBrain().getSeenCells();
                             const canSee = seenCells.find(c => (
                                 c.getX() === x0 && c.getY() === y0
                             ));
-                            if (canSee) {
+                            */
+                            // if (canSee) {
+                            if (actor.getBrain().canSeeCell(cell)) {
                                 // const name = actor.getName();
                                 // Call the handler function from dispatch table
                                 this._dtable[type](ent, evt, actor);

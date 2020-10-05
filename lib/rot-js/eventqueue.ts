@@ -68,7 +68,7 @@ export default class EventQueue<T = any> {
 	 * @param {?} event
 	 * @returns {bool} success?
 	 */
-    remove(event: T) {
+    remove(event: T): boolean {
         return this._events.remove(event);
     };
 }

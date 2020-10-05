@@ -12,6 +12,7 @@ const MAX_Z = 3;
 
 export class Fov3D {
 
+
     protected _passCb: LightPassesCb;
     protected _map: CellMap;
     protected _maxZ: number;
@@ -30,12 +31,30 @@ export class Fov3D {
         this._alreadySeen = {};
     }
 
-    public compute(x: number, y: number, z: number, r: number, compCb): void {
-        const pos: TCoord3D = [x, y, z];
+    public canSeeCell(pos: TCoord3D, r: number, dest: TCoord3D): boolean {
+        let res = false;
+        const rr = this._init(r);
+        const [xx, yy, zz] = dest;
+        const cb = (x, y, z) => {
+            if (xx === x && yy === y && zz === z) {
+                res = true;
+            }
+        };
+        this._internalViewTo(pos, rr, xx, yy, zz, cb);
+        return res;
+    }
+
+    public _init(r: number): number {
         const rr = r + 1;
         this._distSquare = rr * rr;
         this._seen = {};
         this._alreadySeen = {};
+        return rr;
+    }
+
+    public compute(x: number, y: number, z: number, r: number, compCb): void {
+        const pos: TCoord3D = [x, y, z];
+        const rr = this._init(r);
 
         // Z-dim is limited to what's actually used in the game, maxZ could be
         // same as 'rr' in fully 3D world
@@ -44,8 +63,8 @@ export class Fov3D {
         this._seen[key] = true;
 
         // Get the bbox border
-        const bbox = {ulx: x - rr, uly: y - rr, lrx: x + rr, lry: y + rr};
-        const coord: TCoord[] = Geometry.getBorderForBbox(bbox);
+        // const bbox = {ulx: x - rr, uly: y - rr, lrx: x + rr, lry: y + rr};
+        // const coord: TCoord[] = Geometry.getBorderForBbox(bbox);
 
         const x0 = x - rr;
         const y0 = y - rr;
@@ -77,7 +96,6 @@ export class Fov3D {
             */
         }
     }
-
 
     public _compute(x: number, y: number, z: number, r: number, compCb): void {
         const pos: TCoord3D = [x, y, z];

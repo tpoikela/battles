@@ -1317,6 +1317,16 @@ const Items: ObjectShell[] = [
         className: 'cell-item-iron'
     },
     {
+        name: 'mithril ore', base: 'MineralBase',
+        weight: 0.2, value: value('mineral', 60),
+        className: 'cell-item-mithril'
+    },
+    {
+        name: 'adamantium ore', base: 'MineralBase',
+        weight: 0.3, value: value('mineral', 80),
+        className: 'cell-item-adamantium'
+    },
+    {
         name: 'ruby glass ore', base: 'MineralBase',
         weight: 0.1, value: value('mineral', 100),
         className: 'cell-item-ruby-glass'

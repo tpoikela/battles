@@ -100,7 +100,7 @@ export class Engine {
         this._eventPool.listenEvent(RG.EVT_ANIMATION, this);
         this._eventPool.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
-        this.debugEnabled = true;
+        this.debugEnabled = false;
         this.traceIDs = {};
     }
 
@@ -274,8 +274,11 @@ export class Engine {
 
         this.nextActor = this.getNextActor();
         let act = this.nextActor as any;
-        if (act.getID && this.traceIDs[act.getID()]) {
-            console.log('updateGameLoop out-of-while ID:', act.getID());
+
+        if (this.debugEnabled) {
+            if (act.getID && this.traceIDs[act.getID()]) {
+                console.debug('updateGameLoop out-of-while ID:', act.getID());
+            }
         }
 
         let watchdog = 10000;
@@ -283,9 +286,11 @@ export class Engine {
         let count = 0;
         while (!this.nextActor.isPlayer() && !this.isGameOver()) {
 
-            act = this.nextActor as any;
-            if (act.getID && this.traceIDs[act.getID()]) {
-                console.log(count, 'updateGameLoop start, ID:', act.getID());
+            if (this.debugEnabled) {
+                act = this.nextActor as any;
+                if (act.getID && this.traceIDs[act.getID()]) {
+                    console.debug(count, 'updateGameLoop start, ID:', act.getID());
+                }
             }
 
             // TODO refactor R1
@@ -294,16 +299,20 @@ export class Engine {
             this.sysMan.updateSystems(); // All systems for each actor
             this._scheduler.setAction(action);
 
-            act = this.nextActor as any;
-            if (act.getID && this.traceIDs[act.getID()]) {
-                console.log(count, 'updateGameLoop loop end, ID:', act.getID());
+            if (this.debugEnabled) {
+                act = this.nextActor as any;
+                if (act.getID && this.traceIDs[act.getID()]) {
+                    console.debug(count, 'updateGameLoop loop end, ID:', act.getID());
+                }
             }
 
             this.nextActor = this.getNextActor();
-
             act = this.nextActor as any;
-            if (act.getID && this.traceIDs[act.getID()]) {
-                console.log(count, 'updateGameLoop next will be, ID:', act.getID());
+
+            if (this.debugEnabled) {
+                if (act.getID && this.traceIDs[act.getID()]) {
+                    console.debug(count, 'updateGameLoop next will be, ID:', act.getID());
+                }
             }
 
             if (act.has && act.has('Dead')) {
@@ -327,7 +336,6 @@ export class Engine {
             ++count;
         }
 
-        console.log('updateGameLoop final count is', count);
         if (!this.isGameOver()) {
             this.setPlayer(this.nextActor as SentientActor);
         }
@@ -498,6 +506,9 @@ export class Engine {
         else if (evtName === RG.EVT_ACT_COMP_ENABLED) {
             if (args.hasOwnProperty('actor')) {
                 this.addActor(args.actor);
+                if (this.traceIDs[args.actor.getID()]) {
+                    console.debug('EVT_ACT_COMP_ENABLED Added actor with ID: ', args.actor.getID());
+                }
             }
             else {
                 RG.err('Game.Engine', 'notify - ACT_COMP_ENABLED',
@@ -516,6 +527,10 @@ export class Engine {
         else if (evtName === RG.EVT_LEVEL_PROP_ADDED) {
             if (args.propType === 'actors') {
                 if (this.isActiveLevel(args.level)) {
+                    const actor: any = args.obj;
+                    if (this.traceIDs[actor.getID()]) {
+                        console.debug('Enabling Action comp for: ', actor.getID());
+                    }
                     // args.obj is actor
                     args.obj.get('Action').enable();
                 }
@@ -533,6 +548,14 @@ export class Engine {
         }
         else if (evtName === RG.EVT_ACTOR_KILLED) {
             if (args.hasOwnProperty('actor')) {
+
+                if (this.debugEnabled) {
+                    if (this.traceIDs[args.actor.getID()]) {
+                        const id = args.actor.getID();
+                        console.debug(`@@Actor ID${id} killed. Remove from scheduler/Engine now`);
+                    }
+                }
+
                 this.removeActor(args.actor);
             }
         }
@@ -602,7 +625,6 @@ export class Engine {
         if (this.debugEnabled) {
             if (this.traceIDs[actor.getID()]) {
                 console.debug('Engine rm from scheduler: ', JSON.stringify(actor));
-
             }
         }
         if (!ok) {

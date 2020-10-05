@@ -12,6 +12,7 @@ import {Random} from './random';
 import {Spell} from '../data/spells';
 import {adjustActorValues} from '../data/actors';
 import {ObjectShellComps} from './objectshellcomps';
+import {colorsTooClose, getNewFgColor} from '../data/colors';
 
 import {ActorGen} from '../data/actor-gen';
 
@@ -787,6 +788,9 @@ export class Parser {
     protected _creator: Creator;
     protected _procgen: ProcGen;
 
+    // If true, adjust bad fg/bg color combinations
+    public adjustColorsWhenNeeded: boolean;
+
     // NOTE: 'SHELL' means vanilla JS object, which has not been
     // created with new:
     //      SHELL:   const rat = {name: "Rat", type: "animal"};
@@ -821,6 +825,8 @@ export class Parser {
 
         this._creator = new Creator(this._db, this._dbNoRandom);
         this._procgen = new ProcGen(this._db, this._dbDanger);
+
+        this.adjustColorsWhenNeeded = true;
     }
 
     public getCreator(): Creator {
@@ -976,11 +982,14 @@ export class Parser {
         if (obj.hasOwnProperty('colorbg')) {
             bg = obj.colorbg;
         }
-        /*if (!fg || !bg || !obj.className) {
-            const json = JSON.stringify(obj.color);
-            RG.err('Parser', 'storeRenderingInfo',
-                `fg and bg OR className must be given. ${obj.name} Got: ${json}`);
-        }*/
+
+        if (this.adjustColorsWhenNeeded) {
+            if (fg !== '' && bg !== '' && colorsTooClose(fg, bg)) {
+                fg = getNewFgColor(fg, bg);
+            }
+        }
+
+        // Creates the final classname
         if (fg !== '' || bg !== '') {
             if (!obj.className) {obj.className = '';}
             obj.className += ' cell-fg-' + fg.toLowerCase() +

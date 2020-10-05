@@ -73,13 +73,16 @@ else {
 let gameJSON = {};
 if (!opts.load) {
     // Simulate 1st serialisation in worker thread
-    console.log('Verify cache before serialisation');
+    console.log('Verify LevelCache before serialisation');
     RG.verifyLevelCache(game.getLevels()[0]);
+    console.log('LevelCache OK. Serialising now');
     gameJSON = game.toJSON();
 
+    console.log('Serialising OK. Restoring game now');
     game = restoreGame(gameJSON, playerDriver);
-    console.log('Verify cache after serialisation');
+    console.log('Restore OK. Verify cache after serialisation');
     RG.verifyLevelCache(game.getLevels()[0]);
+    console.log('LevelCache OK after restoring');
 }
 
 const durTimes: {[key: string]: number} = {
@@ -160,7 +163,7 @@ for (let i = 1; i <= numTurns; i++) {
         updateFunc();
     } catch (e) {
         crashed = true;
-        console.log('Caught error:', e.message);
+        console.log('Caught error:', e.message, '\n', e);
         break;
     }
 

@@ -59,7 +59,7 @@ ItemGen.names = names;
 const prefix: any = {
     weapon: {
         heavy: {
-            weight: 1.5, value: 1.2, damage: '1d2 + 2', rarity: 1.5
+            weight: 1.5, value: 1.2, damage: '2d3 + 4', rarity: 1.5
         },
         light: {
             weight: 0.6, value: 1.2, rarity: 2.0
@@ -70,10 +70,10 @@ const prefix: any = {
             colorfg: 'Green'
         },
         sharp: {
-            damage: '2', value: 1.1, rarity: 1.5
+            damage: '4', value: 1.1, rarity: 1.5
         },
         balanced: {
-            attack: 3, damage: '1', value: 1.2, rarity: 1.5
+            attack: 6, damage: '2', value: 1.2, rarity: 1.5
         },
         serrated: {
             value: 2.0, rarity: 2.0,
@@ -522,6 +522,16 @@ shellProps.material = {
             protection: '* 1.7', attack: -1
         }
     },
+    adamantium: {
+        className: 'cell-item-adamantium',
+        weight: 1.0, value: 4.0, rarity: 2.7,
+        weapon: {
+            damage: '3d3 + 4'
+        },
+        armour: {
+            protection: '* 2.0', attack: 0
+        }
+    },
     rubyglass: {
         className: 'cell-item-ruby-glass',
         weight: 0.5, value: 5.0, rarity: 3.0,
@@ -529,7 +539,7 @@ shellProps.material = {
             damage: '2d4 + 3'
         },
         armour: {
-            protection: '* 1.95', defense: 2
+            protection: '* 2.2', defense: 2
         }
     },
     permaice: {

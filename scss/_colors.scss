@@ -11,7 +11,7 @@ $cyan: #0ff;
 $gray: #808080;
 $green: #008000;
 $purple: #800080;
-$red: #f00;
+$red: Red;
 $silver: #c0c0c0;
 $steel: darken($silver, 30%);
 $snow-white: #fff;
@@ -42,7 +42,8 @@ $color-dark-cell: #101010;
 
 $shop-bg-color: darken($cyan, 30%);
 
-$ground-color: #a52a2a;
+// $ground-color: #a52a2a;
+$ground-color: 'DimGrey';
 $wall-color: #f00;
 
 $stone-color: #808080;

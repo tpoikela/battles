@@ -1,9 +1,13 @@
-import EventQueue from '../eventqueue';
+// import EventQueue from '../eventqueue';
+
+import {EventQueue} from '../../eventqueue';
 
 export default class Scheduler<T = any> {
     _queue: EventQueue<T>;
     _repeat: T[];
     _current: any;
+    traceIDs: {[key: string]: boolean};
+    debugEnabled: boolean;
 
     /**
 	 * @class Abstract scheduler
@@ -12,6 +16,13 @@ export default class Scheduler<T = any> {
         this._queue = new EventQueue<T>();
         this._repeat = [];
         this._current = null;
+        this.traceIDs = {};
+        this.debugEnabled = false;
+    }
+
+    setTraceID(id: number): void {
+        this.traceIDs[id] = true;
+        this.debugEnabled = true;
     }
 
     /**
@@ -33,9 +44,11 @@ export default class Scheduler<T = any> {
 	 * @param {?} item
 	 * @returns {number} time
 	 */
+    /*
     getTimeOf(item: T): number {
         return this._queue.getEventTime(item);
     }
+   */
 
     /**
 	 * Clear all items
@@ -52,8 +65,8 @@ export default class Scheduler<T = any> {
 	 * @param {?} item
 	 * @returns {bool} successful?
 	 */
-    remove(item: any) {
-        const result = this._queue.remove(item);
+    remove(item: any): boolean {
+        let result = false;
 
         const index = this._repeat.indexOf(item);
         if (index !== -1) {
@@ -62,6 +75,10 @@ export default class Scheduler<T = any> {
 
         if (this._current === item) {
             this._current = null;
+            result = true;
+        }
+        else {
+            result = this._queue.remove(item);
         }
 
         return result;

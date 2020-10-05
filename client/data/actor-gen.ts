@@ -150,7 +150,7 @@ shellProps.ranks = {
         danger: 3,
         strength: 1, hp: 15,
         damage: 3,
-        colorfg: 'light blue'
+        colorfg: 'lightblue'
     },
     lieutenant: {
         danger: 4,
