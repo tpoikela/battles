@@ -2126,7 +2126,7 @@ class RGClass {
         return ent1.getLevel().getID() === ent2.getLevel().getID();
     }
 
-/* Returns a game message for cell which cannot be travelled. */
+    /* Returns a game message for cell which cannot be travelled. */
     public getImpassableMsg(actor: any, cell: Cell, str: string) {
         const type = cell.getBaseElem().getType();
         const cellMsg = `cannot venture beyond ${type}`;
@@ -2330,6 +2330,11 @@ class RGClass {
     public fromKey(key: string): TCoord {
         const arr = key.split(',');
         return [parseInt(arr[0], 10), parseInt(arr[1], 10)];
+    }
+
+
+    public pluralize(name: string): string {
+        return name + 's';
     }
 
 }
