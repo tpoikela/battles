@@ -72,6 +72,7 @@ export class CellMap {
     public cols: number;
     public rows: number;
     public fov: any;
+    public debugShowAll: boolean;
 
     private _isRowOptimized: boolean;
     private _rowMap: Cell[][];
@@ -104,6 +105,14 @@ export class CellMap {
 
         this.passableCallback = this.passableCallback.bind(this);
         this.passableCallbackFlying = this.passableCallbackFlying.bind(this);
+
+        this.debugShowAll = false;
+    }
+
+    /* For debugging, sets all cells explored, and turns on debug mode. */
+    public setDebugShowAll(): void {
+        this.debugShowAll = true;
+        this.exploreAll();
     }
 
     /* Returns true if x,y are in the this._map.*/
