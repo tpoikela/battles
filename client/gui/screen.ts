@@ -10,7 +10,10 @@ interface Styles {
     [key: string]: string;
 }
 
-export type RLEArray = Array<[number, string] | string>;
+type RLEData = [number, string] | string;
+
+// export type RLEArray = Array<[number, string] | string>;
+export type RLEArray = RLEData[];
 
 export const ALL_VISIBLE = 'ALL';
 
@@ -472,7 +475,12 @@ export class ScreenBuffered extends Screen {
     protected fullMapCharRows: string[][];
     protected fullMapClassRows: string[][];
     protected isInitialized: boolean;
+
+    // Stores previously visible cells
     protected prevVisible: Cell[];
+
+    // If true, renders all cells
+    public debugShowAll: boolean;
 
     constructor(viewX: number, viewY: number) {
         super(viewX, viewY);
@@ -481,6 +489,7 @@ export class ScreenBuffered extends Screen {
         this.getCellChar = this.getCellChar.bind(this);
         this.getCellClass = this.getCellClass.bind(this);
         this.prevVisible = [];
+        this.debugShowAll = false;
     }
 
     public invalidate(): void {
@@ -522,7 +531,21 @@ export class ScreenBuffered extends Screen {
         });
 
         this.prevVisible = visibleCells;
-        // Finally, get the chars and classes to render
+
+        // For debugging, renders the full screen always. Note that if you want
+        // to actually see all cells, you must call map.exploreAll() also.
+        if (this.debugShowAll || map.debugShowAll) {
+            visibleCells = map.getCells();
+            visibleCells.forEach(cell => {
+                const [x, y] = cell.getXY();
+                // true == visible
+                const cellClass = RG.getCssClassForCell(cell, true);
+                const cellChar = RG.getCharForCell(cell, true);
+                this.fullMapClassRows[x][y] = cellClass;
+                this.fullMapCharRows[x][y] = cellChar;
+            });
+        }
+
         return super.renderWithRLE(playX, playY, map, visibleCells, anim,
             this.getCellClass, this.getCellChar);
     }
