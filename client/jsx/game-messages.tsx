@@ -10,6 +10,8 @@ interface IGameMessagesProps {
   showAll: boolean;
 }
 
+const reTerm = /[?!.]$/;
+
 /* Component for displaying in-game messages.*/
 export default class GameMessages extends React.Component {
 
@@ -29,7 +31,7 @@ export default class GameMessages extends React.Component {
 
     let msgList = [<span>Saving the game...</span>];
     if (!this.props.saveInProgress) {
-        msgList = message.map((val, itemIndex) => {
+      msgList = message.map((val, itemIndex) => {
         let className = styles[val.style];
         if (!className) {
             className = val.style;
@@ -49,10 +51,10 @@ export default class GameMessages extends React.Component {
         const count = val.count === 1 ? '' : ` (x${val.count})`;
         let fullMsg = `${val.msg}${count}`;
 
-        if (!fullMsg.match(/.$/)) {
+        if (!fullMsg.match(reTerm)) {
           fullMsg += '.';
         }
-        fullMsg += '. ';
+        fullMsg += ' ';
 
         if (index >= 0 || val.seen) {
           return (
