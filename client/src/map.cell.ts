@@ -39,9 +39,6 @@ const Y_SHIFT = 16;
 export class Cell {
 
     // Used in Map.Cell for faster access
-    // public _explored: boolean;
-    // public _x: number;
-    // public _y: number;
     public _xy: number;
 
     private _baseElem: ConstBaseElem;
@@ -51,12 +48,8 @@ export class Cell {
     private _state: number;
 
     constructor(x: number, y: number, elem: ConstBaseElem) { // {{{2
-
         this._baseElem = elem;
-        // this._x = x;
-        // this._y = y;
         this._xy = x & X_POS | (y << Y_SHIFT) & Y_POS;
-        // this._explored = false;
         this._state = 0;
 
         // this._p = {}; // Cell properties are assigned here
