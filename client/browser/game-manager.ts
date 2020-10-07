@@ -946,6 +946,7 @@ export class GameManager {
     public doGUICommand(code, ...args) {
         if (this.gameGUIState.useModeEnabled) {
             this.guiCommands[Keys.GUI.Use](code);
+            this.gameGUIState.useModeEnabled = false;
         }
         else if (this.guiCommands.hasOwnProperty(code)) {
             console.log('doGUICommand() Calling GUI command with code', code);
