@@ -576,21 +576,19 @@ describe('System.Shop', () => {
 
     let shopSys = null;
     let shopkeeper = null;
-    // let shopCell = null;
     let shopElem = null;
     let actor = null;
     let level = null;
+    // let catcher = null;
 
     beforeEach(() => {
         const pool = Entity.getPool();
+        // catcher = new RGTest.MsgCatcher(pool);
         shopSys = new System.Shop(['Transaction'], pool);
         shopkeeper = new SentientActor('shopkeeper');
         actor = new SentientActor('buyer');
 
-        // shopCell = new Cell(0, 0);
-        // shopCell.setBaseElem(ELEM.FLOOR);
         shopElem = new Element.ElementShop();
-        // shopCell.setProp(RG.TYPE_ELEM, shopElem);
         level = RGUnitTests.wrapIntoLevel([shopkeeper, actor]);
         level.addElement(shopElem, 0, 0);
     });
@@ -601,7 +599,7 @@ describe('System.Shop', () => {
         item.add(new Component.Unpaid());
         level.addItem(item, shopElem.getX(), shopElem.getY());
         const coins = new Item.GoldCoin(RG.GOLD_COIN_NAME);
-        coins.setCount(100);
+        coins.setCount(200);
 
         const buyer = actor;
         buyer.getInvEq().addItem(coins);
@@ -661,11 +659,12 @@ describe('System.Shop', () => {
 
     it('works with item count > 1', () => {
         const arrows = new Item.Ammo('arrow');
-        arrows.setCount(15);
+        const count = 10;
+        arrows.setCount(count);
         arrows.setValue(20);
 
         const coins = new Item.GoldCoin(RG.GOLD_COIN_NAME);
-        coins.setCount(100);
+        coins.setCount(200);
         shopkeeper.getInvEq().addItem(coins);
 
         const seller = actor;
@@ -673,7 +672,7 @@ describe('System.Shop', () => {
 
         const trans = new Component.Transaction();
         trans.setArgs({
-            item: arrows, buyer: shopkeeper, seller, shop: shopElem, count: 10
+            item: arrows, buyer: shopkeeper, seller, shop: shopElem, count
         });
         seller.add(trans);
 
@@ -686,6 +685,34 @@ describe('System.Shop', () => {
         expect(items[0].getCount()).to.equal(10);
         expect(arrows).not.to.have.component('Unpaid');
         expect(items[0]).to.have.component('Unpaid');
+    });
+
+
+    it('handles buying/selling gold coins reasonably', () => {
+        const itemToSell = new Item.GoldCoin(RG.GOLD_COIN_NAME);
+        const count = 10;
+        itemToSell.setCount(count);
+
+        const coins = new Item.GoldCoin(RG.GOLD_COIN_NAME);
+        coins.setCount(200);
+        shopkeeper.getInvEq().addItem(coins);
+
+        const seller = actor;
+        seller.getInvEq().addItem(itemToSell);
+
+        const trans = new Component.Transaction();
+        trans.setArgs({
+            item: itemToSell, buyer: shopkeeper, seller, shop: shopElem, count
+        });
+        seller.add(trans);
+
+        updateSystems([shopSys]);
+        // expect(itemToSell.getCount()).to.equal(5);
+
+        const soldCell = seller.getCell();
+        // const items = soldCell.getItems();
+        expect(soldCell.hasItems(), 'No items in cell').to.equal(false);
+        expect(itemToSell).not.to.have.component('Unpaid');
     });
 
 });
