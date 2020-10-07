@@ -20,14 +20,12 @@ export class Random {
     public static getRNG(key?: string): Random {
         if (key) {
             if (!Random.rngMap[key]) {
-                console.log(`Random.getRNG(): Creating new instance[${key}] now`);
                 Random.rngMap[key] = new Random(0);
             }
             return Random.rngMap[key];
         }
 
         if (!Random.instance) {
-            console.log('Random.getRNG(): Creating new instance now');
             Random.instance = new Random(0);
         }
         return Random.instance;
@@ -49,7 +47,6 @@ export class Random {
     }
 
     public setSeed(seed: number): void {
-        console.log('Random.setSeed() to ', seed);
         this.seed = seed;
         this.rng.setSeed(seed);
     }
@@ -59,7 +56,7 @@ export class Random {
     }
 
     /* Return random property from the object.*/
-    public randProp(obj): any {
+    public randProp(obj: {[key: string]: any}): any {
         const keys = Object.keys(obj);
         const keyIndex = this.randIndex(keys);
         return obj[keys[keyIndex]];
