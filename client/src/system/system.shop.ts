@@ -108,8 +108,11 @@ export class SystemShop extends SystemBase {
         }
 
         if (!this.willingToBuyItem(item, buyer)) {
-            const itemName = item.getName();
-            const msg = `${buyer.getName()} is not interested in ${item.getName()}.`;
+            let itemName = item.getName();
+            if (item.getCount() > 1) {
+                itemName = RG.pluralize(itemName);
+            }
+            const msg = `${buyer.getName()} is not interested in ${itemName}.`;
             RG.gameMsg({cell: seller.getCell(), msg});
             if (args.callback) {
                 args.callback({msg, result: false});
