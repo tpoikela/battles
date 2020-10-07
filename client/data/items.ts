@@ -311,6 +311,12 @@ const Items: ObjectShell[] = [
         damage: '1d12 + 4', defense: 8, weight: 0.9, value: value(350),
         weaponType: 'spear'
     },
+    {
+        name: 'Mithril pick-axe',  base: 'MithrilWeaponBase',
+        damage: '1d15', attack: 3, defense: 2,
+        weaponType: 'axe',
+        weight: 1.2, value: value(150), use: 'digger'
+    },
 
     // ICE WEAPONS (not easy to hit with, do lots of damage)
     {
@@ -420,7 +426,7 @@ const Items: ObjectShell[] = [
         weaponType: 'axe'
     },
 
-    // MAGIC WEAPONS
+    // RUNED WEAPONS
     {
         name: 'RunedWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-magic',
@@ -475,7 +481,7 @@ const Items: ObjectShell[] = [
         weaponType: 'spear'
     },
     {
-        name: 'Runed runesword', base: 'RunedWeaponBase',
+        name: 'Runed katana', base: 'RunedWeaponBase',
         damage: '3d10 + 2',
         attack: 5, defense: 5, weight: 0.8, value: value(750),
         weaponType: 'sword'
@@ -484,7 +490,8 @@ const Items: ObjectShell[] = [
         name: 'Wintersbane', base: 'RunedWeaponBase',
         damage: '3d8 + 4',
         attack: 6, defense: 3, weight: 1.0, value: value(1000),
-        weaponType: 'sword'
+        weaponType: 'sword',
+        // onEquip: {addComp: resistance('ICE', 'MEDIUM')}
     },
 
     // VOID WEAPONS
