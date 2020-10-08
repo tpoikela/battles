@@ -498,7 +498,7 @@ export class MapGenerator {
         }
     }
 
-    public createLakes(conf) {
+    public createLakes(conf): MapObj {
         const map = new CellMap(this.cols, this.rows, this.defaultMapElem);
         this._mapGen = new MapForest(this.cols, this.rows, conf);
         this.addLakesToMap(map, conf);
@@ -508,7 +508,6 @@ export class MapGenerator {
     public addLakesToMap(map: CellMap, conf): void {
         if (conf.freeOnly) {
             this._mapGen.create((x, y, val) => {
-                // map.setBaseElemXY(x, y, ELEM.FLOOR);
                 if (val === 1 /* && createDeep */) {
                     if (map.getCell(x, y).isFree()) {
                         map.setBaseElemXY(x, y, ELEM.WATER);
@@ -541,7 +540,20 @@ export class MapGenerator {
         this.addElementsToMap(map, forestMap, 'tree', conf, bbox);
     }
 
-    public addElementsToMap(map, srcMap, elem, conf, bbox: BBox): void {
+    public addCliffs(map: CellMap, conf, bbox: BBox): void {
+        const cols = bbox.getSizeX();
+        const rows = bbox.getSizeY();
+        // this.setGen('mountain', cols, rows);
+        const mountMap = this.createMountain(cols, rows, conf).map;
+        const elems = ['cliff', 'stone', 'steep cliff'];
+        elems.forEach(elemType => {
+            this.addElementsToMap(map, mountMap, elemType, conf, bbox);
+        });
+    }
+
+    public addElementsToMap(
+        map: CellMap, srcMap: CellMap, elem: string, conf, bbox: BBox
+    ): void {
         RG.forEach2D(srcMap._map, (x, y) => {
             const nX = x + bbox.ulx;
             const nY = y + bbox.uly;
@@ -563,7 +575,7 @@ export class MapGenerator {
     }
 
 
-    public createWall(cols, rows, conf) {
+    public createWall(cols: number, rows: number, conf): MapObj {
         const map: CellMap = new CellMap(cols, rows, this.defaultMapElem);
         const wallElem = conf.wallElem || ELEM.WALL;
         this._mapGen = new MapWall(cols, rows, conf);
@@ -575,7 +587,7 @@ export class MapGenerator {
         return {map};
     }
 
-    public createMountain(cols, rows, conf): MapObj {
+    public createMountain(cols: number, rows: number, conf): MapObj {
         const map = new CellMap(cols, rows, this.defaultMapElem);
         if (!conf) {
             conf = MapGenerator.getOptions('mountain');
