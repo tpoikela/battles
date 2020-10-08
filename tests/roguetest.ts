@@ -196,10 +196,11 @@ RGTest.equipItems = function(ent, items) {
 };
 
 /* Can be used to catch the emitted game messages. */
-RGTest.MsgCatcher = function() {
+RGTest.MsgCatcher = function(pool=POOL) {
     this.filters = [];
     this.caught = {};
     this.numCaught = 0;
+    this.pool = pool;
 
     this.printMsg = true;
     this.hasNotify = true;
@@ -234,7 +235,7 @@ RGTest.MsgCatcher = function() {
             }
         }
     };
-    POOL.listenEvent(RG.EVT_MSG, this);
+    this.pool.listenEvent(RG.EVT_MSG, this);
 
     /* Adds a message filter to select which messages to print. */
     this.addFilter = filter => {
