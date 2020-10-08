@@ -797,6 +797,8 @@ export class QuestPopulate {
     public getItemToSteal(): ItemOrNull {
         const location = this.currQuest.getCurrentLocation();
         const item = new Item.ItemBase(Names.getItemToStealName());
+        item.setValue(RNG.getUniformInt(100, 200));
+        item.setWeight(0.1 * RNG.getUniformInt(1, 25));
 
         let ok = Placer.addEntityToCellType(item, location, c => c.hasHouse());
         if (!ok) {
@@ -812,7 +814,9 @@ export class QuestPopulate {
 
     public getItemToGather(): ItemOrNull {
         const location = this.currQuest.getCurrentLocation();
-        const item = new Item.ItemBase('Quest item to gather');
+        const parser = ObjectShell.getParser();
+        const item = parser.createRandomItem(i => (
+            i.type === 'mineral' && i.value <= 150));
 
         if (!Placer.addEntityToCellType(item, location, c => c.isPassable())) {
             return null;
