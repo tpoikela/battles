@@ -202,6 +202,39 @@ export class Geometry {
         return null;
     }
 
+    public static combineAdjacent(boxes: BBox[]): BBox[] {
+        let wasCombined = false;
+        const res: BBox[] = [];
+        const unused: {[key: string]: BBox} = {};
+        const sorted = boxes.sort((a, b) => a.uly <= b.uly ? 1 : -1);
+        sorted.forEach((bbox, i) => {
+            unused[i] = bbox;
+        });
+
+        for (let i = 0; i < sorted.length; i++) {
+            for (let j = 0; j < sorted.length; j++) {
+                if ((i !== j) && unused[i] && unused[j]) {
+                    const combBox = sorted[i].combine(sorted[j]);
+                    if (combBox) {
+                        wasCombined = true;
+                        res.push(combBox);
+                        delete unused[i];
+                        delete unused[j];
+                    }
+                }
+            }
+        }
+        if (wasCombined) {
+            Object.values(unused).forEach(box => {
+                res.push(box);
+            });
+            return Geometry.combineAdjacent(res);
+        }
+        else {
+            return boxes.slice();
+        }
+    }
+
     public static coordToDirMap(xy: TCoord, coord: TCoord[]): CoordDirMap {
         const res: CoordDirMap = {};
         coord.forEach((c: TCoord) => {
