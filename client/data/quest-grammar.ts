@@ -12,12 +12,30 @@ import {Random} from '../src/random';
 const RNG = Random.getRNG();
 export const QuestGrammar: any = {};
 
+/* Full grammar commented out for now
 const topRule =
 `<QUEST> ::= <Knowledge> | <Comfort> |
  <Reputation> | <Serenity> |
  <Protection> | <Conquest> |
  <Wealth> | <Ability> | <Equipment> | <Strategy>;`;
+*/
 
+const topRule =
+`<QUEST> ::= <Conquest> | <Comfort> | <Strategy> | <Reputation>;`;
+
+const actorMotivationsGrammar =
+`<Comfort> ::= <Kill_pests>;
+
+<Reputation> ::= <Obtain_rare_items> |
+ <Kill_enemies> |
+ <Visit_a_dangerous_place>;
+
+<Conquest> ::= <Attack_enemy> | <Steal_stuff>;
+
+<Strategy> ::= <Win_a_battle>
+    | <Survive_a_battle>;`;
+
+/* Full grammar commented out for now
 const actorMotivationsGrammar =
 `<Knowledge> ::= <Deliver_item_for_study> |
  <Spy> |
@@ -69,7 +87,45 @@ const actorMotivationsGrammar =
 
 <Strategy> ::= <Win_a_battle> |
     <Survive_a_battle>;`;
+*/
 
+const grammar =
+`${topRule}
+
+${actorMotivationsGrammar}
+
+<Kill_pests> ::= <goto> "damage" <goto> "report";
+
+<Obtain_rare_items> ::= <get> <goto> "give";
+<Kill_enemies> ::= <goto> <kill> <goto> "report";
+<Visit_a_dangerous_place> ::= <goto> <goto> "report";
+
+<Attack_enemy> ::= <goto> "damage";
+<Steal_stuff> ::= <goto> <steal> <goto> "give";
+
+<Win_a_battle> ::= <goto> "winbattle";
+<Survive_a_battle> ::= <goto> "finishbattle";
+
+<goto> ::= "<goto>already_there" | "<goto>explore" | <learn> "<goto>goto";
+
+<goto_new_place> ::= "<goto>explore" | <learn> "<goto>goto";
+
+<learn> ::= "<learn>already_know_it" |
+    <goto> "listen" |
+    <goto> <get> "<learn>read" |
+    <get> "give" "listen";
+
+<get> ::= "<get>already_have_it" |
+    <steal> |
+    <goto> "<get>gather";
+
+<steal> ::= <goto> "<steal>stealth" "<steal>take" |
+    <goto> <kill> "<steal>take";
+
+<kill> ::= <goto> "<kill>kill";`;
+
+
+/* Full grammar commented out for now
 const grammar =
 `${topRule}
 
@@ -149,6 +205,7 @@ ${actorMotivationsGrammar}
 <spy> ::= <goto> "<spy>spy" <goto> "report";
 <capture> ::= <get> <goto> "capture";
 <kill> ::= <goto> "<kill>kill";`;
+*/
 
 /*
 Terminals:
