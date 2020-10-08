@@ -659,7 +659,8 @@ describe('System.Shop', () => {
 
     it('works with item count > 1', () => {
         const arrows = new Item.Ammo('arrow');
-        const count = 10;
+        const count = 15;
+        const nSell = 10;
         arrows.setCount(count);
         arrows.setValue(20);
 
@@ -672,17 +673,17 @@ describe('System.Shop', () => {
 
         const trans = new Component.Transaction();
         trans.setArgs({
-            item: arrows, buyer: shopkeeper, seller, shop: shopElem, count
+            item: arrows, buyer: shopkeeper, seller, shop: shopElem, count: nSell
         });
         seller.add(trans);
 
         updateSystems([shopSys]);
-        expect(arrows.getCount()).to.equal(5);
+        expect(arrows.getCount()).to.equal(count - nSell);
 
         const soldCell = seller.getCell();
         const items = soldCell.getItems();
         expect(items.length).to.equal(1);
-        expect(items[0].getCount()).to.equal(10);
+        expect(items[0].getCount()).to.equal(nSell);
         expect(arrows).not.to.have.component('Unpaid');
         expect(items[0]).to.have.component('Unpaid');
     });
