@@ -1,6 +1,5 @@
 
 import {expect} from 'chai';
-import RG from '../../../client/src/rg';
 import {Geometry} from '../../../client/src/geometry';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import * as Element from '../../../client/src/element';
@@ -8,6 +7,7 @@ import * as Item from '../../../client/src/item';
 import {SentientActor} from '../../../client/src/actor';
 import {ObjectShell} from '../../../client/src/objectshellparser';
 import {LevelUtils} from '../../../client/src/level-utils';
+import {BBox} from '../../../client/src/bbox';
 
 describe('Geometry', () => {
 
@@ -207,7 +207,7 @@ describe('Geometry', () => {
         const c1 = [3, 3, 3];
         res = Geometry.lineFuncUnique3D(c0, c1, cb);
         expect(res).to.have.length(4);
-        
+
     });
 
     it('has bresenham3D to create 3D lines', () => {
@@ -227,8 +227,35 @@ describe('Geometry', () => {
         const c3 = [1, 4, 0];
         const coord3 = Geometry.getBresenham3D(c2, c3);
         expect(coord3).to.have.length(4);
-        
+
     });
-    
+
+    it('can combine adjacent bboxes', function() {
+        const bbox1 = new BBox(0, 1, 3, 4);
+        const bbox2 = new BBox(3, 1, 6, 4);
+        const boxes = [bbox1, bbox2];
+        const combBoxes = Geometry.combineAdjacent(boxes);
+        expect(combBoxes.length).to.equal(1);
+        const bbox3 = combBoxes[0];
+        expect([bbox3.ulx, bbox3.uly]).to.deep.equal([0, 1]);
+        expect([bbox3.lrx, bbox3.lry]).to.deep.equal([6, 4]);
+
+        // Check that box with non-matching side is not merged
+        const bbox5 = new BBox(5, 5, 7, 7);
+        const boxList = boxes.concat(bbox5);
+        const combBoxes2 = Geometry.combineAdjacent(boxList);
+        expect(combBoxes2.length).to.equal(2);
+
+        // Check that 3 boxes are correctly merged
+        const bbox6 = new BBox(0, 4, 6, 8);
+        const bList = [bbox1, bbox6, bbox2];
+        const combBoxes3 = Geometry.combineAdjacent(bList);
+        expect(combBoxes3.length).to.equal(1);
+
+        const triBox = combBoxes3[0];
+        expect([triBox.ulx, triBox.uly]).to.deep.equal([0, 1]);
+        expect([triBox.lrx, triBox.lry]).to.deep.equal([6, 8]);
+
+    });
 
 });
