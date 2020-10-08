@@ -541,8 +541,8 @@ export class MapGenerator {
     }
 
     public addCliffs(map: CellMap, conf, bbox: BBox): void {
-        const cols = bbox.getSizeX();
-        const rows = bbox.getSizeY();
+        const cols = map.cols; //bbox.getSizeX();
+        const rows = map.rows; //bbox.getSizeY();
         // this.setGen('mountain', cols, rows);
         const mountMap = this.createMountain(cols, rows, conf).map;
         const elems = ['cliff', 'stone', 'steep cliff'];
