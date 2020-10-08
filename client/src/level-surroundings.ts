@@ -14,6 +14,10 @@ type BBox = import('./bbox').BBox;
 
 const RNG = Random.getRNG();
 
+type TSurroundData = [string, BBox[]];
+
+const reCliffs = /\b(cliff|stone|steep cliff)\b/;
+
 export class LevelSurroundings {
 
     public offsetFunc: (x, y) => TCoord;
@@ -60,32 +64,59 @@ export class LevelSurroundings {
 
         const skipTypes = {wallmount: true};
 
+        const type2Bbox: {[key: string]: BBox[]} = {};
         Object.keys(cellsAround).forEach(dir => {
-            if (cellsAround[dir] === 'water') {
-                const lakeConf = {
-                    ratio: 0.6, skipTypes,
-                    forestSize: 300, nForests: 10
-                };
-                const bbox: null | BBox = Geometry.dirToBbox(colsArea, rowsArea, dir);
-                if (bbox) {
+            let type = cellsAround[dir];
+            // TODO: Add proper type remap for other types
+            if (type.match(reCliffs)) {
+                type = 'cliffs';
+            }
+            const bbox: null | BBox = Geometry.dirToBbox(colsArea, rowsArea, dir);
+            if (bbox) {
+                if (!type2Bbox[type]) {
+                    type2Bbox[type] = [];
+                }
+                type2Bbox[type].push(bbox);
+            }
+            else {
+                RG.err('LevelSurroundings', 'surroundWithCellsAround',
+                    `Received null bbox from dir ${dir}, type ${type}`);
+            }
+        });
+
+        const surroundData: TSurroundData[] = [];
+        Object.keys(type2Bbox).forEach((type: string) => {
+            const boxes: BBox[] = type2Bbox[type];
+            const combined: BBox[] = Geometry.combineAdjacent(boxes);
+            surroundData.push([type, combined]);
+        });
+
+        surroundData.forEach((entry: TSurroundData) => {
+            const [type, bboxes]: [string, BBox[]] = entry;
+            bboxes.forEach((bbox: BBox) => {
+                if (type === 'water') {
+                    const lakeConf = {
+                        ratio: 0.6, skipTypes,
+                        forestSize: 300, nForests: 10
+                    };
                     mapgen.addLakes(mountLevel.getMap(), lakeConf, bbox);
                 }
-                else {
-                    RG.err('LevelSurroundings', 'surroundWithCellsAround',
-                        `Received null bbox from dir ${dir}, if water`);
-                }
-            }
-            else if (cellsAround[dir] === 'tree') {
-                const forestConf = {ratio: 1, skipTypes, nForests: 10};
-                const bbox: null | BBox = Geometry.dirToBbox(colsArea, rowsArea, dir);
-                if (bbox) {
+                else if (type === 'tree') {
+                    const forestConf = {ratio: 1, skipTypes, nForests: 10};
+                    // const bbox: null | BBox = Geometry.dirToBbox(colsArea, rowsArea, dir);
                     mapgen.addForest(mountLevel.getMap(), forestConf, bbox);
                 }
-                else {
-                    RG.err('LevelSurroundings', 'surroundWithCellsAround',
-                        `Received null bbox from dir ${dir}, if tree`);
+                else if (type === 'cliffs') {
+                    console.log('Type cliffs found!');
+                    const mountConf = MapGenerator.getOptions('mountain');
+                    mountConf.nRoadTurns = 0;
+                    mountConf.highRockThr = 100; // No blocking cells
+                    mountConf.snowRatio = 0;
+                    mountConf.chasmThr = -100;
+                    mountConf.skipTypes = skipTypes;
+                    mapgen.addCliffs(mountLevel.getMap(), mountConf, bbox);
                 }
-            }
+            });
         });
 
         Geometry.mergeLevels(mountLevel, level, xSize / 2, ySize / 2);
