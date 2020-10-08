@@ -1242,6 +1242,7 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'firemaking kit', base: 'tool',
+        className: 'cell-item-fire',
         use: {addEntity: {entityName: 'Fire', duration: 20}},
         value: 100
     },
@@ -1394,6 +1395,11 @@ const Items: ObjectShell[] = [
     {
         name: 'MineralBase', dontCreate: true,
         type: 'mineral', char: ']'
+    },
+    {
+        name: 'copper ore', base: 'MineralBase',
+        weight: 0.2, value: value('mineral', 20),
+        className: 'cell-item-copper'
     },
     {
         name: 'iron ore', base: 'MineralBase',
