@@ -59,4 +59,30 @@ describe('BBox', () => {
         });
 
     });
+
+    it('has functions to match the sides', function() {
+        const bbox1 = new BBox(0, 1, 3, 4);
+        const bbox2 = new BBox(3, 1, 6, 4);
+
+        const sides = bbox1.getSides();
+
+        expect(sides[0], 'Top side').to.deep.equal([[0, 1], [3, 1]]);
+        expect(sides[1], 'Left side').to.deep.equal([[0, 1], [0, 4]]);
+        expect(sides[2], 'Right side').to.deep.equal([[3, 1], [3, 4]]);
+        expect(sides[3], 'Bottom side').to.deep.equal([[0, 4], [3, 4]]);
+
+        const [n, match] = bbox1.getMatchingSide(bbox2);
+        console.log('MMM', match);
+        expect(match, 'Matching side').to.deep.equal([[3, 1], [3, 4]]);
+
+        const bbox3 = bbox1.combine(bbox2);
+        const bbox4 = bbox2.combine(bbox1);
+
+        expect([bbox3.ulx, bbox3.uly]).to.deep.equal([0, 1]);
+        expect([bbox3.lrx, bbox3.lry]).to.deep.equal([6, 4]);
+
+        // Check that 3 & 4 match
+        expect(bbox3.getCoord()).to.deep.equal(bbox4.getCoord());
+    });
+
 });
