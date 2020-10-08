@@ -103,8 +103,8 @@
 };
 
 .cell-item-tool {
-    background-color: $black;
-    color: $brown;
+    background-color: $wooden-color;
+    color: $black;
 };
 
 .cell-item-cloth {
@@ -121,3 +121,13 @@
     background-color: $black;
     color: $azure;
 };
+
+.cell-item-fire {
+    background-color: $tangerine;
+    color: $red;
+}
+
+.cell-item-copper {
+    background-color: Chocolate;
+    color: BurlyWood;
+}
