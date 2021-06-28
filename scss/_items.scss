@@ -2,6 +2,9 @@
 // Battles in the North
 // ITEMS
 //----------------------
+//
+
+@import 'common';
 
 .cell-item-default {
     background-color: $item-default-bg;
@@ -53,8 +56,9 @@
 };
 
 .cell-item-ruby-glass {
-    background-color: $ruby-white;
-    color: $ruby-red;
+    @include style-ruby;
+    //rm background-color: $ruby-white;
+    //rm color: $ruby-red;
 };
 
 .cell-item-ice {
@@ -88,8 +92,7 @@
 };
 
 .cell-item-gold-coin {
-    background-color: $brown;
-    color: $gold;
+    @include style-gold;
 };
 
 .cell-item-rock {
@@ -98,8 +101,9 @@
 };
 
 .cell-item-rune {
-    background-color: darken($gray, 20%);
-    color: $red;
+    @include style-forium;
+    //rm background-color: darken($gray, 20%);
+    //rm color: $red;
 };
 
 .cell-item-tool {
@@ -113,8 +117,9 @@
 };
 
 .cell-item-void {
-    background-color: $purple;
-    color: $black;
+    @include style-void;
+    //rm background-color: $purple;
+    //rm color: $black;
 };
 
 .cell-item-nether {

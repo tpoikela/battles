@@ -2,6 +2,9 @@
 // Battles in the North
 // ELEMENTS CSS
 //----------------------
+//
+
+@import 'common';
 
 @mixin green-elem {
     background-color: $floor-bg-color;
@@ -298,5 +301,3 @@
     background-color: $floor-bg-color;
     color: $brown;
 }
-
-
