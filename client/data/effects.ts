@@ -14,6 +14,7 @@ interface Setters {
 
 interface EffArgs {
     all?: boolean;
+    addOnUser?: boolean; // Adds to the user
     duration?: number | string;
     effectType: string;
     name?: string;
@@ -221,9 +222,9 @@ export const Effects = {
             name: 'digger',
             func(obj) {
                 const owner = getTopOwnerActor(this);
-                console.log('owner is ', owner);
                 const name = owner.getName();
                 const msg = `${name} digs through stone with ${this.getName()}`;
+                /*
                 const effArgs = {
                     // name: this.useArgs.name,
                     effectType: 'ChangeElement',
@@ -231,6 +232,21 @@ export const Effects = {
                     target: obj,
                     startMsg: msg,
                     targetType: ['elements']
+                };
+                */
+                const effArgs: EffArgs = {
+                    effectType: 'AddComp',
+                    name: 'Mining',
+                    target: obj,
+                    // Use Cell as target of effect as we need to modify
+                    // baseElem, and add possible items from Mining
+                    targetType: ['cell'],
+                    setters: {
+                        // Uses whatever is found as target
+                        setTarget: '$$target'
+                    },
+                    // Component is added to user, not to the target
+                    addOnUser: true
                 };
                 createUseItemComp(this, obj, effArgs);
                 return true;
