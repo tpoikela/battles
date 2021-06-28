@@ -9,6 +9,7 @@ import * as Item from '../../../client/src/item';
 import {SentientActor} from '../../../client/src/actor';
 import {ELEM} from '../../../client/data/elem-constants';
 import {Entity} from '../../../client/src/entity';
+import {RGTest} from '../../roguetest';
 
 import {RGUnitTests} from '../../rg.unit-tests';
 
@@ -25,6 +26,7 @@ describe('Effects', () => {
     let useEffect = null;
     let useSystem = null;
     let effSystem = null;
+    let mineSystem = null;
     let sword = null;
     let userActor = null;
     let cell = null;
@@ -34,6 +36,7 @@ describe('Effects', () => {
         useEffect = getEffectByName(Effects, 'use');
         useSystem = new System.BaseAction(['UseItem'], pool);
         effSystem = new System.Effects(['Effects'], pool);
+        mineSystem = new System.Mining(['Mining'], pool);
         sword = new Item.Weapon('Add comp');
         sword.useArgs = { };
         sword.use = useEffect.func.bind(sword);
@@ -50,6 +53,9 @@ describe('Effects', () => {
 
     it('has digger effect', () => {
         const diggerEffect = getEffectByName(Effects, 'digger');
+        const level = RGTest.createLevel('empty', 10, 10);
+        level.addActor(userActor, 1, 1);
+        level.get('Place').setDepth(5);
 
         sword.useArgs.fromType = 'wall';
 
@@ -66,6 +72,10 @@ describe('Effects', () => {
         expect(userActor).to.have.component('Effects');
         effSystem.update();
 
+        expect(userActor).to.have.component('Mining');
+
+        mineSystem.update();
+        expect(userActor).not.to.have.component('Mining');
         expect(cell.getBaseElem().getType()).to.equal('floor');
     });
 
