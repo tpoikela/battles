@@ -271,6 +271,7 @@ export const Impassable = UniqueDataComponent('Impassable', {
 Impassable.prototype.setAllImpassable = function() {
     this.canFlyOver = false;
     this.spellPasses = false;
+    this.canJumpOver = false;
 };
 
 /* Component to tag entities that block light from passing through. */
@@ -1346,6 +1347,10 @@ export const DontRender = UniqueTagComponent('DontRender');
 //---------------------------------------------------------------------------
 
 /* Added to a entity giving an item. */
+export const Mining = TransientDataComponent('Mining',
+    {target: null});
+
+/* Added to a entity giving an item. */
 export const Give = TransientDataComponent('Give',
     {giveTarget: null, item: null});
 
@@ -1688,6 +1693,10 @@ DrainStat.prototype.applyComp = function(): boolean {
     }
     return false;
 };
+
+export const Place = UniqueDataComponent('Place', {
+    depth: 0, danger: 1
+});
 
 import {Lore, ComponentLore} from './component.lore';
 export {Lore, ComponentLore};
