@@ -21,6 +21,8 @@ const DEPTH = [
     '\u224B',
 ];
 
+const CHAR_WALL = '#';
+
 const Elements = [
     {
         name: 'bed', className: 'cell-element-bed',
@@ -415,6 +417,64 @@ const Elements = [
         addComp: ['Snowy', {comp: 'Terrain',
             func: {setMods: [speedPenalty(0.15, ['Flying'])]}
         }]
+    },
+
+    // Wall types
+    {
+        name: 'wallcave', className: 'cell-element-wall-cave',
+        char: CHAR_WALL,
+        addComp: [
+            {comp: 'Impassable', func: ['setAllImpassable']}
+        ],
+    },
+    {
+        name: 'wallcrypt', className: 'cell-element-wall-crypt',
+        char: CHAR_WALL,
+        addComp: [
+            {comp: 'Impassable', func: ['setAllImpassable']}
+        ],
+    },
+    {
+        name: 'wallwooden', className: 'cell-element-wall-wooden',
+        char: CHAR_WALL,
+        addComp: [
+            {comp: 'Impassable', func: ['setAllImpassable']}
+        ],
+    },
+    {
+        name: 'wallice', className: 'cell-element-wall-ice',
+        char: CHAR_WALL,
+        addComp: [
+            {comp: 'Impassable', func: ['setAllImpassable']}
+        ],
+    },
+    {
+        name: 'wallcastle', className: 'cell-element-wall-castle',
+        char: CHAR_WALL,
+        addComp: [
+            {comp: 'Impassable', func: ['setAllImpassable']}
+        ],
+    },
+    {
+        name: 'wallruby', className: 'style-ruby',
+        char: CHAR_WALL,
+        addComp: [
+            {comp: 'Impassable', func: ['setAllImpassable']}
+        ],
+    },
+    {
+        name: 'wallvoid', className: 'style-void',
+        char: CHAR_WALL,
+        addComp: [
+            {comp: 'Impassable', func: ['setAllImpassable']}
+        ],
+    },
+    {
+        name: 'wallforium', className: 'style-forium',
+        char: CHAR_WALL,
+        addComp: [
+            {comp: 'Impassable', func: ['setAllImpassable']}
+        ],
     },
 
     // MISCELLANEOUS
