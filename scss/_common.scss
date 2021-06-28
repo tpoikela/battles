@@ -1,0 +1,28 @@
+
+
+@mixin style-ruby {
+    background-color: $ruby-white;
+    color: $ruby-red;
+}
+
+@mixin style-void {
+    background-color: $purple;
+    color: $black;
+}
+
+@mixin style-forium {
+    background-color: darken($gray, 20%);
+    color: $red;
+}
+
+@mixin style-gold {
+    background-color: $brown;
+    color: $gold;
+}
+
+@mixin style-wooden {
+    background-color: $white;
+    color: $brown;
+}
+
+$styles: ruby, void, forium, gold, wooden;
