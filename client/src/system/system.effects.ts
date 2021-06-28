@@ -20,6 +20,10 @@ const handlerTable = {
 
 type HandleFunc = (ent, comp) => boolean;
 
+const TARGET_SPECIFIER = '$$target';
+const CELL_SPECIFIER = '$$cell';
+const SELF_SPECIFIER = 'self';
+
 // Can be updated when addEffect() if called
 let handlerNames = Object.keys(handlerTable);
 
@@ -73,6 +77,7 @@ export class SystemEffects extends SystemBase {
                 targetType = ['actors', 'items', 'elements', 'baseElem'];
             }
             if (!Array.isArray(targetType)) {targetType = [targetType];}
+            if (targetType[0] === 'cell') {return cell;}
 
             for (let i = 0; i < targetType.length; i++) {
                 if (cell.hasProp(targetType[i])) {
@@ -153,7 +158,7 @@ export class SystemEffects extends SystemBase {
      * for a given duration. */
     public handleAddComp(srcEnt, effComp): boolean {
         const useArgs = effComp.getArgs();
-        const targetEnt = SystemEffects.getEffectTarget(useArgs);
+        let targetEnt = SystemEffects.getEffectTarget(useArgs);
         const compName = getCompName(useArgs, targetEnt);
 
         let compToAdd = null;
@@ -167,8 +172,15 @@ export class SystemEffects extends SystemBase {
             Object.keys(setters).forEach(setFunc => {
                 if (typeof compToAdd[setFunc] === 'function') {
                     const valueToSet = setters[setFunc];
-                    const numValue = convertValueIfNeeded(valueToSet);
-                    compToAdd[setFunc](numValue);
+
+                    // Use the final target as value for setter '$$target'
+                    if (valueToSet === TARGET_SPECIFIER) {
+                        compToAdd[setFunc](targetEnt);
+                    }
+                    else {
+                        const numValue = convertValueIfNeeded(valueToSet);
+                        compToAdd[setFunc](numValue);
+                    }
                 }
                 else {
                     const json = JSON.stringify(compToAdd);
@@ -182,9 +194,20 @@ export class SystemEffects extends SystemBase {
             compToAdd.setSource(srcEnt);
         }
 
-        const dur = Dice.getValue(useArgs.duration);
-        const expirMsg = useArgs.expireMsg;
-        Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
+        // How to switch the entity here?
+        if (useArgs.addOnUser) {
+            targetEnt = srcEnt;
+        }
+
+        if (useArgs.duration) {
+            const dur = Dice.getValue(useArgs.duration);
+            const expirMsg = useArgs.expireMsg;
+            Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
+        }
+        else {
+            targetEnt.add(compToAdd);
+        }
+
         return true;
     }
 
