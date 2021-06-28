@@ -61,12 +61,15 @@ ELEM.FLOOR_HOUSE = frz(parser.createElement('floorhouse'));
 ELEM.FLOOR_WOODEN = frz(parser.createElement('floorwooden'));
 
 ELEM.WALL = frz(new ElementWall('wall'));
-ELEM.WALL_CASTLE = frz(new ElementWall('wallcastle'));
-ELEM.WALL_CAVE = frz(new ElementWall('wallcave'));
-ELEM.WALL_CRYPT = frz(new ElementWall('wallcrypt'));
-ELEM.WALL_ICE = frz(new ElementWall('wallice'));
-ELEM.WALL_WOODEN = frz(new ElementWall('wallwooden'));
+ELEM.WALL_CASTLE = frz(parser.createElement('wallcastle'));
+ELEM.WALL_CAVE = frz(parser.createElement('wallcave'));
+ELEM.WALL_CRYPT = frz(parser.createElement('wallcrypt'));
+ELEM.WALL_ICE = frz(parser.createElement('wallice'));
+ELEM.WALL_WOODEN = frz(parser.createElement('wallwooden'));
 ELEM.WALL_MOUNT = frz(new ElementWall('wallmount'));
+ELEM.WALL_RUBY = frz(parser.createElement('wallruby'));
+ELEM.WALL_VOID = frz(parser.createElement('wallvoid'));
+ELEM.WALL_FORIUM = frz(parser.createElement('wallforium'));
 
 ELEM.SHALLOW_WATER = frz(parser.createElement('shallow water'));
 ELEM.WATER = frz(parser.createElement('water'));
