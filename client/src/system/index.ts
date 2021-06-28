@@ -129,6 +129,10 @@ import {SystemOnCbs} from './system.on-cb';
 export {SystemOnCbs} from './system.on-cb';
 System.OnCbs = SystemOnCbs;
 
+import {SystemMining} from './system.mining';
+export {SystemMining} from './system.mining';
+System.Mining = SystemMining;
+
 /* Defines a new system declaration. Can be used in plugins to define new
  * systems easily without boilerplate code. */
 System.defineSystem = function(sysName: string): any {
