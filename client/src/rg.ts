@@ -680,6 +680,7 @@ class RGClass {
         this.SYS.ZONE_EVENTS = Symbol('ZONE_EVENTS');
         this.SYS.WEATHER = Symbol('WEATHER');
         this.SYS.ON_CBS = Symbol('ON_CBS');
+        this.SYS.MINING = Symbol('MINING');
 
         this.NO_DAMAGE_SRC = null;
 
