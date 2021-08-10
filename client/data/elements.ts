@@ -423,56 +423,56 @@ const Elements = [
     {
         name: 'wallcave', className: 'cell-element-wall-cave',
         char: CHAR_WALL,
-        addComp: [
+        addComp: ['Opaque',
             {comp: 'Impassable', func: ['setAllImpassable']}
         ],
     },
     {
         name: 'wallcrypt', className: 'cell-element-wall-crypt',
         char: CHAR_WALL,
-        addComp: [
+        addComp: ['Opaque',
             {comp: 'Impassable', func: ['setAllImpassable']}
         ],
     },
     {
         name: 'wallwooden', className: 'cell-element-wall-wooden',
         char: CHAR_WALL,
-        addComp: [
+        addComp: ['Opaque',
             {comp: 'Impassable', func: ['setAllImpassable']}
         ],
     },
     {
         name: 'wallice', className: 'cell-element-wall-ice',
         char: CHAR_WALL,
-        addComp: [
+        addComp: ['Opaque',
             {comp: 'Impassable', func: ['setAllImpassable']}
         ],
     },
     {
         name: 'wallcastle', className: 'cell-element-wall-castle',
         char: CHAR_WALL,
-        addComp: [
+        addComp: ['Opaque',
             {comp: 'Impassable', func: ['setAllImpassable']}
         ],
     },
     {
         name: 'wallruby', className: 'style-ruby',
         char: CHAR_WALL,
-        addComp: [
+        addComp: ['Opaque',
             {comp: 'Impassable', func: ['setAllImpassable']}
         ],
     },
     {
         name: 'wallvoid', className: 'style-void',
         char: CHAR_WALL,
-        addComp: [
+        addComp: ['Opaque',
             {comp: 'Impassable', func: ['setAllImpassable']}
         ],
     },
     {
         name: 'wallforium', className: 'style-forium',
         char: CHAR_WALL,
-        addComp: [
+        addComp: ['Opaque',
             {comp: 'Impassable', func: ['setAllImpassable']}
         ],
     },
@@ -516,10 +516,10 @@ const Elements = [
         dontCreate: true, name: 'cityfort',
         char: 'o', className: 'cell-element-fort'
     },
-    {
+    /*{
         dontCreate: true, name: 'wallcastle',
         char: '#', className: 'cell-element-castle'
-    }
+    }*/
 
 ];
 
