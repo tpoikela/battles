@@ -78,6 +78,14 @@ const prefix: any = {
         serrated: {
             value: 2.0, rarity: 2.0,
             onAttackHit: [meleeHitDamage(1, '1d4 + 2', 'PIERCE')],
+        },
+        icy: {
+            value: 2.5, rarity: 2.5,
+            onAttackHit: [meleeHitDamage(1, '1d6 + 4', 'ICE')],
+        },
+        flaming: {
+            value: 2.5, rarity: 2.5,
+            onAttackHit: [meleeHitDamage(1, '1d6 + 4', 'FIRE')],
         }
     },
     missileweapon: {},
@@ -262,12 +270,17 @@ names.suffix = {
 const baseShells: StringMap<IShell> = {
     weapon: {
         type: 'weapon', range: 1, value: 1, attack: 0, defense: 0,
-        char: '('
+        char: '(',
+        speed: 0, strength: 0, accuracy: 0, agility: 0,
+        willpower: 0, perception: 0, magic: 0, spirituality: 0,
+
     },
     armour: {
         type: 'armour', value: 1, attack: 0, defense: 0,
         protection: 0,
-        char: '['
+        char: '[',
+        speed: 0, strength: 0, accuracy: 0, agility: 0,
+        willpower: 0, perception: 0, magic: 0, spirituality: 0,
     },
     missile: {
         type: 'missile', value: 1, attack: 0, defense: 0,
