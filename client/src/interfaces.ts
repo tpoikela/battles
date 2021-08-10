@@ -81,14 +81,6 @@ export interface CellPropMap<T> {
 }
 
 export type CellProps = Partial<CellPropMap<TCellProp[]>>;
-/*
-export interface CellProps {
-
-    actors?: TCellProp[];
-    items?: TCellProp[];
-    elements?: TCellProp[];
-}
-*/
 
 export type TPropType = keyof CellProps;
 
