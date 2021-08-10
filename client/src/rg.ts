@@ -660,6 +660,7 @@ class RGClass {
         this.SYS.BASE_ACTION = Symbol('BASE_ACTION');
         this.SYS.CHAT = Symbol('CHAT');
         this.SYS.COMMUNICATION = Symbol('COMMUNICATION');
+        this.SYS.CRAFTING = Symbol('CRAFTING');
         this.SYS.DAMAGE = Symbol('DAMAGE');
         this.SYS.DEATH = Symbol('DEATH');
         this.SYS.DISABILITY = Symbol('DISABILITY');
@@ -667,6 +668,7 @@ class RGClass {
         this.SYS.EQUIP = Symbol('EQUIP');
         this.SYS.EVENTS = Symbol('EVENTS');
         this.SYS.EXP_POINTS = Symbol('EXP_POINTS');
+        this.SYS.FARMING = Symbol('FARMING');
         this.SYS.HUNGER = Symbol('HUNGER');
         this.SYS.MISSILE = Symbol('MISSILE');
         this.SYS.MOVEMENT = Symbol('MOVEMENT');
@@ -713,6 +715,14 @@ class RGClass {
         const className = this.getStyleClassForCell(cell);
         this.cellRenderArray = this.cellRenderVisible;
         return className;
+    }
+
+    public getTopEntityNameForCell(cell: Cell, isVisible: boolean): string {
+        if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
+        else {this.cellRenderArray = this.cellRenderAlways;}
+        const entityName = this.getTopEntityName(cell);
+        this.cellRenderArray = this.cellRenderVisible;
+        return entityName;
     }
 
     /* Same as getClassName, but optimized for viewing the full map. */
@@ -848,6 +858,26 @@ class RGClass {
 
         const baseType = cell.getBaseElem().getType();
         return this.charStyles.elements[baseType] as string;
+    }
+
+    public getTopEntityName(cell: Cell): string {
+        if (!cell.isExplored()) {return 'Unexplored';}
+        for (let i = 0; i < this.cellRenderArray.length; i++) {
+            if (cell.hasProp(this.cellRenderArray[i])) {
+                // Should exist due to hasProp
+                const props = cell.getProp(this.cellRenderArray[i])!;
+                const propObj = props[0]!;
+                let lookupKey = null;
+                if (propObj.getName) {
+                    lookupKey = propObj.getName();
+                }
+                else {
+                    lookupKey = propObj.getType();
+                }
+                return lookupKey;
+            }
+        }
+        return '';
     }
 
 
