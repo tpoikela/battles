@@ -409,6 +409,7 @@ RGTest.createTestWorld = function(conf = {}) {
     return factWorld.createWorld(usedConf);
 };
 
+/* Creates a player actor with given list of items and equipment. */
 RGTest.createPlayer = function(items = [], equip = []) {
     const player = new SentientActor('player');
     player.setIsPlayer(true);
