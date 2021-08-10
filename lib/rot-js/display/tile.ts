@@ -36,7 +36,11 @@ export default class Tile extends Canvas {
 
         for (let i=0;i<chars.length;i++) {
             const tile = this._options.tileMap[chars[i]];
-            if (!tile) { throw new Error(`Char "${chars[i]}" not found in tileMap`); }
+            if (!tile) {
+                // throw new Error(`Char "${chars[i]}" not found in tileMap`);
+                this._drawChar(data, clearBefore);
+                continue;
+            }
 
             if (this._options.tileColorize) { // apply colorization
                 const canvas = this._colorCanvas;
@@ -73,6 +77,27 @@ export default class Tile extends Canvas {
                     x*tileWidth, y*tileHeight, tileWidth, tileHeight
                 );
             }
+        }
+    }
+
+    _drawChar(data: DisplayData, clearBefore: boolean) {
+        const [x, y, ch, fg, bg] = data;
+        const tileWidth = this._options.tileWidth;
+        const tileHeight = this._options.tileHeight;
+
+        if (clearBefore) {
+            const b = this._options.border;
+            this._ctx.fillStyle = bg;
+            this._ctx.fillRect(x*tileWidth + b, y*tileHeight + b, tileWidth - b, tileHeight - b);
+        }
+
+        if (!ch) { return; }
+
+        this._ctx.fillStyle = fg;
+
+        const chars = ([] as string[]).concat(ch);
+        for (let i=0;i<chars.length;i++) {
+            this._ctx.fillText(chars[i], (x+0.5) * tileWidth, Math.ceil((y+0.5) * tileHeight));
         }
     }
 
