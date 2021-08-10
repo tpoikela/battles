@@ -41,6 +41,10 @@ import {SystemCommunication} from './system.communication';
 export {SystemCommunication} from './system.communication';
 System.Communication = SystemCommunication;
 
+import {SystemCrafting} from './system.crafting';
+export {SystemCrafting} from './system.crafting';
+System.Crafting = SystemCrafting;
+
 import {SystemDamage} from './system.damage';
 export {SystemDamage} from './system.damage';
 System.Damage = SystemDamage;
@@ -72,6 +76,10 @@ System.Events = SystemEvents;
 import {SystemExpPoints} from './system.exp-points';
 export {SystemExpPoints} from './system.exp-points';
 System.ExpPoints = SystemExpPoints;
+
+import {SystemFarming} from './system.farming';
+export {SystemFarming} from './system.farming';
+System.Farming = SystemFarming;
 
 import {SystemHunger} from './system.hunger';
 export {SystemHunger} from './system.hunger';

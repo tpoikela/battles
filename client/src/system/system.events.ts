@@ -67,19 +67,17 @@ export class SystemEvents extends SystemBase {
 
             // Search for entity which could react to this event for each cell
             // Right now, only actors are interested in events
-            cells.forEach(cell => {
+            cells.forEach((cell: Cell) => {
                 const actors = cell.getActors();
                 if (actors) {
                     actors.forEach(actor => {
                         if (!actor.isPlayer() && actor.has('Perception')) {
-                            /*
                             const seenCells = actor.getBrain().getSeenCells();
                             const canSee = seenCells.find(c => (
                                 c.getX() === x0 && c.getY() === y0
                             ));
-                            */
-                            // if (canSee) {
-                            if (actor.getBrain().canSeeCell(cell)) {
+                            if (canSee) {
+                                //if (actor.getBrain().canSeeCell(cell)) {
                                 // const name = actor.getName();
                                 // Call the handler function from dispatch table
                                 this._dtable[type](ent, evt, actor);

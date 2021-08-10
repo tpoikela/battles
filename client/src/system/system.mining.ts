@@ -51,13 +51,15 @@ const wall2Items: {[key: string]: MineItemEntry} = {
     'wallcastle': {
         always: ['piece of stone'],
         rand: {
+            nothing: 90, goldcoin: 10
         }
     },
     'wallice': {
         always: ['piece of ice'],
         rand: {
             nothing: 90,
-            'permaice ore': 3, 'ice diamond': 1, 'froststone': 3
+            'permaice ore': 3, 'ice diamond': 1, 'froststone': 3,
+            'adamantium ore': 4
         }
     },
 };
@@ -98,10 +100,12 @@ export class SystemMining extends SystemBase {
                 const itemEntry: MineItemEntry = wall2Items[baseType];
                 const itemsAlways = itemEntry.always;
 
-                const item = this.parser.createItem(itemsAlways[0]);
-                if (item) {
-                    level.addItem(item, cell.getX(), cell.getY());
-                }
+                itemsAlways.forEach((itemName: string) => {
+                    const item = this.parser.createItem(itemName);
+                    if (item) {
+                        level.addItem(item, cell.getX(), cell.getY());
+                    }
+                });
 
                 if (itemEntry.rand) {
                     const itemsRand = itemEntry.rand;
@@ -109,7 +113,7 @@ export class SystemMining extends SystemBase {
                     if (entry !== '' && entry !== 'nothing') {
                         const itemFound = this.parser.createItem(entry);
                         if (itemFound) {
-                            level.addItem(item, cell.getX(), cell.getY());
+                            level.addItem(itemFound, cell.getX(), cell.getY());
                             let msg = `${RG.getName(ent)} discovers ${itemFound.getName()}`;
                             msg += ' while digging';
                             RG.gameMsg({cell, msg});
