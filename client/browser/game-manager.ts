@@ -285,6 +285,11 @@ export class GameManager {
         this.finishAutoOnSight = false;
     }
 
+    public getMap() {
+        const map = this.game.getVisibleMap();
+        return map;
+    }
+
     public renderScreen(): void {
         const map = this.game.getVisibleMap();
         const [playX, playY] = this.getPlayer().getXY();
