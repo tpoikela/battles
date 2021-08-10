@@ -370,6 +370,12 @@ const Items: ObjectShell[] = [
         damage: '10d3 + 6', defense: 10, weight: 4.0, value: value(750),
         weaponType: 'sword'
     },
+    {
+        name: 'Permaice pick-axe',  base: 'IceWeaponBase',
+        damage: '3d6 + 6', defense: 6,
+        weaponType: 'axe',
+        weight: 3.6, value: value(300), use: 'digger'
+    },
 
     // RUBY GLASS WEAPONS
     {
@@ -424,6 +430,12 @@ const Items: ObjectShell[] = [
         damage: '4d6 + 3',
         attack: 6, defense: 2, weight: 0.7, value: value(800),
         weaponType: 'axe'
+    },
+    {
+        name: 'Ruby glass pick-axe',  base: 'RubyWeaponBase',
+        damage: '3d5', attack: 5, defense: 2,
+        weaponType: 'axe',
+        weight: 1.0, value: value(300), use: 'digger'
     },
 
     // RUNED WEAPONS
@@ -482,16 +494,22 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'Runed katana', base: 'RunedWeaponBase',
-        damage: '3d10 + 2',
+        damage: '3d12 + 2',
         attack: 5, defense: 5, weight: 0.8, value: value(750),
         weaponType: 'sword'
     },
     {
         name: 'Wintersbane', base: 'RunedWeaponBase',
-        damage: '3d8 + 4',
+        damage: '3d10 + 4',
         attack: 6, defense: 3, weight: 1.0, value: value(1000),
         weaponType: 'sword',
         // onEquip: {addComp: resistance('ICE', 'MEDIUM')}
+    },
+    {
+        name: 'Rune-covered pick-axe',  base: 'RunedWeaponBase',
+        damage: '4d5', attack: 5, defense: 2,
+        weaponType: 'axe',
+        weight: 2.5, value: value(300), use: 'digger'
     },
 
     // VOID WEAPONS
@@ -545,7 +563,7 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'Hammer of Void', base: 'VoidWeaponBase',
-        damage: '5d5 + 4',
+        damage: '5d5 + 8',
         attack: 8, defense: 8, weight: 3.7, value: value(850),
         weaponType: 'hammer',
         onAttackHit: [meleeHitDamage(2, '2d8 + 4', 'VOID')],
