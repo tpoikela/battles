@@ -124,10 +124,11 @@ export class Placer {
     /* Returns a bounding for of given size from the map, if any is found. Useful
      * for retrofitting sub-levels into already generated levels. */
     public static findCellArea(
-        map: CellMap, sizeX: number, sizeY: number, func: (cell: Cell) => boolean
+        map: CellMap, sizeX: number, sizeY: number, func: (cell: Cell) => boolean,
+        halo=0 // How many cells ignored from the edge
     ): BBox[] {
         const {cols, rows} = map;
-        let [currX, currY] = [0, 0];
+        let [currX, currY] = [halo, halo];
 
         const bboxes: BBox[] = [];
         const minBoxes = 5;
@@ -136,9 +137,9 @@ export class Placer {
         // Scans the x0,y0 position to find the specified area
         const scanPosition = (x0: number, y0: number, res: TCoord[]): boolean => {
             for (let x = x0; x < (x0 + sizeX); x++) {
-                if (x < cols) {
+                if (x < (cols-halo)) {
                     for (let y = y0; y < (y0 + sizeY); y++) {
-                        if (y < rows) {
+                        if (y < (rows-halo)) {
                             if (usedCells[x + ',' + y]) {
                                 return false;
                             }
@@ -180,11 +181,11 @@ export class Placer {
 
             if (!done) {
                 ++currX;
-                if (currX === cols) {
-                    currX = 0;
+                if (currX === (cols-halo)) {
+                    currX = halo;
                     ++currY;
                 }
-                if (currY === rows) {break;}
+                if (currY === (rows-halo)) {break;}
             }
         }
 

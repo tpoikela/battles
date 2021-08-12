@@ -1902,6 +1902,10 @@ class RGClass {
         return {cmd: 'unequip', slot: name, slotNumber, count};
     }
 
+    public getCraftCmd(item: ItemBase, count: number): IPlayerCmdInput {
+        return {cmd: 'craft', item, count};
+    }
+
 
 /* Returns true if given item is one-shot use item by its type.*/
     public isOneShotItem(item: ItemBase): boolean {

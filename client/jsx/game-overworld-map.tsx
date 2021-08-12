@@ -197,6 +197,7 @@ export default class GameOverWorldMap extends React.Component {
           startX={startX}
           startY={screen.startY}
           useRLE={false}
+          renderInAscii={true}
       />
     );
 

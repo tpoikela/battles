@@ -3,7 +3,7 @@
 import RG from '../src/rg';
 import {Colors} from './colors';
 import {meleeHitDamage, color, resistance} from './shell-utils';
-import {IAddCompObj} from '../src/interfaces';
+import {IAddCompObj, IRecipeEntry} from '../src/interfaces';
 
 const scaleAll = 1.0;
 
@@ -104,6 +104,7 @@ interface ObjectShell {
     type?: string;
     value?: number;
     weight?: number;
+    recipe?: IRecipeEntry[];
 }
 
 const charArrow = '\u27B9';
@@ -1202,6 +1203,10 @@ const Items: ObjectShell[] = [
         weight: 0.4, color: color('white', 'red')
     },
     {
+        name: 'Wheat bread', base: 'FoodBase', energy: 2000, value: value(30),
+        recipe: [{count: 3, name: 'Wheat'}]
+    },
+    {
         name: 'Rye bread', base: 'FoodBase', energy: 2000, value: value(30)
     },
     {
@@ -1282,6 +1287,41 @@ const Items: ObjectShell[] = [
     {
         name: 'piece of stone', base: 'tool', value: 3,
         className: 'cell-item-stone', char: ']', weight: 0.25
+    },
+    {
+        name: 'iron ingot', base: 'tool', value: 15,
+        className: 'cell-item-iron', char: ']', weight: 0.5,
+        recipe: [{count: 3, name: 'iron ore'}]
+    },
+    {
+        name: 'steel ingot', base: 'tool', value: 25,
+        className: 'cell-item-steel', char: ']', weight: 0.6,
+        recipe: [{count: 4, name: 'iron ore'}]
+    },
+    {
+        name: 'mithril ingot', base: 'tool', value: 35,
+        className: 'cell-item-mithril', char: ']', weight: 0.45,
+        recipe: [{count: 3, name: 'mithril ore'}]
+    },
+    {
+        name: 'permaice ingot', base: 'tool', value: 70,
+        className: 'cell-item-ice', char: ']', weight: 1.00,
+        recipe: [{count: 3, name: 'permaice ore'}]
+    },
+    {
+        name: 'ruby class ingot', base: 'tool', value: 70,
+        className: 'cell-item-ruby-glass', char: ']', weight: 0.20,
+        recipe: [{count: 3, name: 'ruby glass ore'}]
+    },
+    {
+        name: 'forium ingot', base: 'tool', value: 75,
+        className: 'cell-item-magic', char: ']', weight: 0.40,
+        recipe: [{count: 3, name: 'forium ore'}]
+    },
+    {
+        name: 'netherium ingot', base: 'tool', value: 100,
+        className: 'cell-item-void', char: ']', weight: 0.70,
+        recipe: [{count: 3, name: 'netherium ore'}]
     },
 
     // SPIRIT GEMS

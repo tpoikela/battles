@@ -672,6 +672,10 @@ export class Container extends ItemBase {
         return index >= 0;
     }
 
+    public getItemsWith(func: (item: ItemBase) => boolean): ItemBase[] {
+        return this._items.filter(func);
+    }
+
     /* Tries to remove an item. Returns true on success, false otherwise.*/
     public removeItem(item: ItemBase): boolean {
         if (this.hasItem(item)) {
@@ -709,7 +713,7 @@ export class Container extends ItemBase {
     }
 
     /* Returns last removed item if removeItem returned true.*/
-    public getRemovedItem(): ItemBase {return this._removedItem;}
+    public getRemovedItem(): ItemBase | null {return this._removedItem;}
 
     /* Removes N items from the inventory of given type.*/
     public removeNItems(item: ItemBase, n: number): boolean {

@@ -210,3 +210,18 @@ export class CmdUnequipItem extends CmdBase {
 
 }
 Cmd.UnequipItem = CmdUnequipItem;
+
+/* Executes crafting command. */
+export class CmdCraft extends CmdBase {
+
+    public execute(obj) {
+      const craftComp = new Component.Crafting();
+      craftComp.setItem(obj.item.getName());
+      craftComp.setCount(obj.item.getCount());
+      craftComp.setArgs(obj);
+      this._actor.add(craftComp);
+      return ACTION_ALREADY_DONE;
+    }
+
+}
+Cmd.Craft = CmdCraft;

@@ -1346,9 +1346,17 @@ export const DontRender = UniqueTagComponent('DontRender');
 // BASE ACTIONS (transient components, not serialized, stored ever)
 //---------------------------------------------------------------------------
 
-/* Added to a entity giving an item. */
+/* Added to a entity who is mining something. */
 export const Mining = TransientDataComponent('Mining',
     {target: null});
+
+/* Added to a entity who is crafting something. */
+export const Crafting = TransientDataComponent('Crafting',
+    {args: null, item: '', count: 1});
+
+/* Added to a entity who is farming something. */
+export const Farming = TransientDataComponent('Farming',
+    {action: '', args: null});
 
 /* Added to a entity giving an item. */
 export const Give = TransientDataComponent('Give',

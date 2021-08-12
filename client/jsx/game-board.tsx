@@ -1,9 +1,12 @@
 
 import * as React from 'react';
 import GameRow from './game-row';
+import * as ROT from '../../lib/rot-js';
 
 import {TCoord} from '../src/interfaces';
 import {RLEArray} from '../gui/screen';
+
+const BATTLES_TILE_DISPLAYS = 'battles-tile-displays';
 
 interface IGameBoardProps {
     boardClassName: string;
@@ -20,6 +23,8 @@ interface IGameBoardProps {
     onMouseOver?: (x: number, y: number) => void;
     onMouseOverCell?: (x: number, y: number) => void;
     onMouseUp?: (x: number, y: number) => void;
+    renderInAscii: boolean;
+    levelMap?: any;
 }
 
 const eventToPosition = (e, elem, props: IGameBoardProps, elemID: string): TCoord => {
@@ -30,6 +35,8 @@ const eventToPosition = (e, elem, props: IGameBoardProps, elemID: string): TCoor
     const numCells = props.sizeX;
     const startX = props.startX;
     const startY = props.startY;
+
+    if (!elem) {return [0, 0];}
 
     const rect = elem.getBoundingClientRect();
     const rowElem = elem.getElementsByClassName(elemID)[0];
@@ -52,6 +59,10 @@ export default class GameBoard extends React.Component {
     public props: IGameBoardProps;
     public board: any;
 
+    public display: any;
+    public fgColorCache: any;
+    public bgColorCache: any;
+
     constructor(props: IGameBoardProps) {
         super(props);
         this.onCellClick = this.onCellClick.bind(this);
@@ -59,6 +70,8 @@ export default class GameBoard extends React.Component {
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseOver = this.onMouseOver.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
+        this.fgColorCache = null;
+        this.bgColorCache = null;
     }
 
     public componentDidMount() {
@@ -131,6 +144,7 @@ export default class GameBoard extends React.Component {
     }
 
     public render() {
+        if (!this.props.renderInAscii) return this.renderTiles();
         const rowsHTML = [];
         // Build the separate cell rows
         for (let y = this.props.startY; y <= this.props.endY; ++y) {
@@ -161,6 +175,103 @@ export default class GameBoard extends React.Component {
         );
     }
 
+    public renderTiles() {
+        if (!this.display) {
+            const tileset = document.createElement('img');
+            tileset.src = 'public/battles_tileset.png';
+            this.display = new ROT.Display({
+                layout: 'tile',
+                width: this.props.sizeX,
+                height: this.props.endY - this.props.startY + 1,
+                tileWidth: 16,
+                tileHeight: 16,
+                tileSet: tileset,
+                tileMap: {
+                    '#': [0, 0]
+                },
+                fontFamily: 'Everson Mono',
+                fontSize: 16,
+                forceSquareRatio: true
+            });
+        }
+        if (!this.fgColorCache) {this.buildColorCache();}
+
+        const displayCont = this.display.getContainer();
+        const divElem = document.getElementById(BATTLES_TILE_DISPLAYS);
+        if (divElem) {
+            divElem.appendChild(displayCont);
+        }
+        else {
+            console.log('ERR. No divElem found!');
+        }
+
+        for (let y = 0; y < this.props.charRows.length; ++y) {
+            const yIndex = y;
+            const currRow = this.props.charRows[yIndex];
+            const currRowChars = decodeRLE(currRow);
+            const currRowColors = this.decodeColors(this.props.classRows[yIndex]);
+            let x = 0;
+            currRowChars.forEach((char: string) => {
+                const fg = currRowColors[x][0];
+                const bg = currRowColors[x][1];
+                this.display.draw(x, y, char, fg, bg);
+                x += 1;
+            });
+
+        }
+        return (
+            <div
+                id={BATTLES_TILE_DISPLAYS}
+                onClick={this.onCellClick}
+                ref={node => {this.board = node;}}
+            >
+            </div>
+        );
+    }
+
+    public buildColorCache(): void {
+        const cssRules = document.styleSheets[1].cssRules;
+        this.fgColorCache = {};
+        this.bgColorCache = {};
+
+        for (let i = 0; i < cssRules.length; i++) {
+            const cssRule: any = cssRules[i];
+            console.log('cssRule is now', cssRule);
+            const style = cssRule.style;
+            if (style) {
+                const fgColor = style.color;
+                const bgColor = style.backgroundColor;
+                if (fgColor) this.fgColorCache[cssRule.selectorText] = fgColor;
+                if (bgColor) this.bgColorCache[cssRule.selectorText] = bgColor;
+            }
+        }
+    }
+
+    public decodeColors(row): any[] {
+        const res: any[] = [];
+        row.forEach((pair: [number, string]) => {
+            const runLen = pair[0];
+            const classNameStr = pair[1];
+            const classNames = classNameStr.split(' ');
+            let colorFg = '';
+            let colorBg = '';
+
+            classNames.forEach(className => {
+                if (className !== 'cell-not-seen') {
+                    colorFg = this.fgColorCache['.' + className];
+                    colorBg = this.bgColorCache['.' + className];
+                }
+            });
+
+            const colorPair = [colorFg, colorBg];
+            for (let i = 0; i < runLen; i++) {
+                res.push(colorPair);
+            }
+        });
+        return res;
+    }
+
+
     private onMouseOverCell(evt) {
       if (this.props.onMouseOverCell) {
         evt.preventDefault();
@@ -176,3 +287,16 @@ export default class GameBoard extends React.Component {
     }
 
 }
+
+function decodeRLE(row): any[] {
+    const res: any[] = [];
+    row.forEach((pair: [string, string]) => {
+        const runLen = parseInt(pair[0], 10);
+        const char = pair[1];
+        for (let i = 0; i < runLen; i++) {
+            res.push(char);
+        }
+    });
+    return res;
+}
+

@@ -46,6 +46,7 @@ export default class EditorGameBoard extends React.Component {
               startX={0}
               startY={0}
               useRLE={this.props.useRLE}
+              renderInAscii={true}
             />
             </ContextMenuTrigger>
         );

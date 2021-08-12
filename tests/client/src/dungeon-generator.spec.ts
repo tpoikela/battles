@@ -11,9 +11,10 @@ const RNG = Random.getRNG();
 describe('DungeonGenerator', function() {
     this.timeout(10000);
 
-    it('generates dungeon levels', () => {
+    it('generates fully connected dungeon levels', () => {
         // RNG.setSeed(new Date().getTime());
         // RNG.setSeed(6);
+        // RNG.setSeed(1624902773128);
         // Dice.RNG.setSeed(6);
         const dungGen = new DungeonGenerator();
         // dungGen._debug = true;
@@ -22,7 +23,7 @@ describe('DungeonGenerator', function() {
             // rerunOnFailure: true
             errorOnFailure: true
         };
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 10; i++) {
             const cols = RNG.getUniformInt(80, 120);
             const rows = RNG.getUniformInt(28, 56);
             // const rows = RNG.getUniformInt(28, 120);

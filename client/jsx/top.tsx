@@ -17,6 +17,7 @@ import GameCreatingScreen from './game-creating-screen';
 import HiddenFileInput from './hidden-file-input';
 import GamePlugins from './game-plugins';
 import GameStats from './game-stats';
+import GameCraftingMenu from './game-crafting-menu';
 
 import GameContextMenu from './context-menu';
 import {ContextMenuTrigger} from 'react-contextmenu';
@@ -60,6 +61,7 @@ export interface IBattlesTopState {
     playerLevel: string;
     playerName: string;
     render: boolean;
+    renderInAscii: boolean;
     saveInProgress: boolean;
     seedName: string;
     selectedCell: Cell | null;
@@ -74,6 +76,7 @@ export interface IBattlesTopState {
     showLoadScreen: boolean;
     showOWMap: boolean;
     showInventory: boolean;
+    showCraftingMenu: boolean;
     showCharInfo: boolean;
     showCreateScreen: boolean;
     editorData: EditorData; // Data given to editor
@@ -120,6 +123,7 @@ export class BattlesTop extends React.Component {
             plugins: [],
             progress: '',
             render: true,
+            renderInAscii: true,
             saveInProgress: false,
             seedName: '',
             selectedCell: null,
@@ -131,6 +135,7 @@ export class BattlesTop extends React.Component {
             showGameMenu: false,
             showHelpScreen: false,
             showInventory: false,
+            showCraftingMenu: false,
             showLoadScreen: false,
             showMap: false,
             showOWMap: false,
@@ -440,6 +445,21 @@ export class BattlesTop extends React.Component {
                     toggleScreen={this.toggleScreen}
                 />
                 }
+
+                {gameValid && !this.state.showEditor &&
+                 this.state.showCraftingMenu &&
+                <GameCraftingMenu
+                    doInvCmd={this.doInvCmd}
+                    handleKeyDown={this.gameManager.handleKeyDown}
+                    invMsg={this.state.invMsg}
+                    msgStyle={this.state.invMsgStyle}
+                    player={player}
+                    setInventoryMsg={this.setInventoryMsg}
+                    showCraftingMenu={this.state.showCraftingMenu}
+                    toggleScreen={this.toggleScreen}
+                />
+                }
+
                 {gameValid && !this.state.showEditor &&
                  this.state.showCharInfo &&
                     <GameCharInfo
@@ -500,7 +520,9 @@ export class BattlesTop extends React.Component {
                                     sizeX={2 * screen!.viewportX + 1}
                                     startX={startX!}
                                     startY={screen!.startY}
-                                    useRLE={true}
+                                    useRLE={this.state.renderInAscii && true}
+                                    renderInAscii={this.state.renderInAscii}
+                                    levelMap={this.gameManager.getMap()}
                                 />
                             </ContextMenuTrigger>
                             }
@@ -609,6 +631,7 @@ export class BattlesTop extends React.Component {
         guiCommands[Keys.GUI.Map] = this.GUIMap.bind(this);
         guiCommands[Keys.GUI.OwMap] = this.GUIOverWorldMap.bind(this);
         guiCommands[Keys.GUI.Use] = this.GUIUseItem.bind(this);
+        guiCommands[Keys.GUI.Craft] = this.GUICraft.bind(this);
         guiCommands[Keys.GUI.CharInfo] = this.GUICharInfo.bind(this);
         guiCommands.GOTO = this.GUIGoto.bind(this);
         this.gameManager.setGUICommands(guiCommands);
@@ -694,6 +717,10 @@ export class BattlesTop extends React.Component {
         }
     }
 
+    public GUICraft(): void {
+        this.toggleScreen('CraftingMenu');
+    }
+
 
     public showScreen(type: string): void {
         const key = 'show' + type;
@@ -743,7 +770,7 @@ export class BattlesTop extends React.Component {
         this.setGameSetting('playerClass', className);
     }
 
-    public setPlayerRace(raceName): void {
+    public setPlayerRace(raceName: string): void {
         this.setGameSetting('playerRace', raceName);
     }
 
@@ -751,14 +778,14 @@ export class BattlesTop extends React.Component {
         this.setGameSetting('playMode', mode);
     }
 
-    public setGameSetting(name, value): void {
+    public setGameSetting(name: string, value): void {
         this.gameManager.setGameSettings(name, value);
         this.setState({[name]: value});
     }
 
     /* Can be used to call any class method from sub-component without
      * explicitly passing all possible callback functions as props. */
-    public topMenuCallback(cmd, args) {
+    public topMenuCallback(cmd: string, args) {
       if (typeof this[cmd] === 'function') {
           if (Array.isArray(args)) {
               if (args.length === 1) {
@@ -770,6 +797,19 @@ export class BattlesTop extends React.Component {
           }
           else {
               this[cmd](args);
+          }
+      }
+      else if (typeof this.gameManager[cmd] === 'function') {
+          if (Array.isArray(args)) {
+              if (args.length === 1) {
+                  this.gameManager[cmd](args);
+              }
+              else {
+                  this.gameManager[cmd](...args);
+              }
+          }
+          else {
+              this.gameManager[cmd](args);
           }
       }
       else {
@@ -831,6 +871,7 @@ export class BattlesTop extends React.Component {
         this.GUINextTarget = this.GUINextTarget.bind(this);
         this.GUILook = this.GUILook.bind(this);
         this.GUIUseItem = this.GUIUseItem.bind(this);
+        this.GUICraft = this.GUICraft.bind(this);
 
         this.selectSaveGame = this.selectSaveGame.bind(this);
 
@@ -861,6 +902,14 @@ export class BattlesTop extends React.Component {
         this.updatePluginList = this.updatePluginList.bind(this);
 
         this.increaseFont = this.increaseFont.bind(this);
+    }
+
+    public useAsciiTiles(): void {
+        this.setState({renderInAscii: true});
+    }
+
+    public useGraphicalTiles(): void {
+        this.setState({renderInAscii: false});
     }
 
 }

@@ -52,6 +52,7 @@ describe('ItemGen', () => {
     });
 
     it('has function generate random item shells', () => {
+        const parser = ObjectShell.getParser();
         /*
         console.log('WEAPONS:');
         for (let i = 0; i < 50; i++) {
@@ -62,7 +63,9 @@ describe('ItemGen', () => {
             const {name, value, damage} = shell;
             console.log(value, 'gold,', 'name:', name, 'dmg:', damage);
         }
+        */
         console.log('ARMOUR:');
+        const ofAgilRe = new RegExp('of (agility|willpower|accuracy|strength)', 'i');
         for (let i = 0; i < 50; i++) {
             const shell = ItemGen.genRandShell('armour');
             expect(shell).to.have.property('name');
@@ -70,8 +73,13 @@ describe('ItemGen', () => {
             expect(shell).to.have.property('value');
             const {name, value, protection} = shell;
             console.log(value, 'gold,', 'name:', name, 'pro:', protection);
+
+            const parsedShell = parser.parseObjShell(RG.TYPE_ITEM, shell);
+            const item = parser.createFromShell(RG.TYPE_ITEM, parsedShell);
+            if (ofAgilRe.test(item.getName())) {
+                console.log(item.get('Stats').toJSON());
+            }
         }
-        */
         console.log('AMMO:');
         for (let i = 0; i < 50; i++) {
             const shell = ItemGen.genRandShell('ammo');

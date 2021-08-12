@@ -54,6 +54,10 @@ export class Inventory {
         return this._inv.hasItemWith(item => item.getName() === name);
     }
 
+    public getItemsNamed(name: string): ItemBase[] {
+        return this._inv.getItemsWith(item => item.getName() === name);
+    }
+
     /* For using item inside the container. */
     public useItem(item: ItemBase, obj): boolean {
         if (this._inv.hasItem(item)) {

@@ -26,6 +26,7 @@ type BaseActor = Actor.BaseActor;
 type SentientActor = Actor.SentientActor;
 type ItemBase = Item.ItemBase;
 
+
 export interface IShellInputData {
     actors?: IShell[];
     items?: IShell[];
@@ -543,7 +544,7 @@ export class Creator {
                     }
                 }
                 else {
-                    RG.err('ObjectParser', 'addUseEffects',
+                    RG.err('ObjectCreator', 'addUseEffects',
                         `useEffect shell has 'requires'.
                         newObj shell 'use' must be an object.`
                     );
@@ -559,7 +560,7 @@ export class Creator {
             }
         }
         else {
-            RG.err('ObjectParser', 'addUseEffects',
+            RG.err('ObjectCreator', 'addUseEffects',
                 'Unknown effect: |' + useFuncName + '|');
         }
     }
@@ -582,7 +583,7 @@ export class Creator {
             item.useArgs[reqName] = obj[reqName];
         }
         else {
-            RG.err('ObjectParser', '_verifyAndAddReq',
+            RG.err('ObjectCreator', '_verifyAndAddReq',
                 `Req |${reqName}| not specified in item shell. Item: ${item}`);
         }
     }
@@ -1136,11 +1137,11 @@ export class Parser {
 
     public dbGetRand(query: IQueryDB) {return this._procgen.dbGetRand(query);}
 
-    public filter(categ: DBKey, func): IShell[] {
+    public filter(categ: DBKey, func: TShellFunc): IShell[] {
         return this._procgen.filterCategWithFunc(categ, func);
     }
 
-    public filterItems(func): IShell[] {
+    public filterItems(func: TShellFunc): IShell[] {
         return this._procgen.filterCategWithFunc(RG.TYPE_ITEM, func);
     }
 

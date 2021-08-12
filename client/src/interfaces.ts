@@ -728,3 +728,12 @@ export interface IPenaltyObj {
 }
 
 
+export interface IRecipeEntry {
+    count: number;
+    name: string;
+}
+
+export interface IRecipe {
+    inputs: IRecipeEntry[];
+    outputs: IRecipeEntry[];
+}
