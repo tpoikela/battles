@@ -59,12 +59,16 @@ export abstract class LevelGenerator {
     public abstract create(cols: number, rows: number, conf: ILevelGenOpts): Level;
 
     /* Adds markers for start and endpoint for given level. */
-    public addStartAndEndPoint(level: Level, start: TCoord, end: TCoord): void {
+    public addStartAndEndPointMarker(level: Level, start: TCoord, end: TCoord): void {
         if (start) {
             const [sX, sY] = start;
             const startPointElem = new ElementMarker('<');
             startPointElem.setTag('start_point');
             level.addElement(startPointElem, sX, sY);
+        }
+        else {
+            RG.err('LevelGenerator', 'addStartAndEndPointMarker',
+                'start point coord not defined');
         }
 
         if (end) {

@@ -157,7 +157,7 @@ export class CaveGenerator extends LevelGenerator {
             endPoint = this.getEndPointFromMap(level, startPoint);
         }
 
-        this.addStartAndEndPoint(level, startPoint, endPoint);
+        this.addStartAndEndPointMarker(level, startPoint, endPoint);
 
         extras.startPoint = startPoint;
         if (endPoint) {extras.endPoint = endPoint;}

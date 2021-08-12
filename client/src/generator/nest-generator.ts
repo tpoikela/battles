@@ -12,7 +12,6 @@ import {Geometry} from '../geometry';
 import {BBox} from '../bbox';
 import {Random} from '../random';
 import {ELEM} from '../../data/elem-constants';
-//import {DungeonPopulate} from '../dungeon-populate';
 import {ActorGen} from '../../data/actor-gen';
 import {ObjectShell} from '../objectshellparser';
 import {SentientActor} from '../actor';
@@ -121,7 +120,8 @@ export class NestGenerator extends LevelGenerator {
             bbox = conf.embedOpts.bbox;
         }
         else {
-            const bboxes: BBox[] = Placer.findCellArea(map, sizeX, sizeY, cellFunc);
+            const halo = 1;
+            const bboxes: BBox[] = Placer.findCellArea(map, sizeX, sizeY, cellFunc, halo);
             if (bboxes.length === 0) {return false;}
             bbox = RNG.arrayGetRand(bboxes);
         }
@@ -173,7 +173,8 @@ export class NestGenerator extends LevelGenerator {
             }
         }
 
-        // This section creates a tunnel through walls
+        // This section creates a tunnel through walls, if we did not
+        // scan for door connections
         const map: CellMap = parentLevel.getMap();
         let dir: string = '';
         const [sizeX, sizeY] = parentLevel.getSizeXY();
@@ -417,7 +418,6 @@ export class NestGenerator extends LevelGenerator {
         parentLevel: Level, bbox: BBox,
         conf: PartialNestOpts
     ): TCoord[] {
-        // console.log('scanAndConnect bbox', bbox);
         // parentLevel.debugPrintInASCII();
         const result: TCoord[] = [];
 
@@ -431,7 +431,7 @@ export class NestGenerator extends LevelGenerator {
             if (dirMap.E) {
                 const [eX, eY] = dirMap.E[0];
                 const eastCell = map.getCell(eX, eY);
-                if (eastCell.isFree()) {
+                if (eastCell && eastCell.isFree()) {
                     // Need to tunnel west until floor found
                     const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.W);
                     result.push(...tunnel);
@@ -448,7 +448,7 @@ export class NestGenerator extends LevelGenerator {
             if (dirMap.W) {
                 const [wX, wY] = dirMap.W[0];
                 const westCell = map.getCell(wX, wY);
-                if (westCell.isFree()) {
+                if (westCell && westCell.isFree()) {
                     console.log('scanAndConnect free west cell at', wX, wY);
                     // Need to tunnel west until floor found
                     const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.E);
@@ -467,7 +467,7 @@ export class NestGenerator extends LevelGenerator {
             if (dirMap.S) {
                 const [sX, sY] = dirMap.S[0];
                 const southCell = map.getCell(sX, sY);
-                if (southCell.isFree()) {
+                if (southCell && southCell.isFree()) {
                     console.log('scanAndConnect south cell at', sX, sY);
                     // Need to tunnel west until floor found
                     const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.N);
@@ -476,17 +476,19 @@ export class NestGenerator extends LevelGenerator {
             }
         }
 
+        // parentLevel.debugPrintInASCII();
         // North wall
         for (let x = bbox.ulx; x <= bbox.lrx; x++) {
             const y = bbox.uly;
             const map = parentLevel.getMap();
             const coord = Geometry.getCrossAround(x, y, 1, true);
             const dirMap = Geometry.coordToDirMap([x, y], coord);
+            // console.log('Scanning x,y ', x, y, ' dirMap: ', dirMap, ' bbox: ', bbox);
 
             if (dirMap.N) {
                 const [nX, nY] = dirMap.N[0];
                 const northCell = map.getCell(nX, nY);
-                if (northCell.isFree()) {
+                if (northCell && northCell.isFree()) {
                     console.log('scanAndConnect north cell at', nX, nY);
                     // Need to tunnel west until floor found
                     const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.S);
@@ -496,7 +498,6 @@ export class NestGenerator extends LevelGenerator {
         }
 
         // console.log('After TUNNELING bbox', bbox);
-        // parentLevel.debugPrintInASCII();
         return result;
     }
 

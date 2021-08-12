@@ -219,8 +219,8 @@ export class DungeonGenerator extends LevelGenerator {
             rooms: mapGen.getRooms(),
             corridors: mapGen.getCorridors()
         };
-        if (mapGen.bigRooms) {
-            extras.bigRooms = mapGen.bigRooms;
+        if ((mapGen as any).bigRooms) {
+            extras.bigRooms = (mapGen as any).bigRooms;
         }
         level.setExtras(extras);
         this.addNestIntoLevel(level);
@@ -564,16 +564,18 @@ export class DungeonGenerator extends LevelGenerator {
                 const bbox: BBox = BBox.fromBBox(room.getOuterBbox());
                 const coord = Geometry.getBorderForBbox(bbox);
                 coord.forEach(xy => {
-                    if (!map.has(xy, 'floor')) {
-                        const marker = new ElementMarker('w');
-                        marker.setTag('room wall');
-                        level.addElement(marker, xy[0], xy[1]);
-                    }
-                    else {
-                        /* const marker = new RG.Element.Marker('D');
-                        marker.setTag('room door');
-                        level.addElement(marker, xy[0], xy[1]);*/
-                        ++numDoors;
+                    if (level.getMap().hasXY(xy[0], xy[1])) {
+                        if (!map.has(xy, 'floor')) {
+                            const marker = new ElementMarker('w');
+                            marker.setTag('room wall');
+                            level.addElement(marker, xy[0], xy[1]);
+                        }
+                        else {
+                            /* const marker = new RG.Element.Marker('D');
+                            marker.setTag('room door');
+                            level.addElement(marker, xy[0], xy[1]);*/
+                            ++numDoors;
+                        }
                     }
                 });
 
@@ -693,20 +695,34 @@ export class DungeonGenerator extends LevelGenerator {
 
             debug('Rooms for stairs locations', room1, room2);
 
-            const [cx1, cy1] = room1.getCenter();
-            const [cx2, cy2] = room2.getCenter();
+            // const [cx1, cy1] = room1.getCenter();
+            // const [cx2, cy2] = room2.getCenter();
+
+            const freeCells1 = level.getMap().getFreeInBbox(room1.getBbox());
+            const freeCells2 = level.getMap().getFreeInBbox(room1.getBbox());
+            const freeCell1 = RNG.arrayGetRand(freeCells1);
+            const freeCell2 = RNG.arrayGetRand(freeCells2);
+
+            if (!freeCell1) {
+                RG.err('DungeonGenerator', 'addStairsLocation',
+                   `Failed to find free place for Stairs@room1`);
+            }
+            if (!freeCell2) {
+                RG.err('DungeonGenerator', 'addStairsLocation',
+                   `Failed to find free place for Stairs@room2`);
+            }
 
             // Store the points to extras
-            extras.startPoint = [cx2, cy2];
-            extras.endPoint = [cx1, cy1];
+            extras.startPoint = freeCell2.getXY(); //[cx2, cy2];
+            extras.endPoint = freeCell1.getXY(); // [cx1, cy1];
 
             const {startPoint, endPoint} = extras;
-            this.addStartAndEndPoint(level, startPoint, endPoint);
+            this.addStartAndEndPointMarker(level, startPoint, endPoint);
 
             // Place markers to later identify the points from the level
-            room1.addStairs(cx1, cy1, true);
-            room2.addStairs(cx2, cy2, false);
-
+            room1.addStairs(...extras.endPoint, true);
+            room2.addStairs(...extras.startPoint, false);
+            // level.debugPrintInASCII();
         }
         else {
             // Resort to random placement, no worthwhile rooms, although this
@@ -739,7 +755,11 @@ export class DungeonGenerator extends LevelGenerator {
         let criticalPath: ICoordXY[] = Path.getShortestPath(cx2, cy2, cx1, cy1, pathFunc);
         if (criticalPath.length === 0) {
             const newPathFunc = (x: number, y: number) => {
-                return !(/wall/).test(map.getCell(x, y).getBaseElem().getType());
+                //if (map.hasXY(x, y)) {
+                console.log('newPathFunc x,y ', x, y);
+                    return !(/wall/).test(map.getCell(x, y).getBaseElem().getType());
+                //}
+                return false;
             };
             criticalPath = Path.getShortestPath(cx2, cy2, cx1, cy1, newPathFunc);
             if (criticalPath.length === 0) {
