@@ -65,7 +65,9 @@ export class SystemCrafting extends SystemBase {
             outputs.forEach((recipeOutput: IRecipeEntry) => {
                 const {count, name} = recipeOutput;
                 this.addOutputsToEntity(ent, count, name);
-                if (objArgs.hasOwnProperty('callback')) {
+                // Mainly used with player cmds, callback ensures that msg is
+                // passed back to GUI elements
+                if (objArgs && objArgs.hasOwnProperty('callback')) {
                     const msg = `${entName} succesfully crafted ${itemName}`;
                     objArgs.callback({msg, result: true});
                 }
@@ -73,7 +75,7 @@ export class SystemCrafting extends SystemBase {
         }
         else {
             // No valid materials
-            if (objArgs.hasOwnProperty('callback')) {
+            if (objArgs && objArgs.hasOwnProperty('callback')) {
                 const msg = `${entName} does not have materials to craft ${itemName}`;
                 objArgs.callback({msg, result: false});
             }
