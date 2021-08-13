@@ -24,6 +24,7 @@ test_async:
 
 build:
   script:
+    - npm install
     - npm run build
 
 simulation:
