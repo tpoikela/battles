@@ -337,6 +337,12 @@ const colorThr = 36;
 export function colorsTooClose(fg, bg): boolean {
     if (fg === bg) {return true;}
     const thr = colorThr;
+    if (!ColorMap[fg.toLowerCase()]) {
+        throw Error(`Color ${fg} not usable`);
+    }
+    if (!ColorMap[bg.toLowerCase()]) {
+        throw Error(`Color ${bg} not usable`);
+    }
     const hexFg = ColorMap[fg.toLowerCase()].rgb;
     const hexBg = ColorMap[bg.toLowerCase()].rgb;
     const brightnessFg = getHsp(hexFg);
