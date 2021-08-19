@@ -133,8 +133,7 @@ export class DebugGame {
         };
         this._factBase.addNRandItems(level, this._parser, itemConf);
 
-        const cols = level.getMap().cols;
-        const rows = level.getMap().rows;
+        const {cols, rows} = level.getMap();
 
         const boss = this._parser.createActor('Thabba, Son of Ice');
         level.addActor(boss, cols - 2, rows - 2);
@@ -154,14 +153,12 @@ export class DebugGame {
         player.add(new Component.Defender());
         player.add(new Component.MasterEquipper());
         player.add(new Component.BiDirStrike());
-        player.add(new Component.BiDirStrike());
 
         // Marksman components
         player.add(new Component.ThroughShot());
 
         const winCond = new WinCondition('Kill a keeper', game.getPool());
         winCond.addActorKilled(keeper);
-
 
         const eq = player.getInvEq().getEquipment();
         eq.addSlot('spiritgem', new EquipSlot('spiritgem'));
@@ -182,13 +179,11 @@ export class DebugGame {
         coins.setCount(600);
         player.getInvEq().addItem(coins);
 
-        // if (!player.getBook()) {
         const spellbook = new Spell.SpellBook(player);
         player.setBook(spellbook);
         Spell.addAllSpells(spellbook);
         player.add(new Component.SpellPower());
         player.get('SpellPower').setPP(100);
-        // }
 
         const vActor = new VirtualActor('spawner');
         const spawnBrain = new BrainSpawner(vActor);
@@ -211,18 +206,7 @@ export class DebugGame {
         player.get('SpellPower').setPP(100);
         player.get('SpellPower').setMaxPP(100);
 
-        const itemRand = new ItemRandomizer();
-        const runeProt = parser.createItem('rune of protection');
-        itemRand.adjustItem(runeProt, 100);
-        player.getInvEq().addItem(runeProt);
-
-        const runeDig = parser.createItem('rune of tunneling');
-        itemRand.adjustItem(runeDig, 100);
-        player.getInvEq().addItem(runeDig);
-
-        const runeForce = parser.createItem('rune of force');
-        itemRand.adjustItem(runeForce, 100);
-        player.getInvEq().addItem(runeForce);
+        this.addRunesForDebug(player, parser);
 
         const lever = new Element.ElementLever();
         level.addElement(lever, 2, 1);
@@ -237,31 +221,15 @@ export class DebugGame {
 
         this.addGoblinWithLoot(level);
 
-        const runeOfCtrl = parser.createItem('rune of control');
-        itemRand.adjustItem(runeOfCtrl, 250);
-        player.getInvEq().addItem(runeOfCtrl);
 
-        const runeOfVenom = parser.createItem('rune of venom');
-        itemRand.adjustItem(runeOfVenom, 150);
-        player.getInvEq().addItem(runeOfVenom);
-
-        const runeOfPoisonClouds = parser.createItem('rune of poison clouds');
-        itemRand.adjustItem(runeOfPoisonClouds, 150);
-        player.getInvEq().addItem(runeOfPoisonClouds);
-
-        const voidDagger = parser.createItem('Void dagger');
-        player.getInvEq().addItem(voidDagger);
+        addItemToPlayer(parser, player, 'Void dagger');
 
         player.getInvEq().unequipItem('hand', 1, 0);
         player.getInvEq().equipItem(voidDagger);
 
-        const shovel = parser.createItem('shovel');
-        player.getInvEq().addItem(shovel);
-        const machete = parser.createItem('machete');
-        player.getInvEq().addItem(machete);
-
-        const webRune = parser.createItem('rune of webs');
-        player.getInvEq().addItem(webRune);
+        addItemToPlayer(parser, player, 'shovel');
+        addItemToPlayer(parser, player, 'machete');
+        addItemToPlayer(parser, player, 'rune of webs');
 
         /* const voidElem = parser.createActor('void elemental');
         level.addActor(voidElem, pX + 1, pY + 1);*/
@@ -383,6 +351,9 @@ export class DebugGame {
             level.addActor(chicken, cell.getX(), cell.getY());
         }
 
+        addItemToPlayer(parser, player, 'hoe');
+        addItemToPlayer(parser, player, 'wheat seeds');
+
         player.setFOVRange(5);
         /*
         const blindness = new Component.Blindness();
@@ -392,6 +363,33 @@ export class DebugGame {
         game.addPlayer(player);
 
         return game;
+    }
+
+    public addRunesForDebug(player, parser): void {
+        const itemRand = new ItemRandomizer();
+        const runeProt = parser.createItem('rune of protection');
+        itemRand.adjustItem(runeProt, 100);
+        player.getInvEq().addItem(runeProt);
+
+        const runeDig = parser.createItem('rune of tunneling');
+        itemRand.adjustItem(runeDig, 100);
+        player.getInvEq().addItem(runeDig);
+
+        const runeForce = parser.createItem('rune of force');
+        itemRand.adjustItem(runeForce, 100);
+        player.getInvEq().addItem(runeForce);
+
+        const runeOfCtrl = parser.createItem('rune of control');
+        itemRand.adjustItem(runeOfCtrl, 250);
+        player.getInvEq().addItem(runeOfCtrl);
+
+        const runeOfVenom = parser.createItem('rune of venom');
+        itemRand.adjustItem(runeOfVenom, 150);
+        player.getInvEq().addItem(runeOfVenom);
+
+        const runeOfPoisonClouds = parser.createItem('rune of poison clouds');
+        itemRand.adjustItem(runeOfPoisonClouds, 150);
+        player.getInvEq().addItem(runeOfPoisonClouds);
     }
 
 /* Creates a debugging game for checking that quests work as planned. */
@@ -710,3 +708,8 @@ class ActorKillListener {
         this._game.addEvent(msgEvent2);
     }
 } // const ActorKillListener
+
+function addItemToPlayer(parser, player: SentientActor, itemName: string): void {
+    const item = parser.createItem(itemName);
+    player.getInvEq().addItem(item);
+}
