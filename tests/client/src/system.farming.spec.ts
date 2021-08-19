@@ -62,7 +62,7 @@ describe('System.Farming', () => {
         expect(cell.getElements()).to.have.length(2);
 
         // Simulate phase changing to let the wheat grow
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 50; i++) {
             const simEvent = new Component.WorldSimEvent();
             simEvent.setEventType(WS_EVENT.PHASE_CHANGED);
             farmer.add(simEvent);

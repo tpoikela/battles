@@ -300,7 +300,10 @@ describe('How poison item is used, and experience propagates', () => {
         level.addActor(curedVictim, 4, 4);
 
         const poisonTarget = level.getMap().getCell(4, 4);
-        expect(frostPoison.useItem({target: poisonTarget})).to.equal(true);
+
+        const poisonUsed = assassin.getInvEq().getItemsNamed('Potion of frost poison');
+        expect(poisonUsed).to.have.length(1);
+        expect(poisonUsed[0].useItem({target: poisonTarget})).to.equal(true);
         game.simulateGame(1);
         expect(curedVictim.has('Expiration')).to.equal(true);
         expect(curedVictim.has('Poison')).to.equal(true);

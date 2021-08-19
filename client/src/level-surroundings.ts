@@ -107,7 +107,6 @@ export class LevelSurroundings {
                     mapgen.addForest(mountLevel.getMap(), forestConf, bbox);
                 }
                 else if (type === 'cliffs') {
-                    console.log('Type cliffs found!');
                     const mountConf = MapGenerator.getOptions('mountain');
                     mountConf.nRoadTurns = 0;
                     mountConf.highRockThr = 100; // No blocking cells
