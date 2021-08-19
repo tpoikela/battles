@@ -48,7 +48,7 @@ const getTopOwnerActor = (itemOrActor) => {
     return itemOrActor;
 };
 
-const createUseItemComp = (item, target, effArgs?: EffArgs) => {
+export const createUseItemComp = (item, target, effArgs?: EffArgs) => {
     const useItem = new Component.UseItem();
     useItem.setTarget(target);
     useItem.setItem(item);
@@ -355,7 +355,7 @@ export const Effects = {
         {
             name: 'addEntity',
             requires: ['entityName'],
-            optional: ['duration'],
+            optional: ['duration', 'endMsg'],
             func(obj) {
                 const effArgs = {
                     target: obj,
@@ -375,7 +375,7 @@ export const Effects = {
         {
             name: 'addElement',
             requires: ['elementName'],
-            optional: ['duration', 'numAllowed'],
+            optional: ['duration', 'numAllowed', 'successMsg', 'failureMsg', 'successCheck', 'setters'],
             func(obj) {
                 const effArgs = {
                     target: obj,
@@ -385,7 +385,9 @@ export const Effects = {
                     duration: this.useArgs.duration,
                     numAllowed: this.useArgs.numAllowed || 1,
                     successMsg: this.useArgs.successMsg,
+                    successCheck: this.useArgs.successCheck,
                     failureMsg: this.useArgs.failureMsg,
+                    setters: this.useArgs.setters,
                 };
                 createUseItemComp(this, obj, effArgs);
                 return true;
