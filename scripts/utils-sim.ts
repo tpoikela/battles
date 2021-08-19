@@ -22,7 +22,9 @@ UtilsSim.optDefs = [
     {name: 'race', alias: 'r', type: String, descr: 'Race of actor'},
     {name: 'save_period', type: Number, descr: 'Save internal in turns'},
     {name: 'seed', type: String, descr: 'Seed for the RNGs'},
-    {name: 'verbosity', alias: 'v', type: String, descr: 'Verbosity level' }
+    {name: 'verbosity', alias: 'v', type: String, descr: 'Verbosity level' },
+    {name: 'xmult', alias: 'x', type: Number, descr: 'Overworld xMult' },
+    {name: 'ymult', alias: 'y', type: Number, descr: 'Overworld yMult' }
 ];
 
 UtilsSim.addArg = function(arg) {
