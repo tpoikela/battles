@@ -101,6 +101,7 @@ prefix.armour = {
     heavy: {weight: 1.5, value: 1.2, protection: 2, rarity: 1.5},
     plated: {weight: 1.2, value: 1.3, protection: 3, rarity: 1.3},
     spiked: {weight: 1.2, value: 1.4, protection: 1, attack: 3, rarity: 2.0},
+    flexible: {weight: 0.9, value: 1.4, protection: 2, attack: 2, rarity: 2.0},
 };
 
 ItemGen.prefix = prefix;
@@ -372,6 +373,11 @@ shellProps.armour = {
         armourType: 'chest', weight: 2.5,
         protection: 8, defense: 0, attack: -2,
         value: 80, no: {material: ['leather', 'wooden', 'cloth']}
+    },
+    cloak: {
+        armourType: 'cloak', weight: 0.2,
+        protection: 0, defense: 0, attack: 0,
+        value: 15, only: {material: ['cloth', 'leather']}
     },
     boots: {
         armourType: 'feet', weight: 0.5,
