@@ -84,7 +84,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "engines": {
-    "node": ">= 12.0"
+    "node": ">= 14.0"
   },
   "contributors": [
     "Tuomas Poikela <tuomas.sakari.poikela@gmail.com>"
