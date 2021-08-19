@@ -52,8 +52,8 @@ function main() {
             playerLevel: 'Medium',
             sqrPerItem: 100,
             sqrPerActor: 100,
-            xMult: 0.5,
-            yMult: 0.5,
+            xMult: opts.xmult || 0.5,
+            yMult: opts.ymult || 0.5,
             playerClass: 'Blademaster',
             playerRace: 'human',
             playerName: pName
