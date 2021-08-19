@@ -826,6 +826,12 @@ export class Branch extends SubZoneBase {
                 const extras = level.getExtras();
                 if (extras.startPoint) {
                     [x, y] = extras.startPoint;
+                    const cellSp = level.getMap().getCell(x, y);
+                    if (cellSp.hasConnection()) {
+                        let msg = `@${x},${y} already has connection. `;
+                        msg += `start: ${extras.startPoint} end: ${extras.endPoint}`;
+                        RG.err('Branch', 'setEntrance', msg);
+                    }
                 }
             }
 
