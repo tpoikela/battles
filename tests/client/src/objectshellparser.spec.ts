@@ -524,6 +524,19 @@ describe('ObjectShellParser.parseShellData()', () => {
         expect(bossObj.getName()).to.equal('Unique boss');
     });
 
+    it('it supports $$select, $$dice operations', () => {
+        const shell = {name: 'TestShell_1234',
+            value: {$$select: [1, 2, 3]},
+            weight: {$$dice: '2d6 + 4'},
+            type: 'weapon'
+        };
+        const parsed = parser.parseObjShell(RG.TYPE_ITEM, shell);
+        const testObj = parser.createItem('TestShell_1234');
+        expect(shell.value.$$select.indexOf(testObj.getValue()) >= 0).to.equal(true);
+        expect(testObj.getWeight()).to.be.at.least(2 + 4);
+        expect(testObj.getWeight()).to.be.at.most(12 + 4);
+    });
+
     it('can create all possible actors', () => {
         const {actors} = Objects;
         Object.values(actors).forEach(shell => {
@@ -546,6 +559,10 @@ describe('ObjectShellParser.parseShellData()', () => {
             if (!shell.dontCreate && shell.name) {
                 try {
                     const itemObj = parser.createItem(shell.name);
+                    const weight = itemObj.getWeight();
+                    const value = itemObj.getValue();
+                    expect(weight).to.be.above(0);
+                    expect(value).to.be.at.least(0);
                     expect(itemObj).to.not.be.empty;
                 }
                 catch (e) {
