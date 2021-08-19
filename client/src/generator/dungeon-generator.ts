@@ -699,7 +699,7 @@ export class DungeonGenerator extends LevelGenerator {
             // const [cx2, cy2] = room2.getCenter();
 
             const freeCells1 = level.getMap().getFreeInBbox(room1.getBbox());
-            const freeCells2 = level.getMap().getFreeInBbox(room1.getBbox());
+            const freeCells2 = level.getMap().getFreeInBbox(room2.getBbox());
             const freeCell1 = RNG.arrayGetRand(freeCells1);
             const freeCell2 = RNG.arrayGetRand(freeCells2);
 
