@@ -113,7 +113,7 @@ const Elements = [
     },
     {
         name: 'floor', className: 'cell-element-floor',
-        char: '.'
+        char: '.', addComp: ['Tillable'],
     },
     {
         name: 'floorcastle', className: 'cell-element-floor-castle',
@@ -481,6 +481,17 @@ const Elements = [
     {
         name: 'closed window', className: 'cell-element-window',
         char: '+', addComp: ['Impassable']
+    },
+
+    {
+        name: 'tilled soil', noRandom: true,
+        className: 'cell-element-floor',
+        char: '|'
+    },
+    {
+        name: 'planted soil', noRandom: true,
+        className: 'cell-element-floor',
+        char: '+'
     },
 
     //---------------------------------------------------------
