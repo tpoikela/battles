@@ -393,7 +393,6 @@ export class CaveGenerator extends LevelGenerator {
                 },
                 embedOpts: {level}
             };
-            console.log('NestConf will be', nestConf);
             if (nest.createAndEmbed(tilesX * 7, tilesY * 7, nestConf)) {
                 return true;
             }

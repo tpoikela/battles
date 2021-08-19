@@ -51,7 +51,6 @@ export class SystemWeather extends SystemBase {
         if (ent.has('WeatherEffect')) {
             const eff = ent.get('WeatherEffect');
             const effName = eff.getEffectType();
-            console.log('SystemWeather effName is:', effName);
             if (this._effTable[effName]) {
                 this._effTable[effName](ent, eff);
                 this.handleTemperature(ent, eff);
