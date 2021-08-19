@@ -8,7 +8,7 @@ import {FactoryGame} from '../client/src/factory.game';
 import {Random} from '../client/src/random';
 import {Dice} from '../client/src/dice';
 
-import ROT from '../lib/rot';
+import * as ROT from '../lib/rot-js';
 import {PlayerDriver} from '../tests/helpers/player-driver';
 import {UtilsSim} from './utils-sim';
 
