@@ -7,6 +7,10 @@ import * as Component from '../component';
 import {ELEM} from '../../data/elem-constants';
 import {ObjectShell} from '../objectshellparser';
 import {Element} from '../element';
+import {ISuccessCheck, TPropType} from '../interfaces';
+import {Entity} from '../entity';
+
+type Cell = import('../map.cell').Cell;
 
 const handlerTable = {
     AddComp: true,
@@ -18,7 +22,7 @@ const handlerTable = {
     RemoveComp: true
 };
 
-type HandleFunc = (ent, comp) => boolean;
+type HandleFunc = (ent: Entity, comp) => boolean;
 
 const TARGET_SPECIFIER = '$$target';
 const CELL_SPECIFIER = '$$cell';
@@ -44,8 +48,8 @@ export class SystemEffects extends SystemBase {
     public static addEffect(effName: string, func: HandleFunc): boolean {
         if (!handlerTable.hasOwnProperty(effName)) {
             const handlerName = 'handle' + effName.capitalize();
-            SystemEffects.prototype[handlerName] = func;
-            handlerTable[effName] = true;
+            (SystemEffects as any).prototype[handlerName] = func;
+            (handlerTable as any)[effName] = true;
             handlerNames = Object.keys(handlerTable);
             return true;
         }
@@ -116,6 +120,7 @@ export class SystemEffects extends SystemBase {
                     this._checkStartMsgEmits(ent, effComp);
                     const ok = this._dtable[effType](ent, effComp);
                     this._checkEndMsgEmits(ent, effComp, ok);
+                    this._postEffectChecks(ent, effComp, ok);
                 }
                 else {
                     RG.err('SystemEffects', 'updateEntity',
@@ -137,7 +142,7 @@ export class SystemEffects extends SystemBase {
         }
     }
 
-    public _checkEndMsgEmits(ent, effComp, ok): void {
+    public _checkEndMsgEmits(ent, effComp, ok: boolean): void {
         const useArgs = effComp.getArgs();
         if (useArgs.endMsg) {
             RG.gameMsg({cell: ent.getCell(), msg: useArgs.endMsg});
@@ -147,6 +152,23 @@ export class SystemEffects extends SystemBase {
         }
         if (!ok && useArgs.failureMsg) {
             RG.gameWarn({cell: ent.getCell(), msg: useArgs.failureMsg});
+        }
+    }
+
+    public _postEffectChecks(ent, effComp, ok: boolean): void {
+        const useArgs = effComp.getArgs();
+        if (!ok) {return;}
+        if (ent.has('OneShot') && ent.getCount) {
+            if (ent.getCount() === 1) {
+                const msg = {item: ent};
+                this.pool.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+            }
+            else {
+                ent.decrCount(1);
+            }
+        }
+        else if (ent.getCharges && ent.getCharges() > 0) {
+            ent.setCharges(ent.getCharges() - 1);
         }
     }
 
@@ -233,6 +255,12 @@ export class SystemEffects extends SystemBase {
             const [x, y] = [cell.getX(), cell.getY()];
             const level = srcEnt.getLevel();
             const existingElems = cell.getPropType(newElem.getType());
+            if (useArgs.successCheck) {
+                if (!this._successCheck(cell, useArgs.successCheck)) {
+                    return false;
+                }
+            }
+
             if (!existingElems || existingElems.length < useArgs.numAllowed) {
                 if (!level.addElement(newElem, x, y)) {
                     console.error('Failed to add element ' + useArgs.elementName);
@@ -241,9 +269,13 @@ export class SystemEffects extends SystemBase {
                 if (typeof newElem.onSystemAdd === 'function') {
                     newElem.onSystemAdd(cell);
                 }
+                if (useArgs.setters) {
+                    this._applySetters(newElem, useArgs.setters);
+                }
                 return true;
             }
             else {
+                console.log('maxNumAllowed hit already for', newElem.getName());
                 return false;
             }
         }
@@ -355,6 +387,93 @@ export class SystemEffects extends SystemBase {
         }
         return false;
     }
+
+    /* Used for any success checks required for applying the effect. */
+    protected _successCheck(cell: Cell, checks: ISuccessCheck[]): boolean {
+        let successOk = true;
+        checks.forEach((check: ISuccessCheck) => {
+            RG.PROP_TYPES.forEach((propType: TPropType) => {
+                if (!check[propType]) return; // Dont care about prop for this cell
+                // Process positive checks. Cell must have the prop, and we must
+                // get a positive match
+                ['has', 'hasAll'].forEach(func => {
+                    if (check[propType][func]) {
+                        if (propType !== RG.TYPE_ELEM && !cell.hasProp(propType)) {
+                            successOk = false;
+                        }
+                        else {
+                            let props = cell.getProp(propType);
+                            if (props) {props = props.slice();} // Avoid modifying the original
+                            if (propType === RG.TYPE_ELEM) {
+                                if (!props) {props = [];}
+                                props.push(cell.getBaseElem() as any);
+                            }
+                            let resultFound = false;
+                            // props cannot be null due to hasProp check
+                            props!.forEach(prop => {
+                                // Results in prop.has('CompName') or
+                                //           prop.hasAll(['Comp1', 'Comp2'])
+                                const funcArgs = check[propType][func];
+                                if (prop[func](funcArgs)) {
+                                    resultFound = true;
+                                }
+                            });
+                            successOk = successOk && resultFound;
+                        }
+                    }
+                });
+
+                ['hasNot', 'hasNone'].forEach(func => {
+                    let props = cell.getProp(propType);
+                    if (props) {props = props.slice();} // Avoid modifying the original
+                    if (propType === RG.TYPE_ELEM) {
+                        if (!props) {props = [];}
+                        props.push(cell.getBaseElem() as any);
+                    }
+                    if (props) {
+                        props.forEach(prop => {
+                            let resultOk = true;
+                            if (check[propType][func]) {
+                                if (!prop[func](check[propType][func])) {
+                                    resultOk = false;
+                                }
+                            }
+                            successOk = successOk && resultOk;
+                        });
+                    }
+                });
+
+            });
+        });
+        return successOk;
+    }
+
+    protected _applySetters(ent: Entity, setterList): void {
+        let funcs = [];
+        const cell = (ent as any).getCell();
+
+        if (Array.isArray(setterList)) {
+            funcs = setterList;
+        }
+        else {
+            funcs = [setterList];
+        }
+        funcs.forEach(setterObj => {
+            let targetObj = ent;
+            // If 'get' present, fetch the component first
+            if (setterObj.get) {targetObj = ent.get(setterObj.get);}
+
+            // Go through all func names in setterObj, and use func name to set
+            // values in the target object
+            Object.keys(setterObj).forEach(setter => {
+                if (setter !== 'get') {
+                    const valToSet = setterObj[setter];
+                    (targetObj as any)[setter](valToSet);
+                }
+            });
+        });
+    }
+
 }
 SystemEffects.handlerTable = handlerTable;
 

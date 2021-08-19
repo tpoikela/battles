@@ -125,19 +125,18 @@ export class Equipment {
         this.equipReduceWeightFactor = 1.0;
 
         this._slots = {
-            head: new EquipSlot('head'),
-            neck: new EquipSlot('neck'),
-            chest: new EquipSlot('chest'),
-            hand: new EquipSlot('hand'),
-            shield: new EquipSlot('shield'),
-            legs: new EquipSlot('legs'),
-            feet: new EquipSlot('feet'),
-            missile: new EquipSlot('missile', true),
-            missileweapon: new EquipSlot('missileweapon'),
-            spiritgem: new EquipSlot('spiritgem')
+            [RG.EQUIP.HEAD]: new EquipSlot(RG.EQUIP.HEAD),
+            [RG.EQUIP.NECK]: new EquipSlot(RG.EQUIP.NECK),
+            [RG.EQUIP.CLOAK]: new EquipSlot(RG.EQUIP.CLOAK),
+            [RG.EQUIP.CHEST]: new EquipSlot(RG.EQUIP.CHEST),
+            [RG.EQUIP.HAND]: new EquipSlot(RG.EQUIP.HAND),
+            [RG.EQUIP.SHIELD]: new EquipSlot(RG.EQUIP.SHIELD),
+            [RG.EQUIP.LEGS]: new EquipSlot(RG.EQUIP.LEGS),
+            [RG.EQUIP.FEET]: new EquipSlot(RG.EQUIP.FEET),
+            [RG.EQUIP.MISSILE]: new EquipSlot(RG.EQUIP.MISSILE, true),
+            [RG.EQUIP.MISSILEWEAPON]: new EquipSlot(RG.EQUIP.MISSILEWEAPON),
+            [RG.EQUIP.SPIRITGEM]: new EquipSlot(RG.EQUIP.SPIRITGEM)
         };
-
-
     }
 
     public addSlot(slotType: string, slotObj: EquipSlot): void {
@@ -163,10 +162,6 @@ export class Equipment {
         Object.values(this._slots).forEach((eqSlot: EquipSlot) => {
             total += eqSlot.getWeight();
         });
-        /*const equipped: any[] = this.getEquippedItems();
-        for (let i = 0; i < equipped.length; i++) {
-            total += equipped[i].getWeight() * equipped[i].getCount();
-        }*/
         total *= this.equipReduceWeightFactor;
         if (this._actor.has('MasterEquipper')) {
             total *= this._actor.get('MasterEquipper').getFactor();
@@ -256,10 +251,10 @@ export class Equipment {
 
     /* Equips given item. Slot is chosen automatically from suitable available
      * ones.*/
-    public equipItem(item): boolean {
+    public equipItem(item: ItemBase): boolean {
         let res = false;
-        if (item.getArmourType) {
-            res = this._equipToSlotType(item.getArmourType(), item);
+        if ((item as any).getArmourType) {
+            res = this._equipToSlotType((item as any).getArmourType(), item);
         }
         // No equip property, can only equip to hand
         else if (/^(missile|ammo)$/.test(item.getType())) {
@@ -269,15 +264,15 @@ export class Equipment {
             }
         }
         else if (item.getType() === 'missileweapon') {
-            res = this._equipToSlotType('missileweapon', item);
+            res = this._equipToSlotType(RG.EQUIP.MISSILEWEAPON, item);
         }
         else {
-            res = this._equipToSlotType('hand', item);
+            res = this._equipToSlotType(RG.EQUIP.HAND, item);
         }
         return res;
     }
 
-    public _equipToSlotType(slotType, item) {
+    public _equipToSlotType(slotType: string, item): boolean {
         const slot = this._slots[slotType];
         if (Array.isArray(slot)) {
             for (let i = 0; i < slot.length; i++) {
@@ -294,13 +289,13 @@ export class Equipment {
     }
 
     /* Returns true if given item is equipped.*/
-    public isEquipped(item) {
+    public isEquipped(item): boolean {
         const equipped = this.getItems();
         const index = equipped.indexOf(item);
         return index !== -1;
     }
 
-    public getEquipped(slotType) {
+    public getEquipped(slotType: string): ItemBase | (ItemBase | null)[] | null {
         return this.getItem(slotType);
     }
 

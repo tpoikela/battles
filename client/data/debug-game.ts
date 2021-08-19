@@ -221,8 +221,7 @@ export class DebugGame {
 
         this.addGoblinWithLoot(level);
 
-
-        addItemToPlayer(parser, player, 'Void dagger');
+        const voidDagger = addItemToPlayer(parser, player, 'Void dagger');
 
         player.getInvEq().unequipItem('hand', 1, 0);
         player.getInvEq().equipItem(voidDagger);
@@ -709,7 +708,8 @@ class ActorKillListener {
     }
 } // const ActorKillListener
 
-function addItemToPlayer(parser, player: SentientActor, itemName: string): void {
+function addItemToPlayer(parser, player: SentientActor, itemName: string) {
     const item = parser.createItem(itemName);
     player.getInvEq().addItem(item);
+    return item;
 }

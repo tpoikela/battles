@@ -144,6 +144,8 @@ export class SystemWeather extends SystemBase {
                 if (!baseElem.has('Indoor')) {
                     if (!actor.has('Drenched')) {
                         actor.add(new Component.Drenched());
+                        const msg = `${actor.getName()} is drenched by the heavy rain!`;
+                        RG.gameInfo({cell: actor.getCell(), msg});
                     }
                     actor.get('Drenched').incrLevel();
                 }

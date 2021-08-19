@@ -13,6 +13,7 @@ import {Spell} from '../data/spells';
 import {adjustActorValues} from '../data/actors';
 import {ObjectShellComps} from './objectshellcomps';
 import {colorsTooClose, getNewFgColor} from '../data/colors';
+import {Dice} from './dice';
 
 import {ActorGen} from '../data/actor-gen';
 
@@ -205,41 +206,43 @@ export class Creator {
 
             // Called for basic type: actors, items...
             if (propCalls.hasOwnProperty(p)) {
-                const funcName = propCalls[p];
-                if (typeof funcName === 'object') {
+                const shellVal = this.getShellValue(shell[p]);
+                const propCallObj = propCalls[p];
+                if (typeof propCallObj === 'object') {
 
                     // 1. Add new component to the object
-                    if (funcName.hasOwnProperty('comp')) {
-                        this._compGen.addCompToObj(newObj, funcName, shell[p]);
+                    if (propCallObj.hasOwnProperty('comp')) {
+                        this._compGen.addCompToObj(newObj, propCallObj, shellVal);
                     }
                     // 2. Or use factory to create an object and add it to the
                     // object. Only 'brain' supported for now.
-                    else if (funcName.hasOwnProperty('factory')) {
+                    else if (propCallObj.hasOwnProperty('factory')) {
                         if (p === 'brain') {
                             const createdObj
-                                = funcName.factory(newObj, shell[p]);
-                            (newObj as any)[funcName.func](createdObj);
+                                = propCallObj.factory(newObj, shellVal);
+                            (newObj as any)[propCallObj.func](createdObj);
                         }
                     }
                     // 3. Or call one of the object's methods with the value in
                     // the object shell
                     else {
-                        for (const f in funcName) {
-                            if (funcName.hasOwnProperty(f)) {
-                                const fName = funcName[f];
+                        for (const f in propCallObj) {
+                            if (propCallObj.hasOwnProperty(f)) {
+                                const fName = propCallObj[f];
                                 if (newObj.hasOwnProperty(fName)) {
-                                    (newObj as any)[fName](shell[p]);
+                                    (newObj as any)[fName](shellVal);
                                 }
                             }
                         }
                     }
                 }
-                else { // 4. For strings, call the setter 'funcName' directly
-                    (newObj as any)[funcName](shell[p]);
+                else { // 4. For strings, call the setter 'propCallObj' directly
+                    (newObj as any)[propCallObj](shellVal);
                 }
             }
             // Check for subtypes
             else if (shell.hasOwnProperty('type')) {
+                const shellVal = this.getShellValue(shell[p]);
 
                 // No idea what this mess of code does
                 if (propCalls.hasOwnProperty(shell.type)) {
@@ -251,13 +254,13 @@ export class Creator {
                                 if (funcName2.hasOwnProperty(f2)) {
                                     const fName2 = funcName2[f2];
                                     if (newObj.hasOwnProperty(fName2)) {
-                                        (newObj as any)[funcName2[f2]](shell[p]);
+                                        (newObj as any)[funcName2[f2]](shellVal);
                                     }
                                 }
                             }
                         }
                         else {
-                            (newObj as any)[funcName2](shell[p]);
+                            (newObj as any)[funcName2](shellVal);
                         }
                     }
                 }
@@ -322,6 +325,28 @@ export class Creator {
         return newObj;
     }
 
+    /* Returns the given value back, unless special object is given, such as
+     * 1. {$$dice: '1d6'} - Rolls the die and return result
+     * 2. {$$select: [1, 2, 3, 4]} - Selects one element randomly
+     * 3. {$$rng: ['funcName', args] - Returns rng[funcName](...args)
+     */
+    public getShellValue(shellVal): any {
+        if (typeof shellVal === 'object') {
+            if (shellVal.hasOwnProperty('$$dice')) {
+                console.log('$$dice: ', shellVal.$$dice);
+                const rolled = Dice.getValue(shellVal.$$dice);
+                console.log('Rolled $$dice: ', rolled);
+                return rolled;
+            }
+            else if (shellVal.hasOwnProperty('$$select')) {
+                // Recursive call so $$dice is allowed nested with $$select
+                return this.getShellValue(RNG.arrayGetRand(shellVal.$$select));
+            }
+            return shellVal;
+        }
+        return shellVal;
+    }
+
     public addEnemies(shell: IShell, obj) {
         shell.enemies.forEach((enemyType: string) => {
             obj.getBrain().addEnemyType(enemyType);
@@ -376,7 +401,7 @@ export class Creator {
     }
 
     /* Factory-method for creating the actual game objects.*/
-    public createNewObject(categ, obj) {
+    public createNewObject(categ: string, obj: IShell): any | null {
         switch (categ) {
             case RG.TYPE_ACTOR:
                 const type = obj.type;
@@ -973,15 +998,15 @@ export class Parser {
                 RG.err('Parser', 'storeRenderingInfo',
                     `obj.color null/undef! obj: ${json}`);
             }
-            fg = obj.color.fg;
-            bg = obj.color.bg;
+            fg = this._creator.getShellValue(obj.color.fg);
+            bg = this._creator.getShellValue(obj.color.bg);
         }
 
         if (obj.hasOwnProperty('colorfg')) {
-            fg = obj.colorfg;
+            fg = this._creator.getShellValue(obj.colorfg);
         }
         if (obj.hasOwnProperty('colorbg')) {
-            bg = obj.colorbg;
+            bg = this._creator.getShellValue(obj.colorbg);
         }
 
         if (fg === 'random') {

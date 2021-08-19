@@ -589,6 +589,21 @@ export interface StringMap<T> {
 
 export type TShellFunc = (shell: IShell) => boolean;
 
+// Allow val: {$$dice: '1d6} and val: {$$select: [1, 2, {$$dice: '1d6'}} in
+// shell values
+export interface DiceObj {
+    $$dice: string;
+}
+
+
+export type ValOrDice<T> = T | DiceObj;
+
+export interface SelectObj<T> {
+    $$select: ValOrDice<T>[];
+};
+
+export type TShellValue<T> = T | SelectObj<T>;
+
 //-------------
 // COMPONENTS
 //-------------
@@ -736,4 +751,17 @@ export interface IRecipeEntry {
 export interface IRecipe {
     inputs: IRecipeEntry[];
     outputs: IRecipeEntry[];
+}
+
+export interface ISuccessQuery {
+    has?: string;
+    hasAll?: string[];
+    hasNot?: string;
+    hasNone?: string[];
+}
+
+export interface ISuccessCheck {
+    items?: ISuccessQuery;
+    actors?: ISuccessQuery;
+    elements?: ISuccessQuery;
 }

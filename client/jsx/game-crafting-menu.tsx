@@ -113,6 +113,7 @@ export default class GameCraftingMenu extends React.Component {
 
     const itemTabs = this.getItemTabs(container);
     const itemButtons = this.getItemButtons();
+    const recipeRequirements = this.getRecipeReqs();
 
     return (
       <Modal
@@ -125,14 +126,19 @@ export default class GameCraftingMenu extends React.Component {
       >
         <ModalHeader id='crafting-modal-label' text='Crafting Items'/>
         <div className='modal-body row'>
+          <div className='col-md-6'>
             {itemTabs}
             <GameItems
               eqWeight={0}
               filter={this.state.filter}
               inv={container}
-              maxWeight={0}
+              maxWeight={-1}
               setSelectedItem={this.setSelectedItem}
             />
+          </div>
+          <div className='col-md-6'>
+            {recipeRequirements}
+          </div>
         </div>
 
         <div className='modal-footer row'>
@@ -204,6 +210,32 @@ export default class GameCraftingMenu extends React.Component {
 
   public toggleScreen(type: string): void {
       this.props.toggleScreen(type);
+  }
+
+  public getRecipeReqs() {
+    let recipeForCrafting = null;
+    if (this.state.selectedItem) {
+      const name = this.state.selectedItem.getName();
+      const parser: Parser = ObjectShell.getParser();
+      const shell = parser.dbGetItem({name});
+      const inputs = shell.recipe;
+      const recipeList = inputs.map(input => {
+          return <li>{input.count}x {input.name}</li>
+      });
+      recipeForCrafting = (
+        <React.Fragment>
+          <p>Item: {name}</p>
+          <p>Required inputs:</p>
+          {recipeList}
+        </React.Fragment>
+      );
+    }
+    return (
+      <div>
+        <p>Selected Recipe for crafting:</p>
+        {recipeForCrafting}
+      </div>
+    );
   }
 
 }

@@ -1342,6 +1342,13 @@ export const addToExpirationComp = (
 
 export const DontRender = UniqueTagComponent('DontRender');
 
+export const Unpickable = UniqueTagComponent('Unpickable');
+
+export const Tillable = UniqueTagComponent('Tillable');
+export const TilledSoil = UniqueTagComponent('TilledSoil');
+export const PlantedSoil = UniqueDataComponent('PlantedSoil',
+    {growsInto: '', timeLeftToGrow:1 });
+
 //---------------------------------------------------------------------------
 // BASE ACTIONS (transient components, not serialized, stored ever)
 //---------------------------------------------------------------------------

@@ -236,6 +236,7 @@ export class SystemBaseAction extends SystemBase {
     private _handleUseItem(ent): void {
         const useItemComp = ent.get('UseItem');
         const item = useItemComp.getItem();
+        const effArgs = useItemComp.getEffect();
 
         if (item.has('Broken')) {
           const msg = `${item.getName()} cannot be used because it is broken`;
@@ -243,21 +244,23 @@ export class SystemBaseAction extends SystemBase {
           return;
         }
 
-        if (item.has('OneShot')) {
-            if (item.getCount() === 1) {
-                const msg = {item};
-                this.pool.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+        // We can apply to use without effArgs only
+        if (!effArgs) {
+            if (item.has('OneShot')) {
+                if (item.getCount() === 1) {
+                    const msg = {item};
+                    this.pool.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+                }
+                else {
+                    item.decrCount(1);
+                }
             }
-            else {
-                item.decrCount(1);
+            else if (item.getCharges && item.getCharges() > 0) {
+                item.setCharges(item.getCharges() - 1);
             }
+            this._checkUseItemMsgEmit(ent, useItemComp);
         }
-        else if (item.getCharges && item.getCharges() > 0) {
-            item.setCharges(item.getCharges() - 1);
-        }
-        this._checkUseItemMsgEmit(ent, useItemComp);
 
-        const effArgs = useItemComp.getEffect();
         if (effArgs) {
             const effComp = new Component.Effects(effArgs);
             ent.add(effComp);

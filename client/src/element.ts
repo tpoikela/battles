@@ -769,6 +769,22 @@ export class ElementPlaceholder extends ElementXY {
 }
 Element.PlaceHolder = ElementPlaceholder;
 
+export class ElementTilledSoil extends ElementXY {
+    constructor() {
+        super('tilled soil');
+        this.add(new Component.TilledSoil());
+    }
+}
+Element.TilledSoil = ElementTilledSoil;
+
+export class ElementPlantedSoil extends ElementXY {
+    constructor() {
+        super('planted soil');
+        this.add(new Component.PlantedSoil());
+    }
+}
+Element.PlantedSoil = ElementPlantedSoil;
+
 /* Used in the debugging of levels only. Can be used to add arbitrary characters
  * into level maps when debugging. */
 export class ElementMarker extends ElementXY {

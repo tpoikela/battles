@@ -190,7 +190,7 @@ SystemManager.systems = {
     Damage: ['Damage', 'Health'],
     Death: ['DeathEvent'],
     Mining: ['Mining'],
-    Farming: ['Farming'],
+    Farming: ['Farming', 'WorldSimEvent'],
     Crafting: ['Crafting'],
     Battle: ['BattleOver', 'BattleOrder', 'BattleEvent'],
     Skills: ['SkillsExp'],

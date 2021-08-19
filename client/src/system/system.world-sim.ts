@@ -6,8 +6,8 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import {WS_EVENT} from '../world.simulation';
-import * as Component from '../component';
-import {WeatherActor} from '../actor.virtual';
+//rm import * as Component from '../component';
+//rm import {WeatherActor} from '../actor.virtual';
 
 type WorldTop = import('../world').WorldTop;
 type OWMap = import('../overworld.map').OWMap;

@@ -359,7 +359,7 @@ export class SpellBook {
         return {
             select: (code: number) => {
                 const selection = Keys.codeToIndex(code);
-                if (selection < powerSorted.length) {
+                if (selection >= 0 && selection < powerSorted.length) {
                     return powerSorted[selection].getSelectionObject(this._actor);
                 }
                 return null;

@@ -45,7 +45,12 @@ export class GameItems extends React.Component {
 
     return (
       <div>
+        {(this.props.maxWeight >= 0) &&
         <p>Items: {totalWeightStr} kg (max {maxWeight} kg)</p>
+        }
+        {(this.props.maxWeight === -1) &&
+        <p>List of items to craft:</p>
+        }
         {items}
       </div>
     );

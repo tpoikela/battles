@@ -97,6 +97,8 @@ class RGClass {
     public SET_STATS: string[];
     public STATS_ABBR2STAT: {[key: string]: string};
 
+    public EQUIP: {[key: string]: string};
+
     public MAX_DRENCHED: number;
 
     public VERB: {[key: string]: number};
@@ -591,7 +593,21 @@ class RGClass {
             SLASH: 'SLASH',
             SLIME: 'SLIME',
             VOID: 'VOID',
-            WATER: 'WATER'
+            WATER: 'WATER',
+        };
+
+        this.EQUIP = {
+            HEAD: 'head',
+            NECK: 'neck',
+            CLOAK: 'cloak',
+            CHEST: 'chest',
+            HAND: 'hand',
+            SHIELD: 'shield',
+            LEGS: 'legs',
+            FEET: 'feet',
+            MISSILE: 'missile',
+            MISSILEWEAPON: 'missileweapon',
+            SPIRITGEM: 'spiritgem',
         };
 
         this.classNameDMG = {
@@ -611,7 +627,7 @@ class RGClass {
             POISON: 'cell-damage-POISON',
             SLASH: 'cell-damage-SLASH',
             WATER: 'cell-damage-WATER',
-            VOID: 'cell-damage-VOID'
+            VOID: 'cell-damage-VOID',
         };
 
         // You can add new stats for actors here. If you're lucky, adding will

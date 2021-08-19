@@ -3,9 +3,11 @@
 import RG from '../src/rg';
 import {Colors} from './colors';
 import {meleeHitDamage, color, resistance} from './shell-utils';
-import {IAddCompObj, IRecipeEntry} from '../src/interfaces';
+import {IAddCompObj, IRecipeEntry, TShellValue, ISuccessCheck} from '../src/interfaces';
+import {GemItems} from './items.gems';
 
 const scaleAll = 1.0;
+
 
 /* Function to scale the item values. For fine-tuning the game balance. */
 function value(type: string | number, val?): number {
@@ -56,8 +58,15 @@ interface ElementUseSpec {
     failureMsg?: string;
 }
 
+interface ISetterObj {
+    [key: string]: string | number;
+}
+
+
 interface AddElementUseSpec extends ElementUseSpec{
     numAllowed?: number;
+    successCheck?: ISuccessCheck[];
+    setters?: ISetterObj | ISetterObj[];
 }
 
 type RemoveElementUseSpec = ElementUseSpec;
@@ -84,7 +93,7 @@ interface ObjectShell {
     noRandom?: boolean;
     base?: string;
     addComp?: any;
-    attack?: number;
+    attack?: TShellValue<number>;
     color?: ColorSpec;
     fireRate?: number;
     char?: string;
@@ -97,13 +106,13 @@ interface ObjectShell {
     damage?: string;
     name: string;
     range?: number;
-    protection?: number;
+    protection?: TShellValue<number>;
     energy?: number;
-    use?: string | UseSpec | IAddCompObj;
+    use?: (string | UseSpec | IAddCompObj) | (string | UseSpec | IAddCompObj)[];
     uses?: number;
     type?: string;
-    value?: number;
-    weight?: number;
+    value?: TShellValue<number>;
+    weight?: TShellValue<number>;
     recipe?: IRecipeEntry[];
 }
 
@@ -1164,6 +1173,22 @@ const Items: ObjectShell[] = [
         addComp: 'OneShot' // Item is destroyed after use
     },
     {
+        name: 'Wheat', base: 'FoodBase', energy: 100, value: value(10),
+        color: color('ForestGreen', 'Coral')
+    },
+    {
+        name: 'Rye', base: 'FoodBase', energy: 100, value: value(10),
+        color: color('ForestGreen', 'Coral')
+    },
+    {
+        name: 'Barley', base: 'FoodBase', energy: 100, value: value(10),
+        color: color('ForestGreen', 'Coral')
+    },
+    {
+        name: 'Oat', base: 'FoodBase', energy: 100, value: value(10),
+        color: color('ForestGreen', 'Coral')
+    },
+    {
         name: 'Carrots', base: 'FoodBase', energy: 500, value: value(10),
         color: color('ForestGreen', 'Coral')
     },
@@ -1203,14 +1228,24 @@ const Items: ObjectShell[] = [
         weight: 0.4, color: color('white', 'red')
     },
     {
+        name: 'Reindeer meat', base: 'FoodBase', energy: 1500, value: value(20),
+        weight: 0.3, color: color('white', 'red')
+    },
+    {
         name: 'Wheat bread', base: 'FoodBase', energy: 2000, value: value(30),
         recipe: [{count: 3, name: 'Wheat'}]
     },
     {
-        name: 'Rye bread', base: 'FoodBase', energy: 2000, value: value(30)
+        name: 'Rye bread', base: 'FoodBase', energy: 2000, value: value(30),
+        recipe: [{count: 3, name: 'Rye'}]
     },
     {
-        name: 'Oats', base: 'FoodBase', energy: 2800, value: value(30)
+        name: 'Barley bread', base: 'FoodBase', energy: 2000, value: value(30),
+        recipe: [{count: 3, name: 'Barley'}]
+    },
+    {
+        name: 'Oats', base: 'FoodBase', energy: 2800, value: value(30),
+        recipe: [{count: 4, name: 'Oat'}]
     },
     {
         name: 'Ration', base: 'FoodBase', energy: 2000, value: value(40),
@@ -1248,6 +1283,7 @@ const Items: ObjectShell[] = [
         use: {addElement: {
             elementName: 'Hole', numAllowed: 1,
             successMsg: 'You dig a hole to the ground',
+            successCheck: [{elements: {has: 'Diggable'}}],
             failureMsg: 'You fail to dig a hole there',
         }},
         value: 100
@@ -1269,6 +1305,45 @@ const Items: ObjectShell[] = [
         use: {addEntity: {entityName: 'Fire', duration: 20}},
         value: 100
     },
+    {
+        name: 'hoe', base: 'tool',
+        className: 'cell-item-iron',
+        use: {addElement: {
+            elementName: 'TilledSoil', duration: '100',
+            successMsg: 'You till the soil with hoe.',
+            successCheck: [
+                {elements: {has: 'Tillable'}},
+            ],
+            failureMsg: 'This location cannot be tilled.',
+        }},
+        value: 30
+    },
+    {
+        name: 'wheat seeds', base: 'tool',
+        addComp: 'OneShot',
+        use: SowSeeds('Wheat', 2 * 6),
+        value: 10,
+    },
+    {
+        name: 'oat seeds', base: 'tool',
+        addComp: 'OneShot',
+        use: SowSeeds('Oat', 2 * 6),
+        value: 10,
+    },
+    {
+        name: 'barley seeds', base: 'tool',
+        addComp: 'OneShot',
+        use: SowSeeds('Oat', 2 * 6),
+        value: 10,
+    },
+    {
+        name: 'rye seeds', base: 'tool',
+        addComp: 'OneShot',
+        use: SowSeeds('Oat', 2 * 6),
+        value: 10,
+    },
+
+
     {
         name: 'repair tool kit', base: 'tool',
         use: {removeComp: {name: 'Broken'}}, noRandom: true
@@ -1475,9 +1550,24 @@ const Items: ObjectShell[] = [
         char: '*', color: {fg: 'Orchid', bg: 'DarkSlateGrey'}
     },
     {
+        name: 'aquamarine', base: 'MineralBase',
+        weight: 0.25, value: value('mineral', 50),
+        char: '*', color: {fg: 'Aquamarine', bg: 'Black'}
+    },
+    {
         name: 'topaz', base: 'MineralBase',
         weight: 0.15, value: value('mineral', 75),
-        char: '*', color: {fg: 'Pink', bg: 'White'}
+        char: '*', color: {fg: 'Blue', bg: 'White'}
+    },
+    {
+        name: 'fire opal', base: 'MineralBase',
+        weight: 0.15, value: value('mineral', 75),
+        char: '*', color: {fg: 'Salmon', bg: 'Black'}
+    },
+    {
+        name: 'white opal', base: 'MineralBase',
+        weight: 0.15, value: value('mineral', 75),
+        char: '*', color: {fg: 'Wheat', bg: 'Black'}
     },
     {
         name: 'mithril ore', base: 'MineralBase',
@@ -1583,7 +1673,14 @@ const Items: ObjectShell[] = [
     {
         name: 'Arrow of webs', base: 'MagicalArrowBase',
         className: 'cell-item-energy'
-    }
+    },
+
+    // FARMING STUFF
+    /*{
+        name: 'tilled soil', noRandom: true,
+        type: 'soil', className: '',
+        char: '|', addComp: 'Unpickable'
+    },*/
 
     // ARTIFACT ITEMS
 ];
@@ -1672,5 +1769,23 @@ function addStatsPotions(arr: any[]): void {
     });
 }
 
+Items.push(...GemItems);
+
+function SowSeeds(seedName: string, growTime: number): any {
+    return {
+        addElement: {
+            elementName: 'PlantedSoil',
+            setters: {
+                get: 'PlantedSoil', // Target this component
+                setTimeLeftToGrow: growTime,
+                setGrowsInto: seedName,
+            },
+            successCheck: [
+                {elements: {has: 'TilledSoil'}},
+            ],
+            failureMsg: 'Seeds cannot be planted here.',
+        }
+    };
+}
 
 export default Items;

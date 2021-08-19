@@ -7,6 +7,7 @@ import {TCoord} from './interfaces';
 
 const ROT: any = {KEYS, DIRS};
 
+
 /* Lookup table object for movement and actions keys.*/
 class KeyMap {
     public moveKeyMap: {[key: string]: any};
@@ -212,6 +213,8 @@ class KeyMap {
 }
 
 export class Keys {
+    public static INVALID_KEY: number;
+
     public static KeyMap: KeyMap;
     public static VK: {[key: string]: number};
     public static KEY: {[key: string]: number};
@@ -232,6 +235,9 @@ export class Keys {
 Keys.KeyMap = new KeyMap();
 
 Keys.VK = {};
+
+
+Keys.INVALID_KEY = -1;
 /* eslint-disable */
 Keys.VK.a = ROT.KEYS.VK_A + 32;
 Keys.VK.b = ROT.KEYS.VK_B + 32;
@@ -329,7 +335,7 @@ Keys.selectIndexToCode = (indexChar: string | number): number => {
     }
     RG.err('RG', 'selectIndexToCode',
         `Invalid select index |${indexChar}|`);
-    return -1;
+    return Keys.INVALID_KEY;
 
 };
 
@@ -344,7 +350,7 @@ Keys.codeToIndex = (code: number): number => {
     else if (code >= ROT.KEYS.VK_A && code <= ROT.KEYS.VK_Z) {
         return code - ROT.KEYS.VK_A + Keys.menuIndices.indexOf('A');
     }
-    return -1;
+    return Keys.INVALID_KEY;
 };
 
 /* Returns true if keyCode corresponds to a numeric key. */

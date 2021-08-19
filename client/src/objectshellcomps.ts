@@ -71,9 +71,6 @@ export class ObjectShellComps {
             console.log((newObj as any).getName(), ': compData with val', compData, val);
         }
         if (compData.hasOwnProperty('func')) {
-            if (this.debug) {
-                console.log('KKK111 here now');
-            }
 
             // This 1st branch is used by Health only (needed?)
             if (Array.isArray(compData.func)) {
@@ -159,8 +156,9 @@ export class ObjectShellComps {
             }
         }
         else if (newObj.has(compData.comp)) {
-            RG.err('ObjectShellComps', 'xxx',
-                'Not implemented');
+            console.log('newObj: ', newObj, 'compData: ', compData);
+            RG.err('ObjectShellComps', 'addCompToObj',
+                'else-if branch Not implemented');
         }
         else {
             newObj.add(this.createComponent(compData.comp, val));
