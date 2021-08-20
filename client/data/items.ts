@@ -846,6 +846,11 @@ const Items: ObjectShell[] = [
         armourType: 'head', value: value('magic', 200)
     },
     {
+        name: 'Runed cloak', base: 'RunedArmourBase',
+        weight: 0.2, defense: 2, protection: 2,
+        armourType: 'cloak', value: value('magic', 200)
+    },
+    {
         name: 'Runed collar', base: 'RunedArmourBase',
         weight: 0.4, defense: 3, protection: 2,
         armourType: 'neck', value: value('magic', 200)
@@ -1628,6 +1633,16 @@ const Items: ObjectShell[] = [
         name: 'diamond', base: 'MineralBase',
         weight: 0.3, value: value('mineral', 300),
         char: '*', color: color('white', 'blue')
+    },
+    {
+        name: 'foriphire', base: 'MineralBase',
+        weight: 0.34, value: value('mineral', 350),
+        char: '*', className: 'cell-item-magic',
+    },
+    {
+        name: 'nethermond', base: 'MineralBase',
+        weight: 0.36, value: value('mineral', 400),
+        char: '*', className: 'cell-item-void',
     },
     {
         name: 'ice diamond', base: 'MineralBase',
