@@ -121,6 +121,11 @@ const Elements = [
         addComp: ['Indoor']
     },
     {
+        name: 'floordungeon', className: 'cell-element-floor-dungeon',
+        char: '.',
+        addComp: ['Indoor']
+    },
+    {
         name: 'floorcave', className: 'cell-element-floor-cave',
         char: '.',
         addComp: ['Indoor']
@@ -422,6 +427,13 @@ const Elements = [
     // Wall types
     {
         name: 'wallcave', className: 'cell-element-wall-cave',
+        char: CHAR_WALL,
+        addComp: ['Opaque',
+            {comp: 'Impassable', func: ['setAllImpassable']}
+        ],
+    },
+    {
+        name: 'walldungeon', className: 'cell-element-wall-dungeon',
         char: CHAR_WALL,
         addComp: ['Opaque',
             {comp: 'Impassable', func: ['setAllImpassable']}
