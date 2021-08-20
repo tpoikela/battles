@@ -30,17 +30,7 @@ type BBox = import('./bbox').BBox;
 
 export type Maybe<T> = T | null | undefined;
 
-/*
-export type TNoFuncVal =
-    boolean
-    | string
-    | number
-    | null
-    | undefined
-    | NoFunctionObject
-    | NoFunctionArray;
-    */
-
+/* tslint:disable-next-line */
 export type TNoFuncVal = Exclude<any, Function>;
 
 export interface NoFunctionObject {
@@ -58,19 +48,24 @@ export type TObjRefArray = IObjRef[] & {$objRefArray: boolean};
 
 export interface NoFunctionArray extends Array<TNoFuncVal> { }
 
-//---------------------------
-// Generic geometry type definitions
-//---------------------------
-//
+
 export interface IColor {
     fg: string;
     bg: string;
 }
 
+//-------------------
+// Dice definitions
+//-------------------
+
 // Can be either '1d6 + 4' or [1, 6, 4] for example
 export type IDiceInputArg = number | string | [number, number, number];
 
 export type DiceValue = Dice | IDiceInputArg;
+
+//------------------------------------------------
+// CellProps (actors,items,elements) definitions
+//------------------------------------------------
 
 export type TCellProp = ItemBase | BaseActor | ElementXY;
 
@@ -86,8 +81,9 @@ export type TPropType = keyof CellProps;
 
 export type ConstBaseElem = Readonly<ElementBase>;
 
-export type TPrim = number | string | boolean;
-export type TPrimArr = TPrim[];
+//---------------------------
+// Generic geometry type definitions
+//---------------------------
 
 export type TCoord = [number, number];
 export type TCoord3D = [number, number, number];
