@@ -71,7 +71,7 @@ export class SystemMining extends SystemBase {
                     }
                 }
                 // We can call func-based item generation if defined
-                if (entry === 'nothing') {
+                if (entry === '' || entry === 'nothing') {
                     if (itemEntry.constraint) {
                         const func = new Constraints().getConstraints(itemEntry.constraint);
                     }
