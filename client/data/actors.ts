@@ -655,7 +655,8 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'avian fighter', base: 'AvianFolkBase', danger: 4,
-        attack: 6, defense: 7, damage: '3d4', hp: 30
+        attack: 6, defense: 7, damage: '3d4', hp: 30,
+        color: color('Black', 'GoldenRod'),
     },
     {
         name: 'avian arbalist', base: 'AvianFolkBase', danger: 5,
@@ -681,7 +682,8 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'avian emperor', base: 'AvianFolkBase', danger: 16,
         attack: 8, defense: 14, damage: '5d5', hp: 85,
-        addComp: ['Flying', BypassComp(0.15)]
+        addComp: ['Flying', BypassComp(0.15)],
+        color: color('Purple', 'Black'),
     },
 
     // BEARFOLK
@@ -701,17 +703,20 @@ export const ActorsData: ActorShell[] = [
     {
       name: 'bearfolk fighter', base: 'BearfolkBase',
       damage: '1d8',
+      color: color('Black', 'GoldenRod'),
       attack: 2, defense: 2, danger: 2, hp: 15
     },
     {
       name: 'bearfolk archer', base: 'BearfolkBase',
       damage: '1d6',
+      color: color('DarkBlue', 'GoldenRod'),
       attack: 2, defense: 2, danger: 3, hp: 13,
       equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}]
     },
     {
       name: 'bearfolk mage', base: 'BearfolkBase',
       damage: '1d6',
+      color: color('Chartreuse', 'DarkGreen'),
       attack: 2, defense: 2, danger: 4, hp: 15,
       equip: ['Robe', 'Wooden staff'],
       brain: 'SpellCaster', spells: ['SummonKin'],
@@ -727,6 +732,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'bearfolk elite', base: 'BearfolkBase',
         damage: '2d6',
+        color: color('Cyan', 'Black'),
         attack: 5, defense: 5, hp: 37, danger: 6,
         onHit: [
             {addComp: 'Stun', duration: '1d4 + 1'}
@@ -735,6 +741,7 @@ export const ActorsData: ActorShell[] = [
     {
       name: 'bearfolk king', base: 'BearfolkBase',
       damage: '3d6', strength: 16,
+      color: color('Red', 'Black'),
       attack: 7, defense: 7, protection: 5, danger: 8, hp: 75
     },
 
@@ -1085,12 +1092,14 @@ export const ActorsData: ActorShell[] = [
         name: 'dwarven fighter', base: 'dwarf',
         attack: 4, defense: 4, protection: 2, damage: '1d7',
         range: 1, hp: 30, danger: 4,
+        color: color('Black', 'GoldenRod'),
         equip: ['Spear']
     },
     {
         name: 'dwarven axeman', base: 'dwarf',
         attack: 4, defense: 4, protection: 3, damage: '1d8',
         range: 1, hp: 40, danger: 5,
+        color: color('DarkMagenta', 'GoldenRod'),
         equip: ['Battle axe', 'Chain armour']
     },
     {
@@ -1110,6 +1119,7 @@ export const ActorsData: ActorShell[] = [
         name: 'dwarven bolter', base: 'dwarf',
         attack: 7, defense: 3, damage: '1d8',
         range: 1, hp: 40, danger: 7, fovrange: 7,
+        color: color('DarkBlue', 'GoldenRod'),
         equip: ['Steel crossbow', {name: 'Steel bolt', count: 7}]
     },
     {
@@ -1122,6 +1132,7 @@ export const ActorsData: ActorShell[] = [
         name: 'dwarven elite', base: 'dwarf',
         attack: 5, defense: 6, damage: '3d5 + 3',
         range: 1, hp: 50, danger: 9,
+        color: color('Cyan', 'Black'),
         equip: ['Steel armour']
     },
     {
@@ -1132,7 +1143,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'dwarven king', base: 'dwarf',
-        colorfg: 'red',
+        color: color('Red', 'Black'),
         attack: 12, defense: 12, protection: 10, damage: '4d5 + 5',
         range: 1, hp: 75, danger: 15,
         equip: ['Mithril armour']
