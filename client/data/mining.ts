@@ -19,6 +19,9 @@ export const Wall2Floor: {[key: string]: ConstBaseElem} = {
     'wallcave': ELEM.FLOOR_CAVE,
     'wallcrypt': ELEM.FLOOR_CRYPT,
     'wallcastle': ELEM.FLOOR_CASTLE,
+    'wallruby': ELEM.FLOOR_DUNGEON,
+    'wallforium': ELEM.FLOOR_DUNGEON,
+    'wallvoid': ELEM.FLOOR_DUNGEON,
 };
 
 export const Wall2Items: TWall2Items = {
@@ -62,5 +65,23 @@ export const Wall2Items: TWall2Items = {
             'permaice ore': 3, 'ice diamond': 1, 'froststone': 3,
             'adamantium ore': 4
         }
+    },
+    'wallruby': {
+        always: ['ruby glass ore'],
+        rand: {
+            nothing: 90, ruby: 10,
+        },
+    },
+    'wallforium': {
+        always: ['forium ore'],
+        rand: {
+            nothing: 90, foriphire: 10,
+        },
+    },
+    'wallvoid': {
+        always: ['netherium ore'],
+        rand: {
+            nothing: 90, nethermond: 10,
+        },
     },
 };
