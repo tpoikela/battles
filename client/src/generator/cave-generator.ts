@@ -251,6 +251,7 @@ export class CaveGenerator extends LevelGenerator {
         // const nPoints = pathPoints.length;
     }
 
+    /* Creates a path between startPoint and endPoint. */
     public createPath(map: CellMap, startPoint: TCoord, endPoint: TCoord): TCoord[] {
         const wallCb = (x, y) => (
             map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
@@ -277,6 +278,7 @@ export class CaveGenerator extends LevelGenerator {
         return result;
     }
 
+    /* Returns a random endPoint based on distance to startPoint. */
     public getRandomEndPoint(map, startPoint, freeCellMap: FreeCellMap): TCoord {
         const wallCb = (x, y) => (
             map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
@@ -335,6 +337,7 @@ export class CaveGenerator extends LevelGenerator {
         return point;
     }
 
+    /* Adds enemies/bosses. */
     public _addEncounters(level: Level, conf) {
         const {dungeonType} = conf;
         if (dungeonType === 'Lair') {
