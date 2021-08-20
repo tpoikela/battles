@@ -72,6 +72,11 @@
     background-color: $floor-bg-color;
 }
 
+.cell-element-floor-dungeon {
+    background-color: $black;
+    color: Olive;
+}
+
 .cell-element-floor-crypt {
     background-color: $black;
     color: $gray;
@@ -136,6 +141,11 @@
 .cell-element-wall-cave {
     background-color: $black;
     color: $brown;
+}
+
+.cell-element-wall-dungeon {
+    background-color: $black;
+    color: Olive;
 }
 
 .cell-element-wall-crypt {
