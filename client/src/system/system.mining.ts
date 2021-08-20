@@ -3,66 +3,15 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import * as ObjectShell from '../objectshellparser';
-import {ELEM} from '../../data/elem-constants';
-import {ConstBaseElem, RandWeights} from '../interfaces';
+import {Constraints} from '../constraints';
+
+import {MineItemEntry, Wall2Items, Wall2Floor} from '../../data/mining';
 
 type EventPool = import('../eventpool').EventPool;
 type Entity = import('../entity').Entity;
 type Cell = import('../map.cell').Cell;
 type Level = import('../level').Level;
 
-// Used to change wall to floor based on the type
-const wall2Floor: {[key: string]: ConstBaseElem} = {
-    'wall': ELEM.FLOOR,
-    'wallwooden': ELEM.FLOOR_HOUSE,
-    'wallcave': ELEM.FLOOR_CAVE,
-    'wallcrypt': ELEM.FLOOR_CRYPT,
-    'wallcastle': ELEM.FLOOR_CASTLE
-};
-
-interface MineItemEntry {
-    always: string[];
-    rand?: RandWeights;
-}
-
-const wall2Items: {[key: string]: MineItemEntry} = {
-    'wall': {
-        always: ['piece of stone'],
-        rand: {nothing: 97, goldcoin: 3}
-    },
-    'wallwooden': {always: ['piece of wood']},
-    'wallcave': {
-        always: ['piece of stone'],
-        rand: {nothing: 200,
-            goldcoin: 16,
-            'iron ore': 8, 'copper ore': 8, amethyst: 8,
-            topaz: 4, 'mithril ore': 4,
-            sapphire: 2, emerald: 2, 'adamantium ore': 2,
-            diamond: 1,
-        }
-    },
-    'wallcrypt': {
-        always: ['piece of stone'],
-        rand: {
-            nothing: 90, goldcoin: 3,
-            topaz: 3, amethyst: 3, 'lapis lazuli': 3
-        }
-    },
-    'wallcastle': {
-        always: ['piece of stone'],
-        rand: {
-            nothing: 90, goldcoin: 10
-        }
-    },
-    'wallice': {
-        always: ['piece of ice'],
-        rand: {
-            nothing: 90,
-            'permaice ore': 3, 'ice diamond': 1, 'froststone': 3,
-            'adamantium ore': 4
-        }
-    },
-};
 
 export class SystemMining extends SystemBase {
 
@@ -93,11 +42,11 @@ export class SystemMining extends SystemBase {
             const cell: Cell = miningComp.getTarget();
             const baseElem = cell.getBaseElem();
             const baseType = baseElem.getType();
-            const toElem = wall2Floor[baseType];
+            const toElem = Wall2Floor[baseType];
             if (toElem) {
                 cell.setBaseElem(toElem);
                 // Add possible gems/mineral to cell
-                const itemEntry: MineItemEntry = wall2Items[baseType];
+                const itemEntry: MineItemEntry = Wall2Items[baseType];
                 const itemsAlways = itemEntry.always;
 
                 itemsAlways.forEach((itemName: string) => {
@@ -107,9 +56,10 @@ export class SystemMining extends SystemBase {
                     }
                 });
 
+                let entry = '';
                 if (itemEntry.rand) {
                     const itemsRand = itemEntry.rand;
-                    const entry = this.rng.getWeighted(itemsRand);
+                    entry = this.rng.getWeighted(itemsRand);
                     if (entry !== '' && entry !== 'nothing') {
                         const itemFound = this.parser.createItem(entry);
                         if (itemFound) {
@@ -118,6 +68,12 @@ export class SystemMining extends SystemBase {
                             msg += ' while digging';
                             RG.gameMsg({cell, msg});
                         }
+                    }
+                }
+                // We can call func-based item generation if defined
+                if (entry === 'nothing') {
+                    if (itemEntry.constraint) {
+                        const func = new Constraints().getConstraints(itemEntry.constraint);
                     }
                 }
             }
