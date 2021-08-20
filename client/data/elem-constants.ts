@@ -61,6 +61,7 @@ ELEM.FLOOR_HOUSE = frz(parser.createElement('floorhouse'));
 ELEM.FLOOR_WOODEN = frz(parser.createElement('floorwooden'));
 
 ELEM.WALL = frz(new ElementWall('wall'));
+ELEM.WALL_DUNGEON = frz(parser.createElement('walldungeon'));
 ELEM.WALL_CASTLE = frz(parser.createElement('wallcastle'));
 ELEM.WALL_CAVE = frz(parser.createElement('wallcave'));
 ELEM.WALL_CRYPT = frz(parser.createElement('wallcrypt'));

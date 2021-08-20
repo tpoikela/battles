@@ -115,7 +115,7 @@ export interface DungeonOpts extends ILevelGenOpts {
     errorOnFailure: boolean;
 }
 
-type PartialDungeonOpts = Partial<DungeonOpts>;
+export type PartialDungeonOpts = Partial<DungeonOpts>;
 
 /* This class is used to generate different dungeon levels. */
 export class DungeonGenerator extends LevelGenerator {
@@ -128,6 +128,8 @@ export class DungeonGenerator extends LevelGenerator {
         const levelOpts = {
             levelType: type, nBigRooms: 1,
             dungeonType: '',
+            wallType: 'walldungeon',
+            floorType: 'floordungeon',
             bigRooms: {
                 bigRoomX: ['cen'], bigRoomY: ['cen'],
                 bigRoomWidth: [10], bigRoomHeight: [10],

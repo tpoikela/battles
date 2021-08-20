@@ -18,7 +18,7 @@ import {FactoryActor} from './factory.actors';
 import {ObjectShell} from './objectshellparser';
 import {ObjectShellComps} from './objectshellcomps';
 
-import {DungeonGenerator,
+import {DungeonGenerator, PartialDungeonOpts,
     CaveGenerator,
     CastleGenerator,
     CryptGenerator} from './generator';
@@ -579,7 +579,10 @@ export class FactoryWorld {
                     }
                     else {
                         const dungGen = new DungeonGenerator();
-                        level = dungGen.create(cols, rows, levelConf);
+                        const dungOpts: PartialDungeonOpts = levelConf;
+                        dungOpts.wallType = 'walldungeon';
+                        dungOpts.floorType = 'floordungeon';
+                        level = dungGen.create(cols, rows, dungOpts);
                     }
                     // For creating 'fixed' items and actors
                     this.addFixedFeatures(i, level, branch);
