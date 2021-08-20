@@ -107,7 +107,8 @@ export class CastleGenerator extends LevelGenerator {
     ): Level {
         const levelConf: any = Object.assign({
             dungeonType: 'castle',
-            wallType: 'wallcastle'
+            wallType: 'wallcastle',
+            floorType: 'floorcastle',
             }, conf
         );
         levelConf.preserveMarkers = true;
