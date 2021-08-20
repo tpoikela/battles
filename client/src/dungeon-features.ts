@@ -6,18 +6,26 @@ import {Random} from './random';
 import {ObjectShell} from './objectshellparser';
 import {Brain} from './brain';
 
+type Level = import('./level').Level;
+
 const RNG = Random.getRNG();
 
 // TODO into class
 
 /* Used to add details like bosses and distinct room features into dungeon
  * levels. */
-export const DungeonFeatures = function(zoneType) {
-    this._verif = new Verify.Conf('DungeonFeatures');
-    this._zoneType = zoneType;
+export class DungeonFeatures {
+
+    protected _verif: Verify.Conf;
+    protected _zoneType: string;
+
+    constructor(zoneType: string) {
+        this._verif = new Verify.Conf('DungeonFeatures');
+        this._zoneType = zoneType;
+    }
 
     /* Adds special features to the last level of the zone. */
-    this.addLastLevelFeatures = function(nLevel, level, conf) {
+    public addLastLevelFeatures(nLevel: number, level: Level, conf): void {
         this._verif.verifyConf('addLastLevelFeatures', conf,
             ['maxDanger', 'maxValue']);
         const exploreElem = new ElementExploration();
@@ -40,7 +48,15 @@ export const DungeonFeatures = function(zoneType) {
             level.addElement(exploreElem, eX, eY);
         }
         else {
-            level.addElement(exploreElem);
+            const freeCell = level.getFreeRandCell();
+            if (freeCell) {
+                const [cX, cY] = freeCell.getXY();
+                level.addElement(exploreElem, cX, cY);
+            }
+            else {
+                RG.err('DungeonFeatures', 'addLastLevelFeatures',
+                    'Failed to find a free cell for ending element');
+            }
         }
 
         const bossActor = this.generateBoss(nLevel, level, conf);
@@ -57,7 +73,7 @@ export const DungeonFeatures = function(zoneType) {
     };
 
     /* TODO Move to object which is related to actors. */
-    this.generateBoss = (nLevel, level, conf) => {
+    public generateBoss(nLevel: number, level: Level, conf) {
         this._verif.verifyConf('generateBoss', conf,
             ['maxDanger', 'maxValue']);
         const parser = ObjectShell.getParser();
@@ -87,7 +103,7 @@ export const DungeonFeatures = function(zoneType) {
     };
 
     /* TODO Move to object which is related to actors. */
-    this.addMinions = (boss, nLevel, level, conf) => {
+    public addMinions(boss, nLevel, level, conf) {
         const parser = ObjectShell.getParser();
         const bossType = boss.getType();
         const isSwarm = RNG.getUniform() <= 0.5;
