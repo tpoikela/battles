@@ -1216,7 +1216,7 @@ Event.prototype._init = function(args) {
 };
 
 export const Effects = TransientDataComponent('Effects',
-    {args: null, effectType: ''}
+    {args: null, effectType: '', item: null}
 );
 Effects.prototype._init = function(args) {
     this.args = args || {};
@@ -1658,11 +1658,11 @@ Component.Duration = Duration;
 // Weather components
 //---------------------
 export const Weather = DataComponent('Weather', {
-    weatherType: 'clear', temperature: 0, visibility: 0
+    weatherType: 'clear', temperature: 0, visibility: 0, humidity: 50,
 });
 
 export const WeatherEffect = TransientDataComponent('WeatherEffect', {
-    effectType: 'clear', temperature: 0
+    effectType: 'clear', temperature: 0, humidity: 50,
 });
 
 export const WorldSimEvent = TransientDataComponent('WorldSimEvent', {
