@@ -1690,13 +1690,6 @@ const Items: ObjectShell[] = [
         className: 'cell-item-energy'
     },
 
-    // FARMING STUFF
-    /*{
-        name: 'tilled soil', noRandom: true,
-        type: 'soil', className: '',
-        char: '|', addComp: 'Unpickable'
-    },*/
-
     // ARTIFACT ITEMS
 ];
 
@@ -1739,7 +1732,7 @@ addStatsPotions(Items);
 
 function addResistancePotions(arr: any[]): void {
     Object.values(RG.DMG).forEach((dmg: string) => {
-        if (dmg === 'EFFECT') {return;}
+        if (dmg === 'EFFECT' || dmg === 'DIRECT' || dmg === 'HUNGER' || dmg === 'MELEE') {return;}
         Object.entries(RG.RESISTANCE).forEach((pair: [string, number]) => {
             const level = pair[0];
             const resComp: any = resistance(dmg, level);
