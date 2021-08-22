@@ -539,7 +539,7 @@ export class FactoryWorld {
                 sqrPerActor: this.getConf('sqrPerActor'),
                 sqrPerItem: this.getConf('sqrPerItem'),
                 maxValue: maxValue ? (maxValue + i * 20) : 20 * (i + 1),
-                maxDanger: maxDanger ? (maxDanger + i) : (2 + i),
+                maxDanger: maxDanger ? (maxDanger + i) : (3 + i),
                 nLevel: i
             };
 
@@ -563,9 +563,10 @@ export class FactoryWorld {
                     levelConf.markersPreserved = false;
                     if ((/(crypt)/i).test(dungeonType)) {
                         const cryptGen = new CryptGenerator();
+                        cryptGen.factZone = this.factZone;
                         level = cryptGen.create(cols, rows, levelConf);
-                        this.factZone.addItemsAndActors(level, levelConf);
-                        this.factZone.addExtraDungeonFeatures(level, levelConf);
+                        //rm this.factZone.addItemsAndActors(level, levelConf);
+                        //rm this.factZone.addExtraDungeonFeatures(level, levelConf);
                     }
                     else if ((/cave/).test(dungeonType)) {
                         const caveGen = new CaveGenerator();
