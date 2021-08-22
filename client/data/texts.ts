@@ -50,4 +50,8 @@ Texts.mainQuest = [
     'Two huge mountain passes divide this realm into regions',
     'If you follow the Great Road to north, you will reach a city carved into the mountain',
     'Recently, the breezes from north have been colder than before',
+    'I heard dwarves hold their fort between middle valley and the North',
+    'The hordes of Death have been seen marching from the southern swamps!',
+    'You must pass through an abandoned fort to reach the Arctic valley',
+    'If you travel to cold north, remember to take food and a source of heat with you',
 ];
