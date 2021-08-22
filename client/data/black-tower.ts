@@ -14,6 +14,14 @@ const tileSize = 9;
 type TemplateLevel = import('../src/template.level').TemplateLevel;
 type Level = import('../src/level').Level;
 
+export const blackTowerConf = {
+    nLevel: 0,
+    nLevels: 5,
+    cols: 100, rows: 50,
+    tileSize: 7,
+    genParams: [3, 3, 3, 3],
+};
+
 export class BlackTower {
 
     public nLevels: number;
@@ -39,7 +47,7 @@ export class BlackTower {
         const castleConf: any = { // TODO fix typings
             wallType: 'wallice',
             // floorType: 'floorice',
-            genParams: [2, 2, 2, 2],
+            genParams: this.conf.genParams || [2, 2, 2, 2],
             nGates: 2,
             roomCount: -1,
             tilesX: this.tilesX,
