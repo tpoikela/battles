@@ -440,6 +440,7 @@ export interface QuarterConf extends SubZoneConf {
 
 export interface CityConf extends ZoneConf {
     nQuarters: number;
+    alignment?: string;
     quarter: QuarterConf[];
 }
 
