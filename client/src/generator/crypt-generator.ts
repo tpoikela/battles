@@ -3,6 +3,8 @@ import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {MapGenerator} from './map.generator';
 import {Level} from '../level';
 
+type FactoryZone = import('../factory.zone').FactoryZone;
+
 export interface CryptOpts extends ILevelGenOpts {
     tilesX: number;
     tilesY: number;
@@ -25,13 +27,16 @@ export class CryptGenerator extends LevelGenerator {
         return opts;
     }
 
+    public factZone: FactoryZone;
+
     constructor() {
         super();
         this.shouldRemoveMarkers = true;
+        this.factZone = null;
     }
 
 
-    public create(cols, rows, conf: PartialCryptOpts): Level {
+    public create(cols: number, rows: number, conf: PartialCryptOpts): Level {
         return this.createLevel(cols, rows, conf);
     }
 
@@ -43,6 +48,10 @@ export class CryptGenerator extends LevelGenerator {
         // TODO adjust crypt size based on cols/rows
         const mapObj = mapgen.createCryptNew(cols, rows, conf);
         const level = new Level(mapObj.map);
+        if (this.factZone !== null) {
+            this.factZone.addItemsAndActors(level, conf);
+            this.factZone.addExtraDungeonFeatures(level, conf);
+        }
         return level;
     }
 
