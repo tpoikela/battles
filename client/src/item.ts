@@ -472,6 +472,7 @@ export class Potion extends ItemBase {
         this.isUsable = true;
     }
 
+    /* TODO this function should be removed. */
     public useItem(obj): boolean {
         if (obj.hasOwnProperty('target')) {
             const cell = obj.target;
@@ -570,7 +571,7 @@ Item.Rune = Rune;
 /* Missile Object for thrown missile. */
 //----------------------------------------------
 export class Missile extends Weapon {
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         this.setType(RG.ITEM.MISSILE);
     }
