@@ -15,7 +15,7 @@ export class RGDebug {
     }
 
     /* Creates a full armor set and adds to actor inventory. */
-    public createFullSet(actor: SentientActor, type: string): void {
+    public createItems(actor: SentientActor, type: string): void {
         const re = new RegExp(type);
         Object.keys(RG.EQUIP).forEach((eqType: string) => {
             const procGen = this.parser.getProcGen();
