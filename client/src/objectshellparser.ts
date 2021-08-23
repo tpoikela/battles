@@ -1283,10 +1283,14 @@ export const getParser = function(): Parser {
         const objectsNew = JSON.parse(jsonStr);
         adjustActorValues(objectsNew.actors);
 
+        parser.adjustColorsWhenNeeded = false;
         parser.parseShellData(objectsNew);
+        parser.adjustColorsWhenNeeded = true;
         ObjectShell.parserInstance = parser;
 
-        const randActors = ActorGen.genActors(500);
+        ActorGen.maxNumRoles = 1;
+        const randActors = ActorGen.genActors(1000);
+        ActorGen.maxNumRoles = 2;
         // console.log(JSON.stringify(randActors, null, 1));
         parser.parseShellData({actors: randActors});
     }
