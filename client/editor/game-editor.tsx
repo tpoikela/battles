@@ -31,6 +31,7 @@ import {Geometry} from '../src/geometry';
 import {Keys} from '../src/keymap';
 import {Level} from '../src/level';
 import {ColorTestScreen} from './color-test-screen';
+import {Constraints} from '../src/constraints';
 
 import {OWMap} from '../src/overworld.map';
 import {ObjectShell} from '../src/objectshellparser';
@@ -1195,6 +1196,10 @@ export default class GameEditor extends Component {
       conf.nLevel = 0;
       conf.sqrPerItem = 40;
       conf.sqrPerActor = 40;
+      const constraint = {
+          actor: [{op: 'eq', prop: 'type', value: 'undead'}]
+      };
+      conf.actor = new Constraints().getConstraints(constraint.actor);
       return conf;
     }
     else if (value === 'Nest') {
