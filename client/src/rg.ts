@@ -29,6 +29,7 @@ type Level = import('./level').Level;
 type Damage = import('./mixin').Damage;
 type BrainGoalOriented = import('./brain').BrainGoalOriented;
 type BattleZone = import('./world').BattleZone;
+type ItemRune = import('./item').Rune;
 type ComponentBase = import('./component/component.base').ComponentBase;
 
 // type MissType = (Entity & Damage) | ItemBase;
@@ -2386,6 +2387,34 @@ class RGClass {
 
     public pluralize(name: string): string {
         return name + 's';
+    }
+
+
+    public reduceCountOrCharge(
+        item: ItemBase, actor: SentientActor, pool: EventPool
+    ): void {
+        if (item.has('OneShot')) {
+            if (item.getCount() === 1) {
+                const msg = {item};
+                pool.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+            }
+            else {
+                item.decrCount(1);
+            }
+        }
+        else if ((item as ItemRune).getCharges && (item as ItemRune).getCharges() > 0) {
+            const rune = item as ItemRune;
+            if (item.getCount() > 1) {
+                const cloned = item.clone() as ItemRune;
+                cloned.setCount(1);
+                item.setCount(item.getCount() - 1);
+                cloned.setCharges(cloned.getCharges() - 1);
+                actor.getInvEq().addItem(cloned);
+            }
+            else {
+                rune.setCharges(rune.getCharges() - 1);
+            }
+        }
     }
 
 }
