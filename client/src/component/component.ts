@@ -1286,12 +1286,23 @@ AddOnEquip.prototype.toJSON = function() {
     return json;
 };
 
+const regenProps = {
+    PP: 1, HP: 1, waitPP: 30, waitHP: 30, maxWaitPP: 60, maxWaitHP: 60,
+    regenId: -1
+};
+
+export const Regeneration = DataComponent('Regeneration', regenProps);
 /* Can be used to modify a value of another component at certain
  * intervals. Placed on entity when regeneration is needed, and removed
  * once all values have regenerated. */
-export const RegenEffect = DataComponent('RegenEffect', {
-    PP: 1, HP: 1, waitPP: 30, waitHP: 30, maxWaitPP: 60, maxWaitHP: 60
-});
+export const RegenEffect = DataComponent('RegenEffect', regenProps);
+
+RegenEffect.prototype.initEffect = function(regenComp) {
+    Object.keys(regenProps).forEach(key => {
+        this[key] = regenComp[key];
+    });
+    this.regenId = regenComp.getID();
+};
 
 export const Telepathy = DataComponent('Telepathy', {
     target: null, source: null
