@@ -788,9 +788,15 @@ export const ActorsData: ActorShell[] = [
         hp: 9
     },
     {
+        name: 'skeleton mauler', char: 'z', base: 'UndeadBase',
+        attack: 4, defense: 0, damage: '2d5+4', danger: 2,
+        colorfg: 'Red',
+        hp: 2
+    },
+    {
         name: 'zombie', char: 'z', base: 'UndeadBase',
         colorfg: 'Brown',
-        attack: 2, defense: 2, damage: '1d6', danger: 2,
+        attack: 2, defense: 2, damage: '1d6+2', danger: 2,
         hp: 12
     },
     {
@@ -802,19 +808,19 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'skeleton warrior', char: 'z', base: 'UndeadBase',
-        attack: 3, defense: 3, damage: '1d8 + 2', danger: 4,
+        attack: 3, defense: 3, damage: '1d8 + 4', danger: 4,
         hp: 20
     },
     {
         name: 'necrowurm', char: 'W', base: 'UndeadBase',
-        attack: 4, defense: 4, damage: '1d9', danger: 5,
+        attack: 4, defense: 4, damage: '1d10 + 5', danger: 5,
         brain: 'Animal', speed: 115, hp: 21
     },
     {
         name: 'skeleton berserker', char: 'z', base: 'UndeadBase',
         colorfg: 'Pink',
-        attack: 6, defense: 1, damage: '1d10 + 4', danger: 5,
-        hp: 15
+        attack: 9, defense: 1, damage: '2d8 + 4', danger: 5,
+        hp: 10
     },
     {
         name: 'ghoul', char: 'z', base: 'UndeadBase',
@@ -875,7 +881,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'ghost lord', char: 'G', base: 'UndeadBase',
-        colorfg: 'LightGray',
+        colorfg: 'Yellow',
         attack: 7, defense: 7, damage: '2d5 + 2', danger: 8,
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -10}],
@@ -921,8 +927,8 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'ghost king', char: 'G', base: 'UndeadBase',
-        colorfg: 'Yellow',
-        attack: 7, defense: 7, damage: '3d5 + 2', danger: 12,
+        colorfg: 'Red',
+        attack: 12, defense: 12, protection: 10, damage: '4d5 + 5', danger: 12,
         brain: 'SpellCaster',
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -15}],
@@ -941,8 +947,8 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'lich king', char: 'L', base: 'UndeadBase',
-        colorfg: 'Yellow',
-        attack: 8, defense: 8, protection: 6,
+        colorfg: 'Red',
+        attack: 15, defense: 15, protection: 6,
         damage: '2d8 + 2', danger: 17,
         hp: 75, brain: 'SpellCaster',
         spells: ['SummonDead', 'AnimateDead'], maxPP: 75, pp: 75,
@@ -952,7 +958,40 @@ export const ActorsData: ActorShell[] = [
         addComp: [
             resistance('ICE', 'MEDIUM'),
             resistance('POISON', 'IMMUNITY'),
-            resistance('NECRO', 'IMMUNITY')
+            resistance('NECRO', 'IMMUNITY'), 'Regeneration', 'RangedEvasion'
+        ]
+    },
+    {
+        name: 'ghost emperor', char: 'G', base: 'UndeadBase',
+        colorfg: 'Purple',
+        attack: 20, defense: 20, protection: 10, damage: '5d5 + 5', danger: 18,
+        brain: 'SpellCaster',
+        onHit: [
+            {addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -20}],
+                duration: '3d10'}
+        ],
+        addComp: [
+            resistance('ICE', 'MEDIUM'),
+            resistance('NECRO', 'IMMUNITY'), 'Regeneration', 'RangedEvasion',
+            BypassComp(0.50)
+        ],
+        hp: 75,
+    },
+    {
+        name: 'lich emperor', char: 'L', base: 'UndeadBase',
+        colorfg: 'Purple',
+        attack: 25, defense: 25, protection: 15,
+        damage: '4d8 + 2', danger: 20,
+        hp: 99, brain: 'SpellCaster',
+        spells: ['SummonDead', 'AnimateDead', 'ShadowRay'], maxPP: 120, pp: 120,
+        onHit: [
+            meleeHitDamage(4, '2d6', 'NECRO'),
+            {addComp: 'Stun', duration: '1d4 + 1'}
+        ],
+        addComp: [
+            resistance('ICE', 'MEDIUM'),
+            resistance('POISON', 'IMMUNITY'),
+            resistance('NECRO', 'IMMUNITY'), 'Regeneration', 'RangedEvasion'
         ]
     },
 
@@ -1602,7 +1641,7 @@ export const ActorsData: ActorShell[] = [
     // UNIQUES
     {
         name: 'UniqueBase', dontCreate: true, className: 'cell-actor-unique',
-        noRandom: true, unique: true, addComp: ['RegenEffect'],
+        noRandom: true, unique: true, addComp: ['Regeneration'],
         color: color('DarkViolet', 'Beige'),
     },
     {
@@ -1613,7 +1652,7 @@ export const ActorsData: ActorShell[] = [
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
         magic: 30, attack: 30, defense: 30, protection: 10,
         equip: ['Permaice katana', 'Permaice armour'],
-        addComp: ['SnowWalk', resistance('ICE', 'STRONG'), 'RegenEffect']
+        addComp: ['SnowWalk', resistance('ICE', 'STRONG'), 'Regeneration']
     },
     {
         name: 'Zamoned, Son of Frost', base: 'UniqueBase',
@@ -1624,7 +1663,7 @@ export const ActorsData: ActorShell[] = [
         damage: '4d5',
         equip: ['Permaice axe', 'Permaice armour', 'Bow of Defense',
             {name: 'Runed arrow', count: 100}],
-        addComp: ['SnowWalk', resistance('ICE', 'STRONG'), 'RegenEffect']
+        addComp: ['SnowWalk', resistance('ICE', 'STRONG'), 'Regeneration']
     },
 
     {
@@ -1635,7 +1674,7 @@ export const ActorsData: ActorShell[] = [
         strength: 15, accuracy: 15, agility: 15, willpower: 30, perception: 25,
         magic: 25, attack: 15, defense: 15, protection: 5,
         equip: ['Ruby glass armour', 'Ruby glass collar'],
-        addComp: ['SnowWalk', resistance('ICE', 'STRONG'), 'RegenEffect']
+        addComp: ['SnowWalk', resistance('ICE', 'STRONG'), 'Regeneration']
     },
 
     {
@@ -1649,7 +1688,7 @@ export const ActorsData: ActorShell[] = [
         onHit: [
             {addComp: 'Stun', duration: '1d4 + 1'}
         ],
-        addComp: ['RegenEffect']
+        addComp: ['Regeneration']
     },
     {
         name: 'Aspelin Primoen, the Blacksmith', type: 'dogfolk',
@@ -1668,7 +1707,7 @@ export const ActorsData: ActorShell[] = [
         strength: 15, accuracy: 25, agility: 25, willpower: 17, perception: 25,
         magic: 17, attack: 25, defense: 15, protection: 5,
         equip: ['Steel armour', 'Runed collar'],
-        addComp: ['FirstStrike', 'RangedEvasion', 'RegenEffect']
+        addComp: ['FirstStrike', 'RangedEvasion', 'Regeneration']
     },
 
     // Undead uniques
@@ -1684,7 +1723,7 @@ export const ActorsData: ActorShell[] = [
             meleeHitDamage(4, '2d8 + 2', 'NECRO')
         ],
         spells: ['SummonDead', 'FrostBolt', 'GraspOfWinter'],
-        addComp: ['RegenEffect']
+        addComp: ['Regeneration']
     },
     {
         name: 'Zargoth, undead sorcerer', type: 'undead',
@@ -1697,7 +1736,7 @@ export const ActorsData: ActorShell[] = [
             meleeHitDamage(2, '1d8 + 2', 'NECRO')
         ],
         spells: ['SummonUndeadUnicorns', 'ShadowRay'],
-        addComp: ['RegenEffect']
+        addComp: ['Regeneration']
     },
 
     {
@@ -1722,7 +1761,7 @@ export const ActorsData: ActorShell[] = [
         fovrange: 9,
         equip: ['Chain armour', 'Chain helmet', 'Chain boots',
             'Double crossbow', {name: 'Void bolt', count: 30}],
-        addComp: ['EagleEye', 'RangedEvasion', 'StrongShot', 'RegenEffect']
+        addComp: ['EagleEye', 'RangedEvasion', 'StrongShot', 'Regeneration']
     },
 
     {
@@ -1733,7 +1772,7 @@ export const ActorsData: ActorShell[] = [
         magic: 22, attack: 25, defense: 25, protection: 7,
         fovrange: 7,
         equip: ['Ruby glass armour', 'Mithril helmet', 'Mithril shield'],
-        addComp: ['Flying', 'RegenEffect', 'RangedEvasion']
+        addComp: ['Flying', 'Regeneration', 'RangedEvasion']
     },
 
     {
@@ -1745,7 +1784,7 @@ export const ActorsData: ActorShell[] = [
         magic: 22, attack: 35, defense: 35, protection: 15,
         fovrange: 5,
         enemies: RG.ACTOR_RACES,
-        addComp: ['SnowWalk', resistance('ICE', 'IMMUNITY'), 'RegenEffect'],
+        addComp: ['SnowWalk', resistance('ICE', 'IMMUNITY'), 'Regeneration'],
         onHit: [
             meleeHitDamage(5, '1d8 + 4', 'ICE')
         ],
@@ -1760,7 +1799,7 @@ export const ActorsData: ActorShell[] = [
         attack: 55, defense: 45, protection: 20,
         fovrange: 5,
         enemies: RG.ACTOR_RACES,
-        addComp: ['SnowWalk', resistance('ICE', 'IMMUNITY'), 'RegenEffect'],
+        addComp: ['SnowWalk', resistance('ICE', 'IMMUNITY'), 'Regeneration'],
         onHit: [
             meleeHitDamage(5, '1d4 + 4', 'ICE'), {addComp: 'Stun', duration: '1d2 + 1'}
         ],
@@ -1781,7 +1820,7 @@ export const ActorsData: ActorShell[] = [
         enemies: RG.ACTOR_RACES,
         addComp: ['SnowWalk', resistance('ICE', 'IMMUNITY'),
             resistance('NECRO', 'STRONG'), resistance('VOID', 'STRONG'),
-            'RegenEffect'],
+            'Regeneration'],
         onHit: [
             meleeHitDamage(5, '1d8 + 4', 'ICE')
         ],
