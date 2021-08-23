@@ -175,6 +175,7 @@ export class OWSubFeature {
                 'coord must be an array.');
         }
         this.tags = [];
+        this.alignment = '';
     }
 
     public getLastCoord(): TCoord {
