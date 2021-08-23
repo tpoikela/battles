@@ -128,6 +128,10 @@ export class WorldSimulation {
         return this.seasonMan.getTemperature();
     }
 
+    public getHumidity(): number {
+        return this.seasonMan.getHumidity();
+    }
+
     public getVisibility(): number {
         return this.dayMan.getVisibility();
     }
@@ -234,6 +238,7 @@ export class WorldSimulation {
             const weatherComp = new Component.Weather();
             weatherComp.setWeatherType(weather);
             weatherComp.setTemperature(this.getTemperature());
+            weatherComp.setHumidity(this.getHumidity());
             weatherComp.setVisibility(this.getVisibility());
 
             if (currLevel.getActors().findIndex(a => a.getName() === 'WeatherActor') < 0) {
