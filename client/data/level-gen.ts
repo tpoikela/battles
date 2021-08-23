@@ -11,7 +11,80 @@ import {Random} from '../src/random';
 
 const RAND = Random.getRNG();
 
-export const LevelGen: any = {};
+export class LevelGen {
+
+    // DUNGEON GENERATION
+    public static getDungeonConf (dungeonName: string): IF.DungeonConf {
+        let dungeonType = getDungeonType(dungeonName);
+        const nLevels = getNumLevels(dungeonType);
+        const constraint = getConstraint(dungeonType);
+        const [dungeonX, dungeonY] = getDungeonSizeXY(dungeonName);
+
+        dungeonType = dungeonType.toLowerCase();
+        const obj: IF.DungeonConf = {
+            name: dungeonName,
+            dungeonX, dungeonY, dungeonType,
+            nBranches: 1, // TODO multi-branch dungeons
+            branch: [
+                {name: dungeonName, nLevels, entranceLevel: 0}
+            ]
+        };
+
+        if (constraint) {
+            obj.constraint = constraint;
+        }
+
+        return obj;
+    }
+
+    public static getMountainConf(mountainName: string): IF.MountainConf {
+        const nLevels = 1;
+        const [x, y] = getMountainSizeXY(mountainName);
+        const conf = {
+            name: mountainName,
+            nFaces: nLevels,
+            face: [
+                {name: mountainName, nLevels, entranceLevel: 0, x, y}
+            ],
+            nSummits: 1,
+            summit: [
+                {name: 'Summit', nLevels: 1, cols: 80, rows: 50}
+            ],
+            connectLevels: [
+                [mountainName, 'Summit', 0, 0] as IF.LevelConnection
+            ]
+        };
+        return conf;
+    }
+
+    public static getCityConf(cityName: string, conf): IF.CityConf {
+        let cityType = Names.getGenericPlaceName('city');
+        if (conf.type === 'fort') {
+            cityType = 'Fort';
+        }
+        else if (conf.capital) {
+            cityType = 'Capital';
+        }
+        else if (conf.type === 'stronghold') {
+            cityType = 'Stronghold';
+        }
+        else if (conf.type === 'village') {
+            cityType = Names.getVillageType();
+        }
+        const nQuarters = getNumQuarters(cityType);
+        const quarters: IF.QuarterConf[] = getQuarterConf(nQuarters, conf);
+        const connect = WorldConf.createQuarterConnections(quarters);
+        const obj: IF.CityConf = {
+            name: cityName,
+            nQuarters,
+            quarter: quarters
+        };
+
+        if (connect) {obj.connectLevels = connect;}
+        return obj;
+    }
+
+}
 
 const getNumLevels = function(name: string): number {
     switch (name) {
@@ -80,56 +153,6 @@ const getMountainSizeXY = function(name: string): [number, number] {
     }
 };
 
-//---------------------------------------------------------------------------
-// DUNGEON GENERATION
-//---------------------------------------------------------------------------
-
-LevelGen.getDungeonConf = (dungeonName: string): IF.DungeonConf =>  {
-    let dungeonType = getDungeonType(dungeonName);
-    const nLevels = getNumLevels(dungeonType);
-    const constraint = getConstraint(dungeonType);
-    const [dungeonX, dungeonY] = getDungeonSizeXY(dungeonName);
-
-    dungeonType = dungeonType.toLowerCase();
-    const obj: IF.DungeonConf = {
-        name: dungeonName,
-        dungeonX, dungeonY, dungeonType,
-        nBranches: 1, // TODO multi-branch dungeons
-        branch: [
-            {name: dungeonName, nLevels, entranceLevel: 0}
-        ]
-    };
-
-    if (constraint) {
-        obj.constraint = constraint;
-    }
-
-    return obj;
-};
-
-//---------------------------------------------------------------------------
-// MOUNTAIN GENERATION
-//---------------------------------------------------------------------------
-
-LevelGen.getMountainConf = mountainName => {
-    const nLevels = 1;
-    const [x, y] = getMountainSizeXY(mountainName);
-    const conf = {
-        name: mountainName,
-        nFaces: nLevels,
-        face: [
-            {name: mountainName, nLevels, entranceLevel: 0, x, y}
-        ],
-        nSummits: 1,
-        summit: [
-            {name: 'Summit', nLevels: 1, cols: 80, rows: 50}
-        ],
-        connectLevels: [
-            [mountainName, 'Summit', 0, 0]
-        ]
-    };
-    return conf;
-};
 
 //---------------------------------------------------------------------------
 // CITY GENERATION
@@ -197,31 +220,4 @@ const getQuarterConf = (nQuarters: number, conf): IF.QuarterConf[] => {
         quarters.push(qConf);
     }
     return quarters;
-};
-
-LevelGen.getCityConf = (cityName: string, conf): IF.CityConf => {
-    let cityType = Names.getGenericPlaceName('city');
-    if (conf.type === 'fort') {
-        cityType = 'Fort';
-    }
-    else if (conf.capital) {
-        cityType = 'Capital';
-    }
-    else if (conf.type === 'stronghold') {
-        cityType = 'Stronghold';
-    }
-    else if (conf.type === 'village') {
-        cityType = Names.getVillageType();
-    }
-    const nQuarters = getNumQuarters(cityType);
-    const quarters = getQuarterConf(nQuarters, conf);
-    const connect = WorldConf.createQuarterConnections(quarters);
-    const obj: IF.CityConf = {
-        name: cityName,
-        nQuarters,
-        quarter: quarters
-    };
-
-    if (connect) {obj.connectLevels = connect;}
-    return obj;
 };
