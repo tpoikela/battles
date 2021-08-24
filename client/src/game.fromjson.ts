@@ -311,19 +311,15 @@ export class FromJSON {
 
         player.setType(json.type);
         player.setID(json.id);
-        // this.id2entity[json.id] = player;
-        // this.addEntityInfo(player, json);
         this._dungeonLevel = json.dungeonLevel;
         this.addObjRef('entity', player, json);
 
         RG.addCellStyle(RG.TYPE_ACTOR, json.name, 'cell-actor-player');
-        // this._addEntityFeatures(json, player);
-        // this.restorePlayerBrain(player, json.brain);
         return player;
     }
 
 
-    public restorePlayerBrain(player, brainJSON) {
+    public restorePlayerBrain(player, brainJSON): void {
         const brain = player.getBrain();
         const memory = brain.getMemory();
         const memJSON = brainJSON.memory;
@@ -335,10 +331,9 @@ export class FromJSON {
         }
     }
 
-    public addRestoredPlayerToGame(player, game, json) {
-        this._addRegenEvents(game, player);
+    public addRestoredPlayerToGame(player, game: GameMain, json): void {
         const id = json.player.levelID;
-        const level = game.getLevels().find(item => item.getID() === id);
+        const level: Level = game.getLevels().find(item => item.getID() === id)!;
         if (level) {
             const x = json.player.x;
             const y = json.player.y;
@@ -1307,23 +1302,6 @@ export class FromJSON {
             msg += `\n\t${id}`;
         });
         console.warn(msg + '\n');
-    }
-
-
-    /* Re-schedules the HP/PP regeneration for an actor */
-    public _addRegenEvents(game, actor) {
-        // Add HP regeneration
-        const regenPlayer = new Time.RegenEvent(actor,
-            20 * RG.ACTION_DUR);
-        game.addEvent(regenPlayer);
-
-        // Add PP regeneration (if needed)
-        if (actor.has('SpellPower')) {
-            const regenPlayerPP = new Time.RegenPPEvent(actor,
-                30 * RG.ACTION_DUR);
-            game.addEvent(regenPlayerPP);
-        }
-
     }
 
 
