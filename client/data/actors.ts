@@ -122,8 +122,36 @@ export const ActorsData: ActorShell[] = [
                 entityName: 'Chicken egg',
                 endMsg: 'Chicken lays an egg onto the ground!'
             }
-        }
+        },
+        inv: [{name: 'Poultry', count: 1}],
     },
+    {
+        name: 'pig', char: 'p', base: 'animal',
+        color: color('Pink', 'White'),
+        damage: '1d1', hp: 5,
+        noRandom: true, enemies: NO_ENEMIES,
+        inv: [{name: 'Pork', count: 2}],
+    },
+    {
+        name: 'cow', char: 'c', base: 'animal',
+        color: color('Brown', 'White'),
+        damage: '1d2', hp: 7,
+        noRandom: true, enemies: NO_ENEMIES,
+        inv: [{name: 'Beef', count: 2}],
+    },
+    {
+        name: 'reindeer', char: 'R', base: 'animal',
+        color: color('Brown', 'White'),
+        damage: '1d2', hp: 7, enemies: NO_ENEMIES,
+        inv: [{name: 'Reindeer meat', count: 2}],
+    },
+    {
+        name: 'elk', char: 'E', base: 'animal',
+        color: color('Brown', 'White'),
+        damage: '1d6', hp: 7, enemies: NO_ENEMIES,
+        inv: [{name: 'Elk meat', count: 3}],
+    },
+
     {
         name: 'rat', char: 'r', base: 'animal'
     },
@@ -239,7 +267,8 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'bear', char: 'B', base: 'animal',
         attack: 5, defense: 5, damage: '1d9',
-        hp: 30, danger: 5
+        hp: 30, danger: 5,
+        inv: [{name: 'Bear meat', count: 3}],
     },
     {
         name: 'mountain lion', char: 'f', base: 'animal',
@@ -256,7 +285,8 @@ export const ActorsData: ActorShell[] = [
         name: 'dire bear', char: 'B', base: 'animal',
         colorfg: 'Gray',
         attack: 8, defense: 5, damage: '4d4',
-        hp: 40, danger: 6
+        hp: 40, danger: 6,
+        inv: [{name: 'Bear meat', count: 3}],
     },
     {
         name: 'griffin', char: 'G', base: 'animal',
@@ -271,7 +301,8 @@ export const ActorsData: ActorShell[] = [
         onHit: [
             {addComp: 'Stun', duration: '1d2 + 1'}
         ],
-        addComp: [resistance('ICE', 'STRONG')]
+        addComp: [resistance('ICE', 'STRONG')],
+        inv: [{name: 'Bear meat', count: 3}],
     },
     {
         name: 'giant horsefly', char: 'I', base: 'animal',

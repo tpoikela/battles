@@ -37,7 +37,8 @@ export class ItemRandomizer {
             weapon: this._adjustWeapon.bind(this),
             armour: this._adjustArmour.bind(this),
             ammo: this._adjustMissile.bind(this),
-            rune: this._adjustRune.bind(this)
+            rune: this._adjustRune.bind(this),
+            tool: this._adjustTool.bind(this),
             // mineral: _adjustMineral
         };
 
@@ -53,10 +54,10 @@ export class ItemRandomizer {
     }
 
     /* Distr. of food weights.*/
-
     public _adjustFoodItem(food: ItemBase) {
         const weight = RNG.getWeighted(this._foodWeights);
-        food.setWeight(parseInt(weight, 10));
+        // food.setWeight(parseInt(weight, 10));
+        food.setWeight(parseFloat(weight));
     }
 
     public _adjustGoldCoin(gold: ItemBase, nLevel: number) {
@@ -72,8 +73,26 @@ export class ItemRandomizer {
     }
 
     public _adjustMissile(missile: ItemBase): void {
-        const count = RNG.getUniformInt(5, 15);
+        let count = RNG.getUniformInt(5, 15);
+        const value = missile.getValue();
         missile.setCount(count);
+    }
+
+    public _adjustTool(tool: ItemBase): void {
+        if (/seeds/.test(tool.getName())) {
+            const value = tool.getValue();
+            let count = 1;
+            if (value <= 5) {
+                count = RNG.getUniformInt(5, 15);
+            }
+            else if (value <= 10) {
+                count = RNG.getUniformInt(3, 10);
+            }
+            else if (value <= 20) {
+                count = RNG.getUniformInt(1, 5);
+            }
+            tool.setCount(count);
+        }
     }
 
     protected _isCombatMod(val: number) {return val >= 0.0 && val <= 0.02;}

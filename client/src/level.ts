@@ -357,7 +357,10 @@ export class Level extends Entity {
     /* Adds one item to the given location on the level. If x,y not given,
     *  adds it to random free cell. */
     public addItem(item: ItemBase, x?: number, y?: number): boolean {
-        // verifyLevelCache(this);
+        if (item.getWeight() === 0) {
+            console.log(item);
+            RG.err('Level', 'addItem', 'Item with zero-weight detected');
+        }
         if (!RG.isNullOrUndef([x, y])) {
             return this._addPropToLevelXY(RG.TYPE_ITEM, item, x!, y!);
         }

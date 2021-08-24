@@ -112,10 +112,7 @@ export class CellClickHandler extends DriverBase {
 
     /* Tries to compute a path to given coordinate. Uses 2 different methods. */
     public moveTo(player: SentientActor, toX: number, toY: number): void {
-        // let keyBuf = [];
         let [pX, pY] = [player.getX(), player.getY()];
-        // const [aX, aY] = [pX, pY]; // Keep original position
-        // let pathPossible = true;
         const map = player.getLevel().getMap();
 
         if (!map.isExplored(toX, toY)) {
@@ -124,63 +121,21 @@ export class CellClickHandler extends DriverBase {
             return;
         }
 
-        /*
-        // Try to move diagonals first
-        while (pX !== toX && pY !== toY) {
-            const dx = toX - pX;
-            const dy = toY - pY;
+        // Use path finder, to find the path to move
+        [pX, pY] = [player.getX(), player.getY()];
+        const keyBuf: number[] = [];
+        const cb = (x: number, y: number) => (
+            map.isExplored(x, y) && map.isPassable(x, y, pX, pY)
+        );
+
+        const path = Path.getShortestActorPath(map, pX, pY, toX, toY, cb);
+        path.forEach(xy => {
+            const dx = xy.x - pX;
+            const dy = xy.y - pY;
             keyBuf.push(dirToKeyCode(dx, dy));
-            pX += dx / Math.abs(dx);
-            pY += dy / Math.abs(dy);
-            if (!map.isPassable(pX, pY, aX, aY)) {
-                pathPossible = false;
-                break;
-            }
-        }
-
-        // Then proceed to move on straight line
-        if (pathPossible && toX !== pX) {
-            while (pX !== toX) {
-                const dx = toX - pX;
-                keyBuf.push(dirToKeyCode(dx, 0));
-                pX += dx / Math.abs(dx);
-                if (!map.isPassable(pX, pY, aX, aY)) {
-                    pathPossible = false;
-                    break;
-                }
-            }
-        }
-        else if (pathPossible && toY !== pY) {
-            while (pY !== toY) {
-                const dy = toY - pY;
-                keyBuf.push(dirToKeyCode(0, dy));
-                pY += dy / Math.abs(dy);
-                if (!map.isPassable(pX, pY, aX, aY)) {
-                    pathPossible = false;
-                    break;
-                }
-            }
-        }
-        */
-
-        // Use path finder, if more difficult path to follow
-        // if (!pathPossible) {
-            console.log('Using pathfinder to find the fastest path!');
-            [pX, pY] = [player.getX(), player.getY()];
-            const keyBuf: number[] = [];
-            const cb = (x: number, y: number) => (
-                map.isExplored(x, y) && map.isPassable(x, y, pX, pY)
-            );
-            // const cb = () => true;
-            const path = Path.getShortestActorPath(map, pX, pY, toX, toY, cb);
-            path.forEach(xy => {
-                const dx = xy.x - pX;
-                const dy = xy.y - pY;
-                keyBuf.push(dirToKeyCode(dx, dy));
-                if (dx !== 0) {pX += dx / Math.abs(dx);}
-                if (dy !== 0) {pY += dy / Math.abs(dy);}
-            });
-        //}
+            if (dx !== 0) {pX += dx / Math.abs(dx);}
+            if (dy !== 0) {pY += dy / Math.abs(dy);}
+        });
 
         this._keyBuffer = keyBuf;
     }
