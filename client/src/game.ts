@@ -25,7 +25,6 @@ type SentientActor = import('./actor').SentientActor;
 type OWMap = import('./overworld.map').OWMap;
 type BrainPlayer = import('./brain').BrainPlayer;
 type WorldTop = World.WorldTop;
-type AreaTile = World.AreaTile;
 type WorldBase = World.WorldBase;
 type ZoneBase = World.ZoneBase;
 type Frame = import('./animation').Frame;
