@@ -3,6 +3,7 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import * as Component from '../component';
+import {addRegenEffects} from './system.utils';
 
 type Cell = import('../map.cell').Cell;
 
@@ -28,6 +29,19 @@ export class SystemDamage extends SystemBase {
             else {
                 this._applyAddOnHitComp(ent, dmgComp);
                 health.decrHP(totalDmg);
+
+                if (ent.has('Regeneration')) {
+                    addRegenEffects(ent);
+                    /*
+                    const regen = ent.get('Regeneration');
+                    if (regen.getHP() > 0 && !ent.has('RegenEffect')) {
+                        const regenEffect = new Component.RegenEffect();
+                        regenEffect.initEffect(ent.get('Regeneration'));
+                        ent.add(regenEffect);
+                    }
+                    */
+                }
+
                 if (this.debugEnabled) {
                     const hpMax = health.getMaxHP();
                     const hp = health.getHP();
