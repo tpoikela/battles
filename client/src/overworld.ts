@@ -471,7 +471,6 @@ function buildMapLevel(
         }
     }
 
-
     const conf: WorldConf = OverWorld.createWorldConf(ow,
         sizeX, sizeY, nTilesX, nTilesY, owConf);
 
@@ -870,6 +869,9 @@ function addDungeonToSubLevel(owSubLevel: OWSubLevel, subLevel: Level) {
     if (coord && coord.length > 0) {
         const dungeon = new OWSubFeature('dungeon', coord);
         owSubLevel.addFeature(dungeon);
+    }
+    else {
+        console.log('No suitable place for Dungeon adding found!');
     }
 }
 

@@ -506,6 +506,25 @@ const Elements = [
         char: '+'
     },
 
+    {
+        name: 'swamp', className: 'cell-element-swamp',
+        char: '"',
+        addComp: [{comp: 'Terrain',
+            func: {
+                setMods: [speedPenalty(0.25, ['Flying'])]
+            }
+        }]
+    },
+    {
+        name: 'frozen swamp', className: 'cell-element-frozen-swamp',
+        char: '"',
+        addComp: ['Snowy', {comp: 'Terrain',
+            func: {
+                setMods: [speedPenalty(0.15, ['Flying'])]
+            }
+        }]
+    },
+
     //---------------------------------------------------------
     // Presentational-only elements, only rendering info stored
     // NOTE: Adding anything else here than char/className will
