@@ -1288,7 +1288,7 @@ AddOnEquip.prototype.toJSON = function() {
 
 const regenProps = {
     PP: 1, HP: 1, waitPP: 30, waitHP: 30, maxWaitPP: 60, maxWaitHP: 60,
-    regenId: -1
+    regenID: -1
 };
 
 export const Regeneration = DataComponent('Regeneration', regenProps);
@@ -1301,7 +1301,7 @@ RegenEffect.prototype.initEffect = function(regenComp) {
     Object.keys(regenProps).forEach(key => {
         this[key] = regenComp[key];
     });
-    this.regenId = regenComp.getID();
+    this.regenID = regenComp.getID();
 };
 
 export const Telepathy = DataComponent('Telepathy', {
