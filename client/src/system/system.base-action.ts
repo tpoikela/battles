@@ -246,23 +246,12 @@ export class SystemBaseAction extends SystemBase {
 
         // We can apply to use without effArgs only
         if (!effArgs) {
-            if (item.has('OneShot')) {
-                if (item.getCount() === 1) {
-                    const msg = {item};
-                    this.pool.emitEvent(RG.EVT_DESTROY_ITEM, msg);
-                }
-                else {
-                    item.decrCount(1);
-                }
-            }
-            else if (item.getCharges && item.getCharges() > 0) {
-                item.setCharges(item.getCharges() - 1);
-            }
+            RG.reduceCountOrCharge(item, ent, this.pool);
             this._checkUseItemMsgEmit(ent, useItemComp);
         }
-
-        if (effArgs) {
+        else if (effArgs) {
             const effComp = new Component.Effects(effArgs);
+            effComp.setItem(item);
             ent.add(effComp);
         }
     }
