@@ -158,17 +158,9 @@ export class SystemEffects extends SystemBase {
     public _postEffectChecks(ent, effComp, ok: boolean): void {
         const useArgs = effComp.getArgs();
         if (!ok) {return;}
-        if (ent.has('OneShot') && ent.getCount) {
-            if (ent.getCount() === 1) {
-                const msg = {item: ent};
-                this.pool.emitEvent(RG.EVT_DESTROY_ITEM, msg);
-            }
-            else {
-                ent.decrCount(1);
-            }
-        }
-        else if (ent.getCharges && ent.getCharges() > 0) {
-            ent.setCharges(ent.getCharges() - 1);
+        const item = effComp.getItem();
+        if (item) {
+            RG.reduceCountOrCharge(item, ent, this.pool);
         }
     }
 
