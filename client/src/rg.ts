@@ -1923,6 +1923,14 @@ class RGClass {
         return {cmd: 'craft', item, count};
     }
 
+    public getBuyCmd(items: ItemBase[], count: number): IPlayerCmdInput {
+        return {cmd: 'buy', items, count};
+    }
+
+    public getSellCmd(items: ItemBase[], count: number): IPlayerCmdInput {
+        return {cmd: 'sell', items, count};
+    }
+
 
 /* Returns true if given item is one-shot use item by its type.*/
     public isOneShotItem(item: ItemBase): boolean {
