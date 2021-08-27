@@ -558,6 +558,10 @@ const Elements = [
         dontCreate: true, name: 'cityfort',
         char: 'o', className: 'cell-element-fort'
     },
+    {
+        dontCreate: true, name: 'pathdown',
+        char: '\u27C0', className: 'cell-element-stairs'
+    },
     /*{
         dontCreate: true, name: 'wallcastle',
         char: '#', className: 'cell-element-castle'
