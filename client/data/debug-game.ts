@@ -353,6 +353,11 @@ export class DebugGame {
         */
         game.addPlayer(player);
 
+        const oneway = new Stairs('stairsDown', level, level);
+        oneway.setTargetOnewayXY(0, 0);
+        oneway.setMsg({onEnter: 'Stairs speak aloud: Abandon all hope who enter here!!!'});
+        level.addElement(oneway, player.getX() - 1, player.getY());
+
         return game;
     }
 
