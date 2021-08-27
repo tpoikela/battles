@@ -791,7 +791,6 @@ export const ActorsData: ActorShell[] = [
     // UNDEAD
     {
         name: 'UndeadBase', className: 'cell-actor-undead',
-        color: color('White', 'Black'),
         dontCreate: true, addComp: 'Undead', brain: undeadBrain,
         attack: 1, defense: 1, protection: 0,
         range: 1, enemies: RG.ACTOR_RACES, type: 'undead'
@@ -821,18 +820,18 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'skeleton mauler', char: 'z', base: 'UndeadBase',
         attack: 4, defense: 0, damage: '2d5+4', danger: 2,
-        colorfg: 'Red',
+        color: color('Red', 'Black'),
         hp: 2
     },
     {
         name: 'zombie', char: 'z', base: 'UndeadBase',
-        colorfg: 'Brown',
+        color: color('Brown', 'Black'),
         attack: 2, defense: 2, damage: '1d6+2', danger: 2,
         hp: 12
     },
     {
         name: 'skeleton archer', char: 'z', base: 'UndeadBase',
-        colorfg: 'Yellow',
+        color: color('Yellow', 'Black'),
         attack: 4, defense: 2, damage: '1d8', danger: 4,
         hp: 15,
         equip: ['Wooden bow', {name: 'Wooden arrow', count: 5}]
@@ -840,6 +839,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'skeleton warrior', char: 'z', base: 'UndeadBase',
         attack: 3, defense: 3, damage: '1d8 + 4', danger: 4,
+        color: color('LightBlue', 'Black'),
         hp: 20
     },
     {
@@ -849,19 +849,19 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'skeleton berserker', char: 'z', base: 'UndeadBase',
-        colorfg: 'Pink',
+        color: color('Pink', 'Black'),
         attack: 9, defense: 1, damage: '2d8 + 4', danger: 5,
         hp: 10
     },
     {
         name: 'ghoul', char: 'z', base: 'UndeadBase',
-        colorfg: 'LightGray',
+        color: color('LightGray', 'Black'),
         attack: 3, defense: 3, damage: '1d7 + 2', danger: 5,
         hp: 15, onHit: [{addComp: 'Paralysis', duration: '1d4'}]
     },
     {
         name: 'crypt zombie', char: 'z', base: 'UndeadBase',
-        colorfg: 'Yellow',
+        color: color('Cyan', 'Black'),
         attack: 2, defense: 2, protection: 4,
         damage: '3d5', danger: 6, hp: 30,
     },
@@ -876,7 +876,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'wraith', char: 'Z', base: 'UndeadBase',
-        colorfg: 'Cyan',
+        color: color('Cyan', 'Black'),
         attack: 5, defense: 5, damage: '2d5 + 2', danger: 6,
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setStrength', value: -1}],
@@ -886,7 +886,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'specter', char: 'Z', base: 'UndeadBase',
-        colorfg: 'Blue',
+        color: color('Blue', 'Black'),
         attack: 6, defense: 6, damage: '2d5 + 5', danger: 7,
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setMagic', value: -1}],
@@ -915,14 +915,14 @@ export const ActorsData: ActorShell[] = [
         colorfg: 'Yellow',
         attack: 7, defense: 7, damage: '2d5 + 2', danger: 8,
         onHit: [
-            {addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -10}],
+            {addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -7}],
                 duration: '3d10'}
         ],
         hp: 35
     },
     {
         name: 'skeleton king', char: 'Z', base: 'UndeadBase',
-        colorfg: 'red',
+        color: color('Red', 'Black'),
         attack: 6, defense: 6, damage: '3d5 + 5', danger: 9,
         hp: 45,
         addComp: [
@@ -933,9 +933,9 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'vampire', char: 'V', base: 'UndeadBase',
-        colorfg: 'Purple',
+        color: color('Purple', 'Black'),
         attack: 6, defense: 6, damage: '3d5 + 2', danger: 9,
-        speed: 120,
+        strength: 15, speed: 120,
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setStrength', value: -2}],
                 duration: '5d10'}
@@ -944,25 +944,25 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'undead unicorn', char: 'U', base: 'UndeadBase',
-        colorfg: 'GhostWhite',
+        color: color('GhostWhite', 'Black'),
         attack: 7, defense: 7, protection: 7, damage: '2d5 + 5', danger: 9,
         speed: 102, hp: 50,
         addComp: [BypassComp(0.25)]
     },
     {
         name: 'necrowyrm', char: 'W', base: 'UndeadBase',
-        colorfg: 'GhostWhite',
+        color: color('GhostWhite', 'Black'),
         attack: 7, defense: 7, protection: 7, damage: '3d5', danger: 10,
         brain: 'Animal', speed: 107, hp: 50,
         addComp: ['Flying']
     },
     {
         name: 'ghost king', char: 'G', base: 'UndeadBase',
-        colorfg: 'Red',
+        color: color('Red', 'Black'),
         attack: 12, defense: 12, protection: 10, damage: '4d5 + 5', danger: 12,
         brain: 'SpellCaster',
         onHit: [
-            {addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -15}],
+            {addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -12}],
                 duration: '3d10'}
         ],
         hp: 50,
@@ -971,6 +971,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'lich', char: 'L', base: 'UndeadBase',
         attack: 4, defense: 8, protection: 4,
+        color: color('Brown', 'Black'),
         damage: '1d8 + 6', danger: 12,
         hp: 50, brain: 'SpellCaster',
         spells: ['GraspOfWinter', 'SummonDead'], maxPP: 50, pp: 50,
@@ -978,7 +979,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'lich king', char: 'L', base: 'UndeadBase',
-        colorfg: 'Red',
+        color: color('Red', 'Black'),
         attack: 15, defense: 15, protection: 6,
         damage: '2d8 + 2', danger: 17,
         hp: 75, brain: 'SpellCaster',
@@ -994,7 +995,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'ghost emperor', char: 'G', base: 'UndeadBase',
-        colorfg: 'Purple',
+        color: color('Fuchsia', 'Black'),
         attack: 20, defense: 20, protection: 10, damage: '5d5 + 5', danger: 18,
         brain: 'SpellCaster',
         onHit: [
@@ -1010,7 +1011,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'lich emperor', char: 'L', base: 'UndeadBase',
-        colorfg: 'Purple',
+        color: color('Fuchsia', 'Black'),
         attack: 25, defense: 25, protection: 15,
         damage: '4d8 + 2', danger: 20,
         hp: 99, brain: 'SpellCaster',
@@ -1773,6 +1774,7 @@ export const ActorsData: ActorShell[] = [
     {
         name: 'Emption Agana Sunkist, Emperor bear', type: 'bearfolk',
         base: 'UniqueBase', char: 'B', danger: 75,
+        color: color('Fuchsia', 'LightGreen'),
         damage: '4d7 + 3', hp: 123, brain: defaultBrain,
         strength: 35, accuracy: 17, agility: 17, willpower: 17, perception: 17,
         magic: 10, attack: 35, defense: 35, protection: 15,
@@ -1780,7 +1782,8 @@ export const ActorsData: ActorShell[] = [
         onHit: [
             meleeHitDamage(8, '1d2', 'LIGHTNING'),
             {addComp: 'Stun', duration: '1d4 + 1'}
-        ]
+        ],
+        addComp: ['Regeneration']
     },
 
     {
@@ -1790,7 +1793,7 @@ export const ActorsData: ActorShell[] = [
         strength: 35, accuracy: 17, agility: 17, willpower: 17, perception: 30,
         magic: 10, attack: 35, defense: 35, protection: 5,
         fovrange: 9,
-        equip: ['Chain armour', 'Chain helmet', 'Chain boots',
+        equip: ['Mithril armour', 'Mithril helmet', 'Mithril boots',
             'Double crossbow', {name: 'Void bolt', count: 30}],
         addComp: ['EagleEye', 'RangedEvasion', 'StrongShot', 'Regeneration']
     },
