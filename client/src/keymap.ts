@@ -415,6 +415,7 @@ Keys.GUI.Map = Keys.VK.m;
 Keys.GUI.OwMap = ROT.KEYS.VK_M;
 Keys.GUI.Use = Keys.VK.u;
 Keys.GUI.Craft = Keys.VK.K;
+Keys.GUI.Shop = Keys.VK.S;
 
 Keys.isValidKey = (keyCode: number): boolean => {
     let found = false;
