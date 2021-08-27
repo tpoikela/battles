@@ -17,6 +17,8 @@ const tempCold = 0;
 const tempWarming = 15;
 const tempDrying = 15;
 
+const humidityWarming = 50;
+
 const compsForHeat = ['Coldness', 'Drenched'];
 
 /* Handles WeatherEffect components and has handler functions for
@@ -62,6 +64,7 @@ export class SystemWeather extends SystemBase {
     protected handleTemperature(ent: Entity, eff): void {
         const level: Level = RG.getLevel(ent);
         const tempOutdoor = eff.getTemperature();
+        const humidityOutdoor = eff.getHumidity();
         console.log('SystemWeather: Outdoor temperature is ', tempOutdoor);
         // 1st step, we apply temp only to outdoors, this will be expanded to
         // make houses warmer than dungeons etc. Best would be to have some temp
@@ -70,10 +73,12 @@ export class SystemWeather extends SystemBase {
         actors.forEach((actor: BaseActor): void => {
             if (actor.has('Location') && actor.get('Location').isValid()) {
                 let currTemp = tempOutdoor;
+                let currHumidity = humidityOutdoor;
                 const elem = actor.getCell()!.getBaseElem();
 
                 if (elem.has('Indoor')) {
                     currTemp += 10;
+                    currHumidity = humidityWarming;
                     if (elem.getName() === 'floorhouse') {
                         currTemp += 15;
                     }
@@ -97,8 +102,10 @@ export class SystemWeather extends SystemBase {
                     actor.add(new Component.Coldness());
                 }
 
-                if (currTemp >= tempWarming && actor.hasAny(compsForHeat)) {
-                    actor.add(new Component.Heat());
+                if (currHumidity <= humidityWarming) {
+                    if (currTemp >= tempWarming && actor.hasAny(compsForHeat)) {
+                        actor.add(new Component.Heat());
+                    }
                 }
             }
         });

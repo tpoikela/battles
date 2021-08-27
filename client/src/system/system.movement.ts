@@ -9,6 +9,7 @@ import {ELEM} from '../../data/elem-constants';
 import {emitZoneEvent} from './system.utils';
 import {IPenaltyObj} from '../interfaces';
 import {ObjectShellComps} from '../objectshellcomps';
+import {removeStatsModsOnLeave} from './system.utils';
 
 type BrainPlayer = import('../brain/brain.player').BrainPlayer;
 type Level = import('../level').Level;
@@ -71,7 +72,7 @@ export class SystemMovement extends SystemBase {
 
     /* If player moved to the square, checks if any messages must
      * be emitted. */
-    public checkMessageEmits(prevCell: Cell, newCell: Cell): void {
+    public checkMessageEmits(ent, prevCell: Cell, newCell: Cell): void {
         if (newCell.hasProp(RG.TYPE_ELEM)) {
             if (newCell.hasStairs()) {
                 const stairs = newCell.getStairs();
@@ -130,6 +131,16 @@ export class SystemMovement extends SystemBase {
                     // RG.gameMsg('You can drop items to sell them here.');
                 }
             }
+
+            const elems = newCell.getElements();
+            elems.forEach(elem => {
+                if (elem.has('Callbacks')) {
+                    processCompCb('onEnter', elem, ent);
+                }
+                if (elem.hasMsg('onEnter')) {
+                    RG.gameMsg(elem.getMsg('onEnter'));
+                }
+            });
         }
 
         if (newCell.hasItems()) {
@@ -213,7 +224,7 @@ export class SystemMovement extends SystemBase {
 
                 // Emit messages only for the player
                 if (ent.isPlayer && ent.isPlayer()) {
-                    this.checkMessageEmits(prevCell, cell);
+                    this.checkMessageEmits(ent, prevCell, cell);
                 }
 
                 if (cell.hasElements()) {
@@ -295,19 +306,7 @@ export class SystemMovement extends SystemBase {
 
         // Remove the bonus/penalty here because cell type was left
         if (bonuses) {
-            const statsList = ent.getList('StatsMods');
-            const combatList = ent.getList('CombatMods');
-            // TODO add a list of comps to check to this._bonuses
-            statsList.forEach(modComp => {
-                if (modComp.getTag() === prevType) {
-                    ent.remove(modComp);
-                }
-            });
-            combatList.forEach(modComp => {
-                if (modComp.getTag() === prevType) {
-                    ent.remove(modComp);
-                }
-            });
+            removeStatsModsOnLeave(ent, prevType);
         }
 
         bonuses = null;
@@ -531,5 +530,8 @@ function processCompCb(cbName, cbEnt, ent): void {
     if (!cbObj) {return;} // No cb found
     if (cbObj.addComp) {
         _compGen.addComponents(cbObj, ent);
+    }
+    if (cbObj.showMsg) {
+        RG.gameMsg(cbObj.showMsg.msg);
     }
 }

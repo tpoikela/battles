@@ -40,7 +40,7 @@ interface NameArgs {
     type: string;
 }
 
-interface StairsXY {
+export interface StairsXY {
     x: number;
     y: number;
 }
@@ -182,6 +182,7 @@ export class ElementStairs extends ElementXY {
     protected _targetStairs: null | ElementStairs | StairsXY;
     protected _srcLevel: Maybe<Level>;
     protected _targetLevel: Maybe<TargetLevel>;
+    public isOneway: boolean;
 
     constructor(
         name: string, srcLevel?: Maybe<Level>, targetLevel?: Maybe<TargetLevel>
@@ -190,6 +191,7 @@ export class ElementStairs extends ElementXY {
         this._srcLevel = srcLevel;
         this._targetLevel = targetLevel;
         this._targetStairs = null;
+        this.isOneway = false;
     }
 
     /* Returns true if the stairs are connected. */
@@ -207,6 +209,18 @@ export class ElementStairs extends ElementXY {
         else {
             RG.err('Element.Stairs', 'setSrcLevel',
                 'Cannot set null/undefined level');
+        }
+    }
+
+    public setTargetOnewayXY(x: number, y: number): void {
+        if (!this._targetStairs) {
+            this._targetStairs = {x, y};
+            this.isOneway = true;
+        }
+        else {
+            const json =  JSON.stringify(this._targetStairs);
+            RG.err('ElementStairs', 'setTargetXY',
+                'targetStairs already set to ' + json);
         }
     }
 
@@ -319,6 +333,21 @@ export class ElementStairs extends ElementXY {
                         'Tried to use stairs without srcLevel');
                 }
             }
+            else if (this.isOneway && this._targetStairs) {
+                const newX = this._targetStairs.x;
+                const newY = this._targetStairs.y;
+                const srcLevel = this._srcLevel;
+                if (srcLevel && srcLevel.removeActor(actor)) {
+                    // We know target is level
+                    if ((this._targetLevel as Level).addActor(actor, newX, newY)) {
+                        return true;
+                    }
+                }
+                else {
+                    RG.err('Stairs', 'useStairs',
+                        'Tried to use oneway stairs without srcLevel');
+                }
+            }
             else {
                 RG.err('ElementStairs', 'useStairs',
                    'Tried to use stairs without proper targetStairs');
@@ -363,10 +392,14 @@ export class ElementStairs extends ElementXY {
 
     /* Serializes the Stairs object. */
     public toJSON(): any {
-        const json: any = {
+        const json = super.toJSON();
+        /*const json: any = {
             name: this.getName(),
             type: this.getType()
-        };
+        };*/
+        if (this.isOneway) {
+            json.isOneway = true;
+        }
         if (this._srcLevel) {
             json.srcLevel = this.getSrcLevel()!.getID();
         }
@@ -396,6 +429,7 @@ export class ElementStairs extends ElementXY {
 }
 
 Element.Stairs = ElementStairs;
+
 
 /* Name says it all, be it open or closed.*/
 export class ElementDoor extends ElementXY {

@@ -122,6 +122,7 @@ export interface IPlayerCmdInput {
     cmd?: string;
     target?: Cell;
     item?: any; // TODO add correct type
+    items?: ItemBase[]; // TODO add correct type
     count?: number;
     slot?: string;
     slotNumber?: number;
@@ -294,6 +295,7 @@ export interface ItemConf extends GoldConf {
     nItems?: number;
     item: TShellFunc;
     food?: boolean | TShellFunc;
+    typeWeights?: RandWeights;
 }
 
 export interface LevelConf {
@@ -440,6 +442,7 @@ export interface QuarterConf extends SubZoneConf {
 
 export interface CityConf extends ZoneConf {
     nQuarters: number;
+    alignment?: string;
     quarter: QuarterConf[];
 }
 

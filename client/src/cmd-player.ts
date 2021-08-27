@@ -225,3 +225,45 @@ export class CmdCraft extends CmdBase {
 
 }
 Cmd.Craft = CmdCraft;
+
+/* Executes buy command. */
+export class CmdBuy extends CmdBase {
+
+    public execute(obj) {
+      const {items} = obj;
+      items.forEach(item => {
+        const [x, y] = item.getXY();
+        const shopElem = this._actor.getLevel().getMap().getCell(x, y).getShop();
+        const trans = new Component.Transaction();
+        trans.setArgs({item, buyer: this._actor,
+          shop: shopElem, seller: shopElem.getShopkeeper(), callback: obj.callback});
+        console.log('Created buy transaction for ', item.getName());
+        this._actor.add(trans);
+      });
+      return ACTION_ALREADY_DONE;
+    }
+
+}
+Cmd.Buy = CmdBuy;
+
+/* Executes sell command. */
+export class CmdSell extends CmdBase {
+
+    public execute(obj) {
+      const {items} = obj;
+      const shopElem = this._actor.getCell()!.getShop();
+      if (!shopElem) {
+        RG.err('CmdSell', 'execute',
+          'Tried to sell in non-shop element cell');
+      }
+      items.forEach(item => {
+        const trans = new Component.Transaction();
+        trans.setArgs({item, buyer: shopElem.getShopkeeper(),
+          shop: shopElem, seller: this._actor, callback: obj.callback});
+        this._actor.add(trans);
+      });
+      return ACTION_ALREADY_DONE;
+    }
+
+}
+Cmd.Sell = CmdSell;

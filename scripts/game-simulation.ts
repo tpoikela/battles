@@ -17,6 +17,8 @@ const cmdLineArgs = require('command-line-args');
 
 const RNG = Random.getRNG();
 
+let err = null;
+
 function main() {
 
     // Parse command line args
@@ -69,8 +71,9 @@ function main() {
             driver.setPlayer(player);
         }
         catch (e) {
-            const err = e as Error;
+            err = e as Error;
             console.log('Creating game failed with:', err.message);
+            throw e;
         }
 
         if (!newGame) {
@@ -87,7 +90,7 @@ function main() {
             console.log(`===== Game Loaded from turn ${driver.nTurns}`);
         }
         else {
-            const err = new Error(`${fname} does not exist.`);
+            err = new Error(`${fname} does not exist.`);
             throw err;
         }
         loadGame = true;
@@ -178,6 +181,10 @@ function main() {
     }
     console.log('===== End Game simulation =====');
     console.log(driver.getReport());
+
+    if (err !== null) {
+        throw err;
+    }
 }
 
 main();

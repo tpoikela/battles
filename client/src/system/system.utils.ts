@@ -128,3 +128,33 @@ export function executeCompCb(ent: Entity, cbObj: ICmdObject): void {
             'removelement not supported yet. Need to write some code');
     }
 }
+
+export function addRegenEffects(ent: Entity): void {
+    const regenList = ent.getList('Regeneration');
+    const regenEffects = ent.getList('RegenEffect');
+    regenList.forEach(regenComp => {
+        const id = regenComp.getID();
+        const regenEff = regenEffects.findIndex(eff => eff.getRegenID() === id);
+        if (regenEff < 0) {
+            const regenEffect = new Component.RegenEffect();
+            regenEffect.initEffect(regenComp);
+            ent.add(regenEffect);
+        }
+    });
+}
+
+export function removeStatsModsOnLeave(ent: Entity, prevType: string): void {
+    const statsList = ent.getList('StatsMods');
+    const combatList = ent.getList('CombatMods');
+    // TODO add a list of comps to check to this._bonuses
+    statsList.forEach(modComp => {
+        if (modComp.getTag() === prevType) {
+            ent.remove(modComp);
+        }
+    });
+    combatList.forEach(modComp => {
+        if (modComp.getTag() === prevType) {
+            ent.remove(modComp);
+        }
+    });
+}

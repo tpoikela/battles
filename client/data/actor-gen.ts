@@ -250,7 +250,7 @@ shellProps.roleBases = {
     magic: {
         magic: 3, willpower: 2, danger: 2,
         brain: 'SpellCaster', maxPP: 10, PP: 10,
-        addComp: ['RegenEffect'],
+        addComp: ['Regeneration'],
         damage: '1d4'
     },
     ranged: {
@@ -507,8 +507,10 @@ const allRolenames = Object.keys(allRoleShells).reduce((acc, key, i, arr) => {
  * 4. Generate the full actor based based on 1. - 3.
  * 5. Combine object data from 1. - 3. and return the result.
  */
+ActorGen.minNumRoles = 1;
+ActorGen.maxNumRoles = 2;
 ActorGen.genRandShell = function(): IShell {
-    const numRoles = RNG.getUniformInt(1, 2);
+    const numRoles = RNG.getUniformInt(ActorGen.minNumRoles, ActorGen.maxNumRoles);
     const raceName = RNG.arrayGetRand(raceNames);
     const raceShell: IShell = shellProps.races[raceName];
 

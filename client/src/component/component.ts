@@ -1078,11 +1078,11 @@ export const SkillsExp = TransientDataComponent('SkillsExp',
 
 /* Component added to shopkeeper. */
 export const Shopkeeper = UniqueDataComponent('Shopkeeper',
-    {levelID: -1, cells: null, doorXY: null}
+    {levelID: -1, coord: null, doorXY: null}
 );
 
 Shopkeeper._init = function() {
-    this.cells = [];
+    this.coord = [];
 };
 
 /* Component which models a shop transaction. */
@@ -1216,7 +1216,7 @@ Event.prototype._init = function(args) {
 };
 
 export const Effects = TransientDataComponent('Effects',
-    {args: null, effectType: ''}
+    {args: null, effectType: '', item: null}
 );
 Effects.prototype._init = function(args) {
     this.args = args || {};
@@ -1286,12 +1286,23 @@ AddOnEquip.prototype.toJSON = function() {
     return json;
 };
 
+const regenProps = {
+    PP: 1, HP: 1, waitPP: 30, waitHP: 30, maxWaitPP: 60, maxWaitHP: 60,
+    regenID: -1
+};
+
+export const Regeneration = DataComponent('Regeneration', regenProps);
 /* Can be used to modify a value of another component at certain
  * intervals. Placed on entity when regeneration is needed, and removed
  * once all values have regenerated. */
-export const RegenEffect = DataComponent('RegenEffect', {
-    PP: 1, HP: 1, waitPP: 30, waitHP: 30, maxWaitPP: 60, maxWaitHP: 60
-});
+export const RegenEffect = DataComponent('RegenEffect', regenProps);
+
+RegenEffect.prototype.initEffect = function(regenComp) {
+    Object.keys(regenProps).forEach(key => {
+        this[key] = regenComp[key];
+    });
+    this.regenID = regenComp.getID();
+};
 
 export const Telepathy = DataComponent('Telepathy', {
     target: null, source: null
@@ -1658,11 +1669,11 @@ Component.Duration = Duration;
 // Weather components
 //---------------------
 export const Weather = DataComponent('Weather', {
-    weatherType: 'clear', temperature: 0, visibility: 0
+    weatherType: 'clear', temperature: 0, visibility: 0, humidity: 50,
 });
 
 export const WeatherEffect = TransientDataComponent('WeatherEffect', {
-    effectType: 'clear', temperature: 0
+    effectType: 'clear', temperature: 0, humidity: 50,
 });
 
 export const WorldSimEvent = TransientDataComponent('WorldSimEvent', {

@@ -1,8 +1,9 @@
 
 import RG from '../rg';
 import {SystemBase} from './system.base';
-import * as Component from '../component';
+// import * as Component from '../component';
 import {Path} from '../path';
+import {addRegenEffects} from './system.utils';
 
 type EventPool = import('../eventpool').EventPool;
 
@@ -37,6 +38,19 @@ export class SystemSpellCast extends SystemBase {
 
                 const args = spellcast.getArgs();
                 ppComp.decrPP(spell.getCastingPower());
+
+                // Add Comp to regenerate back the PP
+                if (ent.has('Regeneration')) {
+                    addRegenEffects(ent);
+                    /*
+                    const regen = ent.get('Regeneration');
+                    if (regen.getPP() > 0 && !ent.has('RegenEffect')) {
+                        const regenEffect = new Component.RegenEffect();
+                        regenEffect.initEffect(ent.get('Regeneration'));
+                        ent.add(regenEffect);
+                    }
+                    */
+                }
 
                 if (drainers.length === 0) {
                     spell.cast(args);

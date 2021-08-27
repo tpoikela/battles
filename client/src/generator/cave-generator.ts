@@ -4,9 +4,8 @@
 
 import RG from '../rg';
 import {MapGenerator} from './map.generator';
-import {NestGenerator, NestOpts} from './nest-generator';
 import {Level, LevelExtras} from '../level';
-// const Random = require('../random');
+import {NestGenerator, NestOpts} from './nest-generator';
 import {DungeonPopulate} from '../dungeon-populate';
 import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {Path} from '../path';
@@ -66,6 +65,35 @@ export class CaveGenerator extends LevelGenerator {
         this.shouldRemoveMarkers = true;
     }
 
+    public static embedNest(level: Level, conf): boolean {
+        const maxTries = 10;
+        let numTries = 0;
+
+        while (numTries < maxTries) {
+            const tilesX = RNG.getUniformInt(2, 5);
+            const tilesY = RNG.getUniformInt(2, 5);
+            const nest = new NestGenerator();
+            const nestConf: Partial<NestOpts> = {
+                actorConstr: {
+                    race: RNG.arrayGetRand(NEST_RACES),
+                    maxDanger: conf.maxDanger
+                },
+                mapConf: {
+                    tilesX, tilesY,
+                    genParams: {x: [1, 1, 1], y: [1, 1, 1]},
+                    wallType: conf.wallType || 'wallcave',
+                    floorType: conf.floorType || 'floorcave',
+                },
+                embedOpts: {level}
+            };
+            if (nest.createAndEmbed(tilesX * 7, tilesY * 7, nestConf)) {
+                return true;
+            }
+            ++numTries;
+        }
+        return false;
+    }
+
     /* Main function to call when a cave is created. */
     public create(cols: number, rows: number, conf: PartialCaveOpts): Level {
         if (RG.isNullOrUndef([cols, rows])) {
@@ -80,7 +108,7 @@ export class CaveGenerator extends LevelGenerator {
 
         this._addEncounters(level, conf);
 
-        this.embedNest(level, conf);
+        CaveGenerator.embedNest(level, conf);
 
         this.removeMarkers(level, conf);
         return level;
@@ -157,7 +185,7 @@ export class CaveGenerator extends LevelGenerator {
             endPoint = this.getEndPointFromMap(level, startPoint);
         }
 
-        this.addStartAndEndPointMarker(level, startPoint, endPoint);
+        LevelGenerator.addStartAndEndPointMarker(level, startPoint, endPoint);
 
         extras.startPoint = startPoint;
         if (endPoint) {extras.endPoint = endPoint;}
@@ -251,6 +279,7 @@ export class CaveGenerator extends LevelGenerator {
         // const nPoints = pathPoints.length;
     }
 
+    /* Creates a path between startPoint and endPoint. */
     public createPath(map: CellMap, startPoint: TCoord, endPoint: TCoord): TCoord[] {
         const wallCb = (x, y) => (
             map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
@@ -277,6 +306,7 @@ export class CaveGenerator extends LevelGenerator {
         return result;
     }
 
+    /* Returns a random endPoint based on distance to startPoint. */
     public getRandomEndPoint(map, startPoint, freeCellMap: FreeCellMap): TCoord {
         const wallCb = (x, y) => (
             map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
@@ -335,6 +365,7 @@ export class CaveGenerator extends LevelGenerator {
         return point;
     }
 
+    /* Adds enemies/bosses. */
     public _addEncounters(level: Level, conf) {
         const {dungeonType} = conf;
         if (dungeonType === 'Lair') {
@@ -366,40 +397,18 @@ export class CaveGenerator extends LevelGenerator {
     public populatePoints(level: Level, conf) {
         const extras = level.getExtras();
         const {points} = extras;
-        const populate = new DungeonPopulate({});
-        points.forEach(point => {
-            populate.populatePoint(level, point, conf);
-        });
-    }
-
-    public embedNest(level: Level, conf): boolean {
-        const maxTries = 10;
-        let numTries = 0;
-
-        while (numTries < maxTries) {
-            const tilesX = RNG.getUniformInt(2, 5);
-            const tilesY = RNG.getUniformInt(2, 5);
-            const nest = new NestGenerator();
-            const nestConf: Partial<NestOpts> = {
-                actorConstr: {
-                    race: RNG.arrayGetRand(NEST_RACES),
-                    maxDanger: conf.maxDanger
-                },
-                mapConf: {
-                    tilesX, tilesY,
-                    genParams: {x: [1, 1, 1], y: [1, 1, 1]},
-                    wallType: 'wallcave',
-                    floorType: 'floorcave'
-                },
-                embedOpts: {level}
-            };
-            if (nest.createAndEmbed(tilesX * 7, tilesY * 7, nestConf)) {
-                return true;
-            }
-            ++numTries;
+        if (points) {
+            const populate = new DungeonPopulate({});
+            points.forEach(point => {
+                populate.populatePoint(level, point, conf);
+            });
         }
-        return false;
+        else {
+            RG.err('LevelGenerator', 'populatePoints',
+                'extras.points must be set for populating points');
+        }
     }
+
 }
 
 export const Miners: any = {};

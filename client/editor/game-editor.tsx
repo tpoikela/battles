@@ -16,6 +16,7 @@ import {MapMiner} from '../../lib/map.miner';
 import {MapWall} from '../../lib/map.wall';
 import {AbandonedFort, abandonedFortConf} from '../data/abandoned-fort';
 import {Capital} from '../data/capital';
+import {BlackTower, blackTowerConf} from '../data/black-tower';
 import {CellMap} from '../src/map';
 import {Cell} from '../src/map.cell';
 import {DwarvenCity, dwarvenCityConf} from '../data/dwarven-city';
@@ -23,12 +24,14 @@ import {Factory, FactoryBase} from '../src/factory';
 import {FactoryGame} from '../src/factory.game';
 import {FactoryLevel} from '../src/factory.level';
 import {FactoryWorld} from '../src/factory.world';
+import {FactoryZone} from '../src/factory.zone';
 import {FromJSON} from '../src/game.fromjson';
 import {GameMain} from '../src/game';
 import {Geometry} from '../src/geometry';
 import {Keys} from '../src/keymap';
 import {Level} from '../src/level';
 import {ColorTestScreen} from './color-test-screen';
+import {Constraints} from '../src/constraints';
 
 import {OWMap} from '../src/overworld.map';
 import {ObjectShell} from '../src/objectshellparser';
@@ -39,7 +42,9 @@ import {WorldConf} from '../src/world.creator';
 import {ZoneBase, SubZoneBase} from '../src/world';
 import {BBox} from '../src/bbox';
 
-import {TCoord, IFactoryGameConf, ItemConf, ActorConf, TShellFunc} from '../src/interfaces';
+import {
+  TCoord, IFactoryGameConf, ItemConf, ActorConf, TShellFunc, LevelObj
+} from '../src/interfaces';
 
 import * as Gen from '../src/generator';
 
@@ -50,10 +55,10 @@ const NO_VISIBLE_CELLS: Cell[] = [];
 const editorLevelTypes: string[] = [
   'FullGame',
   'ColorTest',
-  'Castle', 'Cave', 'CaveBr', 'City', 'Dungeon', 'MountainFace', 'MountainSummit',
+  'Castle', 'Cave', 'CaveBr', 'City', 'Crypt', 'Dungeon', 'MountainFace', 'MountainSummit',
   'Nest',
   '------------',
-  'abandoned_fort', 'capital', 'dwarven_city',
+  'abandoned_fort', 'black_tower', 'capital', 'dwarven_city',
   '------------',
   'arena', 'castle',  'cellular', 'cave', 'crypt',
   'digger', 'divided', 'dungeon',
@@ -209,17 +214,17 @@ export default class GameEditor extends Component {
     const state: IGameEditorState = {
       debug: false,
       // boardClassName: 'game-board-player-view',
-      boardClassName: 'game-board-map-view-xxxs',
+      boardClassName: 'game-board-map-view',
       // boardIndex: boardViews.indexOf('game-board-player-view'),
-      boardIndex: boardViews.indexOf('game-board-map-view-xxxs'),
+      boardIndex: boardViews.indexOf('game-board-map-view'),
       lastTouchedConf: null,
 
       zoneType: 'city',
       zoneList: [],
       zoneConf: {shown: ''},
 
-      levelX: 500,
-      levelY: 400,
+      levelX: 100,
+      levelY: 100,
       levelType: 'arena',
 
       subLevelX: 20,
@@ -683,6 +688,10 @@ export default class GameEditor extends Component {
     else if (levelType === 'dwarven_city') {
       level = new DwarvenCity(cols, rows, conf).getLevel();
     }
+    else if (levelType === 'black_tower') {
+      const levels: LevelObj[] = new BlackTower(cols, rows, conf).getLevels();
+      return levels[conf.nLevel].level as Level;
+    }
     else if (levelType === 'Dungeon') {
       level = new Gen.DungeonGenerator().create(cols, rows, conf);
     }
@@ -697,6 +706,11 @@ export default class GameEditor extends Component {
     }
     else if (levelType === 'City') {
       level = new Gen.CityGenerator().create(cols, rows, conf);
+    }
+    else if (levelType === 'Crypt') {
+      const cryptGen = new Gen.CryptGenerator();
+      cryptGen.factZone = new FactoryZone();
+      level = cryptGen.create(cols, rows, conf);
     }
     else if (levelType === 'MountainFace') {
       level = new Gen.MountainGenerator().createFace(cols, rows, conf);
@@ -1159,6 +1173,9 @@ export default class GameEditor extends Component {
     else if (value === 'dwarven_city') {
       return dwarvenCityConf;
     }
+    else if (value === 'black_tower') {
+      return blackTowerConf;
+    }
     else if (value === 'Dungeon') {
       return Gen.DungeonGenerator.getOptions();
     }
@@ -1173,6 +1190,17 @@ export default class GameEditor extends Component {
     }
     else if (value === 'City') {
       return Gen.CityGenerator.getOptions();
+    }
+    else if (value === 'Crypt') {
+      const conf = Gen.CryptGenerator.getOptions() as any;
+      conf.nLevel = 0;
+      conf.sqrPerItem = 40;
+      conf.sqrPerActor = 40;
+      const constraint = {
+          actor: [{op: 'eq', prop: 'type', value: 'undead'}]
+      };
+      conf.actor = new Constraints().getConstraints(constraint.actor);
+      return conf;
     }
     else if (value === 'Nest') {
       return Gen.NestGenerator.getOptions();

@@ -179,7 +179,7 @@ export class SystemDeath extends SystemBase {
     }
 
     public _cleanUpComponents(actor): void {
-        const compTypes = ['Coldness', 'Expiration', 'Fading'];
+        const compTypes = ['Coldness', 'Expiration', 'Fading', 'RegenEffect'];
         compTypes.forEach(compType => {
             const compList = actor.getList(compType);
             compList.forEach(comp => {

@@ -222,10 +222,12 @@ suffix.armour = {
         onEquip: [{addComp: 'Flying'}], rarity: 5, value: 5
     },
     ofNecropotence: {
+        rarity: 4, value: 4,
         onEquip: [
-            {addComp: 'RegenEffect', func: [
+            {addComp: 'Regeneration', func: [
                 {setter: 'setHP', value: 0},
-                {setter: 'setMaxWaitPP', value: 25}
+                {setter: 'setMaxWaitPP', value: 25},
+                {setter: 'setPP', value: 2},
             ]},
             {addComp: 'DirectDamage', func: [
                 {setter: 'setDamage', value: 1},

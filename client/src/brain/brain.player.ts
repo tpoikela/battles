@@ -714,6 +714,8 @@ export class BrainPlayer extends BrainSentient {
         this._restoreBaseSpeed();
         switch (obj.cmd) {
             case 'attack': return new Cmd.CmdAttack(this).execute(obj);
+            case 'buy': return new Cmd.CmdBuy(this).execute(obj);
+            case 'sell': return new Cmd.CmdSell(this).execute(obj);
             case 'craft': return new Cmd.CmdCraft(this).execute(obj);
             case 'missile': return new Cmd.CmdMissile(this).execute(obj);
             case 'use': return new Cmd.CmdUseItem(this).execute(obj);

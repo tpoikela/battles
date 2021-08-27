@@ -8,6 +8,7 @@
  */
 
 import RG from '../src/rg';
+
 import * as ROT from '../../lib/rot-js';
 
 import {Keys} from '../src/keymap';
@@ -36,6 +37,7 @@ import {Frame} from '../src/animation';
 import {Persist} from '../src/persist';
 import md5 = require('js-md5');
 import dbg = require('debug');
+import {RGDebug} from '../src/rg-debug';
 
 import {TCoord, IMessage, IPlayerCmdInput, CmdInput} from '../src/interfaces';
 
@@ -671,6 +673,7 @@ export class GameManager {
             (window as any).PLAYER = player; // For debugging
             (window as any).RG = RG; // For debugging
             (window as any).PARSER = ObjectShell.getParser(); // For debugging
+            (window as any).DEBUG = RGDebug; // For debugging
         // }
     }
 

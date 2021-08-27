@@ -10,6 +10,7 @@ import {SystemQuest} from './system.quest';
 import * as Component from '../component';
 import {Brain} from '../brain';
 import {Element} from '../element';
+import {removeStatsModsOnLeave} from './system.utils';
 
 const handledComps = [
     'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
@@ -194,6 +195,8 @@ export class SystemBaseAction extends SystemBase {
                 cell
             };
             this._createEventComp(ent, evtArgs);
+            // If prev cell had any penalties, we need to remove those
+            removeStatsModsOnLeave(ent, cell.getBaseElem().getType());
         }
     }
 
@@ -246,23 +249,12 @@ export class SystemBaseAction extends SystemBase {
 
         // We can apply to use without effArgs only
         if (!effArgs) {
-            if (item.has('OneShot')) {
-                if (item.getCount() === 1) {
-                    const msg = {item};
-                    this.pool.emitEvent(RG.EVT_DESTROY_ITEM, msg);
-                }
-                else {
-                    item.decrCount(1);
-                }
-            }
-            else if (item.getCharges && item.getCharges() > 0) {
-                item.setCharges(item.getCharges() - 1);
-            }
+            RG.reduceCountOrCharge(item, ent, this.pool);
             this._checkUseItemMsgEmit(ent, useItemComp);
         }
-
-        if (effArgs) {
+        else if (effArgs) {
             const effComp = new Component.Effects(effArgs);
+            effComp.setItem(item);
             ent.add(effComp);
         }
     }

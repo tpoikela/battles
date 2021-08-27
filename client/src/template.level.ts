@@ -32,14 +32,12 @@ export interface IRoomPlace {
     room: ElemTemplate;
 }
 
-interface PlacedTileData extends BBoxOld {
+export interface PlacedTileData extends BBoxOld {
     tileX: number;
     tileY: number;
     name: string;
     type: string;
 }
-
-// type Array2d<T> = T[][];
 
 export type ConstraintFunc = (x: number, y: number, exits: string[]) => void;
 

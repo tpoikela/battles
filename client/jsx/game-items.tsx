@@ -4,12 +4,19 @@ import * as React from 'react';
 import GameItemSlot from './game-item-slot';
 import * as Item from '../src/item';
 
+type ItemBase = import('../src/item').ItemBase;
+
 interface IGameItemsProps {
   eqWeight: number;
   filter: string;
-  inv: Item.Container;
+  inv: Item.Container | ItemBase[];
   maxWeight: number;
   setSelectedItem: (item: Item.ItemBase) => void;
+  textToShow?: string;
+}
+
+interface ItemLike {
+  getType(): string;
 }
 
 
@@ -24,23 +31,43 @@ export class GameItems extends React.Component {
     const items: any = [];
     const setSelectedItem = this.props.setSelectedItem;
 
-    const totalWeight = inv.getWeight() + this.props.eqWeight;
+    let totalWeight = 0;
+    if ((inv as any).getWeight) {
+      totalWeight = (inv as any).getWeight() + this.props.eqWeight;
+    }
     const totalWeightStr = totalWeight.toFixed(2);
     const maxWeight = this.props.maxWeight;
 
-    let item = inv.first();
+    let item = null;
+    if ((inv as any).first) item = (inv as any).first();
+    else item = inv as any[0];
+
     let key = 0;
 
-    while (item !== null && typeof item !== 'undefined') {
-      if (filter === 'All' || item.getType() === filter) {
-        items.push(<GameItemSlot
-          item={item}
-          key={key}
-          setSelectedItem={setSelectedItem}
-        />);
+    if ((inv as any).next) {
+      while (item !== null && typeof item !== 'undefined') {
+        if (filter === 'All' || item.getType() === filter) {
+          items.push(<GameItemSlot
+            item={item}
+            key={key}
+            setSelectedItem={setSelectedItem}
+          />);
+        }
+        item = (inv as any).next();
+        ++key;
       }
-      item = inv.next();
-      ++key;
+    }
+    else {
+      (inv as any).forEach(item => {
+        if (filter === 'All' || item.getType() === filter) {
+          items.push(<GameItemSlot
+            item={item}
+            key={key}
+            setSelectedItem={setSelectedItem}
+          />);
+        }
+        ++key;
+      });
     }
 
     return (
@@ -49,7 +76,7 @@ export class GameItems extends React.Component {
         <p>Items: {totalWeightStr} kg (max {maxWeight} kg)</p>
         }
         {(this.props.maxWeight === -1) &&
-        <p>List of items to craft:</p>
+        <p>{this.props.textToShow}</p>
         }
         {items}
       </div>

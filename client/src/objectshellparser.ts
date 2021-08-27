@@ -35,12 +35,20 @@ export interface IShellInputData {
     effects?: IShell[];
 }
 
-export interface IShellDb {
-    actors: StringMap<IShell>;
-    items: StringMap<IShell>;
-    elements: StringMap<IShell>;
-    effects?: StringMap<IShell>;
+export class IShellDb {
+    public actors: StringMap<IShell>;
+    public items: StringMap<IShell>;
+    public elements: StringMap<IShell>;
+    public effects: StringMap<IShell>;
+
+    constructor() {
+        this.actors = {};
+        this.items = {};
+        this.elements = {};
+        this.effects = {};
+    }
 }
+
 
 type DBKey = TPropType | 'effects';
 
@@ -649,7 +657,12 @@ export class ProcGen {
 
         // Internal cache for proc generation
         this._cache = {
-            actorWeights: {}
+            actorWeights: {},
+            categByType: {
+                actors: {},
+                items: {},
+                elements: {},
+            },
         };
     }
 
@@ -827,27 +840,14 @@ export class Parser {
     // concise way. Game objects are created from shells by this object.
     constructor() {
         // Stores the base shells
-        this._base = {
-            actors: {},
-            effects: {},
-            items: {},
-            elements: {}
-        } as IShellDb;
+        this._base = new IShellDb();
 
-        this._db = {
-            actors: {},
-            effects: {},
-            items: {},
-            elements: {}
-        } as IShellDb;
+        this._db = new IShellDb();
 
         this._dbDanger = {} as IShellDbDanger; // All entries indexed by danger
 
-        this._dbNoRandom = {
-            actors: {},
-            items: {},
-            elements: {}
-        } as IShellDb; // All entries excluded from random generation
+        // All entries excluded from random generation
+        this._dbNoRandom = new IShellDb();
 
         this._creator = new Creator(this._db, this._dbNoRandom);
         this._procgen = new ProcGen(this._db, this._dbDanger);
@@ -983,6 +983,7 @@ export class Parser {
             RG.err('ObjectParser', 'storeIntoDb',
                 'Unknown category: ' + categ);
         }
+
         if (categ !== 'effects') {
             this.storeRenderingInfo(categ, obj);
         }
@@ -1283,10 +1284,14 @@ export const getParser = function(): Parser {
         const objectsNew = JSON.parse(jsonStr);
         adjustActorValues(objectsNew.actors);
 
+        parser.adjustColorsWhenNeeded = false;
         parser.parseShellData(objectsNew);
+        parser.adjustColorsWhenNeeded = true;
         ObjectShell.parserInstance = parser;
 
-        const randActors = ActorGen.genActors(500);
+        ActorGen.maxNumRoles = 1;
+        const randActors = ActorGen.genActors(1000);
+        ActorGen.maxNumRoles = 2;
         // console.log(JSON.stringify(randActors, null, 1));
         parser.parseShellData({actors: randActors});
     }

@@ -235,16 +235,8 @@ export class DebugGame {
 
         const thief = parser.createActor('bearfolk thief');
         level.addActor(thief, pX + 1, pY + 1);
-        console.log('XYZ created thief: ', thief.getID(), thief.getName());
 
         player.getInvEq().addItem(parser.createItem('Boots of flying'));
-
-        const regen = new Component.RegenEffect();
-        regen.setPP(2);
-        regen.setWaitPP(0);
-        regen.setMaxWaitPP(0);
-        player.add(regen);
-
         level.getMap().setBaseElemXY(pX - 1, pY - 1, ELEM.WATER);
 
         const uniques = ActorsData.filter(item => (
@@ -360,6 +352,11 @@ export class DebugGame {
         player.add(player);
         */
         game.addPlayer(player);
+
+        const oneway = new Stairs('stairsDown', level, level);
+        oneway.setTargetOnewayXY(0, 0);
+        oneway.setMsg({onEnter: 'Stairs speak aloud: Abandon all hope who enter here!!!'});
+        level.addElement(oneway, player.getX() - 1, player.getY());
 
         return game;
     }

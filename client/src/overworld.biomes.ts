@@ -8,8 +8,11 @@ import {Noise} from './noise';
 type Level = import('./level').Level;
 type OWMap = import('./overworld.map').OWMap;
 
+const TEMP_HIGH = 1.45;
 const TEMP_LOW = 0.85;
 const MOUNT_WALL = 5.0; // Elevation for huge mountain walls
+
+const MOIST_SWAMP = 0.55;
 
 const WATER_LEVEL = 0.6;
 const GAP = 0.3;
@@ -20,7 +23,7 @@ export class OWBiomes {
 
     public static debug: boolean;
 
-    public static addBiomes(ow: OWMap, level: Level): void {
+    public static addBiomes(ow: OWMap, level: Level, conf={}): void {
         const debug = OWBiomes.debug;
         const elevNoise = new Noise();
         const tempNoise = new Noise();
@@ -35,8 +38,6 @@ export class OWBiomes {
         elemOctaves.forEach((n: number) => {
             maxElev += (1.0 / n);
         });
-
-        console.log('maxElev can be', maxElev);
 
         for (let x = 0; x < cols; x++) {
             // noiseMap.push([]);
@@ -121,6 +122,12 @@ function biome(elev: number, moist: number, temp: number): any {
         else {
             if (temp < TEMP_LOW) {
                 return ELEM.TREE_SNOW;
+            }
+            else if (temp > TEMP_HIGH) {
+                if (moist >= MOIST_SWAMP) {
+                    return ELEM.SWAMP;
+                }
+                return ELEM.TREE;
             }
             else {
                 return ELEM.TREE;

@@ -38,6 +38,9 @@ ELEM.SNOW_DEEP_TRACKS = frz(parser.createElement('deep snow with tracks'));
 ELEM.SNOW_LIGHT = frz(parser.createElement('light snow'));
 ELEM.SNOW_LIGHT_TRACKS = frz(parser.createElement('light snow with tracks'));
 
+ELEM.SWAMP = frz(parser.createElement('swamp'));
+ELEM.FROZEN_SWAMP = frz(parser.createElement('frozen swamp'));
+
 ELEM.CLIFF = frz(parser.createElement('cliff'));
 ELEM.STONE = frz(parser.createElement('stone'));
 ELEM.STEEP_CLIFF = frz(parser.createElement('steep cliff'));
@@ -127,6 +130,7 @@ export const snowElemMap: TElemMap = {
     'cliff': ELEM.SNOWY_CLIFF,
     'stone': ELEM.STONE_SNOW,
     'steep cliff': ELEM.FROZEN_STEEP_CLIFF,
+    'swamp': ELEM.FROZEN_SWAMP,
 };
 
 export const snowMeltMap: TElemMap = {
@@ -143,5 +147,6 @@ export const snowMeltMap: TElemMap = {
     'deep snow with tracks': ELEM.SNOW,
     'snowy cliff': ELEM.CLIFF,
     'snow-covered stone': ELEM.STONE,
-    'frozen steep cliff': ELEM.STEEP_CLIFF
+    'frozen steep cliff': ELEM.STEEP_CLIFF,
+    'frozen swamp': ELEM.SWAMP,
 };

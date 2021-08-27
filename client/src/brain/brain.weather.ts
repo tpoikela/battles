@@ -25,6 +25,7 @@ export class BrainWeather extends BrainBase {
             const wEffect = new Component.WeatherEffect();
             wEffect.setEffectType(wType);
             wEffect.setTemperature(weather.getTemperature());
+            wEffect.setHumidity(weather.getHumidity());
             this._actor.add(wEffect);
             this.updateFreq = 10;
         }

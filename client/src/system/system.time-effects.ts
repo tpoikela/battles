@@ -228,6 +228,7 @@ export class SystemTimeEffects extends SystemBase {
                 }
                 else {
                     effComp.setWaitHP(waitHP - 1);
+                    shouldRemove = false;
                 }
             }
             if (effComp.getPP() > 0) {
@@ -244,6 +245,7 @@ export class SystemTimeEffects extends SystemBase {
                 }
                 else {
                     effComp.setWaitPP(waitPP - 1);
+                    shouldRemove = false;
                 }
             }
             if (shouldRemove) {

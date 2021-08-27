@@ -846,6 +846,11 @@ const Items: ObjectShell[] = [
         armourType: 'head', value: value('magic', 200)
     },
     {
+        name: 'Runed cloak', base: 'RunedArmourBase',
+        weight: 0.2, defense: 2, protection: 2,
+        armourType: 'cloak', value: value('magic', 200)
+    },
+    {
         name: 'Runed collar', base: 'RunedArmourBase',
         weight: 0.4, defense: 3, protection: 2,
         armourType: 'neck', value: value('magic', 200)
@@ -1193,11 +1198,15 @@ const Items: ObjectShell[] = [
         color: color('ForestGreen', 'Coral')
     },
     {
+        name: 'Milk', base: 'FoodBase', energy: 500, value: value(10),
+        color: color('Blue', 'White')
+    },
+    {
         name: 'Cabbage', base: 'FoodBase', energy: 700, value: value(10),
         color: color('ForestGreen', 'Chartreuse')
     },
     {
-        name: 'Turnips', base: 'FoodBase', energy: 700, value: value(10),
+        name: 'Turnip', base: 'FoodBase', energy: 700, value: value(10),
         color: color('ForestGreen', 'Khaki')
     },
     {
@@ -1212,6 +1221,10 @@ const Items: ObjectShell[] = [
         name: 'Chicken egg', base: 'FoodBase', energy: 1300, value: value(25)
     },
     {
+        name: 'Poultry', base: 'FoodBase', energy: 800, value: value(25),
+        weight: 0.4, color: color('red', 'white')
+    },
+    {
         name: 'Potatoes', base: 'FoodBase', energy: 1200, value: value(20),
         color: color('DarkGray', 'Sienna')
     },
@@ -1224,12 +1237,28 @@ const Items: ObjectShell[] = [
         color: color('ForestGreen', 'Yellow')
     },
     {
+        name: 'Pork', base: 'FoodBase', energy: 1000, value: value(30),
+        weight: 0.4, color: color('white', 'pink')
+    },
+    {
+        name: 'Beef', base: 'FoodBase', energy: 1000, value: value(30),
+        weight: 0.4, color: color('white', 'Brown')
+    },
+    {
         name: 'Chunk of meat', base: 'FoodBase', energy: 1000, value: value(20),
         weight: 0.4, color: color('white', 'red')
     },
     {
-        name: 'Reindeer meat', base: 'FoodBase', energy: 1500, value: value(20),
+        name: 'Reindeer meat', base: 'FoodBase', energy: 2000, value: value(35),
         weight: 0.3, color: color('white', 'red')
+    },
+    {
+        name: 'Elk meat', base: 'FoodBase', energy: 2500, value: value(40),
+        weight: 0.3, color: color('white', 'darkred')
+    },
+    {
+        name: 'Bear meat', base: 'FoodBase', energy: 2500, value: value(35),
+        weight: 0.3, color: color('pink', 'brown')
     },
     {
         name: 'Wheat bread', base: 'FoodBase', energy: 2000, value: value(30),
@@ -1266,6 +1295,12 @@ const Items: ObjectShell[] = [
         name: 'Ghost pepper', base: 'FoodBase', energy: 100, value: value(50),
         use: {stun: {duration: '3d3'}},
         color: color('OrangeRed', 'DarkGreen')
+
+    },
+    {
+        name: 'Wraith pepper', base: 'FoodBase', energy: 100, value: value(100),
+        use: {stun: {duration: '3d10'}},
+        color: color('Cyan', 'Black')
 
     },
     {
@@ -1318,29 +1353,93 @@ const Items: ObjectShell[] = [
         }},
         value: 30
     },
+
     {
         name: 'wheat seeds', base: 'tool',
         addComp: 'OneShot',
         use: SowSeeds('Wheat', 2 * 6),
-        value: 10,
+        value: 5,
     },
     {
         name: 'oat seeds', base: 'tool',
         addComp: 'OneShot',
         use: SowSeeds('Oat', 2 * 6),
-        value: 10,
+        value: 5,
     },
     {
         name: 'barley seeds', base: 'tool',
         addComp: 'OneShot',
         use: SowSeeds('Oat', 2 * 6),
-        value: 10,
+        value: 5,
     },
     {
         name: 'rye seeds', base: 'tool',
         addComp: 'OneShot',
         use: SowSeeds('Oat', 2 * 6),
+        value: 5,
+    },
+    {
+        name: 'Turnip seeds', base: 'tool',
+        color: color('ForestGreen', 'Khaki'),
+        addComp: 'OneShot',
+        use: SowSeeds('Turnip', 3 * 6),
+        value: 5,
+    },
+    {
+        name: 'Carrot seeds', base: 'tool',
+        color: color('ForestGreen', 'Coral'),
+        addComp: 'OneShot',
+        use: SowSeeds('Carrots', 3 * 6),
+        value: 5,
+    },
+    {
+        name: 'Cabbage seeds', base: 'tool',
+        color: color('ForestGreen', 'Chartreuse'),
+        addComp: 'OneShot',
+        use: SowSeeds('Cabbage', 3 * 6),
+        value: 5,
+    },
+    {
+        name: 'Potato seeds', base: 'tool',
+        color: color('DarkGray', 'Sienna'),
+        addComp: 'OneShot',
+        use: SowSeeds('Potatoes', 3 * 6),
+        value: 7,
+    },
+    {
+        name: 'Corn seeds', base: 'tool',
+        color: color('ForestGreen', 'Yellow'),
+        addComp: 'OneShot',
+        use: SowSeeds('Corn', 3 * 6),
+        value: 7,
+    },
+    {
+        name: 'Blueberry seeds', base: 'tool',
+        color: color('FloralWhite', 'DarkBlue'),
+        addComp: 'OneShot',
+        use: SowSeeds('Blueberries', 4 * 6),
         value: 10,
+    },
+    {
+        name: 'Lingonberry seeds', base: 'tool',
+        color: color('FloralWhite', 'DarkRed'),
+        addComp: 'OneShot',
+        use: SowSeeds('Lingonberries', 4 * 6),
+        value: 10,
+    },
+    {
+        name: 'Ghost pepper seeds', base: 'tool',
+        color: color('OrangeRed', 'DarkGreen'),
+        addComp: 'OneShot',
+        use: SowSeeds('Ghost pepper', 5 * 6),
+        value: 20,
+    },
+    {
+        name: 'Wraith pepper seeds', base: 'tool',
+        color: color('Cyan', 'Black'),
+        addComp: 'OneShot',
+        use: SowSeeds('Wraith pepper', 6 * 6),
+        value: 40,
     },
 
 
@@ -1630,6 +1729,16 @@ const Items: ObjectShell[] = [
         char: '*', color: color('white', 'blue')
     },
     {
+        name: 'foriphire', base: 'MineralBase',
+        weight: 0.34, value: value('mineral', 350),
+        char: '*', className: 'cell-item-magic',
+    },
+    {
+        name: 'nethermond', base: 'MineralBase',
+        weight: 0.36, value: value('mineral', 400),
+        char: '*', className: 'cell-item-void',
+    },
+    {
         name: 'ice diamond', base: 'MineralBase',
         weight: 0.3, value: value('mineral', 400),
         char: '*', className: 'cell-item-ice'
@@ -1675,13 +1784,6 @@ const Items: ObjectShell[] = [
         className: 'cell-item-energy'
     },
 
-    // FARMING STUFF
-    /*{
-        name: 'tilled soil', noRandom: true,
-        type: 'soil', className: '',
-        char: '|', addComp: 'Unpickable'
-    },*/
-
     // ARTIFACT ITEMS
 ];
 
@@ -1724,7 +1826,7 @@ addStatsPotions(Items);
 
 function addResistancePotions(arr: any[]): void {
     Object.values(RG.DMG).forEach((dmg: string) => {
-        if (dmg === 'EFFECT') {return;}
+        if (dmg === 'EFFECT' || dmg === 'DIRECT' || dmg === 'HUNGER' || dmg === 'MELEE') {return;}
         Object.entries(RG.RESISTANCE).forEach((pair: [string, number]) => {
             const level = pair[0];
             const resComp: any = resistance(dmg, level);
@@ -1751,6 +1853,7 @@ function addResistancePotions(arr: any[]): void {
 }
 
 function addStatsPotions(arr: any[]): void {
+    // Generates 2 sets of potions: normal with +1 and greater potions with +2
     const pairs: [string, number][] = [['', 1], [' greater', 2]];
 
     RG.STATS.forEach((stat: string) => {

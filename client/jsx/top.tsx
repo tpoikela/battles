@@ -18,6 +18,7 @@ import HiddenFileInput from './hidden-file-input';
 import GamePlugins from './game-plugins';
 import GameStats from './game-stats';
 import GameCraftingMenu from './game-crafting-menu';
+import GameShopMenu from './game-shop-menu';
 
 import GameContextMenu from './context-menu';
 import {ContextMenuTrigger} from 'react-contextmenu';
@@ -77,6 +78,7 @@ export interface IBattlesTopState {
     showOWMap: boolean;
     showInventory: boolean;
     showCraftingMenu: boolean;
+    showShopMenu: boolean;
     showCharInfo: boolean;
     showCreateScreen: boolean;
     editorData: EditorData; // Data given to editor
@@ -136,6 +138,7 @@ export class BattlesTop extends React.Component {
             showHelpScreen: false,
             showInventory: false,
             showCraftingMenu: false,
+            showShopMenu: false,
             showLoadScreen: false,
             showMap: false,
             showOWMap: false,
@@ -436,7 +439,7 @@ export class BattlesTop extends React.Component {
                     handleKeyDown={this.gameManager.handleKeyDown}
                     invMsg={this.state.invMsg}
                     msgStyle={this.state.invMsgStyle}
-                    player={player}
+                    player={player!}
                     selectedItem={this.state.selectedItem}
                     selectEquipTop={this.selectEquipTop}
                     selectItemTop={this.selectItemTop}
@@ -453,9 +456,23 @@ export class BattlesTop extends React.Component {
                     handleKeyDown={this.gameManager.handleKeyDown}
                     invMsg={this.state.invMsg}
                     msgStyle={this.state.invMsgStyle}
-                    player={player}
+                    player={player!}
                     setInventoryMsg={this.setInventoryMsg}
                     showCraftingMenu={this.state.showCraftingMenu}
+                    toggleScreen={this.toggleScreen}
+                />
+                }
+
+                {gameValid && !this.state.showEditor &&
+                 this.state.showShopMenu &&
+                <GameShopMenu
+                    doInvCmd={this.doInvCmd}
+                    handleKeyDown={this.gameManager.handleKeyDown}
+                    invMsg={this.state.invMsg}
+                    msgStyle={this.state.invMsgStyle}
+                    player={player!}
+                    setInventoryMsg={this.setInventoryMsg}
+                    showShopMenu={this.state.showShopMenu}
                     toggleScreen={this.toggleScreen}
                 />
                 }
@@ -632,6 +649,7 @@ export class BattlesTop extends React.Component {
         guiCommands[Keys.GUI.OwMap] = this.GUIOverWorldMap.bind(this);
         guiCommands[Keys.GUI.Use] = this.GUIUseItem.bind(this);
         guiCommands[Keys.GUI.Craft] = this.GUICraft.bind(this);
+        guiCommands[Keys.GUI.Shop] = this.GUIShop.bind(this);
         guiCommands[Keys.GUI.CharInfo] = this.GUICharInfo.bind(this);
         guiCommands.GOTO = this.GUIGoto.bind(this);
         this.gameManager.setGUICommands(guiCommands);
@@ -719,6 +737,18 @@ export class BattlesTop extends React.Component {
 
     public GUICraft(): void {
         this.toggleScreen('CraftingMenu');
+    }
+
+    public GUIShop(): void {
+      const player = this.gameManager.getPlayer();
+      if (player) {
+        if (player.getCell()?.hasShop()) {
+          this.toggleScreen('ShopMenu');
+        }
+        else {
+          RG.gameMsg('You are not inside a shop!');
+        }
+      }
     }
 
 

@@ -42,6 +42,14 @@ export const seasonConfig: {[key: string]: SeasonEntry} = {
         ['heavy rain', 'rain'], index: 7},
 };
 
+export const weatherHumidity: {[key: string]: number} = {
+    sunny: 50, cloudy: 50,
+    snowFall: 60, coldRain: 100,
+    hailStorm: 80,
+    rain: 100, heavyRain: 100,
+    default: 50,
+};
+
 /* Stores possible weathers for each biome. */
 export const biomePossibleSeasons: {[key: string]: string[]} = {
     arctic: ['WINTER'],
@@ -85,6 +93,7 @@ export class SeasonManager {
     protected _currSeason: string;
     protected _currWeather: string;
     protected _currTemp: number;
+    protected _currHumidity: number;
     protected _monthLeft: number;
     protected _seasonLeft: number;
     protected _daysPerMonth: number;
@@ -112,6 +121,7 @@ export class SeasonManager {
         this.pool = pool;
 
         this._currTemp = this.getNewTemperature(this._currSeason);
+        this._currHumidity = this.getNewHumidity(this._currWeather);
 
         this._debug = debug.enabled;
     }
@@ -131,6 +141,13 @@ export class SeasonManager {
     public getNewTemperature(season: string): number {
         const [tLow, tHigh] = seasonConfig[season].temp;
         return RNG.getUniformInt(tLow, tHigh);
+    }
+
+    public getNewHumidity(weather: string): number {
+        if (weatherHumidity[weather]) {
+            return weatherHumidity[weather];
+        }
+        return weatherHumidity.default;
     }
 
     /* Sets the player position in overworld map to find the correct biomes etc. */
@@ -208,6 +225,11 @@ export class SeasonManager {
         return this._currTemp;
     }
 
+    /* Returns the current humidity. */
+    public getHumidity(): number {
+        return this._currHumidity;
+    }
+
     /* Changes the weather (possibly), and returns the new (or old) weather. */
     public changeWeather(): string {
         this._weatherChanged = false;
@@ -219,14 +241,14 @@ export class SeasonManager {
             return this._currWeather;
         }
 
-        const seasonModified = this.filterSeasonForBiome();
-        this._currTemp = this.getNewTemperature(seasonModified);
+        const seasonBiome = this.filterSeasonForBiome();
+        this._currTemp = this.getNewTemperature(seasonBiome);
 
         // TODO If we're already at special weather, and isSame, don't change it
 
         let weather = this._currWeather;
         if (isSpecial) {
-            const specialWeathers = seasonConfig[seasonModified].weather;
+            const specialWeathers = seasonConfig[seasonBiome].weather;
             const isAlreadySpecial = specialWeathers.indexOf(weather) >= 0;
             if (isSame && isAlreadySpecial) {
                 this.dbg('Keeping existing special weather: ' + weather);
@@ -241,6 +263,7 @@ export class SeasonManager {
 
         this.dbg('changeWeather() called. New weather will be |', weather);
 
+        this._currHumidity = this.getNewHumidity(weather);
         if (weather !== this._currWeather) {
             this._weatherChanged = true;
         }
@@ -310,6 +333,15 @@ export class SeasonManager {
             }
             else if (this._currSeason === RG.SEASON.WINTER) {
                 RG.gameMsg('The call of Winter has arrived!');
+            }
+            else if (this._currSeason === RG.SEASON.WINTER_SPRING) {
+                RG.gameMsg('The winter frost seems to be drawing away!');
+            }
+            else if (this._currSeason === RG.SEASON.SPRING) {
+                RG.gameMsg('The warmth of the first spring day is here!');
+            }
+            else if (this._currSeason === RG.SEASON.AUTUMN) {
+                RG.gameMsg('Soon the deadly leaves will fall, and death has taken over!');
             }
         }
     }

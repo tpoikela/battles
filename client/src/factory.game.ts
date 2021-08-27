@@ -234,16 +234,14 @@ export class FactoryGame {
     /* Can be used to add player HP/PP regeneration events into the
      * scheduler of the game engine. */
     public createPlayerRegenEvents(game: GameMain, player: SentientActor) {
-        // Add HP regeneration
-        const regenPlayer = new Time.RegenEvent(player,
-            RG.PLAYER_HP_REGEN_PERIOD * RG.ACTION_DUR);
-        game.addEvent(regenPlayer);
-
-        // Add PP regeneration (if needed)
-        if (player.has('SpellPower')) {
-            const regenPlayerPP = new Time.RegenPPEvent(player,
-                RG.PLAYER_PP_REGEN_PERIOD * RG.ACTION_DUR);
-            game.addEvent(regenPlayerPP);
+        // Add HP/PP regeneration
+        if (!player.has('Regeneration')) {
+            const regen = new Component.Regeneration();
+            regen.setMaxWaitPP(RG.PLAYER_PP_REGEN_PERIOD);
+            regen.setMaxWaitHP(RG.PLAYER_HP_REGEN_PERIOD);
+            regen.setHP(1);
+            regen.setPP(1);
+            player.add(regen);
         }
     }
 
