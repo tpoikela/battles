@@ -1353,6 +1353,7 @@ const Items: ObjectShell[] = [
         }},
         value: 30
     },
+
     {
         name: 'wheat seeds', base: 'tool',
         addComp: 'OneShot',
@@ -1388,7 +1389,7 @@ const Items: ObjectShell[] = [
         name: 'Carrot seeds', base: 'tool',
         color: color('ForestGreen', 'Coral'),
         addComp: 'OneShot',
-        use: SowSeeds('Carrot', 3 * 6),
+        use: SowSeeds('Carrots', 3 * 6),
         value: 5,
     },
     {
@@ -1402,7 +1403,7 @@ const Items: ObjectShell[] = [
         name: 'Potato seeds', base: 'tool',
         color: color('DarkGray', 'Sienna'),
         addComp: 'OneShot',
-        use: SowSeeds('Potato', 3 * 6),
+        use: SowSeeds('Potatoes', 3 * 6),
         value: 7,
     },
     {
@@ -1852,6 +1853,7 @@ function addResistancePotions(arr: any[]): void {
 }
 
 function addStatsPotions(arr: any[]): void {
+    // Generates 2 sets of potions: normal with +1 and greater potions with +2
     const pairs: [string, number][] = [['', 1], [' greater', 2]];
 
     RG.STATS.forEach((stat: string) => {
