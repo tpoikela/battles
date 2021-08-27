@@ -12,7 +12,8 @@ const ELEV = [
     // '\u22C5',
     '\u2219',
     ':',
-    '\u22EE',
+    //'\u22EE',
+    '\u2AF6',
 ];
 
 const DEPTH = [
