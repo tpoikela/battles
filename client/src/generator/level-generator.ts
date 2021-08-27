@@ -3,6 +3,9 @@
 import RG from '../rg';
 import {ElementMarker, ElementDoor} from '../element';
 import {Level} from '../level';
+import {Random} from '../random';
+
+const RNG = Random.getRNG();
 
 import {ConstBaseElem, TCoord, TShellFunc} from '../interfaces';
 type CellMap = import('../map').CellMap;
@@ -22,7 +25,9 @@ export interface ILevelGenOpts {
     preserveMarkers: boolean;
     wallType?: string;
     floorType?: string;
+    nestProbability?: number;
 }
+
 
 export abstract class LevelGenerator {
 
@@ -44,7 +49,8 @@ export abstract class LevelGenerator {
             maxValue: 100,
             maxDanger: 5,
             shouldRemoveMarkers: true,
-            preserveMarkers: false
+            preserveMarkers: false,
+            nestProbability: 0.2,
         };
     }
 
@@ -59,7 +65,7 @@ export abstract class LevelGenerator {
     public abstract create(cols: number, rows: number, conf: ILevelGenOpts): Level;
 
     /* Adds markers for start and endpoint for given level. */
-    public addStartAndEndPointMarker(level: Level, start: TCoord, end: TCoord): void {
+    public static addStartAndEndPointMarker(level: Level, start: TCoord, end: TCoord): void {
         if (start) {
             const [sX, sY] = start;
             const startPointElem = new ElementMarker('<');
@@ -81,7 +87,7 @@ export abstract class LevelGenerator {
 
     /* Converst door markers to actual doors. Returns the coordinates of created
      * doors as TCoord[]. */
-    public markersToDoor(level: Level): TCoord[] {
+    public static markersToDoor(level: Level): TCoord[] {
         const map: CellMap = level.getMap();
         const cells: Cell[] = map.getCells((c => c.hasElements()));
         const res: TCoord[] = [];
@@ -99,7 +105,7 @@ export abstract class LevelGenerator {
 
     /* Removes given marker type with matching char/tag, removes the coordinates
      * of removed markers. */
-    public removeOneMarkerType(level: Level, char: string, tag: string): TCoord[] {
+    public static removeOneMarkerType(level: Level, char: string, tag: string): TCoord[] {
         const map: CellMap = level.getMap();
         const cells: Cell[] = map.getCells((c => c.hasElements()));
         const res: TCoord[] = [];
@@ -117,6 +123,7 @@ export abstract class LevelGenerator {
         });
         return res;
     }
+
 
     /* Removes the markers which are used during PCG, but should not be visible
      * to player. */

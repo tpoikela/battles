@@ -56,7 +56,6 @@ export class ItemRandomizer {
     /* Distr. of food weights.*/
     public _adjustFoodItem(food: ItemBase) {
         const weight = RNG.getWeighted(this._foodWeights);
-        // food.setWeight(parseInt(weight, 10));
         food.setWeight(parseFloat(weight));
     }
 
@@ -73,7 +72,7 @@ export class ItemRandomizer {
     }
 
     public _adjustMissile(missile: ItemBase): void {
-        let count = RNG.getUniformInt(5, 15);
+        const count = RNG.getUniformInt(5, 15);
         const value = missile.getValue();
         missile.setCount(count);
     }
@@ -280,11 +279,24 @@ export class FactoryItem {
         if (!nItems) {return items;}
 
         const parser: Parser = ObjectShell.getParser();
-        for (let j = 0; j < nItems; j++) {
-            const item = parser.createRandomItem({func: conf.item});
-            if (item) {
-                this._doItemSpecificAdjustments(item, conf.maxValue);
-                items.push(item);
+        if (conf.typeWeights) {
+            for (let j = 0; j < nItems; j++) {
+                const itemType = RNG.getWeighted(conf.typeWeights);
+                const newFunc = (shell) => conf.item(shell) && shell.type === itemType;
+                const item = parser.createRandomItem({func: newFunc});
+                if (item) {
+                    this._doItemSpecificAdjustments(item, conf.maxValue);
+                    items.push(item);
+                }
+            }
+        }
+        else {
+            for (let j = 0; j < nItems; j++) {
+                const item = parser.createRandomItem({func: conf.item});
+                if (item) {
+                    this._doItemSpecificAdjustments(item, conf.maxValue);
+                    items.push(item);
+                }
             }
         }
         return items;

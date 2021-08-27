@@ -11,7 +11,7 @@ import {Placer} from '../placer';
 import {Geometry} from '../geometry';
 import {BBox} from '../bbox';
 import {Random} from '../random';
-import {ELEM} from '../../data/elem-constants';
+import {ELEM, getElem} from '../../data/elem-constants';
 import {ActorGen} from '../../data/actor-gen';
 import {ObjectShell} from '../objectshellparser';
 import {SentientActor} from '../actor';
@@ -220,7 +220,12 @@ export class NestGenerator extends LevelGenerator {
                         if (x >= map.cols-1 || y >= map.rows-1) {return false;}
                         return true;
                     });
-                    map.setBaseElems(tunnelCoord, ELEM.FLOOR);
+
+                    let floorElem = ELEM.FLOOR;
+                    if (conf.mapConf!.floorType) {
+                        floorElem = getElem(conf.mapConf.floorType);
+                    }
+                    map.setBaseElems(tunnelCoord, floorElem);
                     return tunnelCoord;
                 }
             }
@@ -305,7 +310,7 @@ export class NestGenerator extends LevelGenerator {
     public addElemsToNestArea(
         parentLevel: Level, bbox: BBox, conf: PartialNestOpts
     ): void {
-        const doorXY: TCoord[] = super.markersToDoor(parentLevel);
+        const doorXY: TCoord[] = LevelGenerator.markersToDoor(parentLevel);
     }
 
     /* Populates the nest with actors. */
@@ -372,7 +377,7 @@ export class NestGenerator extends LevelGenerator {
         maxValue *= 1.5;
 
         const parser = ObjectShell.getParser();
-        const lootXY: TCoord[] = super.removeOneMarkerType(level, '?', 'nest_loot');
+        const lootXY: TCoord[] = LevelGenerator.removeOneMarkerType(level, '?', 'nest_loot');
         const itemFunc = (item: IShell) => (
             item.value <= maxValue! && item.value >= 0.5*maxValue!);
         lootXY.forEach((xy: TCoord) => {
@@ -395,6 +400,9 @@ export class NestGenerator extends LevelGenerator {
         let elem = ELEM.FLOOR;
         if (conf.borderElem) {
             elem = conf.borderElem;
+        }
+        if (conf.mapConf!.floorType) {
+            elem = getElem(conf.mapConf.floorType);
         }
         // Row 0
         for (let x = 0; x < cols; ++x) {
@@ -433,7 +441,7 @@ export class NestGenerator extends LevelGenerator {
                 const eastCell = map.getCell(eX, eY);
                 if (eastCell && eastCell.isFree()) {
                     // Need to tunnel west until floor found
-                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.W);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.W, conf);
                     result.push(...tunnel);
                 }
             }
@@ -451,7 +459,7 @@ export class NestGenerator extends LevelGenerator {
                 if (westCell && westCell.isFree()) {
                     console.log('scanAndConnect free west cell at', wX, wY);
                     // Need to tunnel west until floor found
-                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.E);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.E, conf);
                     result.push(...tunnel);
                 }
             }
@@ -470,7 +478,7 @@ export class NestGenerator extends LevelGenerator {
                 if (southCell && southCell.isFree()) {
                     console.log('scanAndConnect south cell at', sX, sY);
                     // Need to tunnel west until floor found
-                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.N);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.N, conf);
                     result.push(...tunnel);
                 }
             }
@@ -491,7 +499,7 @@ export class NestGenerator extends LevelGenerator {
                 if (northCell && northCell.isFree()) {
                     console.log('scanAndConnect north cell at', nX, nY);
                     // Need to tunnel west until floor found
-                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.S);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.S, conf);
                     result.push(...tunnel);
                 }
             }
@@ -502,13 +510,18 @@ export class NestGenerator extends LevelGenerator {
     }
 
     /* Given x,y and direction, tunnels from x,y until FLOOR is reached. */
-    public tunnelUntilFloor(level: Level, x, y, dXdY): TCoord[] {
+    public tunnelUntilFloor(level: Level, x, y, dXdY, conf): TCoord[] {
         const [dX, dY] = dXdY;
         const res: TCoord[] = [];
         let done = false;
         const map = level.getMap();
         let i = 0;
-        map.setBaseElems([[x, y]], ELEM.FLOOR);
+
+        let floorElem = ELEM.FLOOR;
+        if (conf.mapConf!.floorType) {
+            floorElem = getElem(conf.mapConf.floorType);
+        }
+        map.setBaseElems([[x, y]], floorElem);
 
         let wallFound = false;
         let floorFound = false;
@@ -523,7 +536,7 @@ export class NestGenerator extends LevelGenerator {
             if (!cell.isFree()) {
                 wallFound = true;
                 res.push([nX, nY]);
-                map.setBaseElemXY(nX, nY, ELEM.FLOOR);
+                map.setBaseElemXY(nX, nY, floorElem);
             }
             else if (wallFound) {
                 floorFound = true;

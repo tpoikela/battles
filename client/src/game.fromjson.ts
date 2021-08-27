@@ -388,6 +388,9 @@ export class FromJSON {
                 }
             });
         }
+        if (json.components) {
+            this.addCompsToEntity(entity, json.components);
+        }
     }
 
 
@@ -976,12 +979,16 @@ export class FromJSON {
      * returned by this method is not complete stairs, but has placeholders for
      * targetLevel (level ID) and targetStairs (x, y coordinates).
      */
-    public createUnconnectedStairs(elem) {
+    public createUnconnectedStairs(elem): Stairs {
         const {x, y} = elem;
         const id = elem.obj.srcLevel;
         const stairsId = `${id},${x},${y}`;
         const elemObj = elem.obj;
         const sObj = new Element.ElementStairs(elemObj.name);
+        if (elemObj.isOneway) {
+            const target = elemObj.targetStairs;
+            sObj.setTargetOnewayXY(target.x, target.y);
+        }
         this.stairsInfo[stairsId] = {targetLevel: elemObj.targetLevel,
             targetStairs: elemObj.targetStairs};
         return sObj;
@@ -1074,6 +1081,9 @@ export class FromJSON {
                 const y = targetStairsXY.y;
                 if (targetLevel) {
                     s.setTargetLevel(targetLevel);
+                    if (s.isOneway) {
+                        return;
+                    }
                     const targetStairs = targetLevel
                         .getMap().getCell(x, y).getConnection();
                     if (targetStairs) {

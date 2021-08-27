@@ -1,4 +1,8 @@
-
+/* Contains code for placing items and actors into a level (ie populating the
+ * level). Generator is heavily Room-based, so extras.rooms and extras.terms
+ * should be present for better generation.
+ * terms: Typically terminal/ending rooms, but up to the users to specify
+ */
 import RG from './rg';
 import {Random} from './random';
 import {Geometry} from './geometry';
@@ -34,6 +38,10 @@ interface PopulConf {
     maxDanger?: number;
     maxValue?: number;
     actorFunc?: TShellFunc;
+    itemFunc?: TShellFunc;
+    actorRoomDensity?: number;
+    itemRoomDensity?: number;
+    bigRoomActorDensity?: number;
 }
 
 const probSpecialItem = 0.5;
@@ -41,10 +49,15 @@ const probSpecialItem = 0.5;
 export class DungeonPopulate {
 
     public actorFunc: TShellFunc;
+    public itemFunc: TShellFunc;
 
     private theme: string;
     private maxDanger: number;
     private maxValue: number;
+    private actorRoomDensity: number;
+    private itemRoomDensity: number;
+    private bigRoomActorDensity: number;
+
 
     private _itemFact: FactoryItem;
     private _actorFact: any;
@@ -53,6 +66,9 @@ export class DungeonPopulate {
         this.theme = conf.theme ||  '';
         this.maxDanger = conf.maxDanger || 5;
         this.maxValue = conf.maxValue || 50;
+        this.actorRoomDensity = conf.actorRoomDensity || 30;
+        this.itemRoomDensity = conf.itemRoomDensity || 60;
+        this.bigRoomActorDensity = conf.bigRoomActorDensity || 18;
 
         this._itemFact = new FactoryItem();
         this._actorFact = new FactoryActor();
@@ -61,6 +77,12 @@ export class DungeonPopulate {
         }
         else {
             this.actorFunc = (actor) => !!actor && true;
+        }
+        if (conf.itemFunc) {
+            this.itemFunc = conf.itemFunc;
+        }
+        else {
+            this.itemFunc = (item) => !!item && true;
         }
     }
 
@@ -93,11 +115,11 @@ export class DungeonPopulate {
                 let addOk = false;
                 if (/cross/.test(type)) {
                     // Cross has lower density as its huge
-                    actorConf.nActors = Math.floor(areaSize / 6);
+                    actorConf.nActors = Math.floor(areaSize / (2*this.bigRoomActorDensity));
                     addOk = this.addActorsToBbox(level, bbox, actorConf);
                 }
                 else {
-                    actorConf.nActors = Math.floor(areaSize / 3);
+                    actorConf.nActors = Math.floor(areaSize / this.bigRoomActorDensity);
                     addOk = this.addActorsToBbox(level, bbox, actorConf);
                 }
 
@@ -136,9 +158,9 @@ export class DungeonPopulate {
 
                     // Add optional, less potent loot stuff
                     const areaSize = room.getAreaSize();
-                    const nItems = Math.ceil(areaSize / 10);
+                    const nItems = Math.ceil(areaSize / this.itemRoomDensity);
                     const itemConf: ItemConf = {maxValue, itemsPerLevel: nItems,
-                        item: item => item.value <= maxValue
+                        item: item => this.itemFunc(item) && item.value <= maxValue
                     };
                     this.addItemsToBbox(level, bbox, itemConf);
 
@@ -162,8 +184,8 @@ export class DungeonPopulate {
                 // Add actors into the room
                 const actorConf: ActorConf = {
                     maxDanger,
-                    actor: actor => actor.danger <= maxDanger,
-                    nActors: Math.floor(areaSize / 6)
+                    actor: actor => this.actorFunc(actor) && actor.danger <= maxDanger,
+                    nActors: Math.floor(areaSize / this.actorRoomDensity)
                 };
                 if (actorConf.nActors < MIN_ACTORS_ROOM) {
                     actorConf.nActors = MIN_ACTORS_ROOM;
@@ -171,9 +193,9 @@ export class DungeonPopulate {
                 this.addActorsToBbox(level, bbox, actorConf);
 
                 // Add items into the room
-                const nItems = Math.ceil(areaSize / 20);
+                const nItems = Math.ceil(areaSize / this.itemRoomDensity);
                 const itemConf: ItemConf = {maxValue, itemsPerLevel: nItems,
-                    item: item => item.value <= maxValue
+                    item: item => this.itemFunc(item) && item.value <= maxValue
                 };
                 this.addItemsToBbox(level, bbox, itemConf);
 
@@ -430,7 +452,7 @@ export class DungeonPopulate {
 
             if (keeper.has('Shopkeeper')) {
                 const shopKeep = keeper.get('Shopkeeper');
-                shopKeep.setCells(shopCoord);
+                shopKeep.setCoord(shopCoord);
                 shopKeep.setLevelID(level.getID());
                 shopKeep.setDoorXY(doorCell.getXY());
                 const name = keeper.getType() + ' shopkeeper';

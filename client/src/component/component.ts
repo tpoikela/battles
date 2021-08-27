@@ -1078,11 +1078,11 @@ export const SkillsExp = TransientDataComponent('SkillsExp',
 
 /* Component added to shopkeeper. */
 export const Shopkeeper = UniqueDataComponent('Shopkeeper',
-    {levelID: -1, cells: null, doorXY: null}
+    {levelID: -1, coord: null, doorXY: null}
 );
 
 Shopkeeper._init = function() {
-    this.cells = [];
+    this.coord = [];
 };
 
 /* Component which models a shop transaction. */

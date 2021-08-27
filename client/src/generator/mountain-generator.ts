@@ -13,6 +13,7 @@ import {DungeonPopulate} from '../dungeon-populate';
 import {Random} from '../random';
 import {ELEM} from '../../data/elem-constants';
 import {LevelGenerator, ILevelGenOpts} from './level-generator';
+import {ElementStairs} from '../element';
 
 import {ICoordXY, TCoord} from '../interfaces';
 
@@ -33,6 +34,7 @@ const preferredActorTypes = [
 interface MountainOpts extends ILevelGenOpts {
     nRoadTurns: number; // How many times mountain path turns
     ratio: number;
+    shortcutSummit2Face?: boolean;
 }
 
 type PartialMountainOpts = Partial<MountainOpts>;
@@ -56,6 +58,9 @@ export class MountainGenerator {
     public createMountain(cols: number, rows: number, conf: MountainOpts): Level[] {
         const face = this.createFace(cols, rows, conf);
         const summit = this.createSummit(cols, rows, conf);
+        if (conf.shortcutSummit2Face) {
+            MountainGenerator.connectFaceAndSummit(face, summit);
+        }
         return [face, summit];
     }
 
@@ -71,6 +76,7 @@ export class MountainGenerator {
         this.createCrux(level, conf);
         // level.setExtras({paths});
         // this.createExtraFeats(level, conf);
+        // MountainGenerator.connectFaceAndSummit(face, summit);
         return level;
     }
 
@@ -177,6 +183,44 @@ export class MountainGenerator {
             map.setBaseElemXY(xy.x, xy.y, ELEM.CLIFF);
         });
         return result;
+    }
+
+
+    public static connectFaceAndSummit(face: Level, summit: Level): void {
+        const summitStairs = new ElementStairs('pathdown', summit, face);
+        summitStairs.setMsg({onEnter:
+            'If you descend it, you will not be able to come back the same way'});
+        const {cols, rows} = face.getMap();
+
+        // Find target x,y after using oneway
+        let x = 0;
+        let y = rows - 1;
+        while (!face.getMap().getCell(x, y).isFree()) {
+            x += 1;
+            if (x >= cols) {y -= 1; x = 0;}
+        }
+        summitStairs.setTargetOnewayXY(x, y);
+
+        // Find position to place the oneway element
+        /*
+        x = 0;
+        y = 0;
+        while (!face.getMap().getCell(x, y).isFree()) {
+            x += 1;
+            if (x >= face.getMap().cols) {y += 1; x = 0;}
+        }
+        */
+        let freeCell = summit.getFreeRandCell();
+        while (freeCell?.hasConnection()) {
+            freeCell = summit.getFreeRandCell();
+        }
+        if (freeCell) {
+            summit.addElement(summitStairs, freeCell.getX(), freeCell.getY());
+        }
+        else {
+            RG.err('MountainGenerator', 'connectSummitAndFace',
+                'Could not find free cell for one-way connection');
+        }
     }
 }
 

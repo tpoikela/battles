@@ -1,7 +1,13 @@
 
+import RG from '../rg';
 import {LevelGenerator, ILevelGenOpts} from './level-generator';
+import {DungeonGenerator} from './dungeon-generator';
+import {CaveGenerator} from './cave-generator';
 import {MapGenerator} from './map.generator';
 import {Level} from '../level';
+import {Room} from '../../../lib/rot-js/map/features';
+import {PlacedTileData} from '../template.level';
+import {DungeonPopulate} from '../dungeon-populate';
 
 type FactoryZone = import('../factory.zone').FactoryZone;
 
@@ -22,17 +28,19 @@ export class CryptGenerator extends LevelGenerator {
         opts = Object.assign(opts, {
             tilesX: 12, tilesY: 7,
             genParams: [2, 2, 2, 2],
-            roomCount: 40
+            roomCount: 40,
+            wallType: 'wallcrypt',
+            floorType: 'floorcrypt',
+
         });
         return opts;
     }
 
-    public factZone: FactoryZone;
+    public factZone?: FactoryZone;
 
     constructor() {
         super();
         this.shouldRemoveMarkers = true;
-        this.factZone = null;
     }
 
 
@@ -48,10 +56,52 @@ export class CryptGenerator extends LevelGenerator {
         // TODO adjust crypt size based on cols/rows
         const mapObj = mapgen.createCryptNew(cols, rows, conf);
         const level = new Level(mapObj.map);
-        if (this.factZone !== null) {
-            this.factZone.addItemsAndActors(level, conf);
+
+        // Create Room object for each tile (required by some algorithms)
+        const rooms: Room[] = [];
+        const terms: Room[] = [];
+        const tileMap: {[key: string]: PlacedTileData} = mapObj.tiles;
+        Object.values(tileMap).forEach((tile: PlacedTileData) => {
+            const room = new Room(tile.llx, tile.ury, tile.urx, tile.lly);
+            rooms.push(room);
+            if (tile.name === 'term') {
+                terms.push(room);
+            }
+        });
+
+        level.addExtras('rooms', rooms);
+        level.addExtras('terms', terms);
+
+        DungeonGenerator.addStairsToTwoRooms(level);
+        DungeonGenerator.addCriticalPath(level);
+
+        if (this.factZone) {
             this.factZone.addExtraDungeonFeatures(level, conf);
         }
+        else {
+            RG.err('CryptGenerator', 'createLevel',
+                'this.factZone must be assigned first');
+        }
+        const populate = new DungeonPopulate({
+            theme: '',
+            actorFunc: shell => shell.type === 'undead',
+            maxDanger: conf.maxDanger, maxValue: conf.maxValue,
+            itemFunc: shell => shell.type !== 'food',
+        });
+        // Populate the level with items/actors here
+        populate.populateLevel(level);
+
+        if (conf.nestProbability) {
+            if (RG.isSuccess(conf.nestProbability!)) {
+                CaveGenerator.embedNest(level, conf);
+            }
+        }
+
+        const markerConf: any = {};
+        if (conf.shouldRemoveMarkers) {
+            markerConf.markersPreserved = false;
+        }
+        this.removeMarkers(level, markerConf);
         return level;
     }
 

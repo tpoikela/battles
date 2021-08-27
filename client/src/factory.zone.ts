@@ -67,7 +67,7 @@ export class FactoryZone {
             nLevel: conf.nLevel,
             itemsPerLevel,
             item: getItemConstraintFunc(0, conf.maxValue),
-            maxValue: conf.maxValue,
+            maxValue: conf.maxValue || 100,
             food: true,
             gold: true
         };
@@ -111,23 +111,6 @@ export class FactoryZone {
             this._factBase.addRandomGold(level, this._parser, goldConf);
         }
     }
-
-    /* Creates dungeon level. Unless levelType is given, chooses the type
-     * randomly. */
-    public createDungeonLevel(conf: LevelConf): Level {
-        this._verif.verifyConf('createDungeonLevel', conf, ['x', 'y']);
-        let level = null;
-        let levelType = this.getRandLevelType();
-        if (conf.dungeonType && conf.dungeonType !== '') {
-            levelType = conf.dungeonType;
-        }
-        debug(`dungeonLevel: ${levelType}, ${JSON.stringify(conf)}`);
-        level = this._levelFact.createLevel(levelType, conf.x, conf.y, conf);
-        this.addItemsAndActors(level, conf);
-        this.addExtraDungeonFeatures(level, conf);
-        return level;
-    }
-
 
     public createMountainLevel(conf: LevelConf): Level {
         let mountConf = Object.assign(MountainGenerator.getFaceOptions(),

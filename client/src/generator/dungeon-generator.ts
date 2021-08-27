@@ -142,6 +142,74 @@ export class DungeonGenerator extends LevelGenerator {
         return Object.assign(levelOpts, mapOpts, opts);
     }
 
+    public static addStairsToTwoRooms(level: Level): void {
+        // Default is to find rooms that are far away from each other
+        const extras = level.getExtras();
+        let watchdog = RG.WATCHDOG;
+        if (extras.rooms) {
+
+            // 1. Find 2 different rooms with maximum center distance
+            let [room1, room2] = RNG.getUniqueItems(extras.rooms, 2);
+            let chosenRoom1 = null;
+            let chosenRoom2 = null;
+            let dist = 0;
+            let largestDist = 0;
+            const minRoomDistance = Math.floor(level.getMap().cols / 2)
+                + Math.floor(level.getMap().rows / 2);
+
+            while (dist < minRoomDistance) {
+                [room1, room2] = RNG.getUniqueItems(extras.rooms, 2);
+                dist = getRoomDist(level, room1, room2);
+                if (dist > largestDist) {
+                    largestDist = dist;
+                    chosenRoom1 = room1;
+                    chosenRoom2 = room2;
+                }
+                if (--watchdog === 0) {break;}
+            }
+            room1 = chosenRoom1;
+            room2 = chosenRoom2;
+
+            debug('Rooms for stairs locations', room1, room2);
+
+            // const [cx1, cy1] = room1.getCenter();
+            // const [cx2, cy2] = room2.getCenter();
+
+            const freeCells1 = level.getMap().getFreeInBbox(room1.getBbox());
+            const freeCells2 = level.getMap().getFreeInBbox(room2.getBbox());
+            const freeCell1 = RNG.arrayGetRand(freeCells1);
+            const freeCell2 = RNG.arrayGetRand(freeCells2);
+
+            if (!freeCell1) {
+                RG.err('DungeonGenerator', 'addStairsLocation',
+                   `Failed to find free place for Stairs@room1`);
+            }
+            if (!freeCell2) {
+                RG.err('DungeonGenerator', 'addStairsLocation',
+                   `Failed to find free place for Stairs@room2`);
+            }
+
+            // Store the points to extras
+            extras.startPoint = freeCell2.getXY(); //[cx2, cy2];
+            extras.endPoint = freeCell1.getXY(); // [cx1, cy1];
+
+            const {startPoint, endPoint} = extras;
+            LevelGenerator.addStartAndEndPointMarker(level, startPoint, endPoint);
+
+            // Place markers to later identify the points from the level
+            room1.addStairs(...extras.endPoint, true);
+            room2.addStairs(...extras.startPoint, false);
+            // level.debugPrintInASCII();
+        }
+        else {
+            // Resort to random placement, no worthwhile rooms, although this
+            // raises the question if the whole level should be discarded
+            const msg = 'rooms must be set as level extras';
+            RG.err('DungeonGenerator', 'addStairsToTwoRooms',
+                'Not enough rooms to add stairs. ' + msg);
+        }
+    }
+
     public addDoors: boolean;
 
     constructor() {
@@ -161,12 +229,11 @@ export class DungeonGenerator extends LevelGenerator {
         this.addSpecialFeatures(level);
 
         // Determine stairs locations
-        this.addStairsLocations(level);
+        DungeonGenerator.addStairsToTwoRooms(level);
 
         // Add critical path (player must pass through this, usually), not entirely
         // true as there are usually many paths from start to end
-        this.addCriticalPath(level);
-
+        DungeonGenerator.addCriticalPath(level);
 
         // Optional verification of connectivity etc.
         if (conf.rerunOnFailure || conf.errorOnFailure) {
@@ -177,11 +244,21 @@ export class DungeonGenerator extends LevelGenerator {
             }
         }
 
-        const populate = new DungeonPopulate({theme: ''});
+        const populate = new DungeonPopulate({
+            theme: '',
+            maxDanger: conf.maxDanger, maxValue: conf.maxValue,
+            itemFunc: shell => shell.type !== 'food',
+        });
         // Finally, we could populate the level with items/actors here
         populate.populateLevel(level);
 
-        this.removeMarkers(level, conf);
+        const markerConf: any = {};
+        if (conf.shouldRemoveMarkers || this.shouldRemoveMarkers) {
+            markerConf.shouldRemoveMarkers = true;
+            markerConf.markersPreserved = false;
+            console.log('KKK xyz should remove dungeon markers');
+        }
+        this.removeMarkers(level, markerConf);
         return level;
     }
 
@@ -667,77 +744,10 @@ export class DungeonGenerator extends LevelGenerator {
         });
     }
 
-    public addStairsLocations(level: Level): void {
-        // Default is to find rooms that are far away from each other
-        const extras = level.getExtras();
-        let watchdog = RG.WATCHDOG;
-        if (extras.rooms) {
-
-            // 1. Find 2 different rooms with maximum center distance
-            let [room1, room2] = RNG.getUniqueItems(extras.rooms, 2);
-            let chosenRoom1 = null;
-            let chosenRoom2 = null;
-            let dist = 0;
-            let largestDist = 0;
-            const minRoomDistance = Math.floor(level.getMap().cols / 2)
-                + Math.floor(level.getMap().rows / 2);
-
-            while (dist < minRoomDistance) {
-                [room1, room2] = RNG.getUniqueItems(extras.rooms, 2);
-                dist = getRoomDist(level, room1, room2);
-                if (dist > largestDist) {
-                    largestDist = dist;
-                    chosenRoom1 = room1;
-                    chosenRoom2 = room2;
-                }
-                if (--watchdog === 0) {break;}
-            }
-            room1 = chosenRoom1;
-            room2 = chosenRoom2;
-
-            debug('Rooms for stairs locations', room1, room2);
-
-            // const [cx1, cy1] = room1.getCenter();
-            // const [cx2, cy2] = room2.getCenter();
-
-            const freeCells1 = level.getMap().getFreeInBbox(room1.getBbox());
-            const freeCells2 = level.getMap().getFreeInBbox(room2.getBbox());
-            const freeCell1 = RNG.arrayGetRand(freeCells1);
-            const freeCell2 = RNG.arrayGetRand(freeCells2);
-
-            if (!freeCell1) {
-                RG.err('DungeonGenerator', 'addStairsLocation',
-                   `Failed to find free place for Stairs@room1`);
-            }
-            if (!freeCell2) {
-                RG.err('DungeonGenerator', 'addStairsLocation',
-                   `Failed to find free place for Stairs@room2`);
-            }
-
-            // Store the points to extras
-            extras.startPoint = freeCell2.getXY(); //[cx2, cy2];
-            extras.endPoint = freeCell1.getXY(); // [cx1, cy1];
-
-            const {startPoint, endPoint} = extras;
-            this.addStartAndEndPointMarker(level, startPoint, endPoint);
-
-            // Place markers to later identify the points from the level
-            room1.addStairs(...extras.endPoint, true);
-            room2.addStairs(...extras.startPoint, false);
-            // level.debugPrintInASCII();
-        }
-        else {
-            // Resort to random placement, no worthwhile rooms, although this
-            // raises the question if the whole level should be discarded
-            const msg = 'rooms must be set as level extras';
-            RG.err('DungeonGenerator', 'addStairsLocations',
-                'Not enough rooms to add stairs. ' + msg);
-        }
-    }
 
     /* Adds a critical path to the level. The path is denoted with markers 'critical
      * path' to retrieve it later. */
-    public addCriticalPath(level: Level): void {
+    public static addCriticalPath(level: Level): void {
         const extras = level.getExtras();
         if (!extras.startPoint || !extras.endPoint) {
             return;
@@ -798,7 +808,7 @@ export class DungeonGenerator extends LevelGenerator {
         while (criticalPath.length < minPathLen) {
 
             // Break the existing path
-            const pathBroken = this._breakPath(level, criticalPath);
+            const pathBroken = DungeonGenerator._breakPath(level, criticalPath);
             if (!pathBroken) {
                 // Could not break, might be in a big room
                 break;
@@ -807,7 +817,7 @@ export class DungeonGenerator extends LevelGenerator {
             // Break OK, find the next path which is shortest
             criticalPath = shortestPath(cx2, cy2, cx1, cy1, pathBrokenFunc);
             if (criticalPath.length === 0) {
-                this.restorePath(level, prevPath);
+                DungeonGenerator.restorePath(level, prevPath);
                 criticalPath = prevPath;
                 break;
             }
@@ -818,7 +828,7 @@ export class DungeonGenerator extends LevelGenerator {
 
         // For each path broken marker, we need to add walls to physicall break
         // that path
-        this._addWallsToBrokenPath(level);
+        DungeonGenerator._addWallsToBrokenPath(level);
 
         criticalPath.forEach((xy: ICoordXY) => {
             const critPathElem = new ElementMarker('*');
@@ -831,7 +841,7 @@ export class DungeonGenerator extends LevelGenerator {
 
     /* This breaks the path with a wall and by placing a 'path broken' marker to
      * locate the element later. */
-    public _breakPath(level, path) {
+    public static _breakPath(level: Level, path): boolean {
         for (let i = 0; i < path.length; i++) {
             const {x, y} = path[i];
             const cell = level.getMap().getCell(x, y);
@@ -845,7 +855,7 @@ export class DungeonGenerator extends LevelGenerator {
         return false;
     }
 
-    public _addWallsToBrokenPath(level: Level): void {
+    public static _addWallsToBrokenPath(level: Level): void {
         const markers = level.getElements().filter(
             e => e.getType() === 'marker' &&
                 (e as ElementMarker).getTag() === 'path broken'
@@ -858,7 +868,7 @@ export class DungeonGenerator extends LevelGenerator {
 
     /* Restores previous broken path in case no sufficiently long new path is found.
      * */
-    public restorePath(level: Level, path: ICoordXY[]): void {
+    public static restorePath(level: Level, path: ICoordXY[]): void {
         for (let i = 0; i < path.length; i++) {
             const {x, y} = path[i];
             const cell = level.getMap().getCell(x, y);

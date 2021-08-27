@@ -133,6 +133,7 @@ export default class GameCraftingMenu extends React.Component {
               filter={this.state.filter}
               inv={container}
               maxWeight={-1}
+              textToShow={'List of items to craft:'}
               setSelectedItem={this.setSelectedItem}
             />
           </div>

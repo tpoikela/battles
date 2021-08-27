@@ -465,7 +465,9 @@ export class SentientActor extends BaseActor {
     }
 
     public getSpeed(): number {
-        return this.getStatVal('Speed');
+        const speed = this.getStatVal('Speed');
+        if (speed === 0) return 1; // If speed is 0, actor is not scheduled
+        return speed;
     }
 
     public getStatVal(stat: string): number {

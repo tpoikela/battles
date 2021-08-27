@@ -375,7 +375,7 @@ describe('FactoryWorld', function() {
         const faceLevel = mountain.findLevel('North face', 0);
         const summit2Level0 = mountain.findLevel('Summit2', 0);
 
-        expect(summitLevel.getConnections()).to.have.length(2);
+        expect(summitLevel.getConnections()).to.have.length(2 + 1);
         expect(faceLevel.getConnections()).to.have.length(1);
         expect(summit2Level0.getConnections()).to.have.length(2);
 

@@ -92,18 +92,4 @@ describe('FactoryZone', () => {
         expect(elems.length).to.be.above(5);
     });
 
-    it('can create dungeon levels with special features', () => {
-        const fact = new FactoryZone();
-        const conf = {
-            dungeonType: 'digger',
-            x: 100, y: 100, nLevel: 5, sqrPerActor: 10000,
-            sqrPerItem: 40, maxValue: 500, maxDanger: 5
-        };
-        const level = fact.createDungeonLevel(conf);
-        expect(level).to.exist;
-
-        const actors = level.getActors();
-        expect(actors.length).to.be.above(3);
-    });
-
 });

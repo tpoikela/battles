@@ -18,6 +18,7 @@ import * as Component from './component';
 import {TCoord, IWorldElemMap, LoadStat, WorldConf,
     Entrance, AreaConf} from './interfaces';
 import {Entity} from './entity';
+import {MountainGenerator} from './generator';
 
 const POOL: EventPool = EventPool.getPool();
 
@@ -209,9 +210,17 @@ function findSubZone(name: string, subZones: SubZoneBase[]): SubZoneBase {
 /* Returns a random free cell with any existing connections to avoid
  * piling up two connections. */
 function getFreeCellWithoutConnection(level: Level): Cell {
+    /*
     let stairCell = level.getFreeRandCell();
     while (stairCell.hasConnection()) {
         stairCell = level.getFreeRandCell();
+    }
+    */
+    let emptyCells: Cell[] = level.getMap().getFree();
+    emptyCells = RNG.shuffle(emptyCells);
+    let stairCell = emptyCells.shift();
+    while (stairCell && stairCell.hasConnection()) {
+        stairCell = emptyCells.shift();
     }
     return stairCell;
 }
@@ -284,11 +293,11 @@ function connectLevelsConstrained(conf1, conf2): void {
     // level
     const map1 = level1.getMap();
     let cell1 = map1.getCell(x1, y1);
-    while (cell1.hasConnection()) {
+    while (cell1.hasConnection() || !cell1.isFree()) {
         x1 += 1;
         if (x1 === map1.cols) {
             x1 = 0;
-            if (y1 > 0) {--y1;}
+            ++y1;
         }
         cell1 = map1.getCell(x1, y1);
     }
@@ -569,7 +578,7 @@ export class ZoneBase extends WorldBase {
         this._subZones = [];
     }
 
-    public getSubZoneArgs(s1Arg, s2Arg): SubZonePair {
+    public getSubZoneArgs(s1Arg: SubZoneBase, s2Arg: SubZoneBase): SubZonePair {
         return getSubZoneArgs(this._subZones, s1Arg, s2Arg);
     }
 
@@ -1602,7 +1611,7 @@ export class Mountain extends ZoneBase {
         return this._subZones.filter(sz => sz.getType() === 'summit');
     }
 
-    public connectFaceAndSummit(face, summit, l1, l2): void {
+    public connectFaceAndSummit(face: SubZoneBase, summit: SubZoneBase, l1, l2): void {
         const [sz1, sz2] = this.getSubZoneArgs(face, summit);
         if (sz2.getType() !== 'summit') {
             const type = sz2.getType();
@@ -1614,6 +1623,7 @@ export class Mountain extends ZoneBase {
         const connFace = {y: () => 0, level: level1};
         const connSummit = {level: level2};
         connectLevelsConstrained(connFace, connSummit);
+        MountainGenerator.connectFaceAndSummit(level1, level2);
     }
 
     public connectSubZones(s1Arg, s2Arg, l1, l2): void {

@@ -138,11 +138,23 @@ export function addRegenEffects(ent: Entity): void {
         if (regenEff < 0) {
             const regenEffect = new Component.RegenEffect();
             regenEffect.initEffect(regenComp);
-            console.log('Added regenEffect for ent');
             ent.add(regenEffect);
         }
-        else {
-            console.log('Did not add regenEffect, regenEff: ', regenEff);
+    });
+}
+
+export function removeStatsModsOnLeave(ent: Entity, prevType: string): void {
+    const statsList = ent.getList('StatsMods');
+    const combatList = ent.getList('CombatMods');
+    // TODO add a list of comps to check to this._bonuses
+    statsList.forEach(modComp => {
+        if (modComp.getTag() === prevType) {
+            ent.remove(modComp);
+        }
+    });
+    combatList.forEach(modComp => {
+        if (modComp.getTag() === prevType) {
+            ent.remove(modComp);
         }
     });
 }

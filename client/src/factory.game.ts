@@ -239,7 +239,8 @@ export class FactoryGame {
             const regen = new Component.Regeneration();
             regen.setMaxWaitPP(RG.PLAYER_PP_REGEN_PERIOD);
             regen.setMaxWaitHP(RG.PLAYER_HP_REGEN_PERIOD);
-            regen.setHP(10);
+            regen.setHP(1);
+            regen.setPP(1);
             player.add(regen);
         }
     }

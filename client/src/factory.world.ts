@@ -564,9 +564,15 @@ export class FactoryWorld {
                     if ((/(crypt)/i).test(dungeonType)) {
                         const cryptGen = new CryptGenerator();
                         cryptGen.factZone = this.factZone;
+                        (levelConf as any).shouldRemoveMarkers = true;
                         level = cryptGen.create(cols, rows, levelConf);
                         //rm this.factZone.addItemsAndActors(level, levelConf);
                         //rm this.factZone.addExtraDungeonFeatures(level, levelConf);
+                        const markers = level.getElements().filter(e => e.getType() === 'marker');
+                        if (markers.length > 0) {
+                            RG.err('FactoryWorld', 'createBranch',
+                                `${markers.length} left inside level: ${JSON.stringify(markers)}`);
+                        }
                     }
                     else if ((/cave/).test(dungeonType)) {
                         const caveGen = new CaveGenerator();
@@ -583,7 +589,13 @@ export class FactoryWorld {
                         const dungOpts: PartialDungeonOpts = levelConf;
                         dungOpts.wallType = 'walldungeon';
                         dungOpts.floorType = 'floordungeon';
+                        dungOpts.shouldRemoveMarkers = true;
                         level = dungGen.create(cols, rows, dungOpts);
+                        const markers = level.getElements().filter(e => e.getType() === 'marker');
+                        if (markers.length > 0) {
+                            RG.err('FactoryWorld', 'createBranch',
+                                `${markers.length} left inside level: ${JSON.stringify(markers)}`);
+                        }
                     }
                     // For creating 'fixed' items and actors
                     this.addFixedFeatures(i, level, branch);
@@ -1175,10 +1187,12 @@ export class FactoryWorld {
         return name;
     }
 
-    /* Returns x,y coord for stairs placed on the tile level. */
+    /* Returns x,y coord which can be used for stairs placed on the tile level. */
     public getTileStairsXY(level: Level, conf): IF.TCoord {
         let [tsX, tsY] = [conf.levelX, conf.levelY];
         const isNull = RG.isNullOrUndef([tsX, tsY]);
+
+        // If conf does not contain fixed position, get rand free cell
         if (isNull) {
             const freeAreaCell = level.getEmptyRandCell();
             if (freeAreaCell) {
@@ -1189,6 +1203,8 @@ export class FactoryWorld {
 
         let cell = level.getMap().getCell(tsX, tsY);
         let watchdog = RG.WATCHDOG;
+        // This loop executed only, if by accident we get another cell with
+        // connection. 2 or more connections in cell is trouble
         while (cell.hasConnection()) {
             const freeAreaCell = level.getEmptyRandCell();
             if (freeAreaCell) {
@@ -1401,14 +1417,20 @@ export class FactoryWorld {
      * @return {void}
      * */
     public createAreaZoneConnection(
-        area, zone, conf: IF.ZoneConf
+        area: World.Area, zone, conf: IF.ZoneConf
     ): void {
         this._verif.verifyConf('createAreaZoneConnection', conf, ['x', 'y']);
         this.debug('Creating area-zone connections');
 
         const {x, y} = conf;
-        const tile = area.getTileXY(x, y);
-        const tileLevel = tile.getLevel();
+        const tile = area.getTileXY(x!, y!); // Already checked by verifyConf
+        if (!tile || !(tile as World.AreaTile).getLevel) {
+            RG.err('FactoryWorld', 'createAreaZoneConnection',
+                'Tile does not exist, or getLevel not usable');
+            return;
+        }
+        const areaTile: World.AreaTile = tile as World.AreaTile;
+        const tileLevel = areaTile.getLevel();
         debugPrintConfAndTile(conf, tileLevel, ' CALL 1');
 
         if (typeof zone.getEntrances !== 'function') {

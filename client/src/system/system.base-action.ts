@@ -10,6 +10,7 @@ import {SystemQuest} from './system.quest';
 import * as Component from '../component';
 import {Brain} from '../brain';
 import {Element} from '../element';
+import {removeStatsModsOnLeave} from './system.utils';
 
 const handledComps = [
     'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
@@ -194,6 +195,8 @@ export class SystemBaseAction extends SystemBase {
                 cell
             };
             this._createEventComp(ent, evtArgs);
+            // If prev cell had any penalties, we need to remove those
+            removeStatsModsOnLeave(ent, cell.getBaseElem().getType());
         }
     }
 

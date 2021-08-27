@@ -14,19 +14,25 @@ const _msg = {
         Attack: 'cannot attack while trapped',
         AttackRanged: 'cannot attack while trapped',
         Movement: 'cannot move while trapped',
-        SpellCast: 'cannot cast spells while trapped'
+        SpellCast: 'cannot cast spells while trapped',
+        UseStairs: 'cannot move while trapped',
+        default:  'cannot move while trapped',
     },
     Paralysis: {
         Attack: 'cannot attack under paralysis',
         AttackRanged: 'cannot attack while trapped',
         Movement: 'cannot move under paralysis',
-        SpellCast: 'cannot cast spells under paralysis'
+        SpellCast: 'cannot cast spells under paralysis',
+        UseStairs: 'cannot move under paralysis',
+        default:  'cannot move under paralysis',
     },
     Stun: {
         Attack: 'is too stunned to attack',
         AttackRanged: 'cannot attack while trapped',
         Movement: 'is stunned, and stumbles',
-        SpellCast: 'is too stunned to cast spells'
+        SpellCast: 'is too stunned to cast spells',
+        UseStairs: 'is too stunned to move',
+        default: 'is too stunned to move',
     }
 };
 

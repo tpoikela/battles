@@ -26,17 +26,19 @@ export class SystemShop extends SystemBase {
     }
 
     public updateEntity(ent): void {
-        const trans = ent.get('Transaction');
-        const args: TransArgs = trans.getArgs();
-        const {buyer} = args;
-        this._checkTransArgsOK(ent, args);
-        if (buyer.getID() === ent.getID()) {
-            this.buyItem(args);
-        }
-        else {
-            this.sellItem(args);
-        }
-        ent.remove(trans);
+        const transactions = ent.getList('Transaction');
+        transactions.forEach(trans => {
+            const args: TransArgs = trans.getArgs();
+            const {buyer} = args;
+            this._checkTransArgsOK(ent, args);
+            if (buyer.getID() === ent.getID()) {
+                this.buyItem(args);
+            }
+            else {
+                this.sellItem(args);
+            }
+            ent.remove(trans);
+        });
     }
 
     public _checkTransArgsOK(ent, args: TransArgs): void {
@@ -75,7 +77,11 @@ export class SystemShop extends SystemBase {
 
             if (!buyer.getInvEq().canCarryItem(item)) {
                 buyer.getInvEq().addItem(coins); // Add coins back
-                RG.gameMsg(buyer.getName() + ' cannot carry more weight');
+                const msg = buyer.getName() + ' cannot carry more weight';
+                RG.gameMsg({cell: buyer.getCell()!, msg});
+                if (args.callback) {
+                    args.callback({msg, result: false});
+                }
                 return;
             }
 
@@ -84,8 +90,12 @@ export class SystemShop extends SystemBase {
             if (level.removeItem(item, shop.getX(), shop.getY())) {
                 buyer.getInvEq().addItem(item);
                 item.remove('Unpaid');
-                RG.gameMsg({cell: buyerCell, msg: buyer.getName() +
-                    ' bought ' + item.getName() + ' for ' + nCoins + ' coins.'});
+                const msg = buyer.getName() +
+                    ' bought ' + item.getName() + ' for ' + nCoins + ' coins.';
+                RG.gameMsg({cell: buyerCell, msg});
+                if (args.callback) {
+                    args.callback({msg, result: true});
+                }
                 addSkillsExp(seller, 'Trading', 1);
             }
             else {
@@ -94,9 +104,12 @@ export class SystemShop extends SystemBase {
             }
         }
         else {
-            RG.gameMsg({cell: buyerCell, msg: buyer.getName() +
-                ' doesn\'t have enough money to buy ' + item.getName() + ' for '
-                + nCoins + ' coins.'});
+            const msg = buyer.getName() + ' doesn\'t have enough money to buy '
+                + item.getName() + ' for ' + nCoins + ' coins.'
+            RG.gameMsg({cell: buyerCell, msg});
+            if (args.callback) {
+                args.callback({msg, result: false});
+            }
         }
     }
 
@@ -150,11 +163,9 @@ export class SystemShop extends SystemBase {
         }
         else {
             const name = buyer.getName();
-            RG.gameMsg({cell: buyer.getCell(),
-                msg: 'Buyer ' + name +
-                ' doesn\'t have enough gold to buy it.'});
+            const msg = name + ' doesn\'t have enough gold to buy it';
+            RG.gameMsg({cell: buyer.getCell(), msg});
             if (args.callback) {
-                const msg = `Cannot sell ${item.getName()}.`;
                 args.callback({msg, result: false});
             }
         }
