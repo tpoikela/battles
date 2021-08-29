@@ -23,10 +23,13 @@ export class LevelGen {
         dungeonType = dungeonType.toLowerCase();
         const obj: IF.DungeonConf = {
             name: dungeonName,
+            maxDanger: RG.MAX_DANGER,
+            maxRarity: 1,
             dungeonX, dungeonY, dungeonType,
             nBranches: 1, // TODO multi-branch dungeons
             branch: [
-                {name: dungeonName, nLevels, entranceLevel: 0}
+                {name: dungeonName, nLevels, entranceLevel: 0,
+                    maxDanger: RG.MAX_DANGER}
             ]
         };
 
@@ -43,13 +46,17 @@ export class LevelGen {
         const conf = {
             name: mountainName,
             nFaces: nLevels,
-            face: [
-                {name: mountainName, nLevels, entranceLevel: 0, x, y}
-            ],
+            maxDanger: RG.MAX_DANGER,
+            maxRarity: 1,
+            face: [{
+                    name: mountainName, nLevels, entranceLevel: 0, x, y,
+                    maxDanger: RG.MAX_DANGER,
+            }],
             nSummits: 1,
-            summit: [
-                {name: 'Summit', nLevels: 1, cols: 80, rows: 50}
-            ],
+            summit: [{
+                name: 'Summit', nLevels: 1, cols: 80, rows: 50,
+                maxDanger: RG.MAX_DANGER,
+            }],
             connectLevels: [
                 [mountainName, 'Summit', 0, 0] as IF.LevelConnection
             ]
@@ -77,7 +84,9 @@ export class LevelGen {
         const obj: IF.CityConf = {
             name: cityName,
             nQuarters,
-            quarter: quarters
+            quarter: quarters,
+            maxDanger: RG.MAX_DANGER,
+            maxRarity: 1,
         };
 
         if (connect) {obj.connectLevels = connect;}
@@ -209,7 +218,8 @@ const getQuarterConf = (nQuarters: number, conf): IF.QuarterConf[] => {
         const qConf: IF.QuarterConf = {
             name: qName,
             nLevels: 1,
-            constraint: {}
+            constraint: {},
+            maxDanger: RG.MAX_DANGER,
         };
         if (i === 0) {
             qConf.entranceLevel = 0;
