@@ -25,6 +25,10 @@ export class Dice {
         }
     }
 
+    public static isDieSpec(str: string): boolean {
+        return Dice.DIE_RE.test(str);
+    }
+
     public static getDice(iArg: Dice | string): Dice {
         if (typeof iArg === 'object') {
             return iArg;
