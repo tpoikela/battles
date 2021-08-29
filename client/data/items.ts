@@ -97,6 +97,7 @@ interface ObjectShell {
     color?: ColorSpec;
     fireRate?: number;
     char?: string;
+    rarity?: number;
     className?: string;
     defense?: number;
     dontCreate?: boolean;
@@ -272,7 +273,7 @@ const Items: ObjectShell[] = [
         name: 'MithrilWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-mithril',
         material: 'mithril', dontCreate: true,
-        attack: 1
+        attack: 1, rarity: 2,
     },
     {
         name: 'Mithril dagger', base: 'MithrilWeaponBase',
@@ -333,7 +334,7 @@ const Items: ObjectShell[] = [
         name: 'IceWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-ice',
         material: 'permaice', dontCreate: true,
-        attack: 1
+        attack: 1, rarity: 5,
     },
     {
         name: 'Permaice dagger', base: 'IceWeaponBase',
@@ -391,7 +392,8 @@ const Items: ObjectShell[] = [
     {
         name: 'RubyWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-ruby-glass',
-        material: 'ruby glass', dontCreate: true
+        material: 'ruby glass', dontCreate: true,
+        rarity: 4,
     },
     {
         name: 'Ruby glass dagger', base: 'RubyWeaponBase',
@@ -452,7 +454,8 @@ const Items: ObjectShell[] = [
     {
         name: 'RunedWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-magic',
-        material: 'forium', dontCreate: true
+        material: 'forium', dontCreate: true,
+        rarity: 6,
     },
     {
         name: 'Runed dagger', base: 'RunedWeaponBase',
@@ -528,6 +531,7 @@ const Items: ObjectShell[] = [
         className: 'cell-item-void',
         material: 'netherium', dontCreate: true,
         onAttackHit: [meleeHitDamage(2, '1d8 + 1', 'VOID')],
+        rarity: 8,
     },
     {
         name: 'Void dagger', base: 'VoidWeaponBase',
@@ -597,24 +601,28 @@ const Items: ObjectShell[] = [
     {
         name: 'Robe of defense', base: 'ArmourBase',
         className: 'cell-item-cloth',
-        weight: 0.9, defense: 4, armourType: 'chest', value: value(200)
+        weight: 0.9, defense: 4, armourType: 'chest', value: value(200),
+        rarity: 3,
     },
     {
         name: 'Robe of protection', base: 'ArmourBase',
         className: 'cell-item-cloth',
-        weight: 0.8, protection: 4, armourType: 'chest', value: value(200)
+        weight: 0.8, protection: 4, armourType: 'chest', value: value(200),
+        rarity: 3,
     },
     {
         name: 'Runed robe', base: 'ArmourBase',
         className: 'cell-item-cloth',
         weight: 0.7, defense: 4, protection: 4, armourType: 'chest',
-        value: value(350)
+        value: value(350),
+        rarity: 3,
     },
     {
         name: 'Boots of flying', base: 'ArmourBase',
         weight: 0.4, defense: 1, protection: 1, armourType: 'feet',
-        value: value(35),
-        onEquip: [{addComp: 'Flying'}]
+        value: value(350),
+        onEquip: [{addComp: 'Flying'}],
+        rarity: 3,
     },
     {
         name: 'Snow shoes', base: 'ArmourBase',
@@ -626,7 +634,8 @@ const Items: ObjectShell[] = [
     // ARMOUR LEATHER
     {
         name: 'LeatherArmourBase', base: 'ArmourBase', dontCreate: true,
-        material: 'leather', className: 'cell-item-leather'
+        material: 'leather', className: 'cell-item-leather',
+        rarity: 1,
     },
     {
         name: 'Leather helmet', base: 'LeatherArmourBase',
@@ -659,7 +668,8 @@ const Items: ObjectShell[] = [
     // ARMOUR IRON
     {
         name: 'ChainArmourBase', base: 'ArmourBase', dontCreate: true,
-        material: 'iron', className: 'cell-item-iron'
+        material: 'iron', className: 'cell-item-iron',
+        rarity: 2,
     },
     {
         name: 'Chain helmet', base: 'ChainArmourBase',
@@ -694,7 +704,8 @@ const Items: ObjectShell[] = [
     // ARMOUR STEEL
     {
         name: 'SteelArmourBase', base: 'ArmourBase', dontCreate: true,
-        material: 'steel', className: 'cell-item-steel'
+        material: 'steel', className: 'cell-item-steel',
+        rarity: 2,
     },
     {
         name: 'Steel helmet', base: 'SteelArmourBase',
@@ -730,7 +741,8 @@ const Items: ObjectShell[] = [
     // ARMOUR MITHRIL
     {
         name: 'MithrilArmourBase', base: 'ArmourBase', dontCreate: true,
-        material: 'mithril', className: 'cell-item-mithril'
+        material: 'mithril', className: 'cell-item-mithril',
+        rarity: 3,
     },
     {
         name: 'Mithril helmet', base: 'MithrilArmourBase',
@@ -766,7 +778,8 @@ const Items: ObjectShell[] = [
     // ARMOUR ICE (protective but heavy)
     {
         name: 'IceArmourBase', base: 'ArmourBase', dontCreate: true,
-        material: 'permaice', className: 'cell-item-ice'
+        material: 'permaice', className: 'cell-item-ice',
+        rarity: 5,
     },
     {
         name: 'Permaice helmet', base: 'IceArmourBase',
@@ -802,7 +815,8 @@ const Items: ObjectShell[] = [
     // ARMOUR RUBY GLASS (light, flexible)
     {
         name: 'RubyArmourBase', base: 'ArmourBase', dontCreate: true,
-        material: 'ruby glass', className: 'cell-item-ruby-glass'
+        material: 'ruby glass', className: 'cell-item-ruby-glass',
+        rarity: 5,
     },
     {
         name: 'Ruby glass helmet', base: 'RubyArmourBase',
@@ -838,7 +852,8 @@ const Items: ObjectShell[] = [
     // ARMOUR MAGIC (excellent D/P, very well rounded)
     {
         name: 'RunedArmourBase', base: 'ArmourBase', dontCreate: true,
-        material: 'forium', className: 'cell-item-magic'
+        material: 'forium', className: 'cell-item-magic',
+        rarity: 7,
     },
     {
         name: 'Runed helmet', base: 'RunedArmourBase',
@@ -872,7 +887,7 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'Runed shield', base: 'RunedArmourBase',
-        weight: 2.0, defense: 5, attack: -2,
+        weight: 2.0, defense: 7, attack: -2,
         armourType: 'shield', value: value('magic', 200)
     },
 
@@ -922,19 +937,22 @@ const Items: ObjectShell[] = [
         name: 'Ruby glass throwing knife', base: 'MissileBase',
         className: 'cell-item-ruby-glass',
         attack: 3, damage: '1d10', range: 5, value: value(80), weight: 0.1,
-        weaponType: 'dagger', material: 'ruby glass'
+        weaponType: 'dagger', material: 'ruby glass',
+        rarity: 4,
     },
     {
         name: 'Runed Shuriken', base: 'MissileBase',
         attack: 3, className: 'cell-item-magic', char: '*', material: 'forium',
         damage: '3d4 + 2', range: 5, value: value(100), weight: 0.1,
-        weaponType: 'shuriken'
+        weaponType: 'shuriken',
+        rarity: 5,
     },
     {
         name: 'Throwing axe of death', base: 'MissileBase',
         className: 'cell-item-magic',
         attack: 5, damage: '2d10 + 3', range: 3, value: value(200), weight: 0.5,
-        addComp: 'Indestructible', weaponType: 'axe'
+        addComp: 'Indestructible', weaponType: 'axe',
+        rarity: 6,
     },
 
     // MISSILE WEAPONS
@@ -978,31 +996,36 @@ const Items: ObjectShell[] = [
         name: 'Ruby glass bow', base: 'MissileWeaponBase',
         className: 'cell-item-ruby-glass',
         attack: 6, range: 6, value: value('ruby', 300),
-        weaponType: 'bow', weight: 0.3
+        weaponType: 'bow', weight: 0.3,
+        rarity: 4,
     },
     {
         name: 'Double crossbow', base: 'MissileWeaponBase',
         className: 'cell-item-steel',
         attack: 0, range: 5, value: value(400), fireRate: 2,
-        weaponType: 'crossbow', weight: 4.0
+        weaponType: 'crossbow', weight: 4.0,
+        rarity: 4,
     },
     {
         name: 'Bow of Defense', base: 'MissileWeaponBase',
         className: 'cell-item-magic',
         attack: 1, range: 4, defense: 6, value: value('magic', 500),
-        weaponType: 'bow', weight: 1.0
+        weaponType: 'bow', weight: 1.0,
+        rarity: 4,
     },
     {
         name: 'Rifle', base: 'MissileWeaponBase',
         className: 'cell-item-steel',
         attack: 4, range: 7, value: value(350),
-        weaponType: 'rifle', weight: 4.5
+        weaponType: 'rifle', weight: 4.5,
+        rarity: 4,
     },
     {
         name: 'Dwarven rifle', base: 'MissileWeaponBase',
         className: 'cell-item-steel',
         attack: 4, range: 8, damage: '1d6', value: value(500),
-        weaponType: 'rifle', weight: 5.5
+        weaponType: 'rifle', weight: 5.5,
+        rarity: 5,
     },
 
     // AMMO
@@ -1010,62 +1033,67 @@ const Items: ObjectShell[] = [
         name: 'Wooden arrow', base: 'MissileBase',
         className: 'cell-item-wooden',
         type: 'ammo', range: 1, weight: 0.1, ammoType: 'bow',
-        attack: 0, damage: '1d6', value: value(10)
+        attack: 0, damage: '1d6', value: value(5)
     },
     {
         name: 'Wooden bolt', base: 'MissileBase',
         className: 'cell-item-wooden',
         type: 'ammo', range: 1, weight: 0.1, ammoType: 'crossbow',
-        attack: 1, damage: '1d8', value: value(15)
+        attack: 1, damage: '1d8', value: value(7)
     },
     {
         name: 'Steel arrow', base: 'MissileBase',
         className: 'cell-item-steel',
         type: 'ammo', range: 1, weight: 0.1, ammoType: 'bow',
-        attack: 0, damage: '1d6 + 2', value: value('steel', 20)
+        attack: 0, damage: '1d6 + 2', value: value('steel', 8)
     },
     {
         name: 'Steel bolt', base: 'MissileBase',
         className: 'cell-item-steel',
         type: 'ammo', range: 1, weight: 0.1, ammoType: 'crossbow',
-        attack: 1, damage: '1d8', value: value('steel', 25)
+        attack: 1, damage: '1d8 + 2', value: value('steel', 14)
     },
     {
         name: 'Stone bullet', base: 'MissileBase',
         className: 'cell-item-rock',
         type: 'ammo', range: 1, weight: 0.10, ammoType: 'rifle',
-        attack: -1, damage: '2d4', value: value(30)
+        attack: -1, damage: '2d4', value: value(10),
+        rarity: 2,
     },
     {
         name: 'Arrow of targeting', base: 'MissileBase',
         className: 'cell-item-steel',
         type: 'ammo', range: 1, weight: 0.1, ammoType: 'bow',
-        attack: 10, damage: '1d6 + 3', value: value('steel', 40)
+        attack: 10, damage: '1d6 + 3', value: value('steel', 20),
+        rarity: 3,
     },
     {
         name: 'Runed arrow', base: 'MissileBase',
         className: 'cell-item-magic',
         type: 'ammo', range: 1, weight: 0.2, ammoType: 'bow',
-        attack: 4, damage: '2d7', value: value('magic', 50)
+        attack: 4, damage: '2d7', value: value('magic', 25),
+        rarity: 5,
     },
     {
         name: 'Ruby glass bolt', base: 'MissileBase',
         className: 'cell-item-ruby-glass',
         type: 'ammo', range: 2, weight: 0.05, ammoType: 'crossbow',
-        attack: 3, damage: '2d8', value: value('ruby', 60)
+        attack: 3, damage: '2d8', value: value('ruby', 30),
+        rarity: 4,
     },
     {
         name: 'Steel bullet', base: 'MissileBase',
         className: 'cell-item-steel',
         type: 'ammo', range: 1, weight: 0.05, ammoType: 'rifle',
-        attack: 1, damage: '3d4', value: value(50)
+        attack: 1, damage: '3d4', value: value(20),
+        rarity: 4,
     },
     {
         name: 'Void bolt', base: 'MissileBase',
         className: 'cell-item-void',
         type: 'ammo', range: 1, weight: 0.1, ammoType: 'crossbow',
-        attack: 5, damage: '4d4 + 4', value: value(100),
-
+        attack: 5, damage: '4d4 + 4', value: value(60),
+        rarity: 7,
     },
 
     // POTIONS
@@ -1075,7 +1103,7 @@ const Items: ObjectShell[] = [
         // className: 'cell-item-potion',
         type: 'potion', dontCreate: true, weight: 0.1,
         addComp: 'OneShot', // Item is destroyed after use,
-        color: color('random', 'black')
+        color: color('random', 'black'), rarity: 1,
     },
     {
         name: 'Healing potion', base: 'PotionBase',
@@ -1175,7 +1203,8 @@ const Items: ObjectShell[] = [
     {
         name: 'FoodBase', className: 'cell-item-food', char: '%',
         weight: 0.1, type: 'food', dontCreate: true,
-        addComp: 'OneShot' // Item is destroyed after use
+        addComp: 'OneShot', // Item is destroyed after use
+        rarity: 1,
     },
     {
         name: 'Wheat', base: 'FoodBase', energy: 100, value: value(10),
@@ -1307,11 +1336,12 @@ const Items: ObjectShell[] = [
         name: 'Whale fat', base: 'FoodBase', energy: 8000, value: value(100)
     },
 
+    //------------
     // TOOLS
-    // Note: Each tool should have useItem method.
+    //------------
     {
         name: 'tool', type: 'tool', uses: 10, className: 'cell-item-tool',
-        char: ']', dontCreate: true
+        char: ']', dontCreate: true, rarity: 1,
     },
     {
         name: 'shovel', base: 'tool',
@@ -1475,27 +1505,32 @@ const Items: ObjectShell[] = [
     {
         name: 'mithril ingot', base: 'tool', value: 35,
         className: 'cell-item-mithril', char: ']', weight: 0.45,
-        recipe: [{count: 3, name: 'mithril ore'}]
+        recipe: [{count: 3, name: 'mithril ore'}],
+        rarity: 2,
     },
     {
         name: 'permaice ingot', base: 'tool', value: 70,
         className: 'cell-item-ice', char: ']', weight: 1.00,
-        recipe: [{count: 3, name: 'permaice ore'}]
+        recipe: [{count: 3, name: 'permaice ore'}],
+        rarity: 4,
     },
     {
         name: 'ruby class ingot', base: 'tool', value: 70,
         className: 'cell-item-ruby-glass', char: ']', weight: 0.20,
-        recipe: [{count: 3, name: 'ruby glass ore'}]
+        recipe: [{count: 3, name: 'ruby glass ore'}],
+        rarity: 4,
     },
     {
         name: 'forium ingot', base: 'tool', value: 75,
         className: 'cell-item-magic', char: ']', weight: 0.40,
-        recipe: [{count: 3, name: 'forium ore'}]
+        recipe: [{count: 3, name: 'forium ore'}],
+        rarity: 5,
     },
     {
         name: 'netherium ingot', base: 'tool', value: 100,
         className: 'cell-item-void', char: ']', weight: 0.70,
-        recipe: [{count: 3, name: 'netherium ore'}]
+        recipe: [{count: 3, name: 'netherium ore'}],
+        rarity: 6,
     },
 
     // SPIRIT GEMS
@@ -1503,7 +1538,7 @@ const Items: ObjectShell[] = [
         name: 'SpiritGemBase', char: ',',
         weight: 0.1, type: 'spiritgem', dontCreate: true,
         color: color('random', 'MediumPurple'),
-        //className: 'cell-item-spiritgem',
+        rarity: 1,
     },
     {
         name: 'Lesser spirit gem', base: 'SpiritGemBase',
@@ -1515,19 +1550,23 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'Greater spirit gem', base: 'SpiritGemBase',
-        value: value('gem', 100), weight: 1.5
+        value: value('gem', 100), weight: 1.5,
+        rarity: 2,
     },
     {
         name: 'Glowing spirit gem', base: 'SpiritGemBase',
-        value: value('gem', 200), weight: 1.0
+        value: value('gem', 200), weight: 1.0,
+        rarity: 3,
     },
     {
         name: 'Mystical spirit gem', base: 'SpiritGemBase',
-        value: value('gem', 300), weight: 0.5
+        value: value('gem', 300), weight: 0.5,
+        rarity: 5,
     },
     {
         name: 'Mythic spirit gem', base: 'SpiritGemBase',
-        value: value('gem', 500), weight: 0.2
+        value: value('gem', 500), weight: 0.2,
+        rarity: 7,
     },
 
     // RUNESTONES
@@ -1535,7 +1574,7 @@ const Items: ObjectShell[] = [
         name: 'RuneBase', dontCreate: true,
         type: 'rune', char: charRune,
         color: color('random', 'black'),
-        weight: 1.0
+        weight: 1.0, rarity: 1,
     },
     {
         name: 'rune of healing', base: 'RuneBase',
@@ -1631,7 +1670,7 @@ const Items: ObjectShell[] = [
     {
         name: 'copper ore', base: 'MineralBase',
         weight: 0.2, value: value('mineral', 20),
-        className: 'cell-item-copper'
+        className: 'cell-item-copper', rarity: 1,
     },
     {
         name: 'iron ore', base: 'MineralBase',
@@ -1676,7 +1715,8 @@ const Items: ObjectShell[] = [
     {
         name: 'adamantium ore', base: 'MineralBase',
         weight: 0.3, value: value('mineral', 80),
-        className: 'cell-item-adamantium'
+        className: 'cell-item-adamantium',
+        rarity: 2,
     },
     {
         name: 'snowshard', base: 'MineralBase',
@@ -1686,7 +1726,8 @@ const Items: ObjectShell[] = [
     {
         name: 'ruby glass ore', base: 'MineralBase',
         weight: 0.1, value: value('mineral', 100),
-        className: 'cell-item-ruby-glass'
+        className: 'cell-item-ruby-glass',
+        rarity: 3,
     },
     {
         name: 'emerald', base: 'MineralBase',
@@ -1701,7 +1742,8 @@ const Items: ObjectShell[] = [
     {
         name: 'permaice ore', base: 'MineralBase',
         weight: 0.4, value: value('mineral', 100),
-        className: 'cell-item-ice'
+        className: 'cell-item-ice',
+        rarity: 4,
     },
     {
         name: 'sapphire', base: 'MineralBase',
@@ -1711,12 +1753,14 @@ const Items: ObjectShell[] = [
     {
         name: 'forium ore', base: 'MineralBase',
         weight: 0.2, value: value('mineral', 150),
-        className: 'cell-item-magic'
+        className: 'cell-item-magic',
+        rarity: 5,
     },
     {
         name: 'netherium ore', base: 'MineralBase',
         weight: 0.3, value: value('mineral', 200),
-        className: 'cell-item-void'
+        className: 'cell-item-void',
+        rarity: 5,
     },
     {
         name: 'ruby', base: 'MineralBase',
@@ -1732,21 +1776,25 @@ const Items: ObjectShell[] = [
         name: 'foriphire', base: 'MineralBase',
         weight: 0.34, value: value('mineral', 350),
         char: '*', className: 'cell-item-magic',
+        rarity: 5,
     },
     {
         name: 'nethermond', base: 'MineralBase',
         weight: 0.36, value: value('mineral', 400),
         char: '*', className: 'cell-item-void',
+        rarity: 5,
     },
     {
         name: 'ice diamond', base: 'MineralBase',
         weight: 0.3, value: value('mineral', 400),
-        char: '*', className: 'cell-item-ice'
+        char: '*', className: 'cell-item-ice',
+        rarity: 5,
     },
     {
         name: 'Blizzard Star', base: 'MineralBase',
         weight: 1.0, value: value('mineral', 600),
-        char: '*', color: color('cyan', 'darkblue')
+        char: '*', color: color('cyan', 'darkblue'),
+        rarity: 5,
     },
 
 
