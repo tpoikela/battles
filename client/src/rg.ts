@@ -147,6 +147,7 @@ class RGClass {
     public PLAYER_PP_REGEN_PERIOD: number;
     public MIN_VALUE: number;
     public MIN_DANGER: number;
+    public MAX_DANGER: number;
 
     public TRAINER_PROB: number;
     public EPIC_PROB: number;
@@ -499,6 +500,7 @@ class RGClass {
         this.PLAYER_PP_REGEN_PERIOD = 40;
         this.MIN_VALUE = 30; // Min value for generated items.
         this.MIN_DANGER = 4; // Min danger for generated actors
+        this.MAX_DANGER = 6; // Max danger for generated actors
 
         this.TRAINER_PROB = 0.2;
         this.EPIC_PROB = 0.05;
@@ -1553,6 +1555,17 @@ class RGClass {
             maxValue = this.MIN_VALUE;
         }
         return maxValue;
+    }
+
+    public getMaxRarity(xDiff: number, yDiff: number, isNorthOfPlayer: boolean): number {
+        let maxRarity = Math.floor(2*yDiff/3) + Math.floor(xDiff/2);
+        if (isNorthOfPlayer) {
+            maxRarity = yDiff + Math.floor(xDiff/2);
+        }
+        if (maxRarity < 1) {
+            maxRarity = 1;
+        }
+        return maxRarity;
     }
 
     /* Returns the weight distribution for foods. This is something like
