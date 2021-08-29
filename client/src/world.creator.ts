@@ -315,7 +315,9 @@ WorldConf.createSingleDungeonConf = (areaConf, conf): IF.DungeonConf => {
         x: xy.x,
         y: xy.y,
         nBranches: branches.length,
-        branch: branches
+        branch: branches,
+        maxDanger: 5,
+        maxRarity: 2,
     };
     if (connect) {obj.connectLevels = connect;}
     return obj;
@@ -362,7 +364,8 @@ WorldConf.createSingleQuarterConf = (): IF.QuarterConf => {
     const nLevels = WorldConf.getNumLevels('city');
     return {
         nLevels,
-        name: Names.getGenericPlaceName('quarter')
+        name: Names.getGenericPlaceName('quarter'),
+        maxDanger: 5,
     };
 };
 
@@ -373,6 +376,7 @@ WorldConf.createSingleQuarterConf = (): IF.QuarterConf => {
 WorldConf.createSingleFaceConf = (): IF.FaceConf => {
     const nLevels = WorldConf.getNumLevels('mountain');
     return {
+        maxDanger: 5,
         x: 100,
         y: 200,
         name: Names.getGenericPlaceName('face'),
@@ -504,7 +508,9 @@ export class WorldCreator {
             x: xy.x,
             y: xy.y,
             nQuarters: quarters.length,
-            quarter: quarters
+            quarter: quarters,
+            maxDanger: 5,
+            maxRarity: 2,
         };
         if (connect) {obj.connectLevels = connect;}
         return obj;
@@ -555,7 +561,9 @@ export class WorldCreator {
             x: xy.x,
             y: xy.y,
             nFaces: faces.length,
-            face: faces
+            face: faces,
+            maxDanger: 5,
+            maxRarity: 2,
         };
         if (connect) {obj.connectLevels = connect;}
         return obj;
