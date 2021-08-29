@@ -244,6 +244,11 @@ export class DungeonGenerator extends LevelGenerator {
             }
         }
 
+        if (!conf.maxRarity) {
+            RG.err('DungeonGenerator', 'create',
+                'No maxRarity given in the config');
+        }
+
         const populate = new DungeonPopulate({
             theme: '',
             maxDanger: conf.maxDanger, maxValue: conf.maxValue,

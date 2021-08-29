@@ -71,10 +71,15 @@ export class ItemRandomizer {
         }
     }
 
-    public _adjustMissile(missile: ItemBase): void {
-        const count = RNG.getUniformInt(5, 15);
-        const value = missile.getValue();
-        missile.setCount(count);
+    public _adjustMissile(missile: ItemBase, val: number): void {
+        const maxNum = Math.round(val / missile.getValue());
+        if (maxNum > 0) {
+            const count = RNG.getUniformInt(1, maxNum);
+            missile.setCount(count);
+        }
+        else {
+            missile.setCount(0); // Will discard the item
+        }
     }
 
     public _adjustTool(tool: ItemBase): void {
@@ -295,7 +300,9 @@ export class FactoryItem {
                 const item = parser.createRandomItem({func: conf.item});
                 if (item) {
                     this._doItemSpecificAdjustments(item, conf.maxValue);
-                    items.push(item);
+                    if (item.getCount() > 0) {
+                        items.push(item);
+                    }
                 }
             }
         }

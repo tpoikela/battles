@@ -37,6 +37,7 @@ interface PopulConf {
     theme?: string;
     maxDanger?: number;
     maxValue?: number;
+    maxRarity?: number;
     actorFunc?: TShellFunc;
     itemFunc?: TShellFunc;
     actorRoomDensity?: number;
@@ -54,6 +55,7 @@ export class DungeonPopulate {
     private theme: string;
     private maxDanger: number;
     private maxValue: number;
+    private maxRarity: number;
     private actorRoomDensity: number;
     private itemRoomDensity: number;
     private bigRoomActorDensity: number;
@@ -66,6 +68,7 @@ export class DungeonPopulate {
         this.theme = conf.theme ||  '';
         this.maxDanger = conf.maxDanger || 5;
         this.maxValue = conf.maxValue || 50;
+        this.maxRarity = conf.maxRarity || 1;
         this.actorRoomDensity = conf.actorRoomDensity || 30;
         this.itemRoomDensity = conf.itemRoomDensity || 60;
         this.bigRoomActorDensity = conf.bigRoomActorDensity || 18;
@@ -97,6 +100,7 @@ export class DungeonPopulate {
         const extras = level.getExtras();
         const maxDanger = this.maxDanger;
         const maxValue = this.maxValue;
+        const maxRarity = this.maxRarity;
 
         let mainLootAdded = false;
         const roomsDone: {[key: number]: boolean} = {}; // Keep track of finished rooms
@@ -161,6 +165,7 @@ export class DungeonPopulate {
                     const nItems = Math.ceil(areaSize / this.itemRoomDensity);
                     const itemConf: ItemConf = {maxValue, itemsPerLevel: nItems,
                         item: item => this.itemFunc(item) && item.value <= maxValue
+                        && item.rarity <= maxRarity
                     };
                     this.addItemsToBbox(level, bbox, itemConf);
 
@@ -196,6 +201,7 @@ export class DungeonPopulate {
                 const nItems = Math.ceil(areaSize / this.itemRoomDensity);
                 const itemConf: ItemConf = {maxValue, itemsPerLevel: nItems,
                     item: item => this.itemFunc(item) && item.value <= maxValue
+                    && item.rarity <= maxRarity
                 };
                 this.addItemsToBbox(level, bbox, itemConf);
 

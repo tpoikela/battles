@@ -1239,8 +1239,10 @@ function addMaxDangerAndValue(pX: number, pY: number, zoneConf: IF.ZoneConf): vo
     const {x, y} = zoneConf;
     const dX = Math.abs(pX - x!);
     const dY = Math.abs(pY - y!);
+    const isNorthOfPlayer = y! < pY;
     zoneConf.maxDanger = RG.getMaxDanger(dX, dY);
     zoneConf.maxValue = RG.getMaxValue(dX, dY);
+    zoneConf.maxRarity = RG.getMaxRarity(dX, dY, isNorthOfPlayer);
 
     if (getRNG().getUniform() <= RG.EPIC_PROB) {
         zoneConf.isEpic = true;
@@ -1299,9 +1301,11 @@ function addCapitalConfToArea(feat: OWSubFeature, coordObj, areaConf): IF.ZoneCo
     const cityConf: IF.CityConf = {
         name: 'Blashyrkh',
         nQuarters: 1,
-        quarter: [{name: 'Capital cave', nLevels: 1}],
+        quarter: [{name: 'Capital cave', nLevels: 1, maxDanger: 15}],
         owX: coordObj.x,
-        owY: coordObj.y
+        owY: coordObj.y,
+        maxDanger: 15,
+        maxRarity: 5,
     };
 
     cityConf.presetLevels = {
@@ -1333,9 +1337,11 @@ function addDwarvenCityConfToArea(
     const cityConf: IF.CityConf = {
         name: 'Dwarven City',
         nQuarters: 1,
-        quarter: [{name: 'Fort main level', nLevels: 1}],
+        quarter: [{name: 'Fort main level', nLevels: 1, maxDanger: 15}],
         owX: coordObj.x,
-        owY: coordObj.y
+        owY: coordObj.y,
+        maxDanger: 15,
+        maxRarity: 7,
     };
     cityConf.presetLevels = {
         'Dwarven City.Fort main level': [{nLevel: 0, level: dwarvenCity}]
@@ -1365,10 +1371,12 @@ function addAbandonedFortToArea(
         args: [500, 200, fortConf]};
     const cityConf: IF.CityConf = {
         name: 'Abandoned fort',
+        maxDanger: 15,
         nQuarters: 1,
-        quarter: [{name: 'Fort ground level', nLevels: 1}],
+        quarter: [{name: 'Fort ground level', nLevels: 1, maxDanger: 15}],
         owX: coordObj.x,
-        owY: coordObj.y
+        owY: coordObj.y,
+        maxRarity: 7,
     };
 
     cityConf.presetLevels = {

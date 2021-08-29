@@ -299,11 +299,10 @@ export interface ItemConf extends GoldConf {
 }
 
 export interface LevelConf {
-    // maxDanger: number;
     maxDanger?: number;
-    // maxValue: number;
-    maxValue?: number;
     minValue?: number;
+    maxValue?: number;
+    maxRarity?: number;
 
     // TODO remove one of these
     x?: number;
@@ -317,13 +316,12 @@ export interface LevelConf {
     actor?: TShellFunc;
     actorsPerLevel?: number;
 
-    roomCount?: number;
+    roomCount?: number; // In tile-based levels only
     dungeonType?: string;
     levelType?: string;
     wallType?: string;
 
     food?: boolean | TShellFunc;
-    // func?: (shell) => boolean;
     gold?: boolean | TShellFunc;
     item?: TShellFunc;
     itemsPerLevel?: number;
@@ -393,8 +391,11 @@ export interface ZoneConf {
     isEpic?: boolean; // Set to true for epic places
     levelX?: number; // Position inside AreaTile level
     levelY?: number; // Position inside AreaTile level
-    maxDanger?: number;
+
+    maxDanger: number;
     maxValue?: number;
+    maxRarity: number;
+
     name: string;
     owX?: number; // Position in OWMap
     owY?: number; // Position in OWMap
@@ -413,7 +414,7 @@ export interface SubZoneConf {
     entranceLevel?: number;
     entrance?: Entrance;
     constraint?: ConstraintMap;
-    maxDanger?: number;
+    maxDanger: number;
     maxValue?: number;
     createPresetLevels?: LevelSpecStub;
     create?: CreateMap;

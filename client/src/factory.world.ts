@@ -530,8 +530,11 @@ export class FactoryWorld {
         const presetLevels = this.getPresetLevels(hierName, conf);
 
         for (let i = 0; i < conf.nLevels; i++) {
+            // These are recursively fetched from config stack
             const maxDanger = this.getConf('maxDanger');
             const maxValue = this.getConf('maxValue');
+            const maxRarity = this.getConf('maxRarity');
+            const halfI = Math.floor(i / 2);
 
             const levelConf: LevelConf = {
                 x: this.getConf('dungeonX'),
@@ -540,6 +543,7 @@ export class FactoryWorld {
                 sqrPerItem: this.getConf('sqrPerItem'),
                 maxValue: maxValue ? (maxValue + i * 20) : 20 * (i + 1),
                 maxDanger: maxDanger ? (maxDanger + i) : (3 + i),
+                maxRarity: maxRarity ? (maxRarity + halfI) : (1 + halfI),
                 nLevel: i
             };
 
@@ -577,6 +581,11 @@ export class FactoryWorld {
                     else if ((/cave/).test(dungeonType)) {
                         const caveGen = new CaveGenerator();
                         level = caveGen.create(cols, rows, levelConf);
+                        if (levelConf.item) {
+                            levelConf.item = (shell) => shell.type !== 'food' &&
+                                levelConf.item!(shell) &&
+                                shell.rarity <= levelConf.maxRarity
+                        }
                         this.factZone.addItemsAndActors(level, levelConf);
                         this.factZone.addExtraDungeonFeatures(level, levelConf);
                     }
@@ -895,7 +904,7 @@ export class FactoryWorld {
         this.pushScope(conf);
         const face = new World.MountainFace(faceName);
         const mLevelConf: LevelConf = { x: conf.x, y: conf.y,
-            maxValue: 100, maxDanger: 4};
+            maxValue: conf.maxValue, maxDanger: conf.maxDanger, maxRarity: conf.maxRarity};
         this.setLevelConstraints(mLevelConf);
 
         for (let i = 0; i < conf.nLevels; i++) {
@@ -960,6 +969,9 @@ export class FactoryWorld {
             if (maxValue) {
                 conf.maxValue = maxValue;
             }
+        }
+        if (!Number.isInteger(conf.maxRarity)) {
+            conf.maxRarity = this.getConf('maxRarity');
         }
     }
 
@@ -1040,8 +1052,9 @@ export class FactoryWorld {
 
         const presetLevels = this.getPresetLevels(hierName, conf);
 
-        const cityLevelConf = {
+        const cityLevelConf: IF.LevelConf = {
             x: conf.x || 80, y: conf.y || 40,
+            maxDanger: conf.maxDanger,
             nShops: conf.nShops || 1,
             shopFunc: conf.shop ||
                 [item => (item.value <= (50 + 50 * conf.nLevels))]

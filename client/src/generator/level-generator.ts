@@ -21,6 +21,7 @@ export interface ILevelGenOpts {
     surroundY: number;
     maxValue: number;
     maxDanger: number;
+    maxRarity: number;
     shouldRemoveMarkers: boolean;
     preserveMarkers: boolean;
     wallType?: string;
@@ -48,6 +49,7 @@ export abstract class LevelGenerator {
             surroundY: 10,
             maxValue: 100,
             maxDanger: 5,
+            maxRarity: 1,
             shouldRemoveMarkers: true,
             preserveMarkers: false,
             nestProbability: 0.2,

@@ -65,7 +65,7 @@ export class SystemWeather extends SystemBase {
         const level: Level = RG.getLevel(ent);
         const tempOutdoor = eff.getTemperature();
         const humidityOutdoor = eff.getHumidity();
-        console.log('SystemWeather: Outdoor temperature is ', tempOutdoor);
+
         // 1st step, we apply temp only to outdoors, this will be expanded to
         // make houses warmer than dungeons etc. Best would be to have some temp
         // in each baseElement.
@@ -77,7 +77,7 @@ export class SystemWeather extends SystemBase {
                 const elem = actor.getCell()!.getBaseElem();
 
                 if (elem.has('Indoor')) {
-                    currTemp += 10;
+                    currTemp += 5;
                     currHumidity = humidityWarming;
                     if (elem.getName() === 'floorhouse') {
                         currTemp += 15;

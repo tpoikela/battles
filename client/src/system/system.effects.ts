@@ -179,6 +179,10 @@ export class SystemEffects extends SystemBase {
         if (Component.hasOwnProperty(compName)) {
             compToAdd = new Component[compName]();
         }
+        else {
+            RG.err('System.Effects', 'handleAddComp',
+                `Failed to create comp |${compName}|`);
+        }
 
         // If setters are given, alter the values of added component
         if (useArgs.setters) {
@@ -315,6 +319,7 @@ export class SystemEffects extends SystemBase {
                 const currValue = comp[useArgs.get]();
                 const value = useArgs.value;
                 const numValue = convertValueIfNeeded(value);
+                console.log('Got value:', numValue, 'from: ', value);
                 comp[useArgs.set](currValue + numValue);
                 return true;
             }
@@ -515,6 +520,11 @@ const convertValueIfNeeded = function(intStrOrDie) {
         return intStrOrDie;
     }
     else if (typeof intStrOrDie === 'string') {
+        if (Dice.isDieSpec(intStrOrDie)) {
+            const durDie = Dice.create(intStrOrDie);
+            const duration = durDie.roll();
+            return duration;
+        }
         const float = Number.parseFloat(intStrOrDie);
         if (!Number.isNaN(float)) {
             return float;
