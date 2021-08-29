@@ -8,7 +8,7 @@ import {
 } from './shell-utils';
 
 // Elevations
-const ELEV = [
+export const ELEV = [
     // '\u22C5',
     '\u2219',
     ':',
