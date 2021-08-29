@@ -20,6 +20,7 @@ import {Spell} from '../client/src/spell';
 import {FactoryActor} from '../client/src/factory.actors';
 import {SystemBase} from '../client/src/system/system.base';
 import {Dice} from '../client/src/dice';
+import * as IF from '../client/src/interfaces';
 import * as Item from '../client/src/item';
 import * as Component from '../client/src/component';
 import * as Element from '../client/src/element';
@@ -431,28 +432,30 @@ RGTest.createGame = function(args) {
 };
 
 RGTest.CityConf = {
+    maxDanger: 5,
+    maxRarity: 1,
     x: 0, y: 0, name: 'testCity', nQuarters: 1,
     constraint: {
         shop: [{op: 'gt', prop: 'value', value: 50}]
     },
     quarter: [{
         name: 'TestQuarter', nLevels: 1, entranceLevel: 0,
-        nShops: 1
+        nShops: 1, maxDanger: 5,
     }]
-};
+} as IF.CityConf;
 
 RGTest.DungeonConf = {
     x: 0, y: 0, name: 'testDungeon', nBranches: 1,
     dungeonType: 'dungeon', dungeonX: 100, dungeonY: 50,
     branch: [{name: 'B1', nLevels: 1, entranceLevel: 0}]
-};
+} as IF.DungeonConf;
 
 RGTest.AreaConf = {
     name: 'TestArea', maxX: 2, maxY: 2,
     nCities: 1, nDungeons: 1,
     city: [RGTest.CityConf],
     dungeon: [RGTest.DungeonConf]
-};
+} as IF.AreaConf;
 
 RGTest.WorldConf = {
     name: 'TestWorld',

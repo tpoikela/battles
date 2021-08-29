@@ -348,11 +348,11 @@ describe('FactoryWorld', function() {
             nSummits: 2,
             maxDanger: 10,
             face: [
-                {x: 50, y: 100, nLevels: 1, name: 'North face'}
+                {x: 50, y: 100, nLevels: 1, name: 'North face', maxDanger: 10}
             ],
             summit: [
-                {cols: 80, rows: 50, name: 'Summit', nLevels: 1},
-                {cols: 100, rows: 100, name: 'Summit2', nLevels: 2}
+                {cols: 80, rows: 50, name: 'Summit', nLevels: 1, maxDanger: 10},
+                {cols: 100, rows: 100, name: 'Summit2', nLevels: 2, maxDanger: 10}
             ],
             connectLevels: [
                 ['North face', 'Summit', 0, 0],

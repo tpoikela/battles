@@ -21,7 +21,8 @@ describe('DungeonGenerator', function() {
         const conf = {
             nBigRooms: 0,
             // rerunOnFailure: true
-            errorOnFailure: true
+            errorOnFailure: true,
+            maxRarity: 1
         };
         for (let i = 0; i < 10; i++) {
             const cols = RNG.getUniformInt(80, 120);
@@ -41,7 +42,7 @@ describe('DungeonGenerator', function() {
         const dungGen = new DungeonGenerator();
         const cols = RNG.getUniformInt(80, 120);
         const rows = RNG.getUniformInt(28, 56);
-        const conf = {};
+        const conf = {maxRarity: 1};
         const level = dungGen.create(cols, rows, conf);
 
         const actors = level.getActors();
@@ -60,7 +61,8 @@ describe('DungeonGenerator', function() {
         const cols = RNG.getUniformInt(80, 120);
         const rows = RNG.getUniformInt(28, 56);
         const conf = {
-            nBigRooms: 0
+            nBigRooms: 0,
+            maxRarity: 1,
         };
         const level = dungGen.create(cols, rows, conf);
         // level.debugPrintInASCII();
