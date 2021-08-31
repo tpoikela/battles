@@ -11,6 +11,9 @@ import {Level} from '../src/level';
 import {FactoryLevel} from '../src/factory.level';
 import {Geometry} from '../src/geometry';
 import {CityGenerator} from '../src/generator';
+import {SpawnerActor} from '../src/actor.virtual';
+
+type BrainVirtual = import('../src/brain/brain.virtual').BrainSpawner;
 
 /* Class to create the capital city of the game. */
 export class Capital {
@@ -47,9 +50,9 @@ export class Capital {
         const parser = ObjectShell.getParser();
         const actorFunc = actor => actor.name === 'Hyrkhian townsfolk';
         const levelConf: any = [ // TODO fix typings
-            {actorFunc, nShops: 2, parser, nGates: 2, hasWall: true},
-            {actorFunc, nShops: 5, parser, nGates: 2, hasWall: true},
-            {actorFunc, nShops: 2, parser, nGates: 2, hasWall: true}
+            {actorFunc, parser, nGates: 2, hasWall: true},
+            {actorFunc, parser, nGates: 2, hasWall: true},
+            {actorFunc, parser, nGates: 2, hasWall: true}
         ];
 
         // Create subLevels for each interval in subLevelPos array
@@ -72,7 +75,7 @@ export class Capital {
             levelConf[i].wallType = 'castle';
             levelConf[i].addWindows = true;
             const cityGen = new CityGenerator();
-
+            cityGen.populate = false;
             const level = cityGen.create(levelCols, levelRows, levelConf[i]);
             subLevels.push(level);
         }
@@ -111,12 +114,20 @@ export class Capital {
             Builder.addPathToMap(mainMap, path);
         }
 
+        const mainPopulConf = {
+            actorFunc, nShops: 6, parser,
+            shouldRemoveMarkers: true,
+        };
+        const cityPopulGen = new CityGenerator();
+        cityPopulGen.populateCityLevel(mainLevel, mainPopulConf);
+        cityPopulGen.removeMarkers(mainLevel, mainPopulConf);
+
         // Create the actors and items for this level
         const actorConf = {
-            footman: 100,
-            archer: 50,
-            elite: 25,
-            commander: 5
+            footman: 200,
+            archer: 100,
+            elite: 50,
+            commander: 10
         };
         const actors = [];
         Object.keys(actorConf).forEach(key => {
@@ -138,6 +149,23 @@ export class Capital {
 
         const items = [parser.createItem('Longsword')];
         Placer.addPropsToFreeCells(mainLevel, items);
+
+        // Refactor: winterspawner
+        const winterSpawner = new SpawnerActor('winter spawner');
+        const placeConstraint = [
+            {op: 'eq', value: 0, func: 'getY'}
+        ];
+        const actorConstr = [
+            {op: 'eq', value: 'WinterBeingBase', prop: 'base'},
+            {op: 'gte', value: 5, prop: 'danger'},
+            {op: 'lte', value: 12, prop: 'danger'},
+        ];
+        const brain = winterSpawner.getBrain() as BrainVirtual;
+        brain.setConstraint(actorConstr);
+        brain.setPlaceConstraint(placeConstraint);
+        (brain as any).spawnProb = 0.10;
+        (brain as any).spawnLeft = -1;
+        mainLevel.addVirtualProp(RG.TYPE_ACTOR, winterSpawner);
 
         this.level = mainLevel;
     }

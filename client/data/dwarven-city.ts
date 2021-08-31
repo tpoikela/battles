@@ -1,17 +1,25 @@
 
+import RG from '../src/rg';
 import {FactoryLevel} from '../src/factory.level';
 import {Castle} from '../data/tiles.castle';
 import {Placer} from '../src/placer';
 import {Level} from '../src/level';
 import {ElementStairs} from '../src/element';
-import {MapGenerator} from '../src/generator';
+import {
+    MapGenerator,
+    CastleGenerator,
+    CityGenerator} from '../src/generator';
 import {Geometry} from '../src/geometry';
 import {ELEM} from './elem-constants';
 import {ObjectShell} from '../src/objectshellparser';
 import {LevelUtils} from '../src/level-utils';
+import {House} from '../src/generator';
+import {Room} from '../../lib/rot-js/map/features';
 
 import {BBox} from '../src/bbox';
 import {BaseActor} from '../src/actor';
+import {SpawnerActor} from '../src/actor.virtual';
+type BrainVirtual = import('../src/brain/brain.virtual').BrainSpawner;
 
 const dwarvenCityConf = {
   outerColsRatio: 0.45,
@@ -34,7 +42,8 @@ export class DwarvenCity {
       const wallOpts = {
         meanWy: Math.floor(0.85 * rows / 2),
         stdDev: 10,
-        filterW: 7
+        filterW: 7,
+        wallType: 'wallcave',
       };
 
       const factLevel = new FactoryLevel();
@@ -51,8 +60,8 @@ export class DwarvenCity {
       const entrFortLevel = this.createEntryFortLevel(outerCols, outerRows);
 
       // Main level (northern fortress)
-      const mainCols = outerCols + 2 * 7;
-      const mainRows = outerRows + 2 * 7;
+      const mainCols = outerCols + 2 * TILE_SIZE;
+      const mainRows = outerRows + 2 * TILE_SIZE;
       const mainFortLevel = this.createMainFortLevel(mainCols, mainRows);
 
       const fortStartY = 10;
@@ -69,6 +78,7 @@ export class DwarvenCity {
         y: fortStartY, x: 0
       };
 
+      // console.log('mainFortLevel extras are now:', mainFortLevel.getExtras());
       const tiledLevels = [mainFortLevel, entrFortLevel, passageLevel];
 
       Geometry.tileLevels(mainLevel, tiledLevels, tileConf);
@@ -82,17 +92,54 @@ export class DwarvenCity {
 
       this.addStairsToLevel(cols, rows, mainLevel);
 
+      const terms = mainLevel.getExtras().term as any[];
+      mainLevel.addExtras('houses', roomsToHouses(terms));
+
+      // Populate with shops/trainers/townsfolk
+      const cityGen = new CityGenerator();
+      const parser = ObjectShell.getParser();
+      const populConf = {nShops: 4, parser};
+      cityGen.populateCityLevel(mainLevel, populConf);
+
+      // Refactor: winterspawner
+      const winterSpawner = new SpawnerActor('winter spawner');
+      const placeConstraint = [
+          {op: 'eq', value: 0, func: 'getY'}
+      ];
+      const actorConstr = [
+          {op: 'eq', value: 'WinterBeingBase', prop: 'base'},
+          {op: 'gte', value: 5, prop: 'danger'},
+      ];
+      const brain = winterSpawner.getBrain() as BrainVirtual;
+      brain.setConstraint(actorConstr);
+      brain.setPlaceConstraint(placeConstraint);
+      (brain as any).spawnProb = 0.10;
+      (brain as any).spawnLeft = -1;
+      mainLevel.addVirtualProp(RG.TYPE_ACTOR, winterSpawner);
+
+      // Remove remaining markers
+      const castleGen = new CastleGenerator();
+      const markerConf = {
+          markersPreserved: false, shouldRemoveMarkers: true,
+      };
+      castleGen.populateStoreRooms(mainLevel, {
+          actorFunc: shell => shell.type === 'construct',
+          maxDanger: 15,
+          maxValue: 500, maxRarity: 5,
+      });
+      castleGen.removeMarkers(mainLevel, markerConf);
+
       this.level = mainLevel;
     }
 
-    public adjustToTileSize(number: number): number {
-      while (number % TILE_SIZE !== 0) {
-        ++number;
+    public adjustToTileSize(n: number): number {
+      while (n % TILE_SIZE !== 0) {
+        ++n;
       }
-      if (number % (2 * TILE_SIZE) === 0) {
-        number += TILE_SIZE;
+      if (n % (2 * TILE_SIZE) === 0) {
+        n += TILE_SIZE;
       }
-      return number;
+      return n;
     }
 
     /* Returns the main fort level with created side-castles. Dimensions of the
@@ -105,32 +152,30 @@ export class DwarvenCity {
 
       const mainFort = mapGen.createCastleWall(cols, rows, fortConf);
 
-      const castleCols = cols - 6 * 7;
-      const castleRows = rows - 4 * 7;
-      const innerCastle = mapGen.createCastle(castleCols, castleRows,
-        {roomCount: -1, nGates: 2});
-      // const castleLevel = new Level(innerCastle.map);
-      // castleLevel.setMap(innerCastle.map);
-      Geometry.mergeMapBaseElems(mainFort.map,
-          innerCastle.map, 3 * 7, 2 * 7);
+      const castleCols = cols - 6 * TILE_SIZE;
+      const castleRows = rows - 4 * TILE_SIZE;
+
+      const castleGen = new CastleGenerator();
+      const innerConf = {roomCount: -1, nGates: 4, models: 'residential',
+          preserveMarkers: true,
+      };
+      const innerCastle = castleGen.createLevel(castleCols, castleRows, innerConf);
 
       const mainFortLevel = new Level(mainFort.map);
-      // mainFortLevel.setMap(mainFort.map);
+      Geometry.mergeLevels(mainFortLevel,
+          innerCastle, 3 * TILE_SIZE, 2 * TILE_SIZE);
 
-      const mainFortWest = mapGen.createCastle(7 * 7, 5 * 7,
+      const mainFortWestLevel = castleGen.createLevel(7 * TILE_SIZE, 5 * TILE_SIZE,
           {startRoomFunc: Castle.startRoomFuncEast,
             roomCount: -1, genParams: [1, 1, 1, 1]}
       );
-      const mainFortEast = mapGen.createCastle(7 * 7, 5 * 7,
+      const mainFortEastLevel = castleGen.createLevel(7 * TILE_SIZE, 5 * TILE_SIZE,
           {startRoomFunc: Castle.startRoomFuncWest,
             roomCount: -1, genParams: [1, 1, 1, 1]}
       );
 
-      const mainFortWestLevel = new Level(mainFortWest.map);
-      //mainFortWestLevel.setMap(mainFortWest.map);
-      const mainFortEastLevel = new Level(mainFortEast.map);
-      //mainFortEastLevel.setMap(mainFortEast.map);
-
+      //rm const mainFortWestLevel = new Level(mainFortWest.map);
+      //rm const mainFortEastLevel = new Level(mainFortEast.map);
       const mainFortLevels = [mainFortWestLevel, mainFortLevel,
         mainFortEastLevel];
 
@@ -148,34 +193,42 @@ export class DwarvenCity {
       const outerFort = mapGen.createCastleWall(cols, rows,
         outerFortConf);
 
-      const castleCols = cols - 6 * 7;
-      const castleRows = rows - 6 * 7;
-      const innerCastle = mapGen.createCastle(castleCols, castleRows,
-        {nGates: 2, roomCount: -1});
-      const castleLevel = new Level(innerCastle.map);
-      // castleLevel.setMap(innerCastle.map);
-      Geometry.mergeMapBaseElems(outerFort.map, innerCastle.map,
-          3 * 7, 3 * 7);
+      const castleCols = cols - 6 * TILE_SIZE;
+      const castleRows = rows - 6 * TILE_SIZE;
+      /*const innerCastle = mapGen.createCastle(castleCols, castleRows,
+        {nGates: 2, roomCount: -1});*/
+      const innerConf  = {nGates: 4, roomCount: -1, preserveMarkers: true};
+      const castleGen = new CastleGenerator();
+      const castleLevel = castleGen.createLevel(castleCols, castleRows, innerConf);
 
-      const smallFortWest = mapGen.createCastleWall(3 * 7, 3 * 7,
+      const outerFortLevel = new Level(outerFort.map);
+      Geometry.mergeLevels(outerFortLevel, castleLevel,
+          3 * TILE_SIZE, 3 * TILE_SIZE);
+
+        /*
+      const smallFortWest = mapGen.createCastleWall(3 * TILE_SIZE, 3 * TILE_SIZE,
         {startRoomFunc: Castle.startRoomFuncEast}
       );
-      const smallFortEast = mapGen.createCastleWall(3 * 7, 3 * 7,
+      */
+      const fortWestLevel = castleGen.createLevel(3 * TILE_SIZE, 3 * TILE_SIZE,
+        {startRoomFunc: Castle.startRoomFuncEast});
+
+      const fortEastLevel = castleGen.createLevel(3 * TILE_SIZE, 3 * TILE_SIZE,
         {startRoomFunc: Castle.startRoomFuncWest}
       );
 
-      const entryFortLevel = new Level(outerFort.map);
+      //const entryFortLevel = new Level(outerFort.map);
+      const entryFortLevel = outerFortLevel;
       // entryFortLevel.setMap(outerFort.map);
 
-      const fortWestLevel = new Level(smallFortWest.map);
+      // const fortWestLevel = new Level(smallFortWest.map);
       // fortWestLevel.setMap(smallFortWest.map);
-      const fortEastLevel = new Level(smallFortEast.map);
+      //rm const fortEastLevel = new Level(smallFortEast.map);
       // fortEastLevel.setMap(smallFortEast.map);
 
       const subLevels = [fortWestLevel, entryFortLevel, fortEastLevel];
       const wrapConf = {centerY: true, baseElem: ELEM.WALL};
       return LevelUtils.wrapAsLevel(subLevels, wrapConf);
-
     }
 
     /* Adds actors and items into the level using bbox as constraint.
@@ -215,4 +268,26 @@ export class DwarvenCity {
         level.addStairs(stairsSouth, midX, rows - 1);
     }
 
+}
+
+
+function roomsToHouses(rooms: Room[]): House[] {
+    const res: House[] = [];
+    const elemMap = {
+        door: '+', floor: ':', wall: '#',
+    };
+    rooms.forEach(room => {
+        if (!room.hasDoor()) {
+            RG.err('DwarvenCity', 'roomsToHouses',
+                'No Door in room: ' + JSON.stringify(room))
+        }
+        const roomMap = room.toMap(elemMap);
+        //rm console.log('ID:', room.getID(), 'roomMap is:\n', roomMap.join('\n'));
+        const house = new House(roomMap);
+        house.adjustCoord(room.getLeft(), room.getTop());
+
+        res.push(house);
+        //rm console.log('New HouseMap is: \n', house.map.join('\n'));
+    });
+    return res;
 }
