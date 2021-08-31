@@ -214,18 +214,18 @@ export default class GameEditor extends Component {
     const state: IGameEditorState = {
       debug: false,
       // boardClassName: 'game-board-player-view',
-      boardClassName: 'game-board-map-view',
+      boardClassName: 'game-board-map-view-xs',
       // boardIndex: boardViews.indexOf('game-board-player-view'),
-      boardIndex: boardViews.indexOf('game-board-map-view'),
+      boardIndex: boardViews.indexOf('game-board-map-view-xs'),
       lastTouchedConf: null,
 
       zoneType: 'city',
       zoneList: [],
       zoneConf: {shown: ''},
 
-      levelX: 100,
-      levelY: 100,
-      levelType: 'arena',
+      levelX: 300,
+      levelY: 250,
+      levelType: 'dwarven_city',
 
       subLevelX: 20,
       subLevelY: 7,
@@ -1046,32 +1046,32 @@ export default class GameEditor extends Component {
         }
 
         <div className='row'>
-          <div className='col-md-2'>
-              <EditorLevelList
-                  levelIndex={this.state.levelIndex}
-                  levelList={this.state.levelList}
-                  setShownLevel={this.setShownLevel}
-              />
-          </div>
-
-          <div className='col-md-10'>
-          Time: {timeOfDay}
-            <div className='game-editor-board-div'>
-              <EditorGameBoard
-                boardClassName={this.state.boardClassName}
-                onCellClick={this.onCellClick}
-                onMouseDown={this.onMouseDown}
-                onMouseOver={this.onMouseOver}
-                onMouseOverCell={this.onMouseOverCell}
-                onMouseUp={this.onMouseUp}
-                rowClass={rowClass}
-                screen={this.screen}
-                sizeX={mapSizeX!}
-                updateMap={this.state.updateMap}
-                useRLE={this.state.useRLE}
-              />
+            <div className='col-md-2'>
+                <EditorLevelList
+                    levelIndex={this.state.levelIndex}
+                    levelList={this.state.levelList}
+                    setShownLevel={this.setShownLevel}
+                />
             </div>
-          </div>
+
+            <div className='col-md-10'>
+            Time: {timeOfDay}
+              <div className='game-editor-board-div'>
+                <EditorGameBoard
+                  boardClassName={this.state.boardClassName}
+                  onCellClick={this.onCellClick}
+                  onMouseDown={this.onMouseDown}
+                  onMouseOver={this.onMouseOver}
+                  onMouseOverCell={this.onMouseOverCell}
+                  onMouseUp={this.onMouseUp}
+                  rowClass={rowClass}
+                  screen={this.screen}
+                  sizeX={mapSizeX!}
+                  updateMap={this.state.updateMap}
+                  useRLE={this.state.useRLE}
+                />
+              </div>
+            </div>
         </div>
 
         <div className='game-editor-bottom-btn'>

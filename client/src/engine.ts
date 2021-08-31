@@ -112,6 +112,10 @@ export class Engine {
         return this._msg.getMessages();
     }
 
+    public getMsgHistory(): IMessage[] {
+        return this._msg.getHistory();
+    }
+
     public hasNewMessages(): boolean {
         return this._msg.hasNew();
     }

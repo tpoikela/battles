@@ -8,7 +8,7 @@ import {Room} from '../../../lib/rot-js/map/features';
 
 import * as Element from '../element';
 import {LevelGenerator, ILevelGenOpts} from './level-generator';
-import {MapGenerator} from './map.generator';
+import {MapGenerator, GenParamsXY} from './map.generator';
 import {Level, LevelExtraType} from '../level';
 import {DungeonPopulate} from '../dungeon-populate';
 import {Castle} from '../../data/tiles.castle';
@@ -19,6 +19,8 @@ import {Random} from '../random';
 import {Geometry} from '../geometry';
 import {Path} from '../path';
 import {ELEM} from '../../data/elem-constants';
+import {BBox} from '../bbox';
+import {StartRoomFunc} from '../template.level';
 
 const RNG = Random.getRNG();
 
@@ -31,6 +33,8 @@ interface CastleOpts extends ILevelGenOpts {
     roomCount: number;
     centralCorridors: boolean;
     templates?: any;
+    startRoomFunc?: StartRoomFunc;
+    genParams?: number[] | GenParamsXY;
 }
 
 type GateFunc = () => void;
@@ -197,7 +201,8 @@ export class CastleGenerator extends LevelGenerator {
             entrance: [],
             room: [],
             storeroom: [],
-            vault: []
+            vault: [],
+            term: [],
         };
         level.setExtras(extras);
 
@@ -213,6 +218,9 @@ export class CastleGenerator extends LevelGenerator {
             }
             else if (re.corridor.test(tile.name)) {
                 this.addToExtras(level, tile, 'corridor');
+            }
+            else if (re.term.test(tile.name)) {
+                this.addToExtras(level, tile, 'term');
             }
             else if (!re.filler.test(tile.name)) {
                 this.addToExtras(level, tile, 'room');
@@ -230,6 +238,8 @@ export class CastleGenerator extends LevelGenerator {
             level.addElement(marker, x, y);
         });
         const room = new Room(bbox.ulx, bbox.uly, bbox.lrx, bbox.lry);
+        this.addDoorToRoom(level, room);
+
         const extras = level.getExtras();
         (extras[name] as LevelExtraType[]).push(room as any);
     }
@@ -323,6 +333,31 @@ export class CastleGenerator extends LevelGenerator {
         }
         return null;
     }
+
+    /* Scans walls of the room to find places for room, and adds it to room */
+    public addDoorToRoom(level: Level, room: Room): void {
+        const bbox = BBox.fromBBox(room.getBbox());
+        const border: TCoord[] = bbox.getBorderXY('NSEW');
+        let freeCell = null;
+        if (room.hasDoor()) {return;}
+        for (let i = 0; i < border.length; i++) {
+            const [x, y] = border[i];
+            const cell = level.getMap().getCell(x, y);
+            if (cell.hasDoor()) {
+                room.addDoor(x, y);
+            }
+            if (cell.isFree()) {
+                freeCell = cell;
+            }
+        }
+
+        // NO actual door found, so add door to one place
+        if (!room.hasDoor() && freeCell) {
+            const [x, y] = freeCell.getXY();
+            room.addDoor(x, y);
+        }
+    }
+
 }
 
 const GOLD_VAULT_CHANCE = 0.10;
@@ -332,7 +367,8 @@ const re = {
     entrance: /entrance/,
     storeroom: /storeroom/,
     vault: /vault/,
-    filler: /filler/i
+    filler: /filler/i,
+    term: /term/,
 };
 
 const markers = {
@@ -340,7 +376,8 @@ const markers = {
     room: 'R',
     entrance: 'E',
     storeroom: 'S',
-    vault: 'V'
+    vault: 'V',
+    term: 'T',
 };
 
 type MarkerKey = keyof (typeof markers);

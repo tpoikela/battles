@@ -25,6 +25,7 @@ export class MessageHandler { // {{{2
     protected _messages: IMessage[];
     protected _prevMessages: IMessage[];
     protected _hasNew: boolean;
+    protected _fullHistory: IMessage[];
 
     constructor(pool: EventPool) {
         this._lastMsg = null;
@@ -32,6 +33,7 @@ export class MessageHandler { // {{{2
         this._prevMessages = [];
         this._hasNew = false;
         this.hasNotify = true;
+        this._fullHistory = [];
         pool.listenEvent(RG.EVT_MSG, this);
     }
 
@@ -67,6 +69,8 @@ export class MessageHandler { // {{{2
 
     public hasNew(): boolean {return this._hasNew;}
 
+    public getHistory(): IMessage[] {return this._fullHistory.slice();}
+
     public getMessages(): IMessage[] {
         this._hasNew = false;
         if (this._messages.length > 0) {return this._messages;}
@@ -83,6 +87,7 @@ export class MessageHandler { // {{{2
         return {
             _lastMsg: this._lastMsg,
             _messages: msgToJSON(this._messages),
+            _fullHistory: msgToJSON(this._fullHistory),
             _prevMessages: msgToJSON(this._prevMessages),
             _hasNew: this._hasNew
         };
@@ -97,6 +102,9 @@ function msgToJSON(messages: IMessage[]): IMessage[] {
     messages.forEach((msg: IMessage) => {
         if (!msg.cell) {
             res.push(msg);
+        }
+        else if (typeof msg.msg === 'string') {
+            res.push({msg: msg.msg});
         }
     });
     return res;

@@ -3,24 +3,26 @@ import Path, {ComputeCallback, PassableCallback, Options} from '../../lib/rot-js
 
 type CellMap = import('./map').CellMap;
 
-interface Item {
+interface PathItem {
     x: number;
     y: number;
     z: number;
     g: number;
     h: number;
-    prev: Item | null;
+    prev: PathItem | null;
 }
 
 /**
  */
 export class AStar3D extends Path {
-    _todo: Item[];
-    _done: {[key:string]: Item};
+    _todo: PathItem[];
+    _done: {[key:string]: PathItem};
     _fromX!: number;
     _fromY!: number;
     _fromZ!: number;
     _map: CellMap;
+    protected _itemsDone: number;
+    protected _doneLimit: number;
 
     constructor(
         toX: number, toY: number, map: CellMap,
@@ -31,6 +33,12 @@ export class AStar3D extends Path {
         this._todo = [];
         this._done = {};
         this._map = map;
+        this._itemsDone = 0;
+        this._doneLimit = -1;
+    }
+
+    public setLimit(n: number): void {
+        this._doneLimit = n;
     }
 
     /**
@@ -46,11 +54,22 @@ export class AStar3D extends Path {
         this._add(this._toX, this._toY, null);
 
         while (this._todo.length) {
-            const item = this._todo.shift() as Item;
+            const item = this._todo.shift() as PathItem;
             const id = item.x+','+item.y;
             if (id in this._done) { continue; }
             this._done[id] = item;
+            this._itemsDone += 1;
+
+            // Terminate early
+            if (this._itemsDone === this._doneLimit) { break; }
+            // Source found
             if (item.x === fromX && item.y === fromY) { break; }
+
+            /*
+            if (this._itemsDone % 50 === 0) {
+                console.log('Path3d done size: ', this._itemsDone);
+            }
+            */
 
             const neighbors = this._getNeighbors(item.x, item.y);
 
@@ -64,7 +83,7 @@ export class AStar3D extends Path {
             }
         }
 
-        let itemDone: Item | null = this._done[fromX+','+fromY];
+        let itemDone: PathItem | null = this._done[fromX+','+fromY];
         if (!itemDone) {return;}
 
         while (itemDone) {
@@ -73,14 +92,14 @@ export class AStar3D extends Path {
         }
     }
 
-    _add(x: number, y: number, prev: Item | null) {
+    protected _add(x: number, y: number, prev: PathItem | null) {
         const z = this._map.getZ(x, y);
         const h = this._distance(x, y, z, prev);
         let dz = 0;
         if (prev) {
             dz = Math.abs(prev.z - z);
         }
-        const obj: Item = {
+        const obj: PathItem = {
             x,
             y,
             z,
@@ -104,17 +123,17 @@ export class AStar3D extends Path {
         this._todo.push(obj);
     }
 
-    _distance(x: number, y: number, z: number, prev: Item | null) {
+    protected _distance(x: number, y: number, z: number, prev: PathItem | null) {
         switch (this._options.topology) {
             case 4:
                 return (Math.abs(x-this._fromX) + Math.abs(y-this._fromY));
-            break;
+            //rm break;
 
             case 6:
                 const dx = Math.abs(x - this._fromX);
                 const dy = Math.abs(y - this._fromY);
                 return dy + Math.max(0, (dx-dy)/2);
-            break;
+            //rm break;
 
             case 8: {
                 const dX = Math.abs(x - this._fromX);
@@ -126,7 +145,7 @@ export class AStar3D extends Path {
                 );
                 //return dX + dY + dZ;
             }
-            break;
+            //rm break;
         }
     }
 }

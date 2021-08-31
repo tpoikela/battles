@@ -493,6 +493,7 @@ Evaluator.hist.CastSpell = 0;
  * with shopkeeping duties. */
 export class EvaluatorShopkeeper extends EvaluatorBase {
 
+    // Should point to x,y-coordinate in shop
     public x: number;
     public y: number;
 

@@ -421,7 +421,10 @@ export class SpellBase {
 */
 
 SpellBase.prototype.setCaster = function(caster: SentientActor): void {
-   this._caster = caster;
+    if (!caster) {
+        RG.err('SpellBase', 'setCaster', 'Tried to set null caster');
+    }
+    this._caster = caster;
 };
 
 SpellBase.prototype.getCaster = function(): SentientActor {
@@ -457,11 +460,7 @@ SpellBase.prototype.getCastingPower = function(): number {
     let castPower = this._power;
     const expLevel = this._caster.get('Experience').getExpLevel();
     castPower -= Math.ceil(expLevel / 3);
-    if (this._caster.has('Skills')) {
-        const skills = this._caster.get('Skills');
-        const castLevel = skills.getLevel('SpellCasting');
-        castPower -= Math.ceil(castLevel / 2);
-    }
+    castPower -= Math.floor(this.getCastLevel() / 2);
 
     // Cannot reduce power below 50% of original
     const halfPower = Math.round(0.50 * this._power);
@@ -485,6 +484,7 @@ SpellBase.prototype.getDuration = function(perLevel = 1): number {
     if (perLevel > 0) {
         const expLevel = this._caster.get('Experience').getExpLevel();
         dur += Math.round(expLevel / perLevel);
+        dur += Math.round(this.getCastLevel() / perLevel);
     }
     return dur;
 };
@@ -496,8 +496,17 @@ SpellBase.prototype.getDamage = function(perLevel = 1): number {
     }
     const expLevel = this._caster.get('Experience').getExpLevel();
     damage += Math.round(expLevel / perLevel);
+    damage += this.getCastLevel();
     return damage;
 };
+
+SpellBase.prototype.getCastLevel = function(): number {
+    if (this._caster.has('Skills')) {
+        const skills = this._caster.get('Skills');
+        return skills.getLevel('SpellCasting');
+    }
+    return 0;
+}
 
 SpellBase.prototype.setPower = function(power: number) {this._power = power;};
 
@@ -520,8 +529,13 @@ SpellBase.prototype.getCastFunc = function(actor, args: SpellArgs): null | CastF
 SpellBase.prototype.toString = function(): string {
     const castPower = this.getCastingPower();
     let str = `${this.getName()} - ${castPower}PP`;
+    const castLevel = this.getCastLevel();
     if (this._dice.damage) {
+        const castDamage = castLevel;
         str += ` Dmg: ${this._dice.damage.toString()}`;
+        if (castDamage > 0) {
+            str += ` + ${castDamage}`;
+        }
     }
     if (this._dice.duration) {
         str += ` Dur: ${this._dice.duration.toString()}`;
@@ -1029,6 +1043,7 @@ Spell.RingBase = function(name, power) {
 };
 RG.extend2(Spell.RingBase, SpellBase);
 
+
 /* Spell that has multiple spell effects. Note that only one effect
  * can have direction, and that direction will be applied to all
  * multi-spells. For area spells etc, dir has no effect of course
@@ -1041,6 +1056,13 @@ RG.extend2(Spell.MultiSpell, SpellBase);
 
 Spell.MultiSpell.prototype.addSpell = function(spell): void {
     this._spells.push(spell);
+};
+
+Spell.MultiSpell.prototype.setCaster = function(caster: SentientActor): void {
+    SpellBase.prototype.setCaster.call(this, caster);
+    this._spells.forEach(spell => {
+        spell.setCaster(caster)
+    });
 };
 
 Spell.MultiSpell.prototype.removeSpells = function(): void {
@@ -1099,11 +1121,13 @@ Spell.MultiSpell.prototype.toJSON = function(): any {
     return json;
 };
 
+/*
 Spell.MultiSpell.prototype.setCaster = function(caster: SentientActor): void {
     this._spells.forEach(spell => {
         spell.setCaster(caster);
     });
 };
+*/
 
 Spell.override = false;
 

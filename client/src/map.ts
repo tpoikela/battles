@@ -464,6 +464,10 @@ export class CellMap {
         return result;
     }
 
+    public forEachCell(cb: (x: number, y: number, c?: Cell) => void): void {
+        RG.forEach2D(this._map, cb);
+    }
+
     public getCellsWithCoord(coord: TCoord[]): Cell[] {
         const result: Cell[] = [];
         coord.forEach(xy => {
@@ -573,24 +577,6 @@ export class CellMap {
         return json;
     }
 
-
-    /*
-    public getShortestPathTo(actor, toX: number, toY: number): Cell[] {
-        const [sX, sY] = actor.getXY();
-        let passCb = this.passableCallback.bind(null, sX, sY);
-        if (actor.has('Flying')) {
-            passCb = this.passableCallbackFlying.bind(null, sX, sY);
-        }
-        const pathFinder = new ROT.Path.AStar(toX, toY, passCb);
-        const path: Cell[] = [];
-        pathFinder.compute(sX, sY, (x, y) => {
-            if (this.hasXY(x, y)) {
-                path.push(this._map[x][y]);
-            }
-        });
-        return path;
-    }
-    */
 
     public passableCallback(sX, sY, x, y, cx, cy): boolean {
         let res = this.isPassable(x, y, cx, cy);

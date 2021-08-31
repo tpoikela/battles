@@ -5,8 +5,6 @@ import {DungeonGenerator} from './dungeon-generator';
 import {CaveGenerator} from './cave-generator';
 import {MapGenerator} from './map.generator';
 import {Level} from '../level';
-import {Room} from '../../../lib/rot-js/map/features';
-import {PlacedTileData} from '../template.level';
 import {DungeonPopulate} from '../dungeon-populate';
 
 type FactoryZone = import('../factory.zone').FactoryZone;
@@ -58,19 +56,7 @@ export class CryptGenerator extends LevelGenerator {
         const level = new Level(mapObj.map);
 
         // Create Room object for each tile (required by some algorithms)
-        const rooms: Room[] = [];
-        const terms: Room[] = [];
-        const tileMap: {[key: string]: PlacedTileData} = mapObj.tiles;
-        Object.values(tileMap).forEach((tile: PlacedTileData) => {
-            const room = new Room(tile.llx, tile.ury, tile.urx, tile.lly);
-            rooms.push(room);
-            if (tile.name === 'term') {
-                terms.push(room);
-            }
-        });
-
-        level.addExtras('rooms', rooms);
-        level.addExtras('terms', terms);
+        LevelGenerator.tilesToRooms(level, mapObj);
 
         DungeonGenerator.addStairsToTwoRooms(level);
         DungeonGenerator.addCriticalPath(level);

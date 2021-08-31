@@ -261,7 +261,6 @@ export class DungeonGenerator extends LevelGenerator {
         if (conf.shouldRemoveMarkers || this.shouldRemoveMarkers) {
             markerConf.shouldRemoveMarkers = true;
             markerConf.markersPreserved = false;
-            console.log('KKK xyz should remove dungeon markers');
         }
         this.removeMarkers(level, markerConf);
         return level;

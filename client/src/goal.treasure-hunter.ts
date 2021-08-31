@@ -49,13 +49,11 @@ export class GoalTreasureHunter extends GoalBase {
         }
 
         if (this.hasSubGoals()) {
-            console.log('chooseHunterTask processSubGoals 1');
             this.status = this.processSubGoals();
         }
         else {
             this.chooseHunterTask();
             if (this.hasSubGoals()) {
-                console.log('chooseHunterTask processSubGoals 2');
                 this.status = this.processSubGoals();
             }
         }
@@ -66,21 +64,16 @@ export class GoalTreasureHunter extends GoalBase {
         let nextGoal = null;
         let exitGoal = null;
 
-        console.log('chooseHunterTask');
-
         // We know where the treasure is
         if (this.hasTreasure()) {
-            console.log('hunter has treasure now!!!');
             // Flee the zone
             exitGoal = this.checkForZoneExit();
         }
         else if (this.treasure) {
             // We know where treasure is, go there
-            console.log('chooseHunterTask chose GetItem goal');
             nextGoal = new Goal.GetItem(this.actor, this.treasure);
         }
         else {
-            console.log('chooseHunterTask chose FindItem goal');
             // Explore around, and choose treasure if matches constraint
             nextGoal = new Goal.FindItem(this.actor, this.constraint,
                 this.setTreasure.bind(this));
@@ -98,7 +91,6 @@ export class GoalTreasureHunter extends GoalBase {
 
     protected hasTreasure(): boolean {
         if (!this.treasure) {
-            console.log('hunter hasTreasure is false again!');
             return false;
         }
 

@@ -3,6 +3,7 @@ import RG from './rg';
 import {Random} from './random';
 import {TCardinalDir, ICoordMap, TCoord, TCoord3D, ICellDirMap, IBBox} from './interfaces';
 import {BBox} from './bbox';
+//import {House} '../../lib/rot-js/map/features';
 
 const RNG = Random.getRNG();
 
@@ -466,11 +467,51 @@ export class Geometry {
 
         this.mergeMapBaseElems(m1, m2, startX, startY);
 
+        if (l2.hasExtras()) {
+            this.mergeLevelExtras(l1, l2, startX, startY);
+        }
+
         const numActorsNew1 = l1.getActors().length;
         if (numActorsNew1 !== numExpActors) {
             RG.err('Geometry', 'mergeLevels',
                 `Num actors new: ${numActorsNew1}, exp: ${numExpActors}`);
         }
+    }
+
+    public static mergeLevelExtras(l1: Level, l2: Level, startX: number, startY: number): void {
+        const l2Extras = l2.getExtras();
+        Object.keys(l2Extras).forEach((key: string) => {
+            if (key === 'houses') {
+                const houses = l2Extras[key];
+                houses.forEach(house => {
+                    house.moveHouse(startX, startY);
+                });
+
+                if (!l1.getExtras().houses) {
+                    l1.addExtras('houses', houses);
+                }
+                else {
+                    const newHouses = l1.getExtras().houses.concat(houses);
+                    l1.addExtras('houses', newHouses);
+                }
+            }
+            else if (key === 'term' || key === 'room' || key === 'bigRoom' || key === 'storeroom' ||
+            key === 'corridor' || key === 'vault') {
+                const rooms = l2Extras[key] as any[];
+                rooms.forEach(room => {
+                    room.moveRoom(startX, startY);
+                });
+
+                if (!l1.getExtras()[key]) {
+                    l1.addExtras(key, rooms);
+                }
+                else {
+                    const extras = l1.getExtras()[key] as any[];
+                    const newRooms = extras.concat(rooms);
+                    l1.addExtras(key, newRooms);
+                }
+            }
+        });
     }
 
     /* Merges m2 into m1 starting from x,y in m1. Does not move items/actors. */

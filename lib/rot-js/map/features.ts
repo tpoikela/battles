@@ -20,6 +20,12 @@ export interface FeatureConstructor {
 type DigCallback = (x: number, y: number, value: number) => void;
 type TestPositionCallback = (x: number, y: number) => boolean;
 
+const defaultMap = {
+    floor: '.',
+    wall: '#',
+    door: '+',
+};
+
 /**
  * @class Dungeon feature; has own .create() method
  */
@@ -171,6 +177,10 @@ export class Room extends Feature {
         return new this(x1, y1, x2, y2);
     }
 
+    hasDoor() {
+        return Object.keys(this._doors).length > 0;
+    }
+
     addDoor(x: number, y: number) {
         this._doors[x+','+y] = 1;
         return this;
@@ -183,6 +193,27 @@ export class Room extends Feature {
 
     hasStairs(x, y) {
         return Object.keys(this._stairs).length > 0;
+    }
+
+    /* Moves room by +x, +y coordinates. */
+    moveRoom(dX: number, dY: number): void {
+        this._x1 += dX;
+        this._x2 += dX;
+        this._y1 += dY;
+        this._y2 += dY;
+        this._moveFeats(dX, dY, this._doors);
+        this._moveFeats(dX, dY, this._feats);
+        this._moveFeats(dX, dY, this._stairs);
+    }
+
+    protected _moveFeats(dX: number, dY: number, feats: {[key: string]: any}): void {
+        Object.keys(feats).forEach(key => {
+            const [kx, ky] = key.split(',');
+            const nx = parseInt(kx, 10) + dX;
+            const ny = parseInt(ky, 10) + dY;
+            feats[nx + ',' + ny] = feats[key];
+            delete feats[key];
+        });
     }
 
     hasStairsUp(x, y) {
@@ -371,6 +402,33 @@ export class Room extends Feature {
 
     getAreaSize(): number {
         return (this._x2 - this._x1) * (this._y2 - this._y1);
+    }
+
+    /* Converts room into 2D-string array. */
+    toMap(elemMap=defaultMap): string[][] {
+        const res = [];
+        for (let x = this._x1; x <= this._x2; ++x) {
+            const xi = x - this._x1;
+            res.push([]);
+            for (let y = this._y1; y <= this._y2; ++y) {
+                let wallElem = elemMap.wall;
+                const floorElem = elemMap.floor;
+                const key = x + ',' + y;
+                if (this._doors[key]) {wallElem = elemMap.door;}
+                if (x !== this._x1 && x !== this._x2) {
+                    if (y !== this._y1 && y !== this._y2) {
+                        res[xi].push(floorElem);
+                    }
+                    else {
+                        res[xi].push(wallElem);
+                    }
+                }
+                else {
+                    res[xi].push(wallElem);
+                }
+            }
+        }
+        return res;
     }
 }
 

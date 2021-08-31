@@ -55,6 +55,15 @@ export class House {
             }
         });
 
+        if (!this.coord[FLOOR]) {
+            RG.err('Room', 'new',
+                `Could not init floor ${FLOOR} from ${JSON.stringify(map)}`);
+        }
+        if (!this.coord[WALL]) {
+            RG.err('Room', 'new',
+                `Could not init wall ${WALL} from ${JSON.stringify(map)}`);
+        }
+
         this.floor = this.coord[FLOOR];
         this.walls = this.coord[WALL];
 
@@ -152,7 +161,7 @@ export class House {
         for (let i = 0; i < walls.length; i++) {
             if (nCreated === nWindows) {break;} // We're already done
             const xy = walls[i];
-            const nFound = [];
+            const nFound: TCoord[] = [];
             const box: TCoord[] = Geometry.getBoxAround(xy[0], xy[1], 1);
             box.forEach((nXY: TCoord) => {
                 if (wallLut[nXY[0] + ',' + nXY[1]]) {
@@ -192,6 +201,20 @@ export class House {
         }
         return false;
     }
+
+    public findDoorPlace(): TCoord {
+        if (!this.door) {
+            // Scan the house borders for empty spot
+            // TODO
+            return [-2, -2];
+        }
+        else {
+            RG.err('House', 'findDoorPlace',
+                `Door place already set to ${this.door}`);
+        }
+        return [-1, -1];
+    }
+
 }
 
 export class HouseGenerator {
@@ -244,6 +267,7 @@ export class HouseGenerator {
 
         return createdHouse;
     }
+
 
     /* Returns the params needed to generate the house, such as number of
      * tiles and generator params. */

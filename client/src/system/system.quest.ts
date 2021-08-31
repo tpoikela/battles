@@ -186,7 +186,6 @@ export class SystemQuest extends SystemBase {
             );
             let item = parser.createRandomItem({func});
             if (item) {
-                console.log('generateQuestRewardItem Returning item ', item.getName());
                 return item;
             }
 
@@ -213,7 +212,6 @@ export class SystemQuest extends SystemBase {
 
             item = parser.createRandomItem({func});
             if (item) {
-                console.log('generateQuestRewardItem Returning item ', item.getName());
                 return item;
             }
         }
@@ -319,7 +317,6 @@ export class SystemQuest extends SystemBase {
     }
 
     public onGiveEvent(ent, qEvent, questComp) {
-        console.log('processing onGiveEvent');
         const args = qEvent.getArgs();
         const {actor, item} = args;
         const questTargets = questComp.getQuestTargets();

@@ -75,7 +75,7 @@ Spell.Charm.prototype.aiShouldCastSpell = function(args, cb) {
 
 /* A spell for melee combat using grasp of winter. */
 Spell.GraspOfWinter = function() {
-    SpellBase.call(this, 'Grasp of winter');
+    SpellBase.call(this, 'Grasp of winter', 6);
     this._dice.damage = Dice.create('4d4 + 4');
 };
 RG.extend2(Spell.GraspOfWinter, SpellBase);

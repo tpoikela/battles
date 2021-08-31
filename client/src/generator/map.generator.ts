@@ -14,11 +14,12 @@ import {TemplateLevel, StartRoomFunc} from '../template.level';
 import {Random} from '../random';
 import {House, HouseGenerator} from './house-generator';
 import {BBox} from '../bbox';
+import {PlacedTileData} from '../template.level';
 
 import {Crypt} from '../../data/tiles.crypt';
 import {Castle} from '../../data/tiles.castle';
 import {Nests} from '../../data/tiles.nests';
-import {ELEM, snowElemMap} from '../../data/elem-constants';
+import {ELEM, snowElemMap, getElem} from '../../data/elem-constants';
 
 import {BSP, MapForest, MapMiner, MapMountain, MapWall} from '../../../lib';
 
@@ -38,7 +39,7 @@ const inRange = function(val: number, min: number, max: number): boolean {
     return false;
 };
 
-interface GenParamsXY {
+export interface GenParamsXY {
     x: number[];
     y: number[];
 }
@@ -61,11 +62,12 @@ export interface MapConf {
     wallType?: string;
     snowRatio?: number;
     rng?: Random;
+    preserveMarkers?: boolean;
 }
 
 export interface MapObj {
     map: CellMap;
-    tiles?: any;
+    tiles?: {[key: string]: PlacedTileData};
     paths?: any[];
     mapGen?: any;
     houses?: House[];
@@ -73,13 +75,6 @@ export interface MapObj {
     elements?: ElementXY[];
 }
 
-/*
-interface HouseObj extends BBox {
-    walls: TCoord[];
-    floor: TCoord[];
-    door: TCoord;
-}
-*/
 
 type ElemMapFunc = (map: CellMap, x: number, y: number) => void;
 interface ASCIIToElemMap {
@@ -190,35 +185,15 @@ export class MapGenerator {
     }
 
     public static getWallElem(wallType: string): Readonly<ElementWall> {
-        switch (wallType) {
-            case 'cave': return ELEM.WALL_CAVE;
-            case 'wallcave': return ELEM.WALL_CAVE;
-            case 'castle': return ELEM.WALL_CASTLE;
-            case 'wallcastle': return ELEM.WALL_CASTLE;
-            case 'crypt': return ELEM.WALL_CRYPT;
-            case 'wallcrypt': return ELEM.WALL_CRYPT;
-            case 'ice': return ELEM.WALL_ICE;
-            case 'wallice': return ELEM.WALL_ICE;
-            case 'wooden': return ELEM.WALL_WOODEN;
-            case 'wallwooden': return ELEM.WALL_WOODEN;
-            default: return ELEM.WALL;
-        }
+        const elem = getElem(wallType);
+        if (!elem) {return ELEM.WALL;}
+        return elem;
     }
 
     public static getFloorElem(floorType: string): ConstBaseElem {
-        switch (floorType) {
-            case 'cave': // fallthrough
-            case 'floorcave': return ELEM.FLOOR_CAVE;
-            case 'castle': // fallthrough
-            case 'floorcastle': return ELEM.FLOOR_CASTLE;
-            case 'crypt': // fallthrough
-            case 'floorcrypt': return ELEM.FLOOR_CRYPT;
-            case 'ice': // fallthrough
-            case 'floorice': return ELEM.FLOOR_ICE;
-            case 'wooden': // fallthrough
-            case 'floorwooden': return ELEM.FLOOR_WOODEN;
-            default: return ELEM.FLOOR;
-        }
+        const elem = getElem(floorType);
+        if (!elem) {return ELEM.FLOOR;}
+        return elem;
     }
 
     public static createSplashes(cols: number, rows: number, conf): MapObj {
@@ -577,7 +552,10 @@ export class MapGenerator {
 
     public createWall(cols: number, rows: number, conf): MapObj {
         const map: CellMap = new CellMap(cols, rows, this.defaultMapElem);
-        const wallElem = conf.wallElem || ELEM.WALL;
+        let wallElem = conf.wallElem || ELEM.WALL;
+        if (conf.wallType) {
+            wallElem = MapGenerator.getWallElem(conf.wallType);
+        }
         this._mapGen = new MapWall(cols, rows, conf);
         this._mapGen.create((x, y, val) => {
             if (val === 1 /* && createDeep */) {
@@ -892,7 +870,10 @@ export class MapGenerator {
         }
 
         if (conf.nGates === 2) {
-          level.setStartRoomFunc(Castle.startFuncTwoGates);
+          level.setStartRoomFunc(Castle.startFuncTwoGates!);
+        }
+        else if (conf.nGates === 4) {
+          level.setStartRoomFunc(Castle.startFuncFourGates!);
         }
         else if (conf.startRoomFunc) {
           level.setStartRoomFunc(conf.startRoomFunc);

@@ -319,7 +319,6 @@ export class SystemEffects extends SystemBase {
                 const currValue = comp[useArgs.get]();
                 const value = useArgs.value;
                 const numValue = convertValueIfNeeded(value);
-                console.log('Got value:', numValue, 'from: ', value);
                 comp[useArgs.set](currValue + numValue);
                 return true;
             }

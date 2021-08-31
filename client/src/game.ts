@@ -14,7 +14,7 @@ import * as Component from './component';
 import * as World from './world';
 import {Dice} from './dice';
 import {CellMap} from './map';
-import {TCoord, IPlayerCmdInput, JsonMap} from './interfaces';
+import {TCoord, IPlayerCmdInput, JsonMap, IMessage} from './interfaces';
 import {ObjectShell} from './objectshellparser';
 
 type Cell = import('./map.cell').Cell;
@@ -135,6 +135,10 @@ export class GameMain {
     }
 
     public getPool(): EventPool {return this._eventPool;}
+
+    public getMsgHistory(): IMessage[] {
+        return this._engine.getMsgHistory();
+    }
 
     public getTimeOfDayMins(): number {
         return this._worldSim.getTimeOfDayMins();

@@ -31,7 +31,7 @@ type Level = import('./level').Level;
 type House = import('./generator').House;
 
 const popOptions = ['NOTHING', 'LOOT', 'GOLD', 'GUARDIAN', 'ELEMENT', 'CORPSE',
-    'TIP'];
+    'HINT'];
 
 interface PopulConf {
     theme?: string;
@@ -320,7 +320,7 @@ export class DungeonPopulate {
             case 'ELEMENT': this.addElementToPoint(level, point, conf); break;
             case 'CORPSE': this.addCorpseToPoint(level, point, conf); break;
             case 'GOLD': this.addGoldToPoint(level, point); break;
-            case 'TIP': this.addTipToPoint(level, point, conf); break;
+            case 'HINT': this.addHintToPoint(level, point, conf); break;
             default: break;
         }
     }
@@ -332,27 +332,27 @@ export class DungeonPopulate {
     /* Adds an element into the given point. */
     public addElementToPoint(level: Level, point: TCoord, conf) {
         if (conf.true) {
-            // console.log('DungeonPopulate', level, conf, point); // TODO
+            // TODO
         }
     }
 
     /* Creates a corpse to the given point, and adds some related loot there. */
     public addCorpseToPoint(level: Level, point: TCoord, conf) {
         if (conf.true) {
-            // console.log('DungeonPopulate', level, conf, point); // TODO
+            // TODO
         }
     }
 
     public addLootToPoint(level: Level, point: TCoord) {
         const maxValue = this.maxValue;
         const lootTypes = [RG.ITEM.POTION, RG.ITEM.SPIRITGEM, RG.ITEM.AMMUNITION,
-            RG.ITEM.POTION, RG.ITEM.RUNE];
+            RG.ITEM.POTION, RG.ITEM.RUNE, RG.ITEM.MISSILE];
         const generatedType = RNG.arrayGetRand(lootTypes);
 
         const parser = ObjectShell.getParser();
         const lootPrize = parser.createRandomItem(
             {func: item => item.type >= generatedType
-                && item.value <= maxValue}
+                && item.value <= maxValue && item.value >= Math.round(maxValue/2)}
         );
         if (lootPrize) {
             const [cx, cy] = point;
@@ -372,9 +372,9 @@ export class DungeonPopulate {
 
     /* Adds a tip/hint to the given point. These hints can reveal information
      * about world map etc. */
-    public addTipToPoint(level, point, conf) {
+    public addHintToPoint(level, point, conf) {
         if (conf.true) {
-            // console.log('DungeonPopulate', level, conf, point); // TODO
+            // TODO
         }
     }
 
@@ -394,7 +394,6 @@ export class DungeonPopulate {
         let watchDog = 0;
         extras.shops = [];
         for (let n = 0; n < conf.nShops; n++) {
-            const shopObj = new WorldShop();
 
             // Find the next (unused) index for a house
             let index = RNG.randIndex(houses);
@@ -409,8 +408,18 @@ export class DungeonPopulate {
             usedHouses.push(index);
 
             const house = extras.houses![index]; // Index is keyof houses
+            if (!house.door) {
+                house.door = house.findDoorPlace();
+                if (!house.door) {
+                    RG.warn('DungeonPopulate', 'createShops',
+                        `No door found from house ${JSON.stringify(house)}. Cannot add shop`);
+                    continue;
+                }
+            }
+
             shopHouses.push(house);
             const floor = house.floor;
+
             const [doorX, doorY] = house.door;
             const doorCell = level.getMap().getCell(doorX, doorY);
             if (!doorCell.hasDoor()) {
@@ -419,7 +428,7 @@ export class DungeonPopulate {
             }
 
             const keeper = this.createShopkeeper(conf);
-            const shopCoord = [];
+            const shopCoord: TCoord[] = [];
             let keeperAdded = false;
             for (let i = 0; i < floor.length; i++) {
                 const xy = floor[i];
@@ -475,6 +484,7 @@ export class DungeonPopulate {
 
             this.addShopLoreItem(level, keeper);
 
+            const shopObj = new WorldShop();
             shopObj.setShopkeeper(keeper);
             shopObj.setLevel(level);
             shopObj.setCoord(shopCoord);
@@ -509,12 +519,12 @@ export class DungeonPopulate {
             }
         }
         else {
-            keeper = this._actorFact.createActor('shopkeeper', {brain: 'Human'});
+            keeper = this._actorFact.createActor('shopkeeper', {brain: 'GoalOriented'});
         }
 
         keeper.add(new Component.Shopkeeper());
         const gold = new Item.GoldCoin(RG.GOLD_COIN_NAME);
-        gold.setCount(RNG.getUniformInt(50, 200));
+        gold.setCount(RNG.getUniformInt(150, 500));
         keeper.getInvEq().addItem(gold);
 
         const named = keeper.get('Named');

@@ -647,7 +647,6 @@ export class SystemChat extends SystemBase {
         actor: BaseActor, topic: string, chosenOpt: ILoreOpt
     ): string {
         // No processing needed, just return what we got
-        console.log(topic + '| getFormattedReply msg is ', chosenOpt);
         if (typeof chosenOpt === 'string') {
             return chosenOpt;
         }
@@ -681,7 +680,6 @@ export class SystemChat extends SystemBase {
                 break;
             }
         }
-        console.log(topic + '| getFormattedReply return msg ', msg);
         return msg;
     }
 

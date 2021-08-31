@@ -1,5 +1,7 @@
 /* Contains code for better city level generation. */
 
+import RG from '../rg';
+
 import {LevelGenerator, ILevelGenOpts} from './level-generator';
 import {MapGenerator} from './map.generator';
 import {DungeonPopulate} from '../dungeon-populate';
@@ -36,11 +38,13 @@ export class CityGenerator extends LevelGenerator {
     }
 
     public addDoors: boolean;
+    public populate: boolean;
 
     constructor() {
         super();
         this.addDoors = true;
         this.shouldRemoveMarkers = true;
+        this.populate = true;
     }
 
     public create(cols: number, rows: number, conf: PartialCityOpts): Level {
@@ -48,7 +52,9 @@ export class CityGenerator extends LevelGenerator {
         if (conf.cellsAround) {
             level = this.createCitySurroundings(level, conf);
         }
-        this.populateCityLevel(level, conf);
+        if (this.populate) {
+            this.populateCityLevel(level, conf);
+        }
 
         this.removeMarkers(level, conf);
         // TODO populate level with actors based on conf
@@ -56,7 +62,7 @@ export class CityGenerator extends LevelGenerator {
     }
 
     /* Returns a castle level without populating it. */
-    public createLevel(cols, rows, conf): Level {
+    public createLevel(cols: number, rows: number, conf): Level {
         const mapGen = new MapGenerator();
         let mapObj = null;
 
@@ -102,6 +108,10 @@ export class CityGenerator extends LevelGenerator {
 
     public populateCityLevel(level: Level, conf): void {
         let houses = level.getExtras().houses;
+        if (!houses) {
+            RG.err('CityGenerator', 'populateCityLevel',
+                'Cannot be used without Level.extras.houses');
+        }
         const dungPopul = new DungeonPopulate(conf);
 
         const shopHouses = dungPopul.createShops(level, conf);

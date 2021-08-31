@@ -3,9 +3,12 @@
 import RG from '../rg';
 import {ElementMarker, ElementDoor} from '../element';
 import {Level} from '../level';
-import {Random} from '../random';
+//rm import {Random} from '../random';
+import {Room} from '../../../lib/rot-js/map/features';
+import {PlacedTileData} from '../template.level';
+import {MapObj} from './map.generator';
 
-const RNG = Random.getRNG();
+//rm const RNG = Random.getRNG();
 
 import {ConstBaseElem, TCoord, TShellFunc} from '../interfaces';
 type CellMap = import('../map').CellMap;
@@ -124,6 +127,23 @@ export abstract class LevelGenerator {
             }
         });
         return res;
+    }
+
+
+    public static tilesToRooms(level: Level, mapObj: MapObj): void {
+        const rooms: Room[] = [];
+        const terms: Room[] = [];
+        const tileMap: {[key: string]: PlacedTileData} = mapObj.tiles;
+        Object.values(tileMap).forEach((tile: PlacedTileData) => {
+            const room = new Room(tile.llx, tile.ury, tile.urx, tile.lly);
+            rooms.push(room);
+            if (tile.name === 'term') {
+                terms.push(room);
+            }
+        });
+
+        level.addExtras('rooms', rooms);
+        level.addExtras('terms', terms);
     }
 
 

@@ -10,7 +10,7 @@ type Level = import('./level').Level;
 
 // export const Path: any = {};
 
-const NO_PATH = Object.freeze([]);
+const NO_PATH: readonly ICoordXY[] = Object.freeze([]);
 
 export type PathFunc = (map: CellMap, x0: number, y0: number, x1: number, y1: number) => ICoordXY[];
 
@@ -223,6 +223,7 @@ Path.getShortestActorPath = function(
     }
 
     const finder = new AStar3D(x1, y1, map, passableCb);
+    finder.setLimit(4000);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
     });

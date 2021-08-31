@@ -509,6 +509,9 @@ const Elements = [
     {
         name: 'swamp', className: 'cell-element-swamp',
         char: '"',
+        msg: {
+            onEnter: 'Swampy terrain makes it more difficult to move'
+        },
         addComp: [{comp: 'Terrain',
             func: {
                 setMods: [speedPenalty(0.25, ['Flying'])]
@@ -518,6 +521,9 @@ const Elements = [
     {
         name: 'frozen swamp', className: 'cell-element-frozen-swamp',
         char: '"',
+        msg: {
+            onEnter: 'Frozen and swampy terrain makes it more difficult to move'
+        },
         addComp: ['Snowy', {comp: 'Terrain',
             func: {
                 setMods: [speedPenalty(0.15, ['Flying'])]

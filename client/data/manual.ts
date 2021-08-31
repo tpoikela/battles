@@ -140,7 +140,6 @@ elevation above sea-level, and 3 depths for water. When climbing above the sea l
 it is possible to only move between two adjacent height levels. In the table below,
 you can only move between terrain that is in two adjacent rows:
 
-
 Attacking
 ---------
 
@@ -223,6 +222,28 @@ Reading books
 Books can be read by pressing ${getChar(KEY.READ)} while there is something to read in
 the same cell as the player. If they are in inventory, they can be read by using the
 books simply with Use command.
+
+Mining/farming/crafting
+-----------------------
+
+Mining can be done by using a pick-axe to a wall that can be broken with that pick-axe.
+
+Farming can be done as follows:
+  1. Till the soil with a hoe: Select hoe from inventory, then Use it to a suitable cell.
+  2. Sow the seeds to tilled soil by Using a seed to tilled soil cell.
+  3. Wait an amount of days it takes for that crop to grown.
+  4. Gather the grown crops from the ground once they are ready.
+
+Crafting is done by pressing ${getChar(GUI.Craft)}. Then select a suitable recipe from
+the left menu. Then press Craft.
+
+Temperature and coldness
+------------------------
+
+Weather and temperature are simulated by the gate. Player and NPCs can get hypothermic and
+eventually freeze to death. Heat sources such as houses and campfires can restore body
+temperature, and help in getting rid of the cold. Humidity also affects the temperature,
+so getting wet (falling into water) in winter can spell a quick doom to careless adventurer.
 
 Game settings
 -------------

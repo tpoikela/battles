@@ -377,7 +377,7 @@ export class BattlesTop extends React.Component {
         const oneSelectedCell: Cell | null = this.getOneSelectedCell();
 
         return (
-            <div className='container main-div' id='main-div' >
+            <div className='container-fluid main-div' id='main-div' >
                 <GameTopMenu menuCallback={this.topMenuCallback} />
 
                 {(this.state.showStartScreen || this.state.showLoadScreen) &&

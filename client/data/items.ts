@@ -1201,7 +1201,7 @@ const Items: ObjectShell[] = [
     // but if they don't, weight is then generated randomly. Value is also per
     // 100g. Energy should be generally between 0 - 9000
     {
-        name: 'FoodBase', className: 'cell-item-food', char: '%',
+        name: 'FoodBase', char: '%',
         weight: 0.1, type: 'food', dontCreate: true,
         addComp: 'OneShot', // Item is destroyed after use
         rarity: 1,
@@ -1389,24 +1389,28 @@ const Items: ObjectShell[] = [
         addComp: 'OneShot',
         use: SowSeeds('Wheat', 2 * 6),
         value: 5,
+        weight: 0.05,
     },
     {
         name: 'oat seeds', base: 'tool',
         addComp: 'OneShot',
         use: SowSeeds('Oat', 2 * 6),
         value: 5,
+        weight: 0.05,
     },
     {
         name: 'barley seeds', base: 'tool',
         addComp: 'OneShot',
         use: SowSeeds('Oat', 2 * 6),
         value: 5,
+        weight: 0.05,
     },
     {
         name: 'rye seeds', base: 'tool',
         addComp: 'OneShot',
         use: SowSeeds('Oat', 2 * 6),
         value: 5,
+        weight: 0.05,
     },
     {
         name: 'Turnip seeds', base: 'tool',
@@ -1414,6 +1418,7 @@ const Items: ObjectShell[] = [
         addComp: 'OneShot',
         use: SowSeeds('Turnip', 3 * 6),
         value: 5,
+        weight: 0.05,
     },
     {
         name: 'Carrot seeds', base: 'tool',
@@ -1421,6 +1426,7 @@ const Items: ObjectShell[] = [
         addComp: 'OneShot',
         use: SowSeeds('Carrots', 3 * 6),
         value: 5,
+        weight: 0.05,
     },
     {
         name: 'Cabbage seeds', base: 'tool',
@@ -1428,6 +1434,7 @@ const Items: ObjectShell[] = [
         addComp: 'OneShot',
         use: SowSeeds('Cabbage', 3 * 6),
         value: 5,
+        weight: 0.05,
     },
     {
         name: 'Potato seeds', base: 'tool',
@@ -1435,6 +1442,7 @@ const Items: ObjectShell[] = [
         addComp: 'OneShot',
         use: SowSeeds('Potatoes', 3 * 6),
         value: 7,
+        weight: 0.05,
     },
     {
         name: 'Corn seeds', base: 'tool',
@@ -1442,6 +1450,7 @@ const Items: ObjectShell[] = [
         addComp: 'OneShot',
         use: SowSeeds('Corn', 3 * 6),
         value: 7,
+        weight: 0.05,
     },
     {
         name: 'Blueberry seeds', base: 'tool',
@@ -1449,6 +1458,7 @@ const Items: ObjectShell[] = [
         addComp: 'OneShot',
         use: SowSeeds('Blueberries', 4 * 6),
         value: 10,
+        weight: 0.05,
     },
     {
         name: 'Lingonberry seeds', base: 'tool',
@@ -1456,6 +1466,7 @@ const Items: ObjectShell[] = [
         addComp: 'OneShot',
         use: SowSeeds('Lingonberries', 4 * 6),
         value: 10,
+        weight: 0.05,
     },
     {
         name: 'Ghost pepper seeds', base: 'tool',
@@ -1470,6 +1481,7 @@ const Items: ObjectShell[] = [
         addComp: 'OneShot',
         use: SowSeeds('Wraith pepper', 6 * 6),
         value: 40,
+        weight: 0.05,
     },
 
 
@@ -1482,15 +1494,18 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'piece of wood', base: 'tool', value: 5,
-        className: 'cell-item-wooden', weight: 0.2
+        className: 'cell-item-wooden', weight: 0.2,
+        noRandom: true,
     },
     {
         name: 'piece of grass', base: 'tool', value: 2,
-        className: 'cell-item-wooden', char: ']', weight: 0.1
+        className: 'cell-item-wooden', char: ']', weight: 0.1,
+        noRandom: true,
     },
     {
         name: 'piece of stone', base: 'tool', value: 3,
-        className: 'cell-item-stone', char: ']', weight: 0.25
+        className: 'cell-item-stone', char: ']', weight: 0.25,
+        noRandom: true,
     },
     {
         name: 'iron ingot', base: 'tool', value: 15,

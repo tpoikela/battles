@@ -1447,7 +1447,7 @@ export class GoalShopkeeper extends GoalBase {
     public y: number;
     public hasShouted: boolean;
 
-    constructor(actor, x, y) {
+    constructor(actor: SentientActor, x: number, y: number) {
         super(actor);
         this.setType('GoalShopkeeper');
         this.x = x;
@@ -1478,8 +1478,14 @@ export class GoalShopkeeper extends GoalBase {
             }
         }
         else {
+            const c = this.actor.getLevel().getMap().getCell(this.x, this.y);
+            if (!c.hasShop()) {
+                const xyMsg = `@${this.x},${this.y} | ${this.actor.getName()}`;
+                RG.err('GoalShopkeeper', 'activate',
+                    'No shop in the target cell. Bug in initialisation! ' + xyMsg);
+            }
             // Else find a path back to shop
-            this.dbg(`${this.x},${this.y} has shop`);
+            this.dbg(`${this.x},${this.y} has the shop`);
             const goal = new GoalFollowPath(this.actor, [this.x, this.y]);
             // this.removeAllSubGoals();
             this.addSubGoal(goal);
