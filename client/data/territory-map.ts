@@ -92,7 +92,6 @@ TerritoryMap.create = function(
 
     pData.startX.push(playerOwX);
     pData.startY.push(playerOwY);
-    console.log('TerritoryMap gen player owX:', playerOwX, 'owY:',  playerOwY);
     terrMap.addTag([playerOwX, playerOwY], 'player');
 
     terrMap.generate();

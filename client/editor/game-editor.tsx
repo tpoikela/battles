@@ -223,9 +223,9 @@ export default class GameEditor extends Component {
       zoneList: [],
       zoneConf: {shown: ''},
 
-      levelX: 300,
-      levelY: 250,
-      levelType: 'dwarven_city',
+      levelX: 500,
+      levelY: 200,
+      levelType: 'abandoned_fort',
 
       subLevelX: 20,
       subLevelY: 7,

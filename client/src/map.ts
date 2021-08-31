@@ -291,7 +291,7 @@ export class CellMap {
     /* Returns visible cells for given actor.*/
     public getCellsInFOV(actor: SentientActor): Cell[] {
         const cells: Cell[] = [];
-        if (actor.has('Blindness')) {return cells;}
+        if (actor.has('Blindness')) {return [actor.getCell()!];}
 
         if (actor.isLocated()) {
             if (actor.getLevel().getMap() === this) {
@@ -315,11 +315,13 @@ export class CellMap {
         return this.fov.canSeeCell(actor.getXYZ(), range, cell.getXYZ());
     }
 
+    /* Returns 2 lists: Cells in FoV, and cells in FoV+addRange (excludes cells
+     * in FoV). */
     public getCellsInFOVPlus(actor: SentientActor, addRange: number): [Cell[], Cell[]] {
         const cells: Cell[] = [];
         const cellsPlus: Cell[] = [];
         const [xA, yA, zA] = actor.getXYZ();
-        const fovRange = actor.getFOVRange();
+        const fovRange = RG.getFOVRange(actor);
         const range = fovRange + addRange;
 
         if (actor.isLocated()) {

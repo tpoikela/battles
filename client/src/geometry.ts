@@ -414,7 +414,9 @@ export class Geometry {
 
     /* Does a full Map.Level merge from l2 to l1.
     * Actors, items and elements included. l1 will be the merged level. */
-    public static mergeLevels(l1: Level, l2: Level, startX, startY): void {
+    public static mergeLevels(
+      l1: Level, l2: Level, startX, startY, mergeOpts?
+    ): void {
         const m1 = l1.getMap();
         const m2 = l2.getMap();
 
@@ -465,7 +467,7 @@ export class Geometry {
             }
         });
 
-        this.mergeMapBaseElems(m1, m2, startX, startY);
+        this.mergeMapBaseElems(m1, m2, startX, startY, mergeOpts);
 
         if (l2.hasExtras()) {
             this.mergeLevelExtras(l1, l2, startX, startY);
@@ -515,7 +517,9 @@ export class Geometry {
     }
 
     /* Merges m2 into m1 starting from x,y in m1. Does not move items/actors. */
-    public static mergeMapBaseElems(m1: CellMap, m2: CellMap, startX: number, startY: number): void {
+    public static mergeMapBaseElems(
+      m1: CellMap, m2: CellMap, startX: number, startY: number, mergeOpts?
+    ): void {
         if (m1.cols < m2.cols) {
             const got = `m1: ${m1.cols} m2: ${m2.cols}`;
             RG.err('Geometry', 'mergeMapBaseElems',
@@ -528,14 +532,35 @@ export class Geometry {
         }
         const endX = startX + m2.cols - 1;
         const endY = startY + m2.rows - 1;
-        for (let x = startX; x <= endX; x++) {
-            for (let y = startY; y <= endY; y++) {
-                if (m1.hasXY(x, y)) {
-                    const cell = m2.getCell(x - startX, y - startY);
-                    m1._map[x][y].setBaseElem(cell.getBaseElem());
-                }
-            }
+        if (mergeOpts) {
+          for (let x = startX; x <= endX; x++) {
+              for (let y = startY; y <= endY; y++) {
+                  if (m1.hasXY(x, y)) {
+                      const cell = m2.getCell(x - startX, y - startY);
+                      const baseElem = cell.getBaseElem();
+                      const elemName = baseElem.getName();
+                      if (mergeOpts.skip) {
+                        if (mergeOpts.skip[elemName]) {continue;}
+                      }
+                      if (mergeOpts.only) {
+                        if (!mergeOpts.only[elemName]) {continue;}
+                      }
+                      m1._map[x][y].setBaseElem(baseElem);
+                  }
+              }
+          }
         }
+        else {
+          for (let x = startX; x <= endX; x++) {
+              for (let y = startY; y <= endY; y++) {
+                  if (m1.hasXY(x, y)) {
+                      const cell = m2.getCell(x - startX, y - startY);
+                      m1._map[x][y].setBaseElem(cell.getBaseElem());
+                  }
+              }
+          }
+        }
+
     }
 
     /* Links the cells of l1 to l2. */

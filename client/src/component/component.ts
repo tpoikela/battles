@@ -657,7 +657,6 @@ Paralysis.prototype.toJSON = function() {
     return obj;
 };
 
-/*
 export const Blindness = DataComponent('Blindness', {source: null});
 Blindness.description = 'Blinded actors cannot see their surroundings';
 
@@ -671,7 +670,6 @@ Blindness.prototype.toJSON = function() {
     }
     return obj;
 };
-*/
 
 /* Component added to summoned/created actors. */
 export const Created = UniqueDataComponent('Created', {creator: null});

@@ -2,7 +2,8 @@
  * window.DEBUG to have access to all the functions here. */
 
 import RG from './rg';
-import {ObjectShell, Parser} from '../src/objectshellparser';
+import {ObjectShell, Parser} from './objectshellparser';
+import {Component} from './component'
 
 type SentientActor = import('./actor').SentientActor;
 
@@ -12,6 +13,10 @@ export class RGDebug {
 
     constructor() {
         this.parser = ObjectShell.getParser();
+    }
+
+    public addComp(actor: SentientActor, compName: string): void {
+        actor.add(new Component[compName]());
     }
 
     /* Creates a full armor set and adds to actor inventory. */

@@ -1100,6 +1100,7 @@ class RGClass {
      * effects etc. */
     public getFOVRange(actor: SentientActor): number {
         let range = actor.getFOVRange();
+        if (actor.has('Blindness')) {return 1;}
         if (actor.has('Location')) {
             const level = actor.get('Location').getLevel();
             if (level && level.has('Weather')) {

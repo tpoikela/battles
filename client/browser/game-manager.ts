@@ -673,7 +673,7 @@ export class GameManager {
             (window as any).PLAYER = player; // For debugging
             (window as any).RG = RG; // For debugging
             (window as any).PARSER = ObjectShell.getParser(); // For debugging
-            (window as any).DEBUG = RGDebug; // For debugging
+            (window as any).DEBUG = new RGDebug(); // For debugging
         // }
     }
 

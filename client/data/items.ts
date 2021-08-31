@@ -1161,6 +1161,11 @@ const Items: ObjectShell[] = [
         value: value(80)
     },
     {
+        name: 'Potion of blindness', base: 'PotionBase',
+        use: {addComp: {name: 'Blindness', duration: '2d5'}},
+        value: value(80)
+    },
+    {
         name: 'Potion of frost poison', base: 'PotionBase',
         use: {poison: {duration: '5d20', damage: '1d6 + 1', prob: '0.2'}},
         value: value(100)
