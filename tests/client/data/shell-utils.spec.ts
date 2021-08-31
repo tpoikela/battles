@@ -33,14 +33,13 @@ describe('ShellUtils', () => {
     });
 });
 
-describe('ActorGen', () => {
+describe('ActorGen in shell-utils', () => {
     it('can generate random actor shells', () => {
         const randShell = ActorGen.genRandShell();
 
         expect(randShell).to.have.property('name');
         expect(randShell).to.have.property('type');
         expect(randShell).to.have.property('char');
-        console.log(randShell);
 
         const actorsGenerated = ActorGen.genActors(200);
         const parser = ObjectShell.getParser();

@@ -33,8 +33,8 @@ describe('ChatBase', () => {
 
         const statsObj = trainObj.getMenu();
         const keys = Object.keys(statsObj);
-        console.log(statsObj);
-        console.log(keys);
+        //console.log(statsObj);
+        // console.log(keys);
         expect(keys).to.have.length(RG.STATS.length + 2);
         keys.forEach((key: string) => {
             expect(key).to.match(/[a-zA-Z0-9]|pre|post/);

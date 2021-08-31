@@ -253,7 +253,7 @@ describe('System.Quest', () => {
         const getGiveQuest = new Quest('Get stuff and give', getGiveTasks);
         RG.log(getGiveQuest.getSteps());
         questPopul = new QuestPopulate();
-        questPopul.setDebug(true);
+        //dbg questPopul.setDebug(true);
         ok = questPopul.mapQuestToResources(getGiveQuest, city, null);
         expect(ok, 'Get-Give Quest mapped OK').to.equal(true);
         questPopul.addQuestComponents(city);
@@ -312,7 +312,7 @@ describe('System.Quest', () => {
 
         const rng = RGTest.createRNG(1);
         questPopul = new QuestPopulate({rng});
-        questPopul.setDebug(true);
+        //dbg questPopul.setDebug(true);
         const ok = questPopul.mapQuestToResources(hierQuest, city, area.getTileXY(0, 0));
         expect(ok, 'Escort Quest mapped OK').to.equal(true);
         questPopul.addQuestComponents(city);

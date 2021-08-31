@@ -53,18 +53,13 @@ describe('ItemGen', () => {
 
     it('has function generate random item shells', () => {
         const parser = ObjectShell.getParser();
-        /*
-        console.log('WEAPONS:');
         for (let i = 0; i < 50; i++) {
             const shell = ItemGen.genRandShell('weapon');
             expect(shell).to.have.property('name');
             expect(shell).to.have.property('type');
             expect(shell).to.have.property('value');
             const {name, value, damage} = shell;
-            console.log(value, 'gold,', 'name:', name, 'dmg:', damage);
         }
-        */
-        console.log('ARMOUR:');
         const ofAgilRe = new RegExp('of (agility|willpower|accuracy|strength)', 'i');
         for (let i = 0; i < 50; i++) {
             const shell = ItemGen.genRandShell('armour');
@@ -72,42 +67,32 @@ describe('ItemGen', () => {
             expect(shell).to.have.property('type');
             expect(shell).to.have.property('value');
             const {name, value, protection} = shell;
-            console.log(value, 'gold,', 'name:', name, 'pro:', protection);
 
             const parsedShell = parser.parseObjShell(RG.TYPE_ITEM, shell);
             const item = parser.createFromShell(RG.TYPE_ITEM, parsedShell);
-            if (ofAgilRe.test(item.getName())) {
-                console.log(item.get('Stats').toJSON());
-            }
         }
-        console.log('AMMO:');
         for (let i = 0; i < 50; i++) {
             const shell = ItemGen.genRandShell('ammo');
             expect(shell).to.have.property('name');
             expect(shell).to.have.property('type');
             expect(shell).to.have.property('value');
             const {name, value, damage} = shell;
-            console.log(value, 'gold,', 'name:', name, 'dmg:', damage);
             expect(shell.damage).to.be.a('string');
         }
-        console.log('MISSILEWEAPON:');
         for (let i = 0; i < 50; i++) {
             const shell = ItemGen.genRandShell('missileweapon');
             expect(shell).to.have.property('name');
             expect(shell).to.have.property('type');
             expect(shell).to.have.property('value');
             const {name, value, damage} = shell;
-            console.log(value, 'gold,', 'name:', name, 'dmg:', damage);
             expect(shell.damage, `${name} has defined damage`).to.be.a('string');
         }
-        console.log('MISSILE:');
         for (let i = 0; i < 50; i++) {
             const shell = ItemGen.genRandShell('missile');
             expect(shell).to.have.property('name');
             expect(shell).to.have.property('type');
             expect(shell).to.have.property('value');
             const {name, value, damage} = shell;
-            console.log(value, 'gold,', 'name:', name, 'dmg: ', damage);
             expect(shell.damage, `${name} has defined damage`).to.be.a('string');
         }
     });

@@ -72,7 +72,6 @@ describe('BBox', () => {
         expect(sides[3], 'Bottom side').to.deep.equal([[0, 4], [3, 4]]);
 
         const [n, match] = bbox1.getMatchingSide(bbox2);
-        console.log('MMM', match);
         expect(match, 'Matching side').to.deep.equal([[3, 1], [3, 4]]);
 
         const bbox3 = bbox1.combine(bbox2);

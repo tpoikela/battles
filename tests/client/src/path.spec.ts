@@ -61,7 +61,7 @@ describe('Path', () => {
                 }
             }
         }
-        level.debugPrintInASCII();
+        //dbg level.debugPrintInASCII();
 
         let path = [];
 

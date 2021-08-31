@@ -38,7 +38,7 @@ describe('CryptGenerator', function() {
             expect(level.getActors()).to.have.length.above(5);
             expect(level.getItems()).to.have.length.above(5);
             expect(level.getElements()).to.have.length.above(0);
-            level.debugPrintInASCII();
+            // level.debugPrintInASCII();
         }
     });
 

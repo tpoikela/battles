@@ -49,18 +49,20 @@ describe('ActorGen', () => {
 
     it('adds the danger value of shells together', function() {
         const actorConstr = {race: 'elf'};
-        // console.log(shellProps);
         const hist = {};
+        let dangerSum = 0;
         for (let i = 0; i < 1000; i++) {
             const shell = ActorGen.genShell(actorConstr);
             if (!hist[shell.danger]) {
-                hist[shell.danger] = 1;
+                hist[shell.danger] = 0;
             }
             hist[shell.danger] += 1;
-            // console.log(shell);
+            dangerSum += shell.danger;
         }
-        // console.log(shellProps);
-        console.log('hist danger:', hist);
+        if (0) {
+            console.log('hist danger:', hist);
+            console.log('ActorGen tests, average danger:', dangerSum/1000);
+        }
     });
 
 

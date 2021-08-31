@@ -31,7 +31,7 @@ describe('CaveGenerator', function() {
                 // console.log(bbox);
                 expect(bbox[0].getArea()).to.equal(14 * 14);
             }
-            level.debugPrintInASCII();
+            // level.debugPrintInASCII();
         }
     });
 
@@ -78,7 +78,7 @@ describe('CaveGenerator', function() {
             dungeonType: 'Lair', isCollapsed: false, maxDanger: 3
         };
         const level = caveGen.create(100, 50, conf);
-        level.debugPrintInASCII();
+        // level.debugPrintInASCII();
 
         const elems = level.getElements();
         elems.forEach(elem => {

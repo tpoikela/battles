@@ -97,7 +97,7 @@ describe('GUI.Screen', () => {
         level.addActor(actor, 1, 1);
         const visibleCells = level.exploreCells(actor);
         screen.renderWithRLE(1, 1, map, visibleCells);
-        screen.printRenderedChars();
+        // screen.printRenderedChars();
 
         const chars = screen.getCharRows();
         const classes = screen.getClassRows();

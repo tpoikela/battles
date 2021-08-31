@@ -303,7 +303,7 @@ describe('Game.FromJSON', function() {
         const shopKeepers = allActors.filter(ent =>
             (/shopkeeper/).test(ent.getName()));
 
-        expect(shopKeepers.length).to.equal(9);
+        expect(shopKeepers.length).to.equal(6);
 
         const nActorsBefore = allActors.length;
         const json = capitalLevel.toJSON();
