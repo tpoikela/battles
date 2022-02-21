@@ -31,7 +31,7 @@ my @cmds = (
     "cp -n ./index.html docs/",
     "cp -n ./build/bundle.js docs/build",
     "cp -n ./build/style.css docs/build",
-    "rm docs/build/*worker.js",
+    "rm -f docs/build/*worker.js",
     "cp build/*worker.js docs/build"
 );
 
