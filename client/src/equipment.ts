@@ -135,7 +135,8 @@ export class Equipment {
             [RG.EQUIP.FEET]: new EquipSlot(RG.EQUIP.FEET),
             [RG.EQUIP.MISSILE]: new EquipSlot(RG.EQUIP.MISSILE, true),
             [RG.EQUIP.MISSILEWEAPON]: new EquipSlot(RG.EQUIP.MISSILEWEAPON),
-            [RG.EQUIP.SPIRITGEM]: new EquipSlot(RG.EQUIP.SPIRITGEM)
+            [RG.EQUIP.SPIRITGEM]: new EquipSlot(RG.EQUIP.SPIRITGEM),
+            [RG.EQUIP.TOOL]: new EquipSlot(RG.EQUIP.TOOL),
         };
     }
 
@@ -254,7 +255,7 @@ export class Equipment {
     public equipItem(item: ItemBase): boolean {
         let res = false;
         if ((item as any).getArmourType) {
-            res = this._equipToSlotType((item as any).getArmourType(), item);
+            res = this.equipToSlotType((item as any).getArmourType(), item);
         }
         // No equip property, can only equip to hand
         else if (/^(missile|ammo)$/.test(item.getType())) {
@@ -264,15 +265,15 @@ export class Equipment {
             }
         }
         else if (item.getType() === 'missileweapon') {
-            res = this._equipToSlotType(RG.EQUIP.MISSILEWEAPON, item);
+            res = this.equipToSlotType(RG.EQUIP.MISSILEWEAPON, item);
         }
         else {
-            res = this._equipToSlotType(RG.EQUIP.HAND, item);
+            res = this.equipToSlotType(RG.EQUIP.HAND, item);
         }
         return res;
     }
 
-    public _equipToSlotType(slotType: string, item): boolean {
+    public equipToSlotType(slotType: string, item): boolean {
         const slot = this._slots[slotType];
         if (Array.isArray(slot)) {
             for (let i = 0; i < slot.length; i++) {

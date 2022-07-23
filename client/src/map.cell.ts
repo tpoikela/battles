@@ -155,6 +155,10 @@ export class Cell {
         return res;
     }
 
+    public isAdjacent(cell: Cell): boolean {
+        return RG.withinRange(1, this, cell);
+    }
+
     /* Checks if this cell has a marker with given tag. */
     public hasMarker(tag: string): boolean {
         if (this.hasElements()) {

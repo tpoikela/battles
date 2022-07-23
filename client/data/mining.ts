@@ -24,6 +24,7 @@ export const Wall2Floor: {[key: string]: ConstBaseElem} = {
     'wallvoid': ELEM.FLOOR_DUNGEON,
 };
 
+/* Maps what kind of items are generated from which wall tile. */
 export const Wall2Items: TWall2Items = {
     'wall': {
         always: ['piece of stone'],

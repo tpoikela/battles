@@ -11,13 +11,51 @@ import Modal from 'react-bootstrap-modal';
 
 interface IGameCharInfoState {
   tabShown: string;
-
 }
 
 interface IGameCharInfoProps {
   player: SentientActor | null;
   showCharInfo: boolean;
   toggleScreen: (type: string) => void;
+  setSelectedQuest: (quest: any) => void;
+  selectedQuest?: any;
+}
+
+interface IGameQuestSlotProps {
+    quest: any;
+    setSelectedQuest: (quest: any) => void;
+    selectedQuest?: any;
+}
+
+/* Used to render a single quest into GameCharInfo Quest tab. */
+export class QuestSlot extends React.Component {
+
+  public props: IGameQuestSlotProps;
+
+  constructor(props: IGameQuestSlotProps) {
+    super(props);
+    this.setSelectedQuest = this.setSelectedQuest.bind(this);
+  }
+
+  public render() {
+    const quest = this.props.quest;
+    const questID = quest.getID();
+    let isSel = false;
+    if (this.props.selectedQuest) {
+      isSel = questID === this.props.selectedQuest.getID();
+    }
+    return (
+      <li key={quest.getID()} onClick={this.setSelectedQuest}>
+        <p className={isSel ? 'active-quest' : ''}>
+          {this.props.quest.toString()}
+        </p>
+      </li>
+    );
+  }
+
+  public setSelectedQuest(): void {
+    this.props.setSelectedQuest(this.props.quest);
+  }
 }
 
 export default class GameCharInfo extends React.Component {
@@ -29,8 +67,9 @@ export default class GameCharInfo extends React.Component {
   constructor(props: IGameCharInfoProps) {
     super(props);
     this.state = {
-      tabShown: 'CharInfo'
+        tabShown: 'CharInfo',
     };
+    this.setSelectedQuest = this.setSelectedQuest.bind(this);
   }
 
   public selectTab(tabName: string): void {
@@ -38,7 +77,12 @@ export default class GameCharInfo extends React.Component {
   }
 
   public toggleScreen(type: string): void {
-      this.props.toggleScreen(type);
+    this.props.toggleScreen(type);
+  }
+
+  public setSelectedQuest(quest: any): void {
+    this.setState({selectedQuest: quest});
+    this.props.setSelectedQuest(quest);
   }
 
   public render() {
@@ -247,11 +291,18 @@ export default class GameCharInfo extends React.Component {
   public renderQuestsTab(actor) {
     const quests = actor.getList('Quest');
     const questsElem = quests.map(quest => (
+        <QuestSlot
+            quest={quest}
+            setSelectedQuest={this.setSelectedQuest}
+            selectedQuest={this.props.selectedQuest}
+        />
+      /*
       <li key={quest.getID()}>
-        <p>
+        <p className={quest.getID() === this.state.selectedQuest ? 'activeQuest' : ''>
           {quest.toString()}
         </p>
       </li>
+       */
 
     ));
 

@@ -38,46 +38,50 @@ export class SystemMining extends SystemBase {
         const depth = placeComp.getDepth();
         const danger = placeComp.getDanger();
 
-        if (depth > 0) {
-            const cell: Cell = miningComp.getTarget();
-            const baseElem = cell.getBaseElem();
-            const baseType = baseElem.getType();
-            const toElem = Wall2Floor[baseType];
-            if (toElem) {
-                cell.setBaseElem(toElem);
-                // Add possible gems/mineral to cell
-                const itemEntry: MineItemEntry = Wall2Items[baseType];
-                const itemsAlways = itemEntry.always;
+        const cell: Cell = miningComp.getTarget();
+        const baseElem = cell.getBaseElem();
+        const baseType = baseElem.getType();
+        const toElem = Wall2Floor[baseType];
+        if (!toElem) {return;}
+        cell.setBaseElem(toElem);
+        // Add possible gems/mineral to cell
+        const itemEntry: MineItemEntry = Wall2Items[baseType];
+        const itemsAlways = itemEntry.always;
 
-                itemsAlways.forEach((itemName: string) => {
-                    const item = this.parser.createItem(itemName);
-                    if (item) {
-                        level.addItem(item, cell.getX(), cell.getY());
-                    }
-                });
+        itemsAlways.forEach((itemName: string) => {
+            const item = this.parser.createItem(itemName);
+            if (item) {
+                level.addItem(item, cell.getX(), cell.getY());
+            }
+        });
 
-                let entry = '';
-                if (itemEntry.rand) {
-                    const itemsRand = itemEntry.rand;
-                    entry = this.rng.getWeighted(itemsRand);
-                    if (entry !== '' && entry !== 'nothing') {
-                        const itemFound = this.parser.createItem(entry);
-                        if (itemFound) {
-                            level.addItem(itemFound, cell.getX(), cell.getY());
-                            let msg = `${RG.getName(ent)} discovers ${itemFound.getName()}`;
-                            msg += ' while digging';
-                            RG.gameMsg({cell, msg});
-                        }
-                    }
-                }
-                // We can call func-based item generation if defined
-                if (entry === '' || entry === 'nothing') {
-                    if (itemEntry.constraint) {
-                        const func = new Constraints().getConstraints(itemEntry.constraint);
-                    }
+        let entry = '';
+        if (itemEntry.rand) {
+            const itemsRand: {[key: string]: number} = {};
+            // Add depth to randweights. Idea is that since valuable items have
+            // smaller weights, their relative weight increases.
+            Object.keys(itemEntry.rand).forEach(key => {
+                itemsRand[key] = itemEntry.rand[key] + depth;
+            });
+
+            entry = this.rng.getWeighted(itemsRand);
+            if (entry !== '' && entry !== 'nothing') {
+                const itemFound = this.parser.createItem(entry);
+                if (itemFound) {
+                    level.addItem(itemFound, cell.getX(), cell.getY());
+                    let msg = `${RG.getName(ent)} discovers ${itemFound.getName()}`;
+                    msg += ' while digging';
+                    RG.gameMsg({cell, msg});
                 }
             }
         }
+        // We can call func-based item generation if defined
+        if (entry === '' || entry === 'nothing') {
+            if (itemEntry.constraint) {
+                const func = new Constraints().getConstraints(itemEntry.constraint);
+            }
+        }
+
     }
 
 }

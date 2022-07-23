@@ -611,6 +611,7 @@ class RGClass {
             MISSILE: 'missile',
             MISSILEWEAPON: 'missileweapon',
             SPIRITGEM: 'spiritgem',
+            TOOL: 'tool',
         };
 
         this.classNameDMG = {

@@ -12,6 +12,7 @@ interface IGameStatsProps {
   player: SentientActor;
   selectedItem?: any;
   selectedCell?: any;
+  selectedQuest?: any;
   setViewType(type: number): void;
   toggleScreen(arg: any): void;
 }
@@ -42,6 +43,7 @@ export default class GameStats extends React.Component {
     const selectedItem = this.props.selectedItem;
     const selectedCell = this.props.selectedCell;
     const brain = player.getBrain() as BrainPlayer;
+    const quest = this.props.selectedQuest;
 
     let selItemName = '';
     if (selectedItem) {
@@ -79,6 +81,11 @@ export default class GameStats extends React.Component {
     let mapButtonText = 'Map View';
     if (this.props.showMap) {
       mapButtonText = 'Player View';
+    }
+
+    let questDir = '';
+    if (quest) {
+      questDir = 'X'; // <v^>
     }
 
     return (
@@ -122,6 +129,10 @@ export default class GameStats extends React.Component {
         >
           Overworld
         </button>
+
+        {quest &&
+          <p>Quest: {questDir}</p>
+        }
       </div>
     );
   }

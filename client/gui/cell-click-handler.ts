@@ -41,7 +41,7 @@ export class CellClickHandler extends DriverBase {
             case 'shoot': this.handleShoot(x, y, cell); break;
             case 'usestairs': this.handleUseStairs(x, y, cell); break;
             case 'use-element': this.handleUseElement(x, y, cell); break;
-            case 'use-item': break; // TODO
+            case 'use-item': this.handleUseItem(x, y, cell); break;
             default: break;
         }
 
@@ -107,6 +107,13 @@ export class CellClickHandler extends DriverBase {
     // TODO move this into Player.Brain
     public handleUseElement(x: number, y: number, cell: Cell): void {
         const cmd = {cmd: 'use-element', target: cell};
+        this._keyBuffer.push(cmd);
+    }
+
+    public handleUseItem(x: number, y: number, cell: Cell): void {
+        const player = this._game.getPlayer();
+        const item = player.getInvEq().getWeapon();
+        const cmd = {cmd: 'use', target: cell, item};
         this._keyBuffer.push(cmd);
     }
 

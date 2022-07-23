@@ -68,6 +68,7 @@ export interface IBattlesTopState {
     selectedCell: Cell | null;
     selectedGame: any;
     selectedItem: ItemBase | null;
+    selectedQuest: any;
     showPlugins: boolean;
     showEditor: boolean;
     showMap: boolean;
@@ -131,6 +132,7 @@ export class BattlesTop extends React.Component {
             selectedCell: null,
             selectedGame: null,
             selectedItem: null,
+            selectedQuest: null,
             showCharInfo: false,
             showCreateScreen: false,
             showEditor: false,
@@ -483,6 +485,8 @@ export class BattlesTop extends React.Component {
                       player={player}
                       showCharInfo={this.state.showCharInfo}
                       toggleScreen={this.toggleScreen}
+                      selectedQuest={this.state.selectedQuest}
+                      setSelectedQuest={this.setSelectedQuest}
                     />
                 }
 
@@ -501,6 +505,7 @@ export class BattlesTop extends React.Component {
                         <div className='text-left game-stats-div'>
                             <GameStats
                                 player={player!}
+                                selectedQuest={this.state.selectedQuest}
                                 selectedCell={oneSelectedCell}
                                 selectedItem={this.state.selectedItem}
                                 setViewType={this.setViewType}
@@ -932,6 +937,8 @@ export class BattlesTop extends React.Component {
         this.updatePluginList = this.updatePluginList.bind(this);
 
         this.increaseFont = this.increaseFont.bind(this);
+
+        this.setSelectedQuest = this.setSelectedQuest.bind(this);
     }
 
     public useAsciiTiles(): void {
@@ -940,6 +947,10 @@ export class BattlesTop extends React.Component {
 
     public useGraphicalTiles(): void {
         this.setState({renderInAscii: false});
+    }
+
+    public setSelectedQuest(quest: any): void {
+        this.setState({selectedQuest: quest});
     }
 
 }

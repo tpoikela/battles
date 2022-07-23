@@ -1066,16 +1066,23 @@ export class GameManager {
             this.gameGUIState.isTargeting = false;
         }
         else {
+            const player = this.game.getPlayer();
             TopLogic.describeCell(cell, this.gameGUIState.visibleCells);
             this.updateCb({selectedCell: cell});
             if (cell.hasItems()) {
                 this.useClickHandler(x, y, cell, 'pickup');
+            }
+            else if (cell.isAdjacent(player.getCell())) {
+                // If player has pick-axe equipped or as tool, break rocks
+                this.useClickHandler(x, y, cell, 'use-item');
             }
             else {
                 console.log('Using click handler to move: ', x, y);
                 this.useClickHandler(x, y, cell, 'move');
             }
         }
+        // Code below only for debugging. Sets some global vars, prints cell
+        // info
         console.log(`${x},${y} Cell: ${JSON.stringify(cell)}`);
         if (cell.hasActors()) {
             const actors = cell.getActors()!;

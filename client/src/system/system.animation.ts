@@ -11,7 +11,7 @@ export class SystemAnimation extends SystemBase {
     public currAnim: Animation;
     private _enabled: boolean;
 
-    constructor(compTypes, pool: EventPool) {
+    constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.ANIMATION, compTypes, pool);
         this._enabled = true;
         this.currAnim = null;
