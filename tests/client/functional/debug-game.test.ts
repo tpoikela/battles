@@ -4,7 +4,6 @@
 
 import { expect } from 'chai';
 import * as RG from '../../../client/src/battles';
-import ROT from '../../../lib/rot';
 import {Keys} from '../../../client/src/keymap';
 const fs = require('fs');
 
@@ -49,7 +48,6 @@ describe('Debug game simulation with player and actors', function() {
 
     it('should execute without throwing', () => {
         RNG.setSeed(0);
-        ROT.RNG.setSeed(0);
         const monitor = new CompMonitor();
         const gameConf = {
             cols: 60,
@@ -79,44 +77,44 @@ describe('Debug game simulation with player and actors', function() {
 
         // Used with expect() later
         const saveFunc = () => {
-            fromJSON = new RG.Game.FromJSON();
+            fromJSON = new RG.FromJSON();
             gameJSON = game.toJSON();
-            game = fromJSON.createGame(gameJSON);
+            game = new RG.GameMain();
+            game = fromJSON.createGame(game, gameJSON);
         };
 
         const components = game.getComponents();
+        const id2Comp = {};
         components.forEach(id => {
-            if (id >= RG.GameObject.ID) {
-                console.log('Comp too high ID', components[id]);
-            }
-            // expect(id, 'ID must not exceed ID count').to.be.below(
-                //RG.GameObject.ID);
+            expect(id2Comp, 'No duplicate found').to.not.have.property(id);
+            id2Comp[id] = id;
         });
-        const index = components.indexOf(RG.GameObject.ID);
-        expect(index, 'No duplicate found').to.equal(-1);
+        // const index = components.indexOf(RG.GameObject.ID);
+        // expect(index, 'No duplicate found').to.equal(-1);
 
         const updateFunc = () => {
             game.update(restKey);
         };
 
+        // Should can a spell which does not require target, such as IceShield
+        // Check the required key from GUI
         const simulSpellOn1stTurn = () => {
             game.update({code: Keys.KEY.POWER});
-            game.update({code: Keys.VK_h});
+            game.update({code: Keys.VK.e});
         };
-        // expect(simulSpellOn1stTurn).not.to.throw(Error);
 
         const timeStart = new Date().getTime();
-        const numTurns = 500;
+        const numTurns = 5000;
         for (let i = 0; i < numTurns; i++) {
             updateFunc();
 
             if (i === 10) {
                 expect(simulSpellOn1stTurn).not.to.throw(Error);
             }
-            if (i % 5000 === 0 && i > 0) {
+            if (i % 250 === 0 && i > 0) {
                 console.log(`Saving game after ${i}/${numTurns} turns`);
-                expect(saveFunc).not.to.throw(Error);
-                // saveFunc();
+                //expect(saveFunc).not.to.throw(Error);
+                saveFunc();
             }
 
             if (i && i % 100 === 0) {

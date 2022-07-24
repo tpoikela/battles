@@ -11,6 +11,7 @@ import {ISuccessCheck, TPropType} from '../interfaces';
 import {Entity} from '../entity';
 
 type Cell = import('../map.cell').Cell;
+import {EffArgs} from '../../data/effects';
 
 const handlerTable = {
     AddComp: true,
@@ -27,6 +28,7 @@ type HandleFunc = (ent: Entity, comp) => boolean;
 const TARGET_SPECIFIER = '$$target';
 const CELL_SPECIFIER = '$$cell';
 const SELF_SPECIFIER = 'self';
+const ITEM_SPECIFIER = '$$item';
 
 // Can be updated when addEffect() if called
 let handlerNames = Object.keys(handlerTable);
@@ -171,7 +173,7 @@ export class SystemEffects extends SystemBase {
     /* Handler for effect 'AddComp'. Adds a component to target entity
      * for a given duration. */
     public handleAddComp(srcEnt, effComp): boolean {
-        const useArgs = effComp.getArgs();
+        const useArgs: EffArgs = effComp.getArgs();
         let targetEnt = SystemEffects.getEffectTarget(useArgs);
         const compName = getCompName(useArgs, targetEnt);
 
@@ -194,6 +196,9 @@ export class SystemEffects extends SystemBase {
                     // Use the final target as value for setter '$$target'
                     if (valueToSet === TARGET_SPECIFIER) {
                         compToAdd[setFunc](targetEnt);
+                    }
+                    else if (valueToSet === ITEM_SPECIFIER) {
+                        compToAdd[setFunc](useArgs.effectSource);
                     }
                     else {
                         const numValue = convertValueIfNeeded(valueToSet);

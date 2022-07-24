@@ -668,12 +668,12 @@ export class GameManager {
      */
     public setDebugRefsToWindow(): void {
         // if (debug.enabled) {
-            (window as any).GAME = this.game; // For debugging
+            (window as any).GAME_RG = this.game; // For debugging
             const player = this.game.getPlayer();
-            (window as any).PLAYER = player; // For debugging
+            (window as any).PLAYER_RG = player; // For debugging
             (window as any).RG = RG; // For debugging
-            (window as any).PARSER = ObjectShell.getParser(); // For debugging
-            (window as any).DEBUG = new RGDebug(); // For debugging
+            (window as any).PARSER_RG = ObjectShell.getParser(); // For debugging
+            (window as any).DEBUG_RG = new RGDebug(); // For debugging
         // }
     }
 
@@ -1087,7 +1087,7 @@ export class GameManager {
         if (cell.hasActors()) {
             const actors = cell.getActors()!;
             console.log(`window.ACTOR set. Actors: ${JSON.stringify(actors)}`);
-            (window as any).ACTOR = actors[0];
+            (window as any).ACTOR_RG = actors[0];
             /* if (debug.enabled) {
                 RG.CLICKED_ACTOR = actors[0];
             }*/
@@ -1095,8 +1095,10 @@ export class GameManager {
         if (cell.hasConnection()) {
             const conns = cell.getPropType('connection');
             console.log(`Connection: ${JSON.stringify(conns)}`);
-            (window as any).CONNECTION = conns[0];
+            (window as any).CONNECTION_RG = conns[0];
         }
+
+        (window as any).CELL_RG = cell;
     }
 
     /* When an ASCII menu item is clicked, this function should be called. */

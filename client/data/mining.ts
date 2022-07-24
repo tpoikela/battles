@@ -9,10 +9,10 @@ export interface MineItemEntry {
     constraint?: IConstraint;
 }
 
-export type TWall2Items = {[key: string]: MineItemEntry};
+export type TElem2Items = {[key: string]: MineItemEntry};
 
 // Used to change wall to floor based on the type
-export const Wall2Floor: {[key: string]: ConstBaseElem} = {
+export const Elem2Floor: {[key: string]: ConstBaseElem} = {
     'wall': ELEM.FLOOR,
     'walldungeon': ELEM.FLOOR_DUNGEON,
     'wallwooden': ELEM.FLOOR_HOUSE,
@@ -25,7 +25,7 @@ export const Wall2Floor: {[key: string]: ConstBaseElem} = {
 };
 
 /* Maps what kind of items are generated from which wall tile. */
-export const Wall2Items: TWall2Items = {
+export const Elem2Items: TElem2Items = {
     'wall': {
         always: ['piece of stone'],
         rand: {nothing: 97, goldcoin: 3}

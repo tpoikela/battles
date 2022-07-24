@@ -918,6 +918,10 @@ export class FromJSON {
         else if (type === 'hole') {
             createdElem = new Element.ElementHole();
         }
+        else {
+            createdElem = new Element.ElementXY(elemJSON.name);
+            createdElem.setType(elemJSON.type);
+        }
 
         // Finally, restore messages (if any)
         if (elemJSON.msg) {

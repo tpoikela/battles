@@ -6,6 +6,7 @@
 import {
     speedPenalty, statsPenalty, defensePenalty, attackPenalty
 } from './shell-utils';
+import {TAddCompSpec} from '../src/interfaces';
 
 // Elevations
 export const ELEV = [
@@ -24,7 +25,32 @@ const DEPTH = [
 
 const CHAR_WALL = '#';
 
-const Elements = [
+interface IElemMsg {
+    onEnter?: string;
+}
+
+interface IElemCallbackObj {
+    addComp?: any;
+    removeComp?: any;
+}
+
+interface IElemCallbacks {
+    [key: string]: IElemCallbackObj;
+}
+
+interface IElemShell {
+    addComp?: TAddCompSpec | string;
+    callbacks?: IElemCallbacks;
+    char: string;
+    className: string;
+    dontCreate?: boolean;
+    msg?: IElemMsg;
+    name: string;
+    noRandom?: boolean;
+    z?: number;
+}
+
+const Elements: IElemShell[] = [
     {
         name: 'bed', className: 'cell-element-bed',
         char: '=',
@@ -430,70 +456,81 @@ const Elements = [
         name: 'wallcave', className: 'cell-element-wall-cave',
         char: CHAR_WALL,
         addComp: ['Opaque',
-            {comp: 'Impassable', func: ['setAllImpassable']}
+            {comp: 'Impassable', func: ['setAllImpassable']},
+            {comp: 'Breakable', func: {setHardness: 4, setDurability: 50}},
         ],
     },
     {
         name: 'walldungeon', className: 'cell-element-wall-dungeon',
         char: CHAR_WALL,
         addComp: ['Opaque',
-            {comp: 'Impassable', func: ['setAllImpassable']}
+            {comp: 'Impassable', func: ['setAllImpassable']},
+            {comp: 'Breakable', func: {setHardness: 4, setDurability: 75}},
         ],
     },
     {
         name: 'wallcrypt', className: 'cell-element-wall-crypt',
         char: CHAR_WALL,
         addComp: ['Opaque',
-            {comp: 'Impassable', func: ['setAllImpassable']}
+            {comp: 'Impassable', func: ['setAllImpassable']},
+            {comp: 'Breakable', func: {setHardness: 4, setDurability: 75}},
         ],
     },
     {
         name: 'wallwooden', className: 'cell-element-wall-wooden',
         char: CHAR_WALL,
         addComp: ['Opaque',
-            {comp: 'Impassable', func: ['setAllImpassable']}
+            {comp: 'Impassable', func: ['setAllImpassable']},
+            {comp: 'Breakable', func: {setHardness: 2, setDurability: 25}},
         ],
     },
     {
         name: 'wallice', className: 'cell-element-wall-ice',
         char: CHAR_WALL,
         addComp: ['Opaque',
-            {comp: 'Impassable', func: ['setAllImpassable']}
+            {comp: 'Impassable', func: ['setAllImpassable']},
+            {comp: 'Breakable', func: {setHardness: 8, setDurability: 100}},
         ],
     },
     {
         name: 'wallcastle', className: 'cell-element-wall-castle',
         char: CHAR_WALL,
         addComp: ['Opaque',
-            {comp: 'Impassable', func: ['setAllImpassable']}
+            {comp: 'Impassable', func: ['setAllImpassable']},
+            {comp: 'Breakable', func: {setHardness: 8, setDurability: 100}},
         ],
     },
     {
         name: 'wallruby', className: 'style-ruby',
         char: CHAR_WALL,
         addComp: ['Opaque',
-            {comp: 'Impassable', func: ['setAllImpassable']}
+            {comp: 'Impassable', func: ['setAllImpassable']},
+            {comp: 'Breakable', func: {setHardness: 16, setDurability: 150}},
         ],
     },
     {
         name: 'wallvoid', className: 'style-void',
         char: CHAR_WALL,
         addComp: ['Opaque',
-            {comp: 'Impassable', func: ['setAllImpassable']}
+            {comp: 'Impassable', func: ['setAllImpassable']},
+            {comp: 'Breakable', func: {setHardness: 24, setDurability: 200}},
         ],
     },
     {
         name: 'wallforium', className: 'style-forium',
         char: CHAR_WALL,
         addComp: ['Opaque',
-            {comp: 'Impassable', func: ['setAllImpassable']}
+            {comp: 'Impassable', func: ['setAllImpassable']},
+            {comp: 'Breakable', func: {setHardness: 32, setDurability: 250}},
         ],
     },
 
     // MISCELLANEOUS
     {
         name: 'closed window', className: 'cell-element-window',
-        char: '+', addComp: ['Impassable']
+        char: '+', addComp: ['Impassable',
+            {comp: 'Breakable', func: {setHardness: 1, setDurability: 10}},
+        ],
     },
 
     {

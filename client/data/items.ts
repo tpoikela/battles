@@ -136,27 +136,27 @@ const Items: ObjectShell[] = [
     {
         name: 'MeleeWeaponBase', className: 'cell-item-melee-weapon',
         char: '(',
-        material: ['iron', 'wood'],
+        material: RG.MATERIAL.IRON,
         type: 'weapon',
         range: 1, attack: 0, defense: 0,
         dontCreate: true // Base class only
     },
     {
         name: 'Dagger', base: 'MeleeWeaponBase',
-        material: 'iron',
+        material: RG.MATERIAL.IRON,
         damage: '1d4', weaponType: 'dagger',
         weight: 0.2, value: value(5)
     },
     {
         name: 'Bayonette', base: 'MeleeWeaponBase',
-        material: 'iron',
+        material: RG.MATERIAL.IRON,
         damage: '1d5', weaponType: 'dagger',
         weight: 0.1, value: value(10)
         // TODO combine with rifle
     },
     {
         name: 'Short sword', base: 'MeleeWeaponBase',
-        material: 'iron',
+        material: RG.MATERIAL.IRON,
         damage: '1d6', weaponType: 'sword',
         weight: 0.5, value: value(20)
     },
@@ -182,7 +182,7 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'Iron staff', base: 'MeleeWeaponBase',
-        material: 'iron',
+        material: RG.MATERIAL.IRON,
         damage: '1d8', weaponType: 'staff',
         defense: 2,
         weight: 1.9, value: value(40)
@@ -201,14 +201,14 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'Saber', base: 'MeleeWeaponBase',
-        material: 'iron',
+        material: RG.MATERIAL.IRON,
         damage: '2d4 + 1', attack: 2, defense: 1,
         weaponType: 'sword',
         weight: 0.6, value: value(30)
     },
     {
         name: 'Mace', base: 'MeleeWeaponBase',
-        material: 'iron',
+        material: RG.MATERIAL.IRON,
         damage: '2d4 + 2', attack: 2, defense: 0,
         weaponType: 'mace',
         weight: 0.8, value: value(35)
@@ -227,28 +227,28 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'Longsword', base: 'MeleeWeaponBase',
-        material: 'steel',
+        material: RG.MATERIAL.STEEL,
         damage: '1d8', attack: 2, defense: 2,
         weaponType: 'sword',
         weight: 0.8, value: value(75)
     },
     {
         name: 'Morningstar', base: 'MeleeWeaponBase',
-        material: ['wood', 'iron'],
+        material: RG.MATERIAL.IRON,
         damage: '1d9 + 2', attack: 2, defense: 3,
         weaponType: 'mace',
         weight: 0.7, value: value(75)
     },
     {
         name: 'Battle axe', base: 'MeleeWeaponBase',
-        material: 'iron',
+        material: RG.MATERIAL.IRON,
         damage: '2d6 + 2', attack: 2, defense: 1,
         weaponType: 'axe',
         weight: 2.5, value: value(85)
     },
     {
         name: 'Warhammer', base: 'MeleeWeaponBase',
-        material: 'iron',
+        material: RG.MATERIAL.IRON,
         damage: '2d6 + 5', attack: 3, defense: 1,
         weaponType: 'hammer',
         weight: 4.5, value: value(100)
@@ -272,7 +272,7 @@ const Items: ObjectShell[] = [
     {
         name: 'MithrilWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-mithril',
-        material: 'mithril', dontCreate: true,
+        material: RG.MATERIAL.MITHRIL, dontCreate: true,
         attack: 1, rarity: 2,
     },
     {
@@ -333,7 +333,7 @@ const Items: ObjectShell[] = [
     {
         name: 'IceWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-ice',
-        material: 'permaice', dontCreate: true,
+        material: RG.MATERIAL.PERMAICE, dontCreate: true,
         attack: 1, rarity: 5,
     },
     {
@@ -392,7 +392,7 @@ const Items: ObjectShell[] = [
     {
         name: 'RubyWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-ruby-glass',
-        material: 'ruby glass', dontCreate: true,
+        material: RG.MATERIAL.RUBY_GLASS, dontCreate: true,
         rarity: 4,
     },
     {
@@ -454,7 +454,7 @@ const Items: ObjectShell[] = [
     {
         name: 'RunedWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-magic',
-        material: 'forium', dontCreate: true,
+        material: RG.MATERIAL.FORIUM, dontCreate: true,
         rarity: 6,
     },
     {
@@ -529,7 +529,7 @@ const Items: ObjectShell[] = [
     {
         name: 'VoidWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-void',
-        material: 'netherium', dontCreate: true,
+        material: RG.MATERIAL.NETHERIUM, dontCreate: true,
         onAttackHit: [meleeHitDamage(2, '1d8 + 1', 'VOID')],
         rarity: 8,
     },

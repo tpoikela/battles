@@ -3,14 +3,17 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import * as ObjectShell from '../objectshellparser';
+import * as Element from '../element';
+import * as Component from '../component';
 import {Constraints} from '../constraints';
 
-import {MineItemEntry, Wall2Items, Wall2Floor} from '../../data/mining';
+import {MineItemEntry, Elem2Items, Elem2Floor} from '../../data/mining';
 
 type EventPool = import('../eventpool').EventPool;
 type Entity = import('../entity').Entity;
 type Cell = import('../map.cell').Cell;
 type Level = import('../level').Level;
+type SentientActor = import('../actor').SentientActor;
 
 
 export class SystemMining extends SystemBase {
@@ -39,13 +42,110 @@ export class SystemMining extends SystemBase {
         const danger = placeComp.getDanger();
 
         const cell: Cell = miningComp.getTarget();
+        const source = miningComp.getItem();
+        const srcName = source.getName();
+
         const baseElem = cell.getBaseElem();
-        const baseType = baseElem.getType();
-        const toElem = Wall2Floor[baseType];
-        if (!toElem) {return;}
-        cell.setBaseElem(toElem);
-        // Add possible gems/mineral to cell
-        const itemEntry: MineItemEntry = Wall2Items[baseType];
+        const baseName = baseElem.getName();
+        const elems = cell.getElements();
+        let baseType = baseElem.getType();
+        const toElem = Elem2Floor[baseType];
+        const srcHard: number = RG.getMaterialHardness(source);
+
+        // We need to replace Breakable with something, or reduce the durability
+        // 1. There is only element, and floor base element
+        //   a. Check if it breaks
+        //   b. If not, then reduce durability
+        // 2. There is Breakable base element, add floor base element + element
+        // 3. Breakable element + breakable base, process element first
+        let elemDestroyed = false;
+        let elemBreak = null;
+        if (elems && elems.length > 0) {
+            elems.forEach(elem => {
+                if (!elemBreak && elem.has('Breakable')) {
+                    elemBreak = elem;
+                    // not valid toElem = Elem2Floor[elem.getType()];
+                }
+            });
+
+            const breakComp = elemBreak.get('Breakable');
+            const elemBreakName = elemBreak.getName();
+            const elemHard = breakComp.getHardness();
+            if (Math.round(elemHard/2) <= srcHard) {
+                let reduceDur = RG.getItemDamage(source);
+                const att = ent as SentientActor;
+                reduceDur += RG.strengthToDamage(att.getStatVal('Strength'));
+                const newDur: number = breakComp.getDurability() - reduceDur;
+                if (newDur <= 0) {
+                    elemDestroyed = true;
+                    level.removeElement(elemBreak, elemBreak.getX(), elemBreak.getY());
+                    baseType = elemBreak.getType();
+                    RG.gameMsg(`${att.getName()} breaks ${elemBreakName} with ${srcName}!`);
+                }
+                else {
+                    breakComp.setDurability(newDur);
+                    RG.gameMsg(`${att.getName()} damages ${elemBreakName} with ${srcName}!`);
+                }
+            }
+            else {
+                RG.gameMsg(`${srcName} cannot be used to break ${elemBreak.getName()}`);
+            }
+        }
+        else {
+            // Base element case
+            console.log('xyz000');
+            if (baseElem.has('Breakable')) {
+                console.log('xyz111');
+                const baseBreakComp = baseElem.get('Breakable')
+                const baseElemHard = baseBreakComp.getHardness();
+
+                if (Math.round(baseElemHard/2) <= srcHard) {
+                    console.log('xyz222');
+                    if (toElem) {
+                        cell.setBaseElem(toElem);
+                    }
+
+                    let reduceDur = RG.getItemDamage(source);
+                    const att = ent as SentientActor;
+                    reduceDur += RG.strengthToDamage(att.getStatVal('Strength'));
+                    const newDur: number = baseBreakComp.getDurability() - reduceDur;
+
+                    if (newDur > 0) {
+                        // this.parser
+                        const newElem = new Element.ElementXY('Damaged ' + baseType);
+                        newElem.setType(baseType);
+                        const breakComp = new Component.Breakable();
+                        breakComp.setHardness(baseElemHard);
+                        breakComp.setDurability(newDur);
+                        newElem.add(breakComp);
+                        // TODO copy all components from base element
+                        if (baseElem.has('Impassable')) {
+                            const compImpass = new Component.Impassable();
+                            compImpass.setAllImpassable();
+                            newElem.add(compImpass);
+                        }
+                        if (baseElem.has('Opaque')) {
+                            newElem.add(new Component.Opaque());
+                        }
+                        level.addElement(newElem, cell.getX(), cell.getY());
+                        RG.gameMsg(`${att.getName()} damages ${baseName} with ${srcName}`);
+                    }
+                    else {
+                        elemDestroyed = true;
+                        RG.gameMsg(`${att.getName()} breaks ${baseName} with ${srcName}!`);
+                    }
+                }
+                else {
+                    RG.gameMsg(`${srcName} cannot be used to break ${baseName}`);
+                }
+            }
+        }
+
+        // Early return since no elem was destroyed, and no item must be
+        // generated
+        if (!elemDestroyed) {return;}
+
+        const itemEntry: MineItemEntry = Elem2Items[baseType];
         const itemsAlways = itemEntry.always;
 
         itemsAlways.forEach((itemName: string) => {

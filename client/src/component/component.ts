@@ -617,7 +617,7 @@ OneShot.description = 'Destroyed automatically after one use';
 
 /* Entities with physical components have weight and size.*/
 export const Physical = UniqueDataComponent('Physical',
-    {weight: 1, size: 1});
+    {weight: 1, size: 1, material: RG.MATERIAL.DEFAULT});
 
 /* Ethereal entities are visible but don't have normal interaction with
  * matter. */
@@ -799,7 +799,6 @@ export const Unpaid = TagComponent('Unpaid');
 
 export const Drowning = UniqueTagComponent('Drowning');
 
-export const Breakable = UniqueTagComponent('Breakable');
 export const Indestructible = UniqueTagComponent('Indestructible');
 export const Ammo = TagComponent('Ammo');
 export const Flying = TagComponent('Flying',
@@ -867,6 +866,11 @@ ActorClass.prototype.toJSON = function() {
     };
     return json;
 };
+
+/* Added to entities that can be broken. */
+export const Breakable = UniqueDataComponent('Breakable', {
+    hardness: 1, durability: 100,
+});
 
 //---------------------------------------------------------------------------
 // MELEE COMBAT COMPONENTS
@@ -1364,7 +1368,7 @@ export const PlantedSoil = UniqueDataComponent('PlantedSoil',
 
 /* Added to a entity who is mining something. */
 export const Mining = TransientDataComponent('Mining',
-    {target: null});
+    {target: null, item: null});
 
 /* Added to a entity who is crafting something. */
 export const Crafting = TransientDataComponent('Crafting',

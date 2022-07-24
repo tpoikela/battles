@@ -351,6 +351,15 @@ export class Cell {
                 const leverDoor = this.getLeverDoor();
                 return leverDoor!.isOpen();
             }
+            else if (this.hasElemWith('Impassable')) {
+                if (isFlying) {
+                    // TODO case with flying passable element
+                    return false;
+                }
+                else {
+                    return false;
+                }
+            }
         }
 
         // Handle flying/non-flying here
@@ -551,6 +560,14 @@ export class Cell {
 
     public isOutdoors(): boolean {
         return !this._baseElem.has('Indoor');
+    }
+
+    public hasElemWith(compType: string): boolean {
+        const elems = this.getElements();
+        for (let i = 0, len = elems.length; i < len; i++) {
+            if (elems[i].has(compType)) return true;
+        }
+        return false;
     }
 
     protected getBit(ind: number): boolean {

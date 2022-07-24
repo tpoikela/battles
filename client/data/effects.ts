@@ -12,16 +12,18 @@ interface Setters {
     [key: string]: any;
 }
 
-interface EffArgs {
-    all?: boolean;
+export interface EffArgs {
     addOnUser?: boolean; // Adds to the user
+    all?: boolean;
     duration?: number | string;
+    effectSource?: any;
     effectType: string;
-    name?: string;
     entityName?: string;
+    expireMsg?: string;
+    name?: string;
+    setters?: Setters;
     target: TargetObj;
     targetType: string[];
-    setters?: Setters;
 }
 
 const entities = ['actors', 'items', 'elements'];
@@ -221,10 +223,10 @@ export const Effects = {
         {
             name: 'digger',
             func(obj) {
-                const owner = getTopOwnerActor(this);
-                const name = owner.getName();
-                const msg = `${name} digs through stone with ${this.getName()}`;
-                /*
+                //rm const owner = getTopOwnerActor(this);
+                //rm const name = owner.getName();
+                //rm const msg = `${name} digs through stone with ${this.getName()}`;
+                /*rm
                 const effArgs = {
                     // name: this.useArgs.name,
                     effectType: 'ChangeElement',
@@ -241,9 +243,11 @@ export const Effects = {
                     // Use Cell as target of effect as we need to modify
                     // baseElem, and add possible items from Mining
                     targetType: ['cell'],
+                    effectSource: this,
                     setters: {
                         // Uses whatever is found as target
-                        setTarget: '$$target'
+                        setTarget: '$$target',
+                        setItem: '$$item',
                     },
                     // Component is added to user, not to the target
                     addOnUser: true

@@ -159,6 +159,10 @@ export class ElementWall extends ElementBase {
         const impassable = new Component.Impassable();
         impassable.setAllImpassable();
         this.add(impassable);
+        const breakable = new Component.Breakable();
+        breakable.setHardness(4);
+        breakable.setDurability(100);
+        this.add(breakable);
     }
 
 }
@@ -448,6 +452,10 @@ export class ElementDoor extends ElementXY {
         impassable.setAllImpassable();
         this._impassable = impassable;
         if (this._closed) {this.closeDoor();}
+
+        const breakComp = new Component.Breakable();
+        breakComp.setHardness(1);
+        this.add(breakComp);
     }
 
     /* Checks if door can be manually opened. */
@@ -477,11 +485,6 @@ export class ElementDoor extends ElementXY {
         const json: any = super.toJSON();
         json.closed = this._closed;
         return json;
-        /* return {
-            id: this.getID(),
-            type: 'door',
-            closed: this._closed
-        };*/
     }
 }
 Element.Door = ElementDoor;
@@ -492,6 +495,9 @@ export class ElementLeverDoor extends ElementDoor {
     constructor(isClosed = true) {
         super(isClosed);
         this.setType('leverdoor');
+        const breakComp = new Component.Breakable();
+        breakComp.setHardness(16);
+        this.add(breakComp);
     }
 
     public canToggle() {return false;}
@@ -751,6 +757,10 @@ export class ElementWeb extends ElementXY {
         entrapComp.setDestroyOnMove(true);
         entrapComp.setDifficulty(20);
         this.add(entrapComp);
+
+        const breakComp = new Component.Breakable();
+        breakComp.setHardness(1);
+        this.add(breakComp);
     }
 
     public setDifficulty(diff: number): void {
@@ -768,6 +778,10 @@ export class ElementSlime extends ElementTrap {
         entrapComp.setDestroyOnMove(true);
         entrapComp.setDifficulty(30);
         this.add(entrapComp);
+
+        const breakComp = new Component.Breakable();
+        breakComp.setHardness(1);
+        this.add(breakComp);
     }
 
     public setDifficulty(diff: number): void {

@@ -260,6 +260,8 @@ class RGClass {
 
     public WORLD_ENTITY: string;
 
+    public MATERIAL: {[key: string]: string};
+    public MATERIAL2HARDNESS: {[key: string]: number};
 
     constructor() {
         this.POOL = EventPool.getPool();
@@ -726,6 +728,35 @@ class RGClass {
         this.WORLD_ENTITY = 'WorldEntity';
 
         this.MAX_DRENCHED = 10;
+
+        this.MATERIAL = {
+            DEFAULT: 'iron',
+            IRON: 'iron',
+            STEEL: 'steel',
+            MITHRIL: 'mithril',
+            PERMAICE: 'permaice',
+            RUBY_GLASS: 'ruby glass',
+            FORIUM: 'forium',
+            NETHERIUM: 'netherium',
+            CLOTH: 'cloth',
+            WOOD: 'wood',
+            FLESH: 'flesh',
+            BONE: 'bone',
+        };
+        this.MATERIAL2HARDNESS = {
+            [this.MATERIAL.IRON]: 4,
+            [this.MATERIAL.STEEL]: 6,
+            [this.MATERIAL.MITHRIL]: 8,
+            [this.MATERIAL.PERMAICE]: 16,
+            [this.MATERIAL.RUBY_GLASS]: 12,
+            [this.MATERIAL.FORIUM]: 24,
+            [this.MATERIAL.NETHERIUM]: 32,
+            [this.MATERIAL.CLOTH]: 1,
+            [this.MATERIAL.WOOD]: 2,
+            [this.MATERIAL.FLESH]: 1,
+            [this.MATERIAL.BONE]: 3,
+        };
+
     }
 
     /* Given Map.Cell, returns CSS classname used for styling that cell. */
@@ -2438,6 +2469,15 @@ class RGClass {
                 rune.setCharges(rune.getCharges() - 1);
             }
         }
+    }
+
+    getMaterialHardness(item: any): number {
+        const physComp = item.get('Physical');
+        if (physComp) {
+            const material = physComp.getMaterial();
+            return this.MATERIAL2HARDNESS[material];
+        }
+        return 0;
     }
 
 }

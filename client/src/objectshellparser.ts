@@ -127,6 +127,7 @@ export class Creator {
                 type: 'setType',
                 value: 'setValue',
                 weight: {comp: 'Physical', func: 'setWeight'},
+                material: {comp: 'Physical', func: 'setMaterial'},
                 damageType: 'setDamageType',
 
                 speed: {comp: 'Stats', func: 'setSpeed'},
