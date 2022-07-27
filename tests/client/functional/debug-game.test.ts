@@ -4,6 +4,7 @@
 
 import { expect } from 'chai';
 import * as RG from '../../../client/src/battles';
+import * as ROT from '../../../lib/rot-js';
 import {Keys} from '../../../client/src/keymap';
 const fs = require('fs');
 
@@ -44,10 +45,13 @@ const CompMonitor = function() {
 };
 
 describe('Debug game simulation with player and actors', function() {
-    this.timeout(25000);
+    this.timeout(60000);
 
     it('should execute without throwing', () => {
         RNG.setSeed(0);
+        ROT.RNG.setSeed(0);
+        RG.Dice.RNG.setSeed(0);
+
         const monitor = new CompMonitor();
         const gameConf = {
             cols: 60,
@@ -64,7 +68,7 @@ describe('Debug game simulation with player and actors', function() {
             playMode: 'Arena',
             loadedPlayer: null,
             loadedLevel: null,
-            playerName: 'Player'
+            playerName: 'PlayerBot'
         };
         const gameFact = new RG.FactoryGame();
         let game = gameFact.createNewGame(gameConf);
@@ -74,6 +78,7 @@ describe('Debug game simulation with player and actors', function() {
         let fromJSON = new RG.FromJSON();
         game = new RG.GameMain();
         game = fromJSON.createGame(game, gameJSON);
+        game.addDebugTraceID(59);
 
         // Used with expect() later
         const saveFunc = () => {
@@ -81,6 +86,7 @@ describe('Debug game simulation with player and actors', function() {
             gameJSON = game.toJSON();
             game = new RG.GameMain();
             game = fromJSON.createGame(game, gameJSON);
+            game.addDebugTraceID(59);
         };
 
         const components = game.getComponents();
@@ -93,7 +99,12 @@ describe('Debug game simulation with player and actors', function() {
         // expect(index, 'No duplicate found').to.equal(-1);
 
         const updateFunc = () => {
-            game.update(restKey);
+            if (game.isGameOver()) {
+                game.simulate(100);
+            }
+            else {
+                game.update(restKey);
+            }
         };
 
         // Should can a spell which does not require target, such as IceShield
@@ -115,6 +126,7 @@ describe('Debug game simulation with player and actors', function() {
                 console.log(`Saving game after ${i}/${numTurns} turns`);
                 //expect(saveFunc).not.to.throw(Error);
                 saveFunc();
+                console.log(`Reloaded game from JSON after ${i}/${numTurns} turns`);
             }
 
             if (i && i % 100 === 0) {
@@ -130,6 +142,8 @@ describe('Debug game simulation with player and actors', function() {
 
         fromJSON = new RG.FromJSON();
         gameJSON = game.toJSON();
+
+        if (!fs.existsSync('results')) {fs.mkdirSync('results');}
         fs.writeFileSync('results/debug-game.json',
             JSON.stringify(gameJSON));
 

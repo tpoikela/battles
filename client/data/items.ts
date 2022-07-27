@@ -3,7 +3,8 @@
 import RG from '../src/rg';
 import {Colors} from './colors';
 import {meleeHitDamage, color, resistance} from './shell-utils';
-import {IAddCompObj, IRecipeEntry, TShellValue, ISuccessCheck} from '../src/interfaces';
+import {IAddCompObj, IRecipeEntry, TShellValue, ISuccessCheck,
+    IAddEntity, IEntCallbacks} from '../src/interfaces';
 import {GemItems} from './items.gems';
 
 const scaleAll = 1.0;
@@ -71,13 +72,14 @@ interface AddElementUseSpec extends ElementUseSpec{
 
 type RemoveElementUseSpec = ElementUseSpec;
 
+
 interface UseSpec {
     heal?: HealUseSpec;
     cure?: CureUseSpec;
     poison?: PoisonUseSpec;
     stun?: any;
     modifyCompValue?: any;
-    addEntity?: any;
+    addEntity?: IAddEntity;
     removeComp?: any;
     addComp?: any;
     modifyStat?: any;
@@ -86,35 +88,36 @@ interface UseSpec {
 }
 
 interface ObjectShell {
-    damageType?: string;
-    ammoType?: string;
-    onEquip?: IAddCompObj | IAddCompObj[];
-    onAttackHit?: IAddCompObj | IAddCompObj[];
-    noRandom?: boolean;
-    base?: string;
     addComp?: any;
+    ammoType?: string;
+    armourType?: string;
     attack?: TShellValue<number>;
-    color?: ColorSpec;
-    fireRate?: number;
+    base?: string;
+    callbacks?: IEntCallbacks;
     char?: string;
-    rarity?: number;
     className?: string;
+    color?: ColorSpec;
+    damage?: string;
+    damageType?: string;
     defense?: number;
     dontCreate?: boolean;
-    material?: string[] | string;
-    weaponType?: string;
-    armourType?: string;
-    damage?: string;
-    name: string;
-    range?: number;
-    protection?: TShellValue<number>;
     energy?: number;
+    fireRate?: number;
+    material?: string[] | string;
+    name: string;
+    noRandom?: boolean;
+    onAttackHit?: IAddCompObj | IAddCompObj[];
+    onEquip?: IAddCompObj | IAddCompObj[];
+    protection?: TShellValue<number>;
+    range?: number;
+    rarity?: number;
+    recipe?: IRecipeEntry[];
+    type?: string;
     use?: (string | UseSpec | IAddCompObj) | (string | UseSpec | IAddCompObj)[];
     uses?: number;
-    type?: string;
     value?: TShellValue<number>;
+    weaponType?: string;
     weight?: TShellValue<number>;
-    recipe?: IRecipeEntry[];
 }
 
 const charArrow = '\u27B9';
@@ -1388,6 +1391,23 @@ const Items: ObjectShell[] = [
         }},
         value: 30
     },
+    {
+        name: 'small bomb', base: 'tool',
+        className: 'cell-item-iron',
+        addComp: 'OneShot',
+        /*
+        callbacks: {
+            onAddExplosion: {
+                trigger: 'use' // Triggers its own use method
+            }
+        },
+        */
+        use: {
+            addEntity: {
+                entityName: 'armed small bomb', duration: 5,
+            }
+        }
+    },
 
     {
         name: 'wheat seeds', base: 'tool',
@@ -1850,6 +1870,23 @@ const Items: ObjectShell[] = [
     {
         name: 'Arrow of webs', base: 'MagicalArrowBase',
         className: 'cell-item-energy'
+    },
+
+    {
+        name: 'armed small bomb', noRandom: true,
+        type: 'tool', char: ']',
+        callbacks: {
+            onFadeout: {
+                addComp: [
+                    {comp: 'Explosion', area: '3x3'}
+                ]
+            },
+            /*
+            onAddExplosion: {
+                triggerCb: 'OnFadeout'
+            },
+            */
+        }
     },
 
     // ARTIFACT ITEMS

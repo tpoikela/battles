@@ -358,6 +358,8 @@ export class DebugGame {
         oneway.setMsg({onEnter: 'Stairs speak aloud: Abandon all hope who enter here!!!'});
         level.addElement(oneway, player.getX() - 1, player.getY());
 
+        addItemToPlayer(parser, player, 'small bomb');
+
         return game;
     }
 

@@ -3,28 +3,8 @@
 import RG from '../src/rg';
 import {Dice} from '../src/dice';
 import * as Component from '../src/component';
+import {IEffArgs} from '../src/interfaces';
 
-interface TargetObj {
-    target: any;
-}
-
-interface Setters {
-    [key: string]: any;
-}
-
-export interface EffArgs {
-    addOnUser?: boolean; // Adds to the user
-    all?: boolean;
-    duration?: number | string;
-    effectSource?: any;
-    effectType: string;
-    entityName?: string;
-    expireMsg?: string;
-    name?: string;
-    setters?: Setters;
-    target: TargetObj;
-    targetType: string[];
-}
 
 const entities = ['actors', 'items', 'elements'];
 
@@ -50,7 +30,7 @@ const getTopOwnerActor = (itemOrActor) => {
     return itemOrActor;
 };
 
-export const createUseItemComp = (item, target, effArgs?: EffArgs) => {
+export const createUseItemComp = (item, target, effArgs?: IEffArgs) => {
     const useItem = new Component.UseItem();
     useItem.setTarget(target);
     useItem.setItem(item);
@@ -137,7 +117,7 @@ export const Effects = {
             requires: ['name', 'duration'],
             optional: ['setters'],
             func(obj) {
-                const effArgs: EffArgs = {
+                const effArgs: IEffArgs = {
                     duration: this.useArgs.duration,
                     effectType: 'AddComp',
                     name: this.useArgs.name,
@@ -159,7 +139,7 @@ export const Effects = {
             requires: ['name'],
             optional: ['all'],
             func(obj) {
-                const effArgs: EffArgs = {
+                const effArgs: IEffArgs = {
                     all: this.useArgs.all,
                     effectType: 'RemoveComp',
                     name: this.useArgs.name,
@@ -236,7 +216,7 @@ export const Effects = {
                     targetType: ['elements']
                 };
                 */
-                const effArgs: EffArgs = {
+                const effArgs: IEffArgs = {
                     effectType: 'AddComp',
                     name: 'Mining',
                     target: obj,

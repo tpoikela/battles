@@ -27,7 +27,7 @@ export class SystemDeath extends SystemBase {
         this.enableRandomLootDrops = true;
         this.normalLootChance = 0.07;
         this.betterLootChance = 0.03;
-        this.traceID = 686;
+        this.traceID = 59;
         this.debugEnabled = true;
 
         this.disableEventEmit = false;

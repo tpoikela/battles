@@ -15,6 +15,7 @@ describe('DwarvenCity', () => {
 
         // fortLevel.debugPrintInASCII();
         const game = new RG.GameMain();
+        game.addLevel(fortLevel);
         game.addActiveLevel(fortLevel);
 
         expect(() => {game.simulateGame(1000);}).not.to.throw();

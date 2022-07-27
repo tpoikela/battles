@@ -1102,6 +1102,29 @@ export class Geometry {
     }
 
 
+    public static drunkenWalk(coord: TCoord , nsteps: number, unique=false): TCoord[] {
+        const usedXY: {[key: string]: boolean} = {};
+        const result: TCoord[] = [coord];
+        let currXY = coord;
+        let watchdog = 1000;
+
+        while (nsteps > 0 && watchdog > 0) {
+            const dir: TCoord = RNG.getRandDir();
+            const newXY: TCoord = [currXY[0] + dir[0], currXY[1] + dir[1]];
+            currXY = newXY;
+            const keyXY = RG.toKey(newXY);
+            if (!unique || !usedXY[keyXY]) {
+                result.push(newXY);
+                --nsteps;
+                usedXY[keyXY] = true;
+            }
+            --watchdog;
+        }
+        if (watchdog === 0) {
+        }
+        return result;
+    }
+
 }
 
 
@@ -1431,6 +1454,7 @@ Geometry.getCaveConnLine = function(x0, y0, x1, y1, conf?): TCoord[] {
     });
     return res;
 };
+
 
 /* Checks that all given args are ints. */
 function verifyInt(arr: any[]): void {

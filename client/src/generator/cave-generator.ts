@@ -12,8 +12,10 @@ import {Path} from '../path';
 import {Geometry} from '../geometry';
 import {Random} from '../random';
 import {ELEM} from '../../data/elem-constants';
-import * as Element from '../element';
+import {ObjectShell} from '../objectshellparser';
+import {Element} from '../element';
 import {TCoord, ConstBaseElem, ICoordXY, IMiner} from '../interfaces';
+import {Placer} from '../placer';
 
 type Cell = import('../map.cell').Cell;
 type CellMap = import('../map').CellMap;
@@ -22,7 +24,7 @@ const RNG = Random.getRNG();
 
 const NEST_RACES = ['orc', 'naga', 'ratling', 'gnome', 'teradin', 'elf'];
 
-const ElementMarker = Element.ElementMarker;
+const ElementMarker = Element.Marker;
 
 interface FreeCellMap {
     [key: string]: Cell;
@@ -109,6 +111,8 @@ export class CaveGenerator extends LevelGenerator {
         this._addEncounters(level, conf);
 
         CaveGenerator.embedNest(level, conf);
+
+        this._addOreVeins(level, conf);
 
         this.removeMarkers(level, conf);
         return level;
@@ -406,6 +410,22 @@ export class CaveGenerator extends LevelGenerator {
         else {
             RG.err('LevelGenerator', 'populatePoints',
                 'extras.points must be set for populating points');
+        }
+    }
+
+    protected _addOreVeins(level: Level, conf): void {
+        const bbox = level.getBbox();
+        for (let i = 0; i < 10; i++) {
+            const startXY: TCoord = RNG.getRandInBbox(bbox);
+            const veinSize = parseInt(RNG.getWeighted(RG.ORE_VEIN_SIZES), 10);
+            const oreCoord = Geometry.drunkenWalk(startXY, veinSize);
+            const oreElems = [];
+            const parser = ObjectShell.getParser();
+            oreCoord.forEach(coord => {
+                const oreElem = parser.createElement('iron ore vein');
+                oreElems.push(oreElem);
+            });
+            Placer.addElemsToCoord(level, oreCoord, oreElems);
         }
     }
 

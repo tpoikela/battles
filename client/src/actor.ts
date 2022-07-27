@@ -73,7 +73,6 @@ export class BaseActor extends Entity {
         return this.get('Location').setLevel(level);
     }
 
-    // TODO add Level type and fix errors
     public getLevel(): Level {return this.get('Location').getLevel();}
     public getX(): number {return this.get('Location').getX();}
     public getY(): number {return this.get('Location').getY();}
@@ -81,6 +80,11 @@ export class BaseActor extends Entity {
     public setXY(x: number, y: number): void {
         this.get('Location').setXY(x, y);
     }
+
+    public isAtXY(x: number, y: number): boolean {
+        return this.get('Location').isAtXY(x, y);
+    }
+
 
     public getZ(): number {return this.getCell().getZ();}
 
@@ -370,12 +374,6 @@ export class SentientActor extends BaseActor {
             id: this.getID(),
             name: this.getName(),
             type: this.getType(),
-            // x: this.getX(),
-            // y: this.getY(),
-            // fovRange: this.getFOVRange(),
-            // levelID,
-            // inventory: this.getInvEq().getInventory().toJSON(),
-            // equipment: this.getInvEq().getEquipment().toJSON(),
             brain: this._brain.toJSON(),
             new: 'Sentient', // Must match a constr function name in Actor
             components: compsToJSON(this)

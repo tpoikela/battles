@@ -12,6 +12,8 @@ export * from './eventpool';
 export * from './random';
 export * from './game-object';
 
+export * from './dice';
+
 import * as Mixin from './mixin';
 export {Mixin};
 export * from './geometry';

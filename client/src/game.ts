@@ -134,6 +134,14 @@ export class GameMain {
         this._worldSim.setLevel(level);
     }
 
+    public setGameOver(gameOver: boolean): void {
+        this._gameOver = gameOver;
+    }
+
+    public addDebugTraceID(id: number): void {
+        this._engine.addDebugTraceID(id);
+    }
+
     public getPool(): EventPool {return this._eventPool;}
 
     public getMsgHistory(): IMessage[] {
@@ -506,17 +514,19 @@ export class GameMain {
     /* Returns the visible map to be rendered by the GUI. */
     public getVisibleMap(): CellMap {
         const player = this.getPlayer();
-        const map = player.getLevel().getMap();
-        return map;
+        if (player) {
+            return player.getLevel().getMap();
+        }
+        return this._engine.getFirstActiveLevel().getMap();
     }
 
     public simulate(nTurns: number): void {
-        this._engine.timeOfDay = this.getTimeOfDayMins();
-        this._engine.simulateGame(nTurns);
+        this.simulateGame(nTurns);
     }
 
     public simulateGame(nTurns: number): void {
         this._engine.timeOfDay = this.getTimeOfDayMins();
+        this._worldSim.setLevel(this._engine.getFirstActiveLevel());
         this._engine.simulateGame(nTurns);
     }
 
@@ -550,6 +560,9 @@ export class GameMain {
                         this.dbg('Setting the game to be over now');
                         this._gameOver = true;
                         RG.gameMsg('GAME OVER!');
+                        if (this._engine.getPlayer() === actor) {
+                            this._engine.removePlayer();
+                        }
                     }
                     this._players.splice(index, 1);
                 }
@@ -689,6 +702,7 @@ export class GameMain {
         const parser = ObjectShell.getParser();
         const obj: any = { // TODO fix typings
             gameID: this.gameID,
+            gameOver: this._gameOver,
             engine: this._engine.toJSON(),
             gameMaster: this._master.toJSON(),
             gameObjectID: GameObject.ID,

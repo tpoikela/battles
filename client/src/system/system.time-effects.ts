@@ -4,6 +4,9 @@ import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import {Entity} from '../entity';
 import * as Component from '../component';
+import {IEffArgs} from '../interfaces';
+
+type ItemBase = import('../item').ItemBase;
 
 type CompEntry = [number, Entity];
 
@@ -135,9 +138,9 @@ export class SystemTimeEffects extends SystemBase {
         const fadingComp = ent.get('Fading');
         fadingComp.decrDuration();
         if (fadingComp.getDuration() <= 0) {
+            const cell = ent.getCell();
+            const level = ent.getLevel();
             if (RG.isActor(ent)) {
-                const cell = ent.getCell();
-                const level = ent.getLevel();
                 if (level.removeActor(ent)) {
                     this.pool.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
                     const msg = `${ent.getName()} disappears.`;
@@ -149,10 +152,50 @@ export class SystemTimeEffects extends SystemBase {
                         `Could not remove actor from level: ${json}`);
                 }
             }
+            else if (RG.isElementXY(ent) && ent.has('Location')) {
+                const [x, y] = ent.getXY();
+                if (level.removeElement(ent, x, y)) {
+                    // this.pool.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
+                    const msg = `${ent.getName()} disappears.`;
+                    RG.gameMsg({cell, msg});
+                }
+                else {
+                    const json = JSON.stringify(ent);
+                    RG.err('System.TimeEffects', '_applyFading',
+                        `Could not remove element from level: ${json}`);
+                }
+            }
+            else if (RG.isItem(ent)) {
+                // Should check if item is owned
+                const item = ent as ItemBase;
+                const [x, y] = item.getXY();
+                if (level.removeItem(ent)) {
+                    // this.pool.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
+                    const msg = `${ent.getName()} disappears.`;
+                    RG.gameMsg({cell, msg});
+                }
+                else {
+                    const json = JSON.stringify(ent);
+                    RG.err('System.TimeEffects', '_applyFading',
+                        `Could not remove item from level: ${json}`);
+                }
+            }
             else {
                 RG.err('System.TimeEffects', '_applyFading',
-                    'Fading not handled for non-actors yet.');
+                    'Fading not handled for non-actors|non-elems yet.');
             }
+
+            if (ent.has('Callbacks')) {
+                const cbsComp = ent.get('Callbacks');
+                if (cbsComp.has('OnFadeout')) {
+                    const fadeoutCb = cbsComp.cb('OnFadeout');
+                    const effComp = new Component.Effects();
+                    const effArgs: IEffArgs = Object.create({level}, fadeoutCb);
+                    effComp.setArgs(effArgs);
+                    ent.add(effComp);
+                }
+            }
+
             ent.remove(fadingComp);
         }
     }

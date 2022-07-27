@@ -40,7 +40,9 @@ describe('Goal.Thief', () => {
         const sword = new Item.Weapon('sword');
         level.addItem(sword, 1, 1);
 
+        game.addLevel(level);
         game.addActiveLevel(level);
+
         const catcher = new RGTest.MsgCatcher();
         catcher.enabled = true;
         catcher.printMsg = false;

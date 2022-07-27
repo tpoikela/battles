@@ -13,6 +13,7 @@ type Level = import('./level').Level;
 type Entity = import('./entity').Entity;
 type ItemBase = import('./item').ItemBase;
 type ElementXY = import('./element').ElementXY;
+type ElementBase = import('./element').ElementBase;
 type BaseActor = import('./actor').BaseActor;
 
 
@@ -86,11 +87,21 @@ export class Placer {
         let nActors = actors.length;
         const freeCells = level.getMap().getCellsWithCoord(coord);
         if (freeCells.length < nActors) {
-            RG.warn('Placer', 'addActorsToBbox',
+            RG.warn('Placer', 'addActorsToCoord',
                 `No ${nActors} free cells. Placing only ${freeCells.length} actors`);
         }
         nActors = freeCells.length;
         return Placer.addPropsToCells(level, freeCells, actors);
+    }
+
+    public static addElemsToCoord(level: Level, coord: TCoord[], elems: ElementXY[]): boolean {
+        const nElems = elems.length;
+        const cells = level.getMap().getCellsWithCoord(coord);
+        if (cells.length < nElems) {
+            RG.warn('Placer', 'addElemsToCoord',
+                `No ${nElems} free cells. Placing only ${cells.length} elements`);
+        }
+        return Placer.addPropsToCells(level, cells, elems);
     }
 
 

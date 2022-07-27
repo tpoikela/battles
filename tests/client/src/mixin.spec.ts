@@ -18,20 +18,6 @@ describe('Mixin.Typed', () => {
 
 });
 
-describe('Mixin.Locatable', () => {
-
-    it('can be used to add location info to class', () => {
-        class Actor extends Mixin.Locatable(Base) {
-        }
-
-        const actor = new Actor();
-        actor.setX(1);
-        actor.setY(2);
-        expect(actor.getXY()).to.deep.equal([1, 2]);
-    });
-
-});
-
 describe('Mixin.DamageRoll', () => {
 
     it('can be used to add location info to class', () => {

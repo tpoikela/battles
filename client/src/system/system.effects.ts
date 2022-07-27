@@ -7,11 +7,12 @@ import * as Component from '../component';
 import {ELEM} from '../../data/elem-constants';
 import {ObjectShell} from '../objectshellparser';
 import {Element} from '../element';
-import {ISuccessCheck, TPropType} from '../interfaces';
+import {ISuccessCheck, TPropType, TCoord} from '../interfaces';
+import {Geometry} from '../geometry';
 import {Entity} from '../entity';
 
 type Cell = import('../map.cell').Cell;
-import {EffArgs} from '../../data/effects';
+import {IEffArgs} from '../interfaces';
 
 const handlerTable = {
     AddComp: true,
@@ -117,12 +118,28 @@ export class SystemEffects extends SystemBase {
         const comps = ent.getList('Effects');
         comps.forEach(effComp => {
             const effType = effComp.getEffectType();
+            const effArgs: IEffArgs = effComp.getArgs();
+            if (effArgs.area && effArgs.target) {
+                const msg = JSON.stringify(effArgs);
+                RG.err('SystemEffects', 'updateEntity',
+                    `Both target/area specified. Only one is supported: ${msg}`);
+            }
+            let targets = [];
+            if (effArgs.area) {
+                targets = getTargetsFromArea(ent, effArgs.area);
+            }
+            else {
+                targets = [effArgs.target];
+            }
             if (effType && effType !== '') {
                 if (this._dtable.hasOwnProperty(effType)) {
-                    this._checkStartMsgEmits(ent, effComp);
-                    const ok = this._dtable[effType](ent, effComp);
-                    this._checkEndMsgEmits(ent, effComp, ok);
-                    this._postEffectChecks(ent, effComp, ok);
+                    targets.forEach(target => {
+                        effArgs.target = target;
+                        this._checkStartMsgEmits(ent, effComp);
+                        const ok = this._dtable[effType](ent, effComp);
+                        this._checkEndMsgEmits(ent, effComp, ok);
+                        this._postEffectChecks(ent, effComp, ok);
+                    });
                 }
                 else {
                     RG.err('SystemEffects', 'updateEntity',
@@ -173,7 +190,7 @@ export class SystemEffects extends SystemBase {
     /* Handler for effect 'AddComp'. Adds a component to target entity
      * for a given duration. */
     public handleAddComp(srcEnt, effComp): boolean {
-        const useArgs: EffArgs = effComp.getArgs();
+        const useArgs: IEffArgs = effComp.getArgs();
         let targetEnt = SystemEffects.getEffectTarget(useArgs);
         const compName = getCompName(useArgs, targetEnt);
 
@@ -333,7 +350,7 @@ export class SystemEffects extends SystemBase {
 
     /* Adds an entity to target cell. */
     public handleAddEntity(srcEnt, effComp): boolean {
-        const useArgs = effComp.getArgs();
+        const useArgs: IEffArgs = effComp.getArgs();
         const cell = getTargetCellOrFail(useArgs);
 
         const parser = ObjectShell.getParser();
@@ -341,7 +358,11 @@ export class SystemEffects extends SystemBase {
 
         if (entity) {
             const [x, y] = [cell.getX(), cell.getY()];
-            const level = srcEnt.getLevel();
+            const level = useArgs.level || srcEnt.getLevel();
+            if (!level) {
+                RG.err('SystemEffects', 'handleAddEntity',
+                    'level must exist for adding the entity');
+            }
             if (level.addEntity(entity, x, y)) {
                 if (useArgs.duration) {
                     const fadingComp = new Component.Fading();
@@ -548,4 +569,28 @@ function getTargetCellOrFail(useArgs) {
     RG.err('system.effects.js', 'getTargetCellOrFail',
         'Prop target must exist in useArgs. Got: |' + json);
     return null;
+}
+
+function parseArea(areaStr: string): [number, number] {
+    const res = areaStr.split('x');
+    if (res.length !== 2) {
+        RG.err('system.effects.ts', 'parseArea',
+            `Wrong area spec given: ${areaStr} (exp NxM)`);
+    }
+    return [parseInt(res[0], 10), parseInt(res[1], 10)];
+}
+
+function getTargetsFromArea(ent, area): Cell[] {
+    const res = [];
+    const level = ent.get('Location').getLevel();
+    const [x, y]: TCoord = ent.get('Location').getXY();
+    const [aX, aY] = parseArea(area);
+    if (aX !== aY) {
+        RG.err('system.effects.ts', 'getTargetsFromArea',
+            `Only NxN format supported. Got ${area}`);
+    }
+    const d = Math.round((aX - 1) / 2);
+    const coord: TCoord[] = Geometry.getBoxAround(x, y, d, true);
+    const map = level.getMap();
+    return map.getCellsWithCoord(coord);
 }

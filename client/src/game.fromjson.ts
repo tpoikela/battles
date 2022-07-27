@@ -178,8 +178,9 @@ export class FromJSON {
             const ent = this.id2entity[objRef.id];
             if (!ent) {
                 if (!this.actorsKilled[objRef.id]) {
-                    RG.err('FromJSON', 'getObjRef',
-                        `No ID ${objRef.id} found`);
+                    const reqObj = JSON.stringify(requestObj);
+                    RG.err('FromJSON', 'getObjByRef',
+                        `No ID ${objRef.id} found. ReqObj: ${reqObj}`);
                 }
                 else {
                     return OBJ_REF_REMOVED;
@@ -302,7 +303,7 @@ export class FromJSON {
     }
 
 
-    public restorePlayer(json) {
+    public restorePlayer(json): SentientActor {
         const player = new SentientActor(json.name);
         player.setIsPlayer(true);
         // TODO hack for now, these are restored later
@@ -358,10 +359,12 @@ export class FromJSON {
         else if (RG.isElement(entity)) {
             this.restoreElementEntity(json, entity);
         }
+        else if (RG.isItem(entity)) {
+            // this._addEntityFeatures(json, entity);
+        }
         else {
             this.restoreLevelEntity(json, entity);
         }
-        // return entity;
     }
 
 
@@ -369,9 +372,6 @@ export class FromJSON {
         this.addCompsToEntity(entity, json.components);
         this.createInventoryItems(json, entity);
         this.createEquippedItems(json, entity);
-        /* if (obj.fovRange) {
-            entity.setFOVRange(obj.fovRange);
-        }*/
         if (json.spellbook) {
             this.createSpells(json, entity);
         }
@@ -809,7 +809,7 @@ export class FromJSON {
         const level = new Level(mapObj);
         level.setID(json.id);
         level.setLevelNumber(json.levelNumber);
-        // level.setMap(mapObj);
+        this.addLevels([level], 'restoreLevel', [json]);
 
         // Create actors
         json.actors.forEach(actor => {
@@ -852,7 +852,6 @@ export class FromJSON {
             }
         });
 
-        this.addLevels([level], 'restoreLevel', [json]);
         return level;
     }
 
@@ -1030,7 +1029,7 @@ export class FromJSON {
     }
 
 
-    public setGlobalConfAndObjects(game, gameJSON: JsonMap) {
+    public setGlobalConfAndObjects(game, gameJSON: JsonMap): void {
         if (gameJSON.globalConf) {
             this.dbg('Setting globalConf for game: '
                 + JSON.stringify(gameJSON.globalConf, null, 1));
@@ -1057,6 +1056,9 @@ export class FromJSON {
             const msgJSON = engineJSON.msgHandler;
             const pool = game.getPool();
             game._engine._msg = MessageHandler.fromJSON(msgJSON, pool);
+        }
+        if (gameJSON.gameOver) {
+            game.setGameOver(true);
         }
     }
 

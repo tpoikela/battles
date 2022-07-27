@@ -111,6 +111,13 @@ export class SystemManager {
         this._engine.addTimeSystem('TimeEffects', effects);
     }
 
+    /* Adds an entity ID to be traced within the systems. */
+    public addDebugTraceID(id: number): void {
+        Object.values(this.systems).forEach(system => {
+            system.addDebugTraceID(id);
+        });
+    }
+
     public get(type: string): SystemBase | null {
         if (this.systems.hasOwnProperty(type)) {
             return this.systems[type];

@@ -8,6 +8,7 @@ import {Entity} from './entity';
 import * as Mixin from './mixin';
 import * as Component from './component/component';
 import {compsToJSON} from './component/component.base';
+import {TCoord, TCoord3D} from './interfaces';
 
 type Cell = import('./map.cell').Cell;
 type Level = import('./level').Level;
@@ -172,12 +173,48 @@ type Maybe<T> = T | undefined | null;
 
 type TargetLevel = Level | number;
 
-export class ElementXY extends Mixin.Locatable(ElementBase) {
+export class ElementXY extends ElementBase {
 
     constructor(elemName: string | NameArgs, elemType?: string) {
         super(elemName, elemType);
+        this.add(new Component.Location());
+    }
+
+    public getCell(): Cell | null {
+        return this.get('Location').getCell();
+    }
+    public isLocated(): boolean {
+        return this.get('Location').isLocated();
+    }
+    public unsetLevel(): void {
+        this.get('Location').unsetLevel();
+    }
+    public setLevel(level: Level): void {
+        return this.get('Location').setLevel(level);
+    }
+
+    // TODO add Level type and fix errors
+    public getLevel(): Level {return this.get('Location').getLevel();}
+    public getX(): number {return this.get('Location').getX();}
+    public getY(): number {return this.get('Location').getY();}
+    public getXY(): TCoord {return this.get('Location').getXY();}
+    public setXY(x: number, y: number): void {
+        this.get('Location').setXY(x, y);
+    }
+
+    public isAtXY(x: number, y: number): boolean {
+        return this.get('Location').isAtXY(x, y);
+    }
+
+    public getZ(): number {return this.getCell().getZ();}
+
+    public getXYZ(): TCoord3D {
+        const [x, y] = this.getXY();
+        const z = this.getCell().getBaseElem().getZ();
+        return [x, y, z];
     }
 }
+Element.XY = ElementXY;
 
 /* Object models stairs connecting two levels. Stairs are one-way, thus
  * connecting 2 levels requires two stair objects. */
@@ -396,11 +433,7 @@ export class ElementStairs extends ElementXY {
 
     /* Serializes the Stairs object. */
     public toJSON(): any {
-        const json = super.toJSON();
-        /*const json: any = {
-            name: this.getName(),
-            type: this.getType()
-        };*/
+        const json: any = super.toJSON();
         if (this.isOneway) {
             json.isOneway = true;
         }
@@ -455,6 +488,7 @@ export class ElementDoor extends ElementXY {
 
         const breakComp = new Component.Breakable();
         breakComp.setHardness(1);
+        breakComp.setDurability(25);
         this.add(breakComp);
     }
 
@@ -497,6 +531,7 @@ export class ElementLeverDoor extends ElementDoor {
         this.setType('leverdoor');
         const breakComp = new Component.Breakable();
         breakComp.setHardness(16);
+        breakComp.setDurability(150);
         this.add(breakComp);
     }
 
@@ -760,6 +795,7 @@ export class ElementWeb extends ElementXY {
 
         const breakComp = new Component.Breakable();
         breakComp.setHardness(1);
+        breakComp.setDurability(20);
         this.add(breakComp);
     }
 
@@ -781,6 +817,7 @@ export class ElementSlime extends ElementTrap {
 
         const breakComp = new Component.Breakable();
         breakComp.setHardness(1);
+        breakComp.setDurability(20);
         this.add(breakComp);
     }
 
@@ -857,7 +894,7 @@ export class ElementMarker extends ElementXY {
     public getTag(): string {return this.tag;}
 
     public toJSON() {
-        const json = super.toJSON();
+        const json: any = super.toJSON();
         json.char = this.char;
         json.tag = this.tag;
         return json;

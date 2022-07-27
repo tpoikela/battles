@@ -64,6 +64,8 @@ export class Cell {
     public setX(x: number) {this._xy = x & X_POS;}
     public setY(y: number) {this._xy = (y << Y_SHIFT) & Y_POS;}
 
+    public getCell(): Cell {return this;}
+
     public getZ(): number {return this._baseElem.getZ();}
     public getXYZ(): TCoord3D {return [this.getX(), this.getY(), this._baseElem.getZ()];}
     public setXY(xy: TCoord) {
@@ -415,8 +417,8 @@ export class Cell {
             this._p[prop]!.push(obj);
         }
 
-        if ((obj as ItemBase).isOwnable) {
-            (obj as ItemBase).setOwner(this);
+        if (obj.has('Item')) {
+            (obj as ItemBase).setOwner(RG.NO_OWNER);
         }
     }
 

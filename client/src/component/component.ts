@@ -102,6 +102,10 @@ Location.prototype.getCell = function(): Cell | null {
     return null;
 };
 
+Location.prototype.isAtXY = function(x: number, y: number): boolean {
+    return this.x === x && this.y === y;
+}
+
 Location.prototype.toJSON = function() {
     const obj: any = {
         setType: this.getType(), setID: this.getID(),

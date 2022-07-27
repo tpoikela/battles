@@ -22,6 +22,7 @@ type BaseActor = import('./actor').BaseActor;
 type SentientActor = import('./actor').SentientActor;
 type ItemBase = import('./item').ItemBase;
 type ElementBase = import('./element').ElementBase;
+type ElementXY = import('./element').ElementXY;
 type Entity = import('./entity').Entity;
 type Cell = import('./map.cell').Cell;
 type CellMap = import('./map').CellMap;
@@ -262,6 +263,10 @@ class RGClass {
 
     public MATERIAL: {[key: string]: string};
     public MATERIAL2HARDNESS: {[key: string]: number};
+
+    public ORE_VEIN_SIZES: {[key: number]: number};
+
+    public NO_OWNER: null;
 
     constructor() {
         this.POOL = EventPool.getPool();
@@ -757,6 +762,20 @@ class RGClass {
             [this.MATERIAL.BONE]: 3,
         };
 
+        this.ORE_VEIN_SIZES = {
+            1: 10,
+            2: 20,
+            3: 30,
+            4: 40,
+            5: 30,
+            6: 20,
+            7: 10,
+            8: 8,
+            16: 4,
+            32: 2,
+        };
+
+        this.NO_OWNER = null;
     }
 
     /* Given Map.Cell, returns CSS classname used for styling that cell. */
@@ -2004,6 +2023,15 @@ class RGClass {
     public isElement(obj: any): obj is ElementBase {
         if (obj && obj.getPropType) {
             return obj.getPropType() === this.TYPE_ELEM;
+        }
+        return false;
+    }
+
+    public isElementXY(obj: any): obj is ElementXY {
+        if (obj && obj.getPropType) {
+            if (obj.getPropType() === this.TYPE_ELEM) {
+                return obj.getX && obj.getY && obj.getLevel;
+            }
         }
         return false;
     }

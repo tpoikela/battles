@@ -12,6 +12,7 @@ describe('Capital', () => {
 
         // capitalLevel.debugPrintInASCII();
         const game = new RG.GameMain();
+        game.addLevel(capitalLevel);
         game.addActiveLevel(capitalLevel);
 
         expect(() => {game.simulateGame(1000);}).not.to.throw();

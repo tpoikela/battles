@@ -68,9 +68,7 @@ export class BrainSpawner extends BrainVirtual {
     /* Spawns an actor to the current level (if any). */
     public decideNextAction(): () => void {
         if (this.spawnLeft !== 0 && RG.isSuccess(this.spawnProb)) {
-            console.log('Returning spawn function now');
             return (): void => {
-                console.log('Spawn function called now');
                 const level = this.getActor().getLevel();
                 let freeCell: null | Cell = null;
 
@@ -81,10 +79,6 @@ export class BrainSpawner extends BrainVirtual {
                     if (filtered.length > 0) {
                         freeCell = RNG.arrayGetRand(filtered);
                     }
-                    /*rm while (!this._placeConstraintFunc(freeCell)) {
-                        freeCell = RNG.arrayGetRand(freeCells);
-                        if (--watchdog === 0) {break;}
-                    }*/
                 }
                 else {
                     freeCell = level.getFreeRandCell();
@@ -98,7 +92,6 @@ export class BrainSpawner extends BrainVirtual {
                     if (newActor) {
                         if (level.addActor(newActor, x, y)) {
                             --this.spawnLeft;
-                            console.log('Spawned', newActor.getName(), '@', x, y);
                             this.emitSpawnMsg(newActor);
                         }
                     }
@@ -124,7 +117,6 @@ export class BrainSpawner extends BrainVirtual {
         const cardDir = RG.getCardinalDirection(level, cell);
         const msg = `${newActor.getName()} appears from path coming from ${cardDir}`;
         RG.gameMsg({cell, msg});
-        console.log(msg);
     }
 
     public toJSON() {

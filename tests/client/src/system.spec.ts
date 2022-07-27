@@ -256,7 +256,11 @@ describe('System.Damage', () => {
 
         expect(monster.get('Health').isDead()).to.equal(true);
         // expect(monster).to.be.dead;
-        expect(lootItem.getOwner()).to.equal(lootCell);
+        expect(lootItem.getOwner()).to.equal(RG.NO_OWNER);
+        expect(lootItem.getX()).to.equal(lootCell.getX());
+        expect(lootItem.getY()).to.equal(lootCell.getY());
+        expect(lootItem.getLevel()).to.equal(level);
+
         expect(lootCell.hasItems()).to.equal(true);
 
         // Check for the dropped inventory item
@@ -409,8 +413,10 @@ describe('System.SpiritBind', () => {
         expect(eq.getStrength()).to.equal(10);
 
         // Try toJSON/restoring while we're here
-        const json = sword.toJSON();
-        const newSword = new FromJSON().createItem(json);
+        const swordJson = sword.toJSON();
+        const fromJSON = new FromJSON();
+        const newSword = fromJSON.createItem(swordJson);
+        fromJSON.addCompsToEntity(newSword, swordJson.components);
 
         expect(newSword).to.have.component('GemBound');
         const restGem = newSword.get('GemBound').getGem();

@@ -6,7 +6,7 @@
 import {
     speedPenalty, statsPenalty, defensePenalty, attackPenalty
 } from './shell-utils';
-import {TAddCompSpec} from '../src/interfaces';
+import {TAddCompSpec, IAddEntity, IEntCallbacks} from '../src/interfaces';
 
 // Elevations
 export const ELEV = [
@@ -29,23 +29,16 @@ interface IElemMsg {
     onEnter?: string;
 }
 
-interface IElemCallbackObj {
-    addComp?: any;
-    removeComp?: any;
-}
-
-interface IElemCallbacks {
-    [key: string]: IElemCallbackObj;
-}
 
 interface IElemShell {
     addComp?: TAddCompSpec | string;
-    callbacks?: IElemCallbacks;
+    callbacks?: IEntCallbacks;
     char: string;
     className: string;
     dontCreate?: boolean;
     msg?: IElemMsg;
     name: string;
+    new?: string;
     noRandom?: boolean;
     z?: number;
 }
@@ -335,6 +328,23 @@ const Elements: IElemShell[] = [
         char: 'T', addComp: ['Impassable', 'Opaque'],
         msg: {
             onEnter: 'There is a large frozen tree here.'
+        }
+    },
+
+    // ORE VEINS
+    {
+        name: 'iron ore vein', className: 'cell-element-iron',
+        new: 'XY',
+        char: '~',
+        addComp: [
+            {comp: 'Breakable', func: {setHardness: 4, setDurability: 50}},
+        ],
+        callbacks: {
+            onDestroy: {
+                addEntity: {
+                    entityName: 'iron ore', count: 1,
+                }
+            }
         }
     },
 

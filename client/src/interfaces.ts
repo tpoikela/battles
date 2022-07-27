@@ -17,7 +17,6 @@ type ItemMissile = import('./item').Missile;
 
 type BaseActor = import('./actor').BaseActor;
 type SentientActor = import('./actor').SentientActor;
-type Locatable = import('./mixin').Locatable;
 type ElemTemplate = import('./template').ElemTemplate;
 type WorldBase = import('./world').WorldBase;
 type Dice = import('./dice').Dice;
@@ -112,8 +111,17 @@ export interface ICoordObj {
     // subLevel: Level;
 }
 
-export type DestOrSrc = TCoord | Locatable | Cell;
-export type TLocatableElement = ElementBase & Locatable;
+export interface ILocatable {
+    getX: () => number;
+    getY: () => number;
+    getXY: () => TCoord;
+    getLevel: () => any; // Add typings
+    getCell: () => Cell;
+}
+
+
+export type DestOrSrc = TCoord | ILocatable | Cell;
+export type TLocatableElement = ElementBase & ILocatable;
 
 /* Used to pass player input (keys/mouse) to the game */
 export interface IPlayerCmdInput {
@@ -619,13 +627,15 @@ export interface ICompSetterMap {
 
 export interface IAddCompObj {
     // These 3 are mutex, choose one to use
+    addComp?: string;
     comp?: string;
     transientComp?: string; // Defers comp creation until needed
-    addComp?: string;
-    expireMsg?: string;
 
-    func?: ICompSetterObj[] | ICompSetterMap;
+    area?: string;
     duration?: number | string;
+    expireMsg?: string;
+    func?: ICompSetterObj[] | ICompSetterMap;
+    useOld?: boolean; // Uses existing component (if any) for calling the funcs
 }
 
 type AddCompType = string | IAddCompObj;
@@ -764,4 +774,48 @@ export interface ISuccessCheck {
     items?: ISuccessQuery;
     actors?: ISuccessQuery;
     elements?: ISuccessQuery;
+}
+
+//-------------------------------------
+// Used in Effects and system.effects
+//-------------------------------------
+
+export interface IAddEntity {
+    entityName: string;
+    count?: number;
+    duration?: number | string;
+}
+
+interface TargetObj {
+    target: any;
+}
+
+interface Setters {
+    [key: string]: any;
+}
+
+export interface IEffArgs {
+    addOnUser?: boolean; // Adds to the user
+    all?: boolean;
+    area?: string;
+    duration?: number | string;
+    effectSource?: any;
+    effectType: string;
+    entityName?: string;
+    expireMsg?: string;
+    level?: any; // Optional level, if src entity already removed
+    name?: string;
+    setters?: Setters;
+    target: TargetObj;
+    targetType: string[];
+}
+
+export interface IEntCallbackObj {
+    addComp?: TAddCompSpec;
+    removeComp?: any[];
+    addEntity?: IAddEntity;
+}
+
+export interface IEntCallbacks {
+    [key: string]: IEntCallbackObj;
 }

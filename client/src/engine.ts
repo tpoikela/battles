@@ -138,13 +138,16 @@ export class Engine {
         return false;
     }
 
-
     public getPlayer(): SentientActor {
         return this.currPlayer;
     }
 
     public setPlayer(player: SentientActor): void {
         this.currPlayer = player;
+    }
+
+    public removePlayer(): void {
+        this.currPlayer = null;
     }
 
     //--------------------------------------------------------------
@@ -167,7 +170,6 @@ export class Engine {
     // Not a useless function, re-assigned in Game.Main, but needed
     // here for testing Engine without Game.Main
     public isGameOver(): boolean {
-        // RG.err('Engine', 'isGameOver', 'Should not be called');
         return false;
     }
 
@@ -496,15 +498,24 @@ export class Engine {
         }
     }
 
-    public notify(evtName, args) {
+    public getFirstActiveLevel(): Level {
+        if (this._activeLevels.length === 0) {
+            RG.err('Engine', 'getFirstActiveLevel', 'No active levels in Engine');
+        }
+        const levelID: number = this._activeLevels[0];
+        return this._levelMap[levelID];
+    }
+
+    public notify(evtName, args): void {
         if (evtName === RG.EVT_DESTROY_ITEM) {
             const item = args.item;
 
             // chaining due to inventory container
-            const owner = item.getOwner().getOwner();
+            const owner = item.getTopOwner();
             if (!owner.getInvEq().removeItem(item)) {
+                const itemJson = JSON.stringify(item);
                 RG.err('Game.Engine', 'notify - DESTROY_ITEM',
-                    'Failed to remove item from inventory.');
+                    `Failed to remove item from inventory: ${itemJson}`);
             }
         }
         else if (evtName === RG.EVT_ACT_COMP_ENABLED) {
@@ -619,7 +630,19 @@ export class Engine {
 
     /* Adds an actor to the scheduler. */
     public addActor(actor) {
-        // const msg = `ID: ${actor.getID()}, ${actor.getName()}`;
+        if (this.debugEnabled) {
+            if (this.traceIDs[actor.getID()]) {
+                console.log(`Engine: Added actor with ID ${actor.getID()}`);
+            }
+        }
+
+        // Special case for testing. In tests, game is simulated/saved/loaded
+        // with player possibly Dead, thus we need to allow for this case
+        if (actor.isPlayer()) {
+            if (actor.has('Dead')) {
+                return;
+            }
+        }
         this._scheduler.add(actor, true, 0);
     }
 
@@ -636,6 +659,11 @@ export class Engine {
             RG.err('Engine', 'removeActor',
                'Failed to remove actor from scheduler: ' + msg);
         }
+    }
+
+    public addDebugTraceID(id: number): void {
+        this.traceIDs[id] = true;
+        this.sysMan.addDebugTraceID(id);
     }
 
     /* Adds an event to the scheduler.*/

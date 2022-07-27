@@ -211,6 +211,10 @@ export abstract class SystemBase {
         }
     }
 
+    public addDebugTraceID(id: number): void {
+        this.traceIDs[id] = true;
+    }
+
     protected _emitDbgMsg(tag: string, ent: any): void {
         let name = '<UNNAMED>';
         if (ent.getName) {

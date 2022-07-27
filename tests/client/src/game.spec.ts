@@ -273,6 +273,8 @@ describe('How poison item is used, and experience propagates', () => {
         level.addActor(assassin, 3, 5);
         level.addActor(victim, 6, 6);
         poison.useItem({target: level.getMap().getCell(6, 6)});
+
+        game.addLevel(level);
         game.addActiveLevel(level);
 
         const startExp = assassin.get('Experience').getExp();

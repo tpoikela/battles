@@ -9,12 +9,12 @@ import {Dice} from './dice';
 import {TCoord} from './interfaces';
 
 type SentientActor = import('./actor').SentientActor;
-// type Level = import('./level').Level;
+type Level = import('./level').Level;
 type Cell = import('./map.cell').Cell;
 
 const POOL = EventPool.getPool();
 
-type Owner = SentientActor | ItemBase | Cell;
+type Owner = null | SentientActor | ItemBase;
 
 //---------------------------------------------------------------------------
 // ITEMS
@@ -22,35 +22,28 @@ type Owner = SentientActor | ItemBase | Cell;
 
 export const Item: any = {};
 
-/* Models an item. Each item is ownable by someone. During game, there are no
- * items with null owners. Ownership shouldn't be ever set to null. */
+/* Models an item. Each item is ownable by someone. */
 export class ItemBase extends Entity {
 
-    public isOwnable: boolean;
     public useArgs: any;
     public isUsable: boolean;
     protected _owner: null | Owner;
 
     constructor(name: string) {
         super();
-        this.isOwnable = true;
         this._owner = null;
         this.isUsable = false;
         this.add(new Component.Typed(RG.ITEM.BASE, RG.TYPE_ITEM));
         this.add(new Component.Item());
         this.add(new Component.Physical());
+        this.add(new Component.Location());
         const named = new Component.Named();
         named.setName(name);
         this.add(named);
     }
 
     public setOwner(owner: Owner): void {
-        if (RG.isNullOrUndef([owner])) {
-            RG.err('ItemBase', 'setOwner', 'Owner cannot be null.');
-        }
-        else {
-            this._owner = owner;
-        }
+        this._owner = owner;
     }
 
     /* Returns the top-level owner. Used mainly to recover actor owner of items
@@ -68,17 +61,49 @@ export class ItemBase extends Entity {
 
     public getX(): null | number {
         if (this._owner) {return this._owner.getX();}
-        return null;
+        return this.get('Location').getX();
+        //rm return null;
     }
 
     public getY(): null | number {
         if (this._owner) {return this._owner.getY();}
-        return null;
+        return this.get('Location').getY();
+        //rm return null;
     }
+
+    public getZ(): number {return this.getCell().getZ();}
 
     public getXY(): null | TCoord {
         if (this._owner) {return this._owner.getXY();}
-        return null;
+        return this.get('Location').getXY();
+        // return null;
+    }
+
+    public setXY(x: number, y: number): void {
+        this.get('Location').setXY(x, y);
+    }
+
+    public isAtXY(x: number, y: number): boolean {
+        return this.get('Location').isAtXY(x, y);
+    }
+
+    public getCell(): null | Cell {
+        if (this._owner) {return this._owner.getCell();}
+        return this.get('Location').getCell();
+        //rm return null;
+    }
+
+    public getLevel(): null | Level {
+        if (this._owner) {return this._owner.getLevel();}
+        return this.get('Location').getLevel();
+    }
+
+    public unsetLevel(): void {
+        this.get('Location').unsetLevel();
+    }
+
+    public setLevel(level: Level): void {
+        return this.get('Location').setLevel(level);
     }
 
     public setName(name: string): void {

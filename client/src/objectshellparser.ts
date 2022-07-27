@@ -5,7 +5,7 @@ import * as Component from './component';
 import * as Item from './item';
 import {Brain} from './brain';
 import {Effects} from '../data/effects';
-import {ElementBase} from './element';
+import {ElementBase, Element} from './element';
 import {Evaluator} from './evaluators';
 import {Objects} from '../data/battles_objects';
 import {Random} from './random';
@@ -455,6 +455,9 @@ export class Creator {
                 break; // Unreachable
             case RG.TYPE_ELEM: {
                 const usedType = obj.type || obj.name;
+                if (obj.new) {
+                    return new Element[obj.new](obj.name, usedType);
+                }
                 return new ElementBase(obj.name, usedType);
             }
             default: break;

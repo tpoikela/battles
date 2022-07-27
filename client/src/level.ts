@@ -455,10 +455,10 @@ export class Level extends Entity {
     public _addPropToLevelXY(propType: TLevelPropKey, obj, x: number, y: number): boolean {
         if (this._p.hasOwnProperty(propType)) {
             this._p[propType].push(obj);
-            if (!obj.isOwnable) {
-                obj.setXY(x, y);
-                obj.setLevel(this);
-            }
+            //rm if (!obj.isOwnable) {
+            obj.setXY(x, y);
+            obj.setLevel(this);
+            // }
             this._map.setProp(x, y, propType, obj);
             POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj,
                 propType});
@@ -689,7 +689,7 @@ export class Level extends Entity {
     public removeElements(filter: (elem: ElementXY) => boolean): void {
         const toRemove = this._p.elements.filter(filter);
         toRemove.forEach(elem => {
-          const [eX, eY] = (elem as Mixin.Locatable).getXY();
+          const [eX, eY] = elem.getXY();
           this.removeElement(elem, eX, eY);
         });
     }

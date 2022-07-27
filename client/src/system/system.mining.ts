@@ -6,6 +6,7 @@ import * as ObjectShell from '../objectshellparser';
 import * as Element from '../element';
 import * as Component from '../component';
 import {Constraints} from '../constraints';
+import {IEffArgs} from '../interfaces';
 
 import {MineItemEntry, Elem2Items, Elem2Floor} from '../../data/mining';
 
@@ -27,15 +28,22 @@ export class SystemMining extends SystemBase {
 
 
     public updateEntity(ent: Entity): void {
-        const compList =  ent.getList('Mining');
-        compList.forEach((miningComp) => {
-            this.processComp(ent, miningComp);
+        const explCompList =  ent.getList('Explosion');
+        explCompList.forEach((explComp) => {
+            this.processExplosionComp(ent, explComp);
+            ent.remove(explComp);
+        });
+        const mineCompList =  ent.getList('Mining');
+        mineCompList.forEach((miningComp) => {
+            this.processMiningComp(ent, miningComp);
             ent.remove(miningComp);
         });
     }
 
+    protected processExplosionComp(ent: Entity, explComp): void {
+    }
 
-    public processComp(ent: Entity, miningComp): void {
+    protected processMiningComp(ent: Entity, miningComp): void {
         const level: Level = ent.get('Location').getLevel();
         const placeComp = level.get('Place');
         const depth = placeComp.getDepth();
@@ -81,26 +89,31 @@ export class SystemMining extends SystemBase {
                     level.removeElement(elemBreak, elemBreak.getX(), elemBreak.getY());
                     baseType = elemBreak.getType();
                     RG.gameMsg(`${att.getName()} breaks ${elemBreakName} with ${srcName}!`);
+
+                    if (elemBreak.has('Callbacks')) {
+                        this._execCallbacks(elemBreak, level);
+                    }
+
                 }
                 else {
                     breakComp.setDurability(newDur);
-                    RG.gameMsg(`${att.getName()} damages ${elemBreakName} with ${srcName}!`);
+                    let msg = `${att.getName()} damages ${elemBreakName} with ${srcName}!`;
+                    msg += `(${newDur})`;
+                    RG.gameMsg({cell, msg});
                 }
             }
             else {
-                RG.gameMsg(`${srcName} cannot be used to break ${elemBreak.getName()}`);
+                const msg = `${srcName} cannot be used to break ${elemBreak.getName()}`;
+                RG.gameMsg({cell, msg});
             }
         }
         else {
             // Base element case
-            console.log('xyz000');
             if (baseElem.has('Breakable')) {
-                console.log('xyz111');
                 const baseBreakComp = baseElem.get('Breakable')
                 const baseElemHard = baseBreakComp.getHardness();
 
                 if (Math.round(baseElemHard/2) <= srcHard) {
-                    console.log('xyz222');
                     if (toElem) {
                         cell.setBaseElem(toElem);
                     }
@@ -128,11 +141,17 @@ export class SystemMining extends SystemBase {
                             newElem.add(new Component.Opaque());
                         }
                         level.addElement(newElem, cell.getX(), cell.getY());
-                        RG.gameMsg(`${att.getName()} damages ${baseName} with ${srcName}`);
+
+                        let msg = `${att.getName()} damages ${baseName} with ${srcName}!`;
+                        msg += `(${newDur})`;
+                        RG.gameMsg({cell, msg});
                     }
                     else {
                         elemDestroyed = true;
                         RG.gameMsg(`${att.getName()} breaks ${baseName} with ${srcName}!`);
+                        if (baseElem.has('Callbacks')) {
+                            this._execCallbacks(baseElem, level);
+                        }
                     }
                 }
                 else {
@@ -146,6 +165,7 @@ export class SystemMining extends SystemBase {
         if (!elemDestroyed) {return;}
 
         const itemEntry: MineItemEntry = Elem2Items[baseType];
+        if (!itemEntry) {return;}
         const itemsAlways = itemEntry.always;
 
         itemsAlways.forEach((itemName: string) => {
@@ -182,6 +202,18 @@ export class SystemMining extends SystemBase {
             }
         }
 
+    }
+
+
+    protected _execCallbacks(elem, level): void {
+        const cbsComp = elem.get('Callbacks');
+        if (cbsComp.has('OnDestroy')) {
+            const destroyCb = cbsComp.cb('OnDestroy');
+            const effComp = new Component.Effects();
+            const effArgs: IEffArgs = Object.create({level}, destroyCb);
+            effComp.setArgs(effArgs);
+            elem.add(effComp);
+        }
     }
 
 }

@@ -119,7 +119,7 @@ describe('Game.Save how saving works', () => {
         expect(invItems.length).to.equal(2);
 
         const sword = invItems[1];
-        expect(sword.equals(weapon)).to.equal(true);
+        expect(sword.toJSON()).to.deep.equal(weapon.toJSON());
         expect(sword.getCount()).to.equal(2);
 
         const armour = new Item.Armour('Plate mail');

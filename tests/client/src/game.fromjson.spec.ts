@@ -314,6 +314,7 @@ describe('Game.FromJSON', function() {
         expect(nActorsAfter).to.equal(nActorsBefore);
 
         const game = new GameMain();
+        game.addLevel(newLevel);
         game.addActiveLevel(newLevel);
         for (let i = 0; i < 50; i++) {
             game.simulateGame(1);
@@ -516,6 +517,7 @@ describe('Game.FromJSON', function() {
         const json = magicSword.toJSON();
 
         const newSword = fromJSON.createItem(json);
+        fromJSON.addCompsToEntity(newSword, json.components);
         expect(newSword.getID()).to.equal(magicSword.getID());
 
         const newJSON = newSword.toJSON();
