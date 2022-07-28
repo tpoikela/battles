@@ -1374,6 +1374,9 @@ export const PlantedSoil = UniqueDataComponent('PlantedSoil',
 export const Mining = TransientDataComponent('Mining',
     {target: null, item: null});
 
+export const Explosion = TransientDataComponent('Explosion',
+    {damage: '1d10'});
+
 /* Added to a entity who is crafting something. */
 export const Crafting = TransientDataComponent('Crafting',
     {args: null, item: '', count: 1});

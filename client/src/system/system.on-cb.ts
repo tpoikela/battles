@@ -25,14 +25,14 @@ export class SystemOnCbs extends SystemBase {
         if (ent.has('OnAddCb')) {
             const compList = ent.getList('OnAddCb');
             compList.forEach(addComp => {
-                this.processAddComp(ent, addComp);
+                this.processOnAddComp(ent, addComp);
                 ent.remove(addComp);
             });
         }
         */
         while (ent.has('OnAddCb')) {
             const comp = ent.get('OnAddCb');
-            this.processAddComp(ent, comp);
+            this.processOnAddComp(ent, comp);
             ent.remove(comp);
             --watchdog;
             if (watchdog === 0) {break;}
@@ -41,7 +41,7 @@ export class SystemOnCbs extends SystemBase {
         watchdog = 100;
         while (ent.has('OnRemoveCb')) {
             const comp = ent.get('OnRemoveCb');
-            this.processRemoveComp(ent, comp);
+            this.processOnRemoveComp(ent, comp);
             ent.remove(comp);
             --watchdog;
             if (watchdog === 0) {break;}
@@ -51,7 +51,7 @@ export class SystemOnCbs extends SystemBase {
         if (ent.has('OnRemoveCb')) {
             const compList = ent.getList('OnRemoveCb');
             compList.forEach(removeComp => {
-                this.processRemoveComp(ent, removeComp);
+                this.processOnRemoveComp(ent, removeComp);
                 ent.remove(removeComp);
             });
         }
@@ -63,13 +63,22 @@ export class SystemOnCbs extends SystemBase {
     }
 
 
-    protected processAddComp(ent: Entity, comp): void {
+    protected processOnAddComp(ent: Entity, comp): void {
         const compName = comp.getCompName();
         if (ent.has('Callbacks')) {
             const cbs = ent.get('Callbacks');
             const cbName = 'onAdd' + compName;
+            console.log('666 Executing onAddCb for cb ' + cbName);
             if (cbs.hasCb(cbName)) {
-                const cbData = cbs.cb(cbName);
+                let cbData = cbs.cb(cbName);
+                if (cbData.triggerCb) {
+                    cbData = cbs.cb(cbData.triggerCb);
+                    if (!cbData) {
+                        const trigCb = cbs.cb(cbName).triggerCb;
+                        RG.err('SystemOnCbs', 'processOnAddComp',
+                            `Could not find callback ${trigCb} for triggerCb`);
+                    }
+                }
                 executeCompCb(ent, cbData);
             }
         }
@@ -83,7 +92,6 @@ export class SystemOnCbs extends SystemBase {
                     // const compName = comp.getCompName();
                     const cbName = 'onAdd' + compName + 'Entity';
                     if (cbs.hasCb(cbName)) {
-                        console.log('addComp Processing ' + cbName + 'for ' + baseElem.getName());
                         const cbData = cbs.cb(cbName);
                         executeCompCb(ent, cbData);
                     }
@@ -96,7 +104,7 @@ export class SystemOnCbs extends SystemBase {
         this.numAddComp[compName] += 1;
     }
 
-    protected processRemoveComp(ent: Entity, comp): void {
+    protected processOnRemoveComp(ent: Entity, comp): void {
         const compName = comp.getCompName();
         if (ent.has('Callbacks')) {
             const cbs = ent.get('Callbacks');

@@ -350,6 +350,23 @@ export class Level extends Entity {
         return false;
     }
 
+    public removeEntity(ent: TCellProp, x: number, y: number): boolean {
+        if (RG.isActor(ent)) {
+            return this.removeActor(ent as BaseActor);
+        }
+        else if (RG.isItem(ent)) {
+              return this.removeItem(ent as ItemBase, x, y);
+        }
+        else if (RG.isElement(ent)) {
+            return this.removeElement(ent as ElementXY, x, y);
+        }
+        else {
+            RG.err('Level', 'addEntity',
+                'No support for ents without getPropType');
+        }
+        return false;
+    }
+
     //---------------------------------------------------------------------
     // ITEM RELATED FUNCTIONS
     //---------------------------------------------------------------------

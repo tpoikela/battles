@@ -37,6 +37,7 @@ const disableOnAddRemoveCbsFor: any = {
 };
 
 const enableOnAddRemoveCbsFor: any = {
+    Explosion: true,
     Paralysis: true,
     Flying: true
 };
@@ -191,6 +192,7 @@ export class Entity extends GameObject {
         Entity.POOL.emitEvent(compName, {entity: this, add: true});
         // if (!disableOnAddRemoveCbsFor[compName]) {
         if (Entity.enableOnAddRemoveCbsFor[compName]) {
+            console.log('Creating OnAdd component for ', compName);
             const onAdd = new OnAddCb();
             onAdd.setCompName(compName);
             onAdd.setComp(compObj);

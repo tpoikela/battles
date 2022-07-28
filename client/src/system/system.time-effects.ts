@@ -5,6 +5,7 @@ import {EventPool} from '../eventpool';
 import {Entity} from '../entity';
 import * as Component from '../component';
 import {IEffArgs} from '../interfaces';
+import {executeCompCb} from './system.utils';
 
 type ItemBase = import('../item').ItemBase;
 
@@ -169,7 +170,7 @@ export class SystemTimeEffects extends SystemBase {
                 // Should check if item is owned
                 const item = ent as ItemBase;
                 const [x, y] = item.getXY();
-                if (level.removeItem(ent)) {
+                if (level.removeItem(ent, x, y)) {
                     // this.pool.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
                     const msg = `${ent.getName()} disappears.`;
                     RG.gameMsg({cell, msg});
@@ -187,12 +188,10 @@ export class SystemTimeEffects extends SystemBase {
 
             if (ent.has('Callbacks')) {
                 const cbsComp = ent.get('Callbacks');
-                if (cbsComp.has('OnFadeout')) {
-                    const fadeoutCb = cbsComp.cb('OnFadeout');
-                    const effComp = new Component.Effects();
-                    const effArgs: IEffArgs = Object.create({level}, fadeoutCb);
-                    effComp.setArgs(effArgs);
-                    ent.add(effComp);
+                if (cbsComp.hasCb('onFadeout')) {
+                    const fadeoutCb = cbsComp.cb('onFadeout');
+                    const cbObj = Object.assign({level}, fadeoutCb);
+                    executeCompCb(ent, cbObj);
                 }
             }
 

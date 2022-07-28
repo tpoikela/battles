@@ -1395,13 +1395,17 @@ const Items: ObjectShell[] = [
         name: 'small bomb', base: 'tool',
         className: 'cell-item-iron',
         addComp: 'OneShot',
-        /*
         callbacks: {
             onAddExplosion: {
-                trigger: 'use' // Triggers its own use method
+                addComp: [
+                    {comp: 'Explosion', area: '3x3',
+                        applyToAllTargets: true,
+                        anim: {className: 'cell-item-fire'},
+                    }
+                ],
+                removeEntity: {target: 'self'},
             }
         },
-        */
         use: {
             addEntity: {
                 entityName: 'armed small bomb', duration: 5,
@@ -1878,14 +1882,16 @@ const Items: ObjectShell[] = [
         callbacks: {
             onFadeout: {
                 addComp: [
-                    {comp: 'Explosion', area: '3x3'}
+                    {comp: 'Explosion', area: '3x3',
+                        applyToAllTargets: true,
+                        anim: {className: 'cell-item-fire'},
+                    }
                 ]
             },
-            /*
             onAddExplosion: {
-                triggerCb: 'OnFadeout'
+                triggerCb: 'onFadeout',
+                removeEntity: {target: 'self'},
             },
-            */
         }
     },
 

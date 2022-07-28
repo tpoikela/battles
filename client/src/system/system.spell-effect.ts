@@ -6,7 +6,7 @@ import {ObjectShell} from '../objectshellparser';
 import {Geometry} from '../geometry';
 
 import {SpellArgs} from '../spell';
-import {TCoord} from '../interfaces';
+import {TCoord, IAnimArgs} from '../interfaces';
 
 type BaseActor = import('../actor').BaseActor;
 type Entity = import('../entity').Entity;
@@ -372,7 +372,7 @@ function addSingleCellAnim(ent, args, xy) {
     let className = RG.getDmgClassName(args.damageType);
     if (!className) {className = RG.getDmgClassName(RG.DMG.MAGIC);}
 
-    const animArgs = {
+    const animArgs: IAnimArgs = {
         cell: true,
         coord: [xy],
         className,

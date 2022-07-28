@@ -526,6 +526,52 @@ describe('System.TimeEffects', () => {
         }
     });
 
+    it('processes Fading components of entities', () => {
+        const pool = Entity.getPool();
+        const parser = ObjectShell.getParser();
+
+        const baseSys = new System.BaseAction(['UseItem'], pool);
+        const effSys = new System.Effects(['Effects'], pool);
+        const timeSys = new System.TimeEffects(['Fading'], pool);
+        const mineSys = new System.Mining(['Explosion'], pool);
+        const onCbsSys = new System.OnCbs(['OnAddCb'], pool);
+
+        const bomber = new SentientActor('bomber');
+        const smallBomb = parser.createItem('small bomb');
+        const smallBomb2 = parser.createItem('small bomb');
+        // const smallBomb3 = parser.createItem('small bomb');
+
+        bomber.getInvEq().addItem(smallBomb);
+        const level = RGUnitTests.wrapIntoLevel([bomber]);
+        level.moveActorTo(bomber, 1, 1);
+        level.addItem(smallBomb2, 1, 1);
+        // level.addItem(smallBomb3, 3, 3);
+
+        const bombCell = bomber.getCell();
+        expect(bombCell.getItems().length).to.equal(1);
+        smallBomb.useItem({target: bomber.getCell()});
+        updateSystems([baseSys, effSys, mineSys, timeSys, onCbsSys]);
+        expect(bombCell.getItems().length).to.equal(2);
+
+        const armedBomb = bombCell.getItems()[1];
+        expect(armedBomb).to.have.component('Fading');
+
+        level.debugPrintInASCII();
+        let watchdog = 100;
+        expect(smallBomb2).to.not.have.component('Effects');
+        while (armedBomb.has('Fading')) {
+            updateSystems([baseSys, effSys, mineSys, timeSys, onCbsSys]);
+            if (--watchdog === 0) break;
+        }
+        updateSystems([baseSys, effSys, mineSys, timeSys, onCbsSys]);
+        expect(smallBomb2).to.have.component('Effects');
+        updateSystems([baseSys, effSys, mineSys, timeSys, onCbsSys]);
+        expect(smallBomb2).to.have.component('Animation');
+        // Bombs have exploded and been removed
+        console.log(JSON.stringify(bombCell.getItems()));
+        expect(bombCell.getItems()).to.equal(null);
+    });
+
 });
 
 

@@ -115,7 +115,7 @@ export const Effects = {
         {
             name: 'addComp',
             requires: ['name', 'duration'],
-            optional: ['setters'],
+            optional: ['area', 'setters'],
             func(obj) {
                 const effArgs: IEffArgs = {
                     duration: this.useArgs.duration,
@@ -124,6 +124,9 @@ export const Effects = {
                     target: obj,
                     targetType: ['actors', 'items']
                 };
+                if (this.useArgs.area) {
+                    effArgs.area = this.useArgs.area;
+                }
                 if (this.useArgs.setters) {
                     effArgs.setters = this.useArgs.setters;
                 }
@@ -203,19 +206,6 @@ export const Effects = {
         {
             name: 'digger',
             func(obj) {
-                //rm const owner = getTopOwnerActor(this);
-                //rm const name = owner.getName();
-                //rm const msg = `${name} digs through stone with ${this.getName()}`;
-                /*rm
-                const effArgs = {
-                    // name: this.useArgs.name,
-                    effectType: 'ChangeElement',
-                    fromType: 'wall',
-                    target: obj,
-                    startMsg: msg,
-                    targetType: ['elements']
-                };
-                */
                 const effArgs: IEffArgs = {
                     effectType: 'AddComp',
                     name: 'Mining',

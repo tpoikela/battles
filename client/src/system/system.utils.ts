@@ -2,11 +2,18 @@
 import RG from '../rg';
 import {ObjectShellComps} from '../objectshellcomps';
 import * as Component from '../component';
+import {IEffArgs} from '../interfaces';
 
 type Level = import('../level').Level;
 type Entity = import('../entity').Entity;
 
 type ICmdObject = {[key: string]: any};
+
+let DEBUG_CB = true;
+
+export function setCbDebug(debug): void {
+    DEBUG_CB = debug;
+}
 
 /* Can be used to emit zone event with specified data, which will be processed
  * by System.ZoneEvent.
@@ -45,26 +52,59 @@ const _compGen: ObjectShellComps = new ObjectShellComps({debug: false});
  * 4. Adding an entity:
  */
 export function executeCompCb(ent: Entity, cbObj: ICmdObject): void {
+
     // Adding a new component
     if (cbObj.addComp) {
-        if (cbObj.addComp.duration) {
-            const effArgs: any = {
-                name: cbObj.addComp.comp,
+        let addComps = [];
+        if (typeof cbObj.addComp === 'string') {
+            addComps = [{comp: cbObj.addComp}];
+        }
+        else {
+            addComps = cbObj.addComp;
+        }
+        addComps.forEach(addComp => {
+            const effArgs: IEffArgs = {
+                name: addComp.comp,
                 target: ent,
-                duration: cbObj.addComp.duration
+                effectType: 'AddComp',
+                targetType: RG.PROP_TYPES,
+                //rm duration: cbObj.addComp.duration
             };
-            if (cbObj.addComp.func) {
+            if (addComp.duration) {
+                effArgs.duration = cbObj.addComp.duration;
+            }
+            if (addComp.func) {
                 effArgs.setters = cbObj.modifyComp.func;
             }
-            if (cbObj.addComp.expireMsg) {
+            if (addComp.expireMsg) {
                 effArgs.expireMsg = cbObj.addComp.expireMsg;
+            }
+            if (addComp.area) {
+                effArgs.area = addComp.area;
+            }
+            if (addComp.anim) {
+                effArgs.anim = addComp.anim;
+            }
+            if (addComp.applyToAllTargets) {
+                effArgs.applyToAllTargets = true;
+            }
+
+            // Level cannot be present in addComp, get it from cbObj
+            if (cbObj.level) {
+                effArgs.level = cbObj.level;
             }
             const effComp = new Component.Effects(effArgs);
             ent.add(effComp);
-        }
+            if (DEBUG_CB) {
+                const id = ent.getID();
+                const entNamed = ent as any;
+                console.log(`addComp Cb exec for @${id} |${entNamed.getName()}|`);
+            }
+        });
+        /*}
         else {
             _compGen.addComponents(cbObj, ent);
-        }
+        }*/
     }
 
     // Removing a component
@@ -84,6 +124,7 @@ export function executeCompCb(ent: Entity, cbObj: ICmdObject): void {
             get: cbObj.modifyComp.get,
             set: cbObj.modifyComp.set,
             value: cbObj.modifyComp.value,
+            effectType: 'ModifyCompValue',
         };
         const effComp = new Component.Effects(effArgs);
         ent.add(effComp);
@@ -103,6 +144,7 @@ export function executeCompCb(ent: Entity, cbObj: ICmdObject): void {
                 name: cbObj.modifyComp.comp,
                 target: {target: location.getCell()},
                 entityName: cbObj.addEntity.entityName,
+                effectType: 'AddEntity',
             };
             if (cbObj.addEntity.duration) {
                 effArgs.duration = cbObj.addEntity.duration;
@@ -113,6 +155,22 @@ export function executeCompCb(ent: Entity, cbObj: ICmdObject): void {
         else {
             RG.err('system.on-cb.ts', 'executeCompCb',
                 'In addEntity, no valid location for adding.');
+        }
+    }
+
+    if (cbObj.removeEntity) {
+        const removeEnt = cbObj.removeEntity;
+        const effArgs: IEffArgs = {
+            effectType: 'RemoveEntity',
+            target: removeEnt.target,
+            targetType: ['self'],
+        }
+        const effComp = new Component.Effects(effArgs);
+        ent.add(effComp);
+        if (DEBUG_CB) {
+            const id = ent.getID();
+            const entNamed = ent as any;
+            console.log(`removeEnt Cb exec for @${id} |${entNamed.getName()}|`);
         }
     }
 

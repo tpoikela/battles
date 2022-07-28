@@ -41,6 +41,7 @@ export class SystemMining extends SystemBase {
     }
 
     protected processExplosionComp(ent: Entity, explComp): void {
+        console.log(`Ent ${RG.getName(ent)} caught in explosion!`);
     }
 
     protected processMiningComp(ent: Entity, miningComp): void {

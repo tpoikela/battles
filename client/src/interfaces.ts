@@ -10,6 +10,7 @@ type Level = import('./level').Level;
 type ElementStairs = import('./element').ElementStairs;
 type ElementBase = import('./element').ElementBase;
 type ElementXY = import('./element').ElementXY;
+type Entity = import('./entity').Entity;
 
 type ItemBase = import('./item').ItemBase;
 type ItemAmmo = import('./item').Ammo;
@@ -631,6 +632,8 @@ export interface IAddCompObj {
     comp?: string;
     transientComp?: string; // Defers comp creation until needed
 
+    anim?: IAnimArgs;
+    applyToAllTargets?: boolean;
     area?: string;
     duration?: number | string;
     expireMsg?: string;
@@ -786,6 +789,10 @@ export interface IAddEntity {
     duration?: number | string;
 }
 
+export interface IRemoveEntity {
+    target: string;
+}
+
 interface TargetObj {
     target: any;
 }
@@ -794,26 +801,43 @@ interface Setters {
     [key: string]: any;
 }
 
+export interface IAnimArgs {
+    cX?: number;
+    cY?: number;
+    cell?: boolean;
+    className?: string;
+    coord?: TCoord[];
+    dir?: TCoord;
+    from?: TCoord;
+    level?: Level;
+    range?: number;
+    ray?: boolean;
+}
+
 export interface IEffArgs {
     addOnUser?: boolean; // Adds to the user
     all?: boolean;
+    anim?: IAnimArgs;
+    applyToAllTargets?: boolean; // If given, all targets are affected
     area?: string;
     duration?: number | string;
     effectSource?: any;
     effectType: string;
     entityName?: string;
     expireMsg?: string;
-    level?: any; // Optional level, if src entity already removed
+    level?: Level; // Optional level, if src entity already removed
     name?: string;
     setters?: Setters;
-    target: TargetObj;
+    target: TargetObj | Entity | string;
     targetType: string[];
 }
 
 export interface IEntCallbackObj {
     addComp?: TAddCompSpec;
     removeComp?: any[];
+    removeEntity?: IRemoveEntity;
     addEntity?: IAddEntity;
+    triggerCb?: string;
 }
 
 export interface IEntCallbacks {

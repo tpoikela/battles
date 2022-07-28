@@ -7,7 +7,7 @@ import * as Component from '../component';
 import {ELEM} from '../../data/elem-constants';
 import {ObjectShell} from '../objectshellparser';
 import {Element} from '../element';
-import {ISuccessCheck, TPropType, TCoord} from '../interfaces';
+import {ISuccessCheck, TPropType, TCoord, IAnimArgs} from '../interfaces';
 import {Geometry} from '../geometry';
 import {Entity} from '../entity';
 
@@ -18,6 +18,7 @@ const handlerTable = {
     AddComp: true,
     ModifyCompValue: true,
     AddEntity: true,
+    RemoveEntity: true,
     AddElement: true,
     RemoveElement: true,
     ChangeElement: true,
@@ -66,14 +67,20 @@ export class SystemEffects extends SystemBase {
     /* Returns the target for the effect. Priority of targets is:
      * 1. actors 2. items 3. elements 4. base element
      */
-    public static getEffectTarget(useArgs): any {
+    public static getEffectTargets(useArgs): any {
         const objTarget = useArgs.target;
         if (!objTarget) {
             const msg = 'Possibly missing args for useItem().';
-            RG.err('system.effects.js', 'getEffectTarget',
+            RG.err('system.effects.js', 'getEffectTargets',
                 `Given object was null/undefined. ${msg}`);
         }
-        return SystemEffects.getTargetFromObj(objTarget, useArgs.targetType);
+        if (useArgs.applyToAllTargets) {
+            console.log('Apply to all targets 444');
+            return SystemEffects.getAllTargetsFromObj(objTarget, useArgs.targetType);
+        }
+        const actualTarget = SystemEffects.getTargetFromObj(objTarget, useArgs.targetType);
+        if (actualTarget) {return [actualTarget];}
+        return [];
     }
 
     public static getTargetFromObj(objTarget, targetTypes) {
@@ -101,6 +108,31 @@ export class SystemEffects extends SystemBase {
         return null;
     }
 
+    public static getAllTargetsFromObj(objTarget, targetTypes): Entity[] {
+        console.log('Looking for targetTypes', targetTypes);
+        let res = [];
+        let cell = objTarget;
+        if (objTarget.hasOwnProperty('target')) {
+            cell = objTarget.target;
+        }
+        let targetType = targetTypes;
+        if (!targetType) {
+            targetType = ['actors', 'items', 'elements', 'baseElem'];
+        }
+        if (!Array.isArray(targetType)) {targetType = [targetType];}
+
+        for (let i = 0; i < targetType.length; i++) {
+            if (cell.hasProp(targetType[i])) {
+                const props = cell.getProp(targetType[i])!;
+                res = res.concat(props);
+            }
+            else if (/base/.test(targetType[i])) {
+                res.push(cell.getBaseElem());
+            }
+        }
+        return res;
+    }
+
     private _dtable: {[key: string]: HandleFunc};
 
     constructor(compTypes: string[], pool: EventPool) {
@@ -119,14 +151,22 @@ export class SystemEffects extends SystemBase {
         comps.forEach(effComp => {
             const effType = effComp.getEffectType();
             const effArgs: IEffArgs = effComp.getArgs();
+            /*
             if (effArgs.area && effArgs.target) {
                 const msg = JSON.stringify(effArgs);
                 RG.err('SystemEffects', 'updateEntity',
                     `Both target/area specified. Only one is supported: ${msg}`);
             }
+            */
+
             let targets = [];
             if (effArgs.area) {
                 targets = getTargetsFromArea(ent, effArgs.area);
+                console.log('Area found from effArgs 111', targets);
+                if (effArgs.anim) {
+                    console.log('Adding areaAnimation now 000');
+                    addAreaAnimation(ent, effArgs);
+                }
             }
             else {
                 targets = [effArgs.target];
@@ -191,62 +231,68 @@ export class SystemEffects extends SystemBase {
      * for a given duration. */
     public handleAddComp(srcEnt, effComp): boolean {
         const useArgs: IEffArgs = effComp.getArgs();
-        let targetEnt = SystemEffects.getEffectTarget(useArgs);
-        const compName = getCompName(useArgs, targetEnt);
+        const targetEnts = SystemEffects.getEffectTargets(useArgs);
 
-        let compToAdd = null;
-        if (Component.hasOwnProperty(compName)) {
-            compToAdd = new Component[compName]();
-        }
-        else {
-            RG.err('System.Effects', 'handleAddComp',
-                `Failed to create comp |${compName}|`);
-        }
+        this._emitDbgMsg('handleAddComp start', srcEnt);
 
-        // If setters are given, alter the values of added component
-        if (useArgs.setters) {
-            const setters = useArgs.setters;
-            Object.keys(setters).forEach(setFunc => {
-                if (typeof compToAdd[setFunc] === 'function') {
-                    const valueToSet = setters[setFunc];
+        targetEnts.forEach(targetEnt => {
+            const compName = getCompName(useArgs, targetEnt);
+            let compToAdd = null;
+            if (Component.hasOwnProperty(compName)) {
+                compToAdd = new Component[compName]();
+            }
+            else {
+                RG.err('System.Effects', 'handleAddComp',
+                    `Failed to create comp |${compName}|`);
+            }
 
-                    // Use the final target as value for setter '$$target'
-                    if (valueToSet === TARGET_SPECIFIER) {
-                        compToAdd[setFunc](targetEnt);
-                    }
-                    else if (valueToSet === ITEM_SPECIFIER) {
-                        compToAdd[setFunc](useArgs.effectSource);
+            // If setters are given, alter the values of added component
+            if (useArgs.setters) {
+                const setters = useArgs.setters;
+                Object.keys(setters).forEach(setFunc => {
+                    if (typeof compToAdd[setFunc] === 'function') {
+                        const valueToSet = setters[setFunc];
+
+                        // Use the final target as value for setter '$$target'
+                        if (valueToSet === TARGET_SPECIFIER) {
+                            compToAdd[setFunc](targetEnt);
+                        }
+                        else if (valueToSet === ITEM_SPECIFIER) {
+                            compToAdd[setFunc](useArgs.effectSource);
+                        }
+                        else {
+                            const numValue = convertValueIfNeeded(valueToSet);
+                            compToAdd[setFunc](numValue);
+                        }
                     }
                     else {
-                        const numValue = convertValueIfNeeded(valueToSet);
-                        compToAdd[setFunc](numValue);
+                        const json = JSON.stringify(compToAdd);
+                        RG.err('useEffect', 'addComp',
+                            `No ${setFunc} in comp ${json}`);
                     }
+                });
+            }
+
+            if (compToAdd && compToAdd.setSource) {
+                compToAdd.setSource(srcEnt);
+            }
+
+            // How to switch the entity here?
+            if (useArgs.addOnUser) {
+                targetEnt = srcEnt;
+            }
+
+            if (useArgs.duration) {
+                const dur = Dice.getValue(useArgs.duration);
+                const expirMsg = useArgs.expireMsg;
+                Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
+            }
+            else {
+                if (targetEnt.add) {
+                    targetEnt.add(compToAdd);
                 }
-                else {
-                    const json = JSON.stringify(compToAdd);
-                    RG.err('useEffect', 'addComp',
-                        `No ${setFunc} in comp ${json}`);
-                }
-            });
-        }
-
-        if (compToAdd && compToAdd.setSource) {
-            compToAdd.setSource(srcEnt);
-        }
-
-        // How to switch the entity here?
-        if (useArgs.addOnUser) {
-            targetEnt = srcEnt;
-        }
-
-        if (useArgs.duration) {
-            const dur = Dice.getValue(useArgs.duration);
-            const expirMsg = useArgs.expireMsg;
-            Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
-        }
-        else {
-            targetEnt.add(compToAdd);
-        }
+            }
+        });
 
         return true;
     }
@@ -293,7 +339,7 @@ export class SystemEffects extends SystemBase {
                 return true;
             }
             else {
-                console.log('maxNumAllowed hit already for', newElem.getName());
+                //rm console.log('maxNumAllowed hit already for', newElem.getName());
                 return false;
             }
         }
@@ -329,23 +375,25 @@ export class SystemEffects extends SystemBase {
         return false;
     }
 
-    /* Adds a value to an existing component value. */
+    /* Adds a value to an existing component value. Returns true if at least on
+     * component is modified. */
     public handleModifyCompValue(srcEnt, effComp): boolean {
         const useArgs = effComp.getArgs();
-        const targetEnt = SystemEffects.getEffectTarget(useArgs);
-        const compName = getCompName(useArgs, targetEnt);
+        const targetEnts = SystemEffects.getEffectTargets(useArgs);
+        let ok = false;
 
-        if (targetEnt) {
-            if (targetEnt.has(compName)) {
+        targetEnts.forEach(targetEnt => {
+            const compName = getCompName(useArgs, targetEnt);
+            if (targetEnt && targetEnt.has(compName)) {
                 const comp = targetEnt.get(compName);
                 const currValue = comp[useArgs.get]();
                 const value = useArgs.value;
                 const numValue = convertValueIfNeeded(value);
                 comp[useArgs.set](currValue + numValue);
-                return true;
+                ok = true;
             }
-        }
-        return false;
+        });
+        return ok;
     }
 
     /* Adds an entity to target cell. */
@@ -381,6 +429,32 @@ export class SystemEffects extends SystemBase {
         return false;
     }
 
+    public handleRemoveEntity(srcEnt, effComp): boolean {
+        const useArgs: IEffArgs = effComp.getArgs();
+        let ok = false;
+
+        // Self-removal case
+        if (useArgs.target === SELF_SPECIFIER) {
+            if (RG.isItem(srcEnt) && srcEnt.getTopOwner()) {
+                // TODO this case won't get triggered at the moment
+                RG.err('system.effects.ts', 'handleRemoveEntity',
+                    'Not supported for owned items (in inventory)');
+            }
+            else {
+                const [x, y] = srcEnt.get('Location').getXY();
+                const level = srcEnt.get('Location').getLevel();
+                if (level.removeEntity(srcEnt, x, y)) {
+                    ok = true;
+                }
+            }
+        }
+        else {
+            RG.err('system.effects.ts', 'handleRemoveEntity',
+                'Other targets than "self" unsupported for now');
+        }
+        return ok;
+    }
+
     public handleChangeElement(srcEnt, effComp): boolean {
         const useArgs = effComp.getArgs();
         const cell = getTargetCellOrFail(useArgs);
@@ -395,19 +469,21 @@ export class SystemEffects extends SystemBase {
 
     public handleRemoveComp(srcEnt, effComp): boolean {
         const useArgs = effComp.getArgs();
-        const targetEnt = SystemEffects.getEffectTarget(useArgs);
-        const compName = getCompName(useArgs, targetEnt);
-
-        if (targetEnt.has(compName)) {
-            if (useArgs.all) {
-                targetEnt.removeAll(compName);
+        const targetEnts = SystemEffects.getEffectTargets(useArgs);
+        let ok = false;
+        targetEnts.forEach(targetEnt => {
+            const compName = getCompName(useArgs, targetEnt);
+            if (targetEnt.has(compName)) {
+                if (useArgs.all) {
+                    targetEnt.removeAll(compName);
+                }
+                else {
+                    targetEnt.remove(compName);
+                }
+                ok = true;
             }
-            else {
-                targetEnt.remove(compName);
-            }
-            return true;
-        }
-        return false;
+        });
+        return ok;
     }
 
     /* Used for any success checks required for applying the effect. */
@@ -504,12 +580,12 @@ SystemEffects.handlerTable = handlerTable;
 //-------------------
 
 function getCompName(useArgs, targetEnt) {
-    const compName = useArgs.name;
+    const compName = useArgs.name || useArgs.comp;
     if (!compName) {
         const json = JSON.stringify(useArgs);
         let errorMsg = 'Unknown comp value. useArgs: ' + json;
         if (targetEnt) {errorMsg += ' targetEnt ' + JSON.stringify(targetEnt);}
-        RG.err('SystemEffects', 'handleModifyCompValue',
+        RG.err('SystemEffects', 'getCompName',
             errorMsg);
     }
     return compName.capitalize();
@@ -593,4 +669,19 @@ function getTargetsFromArea(ent, area): Cell[] {
     const coord: TCoord[] = Geometry.getBoxAround(x, y, d, true);
     const map = level.getMap();
     return map.getCellsWithCoord(coord);
+}
+
+function addAreaAnimation(ent, effArgs): void {
+    const [aX, aY] = parseArea(effArgs.area);
+    const anim: IAnimArgs = effArgs.anim;
+    const [cX, cY] = ent.get('Location').getXY();
+    const level = ent.get('Location').getLevel();
+    const animArgs: IAnimArgs = {
+        range: 1,
+        cX, cY,
+        className: anim.className,
+        level
+    };
+    const animComp = new Component.Animation(animArgs);
+    ent.add(animComp);
 }

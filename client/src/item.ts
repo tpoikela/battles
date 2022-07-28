@@ -50,7 +50,7 @@ export class ItemBase extends Entity {
      * inside inventory. */
     public getTopOwner(): null | Owner {
         let owner = this._owner;
-        while ((owner as ItemBase).getOwner) {
+        while (owner && (owner as ItemBase).getOwner) {
             owner = (owner as ItemBase).getOwner();
         }
         return owner;
