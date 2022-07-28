@@ -1250,6 +1250,8 @@ export class FromJSON {
     }
 
 
+    /* 2nd step for Entity creation. All entities are now created, so their
+     * references can be set properly to other entities. */
     public restoreEntityData(): void {
         const entNumBefore = JSON.parse(JSON.stringify(Entity.num));
         Object.keys(this.id2EntityJson).forEach(id => {

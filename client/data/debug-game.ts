@@ -358,7 +358,7 @@ export class DebugGame {
         oneway.setMsg({onEnter: 'Stairs speak aloud: Abandon all hope who enter here!!!'});
         level.addElement(oneway, player.getX() - 1, player.getY());
 
-        addItemToPlayer(parser, player, 'small bomb');
+        addItemToPlayer(parser, player, 'small bomb', 10);
 
         return game;
     }
@@ -707,8 +707,9 @@ class ActorKillListener {
     }
 } // const ActorKillListener
 
-function addItemToPlayer(parser, player: SentientActor, itemName: string) {
+function addItemToPlayer(parser, player: SentientActor, itemName: string, n=1) {
     const item = parser.createItem(itemName);
+    item.setCount(n);
     player.getInvEq().addItem(item);
     return item;
 }

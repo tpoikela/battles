@@ -1399,6 +1399,7 @@ const Items: ObjectShell[] = [
             onAddExplosion: {
                 addComp: [
                     {comp: 'Explosion', area: '3x3',
+                        func: {setDamage: '3d12'},
                         applyToAllTargets: true,
                         anim: {className: 'cell-item-fire'},
                     }
@@ -1883,6 +1884,7 @@ const Items: ObjectShell[] = [
             onFadeout: {
                 addComp: [
                     {comp: 'Explosion', area: '3x3',
+                        func: {setDamage: '3d12'},
                         applyToAllTargets: true,
                         anim: {className: 'cell-item-fire'},
                     }

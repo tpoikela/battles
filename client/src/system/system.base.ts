@@ -112,7 +112,6 @@ export abstract class SystemBase {
         // For debugging particular actors, works only when debugEnabled = true
         this.traceID = 686; // -1 matches any ID
         this.traceIDs = {
-            61: true,
         };
 
         this.debugEnabled = debug.enabled;

@@ -1,6 +1,4 @@
 
-const $DEBUG = 0;
-
 /* Main object of the package for encapsulating all other objects. */
 
 import './utils';
@@ -267,6 +265,8 @@ class RGClass {
     public ORE_VEIN_SIZES: {[key: number]: number};
 
     public NO_OWNER: null;
+
+    public DEBUG: number;
 
     constructor() {
         this.POOL = EventPool.getPool();
@@ -590,6 +590,7 @@ class RGClass {
             DIRECT: 'DIRECT',
             ENERGY: 'ENERGY',
             EFFECT: 'EFFECT',
+            EXPLOSION: 'EXPLOSION',
             FIRE: 'FIRE',
             HUNGER: 'HUNGER',
             ICE: 'ICE',
@@ -627,6 +628,7 @@ class RGClass {
             COLD: 'cell-damage-COLD',
             ENERGY: 'cell-damage-ENERGY',
             FIRE: 'cell-damage-FIRE',
+            EXPLOSION: 'cell-damage-FIRE',
             HUNGER: 'cell-damage-HUNGER',
             ICE: 'cell-damage-ICE',
             LIGHTNING: 'cell-damage-LIGHTNING',
@@ -776,6 +778,7 @@ class RGClass {
         };
 
         this.NO_OWNER = null;
+        this.DEBUG = 0;
     }
 
     /* Given Map.Cell, returns CSS classname used for styling that cell. */
@@ -1011,7 +1014,7 @@ class RGClass {
     }
 
     public debug(obj: any, msg: string): void {
-        if ($DEBUG) {
+        if (this.DEBUG > 0) {
             const inst = typeof obj;
             const json = JSON.stringify(obj);
             console.log(`[DEBUG]: Type: ${inst} ${json} |${msg}|`);
@@ -2408,10 +2411,16 @@ class RGClass {
 
             const msgObject = {cell, msg: newMsg, style};
             this.POOL.emitEvent(this.EVT_MSG, msgObject);
+            if (this.DEBUG > 1) {
+                console.log(`Msg: ${newMsg}`);
+            }
         }
         else {
             newMsg = msg[0].toUpperCase() + msg.substring(1);
             this.POOL.emitEvent(this.EVT_MSG, {msg: newMsg, style});
+            if (this.DEBUG > 1) {
+                console.log(`Msg: ${newMsg}`);
+            }
         }
 
     }

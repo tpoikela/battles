@@ -75,7 +75,6 @@ export class SystemEffects extends SystemBase {
                 `Given object was null/undefined. ${msg}`);
         }
         if (useArgs.applyToAllTargets) {
-            console.log('Apply to all targets 444');
             return SystemEffects.getAllTargetsFromObj(objTarget, useArgs.targetType);
         }
         const actualTarget = SystemEffects.getTargetFromObj(objTarget, useArgs.targetType);
@@ -109,7 +108,6 @@ export class SystemEffects extends SystemBase {
     }
 
     public static getAllTargetsFromObj(objTarget, targetTypes): Entity[] {
-        console.log('Looking for targetTypes', targetTypes);
         let res = [];
         let cell = objTarget;
         if (objTarget.hasOwnProperty('target')) {
@@ -162,9 +160,7 @@ export class SystemEffects extends SystemBase {
             let targets = [];
             if (effArgs.area) {
                 targets = getTargetsFromArea(ent, effArgs.area);
-                console.log('Area found from effArgs 111', targets);
                 if (effArgs.anim) {
-                    console.log('Adding areaAnimation now 000');
                     addAreaAnimation(ent, effArgs);
                 }
             }
@@ -236,6 +232,11 @@ export class SystemEffects extends SystemBase {
         this._emitDbgMsg('handleAddComp start', srcEnt);
 
         targetEnts.forEach(targetEnt => {
+            // Prevent adding affecting the srcEnt itself (important for area
+            // effects)
+            if (useArgs.applyToSelf || targetEnt.getID() === srcEnt.getID()) {
+                return;
+            }
             const compName = getCompName(useArgs, targetEnt);
             let compToAdd = null;
             if (Component.hasOwnProperty(compName)) {
@@ -273,8 +274,19 @@ export class SystemEffects extends SystemBase {
                 });
             }
 
+            // Track also the source of adding component, to track who gets
+            // experience/blame from killing something
             if (compToAdd && compToAdd.setSource) {
-                compToAdd.setSource(srcEnt);
+                if (useArgs.source) {
+                    compToAdd.setSource(useArgs.source);
+                }
+                else if (srcEnt.has('Created')) {
+                    console.log('Set compToAdd source using Created.getCreator');
+                    compToAdd.setSource(srcEnt.get('Created').getCreator());
+                }
+                else {
+                    compToAdd.setSource(srcEnt);
+                }
             }
 
             // How to switch the entity here?
@@ -339,7 +351,6 @@ export class SystemEffects extends SystemBase {
                 return true;
             }
             else {
-                //rm console.log('maxNumAllowed hit already for', newElem.getName());
                 return false;
             }
         }
@@ -435,6 +446,7 @@ export class SystemEffects extends SystemBase {
 
         // Self-removal case
         if (useArgs.target === SELF_SPECIFIER) {
+            console.log(`removeEnt ${RG.getName(srcEnt)} now 777`);
             if (RG.isItem(srcEnt) && srcEnt.getTopOwner()) {
                 // TODO this case won't get triggered at the moment
                 RG.err('system.effects.ts', 'handleRemoveEntity',

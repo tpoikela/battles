@@ -147,7 +147,7 @@ export class SystemAttack extends SystemBase {
         return totalDef;
     }
 
-    public doDamage(att, def, dmg) {
+    public doDamage(att, def, dmg): void {
         const dmgComp = new Component.Damage(dmg, RG.DMG.MELEE);
         dmgComp.setSource(att);
         if (this.debugEnabled) {

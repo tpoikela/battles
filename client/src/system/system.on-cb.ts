@@ -55,10 +55,6 @@ export class SystemOnCbs extends SystemBase {
                 ent.remove(removeComp);
             });
         }
-
-        if (ent.has('OnRemoveCb')) {
-            console.log('WARN! Ent still has OnAddCb:', ent.getList('OnAddCb'));
-        }
         */
     }
 
@@ -68,7 +64,6 @@ export class SystemOnCbs extends SystemBase {
         if (ent.has('Callbacks')) {
             const cbs = ent.get('Callbacks');
             const cbName = 'onAdd' + compName;
-            console.log('666 Executing onAddCb for cb ' + cbName);
             if (cbs.hasCb(cbName)) {
                 let cbData = cbs.cb(cbName);
                 if (cbData.triggerCb) {
@@ -123,7 +118,6 @@ export class SystemOnCbs extends SystemBase {
                     const cbs = baseElem.get('Callbacks');
                     const cbName = 'onRemove' + compName + 'Entity';
                     if (cbs.hasCb(cbName)) {
-                        console.log('removeComp Processing ' + cbName + 'for ' + baseElem.getName());
                         const cbData = cbs.cb(cbName);
                         executeCompCb(ent, cbData);
                     }

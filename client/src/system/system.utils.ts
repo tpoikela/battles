@@ -74,7 +74,7 @@ export function executeCompCb(ent: Entity, cbObj: ICmdObject): void {
                 effArgs.duration = cbObj.addComp.duration;
             }
             if (addComp.func) {
-                effArgs.setters = cbObj.modifyComp.func;
+                effArgs.setters = cbObj.addComp.func;
             }
             if (addComp.expireMsg) {
                 effArgs.expireMsg = cbObj.addComp.expireMsg;

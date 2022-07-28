@@ -142,7 +142,8 @@ export class ObjectShellComps {
 
                             const newVal = compData.func[funcName];
                             if (this.debug) {
-                                console.log('KKK444 Calling addCompToObj recursively', newCompData, newVal);
+                                console.log('Calling addCompToObj recursively', newCompData,
+                                    newVal);
                             }
                             this.addCompToObj(newObj, newCompData, newVal);
                         });

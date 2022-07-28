@@ -7,6 +7,7 @@ import * as Element from '../element';
 import * as Component from '../component';
 import {Constraints} from '../constraints';
 import {IEffArgs} from '../interfaces';
+import {Dice} from '../dice';
 
 import {MineItemEntry, Elem2Items, Elem2Floor} from '../../data/mining';
 
@@ -24,11 +25,12 @@ export class SystemMining extends SystemBase {
     constructor(compTypes: string[], pool: EventPool) {
         super(RG.SYS.MINING, compTypes, pool);
         this.parser = ObjectShell.getParser();
+        this.compTypesAny = true;
     }
 
 
     public updateEntity(ent: Entity): void {
-        const explCompList =  ent.getList('Explosion');
+        const explCompList = ent.getList('Explosion');
         explCompList.forEach((explComp) => {
             this.processExplosionComp(ent, explComp);
             ent.remove(explComp);
@@ -41,7 +43,23 @@ export class SystemMining extends SystemBase {
     }
 
     protected processExplosionComp(ent: Entity, explComp): void {
-        console.log(`Ent ${RG.getName(ent)} caught in explosion!`);
+        console.log('processExplosionComp for ent', RG.getName(ent));
+        if (ent.has('Health')) {
+            const dmgStr = explComp.getDamage();
+            const dmgVal = Dice.getValue(dmgStr);
+            const dmgComp = new Component.Damage(dmgVal, RG.DMG.EXPLOSION);
+            dmgComp.setSource(explComp.getSource());
+            ent.add(dmgComp);
+            const cell = ent.get('Location').getCell();
+            const srcName = RG.getName(explComp.getSource());
+            const msg = `Explosion caused by ${srcName} hits ${RG.getName(ent)}!`;
+            console.log(msg);
+            RG.gameMsg({cell, msg});
+        }
+        else if (ent.has('Physical')) {
+        }
+        else if (ent.has('Breakable')) {
+        }
     }
 
     protected processMiningComp(ent: Entity, miningComp): void {
@@ -94,7 +112,6 @@ export class SystemMining extends SystemBase {
                     if (elemBreak.has('Callbacks')) {
                         this._execCallbacks(elemBreak, level);
                     }
-
                 }
                 else {
                     breakComp.setDurability(newDur);
@@ -125,13 +142,13 @@ export class SystemMining extends SystemBase {
                     const newDur: number = baseBreakComp.getDurability() - reduceDur;
 
                     if (newDur > 0) {
-                        // this.parser
                         const newElem = new Element.ElementXY('Damaged ' + baseType);
                         newElem.setType(baseType);
                         const breakComp = new Component.Breakable();
                         breakComp.setHardness(baseElemHard);
                         breakComp.setDurability(newDur);
                         newElem.add(breakComp);
+
                         // TODO copy all components from base element
                         if (baseElem.has('Impassable')) {
                             const compImpass = new Component.Impassable();

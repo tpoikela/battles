@@ -190,9 +190,7 @@ export class Entity extends GameObject {
         }
         compObj.entityAddCallback(this);
         Entity.POOL.emitEvent(compName, {entity: this, add: true});
-        // if (!disableOnAddRemoveCbsFor[compName]) {
         if (Entity.enableOnAddRemoveCbsFor[compName]) {
-            console.log('Creating OnAdd component for ', compName);
             const onAdd = new OnAddCb();
             onAdd.setCompName(compName);
             onAdd.setComp(compObj);
@@ -252,19 +250,6 @@ export class Entity extends GameObject {
             list.forEach(comp => {this.remove(comp);});
         }
     }
-
-    /* Replaces ALL components of the given type. */
-    /*
-    public replace(nameOrComp, comp): void {
-        this.removeAll(nameOrComp);
-        if (comp) {
-            this.add(comp);
-        }
-        else {
-            this.add(nameOrComp);
-        }
-    }
-    */
 
     public getComponents(): IComponents {
         return this.comps;

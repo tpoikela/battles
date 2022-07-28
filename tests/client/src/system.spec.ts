@@ -533,19 +533,19 @@ describe('System.TimeEffects', () => {
         const baseSys = new System.BaseAction(['UseItem'], pool);
         const effSys = new System.Effects(['Effects'], pool);
         const timeSys = new System.TimeEffects(['Fading'], pool);
-        const mineSys = new System.Mining(['Explosion'], pool);
+        const mineSys = new System.Mining(['Mining', 'Explosion'], pool);
         const onCbsSys = new System.OnCbs(['OnAddCb'], pool);
 
         const bomber = new SentientActor('bomber');
         const smallBomb = parser.createItem('small bomb');
         const smallBomb2 = parser.createItem('small bomb');
-        // const smallBomb3 = parser.createItem('small bomb');
+        const smallBomb3 = parser.createItem('small bomb');
 
         bomber.getInvEq().addItem(smallBomb);
         const level = RGUnitTests.wrapIntoLevel([bomber]);
         level.moveActorTo(bomber, 1, 1);
         level.addItem(smallBomb2, 1, 1);
-        // level.addItem(smallBomb3, 3, 3);
+        level.addItem(smallBomb3, 2, 2);
 
         const bombCell = bomber.getCell();
         expect(bombCell.getItems().length).to.equal(1);
@@ -564,11 +564,14 @@ describe('System.TimeEffects', () => {
             if (--watchdog === 0) break;
         }
         updateSystems([baseSys, effSys, mineSys, timeSys, onCbsSys]);
+        expect(bomber).to.have.component('Damage');
         expect(smallBomb2).to.have.component('Effects');
+
+        const dmgComp = bomber.get('Damage');
+        expect(dmgComp.getSource()).to.equal(bomber);
         updateSystems([baseSys, effSys, mineSys, timeSys, onCbsSys]);
         expect(smallBomb2).to.have.component('Animation');
         // Bombs have exploded and been removed
-        console.log(JSON.stringify(bombCell.getItems()));
         expect(bombCell.getItems()).to.equal(null);
     });
 

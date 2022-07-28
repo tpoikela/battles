@@ -819,6 +819,7 @@ export interface IEffArgs {
     all?: boolean;
     anim?: IAnimArgs;
     applyToAllTargets?: boolean; // If given, all targets are affected
+    applyToSelf?: boolean; // When to all targets, self excluded normally
     area?: string;
     duration?: number | string;
     effectSource?: any;
@@ -828,6 +829,7 @@ export interface IEffArgs {
     level?: Level; // Optional level, if src entity already removed
     name?: string;
     setters?: Setters;
+    source?: SentientActor;
     target: TargetObj | Entity | string;
     targetType: string[];
 }
