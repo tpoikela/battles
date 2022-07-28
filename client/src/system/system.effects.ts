@@ -27,6 +27,8 @@ const handlerTable = {
 
 type HandleFunc = (ent: Entity, comp) => boolean;
 
+type Target = Entity | Cell;
+
 const TARGET_SPECIFIER = '$$target';
 const CELL_SPECIFIER = '$$cell';
 const SELF_SPECIFIER = 'self';
@@ -67,7 +69,7 @@ export class SystemEffects extends SystemBase {
     /* Returns the target for the effect. Priority of targets is:
      * 1. actors 2. items 3. elements 4. base element
      */
-    public static getEffectTargets(useArgs): any {
+    public static getEffectTargets(useArgs): Target[] {
         const objTarget = useArgs.target;
         if (!objTarget) {
             const msg = 'Possibly missing args for useItem().';
@@ -234,10 +236,11 @@ export class SystemEffects extends SystemBase {
         targetEnts.forEach(targetEnt => {
             // Prevent adding affecting the srcEnt itself (important for area
             // effects)
-            console.log('targetEnt', targetEnt);
-            if (useArgs.applyToSelf || targetEnt.getID() === srcEnt.getID()) {
+            if (useArgs.applyToSelf) return;
+            if (RG.isEntity(targetEnt) && targetEnt.getID() === srcEnt.getID()) {
                 return;
             }
+
             const compName = getCompName(useArgs, targetEnt);
             let compToAdd = null;
             if (Component.hasOwnProperty(compName)) {
@@ -282,7 +285,6 @@ export class SystemEffects extends SystemBase {
                     compToAdd.setSource(useArgs.source);
                 }
                 else if (srcEnt.has('Created')) {
-                    console.log('Set compToAdd source using Created.getCreator');
                     compToAdd.setSource(srcEnt.get('Created').getCreator());
                 }
                 else {
@@ -295,13 +297,13 @@ export class SystemEffects extends SystemBase {
                 targetEnt = srcEnt;
             }
 
-            if (useArgs.duration) {
-                const dur = Dice.getValue(useArgs.duration);
-                const expirMsg = useArgs.expireMsg;
-                Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
-            }
-            else {
-                if (targetEnt.add) {
+            if (RG.isEntity(targetEnt)) {
+                if (useArgs.duration) {
+                    const dur = Dice.getValue(useArgs.duration);
+                    const expirMsg = useArgs.expireMsg;
+                    Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
+                }
+                else {
                     targetEnt.add(compToAdd);
                 }
             }
@@ -396,7 +398,7 @@ export class SystemEffects extends SystemBase {
 
         targetEnts.forEach(targetEnt => {
             const compName = getCompName(useArgs, targetEnt);
-            if (targetEnt && targetEnt.has(compName)) {
+            if (RG.isEntity(targetEnt) && targetEnt.has(compName)) {
                 const comp = targetEnt.get(compName);
                 const currValue = comp[useArgs.get]();
                 const value = useArgs.value;
@@ -447,7 +449,6 @@ export class SystemEffects extends SystemBase {
 
         // Self-removal case
         if (useArgs.target === SELF_SPECIFIER) {
-            console.log(`removeEnt ${RG.getName(srcEnt)} now 777`);
             if (RG.isItem(srcEnt) && srcEnt.getTopOwner()) {
                 // TODO this case won't get triggered at the moment
                 RG.err('system.effects.ts', 'handleRemoveEntity',
@@ -486,7 +487,7 @@ export class SystemEffects extends SystemBase {
         let ok = false;
         targetEnts.forEach(targetEnt => {
             const compName = getCompName(useArgs, targetEnt);
-            if (targetEnt.has(compName)) {
+            if (RG.isEntity(targetEnt) && targetEnt.has(compName)) {
                 if (useArgs.all) {
                     targetEnt.removeAll(compName);
                 }

@@ -2049,6 +2049,7 @@ class RGClass {
 /* Returns true if given object is an entity. Can return false results
  * sometimes. */
     public isEntity(obj: any): obj is Entity {
+        if (!obj) return false;
         if (obj.comps && obj.compsByType && obj.add && obj.get) {
             return true;
         }
