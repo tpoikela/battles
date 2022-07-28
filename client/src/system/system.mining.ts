@@ -43,7 +43,9 @@ export class SystemMining extends SystemBase {
     }
 
     protected processExplosionComp(ent: Entity, explComp): void {
+        const force = explComp.getForce();
         console.log('processExplosionComp for ent', RG.getName(ent));
+
         if (ent.has('Health')) {
             const dmgStr = explComp.getDamage();
             const dmgVal = Dice.getValue(dmgStr);
@@ -57,8 +59,48 @@ export class SystemMining extends SystemBase {
             RG.gameMsg({cell, msg});
         }
         else if (ent.has('Physical')) {
+            const physComp = ent.get('Physical');
+            const hardness = RG.getMaterialHardness(ent);
+
+            // Workaround for handling bombs. They should not be destroyed here,
+            // since their callbacks will remove them automatically
+            if (ent.has('Callbacks')) {
+                const cbs = ent.get('Callbacks');
+                if (cbs.hasCb('onAddExplosion')) {
+                    const cb = cbs.cb('onAddExplosion');
+                    if (cb.removeEntity) {
+                        if (cb.removeEntity.target === 'self') {
+                            return;
+                        }
+                    }
+                }
+            }
+
+            if (hardness <= force) {
+                if (ent.has('Location')) {
+                    const level = ent.get('Location').getLevel();
+                    const [x, y] = ent.get('Location').getXY();
+                    const cell =  ent.get('Location').getCell();
+                    if (level.removeEntity(ent, x, y)) {
+                        const entName = RG.getName(ent);
+                        const msg = `${entName} is destroyed by explosion!`;
+                        RG.gameMsg({cell, msg});
+                    }
+                }
+            }
         }
         else if (ent.has('Breakable')) {
+            const hardness = ent.get('Breakable').getHardness();
+            if (hardness <= force) {
+                const level = ent.get('Location').getLevel();
+                const [x, y] = ent.get('Location').getXY();
+                const cell =  ent.get('Location').getCell();
+                if (level.removeEntity(ent, x, y)) {
+                    const entName = RG.getName(ent);
+                    const msg = `${entName} is destroyed by explosion!`;
+                    RG.gameMsg({cell, msg});
+                }
+            }
         }
     }
 

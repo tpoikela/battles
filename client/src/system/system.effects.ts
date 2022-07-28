@@ -234,6 +234,7 @@ export class SystemEffects extends SystemBase {
         targetEnts.forEach(targetEnt => {
             // Prevent adding affecting the srcEnt itself (important for area
             // effects)
+            console.log('targetEnt', targetEnt);
             if (useArgs.applyToSelf || targetEnt.getID() === srcEnt.getID()) {
                 return;
             }

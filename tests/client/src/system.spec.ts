@@ -540,13 +540,16 @@ describe('System.TimeEffects', () => {
         const smallBomb = parser.createItem('small bomb');
         const smallBomb2 = parser.createItem('small bomb');
         const smallBomb3 = parser.createItem('small bomb');
+        const sword = parser.createItem('Short sword');
 
         bomber.getInvEq().addItem(smallBomb);
         const level = RGUnitTests.wrapIntoLevel([bomber]);
         level.moveActorTo(bomber, 1, 1);
         level.addItem(smallBomb2, 1, 1);
         level.addItem(smallBomb3, 2, 2);
+        level.addItem(sword, 0, 0);
 
+        const swordCell = sword.getCell();
         const bombCell = bomber.getCell();
         expect(bombCell.getItems().length).to.equal(1);
         smallBomb.useItem({target: bomber.getCell()});
@@ -573,6 +576,8 @@ describe('System.TimeEffects', () => {
         expect(smallBomb2).to.have.component('Animation');
         // Bombs have exploded and been removed
         expect(bombCell.getItems()).to.equal(null);
+        expect(swordCell.getItems()).to.equal(null);
+
     });
 
 });

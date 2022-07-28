@@ -1392,7 +1392,7 @@ const Items: ObjectShell[] = [
         value: 30
     },
     {
-        name: 'small bomb', base: 'tool',
+        name: 'small bomb', base: 'tool', weight: 1.0,
         className: 'cell-item-iron',
         addComp: 'OneShot',
         callbacks: {
@@ -1410,6 +1410,28 @@ const Items: ObjectShell[] = [
         use: {
             addEntity: {
                 entityName: 'armed small bomb', duration: 5,
+            }
+        }
+    },
+    {
+        name: 'large bomb', base: 'tool', weight: 2.0,
+        className: 'cell-item-iron',
+        addComp: 'OneShot',
+        callbacks: {
+            onAddExplosion: {
+                addComp: [
+                    {comp: 'Explosion', area: '5x5',
+                        func: {setDamage: '5d12'},
+                        applyToAllTargets: true,
+                        anim: {className: 'cell-item-fire'},
+                    }
+                ],
+                removeEntity: {target: 'self'},
+            }
+        },
+        use: {
+            addEntity: {
+                entityName: 'armed large bomb', duration: 5,
             }
         }
     },
@@ -1885,6 +1907,25 @@ const Items: ObjectShell[] = [
                 addComp: [
                     {comp: 'Explosion', area: '3x3',
                         func: {setDamage: '3d12'},
+                        applyToAllTargets: true,
+                        anim: {className: 'cell-item-fire'},
+                    }
+                ]
+            },
+            onAddExplosion: {
+                triggerCb: 'onFadeout',
+                removeEntity: {target: 'self'},
+            },
+        }
+    },
+    {
+        name: 'armed large bomb', noRandom: true,
+        type: 'tool', char: ']',
+        callbacks: {
+            onFadeout: {
+                addComp: [
+                    {comp: 'Explosion', area: '5x5',
+                        func: {setDamage: '5d12'},
                         applyToAllTargets: true,
                         anim: {className: 'cell-item-fire'},
                     }
