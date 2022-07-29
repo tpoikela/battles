@@ -84,14 +84,17 @@ export class SystemOnCbs extends SystemBase {
             const location = ent.get('Location');
             if (location.isValid()) {
                 const cell = location.getCell();
-                const baseElem = cell.getBaseElem();
-                if (baseElem.has('Callbacks')) {
-                    const cbs = baseElem.get('Callbacks');
-                    // const compName = comp.getCompName();
-                    const cbName = 'onAdd' + compName + 'Entity';
-                    if (cbs.hasCb(cbName)) {
-                        const cbData = cbs.cb(cbName);
-                        executeCompCb(ent, cbData);
+                // Removed entities will not execute baseElem callback
+                if (cell) {
+                    const baseElem = cell.getBaseElem();
+                    if (baseElem.has('Callbacks')) {
+                        const cbs = baseElem.get('Callbacks');
+                        // const compName = comp.getCompName();
+                        const cbName = 'onAdd' + compName + 'Entity';
+                        if (cbs.hasCb(cbName)) {
+                            const cbData = cbs.cb(cbName);
+                            executeCompCb(ent, cbData);
+                        }
                     }
                 }
             }
@@ -116,13 +119,16 @@ export class SystemOnCbs extends SystemBase {
             const location = ent.get('Location');
             if (location.isValid()) {
                 const cell = location.getCell();
-                const baseElem = cell.getBaseElem();
-                if (baseElem.has('Callbacks')) {
-                    const cbs = baseElem.get('Callbacks');
-                    const cbName = 'onRemove' + compName + 'Entity';
-                    if (cbs.hasCb(cbName)) {
-                        const cbData = cbs.cb(cbName);
-                        executeCompCb(ent, cbData);
+                // Removed entities will not execute baseElem callback
+                if (cell) {
+                    const baseElem = cell.getBaseElem();
+                    if (baseElem.has('Callbacks')) {
+                        const cbs = baseElem.get('Callbacks');
+                        const cbName = 'onRemove' + compName + 'Entity';
+                        if (cbs.hasCb(cbName)) {
+                            const cbData = cbs.cb(cbName);
+                            executeCompCb(ent, cbData);
+                        }
                     }
                 }
             }
