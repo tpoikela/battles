@@ -11,7 +11,7 @@ import {SentientActor } from '../../../client/src/actor';
 import * as Item from '../../../client/src/item';
 import * as Component from '../../../client/src/component';
 import * as Element from '../../../client/src/element';
-// import { ELEM } from '../../../client/data/elem-constants';
+import { ELEM } from '../../../client/data/elem-constants';
 import {System} from '../../../client/src/system';
 import {FactoryLevel} from '../../../client/src/factory.level';
 import {FactoryActor} from '../../../client/src/factory.actors';
@@ -549,30 +549,44 @@ describe('System.TimeEffects', () => {
         level.addItem(smallBomb3, 2, 2);
         level.addItem(sword, 0, 0);
 
+        const baseElemCell = level.getMap().getCell(1, 0);
+        baseElemCell.setBaseElem(ELEM.WALL);
+
+        // Damage base elem cell to prep to for Explosion
+        const pickAxe = parser.createItem('Void pick-axe');
+        bomber.getInvEq().addItem(pickAxe);
+        pickAxe.useItem({target: baseElemCell});
+        updateSystems([baseSys, effSys, mineSys, onCbsSys]);
+        updateSystems([timeSys]);
+
         const swordCell = sword.getCell();
         const bombCell = bomber.getCell();
         expect(bombCell.getItems().length).to.equal(1);
         smallBomb.useItem({target: bomber.getCell()});
-        updateSystems([baseSys, effSys, mineSys, timeSys, onCbsSys]);
+        updateSystems([baseSys, effSys, mineSys, onCbsSys]);
+        updateSystems([timeSys]);
         expect(bombCell.getItems().length).to.equal(2);
 
         const armedBomb = bombCell.getItems()[1];
         expect(armedBomb).to.have.component('Fading');
 
-        level.debugPrintInASCII();
+        // level.debugPrintInASCII();
         let watchdog = 100;
         expect(smallBomb2).to.not.have.component('Effects');
         while (armedBomb.has('Fading')) {
-            updateSystems([baseSys, effSys, mineSys, timeSys, onCbsSys]);
+            updateSystems([baseSys, effSys, mineSys, onCbsSys]);
+            updateSystems([timeSys]);
             if (--watchdog === 0) break;
         }
-        updateSystems([baseSys, effSys, mineSys, timeSys, onCbsSys]);
+        updateSystems([baseSys, effSys, mineSys, onCbsSys]);
+        updateSystems([timeSys]);
         expect(bomber).to.have.component('Damage');
         expect(smallBomb2).to.have.component('Effects');
 
         const dmgComp = bomber.get('Damage');
         expect(dmgComp.getSource()).to.equal(bomber);
-        updateSystems([baseSys, effSys, mineSys, timeSys, onCbsSys]);
+        updateSystems([baseSys, effSys, mineSys, onCbsSys]);
+        updateSystems([timeSys]);
         expect(smallBomb2).to.have.component('Animation');
         // Bombs have exploded and been removed
         expect(bombCell.getItems()).to.equal(null);

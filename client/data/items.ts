@@ -544,31 +544,31 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'Void short sword', base: 'VoidWeaponBase',
-        damage: '3d5 + 1',
+        damage: '3d5 + 2',
         attack: 3, defense: 2, weight: 0.7, value: value(300),
         weaponType: 'sword'
     },
     {
         name: 'Void mace', base: 'VoidWeaponBase',
-        damage: '3d6 + 1',
+        damage: '3d6 + 2',
         attack: 3, defense: 2, weight: 1.4, value: value(390),
         weaponType: 'mace'
     },
     {
         name: 'Void axe', base: 'VoidWeaponBase',
-        damage: '4d5 + 1',
+        damage: '4d5 + 2',
         attack: 4, defense: 2, weight: 1.9, value: value(450),
         weaponType: 'axe'
     },
     {
         name: 'Void staff', base: 'VoidWeaponBase',
-        damage: '3d6', weaponType: 'staff',
+        damage: '3d6 + 2', weaponType: 'staff',
         attack: 2, defense: 9,
         weight: 2.0, value: value(450)
     },
     {
         name: 'Void longsword', base: 'VoidWeaponBase',
-        damage: '5d5 + 1',
+        damage: '5d5 + 2',
         attack: 5, defense: 2, weight: 1.4, value: value(550),
         weaponType: 'sword'
     },
@@ -584,6 +584,12 @@ const Items: ObjectShell[] = [
         attack: 8, defense: 8, weight: 3.7, value: value(850),
         weaponType: 'hammer',
         onAttackHit: [meleeHitDamage(2, '2d8 + 4', 'VOID')],
+    },
+    {
+        name: 'Void pick-axe',  base: 'VoidWeaponBase',
+        damage: '4d5', attack: 5, defense: 2,
+        weaponType: 'axe',
+        weight: 2.3, value: value(500), use: 'digger'
     },
 
     // ARMOUR

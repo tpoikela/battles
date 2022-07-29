@@ -161,7 +161,7 @@ export class SystemEffects extends SystemBase {
 
             let targets = [];
             if (effArgs.area) {
-                targets = getTargetsFromArea(ent, effArgs.area);
+                targets = getTargetCellsFromArea(ent, effArgs.area);
                 if (effArgs.anim) {
                     addAreaAnimation(ent, effArgs);
                 }
@@ -670,13 +670,13 @@ function parseArea(areaStr: string): [number, number] {
     return [parseInt(res[0], 10), parseInt(res[1], 10)];
 }
 
-function getTargetsFromArea(ent, area): Cell[] {
+function getTargetCellsFromArea(ent, area): Cell[] {
     const res = [];
     const level = ent.get('Location').getLevel();
     const [x, y]: TCoord = ent.get('Location').getXY();
     const [aX, aY] = parseArea(area);
     if (aX !== aY) {
-        RG.err('system.effects.ts', 'getTargetsFromArea',
+        RG.err('system.effects.ts', 'getTargetCellsFromArea',
             `Only NxN format supported. Got ${area}`);
     }
     const d = Math.round((aX - 1) / 2);

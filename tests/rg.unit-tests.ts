@@ -51,6 +51,8 @@ RGUnitTests.wrapIntoLevel = function(arr, cols = 20, rows = 20): Level {
     arr.forEach(ent => {
         const x = RNG.getUniformInt(0, cols - 1);
         const y = RNG.rng.getUniformInt(0, rows - 1);
+        level.addEntity(ent, x, y);
+        /*
         if (ent.getPropType() === RG.TYPE_ACTOR) {
             expect(level.addActor(ent, x, y)).to.equal(true);
         }
@@ -60,6 +62,7 @@ RGUnitTests.wrapIntoLevel = function(arr, cols = 20, rows = 20): Level {
         else if (ent.getPropType() === RG.TYPE_ELEM) {
             level.addElement(ent, x, y);
         }
+        */
     });
     return level;
 };

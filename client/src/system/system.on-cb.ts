@@ -77,6 +77,9 @@ export class SystemOnCbs extends SystemBase {
                 executeCompCb(ent, cbData);
             }
         }
+
+        // BaseElem callbacks are executed here, since we cannot directly add
+        // comps to baseElems
         if (ent.has('Location')) {
             const location = ent.get('Location');
             if (location.isValid()) {
