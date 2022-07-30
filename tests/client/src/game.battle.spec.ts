@@ -86,18 +86,28 @@ describe('Game.Battle', function() {
             ++count;
             // battle.getLevel().debugPrintInASCII();
         }
+        expect(count).to.not.to.equal(turnLimit);
 
         for (let i = 0; i < 10; i++) {
             game.simulateGame(1);
         }
 
         const battleActors = battle.getLevel().getActors();
-        if (battleActors.length > 0) {
+        if (battleActors.length > 1) {
+            console.log('battLevel in ASCII:\n');
             battle.getLevel().debugPrintInASCII(); // Only if fails
+            console.log('AreaLevel in ASCII:\n');
             areaLevel.debugPrintInASCII(); // Only if fails
+            battleActors.forEach(actor => {
+                console.log(actor.toJSON());
+            });
         }
-        expect(battleActors.length, 'battleLevel empty').to.equal(0);
-        expect(battle.isOver()).to.equal(true);
+        expect(battle.isOver(), 'battle is over').to.equal(true);
+        game.simulateGame(1);
+        expect(battleActors.length, 'battleLevel empty').to.be.at.most(1);
+        if (battleActors.length > 0) {
+            expect(battleActors[0].getName()).to.equal('WeatherActor');
+        }
 
         const survivors = areaLevel.getActors();
         expect(survivors.length).to.be.at.least(4);
@@ -116,7 +126,7 @@ describe('Game.Battle', function() {
         });
 
         const state = Random.getRNG().toJSON();
-        console.log('RNG end state is ', state);
+        // console.log('RNG end state is ', state);
     });
 
 });

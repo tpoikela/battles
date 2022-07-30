@@ -214,6 +214,15 @@ export const Damage = TransientDataComponent('Damage', {
     sourceActor: null // Actor who did the action to cause damage
 });
 
+Damage.prototype.setSource = function(src): void {
+    if (!RG.isEntity(src)) {
+        console.log('Wrong (non-Entity) source given: ', src);
+        RG.err('Comp.Damage', 'setSource',
+            `Non-entity sources not supported.`);
+    }
+    this.source = src;
+}
+
 Damage.prototype._init = function(dmg, type) {
     this.damage = dmg;
     this.damageType = type;

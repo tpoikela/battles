@@ -237,9 +237,6 @@ export class SystemEffects extends SystemBase {
             // Prevent adding affecting the srcEnt itself (important for area
             // effects)
             if (useArgs.applyToSelf) return;
-            if (RG.isEntity(targetEnt) && targetEnt.getID() === srcEnt.getID()) {
-                return;
-            }
 
             const compName = getCompName(useArgs, targetEnt);
             let compToAdd = null;

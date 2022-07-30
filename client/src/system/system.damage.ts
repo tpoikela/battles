@@ -275,8 +275,11 @@ export class SystemDamage extends SystemBase {
         const weapon = dmgComp.getWeapon();
         if (weapon && weapon.has) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
-                const comp = weapon.get('AddOnHit').getCompToAdd();
-                SystemBase.addCompToEntAfterHit(comp, ent, dmgComp.getSource());
+                const addOnComp = weapon.get('AddOnHit');
+                if (addOnComp.getOnDamage()) {
+                    const comp = addOnComp.getCompToAdd();
+                    SystemBase.addCompToEntAfterHit(comp, ent, dmgComp.getSource());
+                }
             }
         }
         else if (weapon && weapon.onHit) {
@@ -291,8 +294,11 @@ export class SystemDamage extends SystemBase {
             // Prevents effects like poison from melee/hit repeating itself
             if (categ !== RG.DMG.EFFECT) {
                 if (src && src.has('AddOnHit')) {
-                    const comp = src.get('AddOnHit').getCompToAdd();
-                    SystemBase.addCompToEntAfterHit(comp, ent, src);
+                    const addOnComp = src.get('AddOnHit');
+                    if (addOnComp.getOnDamage()) {
+                        const comp = addOnComp.getCompToAdd();
+                        SystemBase.addCompToEntAfterHit(comp, ent, src);
+                    }
                 }
             }
         }

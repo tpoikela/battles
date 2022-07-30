@@ -357,8 +357,12 @@ export class SystemSpellEffect extends SystemBase {
         addSingleCellAnim(ent, args, ent.getXY());
     }
 
-    public _addDamageToActor(actor, args) {
+    public _addDamageToActor(actor, args): void {
         const dmg = new Component.Damage();
+        if (!RG.isEntity(args.src)) {
+            RG.err('SystemSpellEffect', '_addDamageToActor',
+                `src must be entity. Got args ${JSON.stringify(args)}`);
+        }
         dmg.setSource(args.src);
         dmg.setDamageType(args.damageType);
         dmg.setDamage(args.damage);

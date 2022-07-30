@@ -51,7 +51,7 @@ const POOL = EventPool.getPool();
 Brain.Player = BrainPlayer;
 Brain.Spawner = BrainSpawner;
 
-const OBJ_REF_REMOVED = Symbol();
+const OBJ_REF_REMOVED = Symbol('OBJ_REF_REMOVED');
 const OBJ_REF_NOT_FOUND = null;
 
 interface EntityJSON {[key: string]: any;}

@@ -903,7 +903,7 @@ export const ActorsData: ActorShell[] = [
             {addComp: 'DirectDamage', func: [
                 {setter: 'setDamage', value: 2},
                 {setter: 'setDamageType', value: RG.DMG.NECRO},
-                {setter: 'setDamageCateg', value: RG.DMG.MELEE}
+                {setter: 'setDamageCateg', value: RG.DMG.DIRECT}
             ],
                 duration: '1d8 + 2'
             }

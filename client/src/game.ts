@@ -561,7 +561,7 @@ export class GameMain {
                         this._gameOver = true;
                         RG.gameMsg('GAME OVER!');
                         if (this._engine.getPlayer() === actor) {
-                            this._engine.removePlayer();
+                            //TODO this._engine.removePlayer();
                         }
                     }
                     this._players.splice(index, 1);
