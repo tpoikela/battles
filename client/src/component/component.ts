@@ -1589,7 +1589,7 @@ Expiration.prototype.cleanup = function() {
 export class Duration extends Mixin.DurationRoll(ComponentBase) {
 
     public _comp: ComponentBase | number;
-    public _source: any;
+    public _source: Entity;
     public _addedOnActor: boolean;
     public _expireMsg: string;
 

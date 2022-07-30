@@ -2077,6 +2077,9 @@ class RGClass {
     /* Can be queried if actor is still valid for serialisation or effects
      * like telepath or order giving. */
     public isActorActive(target: Entity): boolean {
+        if (target && !target.has) {
+            RG.err('RG.isActorActive', 'Got non-entity: ', JSON.stringify(target));
+        }
         return target && !target.has('Dead');
     }
 

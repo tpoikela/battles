@@ -190,6 +190,12 @@ export class ObjectShellComps {
         poisonComp.setSource(obj);
         poisonComp.setDamageDie(Dice.create(poison.damage));
 
+        if (!poison.duration) {
+            const json = JSON.stringify(shell);
+            RG.err('ObjectShellComps', 'addPoison',
+                `Poison requires "duration". Got shell ${json}`);
+        }
+
         const dieDuration = Dice.create(poison.duration);
         poisonComp.setDurationDie(dieDuration);
         const addOnHit = new Component.AddOnHit();

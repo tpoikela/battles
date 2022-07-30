@@ -133,6 +133,13 @@ export const DurationRoll = superclass => class extends superclass {
 
     public toJSON() {
         const obj = super.toJSON();
+        if (!this.duration) {
+            const p = this as any;
+            const name = p.getName();
+            const compsNoPoison = p.getCompList().filter(c => c.type !== 'Poison');
+            const comps = JSON.stringify(compsNoPoison);
+            console.log('DurRol.toJSON fail. No dur dice', name, comps);
+        }
         obj.setDurationDie = this.duration.toString();
         return obj;
     }

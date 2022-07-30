@@ -30,6 +30,12 @@ interface IGoal {
 
 const grayBg = 'DarkSlateGray';
 
+interface PoisonSpec {
+    duration: string;
+    damage: string;
+    prob: string;
+}
+
 // Defines all possible attributes which can be given
 export interface ActorShell {
     name: string; // Only name is mandatory
@@ -74,7 +80,7 @@ export interface ActorShell {
     onHit?: any;
     onAttackHit?: any;
     addComp?: TAddCompSpec | string;
-    poison?: any;
+    poison?: PoisonSpec;
     equip?: Item[];
     inv?: Item[];
 
