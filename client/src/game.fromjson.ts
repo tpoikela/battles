@@ -734,6 +734,7 @@ export class FromJSON {
                 // Calls gem.setSpirit() with created spirit
                 const spiritJSON = item[func];
                 const spiritObj = this.createActor(spiritJSON);
+                this.createBrain(spiritJSON.brain, spiritObj);
                 this._addEntityFeatures(spiritJSON, spiritObj);
                 itemObj[func](spiritObj);
             }

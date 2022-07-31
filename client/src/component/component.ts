@@ -713,7 +713,7 @@ Named.prototype.getFullName = function() {
 };
 
 /* Poison component which damages the entity.*/
-export class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(ComponentBase)) {
+export class Poison extends Mixin.DamageRoll(ComponentBase) {
 
     public static description: string;
 

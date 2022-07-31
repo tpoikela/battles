@@ -160,7 +160,7 @@ export class SystemMissile extends SystemBase {
 
         this._applyAddOnHitComp(dmgSrc, ent, dmgEnt, true);
         damageComp.setDamage(nDamage);
-        ent.add(damageComp);
+        dmgEnt.add(damageComp);
         return hitVerb;
     }
 
