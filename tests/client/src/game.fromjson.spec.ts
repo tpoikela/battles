@@ -524,7 +524,7 @@ describe('Game.FromJSON', function() {
         const magicSword = new Item.Weapon('Magic sword');
         const addOnHit = new Component.AddOnHit();
         const poisonComp = new Component.Poison();
-        poisonComp.setDurationDie('1d6');
+        //rm poisonComp.setDurationDie('1d6');
         poisonComp.setDamageDie('1d8 + 4');
         addOnHit.setComp(poisonComp);
         magicSword.add(addOnHit);

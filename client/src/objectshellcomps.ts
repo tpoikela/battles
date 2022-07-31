@@ -185,6 +185,7 @@ export class ObjectShellComps {
     /* Adds Poison as addOnHit property. */
     public addPoison(shell: IShell, obj: Entity): void {
         const poison = shell.poison;
+        /*
         const poisonComp = new Component.Poison();
         poisonComp.setProb(poison.prob);
         poisonComp.setSource(obj);
@@ -201,6 +202,18 @@ export class ObjectShellComps {
         const addOnHit = new Component.AddOnHit();
         addOnHit.setComp(poisonComp);
         obj.add(addOnHit);
+        */
+        const newShell = JSON.parse(JSON.stringify(shell));
+        newShell.onHit = [{
+            addComp: 'DirectDamage', func: [
+                {setter: 'setDamage', value: poison.damage},
+                {setter: 'setDamageType', value: RG.DMG.POISON},
+                {setter: 'setDamageCateg', value: RG.DMG.DIRECT},
+                {setter: 'setProb', value: poison.prob},
+            ],
+            duration: poison.duration
+        }];
+        this.addOnHitProperties(newShell, obj);
     }
 
     /* Adds any component as AddOnHit property. */

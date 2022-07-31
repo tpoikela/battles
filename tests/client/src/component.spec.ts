@@ -203,7 +203,6 @@ describe('Component.Poison', () => {
         const p1 = new Component.Poison();
         p1.setProb(0.01);
         p1.setDamageDie('1d6 + 4');
-        p1.setDurationDie('3d5 + 15');
         const p2 = p1.clone();
 
         expect(p2.getProb()).to.equal(0.01);
@@ -259,7 +258,6 @@ describe('Component.AddOnHit', () => {
     it('can be used to add other comps to actors', () => {
         const compHit = new Component.AddOnHit();
         const poisonComp = new Component.Poison();
-        poisonComp.setDurationDie('1d8');
         poisonComp.setDamageDie('1d6 + 5');
         compHit.setComp(poisonComp);
 

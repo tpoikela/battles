@@ -647,7 +647,10 @@ describe('Data query functions for objects', function() {
         expect(viper.has('AddOnHit')).to.equal(true);
 
         const addOnHit = viper.get('AddOnHit');
-        expect(addOnHit.getComp().getType()).to.equal('Poison');
+        const durComp = addOnHit.getComp();
+        expect(durComp.getType()).to.equal('Duration');
+
+        expect(durComp.getComp().getType()).to.equal('DirectDamage');
     });
 
     it('can create spellcasters', () => {

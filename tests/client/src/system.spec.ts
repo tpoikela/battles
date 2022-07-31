@@ -164,9 +164,12 @@ describe('System.Damage', () => {
         const poisonSword = new Item.Weapon('Sword of Poison');
         const addOnHit = new Component.AddOnHit();
         const poisonComp = new Component.Poison();
-        addOnHit.setComp(poisonComp);
-        const dieDur = Dice.create('1d6 + 5');
-        poisonComp.setDurationDie(dieDur);
+        const poisonDurComp = new Component.Duration();
+        poisonDurComp.setDurationDie('1d6 + 5');
+        poisonDurComp.setComp(poisonComp);
+        addOnHit.setComp(poisonDurComp);
+        // const dieDur = Dice.create('1d6 + 5');
+
         poisonSword.add(addOnHit);
         const human = new SentientActor('Human');
         human.getInvEq().addItem(poisonSword);
@@ -184,8 +187,11 @@ describe('System.Damage', () => {
         const beastDmgComp = new Component.Damage(10, 'slash');
         const beastPoisonComp = new Component.Poison();
         beastPoisonComp.setDamageDie('1d4');
-        beastPoisonComp.setDurationDie('1d4');
-        beastAddOnHit.setComp(beastPoisonComp);
+        const durComp = new Component.Duration();
+        durComp.setDurationDie('1d8');
+        durComp.setComp(beastPoisonComp);
+
+        beastAddOnHit.setComp(durComp);
         beast.add(beastAddOnHit);
 
         beastDmgComp.setSource(beast);
