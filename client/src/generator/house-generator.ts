@@ -18,6 +18,8 @@ const DOOR = '+';
 
 export class House {
 
+    public static HOUSE_ID: number = 0;
+
     public coord: {[key: string]: TCoord[]};
     public map: string[][];
     public x: number;
@@ -30,6 +32,7 @@ export class House {
     public door: TCoord;
     public floor: TCoord[];
     public walls: TCoord[];
+    public houseID: number;
 
     constructor(map: string[][]) {
         this.coord = {};
@@ -72,6 +75,7 @@ export class House {
         this.cY = Math.round(totalY / numFloor);
         this.numFloor = numFloor;
         // this.door = null;
+        this.houseID = House.HOUSE_ID++;
     }
 
     public getCenter(): TCoord {
