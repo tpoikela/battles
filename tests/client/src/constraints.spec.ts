@@ -5,6 +5,7 @@ import {SentientActor} from '../../../client/src/actor';
 
 // const RG = require('../../../client/src/battles');
 import {RGTest} from '../../roguetest';
+import {RGUnitTests} from '../../rg.unit-tests';
 
 function Actor(name) {
     this.name = name;
@@ -126,6 +127,19 @@ describe('Constraints', () => {
         const goblin2 = new SentientActor('goblin2');
         expect(funcCC(goblin)).to.equal(true);
         expect(funcCC(goblin2)).to.equal(false);
+
+    });
+
+    it('can be used for placement constraints', () => {
+        const level = RGUnitTests.wrapIntoLevel([], 20, 20);
+        const constrPlace = [
+            {'op':'eq','func':'getX','value':[0,19]},
+            {'op':'eq','func':'getY','value':[0,19]}
+        ];
+        const placeConstrFunc = new Constraints('or').getConstraints(constrPlace);
+        const cells = level.getMap().getCells().filter(placeConstrFunc);
+        // Map border cells should match
+        expect(cells.length).to.equal(20 + 20 + 18 + 18);
 
     });
 });

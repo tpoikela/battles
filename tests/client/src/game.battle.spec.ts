@@ -52,9 +52,9 @@ describe('Game.Battle', function() {
         const game = new GameMain();
         const seed = Date.now();
         // const seed = 1596354238527;
+        console.log('Using seed', seed);
         Random.getRNG().setSeed(seed);
         game.setRNG(Random.getRNG());
-        console.log('Using seed', seed);
         Dice.RNG.setSeed(1234);
 
         game.addActiveLevel(areaLevel);

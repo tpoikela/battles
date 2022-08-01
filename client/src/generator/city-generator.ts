@@ -136,7 +136,7 @@ export class CityGenerator extends LevelGenerator {
         const levelSurround = new LevelSurroundings();
         const newLevel = levelSurround.surround(level, conf);
         newLevel.setExtras(level.getExtras());
-        levelSurround.scaleExtras(newLevel);
+        // levelSurround.scaleExtras(newLevel);
         return newLevel;
     }
 }
