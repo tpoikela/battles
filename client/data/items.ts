@@ -1141,6 +1141,11 @@ const Items: ObjectShell[] = [
         }, value: value(50)
     },
     {
+        name: 'Potion of inner heat', base: 'PotionBase',
+        use: {removeComp: {name: 'Coldness', all: true}},
+        value: value(50)
+    },
+    {
         name: 'Potion of cure poison', base: 'PotionBase',
         use: {cure: {effect: 'poison'}}, value: value(80)
     },

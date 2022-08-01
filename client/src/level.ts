@@ -156,7 +156,7 @@ export class Level extends Entity {
         this.add(new Component.Lore());
         this.add(new Component.Place());
         // Prints console.warn when level has this many actors
-        this.actorWarnLimit = 1000;
+        this.actorWarnLimit = 5000;
     }
 
     public setLevelNumber(no: number): void {this._levelNo = no;}

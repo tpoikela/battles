@@ -584,7 +584,7 @@ export class FromJSON {
                 brainObj.setConstraint(brainJSON.constraint);
             }
             if (brainJSON.placeConstraint) {
-                brainObj.setPlaceConstraint(brainJSON.constraint);
+                brainObj.setPlaceConstraint(brainJSON.placeConstraint);
             }
             if (brainJSON.spawnProb) {
                 brainObj.spawnProb = brainJSON.spawnProb;

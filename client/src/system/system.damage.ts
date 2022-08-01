@@ -178,7 +178,7 @@ export class SystemDamage extends SystemBase {
         return totalDmg;
     }
 
-    public _getDmgAfterWeaknessAndResistance(ent, dmgComp) {
+    public _getDmgAfterWeaknessAndResistance(ent, dmgComp): number {
         const entName = ent.getName();
         let dmg = dmgComp.getDamage();
         if (ent.has('Weakness')) {

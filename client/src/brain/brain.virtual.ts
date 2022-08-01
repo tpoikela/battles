@@ -45,7 +45,7 @@ export class BrainSpawner extends BrainVirtual {
         this.spawnLeft = 100;
     }
 
-    public setConstraint(constraint: TConstraintArg) {
+    public setConstraint(constraint: TConstraintArg): void {
         if (Array.isArray(constraint)) {
             this.constraint = constraint;
         }
@@ -55,14 +55,21 @@ export class BrainSpawner extends BrainVirtual {
         this._constraintFunc = new Constraints().getConstraints(constraint);
     }
 
-    public setPlaceConstraint(constraint: TConstraintArg) {
+    public setPlaceConstraint(constraint: TConstraintArg): void {
+        const factConstr = new Constraints('or');
         if (Array.isArray(constraint)) {
             this.placeConstraint = constraint;
         }
         else {
             this.placeConstraint = [constraint];
         }
-        this._placeConstraintFunc = new Constraints().getConstraints(constraint);
+        this._placeConstraintFunc = factConstr.getConstraints(constraint);
+        this.placeConstraint.forEach(pc => {
+            if (pc.prop === 'danger') {
+                RG.err('BrainSpawner', 'setPlaceConstraint',
+                    `danger not supported in place. ${JSON.stringify(pc)}`);
+            }
+        });
     }
 
     /* Spawns an actor to the current level (if any). */
@@ -78,6 +85,11 @@ export class BrainSpawner extends BrainVirtual {
                     const filtered: Cell[] = freeCells.filter(c => this._placeConstraintFunc(c));
                     if (filtered.length > 0) {
                         freeCell = RNG.arrayGetRand(filtered);
+                    }
+                    else {
+                        const json = JSON.stringify(this.placeConstraint);
+                        RG.warn('BrainSpawner', 'decideNextAction',
+                            `No cell found for constr ${json}`);
                     }
                 }
                 else {
@@ -100,11 +112,6 @@ export class BrainSpawner extends BrainVirtual {
                         RG.err('BrainSpawner', 'decideNextAction',
                             `No actor found for constr ${json}`);
                     }
-                }
-                else {
-                    const json = JSON.stringify(this.placeConstraint);
-                    RG.warn('BrainSpawner', 'decideNextAction',
-                        `No cell found for constr ${json}`);
                 }
             };
         }

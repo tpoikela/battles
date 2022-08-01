@@ -139,6 +139,9 @@ export class GoalTop extends GoalBase {
                 chosenEval = evaluator;
                 bestRated = desirability;
             }
+            if (this._debug) {
+                this.dbg(`arbitr: eval ${evaluator.getType()}: ${desirability}`);
+            }
         }
 
         if (chosenEval) {

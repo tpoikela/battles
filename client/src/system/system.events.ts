@@ -119,7 +119,7 @@ export class SystemEvents extends SystemBase {
                 const name = actor.getName();
                 const victim = ent.getName();
                 const msg = `${name} saw ${src.getName()} killing ${victim}`;
-                RG.gameMsg({cell: ent.getCell, msg});
+                RG.gameMsg({cell: ent.get('Location').getCell(), msg});
             }
         }
     }
