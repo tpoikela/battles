@@ -55,6 +55,11 @@ export class SystemChat extends SystemBase {
                 RG.gameMsg({cell: actor.getCell()!, msg});
                 continue;
             }
+            else if (actor === chatter) {
+                const msg = `${actor.getName()} talks to themselves`;
+                RG.gameMsg({cell: actor.getCell()!, msg});
+                continue;
+            }
 
             // First, we need to create the Chat object for the Menu
             Object.keys(this.registeredObjs).forEach((chatType: string) => {

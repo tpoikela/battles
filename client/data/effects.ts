@@ -114,8 +114,8 @@ export const Effects = {
         // }
         {
             name: 'addComp',
-            requires: ['name', 'duration'],
-            optional: ['area', 'setters'],
+            requires: ['name'],
+            optional: ['addOnUser', 'area', 'duration', 'setters', 'targetType'],
             func(obj) {
                 const effArgs: IEffArgs = {
                     duration: this.useArgs.duration,
@@ -129,6 +129,12 @@ export const Effects = {
                 }
                 if (this.useArgs.setters) {
                     effArgs.setters = this.useArgs.setters;
+                }
+                if (this.useArgs.addOnUser) {
+                    effArgs.addOnUser = this.useArgs.addOnUser;
+                }
+                if (this.useArgs.targetType) {
+                    effArgs.targetType = this.useArgs.targetType;
                 }
                 createUseItemComp(this, obj, effArgs);
                 return true;

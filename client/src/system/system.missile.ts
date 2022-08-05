@@ -91,10 +91,10 @@ export class SystemMissile extends SystemBase {
 
                     if (actorHit.has('Experience')) {
                         if (ent.getType() === 'missile') {
-                            SystemBase.addSkillsExp(attacker, 'Throwing', 1);
+                            SystemBase.addSkillsExp(attacker, RG.SKILLS.THROWING, 1);
                         }
                         else if (ent.getType() === 'ammo') {
-                            SystemBase.addSkillsExp(attacker, 'Archery', 1);
+                            SystemBase.addSkillsExp(attacker, RG.SKILLS.ARCHERY, 1);
                         }
                     }
                     RG.gameWarn({cell: currCell, msg: shownMsg});
@@ -255,18 +255,14 @@ export class SystemMissile extends SystemBase {
         const isThrown = ent.getType() === 'missile';
 
         let attack = mComp.getAttack();
-        if (attacker.has('Skills')) {
-            if (isThrown) {
-                attack += attacker.get('Skills').getLevel('Throwing');
-            }
-            else {
-                attack += attacker.get('Skills').getLevel('Archery');
-            }
+        if (isThrown) {
+            attack += RG.getSkillLevel(attacker, RG.SKILLS.THROWING);
+        }
+        else {
+            attack += RG.getSkillLevel(attacker, RG.SKILLS.ARCHERY);
         }
         let defense = target.getDefense();
-        if (target.has('Skills')) {
-            defense += target.get('Skills').getLevel('Dodge');
-        }
+        defense += RG.getSkillLevel(target, RG.SKILLS.DODGE);
 
         const isEnemy = attacker.isEnemy(target);
         let hitProp = attack / (attack + defense);
@@ -293,7 +289,7 @@ export class SystemMissile extends SystemBase {
             return true;
         }
         else {
-            SystemBase.addSkillsExp(target, 'Dodge', 1);
+            SystemBase.addSkillsExp(target, RG.SKILLS.DODGE, 1);
         }
         return false;
     }

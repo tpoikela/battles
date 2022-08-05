@@ -33,7 +33,7 @@ interface IElemMsg {
 interface IElemShell {
     addComp?: TAddCompSpec | string;
     callbacks?: IEntCallbacks;
-    char: string;
+    char: string | {[key: string]: string};
     className: string;
     dontCreate?: boolean;
     msg?: IElemMsg;
@@ -346,6 +346,12 @@ const Elements: IElemShell[] = [
                 }
             }
         }
+    },
+
+    {
+        name: 'wooden door', className: 'cell-element-wall-wooden',
+        char: {isClosed: '+', default: '/'},
+        new: 'Door'
     },
 
     // WATER BASE ELEMENTS

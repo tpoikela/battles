@@ -29,17 +29,10 @@ export class SystemDamage extends SystemBase {
             else {
                 this._applyAddOnHitComp(ent, dmgComp);
                 health.decrHP(totalDmg);
+                SystemBase.addSkillsExp(ent, RG.SKILLS.ARMOUR, 1);
 
                 if (ent.has('Regeneration')) {
                     addRegenEffects(ent);
-                    /*
-                    const regen = ent.get('Regeneration');
-                    if (regen.getHP() > 0 && !ent.has('RegenEffect')) {
-                        const regenEffect = new Component.RegenEffect();
-                        regenEffect.initEffect(ent.get('Regeneration'));
-                        ent.add(regenEffect);
-                    }
-                    */
                 }
 
                 if (this.debugEnabled) {
@@ -162,6 +155,10 @@ export class SystemDamage extends SystemBase {
             return dmg;
         }
         else if (dmgCateg === RG.DMG.DIRECT) {
+            return dmg;
+        }
+        else if (!src && dmgCateg === RG.DMG.WATER) {
+            // Source not mandatory, for example drowning has no source
             return dmg;
         }
         else if (this.isProtectionBypassed(ent, src)) {
@@ -292,7 +289,7 @@ export class SystemDamage extends SystemBase {
             const src = dmgComp.getSource();
             const categ = dmgComp.getDamageCateg();
             // Prevents effects like poison from melee/hit repeating itself
-            if (categ !== RG.DMG.EFFECT) {
+            if (categ !== RG.DMG.EFFECT && categ !== RG.DMG.DIRECT) {
                 if (src && src.has('AddOnHit')) {
                     const addOnComp = src.get('AddOnHit');
                     if (addOnComp.getOnDamage()) {

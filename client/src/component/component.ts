@@ -1745,6 +1745,10 @@ export const Place = UniqueDataComponent('Place', {
     depth: 0, danger: 1
 });
 
+export const BuildEvent = TransientDataComponent('BuildEvent', {
+    buildType: '', elem: '', target: null,
+});
+
 import {Lore, ComponentLore} from './component.lore';
 export {Lore, ComponentLore};
 Component.Lore = Lore;

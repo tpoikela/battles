@@ -46,12 +46,18 @@ type ComponentBase = Component.ComponentBase;
 
 // const NO_SELECTION_NEEDED = () => {};
 
-export const Spell: any = {};
+export const Spell: any = {
+    traceIDs: {}, // For tracing entities during casting
+};
 
 type AISpellCb = (actor, args: SpellArgs) => void;
 type SpellTarget = SentientActor | Cell;
 type AISpellFunc = (actor: SentientActor, target: SpellTarget, cb: AISpellCb)
     => boolean;
+
+Spell.addDebugTraceID = (id: number): void => {
+    Spell.traceIDs[id] = true;
+}
 
 /* Used for sorting the spells by spell power. */
 /* function compareSpells(s1, s2) {
@@ -65,7 +71,7 @@ type AISpellFunc = (actor: SentientActor, target: SpellTarget, cb: AISpellCb)
 }
 */
 
-const addPoisonEffect = (actor, src) => {
+const addPoisonEffect = (actor, src): void => {
     const expLevel = src.get('Experience').getExpLevel();
     const dmgDie = new Dice(1, expLevel, Math.ceil(expLevel / 2));
     let prob = 0.07 * expLevel;
@@ -771,7 +777,7 @@ RG.extend2(Spell.BoltBase, Spell.Ranged);
 /* Base spell for summoning other actors for help. Derived classes can define
  * postSummonCallback(cell, args, summonedActor) if post-processing is needed
  * for the summoned actor. */
-Spell.SummonBase = function(name, power) {
+Spell.SummonBase = function(name: string, power: number) {
     SpellBase.call(this, name, power);
     this.summonType = ''; // Type of summoned actor
     this.nActors = 1;
@@ -829,7 +835,7 @@ Spell.SummonBase = function(name, power) {
         return Spell.getSelectionObjectDir(this, actor, msg);
     };
 
-    this.aiShouldCastSpell = (args, cb) => {
+    this.aiShouldCastSpell = (args, cb): boolean => {
         const {actor, enemy} = args;
         const friends = Brain.getFriendCellsAround(actor);
         if (friends.length === 0) {
@@ -849,7 +855,7 @@ Spell.SummonBase = function(name, power) {
         return false;
     };
 
-    this._createAndAddActor = (cell, args) => {
+    this._createAndAddActor = (cell: Cell, args): void => {
         const [x, y] = [cell.getX(), cell.getY()];
         const caster = args.src;
         const level = caster.getLevel();
@@ -904,15 +910,12 @@ Spell.Missile.prototype.getAmmoName = function() {
     return this.ammoName;
 };
 
-Spell.Missile.prototype.cast = function(args) {
-    // const [x, y] = [args.src.getX(), args.src.getY()];
+Spell.Missile.prototype.cast = function(args): void {
     const obj: SpellArgs = {
-        // from: [x, y],
         from: args.src.getXYZ(),
         target: args.target,
         spell: this,
         src: args.src,
-        // to: [args.target.getX(), args.target.getY()]
         to: args.target.getXYZ()
     };
     obj.damageType = this.damageType;
@@ -991,7 +994,7 @@ Spell.AreaBase = function(name: string, power: number) {
 RG.extend2(Spell.AreaBase, Spell.Ranged);
 
 
-function aiEnemyWithinDist(args, cb, spell) {
+function aiEnemyWithinDist(args, cb, spell): boolean {
     const {actor, enemy} = args;
     if (!enemy) {return false;}
     const getDist = Brain.distToActor(actor, enemy);
@@ -1006,7 +1009,7 @@ function aiEnemyWithinDist(args, cb, spell) {
 
 Spell.RingBase = function(name, power) {
     SpellBase.call(this, name, power);
-    SpellBase.call(this, name, power);
+    //rm SpellBase.call(this, name, power);
     this._dice.duration = Dice.create('10d10');
     this._range = 2;
     this._createdActor = 'Fire';

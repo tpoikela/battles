@@ -203,8 +203,12 @@ export class MenuBase {
         if (Array.isArray(item)) {
             this.pre = this.pre.concat(item);
         }
-        else {
+        else if (item) {
             this.pre.push(item);
+        }
+        else {
+            RG.err('MenuBase', 'addPre',
+                'Null/undef/misc given. Exp str|str[]');
         }
     }
 

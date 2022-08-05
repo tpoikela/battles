@@ -243,7 +243,10 @@ export class ChatTrainer extends ChatBase {
         this.costs = [];
         stats.forEach(stat => {
             const getFunc = 'get' + stat;
-            this.costs.push(100 * target.get('Stats')[getFunc]());
+            const tradeSkill = RG.getSkillLevel(target, RG.SKILLS.TRADING);
+            let costCoeff = 100 - 2 * tradeSkill;
+            if (costCoeff < 50) {costCoeff = 50;}
+            this.costs.push(costCoeff * target.get('Stats')[getFunc]());
         });
     }
 
@@ -261,9 +264,6 @@ export class ChatTrainer extends ChatBase {
                 RG.gameMsg({cell: this.chatter.getCell(), msg});
                 return;
             }
-            else {
-                Chat.tradeGoldWeightFromTo(gw, this.chatter, this.trainer);
-            }
 
             const targetStats = this.chatter.get('Stats');
             const trainerStats = this.trainer.get('Stats');
@@ -278,6 +278,7 @@ export class ChatTrainer extends ChatBase {
                 targetStats[setFunc](newTargetVal);
                 const msg = `${trName} trains ${statSel} of ${taName}`;
                 RG.gameMsg({cell: this.chatter.getCell(), msg});
+                Chat.tradeGoldWeightFromTo(gw, this.chatter, this.trainer);
             }
             else {
                 const msg = `${trName} doesn't have skill to train that stat`;

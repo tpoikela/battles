@@ -347,7 +347,7 @@ describe('Game.FromJSON', function() {
 
         // Create some demons and fighters
         for (let i = 0; i < 50; i++) {
-            const demon = parser.createActor('Winter demon');
+            const demon = parser.createActor('winter demon');
             const fighter = parser.createActor('fighter');
             actors.push(demon);
             actors.push(fighter);

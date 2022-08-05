@@ -7,11 +7,13 @@ import {Level} from '../level';
 type Cell = import('../map.cell').Cell;
 type SentientActor = import('../actor').SentientActor;
 type EventPool = import('../eventpool').EventPool;
+type ItemBase = import('../item').ItemBase;
 
 interface EventArgs {
     type: string;
     cell?: Cell;
     cause?: SentientActor;
+    eventObject?: ItemBase;
 }
 
 interface EventComp {
@@ -117,8 +119,8 @@ export class SystemEvents extends SystemBase {
             const src: SentientActor = args.cause;
             if (src) {
                 const name = actor.getName();
-                const victim = ent.getName();
-                const msg = `${name} saw ${src.getName()} killing ${victim}`;
+                const victName = ent.getName();
+                const msg = `${name} saw ${src.getName()} killing ${victName}`;
                 RG.gameMsg({cell: ent.get('Location').getCell(), msg});
             }
         }
@@ -132,7 +134,8 @@ export class SystemEvents extends SystemBase {
                 const cell = ent.getCell();
                 const perceiver = actor.getName();
                 const acting = ent.getName();
-                const msg = `${perceiver} saw ${acting} picking up an item.`;
+                const itemName = evt.getArgs().eventObject.getName();
+                const msg = `${perceiver} saw ${acting} picking up ${itemName}.`;
                 RG.gameMsg({msg, cell});
             }
         }
@@ -177,7 +180,7 @@ export class SystemEvents extends SystemBase {
                         perceiver);
                     perceiver.getBrain().getMemory().removeFriend(aggressor);
                 }
-                else {
+                else if (!perceiver.isEnemy(aggressor)) {
                     this._emitMsg('shows hatred against action', aggressor,
                         victim, perceiver);
                     perceiver.addEnemy(aggressor);
@@ -185,9 +188,11 @@ export class SystemEvents extends SystemBase {
             }
         }
         else if (perceiver.isFriend(victim)) {
-            this._emitMsg('shows hatred against action', aggressor, victim,
-                perceiver);
-            perceiver.addEnemy(aggressor);
+            if (!perceiver.isEnemy(aggressor)) {
+                this._emitMsg('shows hatred against action', aggressor, victim,
+                    perceiver);
+                perceiver.addEnemy(aggressor);
+            }
         }
     }
 

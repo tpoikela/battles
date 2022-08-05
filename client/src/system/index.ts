@@ -33,6 +33,10 @@ import {SystemBattle} from './system.battle';
 export {SystemBattle} from './system.battle';
 System.Battle = SystemBattle;
 
+import {SystemBuilding} from './system.build';
+export {SystemBuilding} from './system.build';
+System.Building = SystemBuilding;
+
 import {SystemChat} from './system.chat';
 export {SystemChat} from './system.chat';
 System.Chat = SystemChat;

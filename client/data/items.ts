@@ -1446,7 +1446,26 @@ const Items: ObjectShell[] = [
             }
         }
     },
-
+    {
+        name: 'carpentry kit', base: 'tool', weight: 1.5,
+        className: 'cell-item-wooden',
+        use: {
+            addComp: {
+                name: 'BuildEvent',
+                targetType: ['cell'],
+                addOnUser: true, // Can't addComp to cell
+                setters: {
+                    setBuildType: 'wood',
+                    setTarget: '$$target',
+                    $chooseArg: {
+                        func: 'setElem',
+                        args: ['wooden door', 'wallwooden', 'floorwooden'],
+                        menuMsg: 'Select which element to build:',
+                    },
+                }
+            }
+        }
+    },
     {
         name: 'wheat seeds', base: 'tool',
         addComp: 'OneShot',

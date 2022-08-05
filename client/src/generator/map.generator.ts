@@ -162,6 +162,9 @@ export class MapGenerator {
                         map.setBaseElemXY(x, y, value);
                     }
                     else {
+                        // For non-base elems, we need to change floor to
+                        // desired type first
+                        map.setBaseElemXY(x, y, asciiToElem['.'] as ElementBase);
                         value(map, x, y);
                     }
                 }

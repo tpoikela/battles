@@ -301,6 +301,7 @@ export class SystemTimeEffects extends SystemBase {
         if (ent.has('Health')) {
             const dmg = 5;
             const dmgComp = new Component.Damage(dmg, RG.DMG.WATER);
+            dmgComp.setDamageCateg(RG.DMG.WATER);
             ent.add(dmgComp);
         }
     }

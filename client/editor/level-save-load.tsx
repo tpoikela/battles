@@ -16,6 +16,7 @@ interface ILevelSaveLoadProps {
     setMsg: (msg: ErrorMsg) => void;
     fNamePrefix?: string;
     saveButtonName?: string;
+    loadButtonName?: string;
     loadInputValue?: string;
     id: string; // Passed to sub-elements
 }
@@ -115,18 +116,23 @@ export default class LevelSaveLoad extends Component {
   }
 
   public render() {
+    const inputId = this.props.id + 'level-file-input';
     return (
-      <span>
-        <button
+      <div>
+        <button className={'btn btn-light'}
           id={this.props.id + 'btn-save-level'}
           onClick={this.saveLevel}
         >{this.props.saveButtonName || 'Save'}</button>
+        <label className={'btn btn-info'} htmlFor={inputId}>
+            {this.props.loadButtonName || 'Load'}
+        </label>
         <input
-          id={this.props.id + 'level-file-input'}
+          id={inputId}
           onChange={this.loadLevel}
           type='file'
+          style={{visibility: 'hidden'}}
         />
-      </span>
+      </div>
     );
   }
 }

@@ -165,7 +165,8 @@ export class Creator {
             elements: {
                 z: 'setZ',
                 type: 'setType',
-                msg: 'setMsg'
+                msg: 'setMsg',
+                name: 'setName',
             },
             effects: {}
         };

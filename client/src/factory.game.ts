@@ -159,6 +159,8 @@ export class FactoryGame {
                 return this.createOverWorldGame(conf, game, player);
             case 'Quests':
                 return this.createQuestsDebugGame(conf, game, player);
+            case 'Sandbox':
+                return this.createSandboxGame(conf, game, player);
             default:
                 return this.createEmptyGame(conf, game, player);
         }
@@ -788,6 +790,11 @@ export class FactoryGame {
     public createOneDungeonAndBoss(obj, game, player) {
         const arenaGame = new DebugGame(this, this._parser);
         return arenaGame.createOneDungeonAndBoss(obj, game, player);
+    }
+
+    public createSandboxGame(obj, game, player) {
+        const dbgGame = new DebugGame(this, this._parser);
+        return dbgGame.createSandboxGame(obj, game, player);
     }
 
 } // class FactoryGame

@@ -133,9 +133,9 @@ export class AbandonedFort {
     };
     itemFact.addItemsToCells(mainLevel, parser, castleFreeCells, itemConf);
 
-    const fortActors = {'Mighty raven': true, 'Winter demon': true,
-        'Cryomancer': true, 'Ice djinn': true, 'Stormrider': true,
-        'Snow leopard': true};
+    const fortActors = {'mighty raven': true, 'winter demon': true,
+        'cryomancer': true, 'ice djinn': true, 'stormrider': true,
+        'snow leopard': true};
     const actorConf: ActorConf = {
         actorsPerLevel: 500,
         actor: actor => fortActors.hasOwnProperty(actor.name),

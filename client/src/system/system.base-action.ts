@@ -30,6 +30,7 @@ export class SystemBaseAction extends SystemBase {
 
         // Initialisation of dispatch table for handler functions
         this._dtable = {
+            Displace: this._handleDisplace.bind(this),
             Give: this._handleGive.bind(this),
             Jump: this._handleJump.bind(this),
             OpenDoor: this._handleOpenDoor.bind(this),
@@ -49,6 +50,23 @@ export class SystemBaseAction extends SystemBase {
                 ent.remove(compType);
             }
         });
+    }
+
+    private _handleDisplace(ent): void {
+        RG.err('BaseAction', '_handleDisplace', 'Not implemented');
+        const dispComp = ent.get('Displace');
+        const dispTarget = dispComp.getDisplaceTarget();
+        if (!dispTarget.isEnemy(ent)) {
+            const [eX, eY] = ent.get('Location').getXY();
+            const [dX, dY] = dispTarget.get('Location').getXY();
+            const level = ent.get('Location').getLevel();
+            const movComp = new Component.Movement(dX, dY, level);
+            ent.add(movComp);
+
+            let ok = level.removeActor(ent, eX, eY);
+            ok &= level.removeActor(dispTarget, dX, dY);
+            ok &= level.addActor(ent, dX, dY);
+        }
     }
 
     /* Handles give command. */
@@ -117,6 +135,12 @@ export class SystemBaseAction extends SystemBase {
                     const qTarget = item.get('QuestTarget');
                     SystemQuest.addQuestEvent(ent, qTarget, 'get');
                 }
+
+                const evtArgs = {
+                    eventObject: item,
+                    type: RG.EVT_ITEM_PICKED_UP,
+                };
+                this._createEventComp(ent, evtArgs);
             }
             else {
                 const msgObj = {
@@ -126,10 +150,6 @@ export class SystemBaseAction extends SystemBase {
                 RG.gameMsg(msgObj);
             }
         }
-        const evtArgs = {
-            type: RG.EVT_ITEM_PICKED_UP
-        };
-        this._createEventComp(ent, evtArgs);
     }
 
     /* Called when missile is picked to to check if it can be auto-equipped. */
@@ -255,6 +275,7 @@ export class SystemBaseAction extends SystemBase {
         else if (effArgs) {
             const effComp = new Component.Effects(effArgs);
             effComp.setItem(item);
+            console.log('Added Effects comp with args', effArgs, ent.getName());
             ent.add(effComp);
         }
     }

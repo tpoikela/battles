@@ -259,22 +259,20 @@ export class SentientActor extends BaseActor {
 
     public getEquipAttack(): number {
         let att = this._invEq.getEquipment().getAttack();
-        if (this.has('Skills')) {
-            att += this.get('Skills').getLevel('Melee');
-        }
+        att += RG.getSkillLevel(this, RG.SKILLS.MELEE);
         return att;
     }
 
     public getEquipDefense(): number {
         let def = this._invEq.getEquipment().getDefense();
-        if (this.has('Skills')) {
-            def += this.get('Skills').getLevel('Shields');
-        }
+        def += RG.getSkillLevel(this, RG.SKILLS.SHIELDS);
         return def;
     }
 
     public getEquipProtection(): number {
-        return this._invEq.getEquipment().getProtection();
+        let prot = this._invEq.getEquipment().getProtection();
+        prot += RG.getSkillLevel(this, RG.SKILLS.ARMOUR);
+        return prot;
     }
 
     public getShieldDefense(): number {

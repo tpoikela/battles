@@ -26,7 +26,7 @@ export class SystemBattle extends SystemBase {
                 const bName = data.name;
                 const badge = this._getBadgeForBattle(bName, ent);
                 if (data.kill > 0) {
-                    SystemBase.addSkillsExp(ent, 'Battle', data.kill);
+                    SystemBase.addSkillsExp(ent, RG.SKILLS.BATTLE, data.kill);
                     if (badge) {
                         badge.updateData({kill: data.kill});
                     }

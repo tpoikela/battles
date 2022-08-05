@@ -185,7 +185,7 @@ describe('Spell.LightningArrow', () => {
     });
 });
 
-describe('Spell.SummonIceMinion', () => {
+describe('Spell.SummonIceMinion by frostburn monarch', () => {
     it('can be cast by AI', () => {
         const pool = Entity.getPool();
         const castSystem = new System.SpellCast(['SpellCast'], pool);
@@ -193,17 +193,27 @@ describe('Spell.SummonIceMinion', () => {
         const systems = [castSystem, effSystem];
 
         const parser = ObjectShell.getParser();
-        const monarch = parser.createActor('Frostburn monarch');
+        const monarch = parser.createActor('frostburn monarch');
         RGTest.ensureSpellCast(monarch);
 
         const human = parser.createActor('human');
         RGUnitTests.wrapIntoLevel([monarch, human]);
-        RGUnitTests.moveEntityTo(monarch, 2, 2);
+        RGUnitTests.moveEntityTo(monarch, 3, 2);
         RGUnitTests.moveEntityTo(human, 5, 5);
 
+        const level = monarch.getLevel();
+        let actors = level.getActors();
+
+        expect(actors).to.have.length(2);
+        level.debugPrintInASCII();
         monarch.nextAction();
         expect(monarch).to.have.component('SpellCast');
+        console.log(monarch.get('SpellCast'));
         RGTest.updateSystems(systems);
+
+        actors = level.getActors();
+        level.debugPrintInASCII();
+        expect(actors).to.have.length(3);
 
     });
 });

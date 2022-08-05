@@ -15,6 +15,7 @@ import {TCoord, TNoFuncVal} from './interfaces';
 import {BBox} from './bbox';
 
 type SentientActor = import('./actor').SentientActor;
+type Cell = import('./map.cell').Cell;
 
 Goal.Thief = GoalThief;
 Goal.TreasureHunter = GoalTreasureHunter;
@@ -406,11 +407,11 @@ export class EvaluatorCastSpell extends EvaluatorBase {
         this._castingProb = 0.2;
     }
 
-    public setCastingProbability(prob) {
+    public setCastingProbability(prob: number): void {
         this._castingProb = prob;
     }
 
-    public getCastingProbability() {
+    public getCastingProbability(): number {
         return this._castingProb;
     }
 
@@ -418,11 +419,30 @@ export class EvaluatorCastSpell extends EvaluatorBase {
         this.spell = this.getRandomSpell(actor);
         if (!this.spell) {return 0;}
 
-        if (this.canCastSpell(actor)) {
-            if (this.shouldCastSpell(actor)) {
+        if (this.canCastSpell(this.spell, actor)) {
+            if (this.shouldCastSpell(this.spell, actor)) {
                 return this.actorBias;
             }
         }
+
+        // Random spell did not work, try others
+        const book = actor.getBook();
+        if (book) {
+            const spells = book.getSpells();
+            // No forEach since we want to return from loop
+            for (let i = 0, len = spells.length; i < len; i++) {
+                const spell = spells[i];
+                if (spell !== this.spell) {
+                    if (this.canCastSpell(spell, actor)) {
+                        if (this.shouldCastSpell(spell, actor)) {
+                            this.spell = spell;
+                            return this.actorBias;
+                        }
+                    }
+                }
+            }
+        }
+
         return 0;
     }
 
@@ -439,7 +459,7 @@ export class EvaluatorCastSpell extends EvaluatorBase {
         }
     }
 
-    public getRandomSpell(actor) {
+    public getRandomSpell(actor): null | any {
         const book = actor.getBook();
         if (book && book.getSpells().length > 0) {
             const spell = RNG.arrayGetRand(book.getSpells());
@@ -449,10 +469,10 @@ export class EvaluatorCastSpell extends EvaluatorBase {
     }
 
     /* Returns true if spellcaster can cast a spell. */
-    public canCastSpell(actor) {
+    public canCastSpell(spell, actor): boolean {
         if (actor.has('SpellPower')) {
             const spellPower = actor.get('SpellPower');
-            if (spellPower.getPP() >= this.spell.getCastingPower()) {
+            if (spellPower.getPP() >= spell.getCastingPower()) {
                 if (RNG.getUniform() <= this._castingProb) {
                     return true;
                 }
@@ -462,23 +482,21 @@ export class EvaluatorCastSpell extends EvaluatorBase {
     }
 
     /* Returns true if spellcaster should cast the spell. */
-    public shouldCastSpell(actor) {
+    public shouldCastSpell(spell, actor): boolean {
         const brain = actor.getBrain();
-        // const seenCells = brain.getSeenCells();
-        // const enemyCell = brain.findEnemyCell(seenCells);
-        const enemyCell = brain.findEnemyCellFast();
-        const actorCellsAround = Brain.getActorCellsAround(actor);
+        const enemyCell: Cell = brain.findEnemyCellFast();
+        const actorCellsAround: Cell[] = Brain.getActorCellsAround(actor);
         const args: any = {actor, actorCellsAround};
         if (enemyCell) {
             args.enemy = enemyCell.getActors()[0];
         }
-        if (this.spell.aiShouldCastSpell) {
-            return this.spell.aiShouldCastSpell(args, (act, newArgs) => {
+        if (spell.aiShouldCastSpell) {
+            return spell.aiShouldCastSpell(args, (act, newArgs) => {
                 this.spellArgs = newArgs;
             });
         }
         else {
-            let msg = `Spell ${this.spell.getName()} cannot be cast by AI`;
+            let msg = `Spell ${spell.getName()} cannot be cast by AI`;
             msg += ' no aiShouldCastSpell() defined for the spell';
             RG.warn('Evaluator.CastSpell', 'shouldCastSpell', msg);
         }
@@ -685,7 +703,6 @@ export class EvaluatorUseSkill extends EvaluatorBase {
         }
         if (this.cooldown === 0) {
             this.cooldown = RNG.getUniformInt(10, 2 * this.maxCooldown);
-            console.log('EvalUseSkill cooldown at 0.');
             return this.actorBias;
         }
         else {

@@ -263,6 +263,7 @@ class RGClass {
     public MATERIAL2HARDNESS: {[key: string]: number};
 
     public ORE_VEIN_SIZES: {[key: number]: number};
+    public SKILLS: {[key: string]: string};
 
     public NO_OWNER: null;
 
@@ -357,7 +358,7 @@ class RGClass {
         };
 
         this.PLAYER_FOV_RANGE = 10;
-        this.NPC_FOV_RANGE = 5; // Default FOV range for actor
+        this.NPC_FOV_RANGE = 7; // Default FOV range for actor
 
         this.ACTION_DUR = 100; // Base duration of action
         this.BASE_SPEED = 100; // Base speed of actors
@@ -779,6 +780,21 @@ class RGClass {
 
         this.NO_OWNER = null;
         this.DEBUG = 0;
+
+        this.SKILLS = {
+            ARCHERY: 'Archery',
+            ARMOUR: 'Armour',
+            BATTLE: 'Battle',
+            SHIELDS: 'Shields',
+            CLIMBING: 'Climbing',
+            DODGE: 'Dodge',
+            EXPLORATION: 'Exploration',
+            MELEE: 'Melee',
+            MINING: 'Mining',
+            SPELLCASTING: 'SpellCasting',
+            THROWING: 'Throwing',
+            TRADING: 'Trading',
+        };
     }
 
     /* Given Map.Cell, returns CSS classname used for styling that cell. */
@@ -2512,13 +2528,24 @@ class RGClass {
         }
     }
 
-    getMaterialHardness(item: any): number {
+    public getMaterialHardness(item: any): number {
         const physComp = item.get('Physical');
         if (physComp) {
             const material = physComp.getMaterial();
             return this.MATERIAL2HARDNESS[material];
         }
         return 0;
+    }
+
+    public getSkillLevel(ent: Entity, skill: string): number {
+        if (ent.has('Skills')) {
+            return ent.get('Skills').getLevel(skill);
+        }
+        return 0;
+    }
+
+    public clone(obj: any): any {
+        return JSON.parse(JSON.stringify(obj));
     }
 
 }

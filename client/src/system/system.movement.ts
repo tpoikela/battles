@@ -397,7 +397,9 @@ export class SystemMovement extends SystemBase {
             const givenExp = expElem.getExp();
             const expPoints = new Component.ExpPoints(givenExp);
             ent.add(expPoints);
-            addSkillsExp(ent, 'Exploration', 1);
+
+            const place = level.get('Place');
+            addSkillsExp(ent, RG.SKILLS.EXPLORATION, place.getDepth() + 1);
 
             if (expElem.hasData()) {
                 const expData = expElem.getData();

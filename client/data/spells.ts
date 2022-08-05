@@ -564,7 +564,7 @@ RG.extend2(Spell.IcyPrison, SpellBase);
 /* A spell to summon an ice minion to fight for the caster. */
 Spell.SummonIceMinion = function() {
     Spell.SummonBase.call(this, 'SummonIceMinion', 14);
-    this.summonType = 'Ice minion';
+    this.summonType = 'ice minion';
 
 };
 RG.extend2(Spell.SummonIceMinion, Spell.SummonBase);
