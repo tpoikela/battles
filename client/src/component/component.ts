@@ -25,8 +25,12 @@ const NO_TYPE = Object.freeze('');
 type Cell = import('../map.cell').Cell;
 type Entity = import('../entity').Entity;
 
-/* Placed on player if any system sees an impossible cmd being done. */
-export const ImpossibleCmd = UniqueTagComponent('ImpossibleCmd');
+/* Component used to communicate between systems, scheduler and the engine. Any
+ * system can populate the component with data.
+ * */
+export const PlayerCmdInfo = UniqueDataComponent('PlayerCmdInfo', {
+    impossibleCmd: false,
+});
 
 /* Action component is added to all schedulable acting entities.*/
 export const Action = UniqueTransientDataComponent('Action',
@@ -405,12 +409,6 @@ Stats.prototype.equals = function(rhs): boolean {
 const zeroStats = RG.createStatsObj(0);
 export const StatsMods = DataComponent('StatsMods',
    Object.assign({tag: ''}, zeroStats));
-/*
-   {
-    accuracy: 0, agility: 0, strength: 0,
-    willpower: 0, perception: 0, magic: 0, speed: 0,
-    tag: ''
-});*/
 
 /* Perception component holds data related to actor perception. */
 export const Perception = UniqueDataComponent('Perception',

@@ -393,20 +393,39 @@ export class SystemSpellEffect extends SystemBase {
         }
         const midW = Math.floor(width / 2);
 
-        // 3 cases for wave start pos: dX -1, dX 0, dX 1
+        // const dX = x1 - x0;
+        // const dY = y1 - x1;
+        // 2 cases for wave start pos: k<=1 and k > 0
+        const k = Math.abs((y1 - y0) / (x1 - x0));
         for (let w = 0; w < width; w++) {
-            if (w === midW) {
-                for (let d = 0; d < depth; d++) {
-                    const actorWave = parser.createActor(waveActor);
-                    if (actorWave) {
-                        actorWave.get('Stats').setSpeed(waveSpeed);
-                        actorWave.getBrain().line = line.slice(2);
-                        actorWave.getBrain().delay = d;
-                        const [xs, ys, zs] = line[1];
-                        level.addActor(actorWave, xs, ys);
-                    }
+            // Diff to middle wave
+            const dW = w - midW;
+            // How we modify original wave
+            let modX = 0;
+            let modY = 0;
+
+            // Stack wave actors as vertical line
+            if (k <= 1) {
+                modY = dW;
+            }
+            // Stack wave actors as horizontal line
+            else {
+                modX = dW;
+            }
+
+            for (let d = 0; d < depth; d++) {
+                const actorWave = parser.createActor(waveActor);
+                if (actorWave) {
+                    actorWave.get('Stats').setSpeed(waveSpeed);
+                    actorWave.getBrain().line = line.slice(2).map((xyz: TCoord3D) => (
+                        [xyz[0] + modX, xyz[1] + modY, xyz[2]]
+                    ));
+                    actorWave.getBrain().delay = d;
+                    const [xs, ys, zs] = line[1];
+                    level.addActor(actorWave, xs + modX, ys + modY);
                 }
             }
+
         }
     }
 

@@ -83,7 +83,9 @@ export class SystemAttackRanged extends SystemBase {
         ent.get('Action').setMsg(msg);
         ent.get('Action').setStatus(-1);
         if (ent.has('Player')) {
-            ent.add(new Component.ImpossibleCmd());
+            const cmdComp = new Component.PlayerCmdInfo();
+            cmdComp.setImpossibleCmd(true);
+            ent.add(cmdComp);
         }
     }
 }

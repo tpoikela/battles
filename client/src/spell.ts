@@ -447,7 +447,7 @@ SpellBase.prototype.getCastingPower = function(): number {
     let castPower = this._power;
     const expLevel = this._caster.get('Experience').getExpLevel();
     castPower -= Math.ceil(expLevel / 3);
-    castPower -= Math.floor(this.getCastLevel() / 2);
+    castPower -= Math.floor(this.getCastSkillLevel() / 2);
 
     // Cannot reduce power below 50% of original
     const halfPower = Math.round(0.50 * this._power);
@@ -471,7 +471,7 @@ SpellBase.prototype.getDuration = function(perLevel = 1): number {
     if (perLevel > 0) {
         const expLevel = this._caster.get('Experience').getExpLevel();
         dur += Math.round(expLevel / perLevel);
-        dur += Math.round(this.getCastLevel() / perLevel);
+        dur += Math.round(this.getCastSkillLevel() / perLevel);
     }
     return dur;
 };
@@ -483,16 +483,12 @@ SpellBase.prototype.getDamage = function(perLevel = 1): number {
     }
     const expLevel = this._caster.get('Experience').getExpLevel();
     damage += Math.round(expLevel / perLevel);
-    damage += this.getCastLevel();
+    damage += this.getCastSkillLevel();
     return damage;
 };
 
-SpellBase.prototype.getCastLevel = function(): number {
-    if (this._caster.has('Skills')) {
-        const skills = this._caster.get('Skills');
-        return skills.getLevel('SpellCasting');
-    }
-    return 0;
+SpellBase.prototype.getCastSkillLevel = function(): number {
+    return RG.getSkillLevel(this._caster, RG.SKILLS.SPELLCASTING);
 }
 
 SpellBase.prototype.setPower = function(power: number) {this._power = power;};
@@ -516,7 +512,7 @@ SpellBase.prototype.getCastFunc = function(actor, args: SpellArgs): null | CastF
 SpellBase.prototype.toString = function(): string {
     const castPower = this.getCastingPower();
     let str = `${this.getName()} - ${castPower}PP`;
-    const castLevel = this.getCastLevel();
+    const castLevel = this.getCastSkillLevel();
     if (this._dice.damage) {
         const castDamage = castLevel;
         str += ` Dmg: ${this._dice.damage.toString()}`;
@@ -907,7 +903,7 @@ Spell.Missile.prototype.cast = function(args): void {
 };
 
 Spell.Missile.prototype.getSelectionObject = function(actor): SelectionObject {
-    const msg = 'Press [n/p] for next/prev target. [t] to fire.';
+    const msg = 'Select [n]ext/[p]rev target. [t] to fire. [s] to exit.';
     RG.gameMsg(msg);
     actor.getBrain().startTargeting();
 
@@ -1028,7 +1024,7 @@ RG.extend2(Spell.RingBase, SpellBase);
 
 /* Wave spells are slowly moving waves of damaging actors. */
 Spell.WaveBase = function(name: string, power: number) {
-    SpellBase.call(this, name, power);
+    Spell.Missile.call(this, name, power);
     this._waveWidth = 3;
     this._waveDepth = 2;
     this._waveSpeed = 100;

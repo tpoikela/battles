@@ -434,6 +434,7 @@ export class SystemMovement extends SystemBase {
         // Need to re-check this, if exploreElem was removed, very subtle
         const elems = cell.getElements();
         if (!elems) {return;}
+        if (ent.has('Ethereal')) {return;}
 
         elems.forEach(elem => {
             if (elem.has('Entrapping')) {

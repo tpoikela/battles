@@ -1679,6 +1679,14 @@ export const ActorsData: ActorShell[] = [
       onHit: [{addComp: 'Coldness', duration: '10d10'}]
     },
     {
+      name: 'Death wave', className: 'cell-actor-undead', base: 'SpecialBase',
+      char: ';', type: 'wave', brain: 'Wave',
+      addComp: ['Ethereal', 'NonSentient', 'Stats',
+          {comp: 'Damaging', func: {setDamageType: RG.DMG.NECRO}}
+      ],
+      // onHit: [{addComp: 'Coldness', duration: '10d10'}]
+    },
+    {
       name: 'Poison gas', className: 'cell-actor-poison', base: 'SpecialBase',
       char: charFlame, type: 'flame', brain: 'Cloud',
       color: color('Green', 'Gray'),

@@ -1035,9 +1035,24 @@ class IcyWave extends Spell.WaveBase {
     constructor() {
         super('IcyWave', 20);
         this.damageType = RG.DMG.ICE;
+        this._waveActor = 'Ice wave';
+        this._waveWidth = 3;
+        this._waveDepth = 2;
     }
 }
 Spell.IcyWave = IcyWave;
+
+class DeathWave extends Spell.WaveBase {
+    constructor() {
+        super('DeathWave', 24);
+        this.damageType = RG.DMG.NECRO;
+        this._waveActor = 'Death wave';
+        this._waveWidth = 5;
+        this._waveDepth = 3;
+        this._waveSpeed = 95;
+    }
+}
+Spell.DeathWave = DeathWave;
 
 Spell.addAllSpells = book => {
     book.addSpell(new Spell.AnimateDead());
@@ -1045,6 +1060,7 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.Blizzard());
     book.addSpell(new Spell.Charm());
     book.addSpell(new Spell.CrossBolt());
+    book.addSpell(new Spell.DeathWave());
     book.addSpell(new Spell.DispelMagic());
     book.addSpell(new Spell.EnergyArrow());
     book.addSpell(new Spell.Flying());

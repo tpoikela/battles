@@ -1422,7 +1422,8 @@ const Items: ObjectShell[] = [
             addEntity: {
                 entityName: 'armed small bomb', duration: 5,
             }
-        }
+        },
+        value: 50,
     },
     {
         name: 'large bomb', base: 'tool', weight: 2.0,
@@ -1444,7 +1445,8 @@ const Items: ObjectShell[] = [
             addEntity: {
                 entityName: 'armed large bomb', duration: 5,
             }
-        }
+        },
+        value: 100,
     },
     {
         name: 'carpentry kit', base: 'tool', weight: 1.5,
@@ -1572,7 +1574,9 @@ const Items: ObjectShell[] = [
         use: {removeComp: {name: 'Broken'}}, noRandom: true
     },
     {
-        name: 'rope', base: 'tool'
+        name: 'rope', base: 'tool',
+        className: 'cell-item-wooden', weight: 0.5,
+        value: 30,
     },
     {
         name: 'piece of wood', base: 'tool', value: 5,

@@ -86,7 +86,9 @@ const startingItems: ItemConstrMap = {
         {name: 'Ration', count: 1}
     ],
     Miner: [
-        {name: 'Pick-axe', count: 1}
+        {name: 'Rye bread', count: 2},
+        {name: 'small bomb', count: 1},
+        {name: 'shovel', count: 1},
     ],
     Blademaster: [
         {name: 'Ration', count: 1}
@@ -97,17 +99,20 @@ const startingItems: ItemConstrMap = {
         {name: 'Potion of spirit form'}
     ],
     Spellsinger: [
-        {name: 'Ration', count: 1},
+        {name: 'Rye bread', count: 2},
         {name: 'Potion of eagle', count: 1}
     ],
-    Politician: []
+    Courtier: [
+        {name: 'Dried fruit', count: 4},
+        {name: 'Gold coin', count: 100},
+    ],
 };
 ActorClass.startingItems = startingItems;
 
 const equipment: ItemConstrMap = {
     Alpinist: [
         {name: 'Piolet', count: 1},
-        {name: 'Spiked boots', count: 1}
+        {name: 'Spiked boots', count: 1},
     ],
     Adventurer: [
         {name: 'Short sword', count: 1},
@@ -122,6 +127,10 @@ const equipment: ItemConstrMap = {
         {name: 'Wooden bow', count: 1},
         {name: 'Wooden arrow', count: 15}
     ],
+    Miner: [
+        {name: 'Pick-axe', count: 1},
+        {name: 'Rock', count: 6},
+    ],
     Blademaster: [
         {name: 'Longsword', count: 1},
         {name: 'Chain helmet', count: 1},
@@ -135,7 +144,7 @@ const equipment: ItemConstrMap = {
         {name: 'Iron staff', count: 1},
         {name: 'Leather armour', count: 1}
     ],
-    Politician: []
+    Courtier: [],
 };
 ActorClass.equipment = equipment;
 
@@ -749,33 +758,42 @@ export class Spiritcrafter extends ActorClassBase {
 ActorClass.Spiritcrafter = Spiritcrafter;
 
 //-------------------------------------------------------------------------
-/* Politician actor class and its experience level-specific features. */
+/* Courtier actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
-export class Politician extends ActorClassBase {
+export class Courtier extends ActorClassBase {
     constructor(actor) {
-        super(actor, 'Politician');
+        super(actor, 'Courtier');
         const name = actor.getName();
         this._messages = {
         };
         this._advances = {
             1: () => {
                 ActorClass.addAbility('Bribery', this._actor);
+                this._actor.add(new Component.Charm());
             },
             4: () => {
+                this._actor.get('Charm').setLevel(2);
             },
             8: () => {
+                this._actor.get('Charm').setLevel(3);
             },
             12: () => {
+                this._actor.get('Charm').setLevel(4);
             },
             16: () => {
+                this._actor.get('Charm').setLevel(5);
             },
             20: () => {
+                this._actor.get('Charm').setLevel(6);
             },
             24: () => {
+                this._actor.get('Charm').setLevel(7);
             },
             28: () => {
+                this._actor.get('Charm').setLevel(8);
             },
             32: () => {
+                this._actor.get('Charm').setLevel(10);
             }
         };
 
@@ -787,6 +805,7 @@ export class Politician extends ActorClassBase {
         stats.incrStat('agility', -2);
         stats.incrStat('strength', -3);
         stats.incrStat('willpower', 4);
+        this.setSkill(RG.SKILLS.TRADING, 3);
     }
 
     public incrStats(newLevel: number): void {
@@ -804,10 +823,10 @@ export class Politician extends ActorClassBase {
 
 
 }
-ActorClass.Politician = Politician;
+ActorClass.Courtier = Courtier;
 
 //-------------------------------------------------------------------------
-/* Politician actor class and its experience level-specific features. */
+/* Courtier actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
 export class Miner extends ActorClassBase {
     constructor(actor) {
@@ -859,14 +878,13 @@ export class Miner extends ActorClassBase {
         }
     }
 
-
 }
 ActorClass.Miner = Miner;
 
 export const ACTOR_CLASSES = [
     'Cryomancer', 'Blademaster', 'Marksman', 'Spiritcrafter',
-    'Adventurer', 'Alpinist', 'Spellsinger', 'Politician',
-    'Miner',
+    'Adventurer', 'Alpinist', 'Spellsinger', 'Courtier',
+    'Miner', 'Bloodcaster',
 ];
 
 export const ACTOR_CLASSES_NO_ADV = ACTOR_CLASSES.filter(ac => (

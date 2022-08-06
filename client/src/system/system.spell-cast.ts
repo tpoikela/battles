@@ -42,14 +42,6 @@ export class SystemSpellCast extends SystemBase {
                 // Add Comp to regenerate back the PP
                 if (ent.has('Regeneration')) {
                     addRegenEffects(ent);
-                    /*
-                    const regen = ent.get('Regeneration');
-                    if (regen.getPP() > 0 && !ent.has('RegenEffect')) {
-                        const regenEffect = new Component.RegenEffect();
-                        regenEffect.initEffect(ent.get('Regeneration'));
-                        ent.add(regenEffect);
-                    }
-                    */
                 }
 
                 if (drainers.length === 0) {

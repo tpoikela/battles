@@ -337,10 +337,12 @@ export class MenuSelectCell extends MenuBase {
         else if (KeyMap.isSelect(code)) {
             const keyIndex = Keys.codeToIndex(code);
             const retVal = this.table[keyIndex];
-            if ((retVal as MenuCallObj).funcToCall) {
-                return (retVal as MenuCallObj).funcToCall;
+            if (retVal) {
+                if ((retVal as MenuCallObj).funcToCall) {
+                    return (retVal as MenuCallObj).funcToCall;
+                }
+                return retVal;
             }
-            return retVal;
         }
         else if (this._enableSelectAll && KeyMap.isSelectAll(code)) {
             this.callback(code);
