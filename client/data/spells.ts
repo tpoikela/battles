@@ -1031,6 +1031,14 @@ class IcyTouch extends Spell.MultiSpell {
 }
 Spell.IcyTouch = IcyTouch;
 
+class IcyWave extends Spell.WaveBase {
+    constructor() {
+        super('IcyWave', 20);
+        this.damageType = RG.DMG.ICE;
+    }
+}
+Spell.IcyWave = IcyWave;
+
 Spell.addAllSpells = book => {
     book.addSpell(new Spell.AnimateDead());
     book.addSpell(new Spell.ArrowOfWebs());
@@ -1049,6 +1057,7 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.IceShield());
     book.addSpell(new Spell.IcyPrison());
     book.addSpell(new Spell.IcyTouch());
+    book.addSpell(new Spell.IcyWave());
     book.addSpell(new Spell.Kindle());
     book.addSpell(new Spell.LightningArrow());
     book.addSpell(new Spell.LightningBolt());

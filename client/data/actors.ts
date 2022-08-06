@@ -1671,6 +1671,14 @@ export const ActorsData: ActorShell[] = [
       onHit: [{addComp: 'Coldness', duration: '10d10'}]
     },
     {
+      name: 'Ice wave', className: 'cell-actor-winter', base: 'SpecialBase',
+      char: ';', type: 'wave', brain: 'Wave',
+      addComp: ['Ethereal', 'NonSentient', 'Stats',
+          {comp: 'Damaging', func: {setDamageType: RG.DMG.ICE}}
+      ],
+      onHit: [{addComp: 'Coldness', duration: '10d10'}]
+    },
+    {
       name: 'Poison gas', className: 'cell-actor-poison', base: 'SpecialBase',
       char: charFlame, type: 'flame', brain: 'Cloud',
       color: color('Green', 'Gray'),
@@ -1886,6 +1894,26 @@ export const ActorsData: ActorShell[] = [
             meleeHitDamage(5, '1d8 + 4', 'ICE')
         ],
         spells: ['FrostBolt', 'GraspOfWinter'],
+    },
+
+    {
+        name: 'Inferno Maelstrom, beingless being', type: 'creature',
+        base: 'UniqueBase', char: 'I', danger: 666,
+        damage: '16d6 + 6', hp: 666, pp: 666, brain: 'SpellCaster',
+        strength: 128, accuracy: 128, agility: 128, willpower: 128, perception: 128,
+        magic: 128, attack: 128, defense: 64, protection: 64,
+        fovrange: 12, speed: 150,
+        enemies: ['animal'].concat(RG.ACTOR_RACES),
+        addComp: ['SnowWalk',
+            resistance('ICE', 'ABSORB'),
+            resistance('NECRO', 'IMMUNITY'),
+            resistance('VOID', 'IMMUNITY'),
+            resistance('POISON', 'IMMUNITY'),
+            'Regeneration'],
+        onHit: [
+            meleeHitDamage(5, '2d8 + 8', 'ICE')
+        ],
+        spells: ['FrostBolt', 'GraspOfWinter', 'Blizzard', 'IceArrow', 'RingOfFrost'],
     },
 
 ];

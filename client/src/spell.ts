@@ -407,25 +407,6 @@ export const SpellBase = function(name: string, power: number) {
     this.setName(name);
 };
 
-/*
-export class SpellBase {
-    protected _name: string;
-    protected _power: number;
-    protected _dice: {[key: string]: Dice};
-    protected _range: number;
-    protected _caster: SentientActor | null;
-
-    constructor(name: string, power: number) {
-        this._name = name;
-        this._power = power || 5;
-        this._caster = null;
-        this._dice = {};
-        this._range = 0;
-        this.setName(name);
-    };
-}
-*/
-
 SpellBase.prototype.setCaster = function(caster: SentientActor): void {
     if (!caster) {
         RG.err('SpellBase', 'setCaster', 'Tried to set null caster');
@@ -1009,7 +990,6 @@ function aiEnemyWithinDist(args, cb, spell): boolean {
 
 Spell.RingBase = function(name, power) {
     SpellBase.call(this, name, power);
-    //rm SpellBase.call(this, name, power);
     this._dice.duration = Dice.create('10d10');
     this._range = 2;
     this._createdActor = 'Fire';
@@ -1045,6 +1025,50 @@ Spell.RingBase = function(name, power) {
     };
 };
 RG.extend2(Spell.RingBase, SpellBase);
+
+/* Wave spells are slowly moving waves of damaging actors. */
+Spell.WaveBase = function(name: string, power: number) {
+    SpellBase.call(this, name, power);
+    this._waveWidth = 3;
+    this._waveDepth = 2;
+    this._waveSpeed = 100;
+    this._waveActor = 'Ice wave';
+
+    this.cast = this.cast.bind(this);
+};
+RG.extend2(Spell.WaveBase, Spell.Missile);
+
+Spell.WaveBase.prototype.getWaveActor = function(): string {
+    return this._waveActor;
+};
+
+Spell.WaveBase.prototype.getWaveWidth = function(): string {
+    return this._waveWidth;
+};
+
+Spell.WaveBase.prototype.getWaveDepth = function(): string {
+    return this._waveDepth;
+};
+
+Spell.WaveBase.prototype.getWaveSpeed = function(): string {
+    return this._waveSpeed;
+};
+
+Spell.WaveBase.prototype.cast = function(args): void {
+    const obj: SpellArgs = {
+        from: args.src.getXYZ(),
+        target: args.target,
+        spell: this,
+        src: args.src,
+        to: args.target.getXYZ(),
+    };
+    obj.damageType = this.damageType;
+    obj.damage = this.getDamage();
+    const waveComp = new Component.SpellWave();
+    waveComp.setArgs(obj);
+    console.log('WaveBase adding SpellWave comp now:', obj.from, '->', obj.to);
+    args.src.add(waveComp);
+};
 
 
 /* Spell that has multiple spell effects. Note that only one effect

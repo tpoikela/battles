@@ -353,11 +353,15 @@ const Elements: IElemShell[] = [
         char: {isClosed: '+', default: '/'},
         new: 'Door'
     },
+    {
+        name: 'iron door', className: 'cell-element-iron',
+        char: {isClosed: '+', default: '/'},
+        new: 'Door'
+    },
 
     // WATER BASE ELEMENTS
     {
         name: 'shallow water', className: 'cell-element-water',
-        //char: '~',
         char: DEPTH[0],
         msg: {
             onEnter: 'Shallow water slows you down slightly'

@@ -32,5 +32,6 @@ Brain.Cloud = BG.BrainCloud;
 Brain.Virtual = BrainVirtual;
 Brain.Weather = BrainWeather;
 Brain.NeedDriven = BrainNeedDriven;
+Brain.Wave = BG.BrainWave;
 
 export {Brain};

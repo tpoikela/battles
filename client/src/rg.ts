@@ -1172,12 +1172,16 @@ class RGClass {
         let range = actor.getFOVRange();
         if (actor.has('Blindness')) {return 1;}
         if (actor.has('Location')) {
-            const level = actor.get('Location').getLevel();
+            const locComp = actor.get('Location');
+            const level = locComp.getLevel();
             if (level && level.has('Weather')) {
                 const visib = level.get('Weather').getVisibility();
                 range += visib;
             }
             // TODO other effects
+            if (level.get('Place').getDepth() > 0) {
+                range += RG.getSkillLevel(actor, RG.SKILLS.EXPLORATION);
+            }
         }
 
         // TODO light sources etc

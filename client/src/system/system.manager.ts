@@ -189,7 +189,7 @@ SystemManager.systems = {
     Shop: ['Transaction'],
     SpellCast: ['SpellCast', 'PowerDrain'],
     SpellEffect: ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea',
-        'SpellSelf'],
+        'SpellSelf', 'SpellWave'],
     Missile: ['Missile'],
     Movement: ['Movement'],
     OnCbs: ['OnAddCb', 'OnRemoveCb'], // Is this correct place?

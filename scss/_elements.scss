@@ -264,8 +264,8 @@
 }
 
 .cell-element-floor-wooden {
-    background-color: 'beige';
-    color: 'white';
+    background-color: DarkGoldenRod;
+    color: White;
 }
 
 .cell-element-web {
@@ -286,6 +286,11 @@
 .cell-element-window {
     background-color: $cyan;
     color: $blue;
+}
+
+.cell-element-iron {
+    background-color: $iron-color-bg;
+    color: $white;
 }
 
 //----------------------

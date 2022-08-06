@@ -1000,6 +1000,7 @@ export const SpellMissile = TransientDataComponent('SpellMissile', spellArgs);
 export const SpellCell = TransientDataComponent('SpellCell', spellArgs);
 export const SpellArea = TransientDataComponent('SpellArea', spellArgs);
 export const SpellSelf = TransientDataComponent('SpellSelf', spellArgs);
+export const SpellWave = TransientDataComponent('SpellWave', spellArgs);
 
 /* Added to actors which stop spells from passing through. */
 export const SpellStop = UniqueTagComponent('SpellStop');
@@ -1742,7 +1743,7 @@ DrainStat.prototype.applyComp = function(): boolean {
 };
 
 export const Place = UniqueDataComponent('Place', {
-    depth: 0, danger: 1
+    depth: 0, danger: 1, elevation: 0,
 });
 
 export const BuildEvent = TransientDataComponent('BuildEvent', {

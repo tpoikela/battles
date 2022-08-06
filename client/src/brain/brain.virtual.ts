@@ -1,5 +1,8 @@
 
-/* This file contains Brain objects for virtual actors such as spawners. */
+/* This file contains Brain objects for virtual actors such as spawners. Virtual
+ * actors don't have Location component, and thus are not placed into maps. They
+ * still use Brain (and possibly Goal/Evalutor) and scheduling based on their
+ * speed. */
 
 import RG from '../rg';
 import {Constraints} from '../constraints';

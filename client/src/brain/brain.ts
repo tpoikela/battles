@@ -421,27 +421,6 @@ export class BrainSentient extends BrainBase {
         };
     }
 
-    /* Takes action towards given enemy cell.*/
-    /*
-    public actionTowardsEnemy(enemyCell: Cell): () => void {
-        const level = this._actor.getLevel();
-        const playX = enemyCell.getX();
-        const playY = enemyCell.getY();
-        if (this.canMeleeAttack(playX, playY)) {
-            return () => {
-                const cell = level.getMap().getCell(playX, playY);
-                const target = cell.getFirstActor();
-                const attackComp = new Component.Attack({target});
-                this._actor.add(attackComp);
-            };
-        }
-        else { // Move closer
-            return this.tryToMoveTowardsCell(enemyCell);
-        }
-    }
-    TODO rm
-    */
-
     public tryToMoveTowardsCell(cell: Cell): () => void {
         // Simple dX,dY computation as first option
         const level = this._actor.getLevel();
@@ -499,47 +478,6 @@ export class BrainSentient extends BrainBase {
         return enemies as SentientActor[];
     }
 
-    /* Based on seenCells, AI explores the unexplored free cells, or picks on
-     * cell randomly, if everything's explored.*/
-    /*
-    public exploreLevel(seenCells) {
-        // Wander around exploring
-        let index = -1;
-        let perms = [];
-        for (let j = 0; j < seenCells.length; j++) {perms.push(j);}
-        perms = RNG.shuffle(perms);
-
-        for (let i = 0, ll = perms.length; i < ll; i++) {
-            const ci = perms[i];
-            const cell = seenCells[ci];
-            if (cell.isFree()) {
-                const xy = cell.getX() + ',' + cell.getY();
-                if (!this._explored.hasOwnProperty(xy)) {
-                    this._explored[xy] = true;
-                    index = ci;
-                    break;
-                }
-            }
-            else if (cell.hasDoor()) {
-                const door = cell.getPropType('door')[0];
-                if (door.canToggle()) {
-                    const comp = new Component.OpenDoor();
-                    comp.setDoor(door);
-                    this._actor.add(comp);
-                    return ACTION_ALREADY_DONE;
-                }
-            }
-        }
-
-        if (index === -1) { // Everything explored, choose random cell
-            index = RNG.randIndex(seenCells);
-        }
-        return this.tryToMoveTowardsCell(seenCells[index]);
-
-    }
-    TODO rm
-    */
-
     /* Returns shortest path from actor to the given cell. Resulting cells are
      * returned in order: closest to the actor first. Thus moving to the
      * next cell can be done by taking the first returned cell.*/
@@ -551,32 +489,6 @@ export class BrainSentient extends BrainBase {
         const path: ICoordXY[] = Path.getShortestActorPath(map, fromX, fromY, toX, toY);
         return path.map((xy: ICoordXY) => map.getCell(xy.x, xy.y));
     }
-
-    /* Flees from the given cell or explores randomly if cannot. */
-    /*
-    public fleeFromCell(cell: Cell, seenCells: Cell[]): () => void {
-        const x = cell.getX();
-        const y = cell.getY();
-        const thisX = this._actor.getX();
-        const thisY = this._actor.getY();
-        const deltaX = x - thisX;
-        const deltaY = y - thisY;
-        // delta determines the direction to flee
-        const newX = thisX - deltaX;
-        const newY = thisY - deltaY;
-        if (this._actor.getLevel().getMap().hasXY(newX, newY)) {
-            const newCell = this._actor.getLevel().getMap().getCell(newX, newY);
-            if (newCell.isPassable()) {
-                return this.tryToMoveTowardsCell(newCell);
-            }
-            else if (this._actor.has('Flying') && newCell.isPassableByAir()) {
-                return this.tryToMoveTowardsCell(newCell);
-            }
-        }
-        return this.exploreLevel(seenCells);
-    }
-    TODO rm
-    */
 
     /* Returns all free cells around the actor owning the brain.*/
     public getFreeCellsAround(): Cell[] {
