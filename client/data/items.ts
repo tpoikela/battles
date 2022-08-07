@@ -346,42 +346,42 @@ const Items: ObjectShell[] = [
     },
     {
         name: 'Permaice short sword', base: 'IceWeaponBase',
-        damage: '2d5 + 6', defense: 6, weight: 1.5, value: value(300),
+        damage: '2d5 + 9', defense: 6, weight: 1.5, value: value(300),
         weaponType: 'sword'
     },
     {
         name: 'Permaice mace', base: 'IceWeaponBase',
-        damage: '2d7 + 6', weaponType: 'mace',
+        damage: '2d7 + 9', weaponType: 'mace',
         defense: 6, weight: 2.5, value: value(300)
     },
     {
         name: 'Permaice staff', base: 'IceWeaponBase',
-        damage: '3d5 + 6', weaponType: 'staff',
+        damage: '3d5 + 9', weaponType: 'staff',
         defense: 7, weight: 3.8, value: value(300)
     },
     {
         name: 'Permaice axe', base: 'IceWeaponBase',
-        damage: '3d6 + 6', defense: 7,
+        damage: '3d6 + 9', defense: 7,
         weaponType: 'axe', weight: 4.5, value: value(400)
     },
     {
         name: 'Permaice hammer', base: 'IceWeaponBase',
-        damage: '3d6 + 10', defense: 7,
+        damage: '3d6 + 12', defense: 7,
         weaponType: 'hammer', weight: 6.5, value: value(440)
     },
     {
         name: 'Permaice long sword', base: 'IceWeaponBase',
-        damage: '4d5 + 6', defense: 8, weight: 3.0, value: value(500),
+        damage: '4d5 + 9', defense: 8, weight: 3.0, value: value(500),
         weaponType: 'sword'
     },
     {
         name: 'Permaice spear', base: 'IceWeaponBase',
-        damage: '4d5 + 6', defense: 12, weight: 3.5, value: value(550),
+        damage: '4d5 + 9', defense: 12, weight: 3.5, value: value(550),
         weaponType: 'spear'
     },
     {
         name: 'Permaice katana', base: 'IceWeaponBase',
-        damage: '10d3 + 6', defense: 10, weight: 4.0, value: value(750),
+        damage: '10d3 + 10', defense: 10, weight: 4.0, value: value(750),
         weaponType: 'sword'
     },
     {

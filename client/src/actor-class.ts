@@ -435,6 +435,8 @@ export class Blademaster extends ActorClassBase {
             stats.incrStat('accuracy', 1);
             this._lastStateIncr += '\nAccuracy was increased.';
         }
+        // Additional combat increase
+        RG.levelUpCombatStats(this._actor, newLevel);
     }
 }
 
@@ -592,6 +594,9 @@ export class Marksman extends ActorClassBase {
         if (newLevel % 3 === 1) {
             stats.incrStat('agility', 1);
             this._lastStateIncr += '\nAgility was increased.';
+        }
+        if (newLevel % 2 === 0) {
+            RG.levelUpCombatStats(this._actor, newLevel);
         }
     }
 
@@ -772,28 +777,44 @@ export class Courtier extends ActorClassBase {
                 this._actor.add(new Component.Charm());
             },
             4: () => {
-                this._actor.get('Charm').setLevel(2);
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(2);
+                }
             },
             8: () => {
-                this._actor.get('Charm').setLevel(3);
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(3);
+                }
             },
             12: () => {
-                this._actor.get('Charm').setLevel(4);
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(4);
+                }
             },
             16: () => {
-                this._actor.get('Charm').setLevel(5);
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(5);
+                }
             },
             20: () => {
-                this._actor.get('Charm').setLevel(6);
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(6);
+                }
             },
             24: () => {
-                this._actor.get('Charm').setLevel(7);
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(7);
+                }
             },
             28: () => {
-                this._actor.get('Charm').setLevel(8);
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(8);
+                }
             },
             32: () => {
-                this._actor.get('Charm').setLevel(10);
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(10);
+                }
             }
         };
 
@@ -876,6 +897,9 @@ export class Miner extends ActorClassBase {
             stats.incrStat('agility', 1);
             this._lastStateIncr += '\nAgility was increased.';
         }
+        if (newLevel % 3 === 0) {
+            RG.levelUpCombatStats(this._actor, newLevel);
+        }
     }
 
 }
@@ -884,7 +908,7 @@ ActorClass.Miner = Miner;
 export const ACTOR_CLASSES = [
     'Cryomancer', 'Blademaster', 'Marksman', 'Spiritcrafter',
     'Adventurer', 'Alpinist', 'Spellsinger', 'Courtier',
-    'Miner', 'Bloodcaster',
+    'Miner',
 ];
 
 export const ACTOR_CLASSES_NO_ADV = ACTOR_CLASSES.filter(ac => (

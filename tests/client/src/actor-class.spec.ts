@@ -56,10 +56,10 @@ describe('ActorClass.Marksman', () => {
 
 
 describe('Advancing actor class', () => {
-    it('can advance the actor at each level', () => {
+    it('can advance the actor to each level of every class', () => {
         const classes = ['Adventurer', 'Blademaster', 'Marksman',
             'Spiritcrafter', 'Spellsinger', 'Cryomancer', 'Alpinist',
-            'Politician'];
+            'Courtier'];
         classes.forEach(actorClass => {
             const advancer = new SentientActor('advancer');
             const classObj = new ActorClass[actorClass](advancer);
