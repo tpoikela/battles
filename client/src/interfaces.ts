@@ -63,6 +63,9 @@ export type IDiceInputArg = number | string | [number, number, number];
 
 export type DiceValue = Dice | IDiceInputArg;
 
+// Used this where dice value is expected
+type TDiceVal = number | string;
+
 //------------------------------------------------
 // CellProps (actors,items,elements) definitions
 //------------------------------------------------
@@ -360,12 +363,17 @@ export type AmmoOrMissile = ItemMissile | ItemAmmo;
 
 export interface ItemConstr {
     name?: string;
-    count?: number;
+    count?: TDiceVal;
     func?: (item: IShell) => boolean;
 }
 
 export interface ItemConstrMap {
     [key: string]: ItemConstr[];
+}
+
+export interface ClassItemConstr {
+    startingItems?: ItemConstr[];
+    equipment?: ItemConstr[];
 }
 
 export interface IActorMods {
@@ -374,11 +382,13 @@ export interface IActorMods {
     player: {
         startingItems?: ItemConstr[];
         equipment?: ItemConstr[];
-        Adventurer?: any;
-        Blademaster?: any;
-        Cryomancer?: any;
-        Spellsinger?: any;
-        Marksman?: any;
+        Adventurer?: ClassItemConstr;
+        Blademaster?: ClassItemConstr;
+        Cryomancer?: ClassItemConstr;
+        Spellsinger?: ClassItemConstr;
+        Marksman?: ClassItemConstr;
+        Courtier?: ClassItemConstr;
+        Miner?: ClassItemConstr;
     };
 }
 
@@ -814,6 +824,7 @@ export interface IAnimArgs {
     ray?: boolean;
 }
 
+
 export interface IEffArgs {
     addOnUser?: boolean; // Adds to the user
     all?: boolean;
@@ -821,7 +832,7 @@ export interface IEffArgs {
     applyToAllTargets?: boolean; // If given, all targets are affected
     applyToSelf?: boolean; // When to all targets, self excluded normally
     area?: string;
-    duration?: number | string;
+    duration?: TDiceVal;
     effectSource?: any;
     effectType: string;
     entityName?: string;

@@ -144,7 +144,8 @@ const equipment: ItemConstrMap = {
         {name: 'Iron staff', count: 1},
         {name: 'Leather armour', count: 1}
     ],
-    Courtier: [],
+    Courtier: [
+    ],
 };
 ActorClass.equipment = equipment;
 

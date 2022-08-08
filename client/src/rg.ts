@@ -269,6 +269,8 @@ class RGClass {
 
     public DEBUG: number;
 
+    public CANNOT_BRIBE: string[];
+
     constructor() {
         this.POOL = EventPool.getPool();
         // These are used to select rendered characters for map cells.
@@ -795,6 +797,12 @@ class RGClass {
             THROWING: 'Throwing',
             TRADING: 'Trading',
         };
+
+        this.CANNOT_BRIBE = ['animal', 'construct', 'demon', 'creature',
+            'undead', 'finalboss', 'boss', 'forcefield', 'flame', 'eye',
+            'wave', 'spirit', 'icebeing'
+        ];
+
     }
 
     /* Given Map.Cell, returns CSS classname used for styling that cell. */
