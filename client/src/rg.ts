@@ -490,7 +490,8 @@ class RGClass {
             Flee: 0.2,
             Guard: 1.1,
             Order: 0.7,
-            Patrol: 1.0
+            Patrol: 1.0,
+            Follow: 1.0,
         };
 
         // Different fighting modes

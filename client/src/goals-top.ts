@@ -189,7 +189,8 @@ export class ThinkBasic extends GoalTop {
             explore: RG.BIAS.Explore,
             flee: RG.BIAS.Flee,
             order: RG.BIAS.Order,
-            patrol: RG.BIAS.Patrol
+            patrol: RG.BIAS.Patrol,
+            follow: RG.BIAS.Follow,
         };
 
         this.updateEvaluators();
@@ -200,6 +201,7 @@ export class ThinkBasic extends GoalTop {
         this.evaluators.push(new Evaluator.AttackActor(this.bias.attack));
         this.evaluators.push(new Evaluator.Flee(this.bias.flee));
         this.evaluators.push(new Evaluator.Explore(this.bias.explore));
+        this.evaluators.push(new Evaluator.FollowActor(this.bias.follow));
     }
 
     /* Can be used to "inject" goals for the actor. The actor uses

@@ -212,7 +212,7 @@ export class SystemBaseAction extends SystemBase {
             }
             const evtArgs = {
                 type: RG.EVT_ACTOR_USED_STAIRS,
-                cell
+                cell, level,
             };
             this._createEventComp(ent, evtArgs);
             // If prev cell had any penalties, we need to remove those

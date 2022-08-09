@@ -14,6 +14,7 @@ interface EventArgs {
     cell?: Cell;
     cause?: SentientActor;
     eventObject?: ItemBase;
+    level?: Level;
 }
 
 interface EventComp {
@@ -58,14 +59,18 @@ export class SystemEvents extends SystemBase {
             // Usually cell is entity's current cell, but if args.cell is
             // specified, use that instead (currently true for UseStairs)
             let srcCell = ent.getCell();
+            let srcLevel = ent.getLevel();
             if (args.cell) {
                 srcCell = args.cell;
+            }
+            if (args.level) {
+                srcLevel = args.level;
             }
 
             const radius = this._getEventRadius(ent);
             const [x0, y0] = [srcCell.getX(), srcCell.getY()];
             const cellCoords = Geometry.getBoxAround(x0, y0, radius, true);
-            const cells = ent.getLevel().getMap().getCellsWithCoord(cellCoords);
+            const cells = srcLevel.getMap().getCellsWithCoord(cellCoords);
 
             // Search for entity which could react to this event for each cell
             // Right now, only actors are interested in events
@@ -79,8 +84,6 @@ export class SystemEvents extends SystemBase {
                                 c.getX() === x0 && c.getY() === y0
                             ));
                             if (canSee) {
-                                //if (actor.getBrain().canSeeCell(cell)) {
-                                // const name = actor.getName();
                                 // Call the handler function from dispatch table
                                 this._dtable[type](ent, evt, actor);
                             }
@@ -159,6 +162,12 @@ export class SystemEvents extends SystemBase {
 
     public _handleActorUsedStairs(ent, evt: EventComp, actor): void {
         RG.gameMsg(`${actor.getName()} saw ${ent.getName()} using stairs.`);
+        const mem = actor.getBrain().getMemory();
+        if (mem && mem.isEnemyOrFriend(ent)) {
+            const {cell, level} = evt.getArgs();
+            const coord = {x: cell.getX(), y: cell.getY(), level};
+            mem.addUsedStairs(ent.getID(), coord);
+        }
     }
 
     /* Decides if attacker must be added as enemy of the perceiving actor. */

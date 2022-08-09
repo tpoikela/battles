@@ -12,12 +12,14 @@ interface SeenCoord {
     level: number;
 }
 
-interface ActorsMap {
+interface MemActorsMap {
     enemies?: BaseActor[];
     friends?: BaseActor[];
     seen?: {[key: string]: SeenCoord};
     enemyGroups?: number[];
     friendGroups?: number[];
+    usedStairs?: {[key: string]: SeenCoord};
+    closedDoor?: {[key: string]: SeenCoord};
 }
 
 const NOT_ATTACKED = null;
@@ -26,7 +28,7 @@ const NOT_ATTACKED = null;
  * It's a separate object from decision-making brain.*/
 export class Memory {
 
-    protected _actors: ActorsMap;
+    protected _actors: MemActorsMap;
     protected _enemyTypes: {[key: string]: true};
     protected _communications: BaseActor[];
     protected _lastAttackedID: null | number;
@@ -69,11 +71,24 @@ export class Memory {
         this._actors.enemyGroups.push(groupId);
     }
 
+    public addUsedStairs(id: number, coord: SeenCoord): void {
+        if (!this._actors.usedStairs) {this._actors.usedStairs = {};}
+        this._actors.usedStairs[id] = coord;
+    }
+
+    public getStairsUsed(): null | {[key: string]: SeenCoord} {
+        return this._actors.usedStairs;
+    }
+
     public addFriendGroup(groupId: number): void {
         if (!this._actors.friendGroups) {
             this._actors.friendGroups = [];
         }
         this._actors.friendGroups.push(groupId);
+    }
+
+    public isEnemyOrFriend(actor: BaseActor): boolean {
+        return this.isEnemy(actor) || this.isFriend(actor);
     }
 
     /* Checks if given actor is an enemy. */
@@ -225,6 +240,10 @@ export class Memory {
         if (!this.hasCommunicatedWith(actor)) {
             this._communications.push(actor);
         }
+    }
+
+    public getLastAttacked(): number | null {
+        return this._lastAttackedID;
     }
 
     public wasLastAttacked(actor: BaseActor): boolean {

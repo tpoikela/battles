@@ -108,8 +108,6 @@ export class EvaluatorAttackActor extends EvaluatorBase {
 
     public calculateDesirability(actor): number {
         const brain = actor.getBrain();
-        // const seenCells = brain.getSeenCells();
-        // const enemyCell = brain.findEnemyCell(seenCells);
         const enemyCell = brain.findEnemyCellFast();
         if (enemyCell) {
             const result = 1;
@@ -832,7 +830,48 @@ export class EvaluatorFollowPath extends EvaluatorBase {
 }
 Evaluator.FollowPath = EvaluatorFollowPath;
 
+export class EvaluatorFollowActor extends EvaluatorBase {
 
+    // public enemyActor: SentientActor;
+    public stairsXY: TCoord;
+
+    constructor(actorBias: number) {
+        super(actorBias);
+        this.type = 'FollowActor';
+    }
+
+    public calculateDesirability(actor): number {
+        const brain = actor.getBrain();
+        const enemyCell = brain.findEnemyCellFast();
+        // Did not find close enemies, follow actor
+        if (!enemyCell && !actor.has('InBattle')) {
+            const mem = brain.getMemory();
+            const stairsUsed = mem.getStairsUsed();
+            if (stairsUsed) {
+                const attackedId = mem.getLastAttacked();
+                if (stairsUsed[attackedId]) {
+                    const {level, x, y} = stairsUsed[attackedId];
+                    // Action could be to follow enemy or friend
+                    const result = 1;
+                    return this.actorBias * result * 2;
+                }
+            }
+        }
+        return Evaluator.NOT_POSSIBLE;
+    }
+
+    public setActorGoal(actor) {
+        const topGoal = actor.getBrain().getGoal();
+        const goal = new Goal.ChangeLevel(actor, this.stairsXY);
+        topGoal.addGoal(goal);
+        ++Evaluator.hist[this.type];
+    }
+
+}
+Evaluator.FollowActor = EvaluatorFollowActor;
+Evaluator.hist.FollowActor = 0;
+
+/* No idea why this class was created. */
 export class EvaluatorGeneric extends EvaluatorBase {
     public args: any[];
 
