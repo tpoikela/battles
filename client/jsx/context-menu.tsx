@@ -21,6 +21,7 @@ const allMenuItems: CallMenuConf = {
     {text: 'Chat', type: 'chat'},
     {text: 'Order', type: 'order'},
     {text: 'Shoot', type: 'shoot'},
+    {text: 'Swap', type: 'displace'},
   ],
   hasDoor: [
     {text: 'Open/close', type: 'door'},

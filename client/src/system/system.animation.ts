@@ -3,9 +3,12 @@ import RG from '../rg';
 import {SystemBase} from './system.base';
 import {Geometry} from '../geometry';
 import {EventPool} from '../eventpool';
-import {Animation, Frame} from '../animation';
+import {Animation, TAnimFrame} from '../animation';
 
-/* System which constructs the animations to play. */
+type Entity = import('../entity').Entity;
+
+/* System which constructs the animations to play. Animation here means a data
+ * structure that the GUI can use to draw the animation. */
 export class SystemAnimation extends SystemBase {
 
     public currAnim: Animation;
@@ -21,7 +24,7 @@ export class SystemAnimation extends SystemBase {
     public disableAnimations() {this._enabled = false;}
 
     /* Construct a missile animation from Missile component. */
-    public missileAnimation(ent, args) {
+    public missileAnimation(ent: Entity, args): void {
         const mComp = args.missile;
         const xEnd = args.to[0];
         const yEnd = args.to[1];
@@ -55,7 +58,7 @@ export class SystemAnimation extends SystemBase {
     }
 
     /* Constructs line animation (a bolt etc continuous thing). */
-    public lineAnimation(ent, args) {
+    public lineAnimation(ent: Entity, args): void {
         let x = args.from[0];
         let y = args.from[1];
         const dX = args.dir[0];
@@ -68,7 +71,7 @@ export class SystemAnimation extends SystemBase {
         }
 
         const animation = this._createAnimation(args);
-        const frame: Frame = {};
+        const frame: TAnimFrame = {};
         if (args.ray) {
             while (rangeLeft > 0) {
                 x += dX;
@@ -78,7 +81,7 @@ export class SystemAnimation extends SystemBase {
                     className: args.className || 'cell-ray'
                 };
 
-                let frameCopy: Frame = {};
+                let frameCopy: TAnimFrame = {};
                 frameCopy = Object.assign(frameCopy, frame);
                 animation.addFrame(frameCopy);
                 --rangeLeft;
@@ -87,7 +90,7 @@ export class SystemAnimation extends SystemBase {
         this._setCurrAnim(animation);
     }
 
-    public cellAnimation(ent, args) {
+    public cellAnimation(ent: Entity, args): void {
         const animation = this._createAnimation(args);
         const frame = {};
         animation.slowDown = 10;
@@ -101,7 +104,8 @@ export class SystemAnimation extends SystemBase {
         animation.addFrame(frame);
         this._setCurrAnim(animation);
     }
-    public areaAnimation(ent, args) {
+
+    public areaAnimation(ent: Entity, args): void {
         const animation = this._createAnimation(args);
         const maxRange = args.range;
         const [cX, cY] = [args.cX, args.cY];
@@ -126,7 +130,7 @@ export class SystemAnimation extends SystemBase {
         return animation;
     }
 
-    public updateEntity(ent) {
+    public updateEntity(ent: Entity): void {
         if (this._enabled) {
             const allAnimComps = ent.getList('Animation');
             allAnimComps.forEach(animComp => {
@@ -155,7 +159,7 @@ export class SystemAnimation extends SystemBase {
         }
     }
 
-    private _setCurrAnim(animation) {
+    private _setCurrAnim(animation): void {
         if (!this.currAnim) {this.currAnim = animation;}
         else {this.currAnim.combine(animation);}
     }

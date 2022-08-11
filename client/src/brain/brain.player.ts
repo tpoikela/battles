@@ -720,6 +720,7 @@ export class BrainPlayer extends BrainSentient {
             case 'missile': return new Cmd.CmdMissile(this).execute(obj);
             case 'use': return new Cmd.CmdUseItem(this).execute(obj);
             case 'drop': return new Cmd.CmdDropItem(this).execute(obj);
+            case 'displace': return new Cmd.CmdDisplace(this).execute(obj);
             case 'equip': return new Cmd.CmdEquipItem(this).execute(obj);
             case 'unequip':
                 return new Cmd.CmdUnequipItem(this).execute(obj);

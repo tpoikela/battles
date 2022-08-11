@@ -422,9 +422,13 @@ export const AttackRanged = TransientDataComponent('AttackRanged', {
     target: null, attacker: null
 });
 
+export const Displace = TransientDataComponent('Displace', {
+    displaceTarget: null
+});
+
 /* Transient component added to a moving entity.*/
 export const Movement = TransientDataComponent('Movement', {
-    x: 0, y: 0, level: null
+    x: 0, y: 0, level: null, displace: false, actor: null
 });
 
 Movement.prototype.setXY = function(x, y) {

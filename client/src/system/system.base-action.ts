@@ -12,9 +12,11 @@ import {Brain} from '../brain';
 import {Element} from '../element';
 import {removeStatsModsOnLeave} from './system.utils';
 
+type Entity = import('../entity').Entity;
+
 const handledComps = [
     'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
-    'Jump', 'Read', 'Rest', 'Give'
+    'Jump', 'Read', 'Rest', 'Give', 'Displace',
 ];
 
 type HandleFunc = (ent) => void;
@@ -43,7 +45,7 @@ export class SystemBaseAction extends SystemBase {
         };
     }
 
-    public updateEntity(ent): void {
+    public updateEntity(ent: Entity): void {
         handledComps.forEach(compType => {
             if (ent.has(compType)) {
                 this._dtable[compType](ent);
@@ -52,8 +54,10 @@ export class SystemBaseAction extends SystemBase {
         });
     }
 
-    private _handleDisplace(ent): void {
-        RG.err('BaseAction', '_handleDisplace', 'Not implemented');
+    /* Issue: Should cause Movement, otherwise many effects won't
+     * trigger. */
+    private _handleDisplace(ent: Entity): void {
+        // RG.err('BaseAction', '_handleDisplace', 'Not implemented');
         const dispComp = ent.get('Displace');
         const dispTarget = dispComp.getDisplaceTarget();
         if (!dispTarget.isEnemy(ent)) {
@@ -61,11 +65,13 @@ export class SystemBaseAction extends SystemBase {
             const [dX, dY] = dispTarget.get('Location').getXY();
             const level = ent.get('Location').getLevel();
             const movComp = new Component.Movement(dX, dY, level);
+            movComp.setDisplace(true);
+            movComp.setActor(dispTarget);
             ent.add(movComp);
-
-            let ok = level.removeActor(ent, eX, eY);
-            ok &= level.removeActor(dispTarget, dX, dY);
-            ok &= level.addActor(ent, dX, dY);
+            const movComp2 = new Component.Movement(eX, eY, level);
+            movComp2.setDisplace(true);
+            movComp2.setActor(ent);
+            dispTarget.add(movComp2);
         }
     }
 

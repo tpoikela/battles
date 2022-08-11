@@ -32,7 +32,7 @@ import {OWMap} from '../src/overworld.map';
 import {KeyCode} from '../gui/keycode';
 import {ObjectShell} from '../src/objectshellparser';
 import {verifySaveData} from '../src/verify';
-import {Frame} from '../src/animation';
+import {TAnimFrame} from '../src/animation';
 
 import {Persist} from '../src/persist';
 import md5 = require('js-md5');
@@ -192,7 +192,7 @@ export class GameManager {
     public hasNotify: boolean;
     public savedPlayerList: SentientActor[];
     public animationID: number;
-    public animation: null | Frame;
+    public animation: null | TAnimFrame;
 
     constructor(updateCb: UpdateFunc) {
         if (!updateCb) {

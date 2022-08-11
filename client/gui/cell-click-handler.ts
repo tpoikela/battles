@@ -35,6 +35,7 @@ export class CellClickHandler extends DriverBase {
         switch (cmd) {
             case 'attack': this.handleAttack(x, y, cell); break;
             case 'chat': this.handleChat(x, y, cell); break;
+            case 'displace': this.handleDisplace(x, y, cell); break;
             case 'door': this.handleDoor(x, y, cell); break;
             case 'move': this.handleMove(x, y, cell); break;
             case 'pickup': this.handlePickup(x, y, cell); break;
@@ -62,6 +63,12 @@ export class CellClickHandler extends DriverBase {
                 this._keyBuffer.push(dirKey);
             }
         }
+    }
+
+    public handleDisplace(x: number, y: number, cell: Cell): void {
+        const player = this._game.getPlayer();
+        const cmd = {cmd: 'displace', target: cell};
+        this._keyBuffer.push(cmd);
     }
 
     public handleDoor(x: number, y: number, cell: Cell): void {

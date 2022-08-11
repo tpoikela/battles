@@ -181,7 +181,7 @@ SystemManager.systems = {
     Disability: ['Stun', 'Entrapped', 'Paralysis'],
     SpiritBind: ['SpiritBind'],
     BaseAction: ['Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
-        'Jump', 'Read', 'Rest', 'Give'],
+        'Jump', 'Read', 'Rest', 'Give', 'Displace'],
     Equip: ['Equip'],
     Attack: ['Attack'],
     AttackRanged: ['AttackRanged'],
