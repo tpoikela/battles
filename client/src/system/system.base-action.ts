@@ -73,6 +73,15 @@ export class SystemBaseAction extends SystemBase {
             movComp2.setActor(ent);
             dispTarget.add(movComp2);
         }
+        else { // TODO: Apply Charm checks etc to allow displacing enemies
+            const tname = RG.getName(dispTarget);
+            const entName = RG.getName(ent);
+            const cell = RG.getCell(ent);
+            if (cell) {
+                const msg = `${tname} refuses to swap places with ${entName}`;
+                RG.gameMsg({msg, cell});
+            }
+        }
     }
 
     /* Handles give command. */

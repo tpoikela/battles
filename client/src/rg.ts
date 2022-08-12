@@ -2490,6 +2490,24 @@ class RGClass {
         return null;
     }
 
+    public getCell(ent: Entity): null | Cell {
+        if (ent.has('Location')) {
+            return ent.get('Location').getCell();
+        }
+        return null;
+    }
+
+    public getSkillLevel(ent: Entity, skill: string): number {
+        if (ent.has('Skills')) {
+            return ent.get('Skills').getLevel(skill);
+        }
+        return 0;
+    }
+
+    //--------------------------------------
+    // Coord to string key conversions
+    //--------------------------------------
+
     public toKey(xy: TCoord | TCoord3D): string {
         let res = xy[0] + ',' + xy[1];
         if (xy.length > 2) {res += ',' + xy[2];}
@@ -2550,12 +2568,6 @@ class RGClass {
         return 0;
     }
 
-    public getSkillLevel(ent: Entity, skill: string): number {
-        if (ent.has('Skills')) {
-            return ent.get('Skills').getLevel(skill);
-        }
-        return 0;
-    }
 
     public clone(obj: any): any {
         return JSON.parse(JSON.stringify(obj));

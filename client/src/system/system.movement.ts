@@ -395,7 +395,10 @@ export class SystemMovement extends SystemBase {
             const target = mov.getActor();
             if (cell.hasActors()) {
                 const actors = cell.getActors();
-                return actors.findIndex(a => a.getID() === target.getID()) >= 0;
+                return actors.findIndex( a =>
+                    a.getID() === target.getID() && a.has('Movement') &&
+                    a.get('Movement').getDisplace()
+                ) >= 0;
             }
             else {
                 const thisCell = ent.get('Location').getCell();
