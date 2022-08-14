@@ -4,6 +4,7 @@ import {ChatQuest} from '../chat';
 import {ComponentBase, Component} from './component.base';
 
 type Entity = import('../entity').Entity;
+type SentientActor = import('../actor').SentientActor;
 
 const UniqueDataComponent = Component.UniqueDataComponent;
 const DataComponent = Component.DataComponent;
@@ -15,6 +16,37 @@ const BaseProto = ComponentBase.prototype;
 
 const NO_QUEST_REWARD = -1;
 const NO_SUB_QUEST = -1;
+
+export interface IQuestTargetData {
+    id: number;
+    name: string;
+    targetType: string;
+    subQuestID: number;
+    isCompleted: boolean;
+}
+
+export interface IQuestGiverComp {
+    hasGivenQuest: boolean;
+    descr: string;
+    questID: number;
+    danger: number;
+    reward: number;
+    hasGivenReward: boolean;
+    questTargets: IQuestTargetData[];
+    chatObj: ChatQuest;
+
+    addTarget: (targetType: string, target: Entity) => void;
+
+    getDescr: () => string;
+    setDescr: (string) => void;
+    getQuestID: () => number;
+    getDanger: () => number;
+    getQuestTargets: () => IQuestTargetData[];
+    getHasGivenQuest: () => boolean;
+    getHasGivenReward: () => boolean;
+
+    giveQuest: (Entity) => void;
+}
 
 /* QuestGiver is added to actors who can give quests. Only one comp
  * supported per actor. */
@@ -56,7 +88,7 @@ QuestGiver.prototype.numTargets = function(): number {
 };
 
 QuestGiver.prototype.addTarget = function(
-    targetType: string, target
+    targetType: string, target: Entity
 ): void {
     if (!target) {
         RG.err('QuestGiver', 'addTarget',
@@ -64,11 +96,11 @@ QuestGiver.prototype.addTarget = function(
     }
     const name = RG.getNameForQuest(target);
     if (!RG.isEmpty(name)) {
-        const targetData = {
+        const targetData: IQuestTargetData = {
             id: target.getID(), name, targetType,
-            subQuestID: -1
+            subQuestID: -1, isCompleted: false,
         };
-        const qTarget = target.get('QuestTarget');
+        const qTarget: IQuestTargetComp = target.get('QuestTarget');
         if (qTarget.getSubQuestID() !== NO_SUB_QUEST) {
             targetData.subQuestID = qTarget.getSubQuestID();
         }
@@ -93,13 +125,28 @@ QuestGiver.prototype.getChatObj = function() {
     return this.chatObj;
 };
 
+export interface IQuestTargetComp {
+    targetType: string;
+    target: Entity;
+    isCompleted: boolean;
+    targetID: number;
+    questID: number;
+    subQuestID: number;
+
+    getTarget: () => Entity;
+    getTargetID: () => number;
+    getQuestID: () => number;
+
+    getSubQuestID: () => number;
+}
+
 /* QuestTarget Comp is added to quest targets (items, actors etc). */
 export const QuestTarget = DataComponent('QuestTarget', {
     targetType: '', target: null, isCompleted: false,
     targetID: -1, questID: -1, subQuestID: NO_SUB_QUEST
 });
 
-QuestTarget.prototype.isKill = function() {
+QuestTarget.prototype.isKill = function(): boolean {
     return this.targetType === 'kill';
 };
 
@@ -144,6 +191,31 @@ QuestEscortTarget.prototype.toJSON = function() {
     return json;
 };
 
+
+export interface IQuestComp {
+    giver: SentientActor;
+    questTargets: IQuestTargetData[];
+    questID: number;
+    descr: string;
+
+    getGiver: () => SentientActor;
+    setGiver: (SentientActor) => void;
+    getQuestTargets: () => IQuestTargetData[];
+    getQuestID: () => number;
+    setQuestID: (number) => void;
+    getDescr: () => string;
+    setDescr: (string) => void;
+
+    addTarget: (IQuestTargetData) => void;
+    isInThisQuest: (IQuestTargetComp) => boolean;
+    isTargetInQuest: (IQuestTargetComp) => boolean;
+    getTargetsByType: (string) => IQuestTargetData[];
+    first: () => null | IQuestTargetData;
+    next: () => null | IQuestTargetData;
+    isCompleted: () => boolean;
+    toString: () => string;
+}
+
 /* Quest component contains all info related to a single quest. */
 export const Quest = DataComponent('Quest', {
     giver: null, questTargets: null, questID: -1, descr: ''
@@ -153,15 +225,15 @@ Quest.prototype._init = function() {
     this.questTargets = [];
 };
 
-Quest.prototype.addTarget = function(targetData) {
+Quest.prototype.addTarget = function(targetData: IQuestTargetData): void {
     this.questTargets.push(targetData);
 };
 
-Quest.prototype.isInThisQuest = function(targetComp) {
+Quest.prototype.isInThisQuest = function(targetComp: IQuestComp) {
     return this.getQuestID() === targetComp.getQuestID();
 };
 
-Quest.prototype.getTargetsByType = function(targetType) {
+Quest.prototype.getTargetsByType = function(targetType: string) {
     return this.questTargets.filter(obj => (
         obj.targetType === targetType
     ));
@@ -176,13 +248,22 @@ Quest.prototype.first = function(targetType) {
     return null;
 };
 
+Quest.prototype.next = function(): null | IQuestTargetData {
+    for (let i = 0, len = this.questTargets.length; i < len; i++) {
+        if (!this.questTargets[i].isCompleted) {
+            return this.questTargets[i];
+        }
+    }
+    return null;
+};
+
 /* Returns true if all QuestTarget comps have been completed. */
 Quest.prototype.isCompleted = function() {
     return this.questTargets.reduce((acc, obj) => acc && obj.isCompleted,
         true);
 };
 
-Quest.prototype.isTargetInQuest = function(targetComp) {
+Quest.prototype.isTargetInQuest = function(targetComp: IQuestTargetComp) {
     const target = targetComp.getTarget();
     for (let i = 0; i < this.questTargets.length; i++) {
         const curr = this.questTargets[i];
@@ -225,6 +306,15 @@ export const QuestCompleted = TransientDataComponent('QuestCompleted',
 export const GiveQuest = TransientDataComponent('GiveQuest',
     {target: null, giver: null}
 );
+
+export interface IQuestTargetEventComp {
+    targetComp: IQuestTargetComp;
+    args: {[key: string]: any};
+    eventType: string;
+
+    getTargetComp: () => IQuestTargetComp;
+    getEventType: () => string;
+}
 
 export const QuestTargetEvent = TransientDataComponent('QuestTargetEvent',
     {targetComp: null, args: null, eventType: ''}

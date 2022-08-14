@@ -578,9 +578,9 @@ export class FactoryGame {
 
 /* Creates the starting home village for the player. */
     public modifyConfForHometown(
-        worldConf: IF.WorldConf, player, level: Level
+        worldConf: IF.WorldConf, player: SentientActor, level: Level
     ): void {
-        // Extract fee cell for home town, not adjacent to connection
+        // Extract free cell for home town, not adjacent to connection
 
         const areaConf: IF.AreaConf = worldConf.area[0]!;
         const homeConf: IF.CityConf = areaConf.city!.find((cityConf: IF.CityConf) => (

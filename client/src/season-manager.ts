@@ -278,8 +278,12 @@ export class SeasonManager {
         if (!this._owPos) {return this._currSeason;}
 
         const key = RG.toKey(this._owPos);
-        const currBiome = this._biomeMap[key];
+        if (!this._biomeMap.hasOwnProperty(key)) {
+            RG.err('SeasonManager', 'filterSeasonForBiome',
+                `Key ${key} for owPos ${this._owPos} not matching biome`);
+        }
 
+        const currBiome = this._biomeMap[key];
         if (currBiome) {
             const possibleSeason = biomePossibleSeasons[currBiome];
 

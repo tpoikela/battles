@@ -127,6 +127,18 @@ export const addExitsToEdge = (
     return exitsAdded;
 };
 
+World.connectAreaConnToLevel = (
+    conn: Stairs, level: Level, parentLevel: Level
+): void => {
+    const exits: Stairs[] = level.getConnections();
+    conn.connect(exits[0]);
+    for (let i = 1; i < exits.length; i++) {
+        exits[i].setTargetLevel(parentLevel);
+        exits[i].setTargetStairs(conn);
+    }
+}
+
+
 /* Returns true if given level edge has any connections. If edge=any, then
  * checks all edges. edge can also be 'north', 'south', 'west', 'east' */
 export const edgeHasConnections = (level: Level, edge: string): boolean => {
@@ -569,8 +581,8 @@ World.Base = WorldBase;
 //---------------------
 
 export class ZoneBase extends WorldBase {
-    public tileX: number;
-    public tileY: number;
+    public tileX: number; // x of cell in AreaTile Level
+    public tileY: number; // y of cell in AreaTile Level
     protected _subZones: SubZoneBase[];
 
     constructor(name: string) {

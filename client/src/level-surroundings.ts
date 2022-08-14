@@ -115,6 +115,14 @@ export class LevelSurroundings {
                     mountConf.skipTypes = skipTypes;
                     mapgen.addCliffs(mountLevel.getMap(), mountConf, bbox);
                 }
+                else if (type !== 'wallmount' && type !== 'floor') {
+                    // If type matches element, do random splashes
+                    const splashConf = {ratio: 0.85, skipTypes, forestSize: 200,
+                        nForests: 10};
+                    const elems = [type];
+                    console.log('levSurr Adding splashes for elems', elems);
+                    mapgen.addSplashes(mountLevel.getMap(), splashConf, bbox, elems);
+                }
             });
         });
 

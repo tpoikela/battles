@@ -13,6 +13,8 @@ import {Element} from '../element';
 import {removeStatsModsOnLeave} from './system.utils';
 
 type Entity = import('../entity').Entity;
+type Area = import('../world').Area;
+type AreaTile = import('../world').AreaTile;
 
 const handledComps = [
     'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
@@ -188,7 +190,7 @@ export class SystemBaseAction extends SystemBase {
         // Check if any actors should follow the player
         const actorsAround = Brain.getActorsAround(ent);
 
-        if (level.useStairs(ent)) {
+        if (cell.hasConnection() && level.useStairs(ent)) {
             if (ent.isPlayer()) {ent.getBrain().addMark();}
 
             const newLevel = ent.getLevel();
@@ -211,9 +213,13 @@ export class SystemBaseAction extends SystemBase {
                 while (actorsAround.length > 0 && cells.length > 0) {
                     const nextActor = actorsAround.pop();
                     const nextCell = cells.pop();
+                    const oldCell = nextActor.getCell();
+
                     if (level.removeActor(nextActor)) {
                         const [x, y] = [nextCell.getX(), nextCell.getY()];
+                        const oldType = oldCell.getBaseElem().getType();
                         newLevel.addActor(nextActor, x, y);
+                        removeStatsModsOnLeave(nextActor, oldType);
                         const name = nextActor.getName();
                         RG.gameMsg(`${name} follows ${ent.getName()}`);
                     }
@@ -232,6 +238,28 @@ export class SystemBaseAction extends SystemBase {
             this._createEventComp(ent, evtArgs);
             // If prev cell had any penalties, we need to remove those
             removeStatsModsOnLeave(ent, cell.getBaseElem().getType());
+        }
+        else {
+            // If we're in AreaTile, create new Zone (if no conns close by)
+            const levParent = level.getParent();
+            if (RG.isArea(levParent)) {
+                const xy = levParent.findTileXYById(level.getID());
+                const area = levParent as Area;
+                if (xy) {
+                    const [ax, ay] = xy;
+                    const tile: AreaTile = area.getTiles()[ax][ay] as AreaTile;
+                    const eventArgs = {
+                        areaTile: tile, level, cell,
+                        zoneConf: {
+                            zoneType: 'wilderness',
+                        },
+                    };
+                    this.pool.emitEvent(RG.EVT_CREATE_ZONE, eventArgs);
+                }
+            }
+            else {
+                RG.gameMsg({cell, msg: 'No stairs or connection in cell'});
+            }
         }
     }
 

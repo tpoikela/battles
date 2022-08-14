@@ -7,6 +7,9 @@ import * as Component from '../component';
 import {emitZoneEvent} from './system.utils';
 import {IShell} from '../interfaces';
 
+import {IQuestComp, IQuestGiverComp, IQuestTargetComp,
+    IQuestTargetEventComp, IQuestTargetData} from '../component/component.quest';
+
 const parser: Parser = ObjectShell.getParser();
 
 type Entity = import('../entity').Entity;
@@ -66,12 +69,12 @@ export class SystemQuest extends SystemBase {
     /* When a quest is given to an actor, this function processes it. */
     public processGiveQuestComp(ent, comp): void {
         const giver = comp.getGiver();
-        const giverComp = giver.get('QuestGiver');
+        const giverComp: IQuestGiverComp = giver.get('QuestGiver');
         if (giverComp.getHasGivenQuest()) {
             return;
         }
-        const questTargets = giverComp.getQuestTargets();
-        const questComp = new Component.Quest();
+        const questTargets: IQuestTargetData[] = giverComp.getQuestTargets();
+        const questComp = new Component.Quest() as IQuestComp;
         questComp.setQuestID(giverComp.getQuestID());
 
         if (questTargets.length === 0) {
@@ -80,7 +83,7 @@ export class SystemQuest extends SystemBase {
         }
 
         questTargets.forEach(target => {
-            const questTarget = Object.assign({}, target);
+            const questTarget: IQuestTargetData = Object.assign({}, target);
             questTarget.isCompleted = false;
             questComp.addTarget(questTarget);
         });
@@ -227,14 +230,14 @@ export class SystemQuest extends SystemBase {
         return null;
     }
 
-    public processQuestEvent(ent, qEvent) {
-        const targetType = qEvent.getEventType();
-        const quests = ent.getList('Quest');
+    public processQuestEvent(ent, qEvent: IQuestTargetEventComp) {
+        const targetType: string = qEvent.getEventType();
+        const quests: IQuestComp[] = ent.getList('Quest');
 
         // Need to check each Quest on actor to find which one matches
         // the current event
         if (typeof this._eventTable[targetType] === 'function') {
-            quests.forEach(questComp => {
+            quests.forEach((questComp: IQuestComp) => {
                 if (isEventValidForThisQuest(qEvent, questComp)) {
                     this._eventTable[targetType](ent, qEvent, questComp);
                 }
@@ -508,8 +511,10 @@ function getMatchObj(questComp, targetObj) {
     return foundObj;
 }
 
-function isEventValidForThisQuest(qEvent, questComp) {
-    const qTarget = qEvent.getTargetComp();
+function isEventValidForThisQuest(
+        qEvent: IQuestTargetEventComp, questComp: IQuestComp
+): boolean {
+    const qTarget: IQuestTargetComp = qEvent.getTargetComp();
     return questComp.isInThisQuest(qTarget);
 }
 

@@ -30,6 +30,7 @@ type BrainGoalOriented = import('./brain').BrainGoalOriented;
 type BattleZone = import('./world').BattleZone;
 type ItemRune = import('./item').Rune;
 type ComponentBase = import('./component/component.base').ComponentBase;
+type Area = import('./world').Area;
 
 // type MissType = (Entity & Damage) | ItemBase;
 type MissType = AmmoOrMissile | ItemBase;
@@ -211,6 +212,7 @@ class RGClass {
 
     public EVT_ANIMATION: string;
 
+    public EVT_CREATE_ZONE: string;
     public EVT_CREATE_BATTLE: string;
     public EVT_BATTLE_OVER: string;
     public EVT_ARMY_EVENT: string;
@@ -402,6 +404,7 @@ class RGClass {
 
         this.EVT_ANIMATION = 'EVT_ANIMATION';
 
+        this.EVT_CREATE_ZONE = 'EVT_CREATE_ZONE';
         this.EVT_CREATE_BATTLE = 'EVT_CREATE_BATTLE';
         this.EVT_BATTLE_OVER = 'EVT_BATTLE_OVER';
         this.EVT_ARMY_EVENT = 'EVT_ARMY_EVENT';
@@ -492,6 +495,8 @@ class RGClass {
             Order: 0.7,
             Patrol: 1.0,
             Follow: 1.0,
+            Attack: 1.5,
+            GoHome: 1.4,
         };
 
         // Different fighting modes
@@ -788,12 +793,13 @@ class RGClass {
             ARCHERY: 'Archery',
             ARMOUR: 'Armour',
             BATTLE: 'Battle',
-            SHIELDS: 'Shields',
             CLIMBING: 'Climbing',
             DODGE: 'Dodge',
             EXPLORATION: 'Exploration',
+            FARMING: 'Farming',
             MELEE: 'Melee',
             MINING: 'Mining',
+            SHIELDS: 'Shields',
             SPELLCASTING: 'SpellCasting',
             THROWING: 'Throwing',
             TRADING: 'Trading',
@@ -2110,6 +2116,10 @@ class RGClass {
             RG.err('RG.isActorActive', 'Got non-entity: ', JSON.stringify(target));
         }
         return target && !target.has('Dead');
+    }
+
+    public isArea(target: any): target is Area {
+        return target.getType && target.getType() === 'area';
     }
 
 /* Returns the use type (ie drink or dig or hit...) for a item/target pair. */

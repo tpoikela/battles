@@ -757,6 +757,13 @@ export const ActorsData: ActorShell[] = [
       attack: 1, defense: 1, protection: 1, hp: 10, danger: 1,
       color: color('Brown', grayBg),
     },
+    /*{
+      name: 'bearfolk farmer', base: 'BearfolkBase',
+      damage: '1d5 + 1',
+      attack: 1, defense: 1, protection: 1, hp: 10, danger: 1,
+      color: color('Brown', grayBg),
+      brain: 'BrainFarmer',
+    },*/
     {
       name: 'bearfolk thief', base: 'BearfolkBase',
       color: color('Brown', grayBg),

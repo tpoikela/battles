@@ -172,7 +172,6 @@ export class NeedsHierarchy {
             }
         }
 
-
         // Spellcasters may need some resting
         if (actor.has('SpellPower')) {
             // TODO find potions or just rest

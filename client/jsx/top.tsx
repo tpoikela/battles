@@ -34,6 +34,7 @@ import {ItemBase} from '../src/item';
 import {GameManager, VIEW_MAP, VIEW_PLAYER} from '../browser/game-manager';
 import {Cell} from '../src/map.cell';
 import {IMessage} from '../src/interfaces';
+import {IQuestComp} from '../src/component/component.quest';
 
 const savePretty = false;
 
@@ -68,7 +69,7 @@ export interface IBattlesTopState {
     selectedCell: Cell | null;
     selectedGame: any;
     selectedItem: ItemBase | null;
-    selectedQuest: any;
+    selectedQuest: IQuestComp;
     showPlugins: boolean;
     showEditor: boolean;
     showMap: boolean;
@@ -354,6 +355,7 @@ export class BattlesTop extends React.Component {
         const message: IMessage[] = this.gameManager.getMessages();
         const gameValid = this.gameManager.isGameValid();
         const showGameMenu = this.gameManager.isMenuShown();
+        let questDir = '';
 
         if (gameValid) {
             player = this.gameManager.getPlayer();
@@ -367,6 +369,10 @@ export class BattlesTop extends React.Component {
             const showMap = this.state.showMap;
             rowClass = 'cell-row-div-player-view';
             if (showMap) {rowClass = 'cell-row-div-map-view';}
+
+            if (this.state.selectedQuest) {
+                questDir = this.getQuestDir();
+            }
         }
 
         const settings = {
@@ -505,7 +511,7 @@ export class BattlesTop extends React.Component {
                         <div className='text-left game-stats-div'>
                             <GameStats
                                 player={player!}
-                                selectedQuest={this.state.selectedQuest}
+                                questDir={questDir}
                                 selectedCell={oneSelectedCell}
                                 selectedItem={this.state.selectedItem}
                                 setViewType={this.setViewType}
@@ -955,4 +961,20 @@ export class BattlesTop extends React.Component {
         this.setState({selectedQuest: quest});
     }
 
+    /* Returns the direction of next quest target. */
+    public getQuestDir(): string {
+        const questComp: IQuestComp = this.state.selectedQuest;
+        if (questComp) {
+            // If player on correct level, easy to show
+            const player = this.gameManager.getPlayer();
+            const tData = questComp.next();
+
+            // If not correct level/Zone, show exit to Zone
+
+            // If not correct level (Zone right), show exit towards next level
+
+            // If in area level, show Zone target
+        }
+        return '';
+    }
 }

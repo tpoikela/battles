@@ -518,12 +518,32 @@ export class MapGenerator {
         this.addElementsToMap(map, forestMap, 'tree', conf, bbox);
     }
 
+    public addSplashes(map: CellMap, conf, bbox: BBox, elems: string[]): void {
+        this.cols = bbox.lrx - bbox.ulx;
+        this.rows = bbox.lry - bbox.uly;
+        this.setGen('splashes', this.cols, this.rows);
+        const splashMap = new CellMap(this.cols, this.rows, this.defaultMapElem);
+        const baseElems: ConstBaseElem[] = elems.map(e => getElem(e));
+
+        this._mapGen.create((x, y, val) => {
+            // const createTree = rng.getUniform() <= ratio;
+            if (val === 1) {
+                map.setBaseElemXY(x, y, baseElems[0]);
+            }
+            else if (val === 1) {
+                map.setBaseElemXY(x, y, ELEM.GRASS);
+            }
+        });
+        elems.forEach((elem: string) => {
+            this.addElementsToMap(map, splashMap, elem, conf, bbox);
+        });
+    }
+
     public addCliffs(map: CellMap, conf, bbox: BBox): void {
-        const cols = map.cols; //bbox.getSizeX();
-        const rows = map.rows; //bbox.getSizeY();
-        // this.setGen('mountain', cols, rows);
+        const cols = map.cols;
+        const rows = map.rows;
         const mountMap = this.createMountain(cols, rows, conf).map;
-        const elems = ['cliff', 'stone', 'steep cliff'];
+        const elems = ['cliff', 'stone', 'steep cliff', 'highrock'];
         elems.forEach(elemType => {
             this.addElementsToMap(map, mountMap, elemType, conf, bbox);
         });
@@ -577,7 +597,8 @@ export class MapGenerator {
         const highToStone = conf.highRockThr - conf.stoneThr;
         const gap = highToStone / 3;
         const rng = MapGenerator.getAndSetRNG(conf);
-        this._mapGen = new MapMountain(this.cols, this.rows, conf);
+        //rm this._mapGen = new MapMountain(this.cols, this.rows, conf);
+        this._mapGen = new MapMountain(cols, rows, conf);
         this._mapGen.create((x, y, val) => {
             if (val > conf.highRockThr) {
                 map.setBaseElemXY(x, y, ELEM.HIGH_ROCK);
@@ -1076,6 +1097,7 @@ export class MapGenerator {
             case 'town': this._mapGen = new Map.Arena(cols, rows); break;
             case 'townwithwall': break;
             case 'summit': break;
+            case 'splashes': this._mapGen = new MapForest(cols, rows); break;
             case 'wall': this._mapGen = new MapWall(cols, rows); break;
             default: RG.err('MapGen',
                 'setGen', 'this._mapGen type ' + type + ' is unknown');
