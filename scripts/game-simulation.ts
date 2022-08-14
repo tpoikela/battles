@@ -15,6 +15,9 @@ import {UtilsSim} from './utils-sim';
 import fs from 'fs';
 const cmdLineArgs = require('command-line-args');
 
+const {DMG, RESISTANCE} = RG.RG;
+const Component = RG.Component;
+
 const RNG = Random.getRNG();
 
 let err = null;
@@ -51,7 +54,7 @@ function main() {
 
         const conf = {
             playMode: 'OverWorld',
-            playerLevel: 'Medium',
+            playerLevel: 'Inhuman',
             sqrPerItem: 100,
             sqrPerActor: 100,
             xMult: opts.xmult || 0.5,
@@ -68,6 +71,13 @@ function main() {
             const player = newGame.getPlayer();
             player.setName(pName);
             player.remove('Hunger'); // AI not smart enough yet to deal with this
+
+            // Add Coldness resistance
+            const resComp = new Component.Resistance();
+            resComp.setEffect(DMG.COLD);
+            resComp.setLevel(RESISTANCE.IMMUNITY);
+            player.add(resComp);
+
             driver.setPlayer(player);
         }
         catch (e) {
@@ -135,6 +145,9 @@ function main() {
                         saveGameToFile(fname, nTurn, newGame, driver);
                         [newGame, driver] = restoreGameFromFile(fname);
                         driver.screenPeriod = opts.framePeriod;
+                        if (!opts.nomsg) {
+                            catcher = new RGTest.MsgCatcher(newGame.getPool());
+                        }
                     }
                 }
             }
@@ -158,6 +171,9 @@ function main() {
             jsonStr = JSON.stringify(driver);
         }
         if (saveGameEnabled) {
+            if (!fs.existsSync('save_dumps')) {
+                fs.mkdirSync('save_dumps');
+            }
             const fname = 'save_dumps/battles_game_error_dump.json';
             fs.writeFileSync(fname, jsonStr);
         }

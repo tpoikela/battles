@@ -51,7 +51,7 @@ const POOL = EventPool.getPool();
 Brain.Player = BrainPlayer;
 Brain.Spawner = BrainSpawner;
 
-const OBJ_REF_REMOVED = Symbol();
+const OBJ_REF_REMOVED = Symbol('OBJ_REF_REMOVED');
 const OBJ_REF_NOT_FOUND = null;
 
 interface EntityJSON {[key: string]: any;}
@@ -584,7 +584,7 @@ export class FromJSON {
                 brainObj.setConstraint(brainJSON.constraint);
             }
             if (brainJSON.placeConstraint) {
-                brainObj.setPlaceConstraint(brainJSON.constraint);
+                brainObj.setPlaceConstraint(brainJSON.placeConstraint);
             }
             if (brainJSON.spawnProb) {
                 brainObj.spawnProb = brainJSON.spawnProb;
@@ -734,6 +734,7 @@ export class FromJSON {
                 // Calls gem.setSpirit() with created spirit
                 const spiritJSON = item[func];
                 const spiritObj = this.createActor(spiritJSON);
+                this.createBrain(spiritJSON.brain, spiritObj);
                 this._addEntityFeatures(spiritJSON, spiritObj);
                 itemObj[func](spiritObj);
             }

@@ -2,11 +2,15 @@
 import RG from '../rg';
 import {SystemBase} from './system.base';
 import * as Component from '../component';
-// import {Cell} from '../map.cell';
+import { BaseActor } from '../actor';
+
 type ItemAmmo = import('../item').Ammo;
 type MissileWeapon = import('../item').MissileWeapon;
 type EventPool = import('../eventpool').EventPool;
+type Entity = import('../entity').Entity;
 
+/* Handles ranged attacks, and their setup. Provides Missile components
+ * that will be handled by SystemMissile. */
 export class SystemAttackRanged extends SystemBase {
 
     constructor(compTypes: string[], pool: EventPool) {
@@ -18,6 +22,7 @@ export class SystemAttackRanged extends SystemBase {
         const target = attComp.getTarget();
         const actor = attComp.getAttacker();
         const invEq = actor.getInvEq();
+
         let fireRate = 1;
         if (actor.has('DoubleShot')) {
             fireRate = 2;
@@ -83,7 +88,9 @@ export class SystemAttackRanged extends SystemBase {
         ent.get('Action').setMsg(msg);
         ent.get('Action').setStatus(-1);
         if (ent.has('Player')) {
-            ent.add(new Component.ImpossibleCmd());
+            const cmdComp = new Component.PlayerCmdInfo();
+            cmdComp.setImpossibleCmd(true);
+            ent.add(cmdComp);
         }
     }
 }

@@ -1,13 +1,13 @@
 
 type Level = import('./level').Level;
 
-export interface FrameEntry {
+export interface TAnimFrameEntry {
     char: string;
     className: string;
 }
 
-export interface Frame {
-    [key: string]: FrameEntry;
+export interface TAnimFrame {
+    [key: string]: TAnimFrameEntry;
 }
 
 /* Very simple "animation" object handed to the Screen object. slowDown can be
@@ -29,7 +29,7 @@ export class Animation {
     // "Slows" down the animation by this factor
     public slowDown: number;
 
-    public frames: Frame[];
+    public frames: TAnimFrame[];
 
     constructor() {
         this.levelID = -1;
@@ -42,11 +42,11 @@ export class Animation {
         this.frames = [];
     }
 
-    public setLevel(level: Level) {
+    public setLevel(level: Level): void {
         this.levelID = level.getID();
     }
 
-    public addFrame(frame: Frame) {
+    public addFrame(frame: TAnimFrame): void {
         for (let i = 0; i < this.slowDown; i++) {
             ++this.numFrames;
             this.frames.push(frame);
@@ -54,7 +54,7 @@ export class Animation {
     }
 
     /* Advances animation to the next frame, and returns the frame */
-    public nextFrame(): Frame {
+    public nextFrame(): TAnimFrame {
         const frame = this.frames[this.currFrame++];
         return frame;
     }
@@ -64,7 +64,7 @@ export class Animation {
     }
 
     /* Combines the frames of two animations together. */
-    public combine(animation: Animation) {
+    public combine(animation: Animation): void {
         let frameIndex = 0;
         while (animation.hasFrames()) {
             const frame = animation.nextFrame();
@@ -83,11 +83,11 @@ export class Animation {
     }
 
     /* Returns true if any frame in the animation contains at least one coordinates
-     * from the given list. */
+     * from the given coordinate map. */
     public hasCoord(coordMap: {[key: string]: any}): boolean {
         const nFrames = this.frames.length;
         for (let n = 0; n < nFrames; n++) {
-            const frame: Frame = this.frames[n];
+            const frame: TAnimFrame = this.frames[n];
             for (const key in frame) {
                 if (coordMap[key]) {
                     return true;

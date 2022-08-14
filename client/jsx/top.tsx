@@ -109,7 +109,7 @@ export class BattlesTop extends React.Component {
 
         this.state = {
             animation: null,
-            boardClassName: 'game-board-player-view',
+            boardClassName: this.gameManager.boardClassName,
             editorData: {}, // Data given to editor
             equipSelected: null,
             invMsg: '',
@@ -572,6 +572,7 @@ export class BattlesTop extends React.Component {
                     pretty={savePretty}
                     savedObjName={player ? 'saveGame_' + player.getName() : ''}
                     saveButtonName='Save'
+                    loadButtonName='Load game'
                     setMsg={this.showMsg}
                   />
                   <LevelSaveLoad
@@ -583,6 +584,7 @@ export class BattlesTop extends React.Component {
                     pretty={savePretty}
                     savedObjName={player ? 'recorded_cmds_' + player.getName() : ''}
                     saveButtonName='SaveKeys'
+                    loadButtonName='LoadKeys'
                     setMsg={this.showMsg}
                   />
                   </React.Fragment>

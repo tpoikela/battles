@@ -30,6 +30,7 @@ describe('Effects', () => {
     let sword = null;
     let userActor = null;
     let cell = null;
+    let level = null;
 
     beforeEach(() => {
         const pool = Entity.getPool();
@@ -43,8 +44,11 @@ describe('Effects', () => {
         userActor = new SentientActor('User One');
         userActor.getInvEq().addItem(sword);
 
-        cell = new Cell(0, 0, ELEM.FLOOR);
-        cell.setProp('actors', userActor);
+        // cell = new Cell(0, 0, ELEM.FLOOR);
+        // cell.setProp('actors', userActor);
+        level = RGTest.createLevel('empty', 10, 10);
+        level.addActor(userActor, 0, 0);
+        cell = level.getMap().getCell(0, 0);
     });
 
     afterEach(() => {
@@ -53,7 +57,6 @@ describe('Effects', () => {
 
     it('has digger effect', () => {
         const diggerEffect = getEffectByName(Effects, 'digger');
-        const level = RGTest.createLevel('empty', 10, 10);
         level.addActor(userActor, 1, 1);
         level.get('Place').setDepth(5);
 
@@ -142,8 +145,8 @@ describe('Effects', () => {
         const addCompFunc = addCompEffect.func.bind(sword);
         sword.useFuncs = [addCompFunc];
 
-        expect(userActor.has('Ethereal')).to.equal(false);
-        expect(userActor.has('Expiration')).to.equal(false);
+        expect(userActor).to.not.have.component('Ethereal');
+        expect(userActor).to.not.have.component('Expiration');
         sword.use({target: cell});
 
         expect(userActor).to.have.component('UseItem');

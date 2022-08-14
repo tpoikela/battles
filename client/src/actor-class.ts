@@ -85,6 +85,11 @@ const startingItems: ItemConstrMap = {
     Marksman: [
         {name: 'Ration', count: 1}
     ],
+    Miner: [
+        {name: 'Rye bread', count: 2},
+        {name: 'small bomb', count: 1},
+        {name: 'shovel', count: 1},
+    ],
     Blademaster: [
         {name: 'Ration', count: 1}
     ],
@@ -94,17 +99,20 @@ const startingItems: ItemConstrMap = {
         {name: 'Potion of spirit form'}
     ],
     Spellsinger: [
-        {name: 'Ration', count: 1},
+        {name: 'Rye bread', count: 2},
         {name: 'Potion of eagle', count: 1}
     ],
-    Politician: []
+    Courtier: [
+        {name: 'Dried fruit', count: 4},
+        {name: 'Gold coin', count: 100},
+    ],
 };
 ActorClass.startingItems = startingItems;
 
 const equipment: ItemConstrMap = {
     Alpinist: [
         {name: 'Piolet', count: 1},
-        {name: 'Spiked boots', count: 1}
+        {name: 'Spiked boots', count: 1},
     ],
     Adventurer: [
         {name: 'Short sword', count: 1},
@@ -119,6 +127,10 @@ const equipment: ItemConstrMap = {
         {name: 'Wooden bow', count: 1},
         {name: 'Wooden arrow', count: 15}
     ],
+    Miner: [
+        {name: 'Pick-axe', count: 1},
+        {name: 'Rock', count: 6},
+    ],
     Blademaster: [
         {name: 'Longsword', count: 1},
         {name: 'Chain helmet', count: 1},
@@ -132,7 +144,8 @@ const equipment: ItemConstrMap = {
         {name: 'Iron staff', count: 1},
         {name: 'Leather armour', count: 1}
     ],
-    Politician: []
+    Courtier: [
+    ],
 };
 ActorClass.equipment = equipment;
 
@@ -218,6 +231,14 @@ export class ActorClassBase {
 
         RG.levelUpCombatStats(actor, newLevel);
     }
+
+    protected setSkill(skill, lvl: number): void {
+        if (!this._actor.has('Skills')) {
+            this._actor.add(new Component.Skills());
+        }
+        this._actor.get('Skills').addSkill(skill);
+        this._actor.get('Skills').setLevel(skill, lvl);
+    }
 }
 
 
@@ -264,6 +285,7 @@ export class Alpinist extends ActorClassBase {
         stats.incrStat('perception', 3);
         stats.incrStat('agility', 3);
         stats.incrStat('magic', -2);
+        this.setSkill(RG.SKILLS.CLIMBING, 2);
     }
 
     public incrStats(newLevel: number): void {
@@ -395,6 +417,7 @@ export class Blademaster extends ActorClassBase {
         const stats = this._actor.get('Stats');
         stats.incrStat('strength', 3);
         stats.incrStat('magic', -3);
+        this.setSkill(RG.SKILLS.MELEE, 2);
     }
 
     public getLevelUpMsg(level: number): string {
@@ -413,6 +436,8 @@ export class Blademaster extends ActorClassBase {
             stats.incrStat('accuracy', 1);
             this._lastStateIncr += '\nAccuracy was increased.';
         }
+        // Additional combat increase
+        RG.levelUpCombatStats(this._actor, newLevel);
     }
 }
 
@@ -477,6 +502,7 @@ export class Cryomancer extends ActorClassBase {
         const stats = this._actor.get('Stats');
         stats.incrStat('strength', -2);
         stats.incrStat('magic', 3);
+        this.setSkill(RG.SKILLS.SPELLCASTING, 2);
     }
 
     public incrStats(newLevel) {
@@ -552,6 +578,7 @@ export class Marksman extends ActorClassBase {
         stats.incrStat('accuracy', 3);
         stats.incrStat('perception', 2);
         stats.incrStat('magic', -3);
+        this.setSkill(RG.SKILLS.ARCHERY, 2);
     }
 
     public incrStats(newLevel) {
@@ -568,6 +595,9 @@ export class Marksman extends ActorClassBase {
         if (newLevel % 3 === 1) {
             stats.incrStat('agility', 1);
             this._lastStateIncr += '\nAgility was increased.';
+        }
+        if (newLevel % 2 === 0) {
+            RG.levelUpCombatStats(this._actor, newLevel);
         }
     }
 
@@ -632,6 +662,7 @@ export class Spellsinger extends ActorClassBase {
         const stats = this._actor.get('Stats');
         stats.incrStat('perception', 2);
         stats.incrStat('magic', 2);
+        this.setSkill(RG.SKILLS.SPELLCASTING, 2);
     }
 
     public incrStats(newLevel) {
@@ -713,6 +744,7 @@ export class Spiritcrafter extends ActorClassBase {
         const stats = this._actor.get('Stats');
         stats.incrStat('willpower', 4);
         stats.incrStat('magic', 2);
+        this.setSkill(RG.SKILLS.SPELLCASTING, 2);
     }
 
     public incrStats(newLevel) {
@@ -732,17 +764,100 @@ export class Spiritcrafter extends ActorClassBase {
 ActorClass.Spiritcrafter = Spiritcrafter;
 
 //-------------------------------------------------------------------------
-/* Politician actor class and its experience level-specific features. */
+/* Courtier actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
-export class Politician extends ActorClassBase {
+export class Courtier extends ActorClassBase {
     constructor(actor) {
-        super(actor, 'Politician');
+        super(actor, 'Courtier');
         const name = actor.getName();
         this._messages = {
         };
         this._advances = {
             1: () => {
                 ActorClass.addAbility('Bribery', this._actor);
+                this._actor.add(new Component.Charm());
+            },
+            4: () => {
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(2);
+                }
+            },
+            8: () => {
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(3);
+                }
+            },
+            12: () => {
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(4);
+                }
+            },
+            16: () => {
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(5);
+                }
+            },
+            20: () => {
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(6);
+                }
+            },
+            24: () => {
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(7);
+                }
+            },
+            28: () => {
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(8);
+                }
+            },
+            32: () => {
+                if (this._actor.has('Charm')) {
+                    this._actor.get('Charm').setLevel(10);
+                }
+            }
+        };
+
+    }
+
+    public setStartingStats(): void {
+        const stats = this._actor.get('Stats');
+        stats.incrStat('perception', 3);
+        stats.incrStat('agility', -2);
+        stats.incrStat('strength', -3);
+        stats.incrStat('willpower', 4);
+        this.setSkill(RG.SKILLS.TRADING, 3);
+    }
+
+    public incrStats(newLevel: number): void {
+        const stats = this._actor.get('Stats');
+        super.incrStats(newLevel);
+        if (newLevel % 3 !== 0) {
+            stats.incrStat('perception', 1);
+            this._lastStateIncr += '\nPerception was increased.';
+        }
+        if (newLevel % 3 !== 1) {
+            stats.incrStat('willpower', 1);
+            this._lastStateIncr += '\nWillpower was increased.';
+        }
+    }
+
+
+}
+ActorClass.Courtier = Courtier;
+
+//-------------------------------------------------------------------------
+/* Courtier actor class and its experience level-specific features. */
+//-------------------------------------------------------------------------
+export class Miner extends ActorClassBase {
+    constructor(actor) {
+        super(actor, 'Miner');
+        const name = actor.getName();
+        this._messages = {
+        };
+        this._advances = {
+            1: () => {
             },
             4: () => {
             },
@@ -766,32 +881,35 @@ export class Politician extends ActorClassBase {
 
     public setStartingStats(): void {
         const stats = this._actor.get('Stats');
-        stats.incrStat('perception', 3);
-        stats.incrStat('agility', -2);
-        stats.incrStat('strength', -3);
-        stats.incrStat('willpower', 4);
+        stats.incrStat('perception', 2);
+        stats.incrStat('agility', 2);
+        stats.incrStat('strength', 3);
+        this.setSkill(RG.SKILLS.MINING, 2);
     }
 
     public incrStats(newLevel: number): void {
         const stats = this._actor.get('Stats');
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
-            stats.incrStat('perception', 1);
-            this._lastStateIncr += '\nPerception was increased.';
+            stats.incrStat('strength', 1);
+            this._lastStateIncr += '\nStrength was increased.';
         }
         if (newLevel % 3 !== 1) {
-            stats.incrStat('willpower', 1);
-            this._lastStateIncr += '\nWillpower was increased.';
+            stats.incrStat('agility', 1);
+            this._lastStateIncr += '\nAgility was increased.';
+        }
+        if (newLevel % 3 === 0) {
+            RG.levelUpCombatStats(this._actor, newLevel);
         }
     }
 
-
 }
-ActorClass.Politician = Politician;
+ActorClass.Miner = Miner;
 
 export const ACTOR_CLASSES = [
     'Cryomancer', 'Blademaster', 'Marksman', 'Spiritcrafter',
-    'Adventurer', 'Alpinist', 'Spellsinger',
+    'Adventurer', 'Alpinist', 'Spellsinger', 'Courtier',
+    'Miner',
 ];
 
 export const ACTOR_CLASSES_NO_ADV = ACTOR_CLASSES.filter(ac => (

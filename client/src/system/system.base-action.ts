@@ -12,9 +12,11 @@ import {Brain} from '../brain';
 import {Element} from '../element';
 import {removeStatsModsOnLeave} from './system.utils';
 
+type Entity = import('../entity').Entity;
+
 const handledComps = [
     'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
-    'Jump', 'Read', 'Rest', 'Give'
+    'Jump', 'Read', 'Rest', 'Give', 'Displace',
 ];
 
 type HandleFunc = (ent) => void;
@@ -30,6 +32,7 @@ export class SystemBaseAction extends SystemBase {
 
         // Initialisation of dispatch table for handler functions
         this._dtable = {
+            Displace: this._handleDisplace.bind(this),
             Give: this._handleGive.bind(this),
             Jump: this._handleJump.bind(this),
             OpenDoor: this._handleOpenDoor.bind(this),
@@ -42,13 +45,43 @@ export class SystemBaseAction extends SystemBase {
         };
     }
 
-    public updateEntity(ent): void {
+    public updateEntity(ent: Entity): void {
         handledComps.forEach(compType => {
             if (ent.has(compType)) {
                 this._dtable[compType](ent);
                 ent.remove(compType);
             }
         });
+    }
+
+    /* Issue: Should cause Movement, otherwise many effects won't
+     * trigger. */
+    private _handleDisplace(ent: Entity): void {
+        // RG.err('BaseAction', '_handleDisplace', 'Not implemented');
+        const dispComp = ent.get('Displace');
+        const dispTarget = dispComp.getDisplaceTarget();
+        if (!dispTarget.isEnemy(ent)) {
+            const [eX, eY] = ent.get('Location').getXY();
+            const [dX, dY] = dispTarget.get('Location').getXY();
+            const level = ent.get('Location').getLevel();
+            const movComp = new Component.Movement(dX, dY, level);
+            movComp.setDisplace(true);
+            movComp.setActor(dispTarget);
+            ent.add(movComp);
+            const movComp2 = new Component.Movement(eX, eY, level);
+            movComp2.setDisplace(true);
+            movComp2.setActor(ent);
+            dispTarget.add(movComp2);
+        }
+        else { // TODO: Apply Charm checks etc to allow displacing enemies
+            const tname = RG.getName(dispTarget);
+            const entName = RG.getName(ent);
+            const cell = RG.getCell(ent);
+            if (cell) {
+                const msg = `${tname} refuses to swap places with ${entName}`;
+                RG.gameMsg({msg, cell});
+            }
+        }
     }
 
     /* Handles give command. */
@@ -117,6 +150,12 @@ export class SystemBaseAction extends SystemBase {
                     const qTarget = item.get('QuestTarget');
                     SystemQuest.addQuestEvent(ent, qTarget, 'get');
                 }
+
+                const evtArgs = {
+                    eventObject: item,
+                    type: RG.EVT_ITEM_PICKED_UP,
+                };
+                this._createEventComp(ent, evtArgs);
             }
             else {
                 const msgObj = {
@@ -126,10 +165,6 @@ export class SystemBaseAction extends SystemBase {
                 RG.gameMsg(msgObj);
             }
         }
-        const evtArgs = {
-            type: RG.EVT_ITEM_PICKED_UP
-        };
-        this._createEventComp(ent, evtArgs);
     }
 
     /* Called when missile is picked to to check if it can be auto-equipped. */
@@ -192,7 +227,7 @@ export class SystemBaseAction extends SystemBase {
             }
             const evtArgs = {
                 type: RG.EVT_ACTOR_USED_STAIRS,
-                cell
+                cell, level,
             };
             this._createEventComp(ent, evtArgs);
             // If prev cell had any penalties, we need to remove those
@@ -255,6 +290,7 @@ export class SystemBaseAction extends SystemBase {
         else if (effArgs) {
             const effComp = new Component.Effects(effArgs);
             effComp.setItem(item);
+            console.log('Added Effects comp with args', effArgs, ent.getName());
             ent.add(effComp);
         }
     }

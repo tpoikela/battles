@@ -312,8 +312,25 @@ describe('ObjectShell.Parser', () => {
         Objects.elements.forEach(shell => {
             if (shell.dontCreate !== true) {
                 const elem = parser.createElement(shell.name);
-                expect(elem).to.not.be.empty;
-                RGUnitTests.checkChar(elem, shell.char);
+                expect(elem.getName()).to.equal(shell.name);
+
+                // Check conditional chars and normal chars
+                if (typeof shell.char === 'object') {
+                    let shellChar = '';
+                    Object.keys(shell.char).forEach((key: string) => {
+                        const funcName = key;
+                        if (elem[funcName] && elem[funcName]()) {
+                            shellChar = shell.char[key];
+                        }
+                        else if (shellChar === '' && key === 'default') {
+                            shellChar = shell.char.default;
+                        }
+                    });
+                    RGUnitTests.checkChar(elem, shellChar);
+                }
+                else {
+                    RGUnitTests.checkChar(elem, shell.char);
+                }
                 RGUnitTests.checkCSSClassName(elem, shell.className);
             }
 
@@ -604,8 +621,8 @@ describe('Data query functions for objects', function() {
     });
 
     it('can filter query with category/function', () => {
-        const actor = parser.dbGetActor({name: 'Winter demon'});
-        expect(actor.name).to.equal('Winter demon');
+        const actor = parser.dbGetActor({name: 'winter demon'});
+        expect(actor.name).to.equal('winter demon');
 
         const items = parser.dbGet({categ: 'items'});
         expect(Object.keys(items)).to.have.length.above(10);
@@ -643,15 +660,18 @@ describe('Data query functions for objects', function() {
     });
 
     it('can create venomous actors', () => {
-        const viper = parser.createActualObj(RG.TYPE_ACTOR, 'Frost viper');
+        const viper = parser.createActualObj(RG.TYPE_ACTOR, 'frost viper');
         expect(viper.has('AddOnHit')).to.equal(true);
 
         const addOnHit = viper.get('AddOnHit');
-        expect(addOnHit.getComp().getType()).to.equal('Poison');
+        const durComp = addOnHit.getComp();
+        expect(durComp.getType()).to.equal('Duration');
+
+        expect(durComp.getComp().getType()).to.equal('DirectDamage');
     });
 
     it('can create spellcasters', () => {
-        const cryomancer = parser.createActor('Cryomancer');
+        const cryomancer = parser.createActor('cryomancer');
         expect(cryomancer.has('SpellPower')).to.equal(true);
         expect(cryomancer.get('SpellPower').getPP()).to.equal(21);
         expect(cryomancer.get('SpellPower').getMaxPP()).to.equal(21);
@@ -836,7 +856,7 @@ describe('Data query functions for objects', function() {
     });
 
     it('can add goals to actors using shells', () => {
-        const demonShell = parser.dbGetActor({name: 'Winter demon'});
+        const demonShell = parser.dbGetActor({name: 'winter demon'});
         demonShell.goals = [{name: 'GoHome', setArgs: {xy: [0, 0]}}, {name: 'Thief'}];
         const winterDemon = parser.createFromShell(RG.TYPE_ACTOR, demonShell);
 

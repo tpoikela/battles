@@ -29,17 +29,10 @@ export class SystemDamage extends SystemBase {
             else {
                 this._applyAddOnHitComp(ent, dmgComp);
                 health.decrHP(totalDmg);
+                SystemBase.addSkillsExp(ent, RG.SKILLS.ARMOUR, 1);
 
                 if (ent.has('Regeneration')) {
                     addRegenEffects(ent);
-                    /*
-                    const regen = ent.get('Regeneration');
-                    if (regen.getHP() > 0 && !ent.has('RegenEffect')) {
-                        const regenEffect = new Component.RegenEffect();
-                        regenEffect.initEffect(ent.get('Regeneration'));
-                        ent.add(regenEffect);
-                    }
-                    */
                 }
 
                 if (this.debugEnabled) {
@@ -164,6 +157,10 @@ export class SystemDamage extends SystemBase {
         else if (dmgCateg === RG.DMG.DIRECT) {
             return dmg;
         }
+        else if (!src && dmgCateg === RG.DMG.WATER) {
+            // Source not mandatory, for example drowning has no source
+            return dmg;
+        }
         else if (this.isProtectionBypassed(ent, src)) {
             const msg = `${src.getName()} hits ${ent.getName()} through armor.`;
             RG.gameDanger({cell, msg});
@@ -178,7 +175,7 @@ export class SystemDamage extends SystemBase {
         return totalDmg;
     }
 
-    public _getDmgAfterWeaknessAndResistance(ent, dmgComp) {
+    public _getDmgAfterWeaknessAndResistance(ent, dmgComp): number {
         const entName = ent.getName();
         let dmg = dmgComp.getDamage();
         if (ent.has('Weakness')) {
@@ -275,8 +272,11 @@ export class SystemDamage extends SystemBase {
         const weapon = dmgComp.getWeapon();
         if (weapon && weapon.has) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
-                const comp = weapon.get('AddOnHit').getCompToAdd();
-                SystemBase.addCompToEntAfterHit(comp, ent, dmgComp.getSource());
+                const addOnComp = weapon.get('AddOnHit');
+                if (addOnComp.getOnDamage()) {
+                    const comp = addOnComp.getCompToAdd();
+                    SystemBase.addCompToEntAfterHit(comp, ent, dmgComp.getSource());
+                }
             }
         }
         else if (weapon && weapon.onHit) {
@@ -289,10 +289,13 @@ export class SystemDamage extends SystemBase {
             const src = dmgComp.getSource();
             const categ = dmgComp.getDamageCateg();
             // Prevents effects like poison from melee/hit repeating itself
-            if (categ !== RG.DMG.EFFECT) {
+            if (categ !== RG.DMG.EFFECT && categ !== RG.DMG.DIRECT) {
                 if (src && src.has('AddOnHit')) {
-                    const comp = src.get('AddOnHit').getCompToAdd();
-                    SystemBase.addCompToEntAfterHit(comp, ent, src);
+                    const addOnComp = src.get('AddOnHit');
+                    if (addOnComp.getOnDamage()) {
+                        const comp = addOnComp.getCompToAdd();
+                        SystemBase.addCompToEntAfterHit(comp, ent, src);
+                    }
                 }
             }
         }

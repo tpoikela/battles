@@ -155,7 +155,7 @@ export class FactoryBase {
     public createDemonArmy(level: Level, parser: Parser) {
         for (let y = 0; y < 2; y++) {
             for (let i = 0; i < 10; i++) {
-                const demon = parser.createActor('Winter demon');
+                const demon = parser.createActor('winter demon');
                 level.addActor(demon, i + 10, 14 + y);
                 POOL.emitEvent(RG.EVT_ACTOR_CREATED, {actor: demon,
                     level, msg: 'DemonSpawn'});
@@ -168,7 +168,7 @@ export class FactoryBase {
         const y0 = level.getMap().rows / 2;
         for (let y = y0; y < y0 + 2; y++) {
             for (let x = x0; x < x0 + 10; x++) {
-                const beast = parser.createActor('Blizzard beast');
+                const beast = parser.createActor('blizzard beast');
                 const xAct = x + 10;
                 const yAct = y + 14;
                 if (level.getMap().hasXY(xAct, yAct)) {

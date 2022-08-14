@@ -28,6 +28,13 @@ ActorMods.catfolk = {
         strength: -3
     },
     player: { // Player only section
+        Marksman: {
+            startingItems: [
+                {name: 'Shuriken', count: 6},
+            ],
+            equipment: [
+            ]
+        },
         startingItems: [
         ],
         equipment: [
@@ -67,6 +74,11 @@ ActorMods.dwarf = {
                 {name: 'Battle axe', count: 1}
             ]
         },
+        Miner: {
+            equipment: [
+                {name: 'Mithril pick-axe', count: 1}
+            ],
+        },
         startingItems: [
         ],
         equipment: [
@@ -99,7 +111,13 @@ ActorMods.human = {
         spirituality: 2
     },
     player: { // Player only section
+        Courtier: {
+            startingItems: [
+                {name: 'Gold coin', count: 100},
+            ],
+        },
         startingItems: [
+            {name: 'Potion of cure poison', count: 2},
         ],
         equipment: [
         ]

@@ -184,6 +184,19 @@ export class CmdDropItem extends CmdBase {
 }
 Cmd.DropItem = CmdDropItem;
 
+export class CmdDisplace extends CmdBase {
+
+    public execute(obj) {
+        const dispComp = new Component.Displace();
+        const actor = obj.target.getFirstActor();
+        dispComp.setDisplaceTarget(actor);
+        this._actor.add(dispComp);
+        return ACTION_ALREADY_DONE;
+    }
+
+}
+Cmd.Missile = CmdMissile;
+
 export class CmdEquipItem extends CmdBase {
 
     public execute(obj) {

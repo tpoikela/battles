@@ -347,7 +347,7 @@ describe('Game.FromJSON', function() {
 
         // Create some demons and fighters
         for (let i = 0; i < 50; i++) {
-            const demon = parser.createActor('Winter demon');
+            const demon = parser.createActor('winter demon');
             const fighter = parser.createActor('fighter');
             actors.push(demon);
             actors.push(fighter);
@@ -411,10 +411,10 @@ describe('Game.FromJSON', function() {
         factGame.addActorClass(gameConf, player);
         expect(player.getBook()).to.not.be.empty;
 
-        const json = game.toJSON();
+        let json = game.toJSON();
         let newGame = new GameMain();
         newGame = fromJSON.createGame(newGame, json);
-        const newPlayer = newGame.getPlayer();
+        let newPlayer = newGame.getPlayer();
         expect(newPlayer.getName()).to.equal('MyPlayer');
 
         const newInvEq = newPlayer.getInvEq();
@@ -426,6 +426,21 @@ describe('Game.FromJSON', function() {
         const spellbook = newPlayer.getBook();
         expect(spellbook).to.not.be.empty;
         expect(newPlayer.has('ActorClass')).to.equal(true);
+
+        const parser = ObjectShell.getParser();
+        const rune = parser.createItem('rune of venom');
+        newPlayer.getInvEq().addItem(rune);
+        rune.useItem({target: newPlayer.getCell()});
+        newGame.simulate(1);
+        expect(newPlayer).to.have.component('Poison');
+
+        const newGem = newPlayer.getInvEq().getEquipment().getItem(RG.EQUIP.SPIRITGEM);
+        expect(newGem.getSpirit().getBrain()).not.to.equal(undefined);
+
+        json = newGame.toJSON();
+        newGame = new GameMain();
+        newGame = new FromJSON().createGame(newGame, json);
+        newPlayer = newGame.getPlayer();
     });
 
     it('can serialize/de-serialize pick-axe', () => {
@@ -509,7 +524,7 @@ describe('Game.FromJSON', function() {
         const magicSword = new Item.Weapon('Magic sword');
         const addOnHit = new Component.AddOnHit();
         const poisonComp = new Component.Poison();
-        poisonComp.setDurationDie('1d6');
+        //rm poisonComp.setDurationDie('1d6');
         poisonComp.setDamageDie('1d8 + 4');
         addOnHit.setComp(poisonComp);
         magicSword.add(addOnHit);

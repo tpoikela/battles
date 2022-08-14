@@ -159,6 +159,8 @@ export class FactoryGame {
                 return this.createOverWorldGame(conf, game, player);
             case 'Quests':
                 return this.createQuestsDebugGame(conf, game, player);
+            case 'Sandbox':
+                return this.createSandboxGame(conf, game, player);
             default:
                 return this.createEmptyGame(conf, game, player);
         }
@@ -207,6 +209,9 @@ export class FactoryGame {
             player.add(new Component.GameInfo());
             player.add(new Component.BodyTemp());
             player.add(new Component.Abilities());
+
+            const gold = this._parser.createItem('Gold coin');
+            gold.get('Item').setCount(RNG.getUniformInt(30, 100));
         }
 
         if (!player.has('Hunger')) {
@@ -282,6 +287,8 @@ export class FactoryGame {
         FactoryItem.addItemsToActor(player, items);
         FactoryItem.equipItemsToActor(player, eqs);
 
+        this.adjustStats(ActorMods[playerRace].stats, player);
+
         // Then add some flavor with specific race-actor class, if applicable
         // Each race could have 1-2 preferred classes to get better items
         const {playerClass} = obj;
@@ -296,6 +303,12 @@ export class FactoryGame {
                 FactoryItem.equipItemsToActor(player, classEqs);
             }
         }
+    }
+
+    public adjustStats(stats, player: SentientActor): void {
+        Object.keys(stats).forEach(stat => {
+            player.get('Stats').incrStat(stat, stats[stat]);
+        });
     }
 
     public setCallback(name: string, cb: (...args: any[]) => void) {
@@ -788,6 +801,11 @@ export class FactoryGame {
     public createOneDungeonAndBoss(obj, game, player) {
         const arenaGame = new DebugGame(this, this._parser);
         return arenaGame.createOneDungeonAndBoss(obj, game, player);
+    }
+
+    public createSandboxGame(obj, game, player) {
+        const dbgGame = new DebugGame(this, this._parser);
+        return dbgGame.createSandboxGame(obj, game, player);
     }
 
 } // class FactoryGame

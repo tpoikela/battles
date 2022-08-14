@@ -14,6 +14,7 @@ import {removeStatsModsOnLeave} from './system.utils';
 type BrainPlayer = import('../brain/brain.player').BrainPlayer;
 type Level = import('../level').Level;
 type EventPool = import('../eventpool').EventPool;
+type Entity = import('../entity').Entity;
 
 import dbg = require('debug');
 const debug = dbg('bitn:System.Movement');
@@ -182,18 +183,23 @@ export class SystemMovement extends SystemBase {
 
     public updateEntity(ent): void {
         const movComp = ent.get('Movement');
+        const locComp = ent.get('Location');
+        if (!locComp) {
+            RG.err('SystemMovement', 'updateEntity',
+                'Entity without Location cannot be moved');
+        }
         const [x, y] = movComp.getXY();
 
         const map = movComp.getLevel().getMap();
 
         if (!map.hasXY(x, y)) {
             let msg = `Tried to move to ${x},${y}.`;
-            msg += ' Entity: ' + ent.getName();
+            msg += ' Entity: ' + RG.getName(ent);
             RG.warn('System.Movement', 'updateEntity', msg);
         }
 
         const cell = map.getCell(x, y);
-        const prevCell = ent.getCell();
+        const prevCell = locComp.getCell();
         let canMoveThere = cell.isFree(ent.has('Flying'));
 
         const prevElem = prevCell.getBaseElem();
@@ -207,7 +213,7 @@ export class SystemMovement extends SystemBase {
         }
 
         if (!canMoveThere) {
-            canMoveThere = this._checkSpecialMovement(ent, cell);
+            canMoveThere = this._checkSpecialMovement(movComp, ent, cell);
         }
 
         if (canMoveThere) {
@@ -375,12 +381,32 @@ export class SystemMovement extends SystemBase {
     }
 
     /* Checks movements like climbing. */
-    private _checkSpecialMovement(ent: SentientActor, cell: Cell): boolean {
+    private _checkSpecialMovement(mov, ent: SentientActor, cell: Cell): boolean {
         const elemType = cell.getBaseElem().getType();
         if (this.climbRe.test(elemType) && ent.has('Climber')) {
             const msg = `${ent.getName()} climbs the rocky terrain`;
             RG.gameMsg({cell, msg});
             return true;
+        }
+        else if (mov.getDisplace()) {
+            // Some safety checks:
+            // Either target cell hasActor which is displace target,
+            // or displaceTarget is in same cell with this actor
+            const target = mov.getActor();
+            if (cell.hasActors()) {
+                const actors = cell.getActors();
+                return actors.findIndex( a =>
+                    a.getID() === target.getID() && a.has('Movement') &&
+                    a.get('Movement').getDisplace()
+                ) >= 0;
+            }
+            else {
+                const thisCell = ent.get('Location').getCell();
+                const actors = thisCell.getActors();
+                if (actors) {
+                    return actors.findIndex(a => a.getID() === target.getID()) >= 0;
+                }
+            }
         }
         return false;
     }
@@ -397,7 +423,9 @@ export class SystemMovement extends SystemBase {
             const givenExp = expElem.getExp();
             const expPoints = new Component.ExpPoints(givenExp);
             ent.add(expPoints);
-            addSkillsExp(ent, 'Exploration', 1);
+
+            const place = level.get('Place');
+            addSkillsExp(ent, RG.SKILLS.EXPLORATION, place.getDepth() + 1);
 
             if (expElem.hasData()) {
                 const expData = expElem.getData();
@@ -432,6 +460,7 @@ export class SystemMovement extends SystemBase {
         // Need to re-check this, if exploreElem was removed, very subtle
         const elems = cell.getElements();
         if (!elems) {return;}
+        if (ent.has('Ethereal')) {return;}
 
         elems.forEach(elem => {
             if (elem.has('Entrapping')) {

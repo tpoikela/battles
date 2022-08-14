@@ -145,6 +145,7 @@ export class SystemWeather extends SystemBase {
         // MapGenerator.addRandomSnow(map, 0.1);
         const actors = level.getActors();
         actors.forEach((actor: BaseActor): void => {
+            if (actor.has('Ethereal')) {return;}
             if (actor.has('Location') && actor.get('Location').isValid()) {
                 const baseElem = actor.getCell()!.getBaseElem();
                 if (!baseElem.has('Indoor')) {

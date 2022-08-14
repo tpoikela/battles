@@ -30,6 +30,12 @@ interface IGoal {
 
 const grayBg = 'DarkSlateGray';
 
+interface PoisonSpec {
+    duration: string;
+    damage: string;
+    prob: string;
+}
+
 // Defines all possible attributes which can be given
 export interface ActorShell {
     name: string; // Only name is mandatory
@@ -74,7 +80,7 @@ export interface ActorShell {
     onHit?: any;
     onAttackHit?: any;
     addComp?: TAddCompSpec | string;
-    poison?: any;
+    poison?: PoisonSpec;
     equip?: Item[];
     inv?: Item[];
 
@@ -154,6 +160,13 @@ export const ActorsData: ActorShell[] = [
 
     {
         name: 'rat', char: 'r', base: 'animal'
+    },
+    {
+        name: 'cockroach', char: 'c', base: 'animal',
+        color: color('red', 'black'),
+        attack: 15, damage: '1d1',
+        speed: 200,
+        addComp: [BypassComp(1.00)],
     },
     {
         name: 'cloud of insects', char: 'i', base: 'animal',
@@ -425,6 +438,14 @@ export const ActorsData: ActorShell[] = [
         enemies: RG.ACTOR_RACES
     },
     {
+        name: 'fireroach', base: 'ConstructBase',
+        char: 'c', className: 'cell-actor-fire',
+        attack: 15, defense: 1, damage: '1d2', speed: 170,
+        danger: 1, hp: 5, type: 'construct',
+        addComp: [BypassComp(0.95)],
+        onHit: [meleeHitDamage(1, '1d2', 'FIRE')],
+    },
+    {
         name: 'water golem', base: 'ConstructBase',
         char: 'Y',  className: 'cell-actor-water',
         addComp: 'Amphibious',
@@ -490,8 +511,7 @@ export const ActorsData: ActorShell[] = [
     },
     {
         name: 'fire elemental', base: 'ConstructBase',
-        color: color('Red', 'Black'),
-        char: 'E',
+        char: 'E', className: 'cell-actor-fire',
         attack: 9, defense: 6, protection: 8,
         hp: 55, danger: 14, damage: '4d4',
         brain: 'SpellCaster', spells: ['FireBolt', 'RingOfFire'],
@@ -903,7 +923,7 @@ export const ActorsData: ActorShell[] = [
             {addComp: 'DirectDamage', func: [
                 {setter: 'setDamage', value: 2},
                 {setter: 'setDamageType', value: RG.DMG.NECRO},
-                {setter: 'setDamageCateg', value: RG.DMG.MELEE}
+                {setter: 'setDamageCateg', value: RG.DMG.DIRECT}
             ],
                 duration: '1d8 + 2'
             }
@@ -1040,35 +1060,42 @@ export const ActorsData: ActorShell[] = [
         danger: 1, hp: 5, type: 'animal'
     },
     {
-        name: 'Ice bat', char: 'b', base: 'WinterBeingBase',
+        name: 'frostroach', char: 'c', base: 'WinterBeingBase',
+        attack: 15, defense: 1, damage: '1d2', speed: 170,
+        danger: 1, hp: 5, type: 'animal',
+        addComp: [BypassComp(0.95)],
+        onHit: [meleeHitDamage(1, '1d2', 'COLD')],
+    },
+    {
+        name: 'ice bat', char: 'b', base: 'WinterBeingBase',
         attack: 1, defense: 1, damage: '1d6', speed: 110,
         danger: 2, hp: 8, brain: 'Animal',
         addComp: ['Flying', resistance('ICE', 'MEDIUM')],
         type: 'animal'
     },
     {
-        name: 'Arctic fox', char: 'f', base: 'WinterBeingBase',
+        name: 'arctic fox', char: 'f', base: 'WinterBeingBase',
         attack: 4, defense: 1, damage: '1d7 + 3', speed: 105,
         danger: 3, hp: 12, brain: 'Animal', type: 'animal'
     },
     {
-        name: 'Frost goblin', char: 'g', base: 'WinterBeingBase',
+        name: 'frost goblin', char: 'g', base: 'WinterBeingBase',
         attack: 3, defense: 3, protection: 1, damage: '1d7', hp: 12,
         danger: 3, type: 'icebeing', brain: defaultBrain
     },
     {
-        name: 'Frost viper', char: 's', base: 'WinterBeingBase',
+        name: 'frost viper', char: 's', base: 'WinterBeingBase',
         attack: 3, defense: 3, protection: 3, damage: '1d7', hp: 18,
         danger: 4, type: 'animal',
         poison: {duration: '1d6 + 5', damage: '1d6', prob: '0.1'}
     },
     {
-        name: 'Arctic Wolf', char: 'w', base: 'WinterBeingBase',
+        name: 'arctic Wolf', char: 'w', base: 'WinterBeingBase',
         attack: 4, defense: 2, damage: '1d8', brain: 'Animal',
         hp: 21, danger: 5, type: 'animal'
     },
     {
-        name: 'Glacial shaman', char: '@', base: 'WinterBeingBase',
+        name: 'glacial shaman', char: '@', base: 'WinterBeingBase',
         colorfg: 'CadetBlue',
         attack: 4, defense: 4, protection: 3, damage: '1d7 + 2',
         type: 'icebeing',
@@ -1076,86 +1103,86 @@ export const ActorsData: ActorShell[] = [
         brain: 'SpellCaster'
     },
     {
-        name: 'Glacial golem', char: 'G', base: 'WinterBeingBase',
+        name: 'glacial golem', char: 'G', base: 'WinterBeingBase',
         attack: 4, defense: 4, protection: 3, damage: '2d4', speed: 90,
         danger: 5, hp: 30, type: 'construct'
     },
     {
-        name: 'Ice minion', base: 'WinterBeingBase', char: 'm',
+        name: 'ice minion', base: 'WinterBeingBase', char: 'm',
         attack: 4, defense: 4, protection: 2, damage: '2d4',
         hp: 20, danger: 5, type: 'demon',
         onHit: [{addComp: 'Coldness', duration: '10d10'}]
     },
     {
-        name: 'Mighty raven', base: 'WinterBeingBase', char: 'R',
+        name: 'mighty raven', base: 'WinterBeingBase', char: 'R',
         attack: 4, defense: 10, damage: '2d4 + 2', range: 1, hp: 20,
         danger: 5, brain: 'Animal',
         addComp: ['Flying', resistance('ICE', 'MEDIUM')],
     },
     {
-        name: 'Snow leopard', base: 'WinterBeingBase', char: 'f',
+        name: 'snow leopard', base: 'WinterBeingBase', char: 'f',
         attack: 8, defense: 4, damage: '1d6 + 5', range: 1, hp: 25,
         danger: 5, brain: 'Animal', type: 'animal', speed: 120
     },
     {
-        name: 'Cryomancer', base: 'WinterBeingBase', char: '@',
+        name: 'cryomancer', base: 'WinterBeingBase', char: '@',
         type: 'icebeing',
         attack: 4, defense: 4, damage: '1d6', range: 1, hp: 30,
         danger: 5, spells: ['FrostBolt'], maxPP: 22, pp: 21,
         brain: 'SpellCaster'
     },
     {
-        name: 'Winter demon', type: 'demon', char: '&',
+        name: 'winter demon', type: 'demon', char: '&',
         colorfg: 'CadetBlue',
         attack: 5, defense: 5, protection: 2, damage: '3d3', range: 1,
         hp: 30, danger: 10, brain: demonBrain, base: 'WinterBeingBase'
     },
     {
-        name: 'Harbinger of winter', type: 'demon', char: '@',
+        name: 'harbinger of winter', type: 'demon', char: '@',
         colorfg: 'DarkBlue',
         attack: 5, defense: 5, protection: 2, damage: '3d3', range: 1,
         hp: 35, danger: 10, brain: 'SpellCaster', base: 'WinterBeingBase',
         spells: ['GraspOfWinter'], maxPP: 30, pp: 30
     },
     {
-        name: 'Stormrider', type: 'demon', char: '&',
+        name: 'stormrider', type: 'demon', char: '&',
         colorfg: 'DarkBlue',
         attack: 6, defense: 6, protection: 3, damage: '4d3', range: 1,
         hp: 40, danger: 12, brain: demonBrain, base: 'WinterBeingBase',
         equip: ['Permaice short sword']
     },
     {
-        name: 'Ice archon', type: 'demon', char: 'A',
+        name: 'ice archon', type: 'demon', char: 'A',
         attack: 6, defense: 6, protection: 3, damage: '4d3', range: 1,
         hp: 40, danger: 12, base: 'WinterBeingBase', brain: 'SpellCaster',
         pp: 30, maxPP: 30, spells: ['RingOfFrost']
     },
     {
-        name: 'Ice djinn', type: 'demon', char: '&',
+        name: 'ice djinn', type: 'demon', char: '&',
         attack: 7, defense: 6, protection: 6, damage: '3d5+5', range: 1,
         hp: 45, danger: 14, brain: demonBrain, base: 'WinterBeingBase'
     },
     {
-        name: 'Blizzard beast', type: 'demon', char: 'B',
+        name: 'blizzard beast', type: 'demon', char: 'B',
         colorfg: 'CadetBlue',
         attack: 7, defense: 6, protection: 8, damage: '3d5+5', range: 1,
         hp: 50, danger: 16, brain: demonBrain, base: 'WinterBeingBase'
     },
     {
-        name: 'Ice behemoth', type: 'demon', char: 'B',
+        name: 'ice behemoth', type: 'demon', char: 'B',
         colorfg: 'DarkBlue',
         attack: 10, defense: 3, protection: 8, damage: '4d5+5', range: 2,
         hp: 65, danger: 16, brain: demonBrain, base: 'WinterBeingBase',
         onHit: [{addComp: 'Coldness'}]
     },
     {
-        name: 'Frost Titan', type: 'giant', char: 'H',
+        name: 'frost Titan', type: 'giant', char: 'H',
         attack: 8, defense: 7, protection: 12, damage: '5d5', range: 1,
         hp: 80, danger: 18, brain: demonBrain, base: 'WinterBeingBase',
         onHit: [{addComp: 'Stun', duration: '1d8'}]
     },
     {
-        name: 'Frostburn monarch', type: 'demon', char: 'M',
+        name: 'frostburn monarch', type: 'demon', char: 'M',
         attack: 10, defense: 10, protection: 10, damage: '4d5', range: 1,
         hp: 70, danger: 20, brain: 'SpellCaster', base: 'WinterBeingBase',
         onHit: [{addComp: 'Coldness'}], spells: ['FrostBolt',
@@ -1644,6 +1671,22 @@ export const ActorsData: ActorShell[] = [
       onHit: [{addComp: 'Coldness', duration: '10d10'}]
     },
     {
+      name: 'Ice wave', className: 'cell-actor-winter', base: 'SpecialBase',
+      char: ';', type: 'wave', brain: 'Wave',
+      addComp: ['Ethereal', 'NonSentient', 'Stats',
+          {comp: 'Damaging', func: {setDamageType: RG.DMG.ICE}}
+      ],
+      onHit: [{addComp: 'Coldness', duration: '10d10'}]
+    },
+    {
+      name: 'Death wave', className: 'cell-actor-undead', base: 'SpecialBase',
+      char: ';', type: 'wave', brain: 'Wave',
+      addComp: ['Ethereal', 'NonSentient', 'Stats',
+          {comp: 'Damaging', func: {setDamageType: RG.DMG.NECRO}}
+      ],
+      // onHit: [{addComp: 'Coldness', duration: '10d10'}]
+    },
+    {
       name: 'Poison gas', className: 'cell-actor-poison', base: 'SpecialBase',
       char: charFlame, type: 'flame', brain: 'Cloud',
       color: color('Green', 'Gray'),
@@ -1859,6 +1902,26 @@ export const ActorsData: ActorShell[] = [
             meleeHitDamage(5, '1d8 + 4', 'ICE')
         ],
         spells: ['FrostBolt', 'GraspOfWinter'],
+    },
+
+    {
+        name: 'Inferno Maelstrom, beingless being', type: 'creature',
+        base: 'UniqueBase', char: 'I', danger: 666,
+        damage: '16d6 + 6', hp: 666, pp: 666, brain: 'SpellCaster',
+        strength: 128, accuracy: 128, agility: 128, willpower: 128, perception: 128,
+        magic: 128, attack: 128, defense: 64, protection: 64,
+        fovrange: 12, speed: 150,
+        enemies: ['animal'].concat(RG.ACTOR_RACES),
+        addComp: ['SnowWalk',
+            resistance('ICE', 'ABSORB'),
+            resistance('NECRO', 'IMMUNITY'),
+            resistance('VOID', 'IMMUNITY'),
+            resistance('POISON', 'IMMUNITY'),
+            'Regeneration'],
+        onHit: [
+            meleeHitDamage(5, '2d8 + 8', 'ICE')
+        ],
+        spells: ['FrostBolt', 'GraspOfWinter', 'Blizzard', 'IceArrow', 'RingOfFrost'],
     },
 
 ];

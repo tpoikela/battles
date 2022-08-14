@@ -5,6 +5,7 @@ import * as Component from '../component';
 import {Brain} from '../brain';
 
 type EventPool = import('../eventpool').EventPool;
+type Entity = import('../entity').Entity;
 
 /* Processes entities with attack-related components.*/
 export class SystemAttack extends SystemBase {
@@ -13,7 +14,7 @@ export class SystemAttack extends SystemBase {
         super(RG.SYS.ATTACK, compTypes, pool);
     }
 
-    public updateEntity(ent) {
+    public updateEntity(ent: Entity): void {
         const compList = ent.getList('Attack');
         compList.forEach(attComp => {
             this.processAttackComp(ent, attComp);
@@ -24,8 +25,8 @@ export class SystemAttack extends SystemBase {
     public processAttackComp(ent, attComp): void {
         const att = ent;
         const def = attComp.getTarget();
-        const aName = att.getName();
-        const dName = def.getName();
+        const aName = RG.getName(att);
+        const dName = RG.getName(def);
 
         if (def.has('Ethereal')) {
             RG.gameMsg({cell: att.getCell(),
@@ -132,7 +133,7 @@ export class SystemAttack extends SystemBase {
     }
 
     /* Returns the defense value for given entity. */
-    public getEntityDefense(def) {
+    public getEntityDefense(def): number {
         if (def.has('Paralysis')) {
             return 0;
         }
@@ -147,7 +148,7 @@ export class SystemAttack extends SystemBase {
         return totalDef;
     }
 
-    public doDamage(att, def, dmg): void {
+    public doDamage(att, def, dmg: number): void {
         const dmgComp = new Component.Damage(dmg, RG.DMG.MELEE);
         dmgComp.setSource(att);
         if (this.debugEnabled) {
@@ -186,7 +187,9 @@ export class SystemAttack extends SystemBase {
     }
 
     /* Checks if Shields skill should be increased. */
-    public checkForShieldSkill(thr, totalAtt, totalDef, def) {
+    public checkForShieldSkill(
+            thr: number, totalAtt: number, totalDef: number, def
+    ): void {
         if (def.has('Skills')) {
             const shieldBonus = def.getShieldDefense();
             const defNoShield = totalDef - shieldBonus;
@@ -197,7 +200,7 @@ export class SystemAttack extends SystemBase {
         }
     }
 
-    public attIsCharmed(att, def): boolean {
+    public attIsCharmed(att, def: Entity): boolean {
         const charmList = def.getList('Charm');
         let isSuccess = false;
         charmList.forEach(charmComp => {
@@ -218,7 +221,7 @@ export class SystemAttack extends SystemBase {
         return isSuccess;
     }
 
-    public _applyAddOnHitComp(att, def): void {
+    public _applyAddOnHitComp(att, def: Entity): void {
         const weapon = att.getWeapon();
         if (weapon && weapon.has) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {

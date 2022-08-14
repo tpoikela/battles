@@ -263,10 +263,13 @@ class RGClass {
     public MATERIAL2HARDNESS: {[key: string]: number};
 
     public ORE_VEIN_SIZES: {[key: number]: number};
+    public SKILLS: {[key: string]: string};
 
     public NO_OWNER: null;
 
     public DEBUG: number;
+
+    public CANNOT_BRIBE: string[];
 
     constructor() {
         this.POOL = EventPool.getPool();
@@ -357,7 +360,7 @@ class RGClass {
         };
 
         this.PLAYER_FOV_RANGE = 10;
-        this.NPC_FOV_RANGE = 5; // Default FOV range for actor
+        this.NPC_FOV_RANGE = 7; // Default FOV range for actor
 
         this.ACTION_DUR = 100; // Base duration of action
         this.BASE_SPEED = 100; // Base speed of actors
@@ -487,7 +490,8 @@ class RGClass {
             Flee: 0.2,
             Guard: 1.1,
             Order: 0.7,
-            Patrol: 1.0
+            Patrol: 1.0,
+            Follow: 1.0,
         };
 
         // Different fighting modes
@@ -779,6 +783,27 @@ class RGClass {
 
         this.NO_OWNER = null;
         this.DEBUG = 0;
+
+        this.SKILLS = {
+            ARCHERY: 'Archery',
+            ARMOUR: 'Armour',
+            BATTLE: 'Battle',
+            SHIELDS: 'Shields',
+            CLIMBING: 'Climbing',
+            DODGE: 'Dodge',
+            EXPLORATION: 'Exploration',
+            MELEE: 'Melee',
+            MINING: 'Mining',
+            SPELLCASTING: 'SpellCasting',
+            THROWING: 'Throwing',
+            TRADING: 'Trading',
+        };
+
+        this.CANNOT_BRIBE = ['animal', 'construct', 'demon', 'creature',
+            'undead', 'finalboss', 'boss', 'forcefield', 'flame', 'eye',
+            'wave', 'spirit', 'icebeing'
+        ];
+
     }
 
     /* Given Map.Cell, returns CSS classname used for styling that cell. */
@@ -1156,12 +1181,16 @@ class RGClass {
         let range = actor.getFOVRange();
         if (actor.has('Blindness')) {return 1;}
         if (actor.has('Location')) {
-            const level = actor.get('Location').getLevel();
+            const locComp = actor.get('Location');
+            const level = locComp.getLevel();
             if (level && level.has('Weather')) {
                 const visib = level.get('Weather').getVisibility();
                 range += visib;
             }
             // TODO other effects
+            if (level.get('Place').getDepth() > 0) {
+                range += RG.getSkillLevel(actor, RG.SKILLS.EXPLORATION);
+            }
         }
 
         // TODO light sources etc
@@ -2077,6 +2106,9 @@ class RGClass {
     /* Can be queried if actor is still valid for serialisation or effects
      * like telepath or order giving. */
     public isActorActive(target: Entity): boolean {
+        if (target && !target.has) {
+            RG.err('RG.isActorActive', 'Got non-entity: ', JSON.stringify(target));
+        }
         return target && !target.has('Dead');
     }
 
@@ -2458,6 +2490,24 @@ class RGClass {
         return null;
     }
 
+    public getCell(ent: Entity): null | Cell {
+        if (ent.has('Location')) {
+            return ent.get('Location').getCell();
+        }
+        return null;
+    }
+
+    public getSkillLevel(ent: Entity, skill: string): number {
+        if (ent.has('Skills')) {
+            return ent.get('Skills').getLevel(skill);
+        }
+        return 0;
+    }
+
+    //--------------------------------------
+    // Coord to string key conversions
+    //--------------------------------------
+
     public toKey(xy: TCoord | TCoord3D): string {
         let res = xy[0] + ',' + xy[1];
         if (xy.length > 2) {res += ',' + xy[2];}
@@ -2509,13 +2559,18 @@ class RGClass {
         }
     }
 
-    getMaterialHardness(item: any): number {
+    public getMaterialHardness(item: any): number {
         const physComp = item.get('Physical');
         if (physComp) {
             const material = physComp.getMaterial();
             return this.MATERIAL2HARDNESS[material];
         }
         return 0;
+    }
+
+
+    public clone(obj: any): any {
+        return JSON.parse(JSON.stringify(obj));
     }
 
 }

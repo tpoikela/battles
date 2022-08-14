@@ -44,6 +44,13 @@ export class Constraints {
         return json;
     }
 
+    // Choose 'and' or 'or'
+    public aggrFunc: string;
+
+    constructor(aggrFunc='and') {
+        this.aggrFunc = aggrFunc;
+    }
+
     /* Returns the constraints function given a constraint object. */
     public getConstraints(objOrArray: TConstraintArg): (obj) => boolean {
         if (Array.isArray(objOrArray)) {
@@ -59,11 +66,21 @@ export class Constraints {
                     return this.getFuncWithComp(op, comp, value, args);
                 }
             });
-            const aggrFunc: any = function(obj) {
-                let res = true;
-                funcs.forEach(f => {res = res && f(obj);});
-                return res;
-            };
+            let aggrFunc: any = null;
+            if (this.aggrFunc === 'and') {
+                aggrFunc = function(obj): boolean {
+                    let res = true;
+                    funcs.forEach(f => {res = res && f(obj);});
+                    return res;
+                };
+            }
+            else {
+                aggrFunc = function(obj): boolean {
+                    let res = false;
+                    funcs.forEach(f => {res = res || f(obj);});
+                    return res;
+                };
+            }
             aggrFunc.constraint = objOrArray;
             return aggrFunc;
         }

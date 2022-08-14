@@ -618,6 +618,7 @@ export class GoalGuardArea extends GoalBase {
     }
 }
 Goal.GuardArea = GoalGuardArea;
+
 //---------------------------------------------------------------------------
 /* Goal used for patrolling between a list of coordinates. */
 //---------------------------------------------------------------------------

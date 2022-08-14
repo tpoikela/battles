@@ -135,10 +135,12 @@ export abstract class LevelGenerator {
         const terms: Room[] = [];
         const tileMap: {[key: string]: PlacedTileData} = mapObj.tiles;
         Object.values(tileMap).forEach((tile: PlacedTileData) => {
-            const room = new Room(tile.llx, tile.ury, tile.urx, tile.lly);
-            rooms.push(room);
-            if (tile.name === 'term') {
-                terms.push(room);
+            if (tile.name !== 'FILLER') {
+                const room = new Room(tile.llx, tile.ury, tile.urx, tile.lly);
+                rooms.push(room);
+                if (tile.name === 'term') {
+                    terms.push(room);
+                }
             }
         });
 

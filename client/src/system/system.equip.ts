@@ -100,7 +100,17 @@ export class SystemEquip extends SystemBase {
         if (equip) {
             const comp = addComp.getComp();
             if (comp.setSource) {
-                comp.setSource(addComp.getEntity());
+                const eqItem = addComp.getEntity();
+                let owner = null;
+                if (RG.isItem(eqItem)) {
+                    owner = eqItem.getTopOwner();
+                    if (owner) {
+                        comp.setSource(owner);
+                    }
+                }
+                else {
+                    comp.setSource(addComp.getEntity());
+                }
             }
             if (comp.is('Duration')) {
                 const dur = comp.rollDuration();

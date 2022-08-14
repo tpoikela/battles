@@ -138,7 +138,7 @@ export class DebugGame {
         const boss = this._parser.createActor('Thabba, Son of Ice');
         level.addActor(boss, cols - 2, rows - 2);
 
-        const cryomancer = this._parser.createActor('Cryomancer');
+        const cryomancer = this._parser.createActor('cryomancer');
         level.addActor(cryomancer, 1, rows - 2);
 
         const spiritPot = this._parser.createActualObj(
@@ -359,6 +359,7 @@ export class DebugGame {
         level.addElement(oneway, player.getX() - 1, player.getY());
 
         addItemToPlayer(parser, player, 'small bomb', 10);
+        addItemToPlayer(parser, player, 'carpentry kit', 1);
 
         return game;
     }
@@ -443,7 +444,7 @@ export class DebugGame {
         const army1 = new Army('Blue army');
         const army2 = new Army('Red army');
         this.addActorsToArmy(army1, 10, 'warlord');
-        this.addActorsToArmy(army2, 10, 'Winter demon');
+        this.addActorsToArmy(army2, 10, 'winter demon');
 
         const factLevel = new FactoryLevel();
         const battleLevel = factLevel.createLevel('arena', 60, 30);
@@ -579,8 +580,6 @@ export class DebugGame {
         const cityGen = new CityGenerator();
         const level = cityGen.create(obj.cols, obj.rows, levelConf);
 
-        // const level = this._fact.createLevel('town',
-        // obj.cols, obj.rows, levelConf);
         this._listener = new ActorKillListener(this, game, level);
 
         const factBase = new FactoryBase();
@@ -603,6 +602,10 @@ export class DebugGame {
         });
 
         return level;
+    }
+
+    public createSandboxGame(obj, game, player) {
+        return this.createArena(obj, game, player);
     }
 
 }
@@ -641,17 +644,17 @@ class ActorKillListener {
         if (evtName === RG.EVT_ACTOR_CREATED) {
             if (obj.hasOwnProperty('msg') && obj.msg === 'DemonSpawn') {
                 const actorCreated = obj.actor;
-                if (actorCreated.getName() === 'Winter demon') {
+                if (actorCreated.getName() === 'winter demon') {
                     ++this._maxDemons;
                 }
-                if (actorCreated.getName() === 'Blizzard beast') {
+                if (actorCreated.getName() === 'blizzard beast') {
                     ++this._maxBeasts;
                 }
             }
         }
         else if (evtName === RG.EVT_ACTOR_KILLED) {
             const actor = obj.actor;
-            if (actor.getName() === 'Winter demon') {
+            if (actor.getName() === 'winter demon') {
                 ++this._demonsKilled;
                 if (this._demonsKilled === this._maxDemons) {
                     this.allDemonsKilled();
@@ -660,7 +663,7 @@ class ActorKillListener {
                     'A winter demon was slain! #' + this._demonsKilled);
                 RG.debug(this, 'Max demons: ' + this._maxDemons);
             }
-            else if (actor.getName() === 'Blizzard beast') {
+            else if (actor.getName() === 'blizzard beast') {
                 ++this._beastsKilled;
                 if (this._beastsKilled === this._maxBeasts) {
                     this.allBeastsKilled();

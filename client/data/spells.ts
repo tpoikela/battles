@@ -564,7 +564,7 @@ RG.extend2(Spell.IcyPrison, SpellBase);
 /* A spell to summon an ice minion to fight for the caster. */
 Spell.SummonIceMinion = function() {
     Spell.SummonBase.call(this, 'SummonIceMinion', 14);
-    this.summonType = 'Ice minion';
+    this.summonType = 'ice minion';
 
 };
 RG.extend2(Spell.SummonIceMinion, Spell.SummonBase);
@@ -1031,12 +1031,36 @@ class IcyTouch extends Spell.MultiSpell {
 }
 Spell.IcyTouch = IcyTouch;
 
+class IcyWave extends Spell.WaveBase {
+    constructor() {
+        super('IcyWave', 20);
+        this.damageType = RG.DMG.ICE;
+        this._waveActor = 'Ice wave';
+        this._waveWidth = 3;
+        this._waveDepth = 2;
+    }
+}
+Spell.IcyWave = IcyWave;
+
+class DeathWave extends Spell.WaveBase {
+    constructor() {
+        super('DeathWave', 24);
+        this.damageType = RG.DMG.NECRO;
+        this._waveActor = 'Death wave';
+        this._waveWidth = 5;
+        this._waveDepth = 3;
+        this._waveSpeed = 95;
+    }
+}
+Spell.DeathWave = DeathWave;
+
 Spell.addAllSpells = book => {
     book.addSpell(new Spell.AnimateDead());
     book.addSpell(new Spell.ArrowOfWebs());
     book.addSpell(new Spell.Blizzard());
     book.addSpell(new Spell.Charm());
     book.addSpell(new Spell.CrossBolt());
+    book.addSpell(new Spell.DeathWave());
     book.addSpell(new Spell.DispelMagic());
     book.addSpell(new Spell.EnergyArrow());
     book.addSpell(new Spell.Flying());
@@ -1049,6 +1073,7 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.IceShield());
     book.addSpell(new Spell.IcyPrison());
     book.addSpell(new Spell.IcyTouch());
+    book.addSpell(new Spell.IcyWave());
     book.addSpell(new Spell.Kindle());
     book.addSpell(new Spell.LightningArrow());
     book.addSpell(new Spell.LightningBolt());

@@ -10,6 +10,7 @@ import {Element} from '../element';
 import {ISuccessCheck, TPropType, TCoord, IAnimArgs} from '../interfaces';
 import {Geometry} from '../geometry';
 import {Entity} from '../entity';
+import {Menu} from '../menu';
 
 type Cell = import('../map.cell').Cell;
 import {IEffArgs} from '../interfaces';
@@ -33,6 +34,7 @@ const TARGET_SPECIFIER = '$$target';
 const CELL_SPECIFIER = '$$cell';
 const SELF_SPECIFIER = 'self';
 const ITEM_SPECIFIER = '$$item';
+const CHOOSE_ARG = '$chooseArg';
 
 // Can be updated when addEffect() if called
 let handlerNames = Object.keys(handlerTable);
@@ -151,13 +153,6 @@ export class SystemEffects extends SystemBase {
         comps.forEach(effComp => {
             const effType = effComp.getEffectType();
             const effArgs: IEffArgs = effComp.getArgs();
-            /*
-            if (effArgs.area && effArgs.target) {
-                const msg = JSON.stringify(effArgs);
-                RG.err('SystemEffects', 'updateEntity',
-                    `Both target/area specified. Only one is supported: ${msg}`);
-            }
-            */
 
             let targets = [];
             if (effArgs.area) {
@@ -230,16 +225,15 @@ export class SystemEffects extends SystemBase {
     public handleAddComp(srcEnt, effComp): boolean {
         const useArgs: IEffArgs = effComp.getArgs();
         const targetEnts = SystemEffects.getEffectTargets(useArgs);
+        let abortAddDueToCb = false;
 
         this._emitDbgMsg('handleAddComp start', srcEnt);
 
+        // TODO multiple targets and selection will not work
         targetEnts.forEach(targetEnt => {
             // Prevent adding affecting the srcEnt itself (important for area
             // effects)
             if (useArgs.applyToSelf) return;
-            if (RG.isEntity(targetEnt) && targetEnt.getID() === srcEnt.getID()) {
-                return;
-            }
 
             const compName = getCompName(useArgs, targetEnt);
             let compToAdd = null;
@@ -255,7 +249,31 @@ export class SystemEffects extends SystemBase {
             if (useArgs.setters) {
                 const setters = useArgs.setters;
                 Object.keys(setters).forEach(setFunc => {
-                    if (typeof compToAdd[setFunc] === 'function') {
+                    if (setFunc === CHOOSE_ARG && srcEnt.isPlayer()) {
+                        const chooseArg = setters[setFunc];
+                        // Must create new menu with callback, we need to create
+                        // a new Effect comp with replaced info
+                        const selOptions = (arg) => {
+                            const newSet = RG.clone(setters);
+                            newSet[chooseArg.func] = arg;
+                            delete newSet.$chooseArg;
+                            const newUseArgs = Object.assign({}, useArgs);
+                            newUseArgs.setters = newSet;
+                            const newEffComp = new Component.Effects(newUseArgs);
+                            newEffComp.setItem(effComp.getItem());
+                            srcEnt.add(newEffComp);
+                        };
+                        const args = setters[setFunc].args;
+                        const menuChoices = args.map((arg, i) => {
+                            return [arg, selOptions.bind(this, arg)];
+                        });
+                        const menuSel = new Menu.SelectRequired(menuChoices);
+                        menuSel.addPre(chooseArg.menuMsg);
+                        srcEnt.getBrain().setSelectionObject(menuSel);
+                        abortAddDueToCb = true;
+                        return;
+                    }
+                    else if (typeof compToAdd[setFunc] === 'function') {
                         const valueToSet = setters[setFunc];
 
                         // Use the final target as value for setter '$$target'
@@ -277,6 +295,8 @@ export class SystemEffects extends SystemBase {
                     }
                 });
             }
+
+            if (abortAddDueToCb) {return;}
 
             // Track also the source of adding component, to track who gets
             // experience/blame from killing something

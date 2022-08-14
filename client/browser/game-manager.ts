@@ -32,7 +32,7 @@ import {OWMap} from '../src/overworld.map';
 import {KeyCode} from '../gui/keycode';
 import {ObjectShell} from '../src/objectshellparser';
 import {verifySaveData} from '../src/verify';
-import {Frame} from '../src/animation';
+import {TAnimFrame} from '../src/animation';
 
 import {Persist} from '../src/persist';
 import md5 = require('js-md5');
@@ -114,7 +114,8 @@ export class TopLogic {
         RG.gameMsg('You see a door there.');
       }
       else {
-        RG.gameMsg('There is nothing there.');
+        const baseElem = cell.getBaseElem();
+        RG.gameMsg(`You see only ${baseElem.getName()} there`);
       }
     }
     else {
@@ -191,8 +192,8 @@ export class GameManager {
     public hasNotify: boolean;
     public savedPlayerList: SentientActor[];
     public animationID: number;
-    public animation: null | Frame;
     public focusXY: TCoord;
+    public animation?: TAnimFrame;
 
     constructor(updateCb: UpdateFunc) {
         if (!updateCb) {
@@ -205,13 +206,13 @@ export class GameManager {
         this.isGUICommand = this.isGUICommand.bind(this);
         this.mainLoop = this.mainLoop.bind(this);
 
-        this.boardClassName = boardViews[0];
+        this.boardClassName = boardViews[2];
 
         // For listening to game events
         this.notify = this.notify.bind(this);
         this.hasNotify = true;
         this.listener = new ProxyListener(this.notify);
-        this.animation = null;
+        // this.animation = null;
 
         this.game = null;
         this.gameSave = new GameSave();
@@ -227,7 +228,7 @@ export class GameManager {
         this.viewportPlayerX = 35; // * 2
         this.viewportPlayerY = 15; // * 2
         this.viewportX = 35; // * 2
-        this.viewportY = 15; // * 2
+        this.viewportY = 15 - 2; // * 2
         this.resetGameControls();
 
         this.verifySaveData = true; // Checks JSON before saving if true
@@ -734,7 +735,7 @@ export class GameManager {
             this.viewportY = this.viewportPlayerY;
             this.screen.setMapShown(false);
             this.screen.setViewportXY(this.viewportX, this.viewportY);
-            this.boardClassName = 'game-board-player-view';
+            this.boardClassName = boardViews[2];
             this.showMap = false;
         }
     }
@@ -1078,17 +1079,7 @@ export class GameManager {
             const player = this.game.getPlayer();
             TopLogic.describeCell(cell, this.gameGUIState.visibleCells);
             this.updateCb({selectedCell: cell});
-            if (cell.hasItems()) {
-                this.useClickHandler(x, y, cell, 'pickup');
-            }
-            else if (cell.isAdjacent(player.getCell())) {
-                // If player has pick-axe equipped or as tool, break rocks
-                this.useClickHandler(x, y, cell, 'use-item');
-            }
-            else {
-                console.log('Using click handler to move: ', x, y);
-                this.useClickHandler(x, y, cell, 'move');
-            }
+            this.selectClickHandlerCmd(player, cell, x, y);
         }
         // Code below only for debugging. Sets some global vars, prints cell
         // info
@@ -1108,6 +1099,45 @@ export class GameManager {
         }
 
         (window as any).CELL_RG = cell;
+    }
+
+
+    public selectClickHandlerCmd(player, cell, x, y): void {
+        if (cell.isFree() && cell.hasItems()) {
+            this.useClickHandler(x, y, cell, 'pickup');
+        }
+        else if (cell.isAdjacent(player.getCell())) {
+            if (!cell.hasActors()) {
+                // If player has pick-axe equipped or as tool, break rocks
+                const item = player.getInvEq().getWeapon();
+                if (item) {
+                    this.useClickHandler(x, y, cell, 'use-item');
+                }
+            }
+            else {
+                const actor = cell.getActors()[0];
+                if (actor.isEnemy(player)) {
+                    this.useClickHandler(x, y, cell, 'attack');
+                }
+                else if (actor === player) {
+                    this.useClickHandler(x, y, cell, 'pickup');
+                }
+                else {
+                    this.useClickHandler(x, y, cell, 'chat');
+                }
+            }
+        }
+        else if (cell.isFree()) {
+            this.useClickHandler(x, y, cell, 'move');
+        }
+        else {
+            if (cell.hasActors()) {
+                const actor = cell.getActors()[0];
+                if (actor.isEnemy(player)) {
+                    this.useClickHandler(x, y, cell, 'shoot');
+                }
+            }
+        }
     }
 
     /* When an ASCII menu item is clicked, this function should be called. */
@@ -1131,9 +1161,7 @@ export class GameManager {
     public increaseFont(incr: string): void {
         const boardName = this.boardClassName;
         let idx = boardViews.indexOf(boardName);
-        console.log('increaseFont with |' + incr + '|, idx', idx);
         if (incr === '+') {
-            console.log('Went here with plus sign');
             idx += 1;
             if (idx >= boardViews.length) {
                 idx = boardViews.length - 1;
@@ -1145,9 +1173,7 @@ export class GameManager {
                 idx = 0;
             }
         }
-        console.log('idx is still', idx);
         this.boardClassName = boardViews[idx];
-        console.log('Chosen name was', this.boardClassName);
     }
 
 

@@ -66,7 +66,9 @@ export class SystemShop extends SystemBase {
     public buyItem(args: TransArgs): void {
         const {item, buyer, shop, seller} = args;
         const buyerCell = buyer.getCell();
-        const value = item.getValue() * shop.getCostFactorSell();
+        const tradeSkill = RG.getSkillLevel(buyer, RG.SKILLS.TRADING);
+        const skillCoeff = (100 - 2 * tradeSkill) / 100;
+        const value = item.getValue() * shop.getCostFactorSell() * skillCoeff;
         const goldWeight = RG.valueToGoldWeight(value);
         const nCoins = RG.getGoldInCoins(goldWeight);
 
@@ -75,6 +77,8 @@ export class SystemShop extends SystemBase {
             const nCoinsRemoved = RG.removeNCoins(buyer, nCoins);
             coins.setCount(nCoinsRemoved);
 
+            // Remove the coins before carry check to allow swapping coin weight
+            // for item weight (although this complicates the code)
             if (!buyer.getInvEq().canCarryItem(item)) {
                 buyer.getInvEq().addItem(coins); // Add coins back
                 const msg = buyer.getName() + ' cannot carry more weight';
@@ -96,7 +100,9 @@ export class SystemShop extends SystemBase {
                 if (args.callback) {
                     args.callback({msg, result: true});
                 }
-                addSkillsExp(seller, 'Trading', 1);
+                if (nCoinsRemoved >= tradeSkill) {
+                    addSkillsExp(buyer, RG.SKILLS.TRADING, 1);
+                }
             }
             else {
                 RG.err('System.Shop', 'buyItem',
@@ -134,8 +140,10 @@ export class SystemShop extends SystemBase {
         }
 
         const count = args.count || 1;
+        const tradeSkill = RG.getSkillLevel(seller, RG.SKILLS.TRADING);
+        const skillCoeff = (100 + (2 * tradeSkill)) / 100;
         const sellerCell = seller.getCell();
-        const value = count * item.getValue() * shop.getCostFactorBuy();
+        const value = count * item.getValue() * shop.getCostFactorBuy() * skillCoeff;
         const goldWeight = RG.valueToGoldWeight(value);
         const nCoins = RG.getGoldInCoins(goldWeight);
 
@@ -158,7 +166,9 @@ export class SystemShop extends SystemBase {
                     const msg = `${item.getName()} was sold.`;
                     args.callback({msg, result: true});
                 }
-                addSkillsExp(seller, 'Trading', 1);
+                if (nCoinsRemoved >= tradeSkill) {
+                    addSkillsExp(seller, 'Trading', 1);
+                }
             }
         }
         else {

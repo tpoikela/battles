@@ -121,8 +121,16 @@ export class NestGenerator extends LevelGenerator {
         }
         else {
             const halo = 1;
-            const bboxes: BBox[] = Placer.findCellArea(map, sizeX, sizeY, cellFunc, halo);
-            if (bboxes.length === 0) {return false;}
+            let bboxes: BBox[] = Placer.findCellArea(map, sizeX, sizeY, cellFunc, halo);
+            if (bboxes.length === 0) {
+                if (conf.embedOpts.alwaysEmbed) {
+                    const allCells = (c) => true;
+                    bboxes = Placer.findCellArea(map, sizeX, sizeY, allCells, halo);
+                }
+                if (bboxes.length === 0) {
+                    return false;
+                }
+            }
             bbox = RNG.arrayGetRand(bboxes);
         }
 
@@ -150,9 +158,6 @@ export class NestGenerator extends LevelGenerator {
                 RG.warn('NestGenerator', 'embedIntoLevel',
                     'Nest was merged into parent, but no connection was done');
             }
-        }
-        else if (conf.embedOpts && conf.embedOpts.alwaysEmbed) {
-            // TODO embedding will overwrite some existing cells
         }
         return false;
     }

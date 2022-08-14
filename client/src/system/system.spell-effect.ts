@@ -6,7 +6,7 @@ import {ObjectShell} from '../objectshellparser';
 import {Geometry} from '../geometry';
 
 import {SpellArgs} from '../spell';
-import {TCoord, IAnimArgs} from '../interfaces';
+import {TCoord, TCoord3D, IAnimArgs} from '../interfaces';
 
 type BaseActor = import('../actor').BaseActor;
 type Entity = import('../entity').Entity;
@@ -15,7 +15,7 @@ type EventPool = import('../eventpool').EventPool;
 const {addSkillsExp} = SystemBase;
 
 const spellEffects = ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea',
-    'SpellSelf'];
+    'SpellSelf', 'SpellWave'];
 
 /* SpellEffect system processes the actual effects of spells, and creates damage
  * dealing components etc. An example if FrostBolt which creates SpellRay
@@ -34,15 +34,21 @@ export class SystemSpellEffect extends SystemBase {
             SpellCell: this.processSpellCell.bind(this),
             SpellMissile: this.processSpellMissile.bind(this),
             SpellArea: this.processSpellArea.bind(this),
-            SpellSelf: this.processSpellSelf.bind(this)
+            SpellSelf: this.processSpellSelf.bind(this),
+            SpellWave: this.processSpellWave.bind(this),
         };
+
+        if (spellEffects.length !== Object.keys(this._dtable).length) {
+            RG.err('SystemSpellEffect', 'constructor',
+                'spellEffects and dtable keys length does not match');
+        }
 
     }
 
     /* For each different spell effect, grabs a list of components (if any
      * exist), then calls the corresponding function in dtable. */
     public updateEntity(ent: Entity): void {
-        spellEffects.forEach(effName => {
+        spellEffects.forEach((effName: string) => {
             if (ent.has(effName)) {
                 const effCompList = ent.getList(effName);
                 effCompList.forEach(effComp => {
@@ -357,8 +363,78 @@ export class SystemSpellEffect extends SystemBase {
         addSingleCellAnim(ent, args, ent.getXY());
     }
 
-    public _addDamageToActor(actor, args) {
+    public processSpellWave(ent: Entity, spellComp) {
+        const args = spellComp.getArgs();
+        const spell = args.spell;
+        const parser = ObjectShell.getParser();
+        const waveActor = spell.getWaveActor();
+        if (!waveActor) {
+            RG.err('System.SpellEffect', 'processSpellWave',
+               `No |waveActor| set for spell ${spell.getName()}`);
+        }
+        console.log('processSpellWave entered with args', args);
+
+        const width = spell.getWaveWidth();
+        const depth = spell.getWaveDepth();
+        const waveSpeed = spell.getWaveSpeed();
+        const [x0, y0, z0] = args.from;
+        const [x1, y1, z1] = args.to;
+        const level = ent.get('Location').getLevel();
+
+        // Take bresenham from 0 -> 1, then calculate rest of the wavepaths
+        // based on this bresenham line
+        const line: TCoord3D[] = Geometry.lineFuncUnique3D(args.from, args.to);
+
+        if (line.length === 0) {
+            const msg = `${spell.getName()} fizzles and fails!`;
+            const loc = ent.get('Location');
+            RG.gameMsg({msg, cell: loc.getCell()});
+            return;
+        }
+        const midW = Math.floor(width / 2);
+
+        // const dX = x1 - x0;
+        // const dY = y1 - x1;
+        // 2 cases for wave start pos: k<=1 and k > 0
+        const k = Math.abs((y1 - y0) / (x1 - x0));
+        for (let w = 0; w < width; w++) {
+            // Diff to middle wave
+            const dW = w - midW;
+            // How we modify original wave
+            let modX = 0;
+            let modY = 0;
+
+            // Stack wave actors as vertical line
+            if (k <= 1) {
+                modY = dW;
+            }
+            // Stack wave actors as horizontal line
+            else {
+                modX = dW;
+            }
+
+            for (let d = 0; d < depth; d++) {
+                const actorWave = parser.createActor(waveActor);
+                if (actorWave) {
+                    actorWave.get('Stats').setSpeed(waveSpeed);
+                    actorWave.getBrain().line = line.slice(2).map((xyz: TCoord3D) => (
+                        [xyz[0] + modX, xyz[1] + modY, xyz[2]]
+                    ));
+                    actorWave.getBrain().delay = d;
+                    const [xs, ys, zs] = line[1];
+                    level.addActor(actorWave, xs + modX, ys + modY);
+                }
+            }
+
+        }
+    }
+
+    public _addDamageToActor(actor, args): void {
         const dmg = new Component.Damage();
+        if (!RG.isEntity(args.src)) {
+            RG.err('SystemSpellEffect', '_addDamageToActor',
+                `src must be entity. Got args ${JSON.stringify(args)}`);
+        }
         dmg.setSource(args.src);
         dmg.setDamageType(args.damageType);
         dmg.setDamage(args.damage);

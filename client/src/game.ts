@@ -27,7 +27,7 @@ type BrainPlayer = import('./brain').BrainPlayer;
 type WorldTop = World.WorldTop;
 type WorldBase = World.WorldBase;
 type ZoneBase = World.ZoneBase;
-type Frame = import('./animation').Frame;
+type TAnimFrame = import('./animation').TAnimFrame;
 import {IMenu} from './menu';
 
 const POOL = EventPool.getPool();
@@ -561,7 +561,7 @@ export class GameMain {
                         this._gameOver = true;
                         RG.gameMsg('GAME OVER!');
                         if (this._engine.getPlayer() === actor) {
-                            this._engine.removePlayer();
+                            //TODO this._engine.removePlayer();
                         }
                     }
                     this._players.splice(index, 1);
@@ -783,7 +783,7 @@ export class GameMain {
     public finishAnimation() {return this._engine.finishAnimation();}
 
     /* Gets the next animation frame. */
-    public getAnimationFrame(): null | Frame {
+    public getAnimationFrame(): null | TAnimFrame {
         if (this._engine.animation) {
             return this._engine.animation.nextFrame();
         }

@@ -612,6 +612,7 @@ export class FactoryWorld {
                     if (i === (conf.nLevels - 1)) {
                         dungFeat.addLastLevelFeatures(i, level, levelConf);
                     }
+                    level.get('Place').setDepth(i + 1);
                 }
             }
             else if (conf.createPresetLevels && conf.create) {
@@ -916,6 +917,7 @@ export class FactoryWorld {
                 const id = conf.levels[i];
                 level = this.id2level[id];
             }
+            level.get('Place').setElevation(i + 1);
             face.addLevel(level);
         }
 
@@ -943,6 +945,7 @@ export class FactoryWorld {
                     summitLevelConf.maxDanger = 4;
                 }
                 level = this.factZone.createSummitLevel(summitLevelConf);
+                level.get('Place').setElevation(5 + i);
                 const dungFeat = new DungeonFeatures('mountain');
                 if (i === (conf.nLevels - 1)) {
                     dungFeat.addLastLevelFeatures(i, level, summitLevelConf);

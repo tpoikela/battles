@@ -8,6 +8,7 @@ import {
 import {Evaluator, EvaluatorCastSpell} from '../evaluators';
 import * as Component from '../component/component';
 import {Random} from '../random';
+import {TCoord3D} from '../interfaces';
 
 type ActionCallback = import('../time').ActionCallback;
 type SentientActor = import('../actor').SentientActor;
@@ -187,3 +188,53 @@ export class BrainMindControl extends BrainGoalOriented {
     }
 }
 Brain.MindControl = BrainMindControl;
+
+
+export class BrainWave extends BrainGoalOriented {
+    public line: TCoord3D[];
+    public idx: number;
+    public delay: number;
+
+    constructor(actor) {
+        super(actor);
+        this.setType('Wave');
+        this.idx = 0;
+        this.delay = 0;
+    }
+
+    public decideNextAction(): ActionCallback | null {
+        const cell = this._actor.getCell();
+        const actors = cell.getActors();
+        actors.forEach(actor => {
+            const damaging = this.getActor().get('Damaging');
+
+            // Requiring different actors makes waves of same name not affect
+            // each other
+            if (damaging && (actor.getName() !== this._actor.getName())) {
+                const flameComp = new Component.Flame();
+                flameComp.setSource(this._actor);
+                flameComp.setDamageType(damaging.getDamageType());
+                actor.add(flameComp);
+            }
+        });
+
+        if (this.idx >= this.line.length) {
+            const fadeComp = new Component.Fading();
+            this._actor.add(fadeComp);
+            return ACTION_ALREADY_DONE;
+        }
+
+        if (this.delay > 0) {
+            this.delay -= 1;
+            return ACTION_ALREADY_DONE;
+        }
+
+        const [x, y, z] = this.line[this.idx];
+        this.idx += 1;
+        const level = this._actor.get('Location').getLevel();
+        const movComp = new Component.Movement(x, y, level);
+        this._actor.add(movComp);
+        return ACTION_ALREADY_DONE;
+    }
+}
+Brain.Wave = BrainWave;

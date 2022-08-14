@@ -120,6 +120,7 @@ export class SystemMining extends SystemBase {
         let baseType = baseElem.getType();
         const toElem = Elem2Floor[baseType];
         const srcHard: number = RG.getMaterialHardness(source);
+        const mineSkill = RG.getSkillLevel(ent, RG.SKILLS.MINING);
 
         // We need to replace Breakable with something, or reduce the durability
         // 1. There is only element, and floor base element
@@ -140,7 +141,8 @@ export class SystemMining extends SystemBase {
             const breakComp = elemBreak.get('Breakable');
             const elemBreakName = elemBreak.getName();
             const elemHard = breakComp.getHardness();
-            if (Math.round(elemHard/2) <= srcHard) {
+
+            if (Math.round(elemHard/2) <= (srcHard + mineSkill)) {
                 let reduceDur = RG.getItemDamage(source);
                 const att = ent as SentientActor;
                 reduceDur += RG.strengthToDamage(att.getStatVal('Strength'));
@@ -150,6 +152,9 @@ export class SystemMining extends SystemBase {
                     level.removeElement(elemBreak, elemBreak.getX(), elemBreak.getY());
                     baseType = elemBreak.getType();
                     RG.gameMsg(`${att.getName()} breaks ${elemBreakName} with ${srcName}!`);
+                    if (elemHard > mineSkill) {
+                        SystemBase.addSkillsExp(att, RG.SKILLS.MINING, 1);
+                    }
 
                     if (elemBreak.has('Callbacks')) {
                         this._execCallbacks(elemBreak, level);
@@ -173,7 +178,7 @@ export class SystemMining extends SystemBase {
                 const baseBreakComp = baseElem.get('Breakable')
                 const baseElemHard = baseBreakComp.getHardness();
 
-                if (Math.round(baseElemHard/2) <= srcHard) {
+                if (Math.round(baseElemHard/2) <= (srcHard + mineSkill)) {
                     if (toElem) {
                         cell.setBaseElem(toElem);
                     }
@@ -208,6 +213,9 @@ export class SystemMining extends SystemBase {
                     }
                     else {
                         elemDestroyed = true;
+                        if (baseElemHard > mineSkill) {
+                            SystemBase.addSkillsExp(att, RG.SKILLS.MINING, 1);
+                        }
                         RG.gameMsg(`${att.getName()} breaks ${baseName} with ${srcName}!`);
                         if (baseElem.has('Callbacks')) {
                             this._execCallbacks(baseElem, level);

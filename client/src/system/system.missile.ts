@@ -77,23 +77,24 @@ export class SystemMissile extends SystemBase {
                 shownMsg = firedMsg + ' thuds to an obstacle';
             }
             else if (currCell.hasProp('actors') && currCell.getZ() === currZ) {
-                const actor = currCell.getActors()![0];
+                const actorHit = currCell.getActors()![0];
                 // Check hit and miss
-                if (this.targetWasHit(ent, actor, mComp)) {
+                if (this.targetWasHit(ent, actorHit, mComp)) {
                     this.finishMissileFlight(ent, mComp, currCell);
                     if (typeof mComp.onHit === 'function') {
-                        mComp.onHit(actor);
+                        mComp.onHit(actorHit);
                     }
-                    const hitVerb = this._addDamageToActor(actor, mComp);
+                    this._applyAddOnHitComp(attacker, ent, actorHit, true);
+                    const hitVerb = this._addDamageToActor(ent, actorHit, mComp);
                     RG.debug(this, 'Hit an actor');
-                    shownMsg = `${firedMsg} ${hitVerb} ${actor.getName()}`;
+                    shownMsg = `${firedMsg} ${hitVerb} ${actorHit.getName()}`;
 
-                    if (actor.has('Experience')) {
+                    if (actorHit.has('Experience')) {
                         if (ent.getType() === 'missile') {
-                            SystemBase.addSkillsExp(attacker, 'Throwing', 1);
+                            SystemBase.addSkillsExp(attacker, RG.SKILLS.THROWING, 1);
                         }
                         else if (ent.getType() === 'ammo') {
-                            SystemBase.addSkillsExp(attacker, 'Archery', 1);
+                            SystemBase.addSkillsExp(attacker, RG.SKILLS.ARCHERY, 1);
                         }
                     }
                     RG.gameWarn({cell: currCell, msg: shownMsg});
@@ -141,7 +142,7 @@ export class SystemMissile extends SystemBase {
 
     /* Adds damage to hit actor, and returns the verb for the message
      * corresponding to the hit (ie critical or not). */
-    public _addDamageToActor(ent, mComp): string {
+    public _addDamageToActor(ent, dmgEnt, mComp): string {
         let hitVerb = 'hits';
         const dmg = mComp.getDamage();
         const damageComp = new Component.Damage(dmg,
@@ -157,8 +158,9 @@ export class SystemMissile extends SystemBase {
             }
         }
 
+        this._applyAddOnHitComp(dmgSrc, ent, dmgEnt, true);
         damageComp.setDamage(nDamage);
-        ent.add(damageComp);
+        dmgEnt.add(damageComp);
         return hitVerb;
     }
 
@@ -253,18 +255,14 @@ export class SystemMissile extends SystemBase {
         const isThrown = ent.getType() === 'missile';
 
         let attack = mComp.getAttack();
-        if (attacker.has('Skills')) {
-            if (isThrown) {
-                attack += attacker.get('Skills').getLevel('Throwing');
-            }
-            else {
-                attack += attacker.get('Skills').getLevel('Archery');
-            }
+        if (isThrown) {
+            attack += RG.getSkillLevel(attacker, RG.SKILLS.THROWING);
+        }
+        else {
+            attack += RG.getSkillLevel(attacker, RG.SKILLS.ARCHERY);
         }
         let defense = target.getDefense();
-        if (target.has('Skills')) {
-            defense += target.get('Skills').getLevel('Dodge');
-        }
+        defense += RG.getSkillLevel(target, RG.SKILLS.DODGE);
 
         const isEnemy = attacker.isEnemy(target);
         let hitProp = attack / (attack + defense);
@@ -291,8 +289,47 @@ export class SystemMissile extends SystemBase {
             return true;
         }
         else {
-            SystemBase.addSkillsExp(target, 'Dodge', 1);
+            SystemBase.addSkillsExp(target, RG.SKILLS.DODGE, 1);
         }
         return false;
+    }
+
+    public _applyAddOnHitComp(att, miss, def, onAttackHit=true): void {
+        const weapon = att.getMissileWeapon();
+
+        // Apply missile AddOnHit first
+        if (miss && miss.has('AddOnHit')) {
+            const addOnHit = miss.get('AddOnHit');
+            if (addOnHit.getOnAttackHit() === onAttackHit) {
+                const comp = addOnHit.getCompToAdd();
+                SystemBase.addCompToEntAfterHit(comp, def, att);
+            }
+        }
+
+        // If missile weapon has AddOnHit, apply it as well
+        if (weapon && weapon.has) { // Attack was done using weapon
+            if (weapon.has('AddOnHit')) {
+                const addOnHit = weapon.get('AddOnHit');
+                if (addOnHit.getOnAttackHit() === onAttackHit) {
+                    const comp = addOnHit.getCompToAdd();
+                    SystemBase.addCompToEntAfterHit(comp, def, att);
+                }
+            }
+        }
+        else if (weapon && weapon.onAttackHit) {
+            const src = att;
+            weapon.onAttackHit(def, src);
+        }
+        else { // No weapon was used, AddOnHit directly on the attacking actor
+            const src = att;
+            if (src && src.has('AddOnHit')) {
+                const addOnHit = src.get('AddOnHit');
+                if (addOnHit.getOnAttackHit() === onAttackHit) {
+                    const comp = addOnHit.getCompToAdd();
+                    SystemBase.addCompToEntAfterHit(comp, def, src);
+                }
+            }
+        }
+
     }
 }

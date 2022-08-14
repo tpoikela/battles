@@ -4,7 +4,7 @@ import {Viewport} from './viewport';
 
 type Cell = import('../src/map.cell').Cell;
 type CellMap = import('../src/map').CellMap;
-type Frame = import('../src/animation').Frame;
+type TAnimFrame = import('../src/animation').TAnimFrame;
 
 interface Styles {
     [key: string]: string;
@@ -76,7 +76,7 @@ const getClassesAndCharsWithRLE = function(
     seen: Cell[] | string,
     cells: Cell[],
     selCell: TSelectedCell,
-    anim?: Frame,
+    anim?: TAnimFrame,
     styles: Styles = {},
     funcClassSrc?,
     funcCharSrc?
@@ -388,7 +388,7 @@ export class Screen {
     }
 
     public renderWithRLE(playX: number, playY: number, map: CellMap,
-                         visibleCells: Cell[], anim?: Frame, funcClassSrc?, funcCharSrc?) {
+                         visibleCells: Cell[], anim?: TAnimFrame, funcClassSrc?, funcCharSrc?) {
         this.isRLE = true;
         this._initRender(playX, playY, map);
         let yCount = 0;
@@ -498,7 +498,7 @@ export class ScreenBuffered extends Screen {
     }
 
     public renderWithRLE(playX: number, playY: number, map: CellMap,
-                         visibleCells: Cell[], anim?: Frame, funcClassSrc?, funcCharSrc?) {
+                         visibleCells: Cell[], anim?: TAnimFrame, funcClassSrc?, funcCharSrc?) {
         if (!visibleCells) {
             RG.err('ScreenBuffered', 'renderWithRLE', 'undef visibleCells');
         }

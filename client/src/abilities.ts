@@ -203,7 +203,11 @@ export class Bribery extends Direction {
                     this.bribeActor(actor);
                 }
             };
-            const nGold = 1;
+            let nGold = 1;
+            if (actor.has('Experience')) {
+                nGold = actor.get('Experience').getDanger();
+                if (nGold <= 0) {nGold = 1;}
+            }
             const costMsg = `Bribing ${actor.getName()} will cost ${nGold}.`;
             const menuMsg = costMsg + ' ' + menuConfirm.msg;
             RG.gameMsg(menuMsg);
@@ -216,17 +220,28 @@ export class Bribery extends Direction {
     protected bribeActor(actor): void {
         const name = this.actor.getName();
         let msg = `${actor.getName()} seems to be friendly towards ${name}.`;
-        if (actor.isEnemy(this.actor)) {
-            msg = `${actor.getName()} seems not to be hostile anymore towards ${name}.`;
-            actor.removeEnemyType('player'); // TODO make more generic
-            actor.removeEnemy(this.actor);
+        if (this.canBribe(actor)) {
+            if (actor.isEnemy(this.actor)) {
+                msg = `${actor.getName()} seems not to be hostile anymore towards ${name}.`;
+                actor.removeEnemyType('player'); // TODO make more generic
+                actor.removeEnemy(this.actor);
+            }
+            else {
+                actor.addFriend(this.actor);
+            }
         }
         else {
-            actor.addFriend(this.actor);
+            msg = `${actor.getName()} cannot be bribed.`;
         }
 
         const cell = this.actor.getCell();
         RG.gameMsg({cell, msg});
+    }
+
+    protected canBribe(actor): boolean {
+        const idx = RG.CANNOT_BRIBE.indexOf(actor.getType());
+        if (idx < 0) {return true;}
+        return false;
     }
 
 }

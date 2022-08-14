@@ -212,7 +212,7 @@ export class CellMap {
 
     /* Returns all free cells in the given bounding box. */
     public getFreeInBbox(bbox: BBox): Cell[] {
-        const freeCells = [];
+        const freeCells: Cell[] = [];
         for (let x = bbox.ulx; x <= bbox.lrx; x++) {
             for (let y = bbox.uly; y < bbox.lry; y++) {
                 if (this._map[x][y].isFree()) {

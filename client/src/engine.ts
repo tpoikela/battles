@@ -364,11 +364,17 @@ export class Engine {
         this.sysMan.updateSystems();
 
         // Need to check if any of the systems invalidated the command
-        if (!player.has('ImpossibleCmd')) {
+        if (!player.has('PlayerCmdInfo')) {
             this._scheduler.setAction(action);
         }
         else {
-            player.remove('ImpossibleCmd');
+            const cmdInfo = player.get('PlayerCmdInfo');
+            if (cmdInfo.getImpossibleCmd()) {
+                player.remove('PlayerCmdInfo');
+            }
+            else {
+                this._scheduler.setAction(action);
+            }
         }
 
         const msg = actionComp.getMsg();

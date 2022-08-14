@@ -25,8 +25,12 @@ const NO_TYPE = Object.freeze('');
 type Cell = import('../map.cell').Cell;
 type Entity = import('../entity').Entity;
 
-/* Placed on player if any system sees an impossible cmd being done. */
-export const ImpossibleCmd = UniqueTagComponent('ImpossibleCmd');
+/* Component used to communicate between systems, scheduler and the engine. Any
+ * system can populate the component with data.
+ * */
+export const PlayerCmdInfo = UniqueDataComponent('PlayerCmdInfo', {
+    impossibleCmd: false,
+});
 
 /* Action component is added to all schedulable acting entities.*/
 export const Action = UniqueTransientDataComponent('Action',
@@ -214,6 +218,15 @@ export const Damage = TransientDataComponent('Damage', {
     sourceActor: null // Actor who did the action to cause damage
 });
 
+Damage.prototype.setSource = function(src): void {
+    if (!RG.isEntity(src)) {
+        console.log('Wrong (non-Entity) source given: ', src);
+        RG.err('Comp.Damage', 'setSource',
+            `Non-entity sources not supported.`);
+    }
+    this.source = src;
+}
+
 Damage.prototype._init = function(dmg, type) {
     this.damage = dmg;
     this.damageType = type;
@@ -396,12 +409,6 @@ Stats.prototype.equals = function(rhs): boolean {
 const zeroStats = RG.createStatsObj(0);
 export const StatsMods = DataComponent('StatsMods',
    Object.assign({tag: ''}, zeroStats));
-/*
-   {
-    accuracy: 0, agility: 0, strength: 0,
-    willpower: 0, perception: 0, magic: 0, speed: 0,
-    tag: ''
-});*/
 
 /* Perception component holds data related to actor perception. */
 export const Perception = UniqueDataComponent('Perception',
@@ -415,9 +422,13 @@ export const AttackRanged = TransientDataComponent('AttackRanged', {
     target: null, attacker: null
 });
 
+export const Displace = TransientDataComponent('Displace', {
+    displaceTarget: null
+});
+
 /* Transient component added to a moving entity.*/
 export const Movement = TransientDataComponent('Movement', {
-    x: 0, y: 0, level: null
+    x: 0, y: 0, level: null, displace: false, actor: null
 });
 
 Movement.prototype.setXY = function(x, y) {
@@ -704,7 +715,7 @@ Named.prototype.getFullName = function() {
 };
 
 /* Poison component which damages the entity.*/
-export class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(ComponentBase)) {
+export class Poison extends Mixin.DamageRoll(ComponentBase) {
 
     public static description: string;
 
@@ -991,6 +1002,7 @@ export const SpellMissile = TransientDataComponent('SpellMissile', spellArgs);
 export const SpellCell = TransientDataComponent('SpellCell', spellArgs);
 export const SpellArea = TransientDataComponent('SpellArea', spellArgs);
 export const SpellSelf = TransientDataComponent('SpellSelf', spellArgs);
+export const SpellWave = TransientDataComponent('SpellWave', spellArgs);
 
 /* Added to actors which stop spells from passing through. */
 export const SpellStop = UniqueTagComponent('SpellStop');
@@ -1580,7 +1592,7 @@ Expiration.prototype.cleanup = function() {
 export class Duration extends Mixin.DurationRoll(ComponentBase) {
 
     public _comp: ComponentBase | number;
-    public _source: any;
+    public _source: Entity;
     public _addedOnActor: boolean;
     public _expireMsg: string;
 
@@ -1733,7 +1745,11 @@ DrainStat.prototype.applyComp = function(): boolean {
 };
 
 export const Place = UniqueDataComponent('Place', {
-    depth: 0, danger: 1
+    depth: 0, danger: 1, elevation: 0,
+});
+
+export const BuildEvent = TransientDataComponent('BuildEvent', {
+    buildType: '', elem: '', target: null,
 });
 
 import {Lore, ComponentLore} from './component.lore';
