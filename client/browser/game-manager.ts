@@ -192,6 +192,7 @@ export class GameManager {
     public savedPlayerList: SentientActor[];
     public animationID: number;
     public animation: null | Frame;
+    public focusXY: TCoord;
 
     constructor(updateCb: UpdateFunc) {
         if (!updateCb) {
@@ -266,8 +267,16 @@ export class GameManager {
         return !!this.game;
     }
 
-    public getPlayer(): SentientActor {
+    public getPlayer(): null | SentientActor {
         return this.game.getPlayer();
+    }
+
+    public getFocusedXY(): TCoord {
+        const player = this.game.getPlayer();
+        if (player) {
+            this.focusXY = player.getXY();
+        }
+        return this.focusXY;
     }
 
     public setPlayerDriver(): void {
@@ -294,7 +303,7 @@ export class GameManager {
 
     public renderScreen(): void {
         const map = this.game.getVisibleMap();
-        const [playX, playY] = this.getPlayer().getXY();
+        const [playX, playY] = this.getFocusedXY();
         if (map) {
             this.screen.renderWithRLE(
                 playX, playY, map, this.gameGUIState.visibleCells,
