@@ -614,14 +614,17 @@ export class GameMaster {
             console.log('cellsAround are', cellsAround);
             const levelSurround = new LevelSurroundings();
             const surrConf = {cellsAround, surroundX: 20, surroundY: 15};
-            createdLevel = levelSurround.surround(createdLevel, surrConf);
+            createdLevel = levelSurround.surround(createdLevel, surrConf)!;
             quarter.addLevel(createdLevel);
 
             World.addExitsToEdge(createdLevel);
             World.connectAreaConnToLevel(stairsArea, createdLevel, parentLevel);
+            // If we don't add level to game, engine will crash
+            this.game.addLevel(createdLevel);
             const msg = 'You discover a new place!';
             RG.gameMsg({cell, msg});
         }
+
 
     }
 

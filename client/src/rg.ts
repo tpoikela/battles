@@ -172,11 +172,15 @@ class RGClass {
 
     public CARDINAL_DIR: string[];
     public CARDINAL_DIR_ABBR: string[];
+    public DIAG_DIR_ABBR: string[];
 
-    public DIR: ICellDirMap<TCoord>;
+    public DIR: ICellDirMap<string>;
+    public DIR_XY: ICellDirMap<TCoord>;
 
-    public DIR_NSEW: TCoord[];
-    public DIR_DIAG: TCoord[];
+    public DIR_NSEW: string[];
+    public DIR_DIAG: string[];
+    public DIR_NSEW_XY: TCoord[];
+    public DIR_DIAG_XY: TCoord[];
 
     public SEASON: {[key: string]: string};
     public DAY: {[key: string]: string};
@@ -547,8 +551,12 @@ class RGClass {
         // Constants for movement directions
         this.CARDINAL_DIR = ['north', 'south', 'east', 'west'];
         this.CARDINAL_DIR_ABBR = ['N', 'S', 'E', 'W'];
+        this.DIAG_DIR_ABBR = ['NE', 'SE', 'NW', 'SW'];
 
-        this.DIR = {
+        this.DIR = {N: 'N', S: 'S', E: 'E', W: 'W', NE: 'NE', SE: 'SE',
+            NW: 'NW', SW: 'SW'};
+
+        this.DIR_XY = {
             N: [0, -1],
             S: [0, 1],
             E: [1, 0],
@@ -561,6 +569,8 @@ class RGClass {
 
         this.DIR_NSEW = [this.DIR.N, this.DIR.S, this.DIR.E, this.DIR.W];
         this.DIR_DIAG = [this.DIR.NE, this.DIR.SE, this.DIR.NW, this.DIR.SW];
+        this.DIR_NSEW_XY = [this.DIR_XY.N, this.DIR_XY.S, this.DIR_XY.E, this.DIR_XY.W];
+        this.DIR_DIAG_XY = [this.DIR_XY.NE, this.DIR_XY.SE, this.DIR_XY.NW, this.DIR_XY.SW];
 
         this.SEASON = {
             AUTUMN: 'AUTUMN',
@@ -1401,9 +1411,9 @@ class RGClass {
         if (Array.isArray(dir)) {
             return dir;
         }
-        else if (this.DIR.hasOwnProperty(dir)) {
+        else if (this.DIR_XY.hasOwnProperty(dir)) {
             const ucDir = dir.toUpperCase();
-            return this.DIR[ucDir];
+            return this.DIR_XY[ucDir];
         }
         this.err('RG', 'dirTodXdY',
             `Arg must be array/string (N,S,E,W..). Got: ${dir}`);

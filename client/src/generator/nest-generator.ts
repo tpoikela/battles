@@ -446,7 +446,7 @@ export class NestGenerator extends LevelGenerator {
                 const eastCell = map.getCell(eX, eY);
                 if (eastCell && eastCell.isFree()) {
                     // Need to tunnel west until floor found
-                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.W, conf);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR_XY.W, conf);
                     result.push(...tunnel);
                 }
             }
@@ -464,7 +464,7 @@ export class NestGenerator extends LevelGenerator {
                 if (westCell && westCell.isFree()) {
                     console.log('scanAndConnect free west cell at', wX, wY);
                     // Need to tunnel west until floor found
-                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.E, conf);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR_XY.E, conf);
                     result.push(...tunnel);
                 }
             }
@@ -483,7 +483,7 @@ export class NestGenerator extends LevelGenerator {
                 if (southCell && southCell.isFree()) {
                     console.log('scanAndConnect south cell at', sX, sY);
                     // Need to tunnel west until floor found
-                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.N, conf);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR_XY.N, conf);
                     result.push(...tunnel);
                 }
             }
@@ -504,7 +504,7 @@ export class NestGenerator extends LevelGenerator {
                 if (northCell && northCell.isFree()) {
                     console.log('scanAndConnect north cell at', nX, nY);
                     // Need to tunnel west until floor found
-                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR.S, conf);
+                    const tunnel = this.tunnelUntilFloor(parentLevel, x, y, RG.DIR_XY.S, conf);
                     result.push(...tunnel);
                 }
             }
@@ -515,7 +515,9 @@ export class NestGenerator extends LevelGenerator {
     }
 
     /* Given x,y and direction, tunnels from x,y until FLOOR is reached. */
-    public tunnelUntilFloor(level: Level, x, y, dXdY, conf): TCoord[] {
+    public tunnelUntilFloor(
+        level: Level, x: number, y: number, dXdY: TCoord, conf
+    ): TCoord[] {
         const [dX, dY] = dXdY;
         const res: TCoord[] = [];
         let done = false;

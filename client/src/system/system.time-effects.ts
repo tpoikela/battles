@@ -4,19 +4,19 @@ import {SystemBase} from './system.base';
 import {EventPool} from '../eventpool';
 import {Entity} from '../entity';
 import * as Component from '../component';
-import {IEffArgs} from '../interfaces';
 import {executeCompCb} from './system.utils';
 
 type ItemBase = import('../item').ItemBase;
 
 type CompEntry = [number, Entity];
 
+
 /* System which handles time-based effects like poisoning etc. It also handles
  * expiration of effects. This is a special system because its updates are
  * scheduled by the scheduler to guarantee a specific execution interval. */
 export class SystemTimeEffects extends SystemBase {
 
-    private _dtable: {[key: string]: (ent) => void};
+    private _dtable: {[key: string]: (ent: Entity) => void};
     private _expiredEffects: CompEntry[];
 
     constructor(compTypes: string[], pool: EventPool) {
@@ -104,7 +104,7 @@ export class SystemTimeEffects extends SystemBase {
     }
 
     /* Applies direct damage effect to given entity. */
-    public _applyDirectDamage(ent): void {
+    public _applyDirectDamage(ent: Entity): void {
         const ddList = ent.getList('DirectDamage');
         ddList.forEach(ddComp => {
 
@@ -127,7 +127,8 @@ export class SystemTimeEffects extends SystemBase {
 
                 const msg = ddComp.getMsg();
                 if (msg) {
-                    RG.gameMsg({cell: ent.getCell(), msg});
+                    const cell = ent.get('Location').getCell();
+                    RG.gameMsg({cell, msg});
                 }
             }
         });
@@ -135,12 +136,13 @@ export class SystemTimeEffects extends SystemBase {
 
     /* Decreases duration in Fading comp, then remove the entity if duration is
      * 0. */
-    public _applyFading(ent): void {
+    public _applyFading(ent: Entity): void {
         const fadingComp = ent.get('Fading');
         fadingComp.decrDuration();
         if (fadingComp.getDuration() <= 0) {
-            const cell = ent.getCell();
-            const level = ent.getLevel();
+            const locComp = ent.get('Location');
+            const cell = locComp.getCell();
+            const level = locComp.getLevel();
             if (RG.isActor(ent)) {
                 if (level.removeActor(ent)) {
                     this.pool.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
@@ -200,14 +202,15 @@ export class SystemTimeEffects extends SystemBase {
     }
 
     /* Processes any Heat source and applies the effect to the Entity. */
-    public _applyHeat(ent): void {
+    public _applyHeat(ent: Entity): void {
         const heatComps = ent.getList('Heat');
         heatComps.forEach(heat => {
             const heatLevel = heat.getLevel();
+            const locComp = ent.get('Location');
             if (ent.has('Coldness')) {
-                const cell = ent.getCell();
+                const cell = locComp.getCell();
                 ent.removeAll('Coldness');
-                const msg = `Thanks to heat, ${ent.getName()} stops shivering`;
+                const msg = `Thanks to heat, ${RG.getName(ent)} stops shivering`;
                 if (ent.has('BodyTemp')) {
                     const tempComp = ent.get('BodyTemp');
                     tempComp.incr();
@@ -215,10 +218,10 @@ export class SystemTimeEffects extends SystemBase {
                 RG.gameMsg({cell, msg});
             }
             if (ent.has('Drenched')) {
-                const cell = ent.getCell();
+                const cell = locComp.getCell();
                 const drenched = ent.get('Drenched');
                 drenched.decrLevel(heatLevel);
-                const msg = `${ent.getName()} feels a bit drier due to warmth!`;
+                const msg = `${RG.getName(ent)} feels a bit drier due to warmth!`;
                 RG.gameMsg({cell, msg});
                 if (drenched.isDry()) {
                     ent.remove(drenched);

@@ -28,6 +28,11 @@ interface Diamond {
     coord: TCoord[];
 }
 
+interface MergeOpts {
+    skip?: {[key: string]: boolean};
+    only?: {[key: string]: boolean};
+}
+
 type CoordDirMap = Partial<ICellDirMap<TCoord[]>>;
 
 interface ITileConf {
@@ -415,7 +420,7 @@ export class Geometry {
     /* Does a full Map.Level merge from l2 to l1.
     * Actors, items and elements included. l1 will be the merged level. */
     public static mergeLevels(
-      l1: Level, l2: Level, startX, startY, mergeOpts?
+      l1: Level, l2: Level, startX, startY, mergeOpts?: MergeOpts
     ): void {
         const m1 = l1.getMap();
         const m2 = l2.getMap();
@@ -518,7 +523,7 @@ export class Geometry {
 
     /* Merges m2 into m1 starting from x,y in m1. Does not move items/actors. */
     public static mergeMapBaseElems(
-      m1: CellMap, m2: CellMap, startX: number, startY: number, mergeOpts?
+      m1: CellMap, m2: CellMap, startX: number, startY: number, mergeOpts?: MergeOpts
     ): void {
         if (m1.cols < m2.cols) {
             const got = `m1: ${m1.cols} m2: ${m2.cols}`;

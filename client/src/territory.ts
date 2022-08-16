@@ -106,7 +106,7 @@ export class Territory {
         this.maxFillRatio = 1.0;
 
         // By default, use 8 directions for advancing on the map
-        this.dirs = RG.DIR_NSEW.concat(RG.DIR_DIAG);
+        this.dirs = RG.DIR_NSEW_XY.concat(RG.DIR_DIAG_XY);
 
         // Set options passed in as a conf object
         const confVals = ['maxNumPos', 'startSize', 'dirs', 'doPostProcess',

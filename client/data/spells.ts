@@ -367,9 +367,9 @@ Spell.CrossBolt = function() {
 
     this.cast = function(args) {
         const chosenDir = args.dir;
-        let dirs = RG.DIR_NSEW;
+        let dirs = RG.DIR_NSEW_XY;
         if (chosenDir[0] !== 0 && chosenDir[1] !== 0) {
-            dirs = RG.DIR_DIAG;
+            dirs = RG.DIR_DIAG_XY;
         }
         dirs.forEach(dXdY => {
             const newArgs = Object.assign({}, args);
@@ -840,7 +840,7 @@ Spell.RockStorm = function() {
 
     this.cast = function(args) {
         const [x, y, z] = args.src.getXYZ();
-        Object.values(RG.DIR).forEach(dXdY => {
+        Object.values(RG.DIR_XY).forEach(dXdY => {
             const tX = x + this.getRange() * dXdY[0];
             const tY = y + this.getRange() * dXdY[1];
             const obj: SpellArgs = {

@@ -2,7 +2,7 @@
 import RG from '../rg';
 import * as Component from '../component';
 import {Entity} from '../entity';
-import {EventPool} from '../eventpool';
+import {EventPool, EvtArgs} from '../eventpool';
 import {Random} from '../random';
 
 const dbg = require('debug');
@@ -143,7 +143,7 @@ export abstract class SystemBase {
         delete this.entities[entity.getID()];
     }
 
-    public notify(evtName, obj) {
+    public notify(evtName: string, obj: EvtArgs) {
         if (obj.hasOwnProperty('add')) {
             if (this.hasCompTypes(obj.entity)) {
                 this.addEntity(obj.entity);

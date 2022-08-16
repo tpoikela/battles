@@ -8,6 +8,7 @@ import {FactoryLevel} from '../client/src/factory.level';
 import * as Element from '../client/src/element';
 import {Random} from '../client/src/random';
 import {TCellProp} from '../client/src/interfaces';
+import {Entity} from '../client/src/entity';
 
 type Level = import('../client/src/level').Level;
 
@@ -46,7 +47,7 @@ RGUnitTests.moveEntityTo = function(ent: Entity, x: number, y: number): boolean 
 };
 
 /* Adds each entity into the level into a random location. */
-RGUnitTests.wrapIntoLevel = function(arr, cols = 20, rows = 20): Level {
+RGUnitTests.wrapIntoLevel = function(arr: Entity[], cols = 20, rows = 20): Level {
     const factLevel = new FactoryLevel();
     const level = factLevel.createLevel('empty', cols, rows);
     arr.forEach(ent => {
