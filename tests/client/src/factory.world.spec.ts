@@ -300,7 +300,7 @@ describe('FactoryWorld', function() {
             presetLevels: {
                 Area1x1: areaLevels
             },
-            city: [cityConf]
+            city: [cityConf], dungeon: [], mountain: [],
         };
         fact = new FactoryWorld();
         const area = fact.createArea(areaConf);
@@ -346,7 +346,7 @@ describe('FactoryWorld', function() {
             name: 'Stormy Tower',
             nFaces: 1,
             nSummits: 2,
-            maxDanger: 10,
+            maxDanger: 10, maxRarity: 10,
             face: [
                 {x: 50, y: 100, nLevels: 1, name: 'North face', maxDanger: 10}
             ],
@@ -390,9 +390,10 @@ describe('FactoryWorld', function() {
             x: 0, y: 0,
             nBranches: 1,
             connectEdges: true,
+            maxDanger: 9, maxRarity: 9,
             branch: [{
                 name: 'Main branch',
-                entranceLevel: 0,
+                entranceLevel: 0, maxDanger: 1,
                 nLevels,
                 createPresetLevels: {
                     stub: false,

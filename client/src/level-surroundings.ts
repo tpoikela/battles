@@ -2,7 +2,7 @@
  * if city is close to water or mountain, and those features must
  * be added around the city. */
 import RG from './rg';
-import {Geometry} from './geometry';
+import {Geometry, MergeOpts} from './geometry';
 import {Random} from './random';
 import {Level} from './level';
 import {CellMap} from './map';
@@ -62,25 +62,15 @@ export class LevelSurroundings {
             if (cellsAround.S === 'wallmount') {
                 const sConf = {cellsAround: {S: 'wallmount'}};
                 const sWallConf: any = this.getWallConfFromCells(sConf, xSize, ySize);
-                console.log('Using SS wall conf', sWallConf);
                 const sMapObj = mapgen.createWall(colsArea, rowsArea, sWallConf);
-                console.log('before merge S');
-                chosenMap.debugPrintInASCII();
                 Geometry.mergeMapBaseElems(chosenMap, sMapObj.map, 0, 0, mergeOpts);
-                console.log('after merge S');
-                chosenMap.debugPrintInASCII();
             }
 
             if (cellsAround.W === 'wallmount') {
                 const wConf = {cellsAround: {W: 'wallmount'}};
                 const wWallConf: any = this.getWallConfFromCells(wConf, xSize, ySize);
-                console.log('Using WW wall conf', wWallConf);
                 const wMapObj = mapgen.createWall(colsArea, rowsArea, wWallConf);
-                console.log('before merge W');
-                chosenMap.debugPrintInASCII();
                 Geometry.mergeMapBaseElems(chosenMap, wMapObj.map, 0, 0, mergeOpts);
-                console.log('after merge W');
-                chosenMap.debugPrintInASCII();
             }
         }
         else {
@@ -149,23 +139,26 @@ export class LevelSurroundings {
                     // If type matches element, do random splashes
                     const splashConf = {ratio: 0.85, skipTypes, forestSize: 200,
                         nForests: 10};
-                    const elems = [type];
-                    console.log('levSurr Adding splashes for elems', elems);
+                    const elems: string[] = [type];
                     mapgen.addSplashes(mountLevel.getMap(), splashConf, bbox, elems);
                 }
             });
         });
 
-        if (dirsHaveElem(cellsAround, ['N', 'S', 'E', 'W'], 'wallmount')) {
+        if (dirsHaveElem(cellsAround, RG.DIR_NSEW, 'wallmount')) {
             // Need to tunnel one corner, otherwise passage is blocked
             RG.DIAG_DIR_ABBR.forEach(dir => {
                 if (cellsAround[dir] !== 'wallmount') {
                     const bbox: null | BBox = Geometry.dirToBbox(colsArea, rowsArea, dir);
                     if (bbox) {
-                        let [x0, y0] = [bbox.ulx, bbox.uly];
-                        let [x1, y1] = [bbox.lrx, bbox.lry];
+                        const [x0, x1] = [bbox.ulx, bbox.lrx];
+                        let [y0, y1] = [bbox.uly, bbox.lry];
+                        /* If dir is SW or NE, reverse the bbox y */
+                        if (dir === 'SW' || dir === 'NE') {
+                            [y0, y1] = [y1, y0];
+                        }
+
                         const path = Geometry.getCaveConnLine(x0, y0, x1, y1);
-                        console.log('path is now', path);
                         const map = mountLevel.getMap();
                         path.forEach(xy => {
                             if (map.hasXY(xy[0], xy[1])) {
@@ -177,11 +170,7 @@ export class LevelSurroundings {
             });
         }
 
-        console.log('mountlevel');
-        mountLevel.debugPrintInASCII();
-        console.log('just level');
-        level.debugPrintInASCII();
-        const mOpts = {skip: {floor: true}};
+        const mOpts: MergeOpts = {skip: {floor: true}};
         Geometry.mergeLevels(mountLevel, level, xSize / 2, ySize / 2, mOpts);
 
         // This can be used to adjust coord external to this object

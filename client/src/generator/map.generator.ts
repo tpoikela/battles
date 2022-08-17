@@ -522,20 +522,21 @@ export class MapGenerator {
         this.cols = bbox.lrx - bbox.ulx;
         this.rows = bbox.lry - bbox.uly;
         this.setGen('splashes', this.cols, this.rows);
-        const splashMap = new CellMap(this.cols, this.rows, this.defaultMapElem);
+        this._mapGen = new MapForest(this.cols, this.rows, conf);
+        const srcMap = new CellMap(this.cols, this.rows, this.defaultMapElem);
         const baseElems: ConstBaseElem[] = elems.map(e => getElem(e));
 
         this._mapGen.create((x, y, val) => {
             // const createTree = rng.getUniform() <= ratio;
             if (val === 1) {
-                map.setBaseElemXY(x, y, baseElems[0]);
+                srcMap.setBaseElemXY(x, y, baseElems[0]);
             }
             else if (val === 1) {
-                map.setBaseElemXY(x, y, ELEM.GRASS);
+                srcMap.setBaseElemXY(x, y, ELEM.GRASS);
             }
         });
         elems.forEach((elem: string) => {
-            this.addElementsToMap(map, splashMap, elem, conf, bbox);
+            this.addElementsToMap(map, srcMap, elem, conf, bbox);
         });
     }
 

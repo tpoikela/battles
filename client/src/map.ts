@@ -237,6 +237,19 @@ export class CellMap {
         return emptyCells;
     }
 
+    /* Return all cells with given prop type. */
+    public getCellsWithPropType(type: string): Cell[] {
+        const cells: Cell[] = [];
+        for (let x = 0; x < this.cols; x++) {
+            for (let y = 0; y < this.rows; y++) {
+                if (this._map[x][y].hasPropType(type)) {
+                    cells.push(this._map[x][y]);
+                }
+            }
+        }
+        return cells;
+    }
+
     /* Returns true if light passes through this cell.*/
     public lightPasses(x: number, y: number, z: number): boolean {
         if (this.hasXY(x, y)) {
@@ -365,8 +378,8 @@ export class CellMap {
         }
     }
 
-    /* Returns true if x,y is located at this._map border cells.*/
-    public isBorderXY(x: number, y: number): boolean {
+    /* Returns true if x,y is located at this._map edge cells.*/
+    public isEdgeXY(x: number, y: number): boolean {
         if (x === 0) {return true;}
         if (y === 0) {return true;}
         if (x === this.cols - 1) {return true;}
@@ -422,8 +435,11 @@ export class CellMap {
                 else if ((/cliff/).test(baseType)) {row += '\u2981';}
                 else if ((/road/).test(baseType)) {row += 'R';}
                 else if ((/arctic/).test(baseType)) {row += '.';}
-                else if (cell.isFree()) {row += '.';}
-                else {row += '?';}
+                else {
+                    const char = RG.getCharFullMap(cell);
+                    if (char) {row += char;}
+                    else {row += '?';}
+                }
             }
             mapInASCII += row + '\n';
         }
@@ -601,6 +617,34 @@ export class CellMap {
         cell.setXY([x, y]);
         this._map[x][y] = cell;
     }
+
+    /* Returns an array of cells on the given edge. */
+    public getEdgeCells(edge: string): Cell[] {
+        const result: Cell[] = [];
+        let tx = 0;
+        let ty = 0;
+        if (edge === RG.DIR.S) {
+            ty = this.rows - 1;
+        } else if (edge === RG.DIR.N) {
+            ty = 0;
+        } else if (edge === RG.DIR.E) {
+            tx = this.cols - 1;
+        } else if (edge === RG.DIR.W) {
+            tx = 0;
+        } else {
+            RG.err('Map', 'getEdgeCells', 'Invalid edge: ' + edge);
+        }
+
+        for (let x = 0; x < this.cols; x++) {
+            for (let y = 0; y < this.rows; y++) {
+                if ((x === tx) && (y === ty)) {
+                    result.push(this._map[x][y]);
+                }
+            }
+        }
+        return result;
+    }
+
 }
 
 CellMap.fromJSON = function(json: {[key: string]: any}): null | CellMap {

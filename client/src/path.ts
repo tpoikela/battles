@@ -168,6 +168,20 @@ Path.getShortestPassablePath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[
     return coords;
 };
 
+/* Returns shortest path from x0,y0 to x1,y1 that does not contain any
+ *  cells with obstacles. */
+Path.getShortestPassablePathWithDoors = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
+    const coords: ICoordXY[] = [];
+    const passableCallback = (x, y, cx, cy) => (
+        !map.getCell(x, y).hasBaseElemWithComp('Impassable') || map.getCell(x, y).hasDoor()
+    );
+    const finder = new AStar3D(x1, y1, map, passableCallback);
+    finder.compute(x0, y0, (x, y) => {
+        coords.push({x, y});
+    } );
+    return coords;
+}
+
 /* Returns shortest actor to actor path. Returns shortest path between two
  * actors excluding the source and destination points. */
 Path.getActorToActorPath = function(map: CellMap, x0, y0, x1, y1): ICoordXY[] {
