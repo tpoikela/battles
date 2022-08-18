@@ -393,9 +393,13 @@ export class SystemMovement extends SystemBase {
             // Either target cell hasActor which is displace target,
             // or displaceTarget is in same cell with this actor
             const target = mov.getActor();
+            if (!target) {
+                RG.err('SystemMovement', '_checkSpecialMovement',
+                    'No target actor for displace');
+            }
             if (cell.hasActors()) {
-                const actors = cell.getActors();
-                return actors.findIndex( a =>
+                const actors = cell.getActors()!;
+                return actors.findIndex(a =>
                     a.getID() === target.getID() && a.has('Movement') &&
                     a.get('Movement').getDisplace()
                 ) >= 0;

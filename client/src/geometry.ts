@@ -3,7 +3,6 @@ import RG from './rg';
 import {Random} from './random';
 import {TCardinalDir, ICoordMap, TCoord, TCoord3D, ICellDirMap, IBBox} from './interfaces';
 import {BBox} from './bbox';
-//import {House} '../../lib/rot-js/map/features';
 
 const RNG = Random.getRNG();
 
@@ -21,11 +20,19 @@ type Level = import('./level').Level;
 type BBoxType = IBBox | BBoxOld;
 
 interface Diamond {
-    N: number[];
-    S: number[];
-    E: number[];
-    W: number[];
+    N: TCoord;
+    S: TCoord;
+    E: TCoord;
+    W: TCoord;
     coord: TCoord[];
+}
+
+export interface MergeOpts {
+    skip?: {[key: string]: boolean};
+    only?: {[key: string]: boolean};
+    noise?: {
+        baseElems?: {x: number, y: number},
+    }
 }
 
 type CoordDirMap = Partial<ICellDirMap<TCoord[]>>;
@@ -280,6 +287,7 @@ export class Geometry {
         return res;
     }
 
+
     public static getHollowDiamond(x0: number, y0: number, size: number): Diamond {
         verifyInt([x0, y0, size]);
         const RightX = x0 + 2 * size;
@@ -335,7 +343,9 @@ export class Geometry {
 
     /* Removes all xy-pairs from the first array that are contained also in the
      * 2nd one. Returns number of elements removed. */
-    public static removeMatching(modified: ICoordMap | TCoord[], toBeRemoved: TCoord[]): number {
+    public static removeMatching(
+        modified: ICoordMap | TCoord[], toBeRemoved: TCoord[]
+    ): number {
         let nFound = 0;
         if (Array.isArray(modified)) {
             toBeRemoved.forEach(xy => {
@@ -415,7 +425,7 @@ export class Geometry {
     /* Does a full Map.Level merge from l2 to l1.
     * Actors, items and elements included. l1 will be the merged level. */
     public static mergeLevels(
-      l1: Level, l2: Level, startX, startY, mergeOpts?
+      l1: Level, l2: Level, startX: number, startY: number, mergeOpts?: MergeOpts
     ): void {
         const m1 = l1.getMap();
         const m2 = l2.getMap();
@@ -518,7 +528,7 @@ export class Geometry {
 
     /* Merges m2 into m1 starting from x,y in m1. Does not move items/actors. */
     public static mergeMapBaseElems(
-      m1: CellMap, m2: CellMap, startX: number, startY: number, mergeOpts?
+      m1: CellMap, m2: CellMap, startX: number, startY: number, mergeOpts?: MergeOpts
     ): void {
         if (m1.cols < m2.cols) {
             const got = `m1: ${m1.cols} m2: ${m2.cols}`;
@@ -545,7 +555,15 @@ export class Geometry {
                       if (mergeOpts.only) {
                         if (!mergeOpts.only[elemName]) {continue;}
                       }
-                      m1._map[x][y].setBaseElem(baseElem);
+                      let [nX, nY] = [x, y];
+                      if (mergeOpts.noise && mergeOpts.noise.baseElems) {
+                        const noise = RNG.getRandDxDy(mergeOpts.noise.baseElems);
+                        nX += noise[0];
+                        nY += noise[1];
+                      }
+                      if (m1.hasXY(nX, nY)) {
+                          m1._map[nX][nY].setBaseElem(baseElem);
+                      }
                   }
               }
           }

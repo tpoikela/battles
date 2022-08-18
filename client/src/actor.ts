@@ -26,7 +26,7 @@ type SpellBook = import('./spell').SpellBook;
 export const Actor: any = {};
 
 export const ACTOR_NO_ACTION = Object.freeze(() => {});
-const EMPTY_ARGS = Object.freeze({});
+//rm const EMPTY_ARGS = Object.freeze({});
 const SPEED_COEFF = RG.BASE_SPEED * RG.ACTION_DUR;
 
 export interface StatsData {
@@ -35,7 +35,7 @@ export interface StatsData {
 
 export class BaseActor extends Entity {
 
-    protected _brain: BrainBase;
+    protected _brain?: BrainBase;
 
     constructor(name: string, build = true) {
         super();

@@ -18,6 +18,7 @@ import * as Component from '../component';
 import {Entity} from '../entity';
 import {Level} from '../level';
 import {ILoreEntry} from '../interfaces';
+import {IQuestGiverComp} from '../component/component.quest';
 
 import {QuestData, QuestTargetObj, QuestObjSurrogate} from './quest-data';
 import {Quest, Task} from './quest-task';
@@ -1056,7 +1057,7 @@ export class QuestPopulate {
 
     }
 
-    public addTargetsToGiver(giverComp, questData): void {
+    public addTargetsToGiver(giverComp: IQuestGiverComp, questData): void {
         const questID = giverComp.getQuestID();
         this.dbg('addTargetsToGiver now, ID ' + questID);
 

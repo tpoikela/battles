@@ -570,7 +570,7 @@ export class DungeonPopulate {
             if (houses) {
                 const house = RNG.arrayGetRand(houses);
                 if (trainer.getBrain().getGoal) {
-                    const evalHome = new Evaluator.GoHome(1.5);
+                    const evalHome = new Evaluator.GoHome(RG.BIAS.GoHome);
                     const xy = house.getCenter();
                     evalHome.setArgs({xy});
                     trainer.getBrain().getGoal().addEvaluator(evalHome);
@@ -591,7 +591,7 @@ export class DungeonPopulate {
             const actor = this.createActor(conf);
             const brain = actor.getBrain() as BrainGoalOriented;
             if (brain.getGoal) {
-                const evalHome = new Evaluator.GoHome(1.5);
+                const evalHome = new Evaluator.GoHome(RG.BIAS.GoHome);
                 const xy = house.getFloorCenter();
                 evalHome.setArgs({xy});
                 brain.getGoal().addEvaluator(evalHome);

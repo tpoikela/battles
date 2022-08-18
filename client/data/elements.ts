@@ -626,6 +626,10 @@ const Elements: IElemShell[] = [
         dontCreate: true, name: 'pathdown',
         char: '\u27C0', className: 'cell-element-stairs'
     },
+    {
+        dontCreate: true, name: 'wilderness',
+        char: 'X', className: 'cell-element-tree'
+    },
     /*{
         dontCreate: true, name: 'wallcastle',
         char: '#', className: 'cell-element-castle'

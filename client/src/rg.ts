@@ -30,6 +30,7 @@ type BrainGoalOriented = import('./brain').BrainGoalOriented;
 type BattleZone = import('./world').BattleZone;
 type ItemRune = import('./item').Rune;
 type ComponentBase = import('./component/component.base').ComponentBase;
+type Area = import('./world').Area;
 
 // type MissType = (Entity & Damage) | ItemBase;
 type MissType = AmmoOrMissile | ItemBase;
@@ -171,11 +172,15 @@ class RGClass {
 
     public CARDINAL_DIR: string[];
     public CARDINAL_DIR_ABBR: string[];
+    public DIAG_DIR_ABBR: string[];
 
-    public DIR: ICellDirMap<TCoord>;
+    public DIR: ICellDirMap<string>;
+    public DIR_XY: ICellDirMap<TCoord>;
 
-    public DIR_NSEW: TCoord[];
-    public DIR_DIAG: TCoord[];
+    public DIR_NSEW: string[];
+    public DIR_DIAG: string[];
+    public DIR_NSEW_XY: TCoord[];
+    public DIR_DIAG_XY: TCoord[];
 
     public SEASON: {[key: string]: string};
     public DAY: {[key: string]: string};
@@ -211,6 +216,7 @@ class RGClass {
 
     public EVT_ANIMATION: string;
 
+    public EVT_CREATE_ZONE: string;
     public EVT_CREATE_BATTLE: string;
     public EVT_BATTLE_OVER: string;
     public EVT_ARMY_EVENT: string;
@@ -402,6 +408,7 @@ class RGClass {
 
         this.EVT_ANIMATION = 'EVT_ANIMATION';
 
+        this.EVT_CREATE_ZONE = 'EVT_CREATE_ZONE';
         this.EVT_CREATE_BATTLE = 'EVT_CREATE_BATTLE';
         this.EVT_BATTLE_OVER = 'EVT_BATTLE_OVER';
         this.EVT_ARMY_EVENT = 'EVT_ARMY_EVENT';
@@ -492,6 +499,8 @@ class RGClass {
             Order: 0.7,
             Patrol: 1.0,
             Follow: 1.0,
+            Attack: 1.5,
+            GoHome: 1.4,
         };
 
         // Different fighting modes
@@ -542,8 +551,12 @@ class RGClass {
         // Constants for movement directions
         this.CARDINAL_DIR = ['north', 'south', 'east', 'west'];
         this.CARDINAL_DIR_ABBR = ['N', 'S', 'E', 'W'];
+        this.DIAG_DIR_ABBR = ['NE', 'SE', 'NW', 'SW'];
 
-        this.DIR = {
+        this.DIR = {N: 'N', S: 'S', E: 'E', W: 'W', NE: 'NE', SE: 'SE',
+            NW: 'NW', SW: 'SW'};
+
+        this.DIR_XY = {
             N: [0, -1],
             S: [0, 1],
             E: [1, 0],
@@ -556,6 +569,8 @@ class RGClass {
 
         this.DIR_NSEW = [this.DIR.N, this.DIR.S, this.DIR.E, this.DIR.W];
         this.DIR_DIAG = [this.DIR.NE, this.DIR.SE, this.DIR.NW, this.DIR.SW];
+        this.DIR_NSEW_XY = [this.DIR_XY.N, this.DIR_XY.S, this.DIR_XY.E, this.DIR_XY.W];
+        this.DIR_DIAG_XY = [this.DIR_XY.NE, this.DIR_XY.SE, this.DIR_XY.NW, this.DIR_XY.SW];
 
         this.SEASON = {
             AUTUMN: 'AUTUMN',
@@ -788,12 +803,13 @@ class RGClass {
             ARCHERY: 'Archery',
             ARMOUR: 'Armour',
             BATTLE: 'Battle',
-            SHIELDS: 'Shields',
             CLIMBING: 'Climbing',
             DODGE: 'Dodge',
             EXPLORATION: 'Exploration',
+            FARMING: 'Farming',
             MELEE: 'Melee',
             MINING: 'Mining',
+            SHIELDS: 'Shields',
             SPELLCASTING: 'SpellCasting',
             THROWING: 'Throwing',
             TRADING: 'Trading',
@@ -1395,9 +1411,9 @@ class RGClass {
         if (Array.isArray(dir)) {
             return dir;
         }
-        else if (this.DIR.hasOwnProperty(dir)) {
+        else if (this.DIR_XY.hasOwnProperty(dir)) {
             const ucDir = dir.toUpperCase();
-            return this.DIR[ucDir];
+            return this.DIR_XY[ucDir];
         }
         this.err('RG', 'dirTodXdY',
             `Arg must be array/string (N,S,E,W..). Got: ${dir}`);
@@ -2110,6 +2126,10 @@ class RGClass {
             RG.err('RG.isActorActive', 'Got non-entity: ', JSON.stringify(target));
         }
         return target && !target.has('Dead');
+    }
+
+    public isArea(target: any): target is Area {
+        return target.getType && target.getType() === 'area';
     }
 
 /* Returns the use type (ie drink or dig or hit...) for a item/target pair. */

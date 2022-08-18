@@ -7,6 +7,7 @@ import ModalHeader from './modal-header';
 import RG from '../src/rg';
 import * as Component from '../src/component';
 import {SentientActor} from '../src/actor';
+import {IQuestComp} from '../src/component/component.quest';
 import Modal from 'react-bootstrap-modal';
 
 interface IGameCharInfoState {
@@ -22,9 +23,9 @@ interface IGameCharInfoProps {
 }
 
 interface IGameQuestSlotProps {
-    quest: any;
-    setSelectedQuest: (quest: any) => void;
-    selectedQuest?: any;
+    quest: IQuestComp;
+    setSelectedQuest: (quest: IQuestComp) => void;
+    selectedQuest?: IQuestComp;
 }
 
 /* Used to render a single quest into GameCharInfo Quest tab. */
@@ -39,14 +40,14 @@ export class QuestSlot extends React.Component {
 
   public render() {
     const quest = this.props.quest;
-    const questID = quest.getID();
+    const questID = quest.getQuestID();
     let isSel = false;
     if (this.props.selectedQuest) {
-      isSel = questID === this.props.selectedQuest.getID();
+      isSel = questID === this.props.selectedQuest.getQuestID();
     }
     return (
-      <li key={quest.getID()} onClick={this.setSelectedQuest}>
-        <p className={isSel ? 'active-quest' : ''}>
+      <li key={quest.getQuestID()} onClick={this.setSelectedQuest}>
+        <p className={isSel ? 'text-success' : ''}>
           {this.props.quest.toString()}
         </p>
       </li>
@@ -289,7 +290,7 @@ export default class GameCharInfo extends React.Component {
 
   /* Renders information about quests taken/completed by the player. */
   public renderQuestsTab(actor) {
-    const quests = actor.getList('Quest');
+    const quests: IQuestComp[] = actor.getList('Quest');
     const questsElem = quests.map(quest => (
         <QuestSlot
             quest={quest}

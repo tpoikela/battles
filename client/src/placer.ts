@@ -132,7 +132,7 @@ export class Placer {
         return ok;
     }
 
-    /* Returns a bounding for of given size from the map, if any is found. Useful
+    /* Returns bboxes of given size from the map, if any are found. Useful
      * for retrofitting sub-levels into already generated levels. */
     public static findCellArea(
         map: CellMap, sizeX: number, sizeY: number, func: (cell: Cell) => boolean,

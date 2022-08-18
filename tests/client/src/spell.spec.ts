@@ -152,12 +152,12 @@ describe('Spell.IcyPrison', () => {
 
         const spellArgs = {
             src: caster,
-            dir: RG.DIR.E
+            dir: RG.DIR_XY.E
         };
         icyPrison.cast(spellArgs);
 
         effSystem.update();
-        expect(paralyzed.has('Paralysis')).to.be.true;
+        expect(paralyzed).to.have.component('Paralysis');
     });
 });
 
@@ -208,7 +208,6 @@ describe('Spell.SummonIceMinion by frostburn monarch', () => {
         level.debugPrintInASCII();
         monarch.nextAction();
         expect(monarch).to.have.component('SpellCast');
-        console.log(monarch.get('SpellCast'));
         RGTest.updateSystems(systems);
 
         actors = level.getActors();

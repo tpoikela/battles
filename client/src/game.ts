@@ -446,10 +446,10 @@ export class GameMain {
     /* Adds an event to the scheduler.*/
     public addEvent(gameEvent) {this._engine.addEvent(gameEvent);}
 
-    public addActiveLevel(level) {this._engine.addActiveLevel(level);}
+    public addActiveLevel(level: Level) {this._engine.addActiveLevel(level);}
 
     /* Adds one level to the game.*/
-    public addLevel(level) {
+    public addLevel(level: Level): void {
         if (!this._engine.hasLevel(level)) {
             this._engine.addLevel(level);
         }
@@ -459,13 +459,13 @@ export class GameMain {
     }
 
     /* Adds given level to the game unless it already exists. */
-    public addLevelUnlessExists(level) {
+    public addLevelUnlessExists(level: Level) {
         if (!this._engine.hasLevel(level)) {
             this._engine.addLevel(level);
         }
     }
 
-    public removeLevels(levels) {
+    public removeLevels(levels: Level[]): void {
         this._engine.removeLevels(levels);
     }
 

@@ -975,16 +975,10 @@ export class BrainPlayer extends BrainSentient {
 
         if (KeyMap.isUseStairs(code)) {
           cmdType = 'STAIRS';
-          if (currCell.hasConnection()) {
-            return () => {
-                const stairsComp = new Component.UseStairs();
-                this._actor.add(stairsComp);
-            };
-          }
-          else {
-            return this.cmdNotPossible(
-              'There are no stairs or passage here.');
-          }
+          return () => {
+            const stairsComp = new Component.UseStairs();
+            this._actor.add(stairsComp);
+          };
         }
 
         if (KeyMap.isToggleDoor(code)) {
@@ -996,7 +990,7 @@ export class BrainPlayer extends BrainSentient {
               this._wantSelection = true;
               this._selectionObject =
                 this._actor.getBook().getSelectionObject();
-              RG.gameMsg('Press 0-9 to make a selection.');
+              RG.gameMsg('Press 0-9a-z to make a selection.');
           }
           else {
               RG.gameMsg('You have no powers to use.');

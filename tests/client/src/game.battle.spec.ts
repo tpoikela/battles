@@ -125,8 +125,6 @@ describe('Game.Battle', function() {
             expect(actor.has('BattleOver'), msg).to.equal(false);
         });
 
-        const state = Random.getRNG().toJSON();
-        // console.log('RNG end state is ', state);
     });
 
 });

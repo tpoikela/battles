@@ -401,7 +401,7 @@ export default class GameEditor extends Component {
       const map = this.getCurrMap();
       const [x0, y0] = firstCell.getXY();
       const [x1, y1] = cell.getXY();
-      const coord = Path.getShortestPassablePath(map, x0, y0, x1, y1);
+      const coord = Path.getShortestPassablePathWithDoors(map, x0, y0, x1, y1);
       const pathCells = coord.map(xy => map!.getCell(xy.x, xy.y));
       this.setState({selectedCell: pathCells,
         mouseOverCell: cell});

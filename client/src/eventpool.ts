@@ -27,20 +27,21 @@ export class EventPool  { // {{{2
         return EventPool.poolInstance;
     }
 
-    private static id: number = 0;
+    //rm private static id: number = 0;
 
     private _listeners: {[key: string]: Listener[]};
     private _nListeners: number;
     private _listenerID: number;
     private _lastEmitted: string | null;
-    private _lastRemoved: any;
-    private pendingRemoves: any[];
+    private _lastRemoved: Listener | null;
+    private pendingRemoves: Listener[];
     private notifyStackSize: number;
     private _lastArgs: any;
     private cannotRemove: boolean;
 
     constructor() {
         this.reset();
+        this.cannotRemove = false;
     }
 
     public getNumListeners(): number {
@@ -87,7 +88,7 @@ export class EventPool  { // {{{2
     }
 
     /* Register an event listener. */
-    public listenEvent(evtName, obj: Listener): void {
+    public listenEvent(evtName: string, obj: Listener): void {
         if (!RG.isNullOrUndef([evtName])) {
             if (obj.hasOwnProperty('notify') || obj.hasNotify) {
                 if (this._listeners.hasOwnProperty(evtName)) {
@@ -117,7 +118,7 @@ export class EventPool  { // {{{2
         }
     }
 
-    public isListener(obj): boolean {
+    public isListener(obj: any): boolean {
         let found = false;
         this.forEachEvent(obj, foundObj => {
             // As callback is called only for found object,
@@ -128,7 +129,7 @@ export class EventPool  { // {{{2
     }
 
     /* Calls callback with object for each event */
-    public forEachEvent(obj, cb): void {
+    public forEachEvent(obj: any, cb): void {
         const id = obj.listenerID;
         const evtKeys = Object.keys(this._listeners);
         evtKeys.forEach(evt => {
@@ -143,7 +144,7 @@ export class EventPool  { // {{{2
     /* Removes the object from a list of event listeners. Note that if remove is
      * is triggered within notify() function of an object, the removal is made
      * pending and processed once notify() finishes (see this.dontRemove). */
-    public removeListener(obj): void {
+    public removeListener(obj: Listener): void {
         if (obj.hasOwnProperty('listenerID')) {
             if (this.cannotRemove) {
                 this.pendingRemoves.push(obj);
@@ -220,7 +221,7 @@ export class EventPool  { // {{{2
     }
 
     /* Returns listeners for the given event. */
-    public getListeners(evtName): Listener[] {
+    public getListeners(evtName: string): Listener[] {
         if (this._listeners.hasOwnProperty(evtName)) {
             return this._listeners[evtName].slice();
         }

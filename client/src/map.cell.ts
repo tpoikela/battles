@@ -42,7 +42,7 @@ export class Cell {
     public _xy: number;
 
     private _baseElem: ConstBaseElem;
-    private _p: CellProps;
+    private _p?: CellProps;
 
     // State flags are cached here (up to 32 state bits possible)
     private _state: number;
@@ -57,6 +57,43 @@ export class Cell {
         this.setStateBit(IND_LIGHT_PASSES, elem.lightPasses());
         this.setStateBit(IND_IS_PASSABLE, elem.isPassable());
     }
+
+    // Get number of actors in the Cell
+    public getNumActors(): number {
+        const actors = this.getActors();
+        if (actors) {
+            return actors.length;
+        }
+        return 0;
+    }
+
+    /* Returns true if the cell has any actors with given name.*/
+    public hasActor(name: string): boolean {
+        const actors = this.getActors();
+        if (actors) {
+            for (let i = 0; i < actors.length; i++) {
+                if (actors[i].getName() === name) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /* Returns the actor with given name, or null if does not have any actor
+    * with that name. */
+    public getActor(name: string): BaseActor | null {
+        const actors = this.getActors();
+        if (actors) {
+            for (let i = 0; i < actors.length; i++) {
+                if (actors[i].getName() === name) {
+                    return actors[i];
+                }
+            }
+        }
+        return null;
+    }
+
 
     public getX(): number {return this._xy & X_POS;}
     public getY(): number {return (this._xy & Y_POS) >>> Y_SHIFT;}
@@ -562,6 +599,11 @@ export class Cell {
 
     public isOutdoors(): boolean {
         return !this._baseElem.has('Indoor');
+    }
+
+    /* Return true if the cell has baseElem with given compType. */
+    public hasBaseElemWithComp(compType: string): boolean {
+        return this._baseElem.has(compType);
     }
 
     public hasElemWith(compType: string): boolean {

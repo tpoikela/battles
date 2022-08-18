@@ -195,5 +195,12 @@ export class Random {
         return array;
     }
 
+    /* Return x and y randomly adjusted with obj.x and obj.y. */
+    public getRandDxDy(obj: {x: number, y: number}): TCoord {
+        const x = this.getUniformInt(-obj.x, obj.x);
+        const y = this.getUniformInt(-obj.y, obj.y);
+        return [x, y];
+    }
+
 }
 

@@ -620,7 +620,8 @@ describe('Game.FromJSON', function() {
         const firstKill = newQuestComp.first('kill');
         const refData = {
             id: killTarget.getID(), name: killTarget.getName(),
-            targetType: 'kill', subQuestID: -1
+            targetType: 'kill', subQuestID: -1,
+            isCompleted: false,
         };
         expect(firstKill).to.deep.equal(refData);
         /*

@@ -10,9 +10,16 @@ import {Level} from './level';
 import {SentientActor} from './actor';
 import {WorldTop} from './world';
 import {BBox} from './bbox';
+import {Cell} from './map.cell';
+import {FactoryLevel} from './factory.level';
+import {Geometry} from './geometry';
+import {World, City, CityQuarter, AreaTile} from './world';
+import {LevelSurroundings} from './level-surroundings';
+import {ElementStairs} from './element';
 
 import {EventPool, EvtArgs} from './eventpool';
 import * as Component from './component';
+import * as IF from './interfaces';
 
 const dbg = require('debug');
 const debug = dbg('bitn:GameMaster');
@@ -64,6 +71,7 @@ export class GameMaster {
         this.pool.listenEvent(RG.EVT_TILE_CHANGED, this);
         this.pool.listenEvent(RG.EVT_BATTLE_OVER, this);
         this.pool.listenEvent(RG.EVT_CREATE_BATTLE, this);
+        this.pool.listenEvent(RG.EVT_CREATE_ZONE, this);
     }
 
     public setDebug(enable: boolean): void {
@@ -153,6 +161,10 @@ export class GameMaster {
             }
             debug('GameMaster registered battle over');
             // TODO delete the battle (but keep the level)
+        }
+        else if (evtName === RG.EVT_CREATE_ZONE) {
+            const {areaTile, level, cell, zoneConf} = args;
+            this.createZoneIntoAreaTileLevel(areaTile, level, cell, zoneConf);
         }
     }
 
@@ -570,4 +582,50 @@ export class GameMaster {
         this.hasBattleSpawned[parentId] = true;
         return battle;
     }
+
+    public createZoneIntoAreaTileLevel(
+        areaTile: AreaTile,
+        parentLevel: Level, cell: Cell, conf: IF.ZoneConf
+    ): void {
+        const cols = 60;
+        const rows = 30;
+
+        const id = parentLevel.getID();
+        const name = conf.name || 'Wilderness';
+
+        const factLevel = new FactoryLevel();
+        let createdLevel = factLevel.createLevel('empty', cols, rows);
+        if (parentLevel) {
+            const cityZone = new City(conf.name);
+            const quarter = new CityQuarter(conf.name);
+            //TODO: Could we set this in areaTile.addZone
+            cityZone.tileX = areaTile.getTileX();
+            cityZone.tileY = areaTile.getTileY();
+            cityZone.addSubZone(quarter);
+            areaTile.addZone('city', cityZone);
+
+            // Add connecting stairs between battle and area
+            const stairsArea = new ElementStairs('wilderness', parentLevel);
+            const map = parentLevel.getMap();
+            const [x, y] = cell.getXY();
+            parentLevel.addStairs(stairsArea, x, y);
+
+            const cellsAround = Geometry.getCellsAround(map, cell);
+            console.log('cellsAround are', cellsAround);
+            const levelSurround = new LevelSurroundings();
+            const surrConf = {cellsAround, surroundX: 20, surroundY: 15};
+            createdLevel = levelSurround.surround(createdLevel, surrConf)!;
+            quarter.addLevel(createdLevel);
+
+            World.addExitsToEdge(createdLevel);
+            World.connectAreaConnToLevel(stairsArea, createdLevel, parentLevel);
+            // If we don't add level to game, engine will crash
+            this.game.addLevel(createdLevel);
+            const msg = 'You discover a new place!';
+            RG.gameMsg({cell, msg});
+        }
+
+
+    }
+
 }

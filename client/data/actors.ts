@@ -757,6 +757,13 @@ export const ActorsData: ActorShell[] = [
       attack: 1, defense: 1, protection: 1, hp: 10, danger: 1,
       color: color('Brown', grayBg),
     },
+    /*{
+      name: 'bearfolk farmer', base: 'BearfolkBase',
+      damage: '1d5 + 1',
+      attack: 1, defense: 1, protection: 1, hp: 10, danger: 1,
+      color: color('Brown', grayBg),
+      brain: 'BrainFarmer',
+    },*/
     {
       name: 'bearfolk thief', base: 'BearfolkBase',
       color: color('Brown', grayBg),
@@ -1974,8 +1981,10 @@ Actors.modOrder = ['scale', 'add'];
  * changing the values breaks unit tests fairly easily. If
  * RG.ObjectShell.getParser()
  * is used (recommended), the adjustment is applied automatically. */
-export const adjustActorValues = (actorsData, order = Actors.modOrder) => {
-    order.forEach(mod => {
+export const adjustActorValues = (
+    actorsData: ActorShell[], order: string[] = Actors.modOrder
+): void => {
+    order.forEach((mod: string) => {
         const funcName = Actors.modToFunc[mod];
         Object.keys(Actors[mod]).forEach(item => {
             Actors[funcName](actorsData, item, Actors[mod][item]);

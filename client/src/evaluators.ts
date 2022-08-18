@@ -563,7 +563,7 @@ export class EvaluatorGoHome extends EvaluatorBase {
     constructor(actorBias: number) {
         super(actorBias);
         this.type = 'GoHome';
-        this.timeToHomeSick = RNG.getUniformInt(20, 40);
+        this.timeToHomeSick = RNG.getUniformInt(200, 400);
         this.timeToStay = 0;
         this.maxDistHome = 5;
         this.x = -1;

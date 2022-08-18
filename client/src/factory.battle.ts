@@ -86,13 +86,7 @@ export class FactoryBattle {
             }
 
             World.addExitsToEdge(battleLevel);
-
-            const battleExits: Stairs[] = battleLevel.getConnections();
-            stairsArea.connect(battleExits[0]);
-            for (let i = 1; i < battleExits.length; i++) {
-                battleExits[i].setTargetLevel(parentLevel);
-                battleExits[i].setTargetStairs(stairsArea);
-            }
+            World.connectAreaConnToLevel(stairsArea, battleLevel, parentLevel);
 
         }
 

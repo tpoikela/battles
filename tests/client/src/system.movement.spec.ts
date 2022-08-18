@@ -203,4 +203,25 @@ describe('System.Movement', () => {
         expect(drenched.getLevel()).to.equal(2 + 4);
     });
 
+    it('handles Displace of two actors', () => {
+        const level1 = Factory.createLevel('arena', 10, 10);
+        const actor1 = new SentientActor('TestActor1');
+        const actor2 = new SentientActor('TestActor2');
+        level1.addActor(actor1, 1, 1);
+        level1.addActor(actor2, 2, 2);
+        const movComp = new Component.Movement(2, 2, level1);
+        movComp.setActor(actor2);
+        const movComp2 = new Component.Movement(1, 1, level1);
+        movComp2.setActor(actor1);
+        movComp.setDisplace(true);
+        movComp2.setDisplace(true);
+        actor1.add(movComp);
+        actor2.add(movComp2);
+        movSystem.update();
+        expect(actor1.getX()).to.equal(2);
+        expect(actor1.getY()).to.equal(2);
+        expect(actor2.getX()).to.equal(1);
+        expect(actor2.getY()).to.equal(1);
+    });
+
 });

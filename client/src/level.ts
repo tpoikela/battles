@@ -6,9 +6,9 @@ import {compsToJSON} from './component/component.base';
 import {Random} from './random';
 import {EventPool} from './eventpool';
 import {verifyLevelCache} from './verify';
-import * as Mixin from './mixin';
 import {ELEM} from '../data/elem-constants';
 import * as Component from './component/component';
+import {Element} from './element';
 import {BBox} from './bbox';
 
 // Import types only
@@ -806,5 +806,29 @@ export class Level extends Entity {
     public verifyLevelCache(): void {
         verifyLevelCache(this);
     }
+
+    /* Given Level l1 and l2, connect each Cell in their specified edges together using
+     * an array of Element.Stairs. */
+    public static connectLevels(l1: Level, l2: Level, edge1: string, edge2: string): void {
+        const c1: Cell[] = l1.getCellsOnEdge(edge1);
+        const c2: Cell[] = l2.getCellsOnEdge(edge2);
+        if (c1.length !== c2.length) {
+            RG.err('Level', 'connectLevels', 'Cell arrays not same length');
+        }
+
+        for (let i = 0; i < c1.length; i++) {
+            const e1 = new Element.Stairs('stairs', l1, l2);
+            const e2 = new Element.Stairs('stairs', l2, l1);
+            l1.addElement(e1, c1[i].getX(), c1[i].getY());
+            l2.addElement(e2, c2[i].getX(), c2[i].getY());
+        }
+    }
+
+    /* Returns an array of cells on the given edge. */
+    public getCellsOnEdge(edge: string): Cell[] {
+        return this.getMap().getEdgeCells(edge);
+    }
+
+
 }
 
