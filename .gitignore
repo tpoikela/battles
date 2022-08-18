@@ -43,6 +43,7 @@ jspm_packages
 tags
 
 style.css*
+tslint
 
 br-cache-prod.json
 browserify-cache.json
